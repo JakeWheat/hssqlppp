@@ -1,0 +1,70 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >DoChaosSql</title
+    ><link href="../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >Convert the Chaos 2010 example sql to html, and do some stuff with hssqlppp to it and show the results.</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">{-# LANGUAGE ScopedTypeVariables #-}</span>
+<span class="Keyword">module</span> <span class="ConId">DoChaosSql</span>
+    <span class="Symbol">(</span><span class="VarId">getTransformedChaosSql</span><span class="Symbol">)</span> <span class="Keyword">where</span>
+
+<span class="Comment">--import System.FilePath.Find</span>
+<span class="Keyword">import</span> <span class="ConId">System.FilePath</span>
+<span class="Comment">--import Control.Monad.Error</span>
+
+<span class="Keyword">import</span> <span class="ConId">AnnotateSource2</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Chaos.ChaosExtensions</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Chaos.ChaosFiles</span>
+
+<span class="Function">getTransformedChaosSql</span> <span class="Symbol">::</span> <span class="ConId">IO</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">String</span><span class="Symbol">)]</span>
+<span class="Function">getTransformedChaosSql</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+  <span class="VarId">fs</span> <span class="Symbol">&lt;-</span> <span class="VarId">annotateSource2</span> <span class="Symbol">(</span><span class="ConId">Just</span> <span class="VarId">chaosExtensions</span><span class="Symbol">)</span> <span class="ConId">Nothing</span> <span class="String">&quot;template1&quot;</span> <span class="VarId">chaosFiles</span>
+  <span class="Comment">--flip mapM_ fs $ \(f,s) -&gt; putStrLn (&quot;\n\n\n----------------------\n&quot; ++ f) &gt;&gt; putStrLn s</span>
+  <span class="VarId">return</span> <span class="Symbol">$</span> <span class="VarId">flip</span> <span class="VarId">map</span> <span class="VarId">fs</span> <span class="Symbol">$</span> <span class="Symbol">\(</span><span class="VarId">f</span><span class="Symbol">,</span><span class="VarId">s</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="VarId">snd</span> <span class="Symbol">(</span><span class="VarId">splitFileName</span> <span class="VarId">f</span><span class="Symbol">)</span> <span class="Symbol">++</span> <span class="String">&quot; transformed&quot;</span>
+                                   <span class="Symbol">,</span><span class="VarId">f</span> <span class="Symbol">++</span> <span class="String">&quot;.tr.html&quot;</span>
+                                   <span class="Symbol">,</span><span class="VarId">s</span><span class="Symbol">)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"> <span class="Comment">{- -- create html versions of original source</span>
+<span class="Comment">  sf &lt;- sourceFiles</span>
+<span class="Comment">  mapM_ convFile sf</span>
+<span class="Comment">  -- do annotated source files</span>
+<span class="Comment">  new &lt;- liftIO (annotateSource2 (Just chaosExtensions) Nothing &quot;template1&quot; chaosFiles)</span>
+<span class="Comment">  forM_ new (\(f,c) -&gt; pf Txt (snd (splitFileName f) ++ &quot; transformed&quot;)</span>
+<span class="Comment">                          (Str c) (f ++ &quot;.tr.html&quot;))</span>
+<span class="Comment">  return ()</span>
+<span class="Comment">  where</span>
+<span class="Comment">    sourceFiles = do</span>
+<span class="Comment">      find always sourceFileP &quot;testfiles/chaos2010sql/&quot;</span>
+<span class="Comment">    sourceFileP = extension ==? &quot;.sql&quot; ||? extension ==? &quot;.txt&quot;</span>
+<span class="Comment">    convFile f = do</span>
+<span class="Comment">      pf (case takeExtension f of</span>
+<span class="Comment">            &quot;.txt&quot; -&gt; Txt</span>
+<span class="Comment">            &quot;.sql&quot; -&gt; Sql</span>
+<span class="Comment">            _ -&gt; error $ &quot;unrecognised extension in dochaosql&quot; ++ f)</span>
+<span class="Comment">         (snd $ splitFileName f)</span>
+<span class="Comment">         (File f)</span>
+<span class="Comment">         (f ++ &quot;.html&quot;)-}</span></pre></div></div></div><p
+    >TODO:</p
+    ><p
+    >use the new annotate, then we can present the original pristine source, and the source that has been scribbled all over by hsssqlppp.</p
+    ><p
+    >add a separate page to summarize the resulant catalog, use the modules to split this into sections. When the export lists are done, use this to divide each section into public, private.</p
+    ><p
+    >add a separate page to list the type errors with links to the source where they occur (both the original and mangled source)</p
+    ><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

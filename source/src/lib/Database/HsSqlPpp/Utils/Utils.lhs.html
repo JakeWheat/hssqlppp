@@ -1,0 +1,172 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >Utils</title
+    ><link href="../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >This file contains some generic utility stuff</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">{-# LANGUAGE FlexibleContexts #-}</span>
+
+<span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.Utils.Utils</span> <span class="Keyword">where</span>
+
+<span class="Keyword">import</span> <span class="ConId">Data.List</span>
+<span class="Keyword">import</span> <span class="ConId">Data.Either</span>
+<span class="Keyword">import</span> <span class="ConId">Data.Char</span>
+<span class="Keyword">import</span> <span class="ConId">Control.Arrow</span>
+<span class="Keyword">import</span> <span class="ConId">Control.Monad.Error</span>
+<span class="Keyword">import</span> <span class="ConId">Control.Applicative</span></pre></div></div></div><p
+    >used to mix regular function composition and &gt;&gt;= in monads, so the order of application stays the same instead of going backwards when (.) is used</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">infixl</span> <span class="Number">9</span> <span class="Symbol">|&gt;</span>
+<span class="Symbol">(|&gt;)</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="VarId">b</span> <span class="Symbol">-&gt;</span> <span class="VarId">c</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">c</span>
+<span class="Symbol">(|&gt;)</span> <span class="Symbol">=</span> <span class="VarId">flip</span> <span class="Symbol">(.)</span>
+
+<span class="Function">errorWhen</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Error</span> <span class="VarId">a</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span> <span class="ConId">Bool</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="VarId">a</span> <span class="Symbol">()</span>
+<span class="Function">errorWhen</span> <span class="VarId">cond</span> <span class="Symbol">=</span> <span class="VarId">when</span> <span class="VarId">cond</span> <span class="Symbol">.</span> <span class="ConId">Left</span>
+
+<span class="Function">returnWhen</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Monad</span> <span class="VarId">m</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span> <span class="ConId">Bool</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">m</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">m</span> <span class="VarId">a</span>
+<span class="Function">returnWhen</span> <span class="VarId">c</span> <span class="VarId">t</span> <span class="VarId">t1</span> <span class="Symbol">=</span> <span class="Keyword">if</span> <span class="VarId">c</span> <span class="Keyword">then</span> <span class="VarId">return</span> <span class="VarId">t</span> <span class="Keyword">else</span> <span class="VarId">t1</span>
+
+<span class="Function">liftME</span> <span class="Symbol">::</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="VarId">b</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="VarId">a</span> <span class="VarId">b</span>
+<span class="Function">liftME</span> <span class="VarId">d</span> <span class="VarId">m</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">m</span> <span class="Keyword">of</span>
+               <span class="ConId">Nothing</span> <span class="Symbol">-&gt;</span> <span class="ConId">Left</span> <span class="VarId">d</span>
+               <span class="ConId">Just</span> <span class="VarId">b</span> <span class="Symbol">-&gt;</span> <span class="ConId">Right</span> <span class="VarId">b</span>
+
+<span class="Function">both</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="VarId">a</span><span class="Symbol">-&gt;</span><span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="VarId">a</span><span class="Symbol">,</span><span class="VarId">a</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="VarId">b</span><span class="Symbol">,</span><span class="VarId">b</span><span class="Symbol">)</span>
+<span class="Function">both</span> <span class="VarId">fn</span> <span class="Symbol">=</span> <span class="VarId">fn</span> <span class="Symbol">***</span> <span class="VarId">fn</span>
+
+<span class="Symbol">(&lt;:&gt;)</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Applicative</span> <span class="VarId">f</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span>
+         <span class="VarId">f</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">f</span> <span class="Symbol">[</span><span class="VarId">a</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="VarId">f</span> <span class="Symbol">[</span><span class="VarId">a</span><span class="Symbol">]</span>
+<span class="Symbol">(&lt;:&gt;)</span> <span class="VarId">a</span> <span class="VarId">b</span> <span class="Symbol">=</span> <span class="Symbol">(:)</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">a</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">b</span>
+</pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">eitherToMaybe</span> <span class="Symbol">::</span> <span class="ConId">Either</span> <span class="VarId">a</span> <span class="VarId">b</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="VarId">b</span>
+<span class="Function">eitherToMaybe</span> <span class="Symbol">(</span><span class="ConId">Left</span> <span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+<span class="Function">eitherToMaybe</span> <span class="Symbol">(</span><span class="ConId">Right</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="ConId">Just</span> <span class="VarId">b</span>
+
+<span class="Function">fromRight</span> <span class="Symbol">::</span> <span class="VarId">b</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="VarId">a</span> <span class="VarId">b</span> <span class="Symbol">-&gt;</span> <span class="VarId">b</span>
+<span class="Function">fromRight</span> <span class="VarId">b</span> <span class="Symbol">(</span><span class="ConId">Left</span> <span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">b</span>
+<span class="Function">fromRight</span> <span class="VarId">_</span> <span class="Symbol">(</span><span class="ConId">Right</span> <span class="VarId">r</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">r</span>
+
+<span class="Function">fromLeft</span> <span class="Symbol">::</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="VarId">a</span> <span class="VarId">b</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
+<span class="Function">fromLeft</span> <span class="VarId">_</span> <span class="Symbol">(</span><span class="ConId">Left</span> <span class="VarId">l</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">l</span>
+<span class="Function">fromLeft</span> <span class="VarId">a</span> <span class="Symbol">(</span><span class="ConId">Right</span> <span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">a</span>
+
+<span class="Function">mapEither</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="VarId">a</span><span class="Symbol">-&gt;</span><span class="VarId">c</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="VarId">b</span><span class="Symbol">-&gt;</span><span class="VarId">d</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="VarId">a</span> <span class="VarId">b</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="VarId">c</span> <span class="VarId">d</span>
+<span class="Function">mapEither</span> <span class="VarId">l</span> <span class="VarId">_</span> <span class="Symbol">(</span><span class="ConId">Left</span> <span class="VarId">a</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="ConId">Left</span> <span class="Symbol">$</span> <span class="VarId">l</span> <span class="VarId">a</span>
+<span class="Function">mapEither</span> <span class="VarId">_</span> <span class="VarId">r</span> <span class="Symbol">(</span><span class="ConId">Right</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="ConId">Right</span> <span class="Symbol">$</span> <span class="VarId">r</span> <span class="VarId">b</span>
+
+<span class="Function">mapRight</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="VarId">b</span> <span class="Symbol">-&gt;</span> <span class="VarId">c</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="VarId">a</span> <span class="VarId">b</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="VarId">a</span> <span class="VarId">c</span>
+<span class="Function">mapRight</span> <span class="Symbol">=</span> <span class="VarId">mapEither</span> <span class="VarId">id</span>
+
+<span class="Function">mapLeft</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">c</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="VarId">a</span> <span class="VarId">b</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="VarId">c</span> <span class="VarId">b</span>
+<span class="Function">mapLeft</span> <span class="VarId">l</span> <span class="Symbol">=</span> <span class="VarId">mapEither</span> <span class="VarId">l</span> <span class="VarId">id</span>
+
+<span class="Function">isRight</span> <span class="Symbol">::</span> <span class="ConId">Either</span> <span class="VarId">a</span> <span class="VarId">b</span> <span class="Symbol">-&gt;</span> <span class="ConId">Bool</span>
+<span class="Function">isRight</span> <span class="Symbol">(</span><span class="ConId">Right</span> <span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="ConId">True</span>
+<span class="Function">isRight</span> <span class="Symbol">(</span><span class="ConId">Left</span> <span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="ConId">False</span>
+
+<span class="Function">leftToEmpty</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="VarId">r</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="VarId">a</span><span class="Symbol">])</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="VarId">l</span> <span class="VarId">r</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="VarId">a</span><span class="Symbol">]</span>
+<span class="Function">leftToEmpty</span> <span class="Symbol">=</span> <span class="VarId">either</span> <span class="Symbol">(</span><span class="VarId">const</span> <span class="Symbol">[])</span>
+
+<span class="Function">replace</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Eq</span> <span class="VarId">a</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span> <span class="Symbol">[</span><span class="VarId">a</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="VarId">a</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="VarId">a</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="VarId">a</span><span class="Symbol">]</span>
+<span class="Function">replace</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="Symbol">[]</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+<span class="Function">replace</span> <span class="VarId">old</span> <span class="VarId">new</span> <span class="VarId">xs</span><span class="Symbol">@(</span><span class="VarId">y</span><span class="Symbol">:</span><span class="VarId">ys</span><span class="Symbol">)</span> <span class="Symbol">=</span>
+  <span class="Keyword">case</span> <span class="VarId">stripPrefix</span> <span class="VarId">old</span> <span class="VarId">xs</span> <span class="Keyword">of</span>
+    <span class="ConId">Nothing</span> <span class="Symbol">-&gt;</span> <span class="VarId">y</span> <span class="Symbol">:</span> <span class="VarId">replace</span> <span class="VarId">old</span> <span class="VarId">new</span> <span class="VarId">ys</span>
+    <span class="ConId">Just</span> <span class="VarId">ys'</span> <span class="Symbol">-&gt;</span> <span class="VarId">new</span> <span class="Symbol">++</span> <span class="VarId">replace</span> <span class="VarId">old</span> <span class="VarId">new</span> <span class="VarId">ys'</span>
+
+<span class="Function">split</span> <span class="Symbol">::</span> <span class="ConId">Char</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">String</span><span class="Symbol">]</span>
+<span class="Function">split</span> <span class="VarId">_</span> <span class="String">&quot;&quot;</span>                <span class="Symbol">=</span>  <span class="Symbol">[]</span>
+<span class="Function">split</span> <span class="VarId">c</span> <span class="VarId">s</span>                 <span class="Symbol">=</span>  <span class="Keyword">let</span> <span class="Symbol">(</span><span class="VarId">l</span><span class="Symbol">,</span> <span class="VarId">s'</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">break</span> <span class="Symbol">(==</span> <span class="VarId">c</span><span class="Symbol">)</span> <span class="VarId">s</span>
+                           <span class="Keyword">in</span>  <span class="VarId">l</span> <span class="Symbol">:</span> <span class="Keyword">case</span> <span class="VarId">s'</span> <span class="Keyword">of</span>
+                                           <span class="Symbol">[]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[]</span>
+                                           <span class="Symbol">(</span><span class="VarId">_</span><span class="Symbol">:</span><span class="VarId">s''</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">split</span> <span class="VarId">c</span> <span class="VarId">s''</span>
+
+<span class="Function">liftThrows</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">MonadError</span> <span class="VarId">t</span> <span class="VarId">m</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span> <span class="ConId">Either</span> <span class="VarId">t</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">m</span> <span class="VarId">a</span>
+<span class="Function">liftThrows</span> <span class="Symbol">(</span><span class="ConId">Left</span> <span class="VarId">err</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">throwError</span> <span class="VarId">err</span>
+<span class="Function">liftThrows</span> <span class="Symbol">(</span><span class="ConId">Right</span> <span class="VarId">val</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">return</span> <span class="VarId">val</span>
+
+<span class="Comment">-- run in errort monad, throw error as io error</span>
+
+<span class="Function">wrapET</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Show</span> <span class="VarId">e</span><span class="Symbol">,</span> <span class="ConId">Monad</span> <span class="VarId">m</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span> <span class="ConId">ErrorT</span> <span class="VarId">e</span> <span class="VarId">m</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">m</span> <span class="VarId">a</span>
+<span class="Function">wrapET</span> <span class="VarId">c</span> <span class="Symbol">=</span> <span class="VarId">runErrorT</span> <span class="VarId">c</span> <span class="Symbol">&gt;&gt;=</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span>
+         <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+           <span class="ConId">Left</span> <span class="VarId">er</span> <span class="Symbol">-&gt;</span> <span class="VarId">error</span> <span class="Symbol">$</span> <span class="VarId">show</span> <span class="VarId">er</span>
+           <span class="ConId">Right</span> <span class="VarId">l</span> <span class="Symbol">-&gt;</span> <span class="VarId">return</span> <span class="VarId">l</span>
+
+<span class="Function">wrapETs</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Monad</span> <span class="VarId">m</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span> <span class="ConId">ErrorT</span> <span class="ConId">String</span> <span class="VarId">m</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">m</span> <span class="VarId">a</span>
+<span class="Function">wrapETs</span> <span class="VarId">c</span> <span class="Symbol">=</span> <span class="VarId">runErrorT</span> <span class="VarId">c</span> <span class="Symbol">&gt;&gt;=</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span>
+         <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+           <span class="ConId">Left</span> <span class="VarId">er</span> <span class="Symbol">-&gt;</span> <span class="VarId">error</span> <span class="VarId">er</span>
+           <span class="ConId">Right</span> <span class="VarId">l</span> <span class="Symbol">-&gt;</span> <span class="VarId">return</span> <span class="VarId">l</span>
+
+<span class="Comment">-- error utility - convert either to ErrorT String</span>
+
+<span class="Function">tsl</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">MonadError</span> <span class="ConId">String</span> <span class="VarId">m</span><span class="Symbol">,</span> <span class="ConId">Show</span> <span class="VarId">t</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span> <span class="ConId">Either</span> <span class="VarId">t</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">m</span> <span class="VarId">a</span>
+<span class="Function">tsl</span> <span class="VarId">x</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+               <span class="ConId">Left</span> <span class="VarId">s</span> <span class="Symbol">-&gt;</span> <span class="VarId">throwError</span> <span class="Symbol">$</span> <span class="VarId">show</span> <span class="VarId">s</span>
+               <span class="ConId">Right</span> <span class="VarId">b</span> <span class="Symbol">-&gt;</span> <span class="VarId">return</span> <span class="VarId">b</span>
+
+<span class="Function">listEither</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Either</span> <span class="VarId">a</span> <span class="VarId">b</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="Symbol">[</span><span class="VarId">a</span><span class="Symbol">]</span> <span class="Symbol">[</span><span class="VarId">b</span><span class="Symbol">]</span>
+<span class="Function">listEither</span> <span class="VarId">es</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="Symbol">(</span><span class="VarId">l</span><span class="Symbol">,</span><span class="VarId">r</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">partitionEithers</span> <span class="VarId">es</span>
+               <span class="Keyword">in</span> <span class="Keyword">if</span> <span class="VarId">null</span> <span class="VarId">l</span>
+                  <span class="Keyword">then</span> <span class="ConId">Right</span> <span class="VarId">r</span>
+                  <span class="Keyword">else</span> <span class="ConId">Left</span> <span class="VarId">l</span>
+
+<span class="Function">forceRight</span> <span class="Symbol">::</span> <span class="ConId">Show</span> <span class="VarId">e</span> <span class="Symbol">=&gt;</span> <span class="ConId">Either</span> <span class="VarId">e</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
+<span class="Function">forceRight</span> <span class="Symbol">(</span><span class="ConId">Left</span> <span class="VarId">x</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">error</span> <span class="Symbol">$</span> <span class="VarId">show</span> <span class="VarId">x</span>
+<span class="Function">forceRight</span> <span class="Symbol">(</span><span class="ConId">Right</span> <span class="VarId">x</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">x</span>
+
+
+<span class="Function">npartition</span> <span class="Symbol">::</span> <span class="ConId">Eq</span> <span class="VarId">b</span> <span class="Symbol">=&gt;</span> <span class="Symbol">(</span><span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="VarId">a</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[(</span><span class="VarId">b</span><span class="Symbol">,[</span><span class="VarId">a</span><span class="Symbol">])]</span>
+<span class="Function">npartition</span> <span class="VarId">keyf</span> <span class="VarId">l</span> <span class="Symbol">=</span>
+  <span class="VarId">np</span> <span class="Symbol">[]</span> <span class="VarId">l</span>
+  <span class="Keyword">where</span>
+    <span class="VarId">np</span> <span class="VarId">acc</span> <span class="Symbol">(</span><span class="VarId">p</span><span class="Symbol">:</span><span class="VarId">ps</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="VarId">k</span> <span class="Symbol">=</span> <span class="VarId">keyf</span> <span class="VarId">p</span>
+                    <span class="Keyword">in</span> <span class="VarId">np</span> <span class="Symbol">(</span><span class="VarId">insertWith</span> <span class="Symbol">(++)</span> <span class="VarId">k</span> <span class="Symbol">[</span><span class="VarId">p</span><span class="Symbol">]</span> <span class="VarId">acc</span><span class="Symbol">)</span> <span class="VarId">ps</span>
+    <span class="VarId">np</span> <span class="VarId">acc</span> <span class="Symbol">[]</span> <span class="Symbol">=</span> <span class="VarId">acc</span>
+
+<span class="Function">insertWith</span> <span class="Symbol">::</span> <span class="ConId">Eq</span> <span class="VarId">k</span> <span class="Symbol">=&gt;</span> <span class="Symbol">(</span><span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">k</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[(</span><span class="VarId">k</span><span class="Symbol">,</span><span class="VarId">a</span><span class="Symbol">)]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[(</span><span class="VarId">k</span><span class="Symbol">,</span><span class="VarId">a</span><span class="Symbol">)]</span>
+<span class="Function">insertWith</span> <span class="VarId">ac</span> <span class="VarId">k</span> <span class="VarId">v</span> <span class="VarId">m</span> <span class="Symbol">=</span>
+    <span class="Keyword">case</span> <span class="VarId">lookup</span> <span class="VarId">k</span> <span class="VarId">m</span> <span class="Keyword">of</span>
+      <span class="ConId">Nothing</span> <span class="Symbol">-&gt;</span> <span class="VarId">m</span> <span class="Symbol">++</span> <span class="Symbol">[(</span><span class="VarId">k</span><span class="Symbol">,</span><span class="VarId">v</span><span class="Symbol">)]</span>
+      <span class="ConId">Just</span> <span class="VarId">v'</span> <span class="Symbol">-&gt;</span> <span class="Keyword">let</span> <span class="VarId">nv</span> <span class="Symbol">=</span> <span class="VarId">ac</span> <span class="VarId">v'</span> <span class="VarId">v</span>
+                 <span class="Keyword">in</span> <span class="VarId">map</span> <span class="Symbol">(\</span><span class="VarId">p</span><span class="Symbol">@(</span><span class="VarId">k1</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="Keyword">if</span> <span class="VarId">k1</span> <span class="Symbol">==</span> <span class="VarId">k</span>
+                                      <span class="Keyword">then</span> <span class="Symbol">(</span><span class="VarId">k1</span><span class="Symbol">,</span><span class="VarId">nv</span><span class="Symbol">)</span>
+                                      <span class="Keyword">else</span> <span class="VarId">p</span><span class="Symbol">)</span> <span class="VarId">m</span></pre></div></div></div><p
+    >This should preserve order, so in the result, the keys (k in [(k,[a],[b])]) are ordered by their first appearance in as, then bs, and the values are ordered the matches in the same order as they appear in the two lists ([a] and [b] in [(k,[a],[b])])</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">joinLists</span> <span class="Symbol">::</span> <span class="ConId">Eq</span> <span class="VarId">k</span> <span class="Symbol">=&gt;</span> <span class="Symbol">(</span><span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">k</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="VarId">b</span> <span class="Symbol">-&gt;</span> <span class="VarId">k</span><span class="Symbol">)</span>
+             <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="VarId">a</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="VarId">b</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[(</span><span class="VarId">k</span><span class="Symbol">,[</span><span class="VarId">a</span><span class="Symbol">],[</span><span class="VarId">b</span><span class="Symbol">])]</span>
+<span class="Function">joinLists</span> <span class="VarId">ka</span> <span class="VarId">kb</span> <span class="Keyword">as</span> <span class="VarId">bs</span> <span class="Symbol">=</span>
+    <span class="Keyword">let</span> <span class="Comment">-- arrange the two lists by key</span>
+        <span class="VarId">kasps</span> <span class="Symbol">=</span> <span class="VarId">npartition</span> <span class="VarId">ka</span> <span class="Keyword">as</span>
+        <span class="VarId">kbsps</span> <span class="Symbol">=</span> <span class="VarId">npartition</span> <span class="VarId">kb</span> <span class="VarId">bs</span>
+        <span class="Comment">-- get the list of keys</span>
+        <span class="VarId">ks</span> <span class="Symbol">=</span> <span class="VarId">nub</span> <span class="Symbol">$</span> <span class="VarId">map</span> <span class="VarId">fst</span> <span class="VarId">kasps</span> <span class="Symbol">++</span> <span class="VarId">map</span> <span class="VarId">fst</span> <span class="VarId">kbsps</span>
+        <span class="Comment">-- put together the two lists by key</span>
+    <span class="Keyword">in</span> <span class="VarId">flip</span> <span class="VarId">map</span> <span class="VarId">ks</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">k</span> <span class="Symbol">-&gt;</span>
+        <span class="Symbol">(</span><span class="VarId">k</span><span class="Symbol">,</span> <span class="VarId">getem</span> <span class="VarId">k</span> <span class="VarId">kasps</span><span class="Symbol">,</span> <span class="VarId">getem</span> <span class="VarId">k</span> <span class="VarId">kbsps</span><span class="Symbol">)</span>
+    <span class="Keyword">where</span>
+      <span class="VarId">getem</span> <span class="Symbol">::</span> <span class="ConId">Eq</span> <span class="VarId">k</span> <span class="Symbol">=&gt;</span> <span class="VarId">k</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[(</span><span class="VarId">k</span><span class="Symbol">,[</span><span class="VarId">a</span><span class="Symbol">])]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="VarId">a</span><span class="Symbol">]</span>
+      <span class="VarId">getem</span> <span class="VarId">k</span> <span class="Symbol">=</span> <span class="VarId">concatMap</span> <span class="VarId">snd</span> <span class="Symbol">.</span> <span class="VarId">filter</span> <span class="Symbol">((==</span><span class="VarId">k</span><span class="Symbol">)</span> <span class="Symbol">.</span> <span class="VarId">fst</span><span class="Symbol">)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">trim</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+<span class="Function">trim</span> <span class="Symbol">=</span> <span class="VarId">f</span> <span class="Symbol">.</span> <span class="VarId">f</span>
+   <span class="Keyword">where</span> <span class="VarId">f</span> <span class="Symbol">=</span> <span class="VarId">reverse</span> <span class="Symbol">.</span> <span class="VarId">dropWhile</span> <span class="VarId">isSpace</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">concatLefts</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Either</span> <span class="Symbol">[</span><span class="VarId">a</span><span class="Symbol">]</span> <span class="VarId">b</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="Symbol">[</span><span class="VarId">a</span><span class="Symbol">]</span> <span class="Symbol">()</span>
+<span class="Function">concatLefts</span> <span class="VarId">s</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="VarId">l</span> <span class="Symbol">=</span> <span class="VarId">concat</span> <span class="Symbol">$</span> <span class="VarId">lefts</span> <span class="VarId">s</span>
+                <span class="Keyword">in</span> <span class="Keyword">if</span> <span class="VarId">null</span> <span class="VarId">l</span>
+                   <span class="Keyword">then</span> <span class="ConId">Right</span> <span class="Symbol">()</span>
+                   <span class="Keyword">else</span> <span class="ConId">Left</span> <span class="VarId">l</span></pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

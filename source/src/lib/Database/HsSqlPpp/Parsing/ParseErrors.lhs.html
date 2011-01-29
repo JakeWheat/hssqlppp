@@ -1,0 +1,96 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >ParseErrors</title
+    ><link href="../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >convert error messages to show source text fragment with little hat, plus output error location in emacs friendly format.</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.Parsing.ParseErrors</span>
+    <span class="Symbol">(</span><span class="VarId">toParseErrorExtra</span>
+    <span class="Symbol">,</span><span class="ConId">ParseErrorExtra</span><span class="Symbol">(..))</span> <span class="Keyword">where</span>
+
+<span class="Keyword">import</span> <span class="ConId">Text.Parsec</span>
+<span class="Keyword">import</span> <span class="ConId">Control.Monad.Error</span>
+
+<span class="Function">showPE</span> <span class="Symbol">::</span> <span class="ConId">ParseError</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="Symbol">(</span><span class="ConId">Int</span><span class="Symbol">,</span><span class="ConId">Int</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+<span class="Function">showPE</span> <span class="VarId">pe</span> <span class="VarId">sp</span> <span class="VarId">src</span> <span class="Symbol">=</span> <span class="VarId">show</span> <span class="VarId">pe</span> <span class="Symbol">++</span> <span class="String">&quot;\n&quot;</span> <span class="Symbol">++</span> <span class="VarId">pePosToEmacs</span> <span class="VarId">pe</span>
+                   <span class="Symbol">++</span> <span class="String">&quot;\n&quot;</span> <span class="Symbol">++</span> <span class="VarId">peToContext</span> <span class="VarId">pe</span> <span class="VarId">sp</span> <span class="VarId">src</span>
+
+<span class="Function">pePosToEmacs</span> <span class="Symbol">::</span> <span class="ConId">ParseError</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+<span class="Function">pePosToEmacs</span> <span class="VarId">pe</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="VarId">p</span> <span class="Symbol">=</span> <span class="VarId">errorPos</span> <span class="VarId">pe</span>
+                      <span class="VarId">f</span> <span class="Symbol">=</span> <span class="VarId">sourceName</span> <span class="VarId">p</span>
+                      <span class="VarId">l</span> <span class="Symbol">=</span> <span class="VarId">sourceLine</span> <span class="VarId">p</span>
+                      <span class="VarId">c</span> <span class="Symbol">=</span> <span class="VarId">sourceColumn</span> <span class="VarId">p</span>
+                  <span class="Keyword">in</span> <span class="VarId">f</span> <span class="Symbol">++</span> <span class="String">&quot;:&quot;</span> <span class="Symbol">++</span> <span class="VarId">show</span> <span class="VarId">l</span> <span class="Symbol">++</span> <span class="String">&quot;:&quot;</span> <span class="Symbol">++</span> <span class="VarId">show</span> <span class="VarId">c</span> <span class="Symbol">++</span> <span class="String">&quot;:&quot;</span>
+
+<span class="Function">peToContext</span> <span class="Symbol">::</span> <span class="ConId">ParseError</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="Symbol">(</span><span class="ConId">Int</span><span class="Symbol">,</span><span class="ConId">Int</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+<span class="Function">peToContext</span> <span class="VarId">pe</span> <span class="VarId">sp</span> <span class="VarId">src</span> <span class="Symbol">=</span>
+     <span class="Keyword">let</span> <span class="VarId">ls</span> <span class="Symbol">=</span> <span class="VarId">lines</span> <span class="VarId">src</span>
+         <span class="VarId">line</span> <span class="Symbol">=</span> <span class="VarId">safeGet</span> <span class="VarId">ls</span><span class="Symbol">(</span><span class="VarId">lineNo</span> <span class="Symbol">-</span> <span class="Number">1</span><span class="Symbol">)</span>
+         <span class="VarId">prelines</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="Symbol">(</span><span class="VarId">safeGet</span> <span class="VarId">ls</span><span class="Symbol">)</span> <span class="Symbol">[(</span><span class="VarId">lineNo</span> <span class="Symbol">-</span> <span class="Number">5</span><span class="Symbol">)</span> <span class="Symbol">..</span> <span class="Symbol">(</span><span class="VarId">lineNo</span> <span class="Symbol">-</span> <span class="Number">2</span><span class="Symbol">)]</span>
+         <span class="VarId">postlines</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="Symbol">(</span><span class="VarId">safeGet</span> <span class="VarId">ls</span><span class="Symbol">)</span> <span class="Symbol">[</span><span class="VarId">lineNo</span> <span class="Symbol">..</span> <span class="Symbol">(</span><span class="VarId">lineNo</span> <span class="Symbol">+</span> <span class="Number">5</span><span class="Symbol">)]</span>
+         <span class="VarId">caretLine</span> <span class="Symbol">=</span> <span class="VarId">replicate</span> <span class="Symbol">(</span><span class="VarId">colNo</span> <span class="Symbol">-</span> <span class="Number">1</span><span class="Symbol">)</span> <span class="Char">' '</span> <span class="Symbol">++</span> <span class="String">&quot;^&quot;</span>
+         <span class="VarId">errorHighlightText</span> <span class="Symbol">=</span> <span class="VarId">prelines</span>
+                              <span class="Symbol">++</span> <span class="Symbol">[</span><span class="VarId">line</span><span class="Symbol">,</span> <span class="VarId">caretLine</span><span class="Symbol">,</span> <span class="String">&quot;ERROR HERE&quot;</span><span class="Symbol">]</span>
+                              <span class="Symbol">++</span> <span class="VarId">postlines</span>
+    <span class="Keyword">in</span> <span class="String">&quot;\nContext:\n&quot;</span>
+       <span class="Symbol">++</span> <span class="VarId">unlines</span> <span class="Symbol">(</span><span class="VarId">trimLines</span> <span class="VarId">errorHighlightText</span><span class="Symbol">)</span> <span class="Symbol">++</span> <span class="String">&quot;\n&quot;</span>
+    <span class="Keyword">where</span>
+      <span class="VarId">safeGet</span> <span class="VarId">a</span> <span class="VarId">i</span> <span class="Symbol">=</span> <span class="Keyword">if</span> <span class="VarId">i</span> <span class="Symbol">&lt;</span> <span class="Number">0</span> <span class="Symbol">||</span> <span class="VarId">i</span> <span class="Symbol">&gt;=</span> <span class="VarId">length</span> <span class="VarId">a</span>
+                      <span class="Keyword">then</span> <span class="String">&quot;&quot;</span>
+                      <span class="Keyword">else</span> <span class="VarId">a</span> <span class="Symbol">!!</span> <span class="VarId">i</span>
+      <span class="VarId">trimLines</span> <span class="Symbol">=</span> <span class="VarId">trimStartLines</span> <span class="Symbol">.</span> <span class="VarId">reverse</span> <span class="Symbol">.</span> <span class="VarId">trimStartLines</span> <span class="Symbol">.</span> <span class="VarId">reverse</span>
+      <span class="VarId">trimStartLines</span> <span class="Symbol">=</span> <span class="VarId">dropWhile</span> <span class="Symbol">(==</span><span class="String">&quot;&quot;</span><span class="Symbol">)</span>
+      <span class="VarId">pos</span> <span class="Symbol">=</span> <span class="VarId">errorPos</span> <span class="VarId">pe</span>
+      <span class="VarId">lineNo</span> <span class="Symbol">=</span> <span class="VarId">sourceLine</span> <span class="VarId">pos</span> <span class="Symbol">-</span> <span class="VarId">adjLine</span>
+      <span class="VarId">colNo</span> <span class="Symbol">=</span> <span class="VarId">sourceColumn</span> <span class="VarId">pos</span>
+      <span class="VarId">adjLine</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">sp</span> <span class="Keyword">of</span>
+                        <span class="ConId">Just</span> <span class="Symbol">(</span><span class="VarId">l</span><span class="Symbol">,</span> <span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">l</span> <span class="Symbol">-</span> <span class="Number">1</span>
+                        <span class="ConId">Nothing</span> <span class="Symbol">-&gt;</span> <span class="Number">0</span>
+
+<span class="Comment">-- | Simple wrapper to allow showing the source context of a ParseError</span>
+<span class="Keyword">data</span> <span class="ConId">ParseErrorExtra</span> <span class="Symbol">=</span>
+       <span class="ConId">ParseErrorExtra</span> <span class="Symbol">{</span>
+                       <span class="Comment">-- | wrapped error</span>
+                       <span class="VarId">parseErrorError</span> <span class="Symbol">::</span> <span class="ConId">ParseError</span>
+                       <span class="Comment">-- | source position</span>
+                       <span class="Comment">-- adjustment to get the</span>
+                       <span class="Comment">-- context bit in error</span>
+                       <span class="Comment">-- messages right - this is</span>
+                       <span class="Comment">-- the same as what is passed</span>
+                       <span class="Comment">-- into parseSqlWithPosition</span>
+                       <span class="Symbol">,</span><span class="VarId">parseErrorPosition</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Maybe</span> <span class="Symbol">(</span><span class="ConId">Int</span><span class="Symbol">,</span> <span class="ConId">Int</span><span class="Symbol">))</span>
+                       <span class="Comment">-- | sql source</span>
+                       <span class="Symbol">,</span><span class="VarId">parseErrorSqlSource</span> <span class="Symbol">::</span> <span class="ConId">String</span>
+                       <span class="Symbol">}</span>
+
+<span class="Keyword">instance</span> <span class="ConId">Show</span> <span class="ConId">ParseErrorExtra</span> <span class="Keyword">where</span>
+    <span class="VarId">show</span> <span class="Symbol">(</span><span class="ConId">ParseErrorExtra</span> <span class="VarId">pe</span> <span class="VarId">sp</span> <span class="VarId">src</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">showPE</span> <span class="VarId">pe</span> <span class="VarId">sp</span> <span class="VarId">src</span>
+
+<span class="Keyword">instance</span> <span class="ConId">Error</span> <span class="ConId">ParseErrorExtra</span> <span class="Keyword">where</span>
+  <span class="VarId">noMsg</span> <span class="Symbol">=</span> <span class="ConId">ParseErrorExtra</span> <span class="VarId">undefined</span> <span class="ConId">Nothing</span> <span class="String">&quot;unknown&quot;</span>
+  <span class="VarId">strMsg</span> <span class="Symbol">=</span> <span class="ConId">ParseErrorExtra</span> <span class="VarId">undefined</span> <span class="ConId">Nothing</span>
+
+<span class="Function">toParseErrorExtra</span> <span class="Symbol">::</span> <span class="ConId">Either</span> <span class="ConId">ParseError</span> <span class="VarId">b</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="Symbol">(</span><span class="ConId">Int</span><span class="Symbol">,</span><span class="ConId">Int</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+                  <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="ConId">ParseErrorExtra</span> <span class="VarId">b</span>
+<span class="Function">toParseErrorExtra</span> <span class="VarId">a</span> <span class="VarId">sp</span> <span class="VarId">src</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">a</span> <span class="Keyword">of</span>
+                               <span class="ConId">Left</span> <span class="VarId">pe</span> <span class="Symbol">-&gt;</span> <span class="ConId">Left</span> <span class="Symbol">$</span> <span class="ConId">ParseErrorExtra</span> <span class="VarId">pe</span> <span class="VarId">sp</span> <span class="VarId">src</span>
+                               <span class="ConId">Right</span> <span class="VarId">x</span> <span class="Symbol">-&gt;</span> <span class="ConId">Right</span> <span class="VarId">x</span></pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

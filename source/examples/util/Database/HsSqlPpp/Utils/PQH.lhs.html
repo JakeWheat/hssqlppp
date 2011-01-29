@@ -1,0 +1,104 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >PQH</title
+    ><link href="../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >hacked up slighly higher level access to copy from stdin/ to stdout. Uses strings for the copy data which is probably wrong and slow except for very small payloads.</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">{-# LANGUAGE ScopedTypeVariables #-}</span>
+<span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.Utils.PQH</span>
+    <span class="Symbol">(</span><span class="ConId">PGconn</span>
+    <span class="Symbol">,</span><span class="VarId">connect</span>
+    <span class="Symbol">,</span><span class="VarId">disconnect</span>
+    <span class="Symbol">,</span><span class="VarId">exec</span>
+    <span class="Symbol">,</span><span class="VarId">withConnection</span>
+    <span class="Symbol">,</span><span class="VarId">putCopyStringData</span>
+    <span class="Symbol">,</span><span class="VarId">getCopyStringData</span>
+    <span class="Symbol">,</span><span class="VarId">makePGConn</span>
+    <span class="Symbol">)</span> <span class="Keyword">where</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">import</span> <span class="ConId">Control.Exception</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">import</span> <span class="ConId">Foreign</span>
+<span class="Keyword">import</span> <span class="ConId">Foreign.C.Types</span>
+<span class="Keyword">import</span> <span class="ConId">Foreign.C.String</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Utils.PQ</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">connect</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="Symbol">(</span><span class="ConId">Either</span> <span class="ConId">String</span> <span class="ConId">PGconn</span><span class="Symbol">)</span>
+<span class="Function">connect</span> <span class="VarId">cs</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+  <span class="VarId">conn</span> <span class="Symbol">&lt;-</span> <span class="VarId">pqConnectdb</span> <span class="VarId">cs</span>
+  <span class="VarId">st</span> <span class="Symbol">&lt;-</span> <span class="VarId">pqStatus</span> <span class="VarId">conn</span>
+  <span class="Keyword">if</span> <span class="VarId">st</span> <span class="Symbol">==</span> <span class="ConId">CONNECTION_OK</span>
+    <span class="Keyword">then</span> <span class="VarId">return</span> <span class="Symbol">$</span> <span class="ConId">Right</span> <span class="VarId">conn</span>
+    <span class="Keyword">else</span> <span class="Keyword">do</span>
+      <span class="VarId">stem</span> <span class="Symbol">&lt;-</span> <span class="VarId">pqErrorMessage</span> <span class="VarId">conn</span>
+      <span class="VarId">pqFinish</span> <span class="VarId">conn</span>
+      <span class="VarId">return</span> <span class="Symbol">$</span> <span class="ConId">Left</span> <span class="VarId">stem</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">exec</span> <span class="Symbol">::</span> <span class="ConId">PGconn</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="Symbol">(</span><span class="ConId">Either</span> <span class="ConId">String</span> <span class="ConId">ExecStatusType</span><span class="Symbol">)</span>
+<span class="Function">exec</span> <span class="VarId">conn</span> <span class="VarId">str</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+  <span class="VarId">res</span> <span class="Symbol">&lt;-</span> <span class="VarId">pqExec</span> <span class="VarId">conn</span> <span class="VarId">str</span>
+  <span class="VarId">err</span> <span class="Symbol">&lt;-</span> <span class="VarId">pqResultErrorMessage</span> <span class="VarId">res</span>
+  <span class="VarId">st</span> <span class="Symbol">&lt;-</span> <span class="VarId">pqResultStatus</span> <span class="VarId">res</span>
+  <span class="VarId">pqClear</span> <span class="VarId">res</span>
+  <span class="VarId">return</span> <span class="Symbol">$</span> <span class="Keyword">if</span> <span class="VarId">err</span> <span class="Symbol">==</span> <span class="String">&quot;&quot;</span>
+           <span class="Keyword">then</span> <span class="ConId">Right</span> <span class="VarId">st</span>
+           <span class="Keyword">else</span> <span class="ConId">Left</span> <span class="VarId">err</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">disconnect</span> <span class="Symbol">::</span> <span class="ConId">PGconn</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="Symbol">()</span>
+<span class="Function">disconnect</span> <span class="Symbol">=</span> <span class="VarId">pqFinish</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">withConnection</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="ConId">PGconn</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="VarId">c</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="Symbol">(</span><span class="ConId">Either</span> <span class="ConId">String</span> <span class="VarId">c</span><span class="Symbol">)</span>
+<span class="Function">withConnection</span> <span class="VarId">s</span> <span class="VarId">f</span> <span class="Symbol">=</span>
+  <span class="VarId">bracket</span> <span class="Symbol">(</span><span class="VarId">connect</span> <span class="VarId">s</span><span class="Symbol">)</span> <span class="Symbol">(\</span><span class="VarId">l</span> <span class="Symbol">-&gt;</span> <span class="Keyword">case</span> <span class="VarId">l</span> <span class="Keyword">of</span>
+                                    <span class="ConId">Left</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="VarId">return</span> <span class="Symbol">()</span>
+                                    <span class="ConId">Right</span> <span class="VarId">c</span> <span class="Symbol">-&gt;</span> <span class="VarId">disconnect</span> <span class="VarId">c</span><span class="Symbol">)</span>
+          <span class="Symbol">(\</span><span class="VarId">c</span> <span class="Symbol">-&gt;</span> <span class="Keyword">case</span> <span class="VarId">c</span> <span class="Keyword">of</span>
+                   <span class="ConId">Left</span> <span class="VarId">e</span> <span class="Symbol">-&gt;</span> <span class="VarId">return</span> <span class="Symbol">$</span> <span class="ConId">Left</span> <span class="VarId">e</span>
+                   <span class="ConId">Right</span> <span class="VarId">cn</span> <span class="Symbol">-&gt;</span> <span class="VarId">fmap</span> <span class="ConId">Right</span> <span class="Symbol">$</span> <span class="VarId">f</span> <span class="VarId">cn</span><span class="Symbol">)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">putCopyStringData</span> <span class="Symbol">::</span> <span class="ConId">PGconn</span> <span class="Symbol">-&gt;</span> <span class="ConId">ExecStatusType</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="Symbol">(</span><span class="ConId">Either</span> <span class="ConId">String</span> <span class="Symbol">())</span>
+<span class="Function">putCopyStringData</span> <span class="VarId">conn</span> <span class="VarId">cst</span> <span class="VarId">cd</span> <span class="Symbol">=</span>
+  <span class="Keyword">if</span> <span class="VarId">cst</span> <span class="Symbol">/=</span> <span class="ConId">PGRES_COPY_IN</span>
+    <span class="Keyword">then</span> <span class="VarId">return</span> <span class="Symbol">$</span> <span class="ConId">Left</span> <span class="Symbol">$</span> <span class="String">&quot;expected Right PGRES_COPY_IN, got &quot;</span> <span class="Symbol">++</span> <span class="VarId">show</span> <span class="VarId">cst</span>
+    <span class="Keyword">else</span> <span class="Keyword">do</span>
+         <span class="VarId">pcd</span> <span class="Symbol">&lt;-</span> <span class="VarId">pqPutCopyData</span> <span class="VarId">conn</span> <span class="VarId">cd</span> <span class="Symbol">(</span><span class="VarId">length</span> <span class="VarId">cd</span><span class="Symbol">)</span>
+         <span class="Keyword">if</span> <span class="VarId">pcd</span> <span class="Symbol">==</span> <span class="Symbol">-</span><span class="Number">1</span>
+           <span class="Keyword">then</span> <span class="Keyword">do</span>
+                <span class="VarId">err</span> <span class="Symbol">&lt;-</span> <span class="VarId">pqErrorMessage</span> <span class="VarId">conn</span>
+                <span class="VarId">return</span> <span class="Symbol">$</span> <span class="ConId">Left</span> <span class="VarId">err</span>
+           <span class="Keyword">else</span> <span class="Keyword">do</span>
+                <span class="VarId">pce</span> <span class="Symbol">&lt;-</span> <span class="VarId">pqPutCopyEnd</span> <span class="VarId">conn</span> <span class="ConId">Nothing</span>
+                <span class="Keyword">if</span> <span class="VarId">pce</span> <span class="Symbol">==</span> <span class="Symbol">-</span><span class="Number">1</span>
+                  <span class="Keyword">then</span> <span class="Keyword">do</span>
+                       <span class="VarId">err</span> <span class="Symbol">&lt;-</span> <span class="VarId">pqErrorMessage</span> <span class="VarId">conn</span>
+                       <span class="VarId">return</span> <span class="Symbol">$</span> <span class="ConId">Left</span> <span class="VarId">err</span>
+                  <span class="Keyword">else</span> <span class="VarId">return</span> <span class="Symbol">$</span> <span class="ConId">Right</span> <span class="Symbol">()</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">getCopyStringData</span> <span class="Symbol">::</span> <span class="ConId">PGconn</span> <span class="Symbol">-&gt;</span> <span class="ConId">ExecStatusType</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="Symbol">(</span><span class="ConId">Either</span> <span class="ConId">String</span> <span class="ConId">String</span><span class="Symbol">)</span>
+<span class="Function">getCopyStringData</span> <span class="VarId">conn</span> <span class="VarId">cst</span> <span class="Symbol">=</span>
+  <span class="Keyword">if</span> <span class="VarId">cst</span> <span class="Symbol">/=</span> <span class="ConId">PGRES_COPY_OUT</span>
+    <span class="Keyword">then</span> <span class="VarId">return</span> <span class="Symbol">$</span> <span class="ConId">Left</span> <span class="Symbol">$</span> <span class="String">&quot;expected Right PGRES_COPY_OUT, got &quot;</span> <span class="Symbol">++</span> <span class="VarId">show</span> <span class="VarId">cst</span>
+    <span class="Keyword">else</span> <span class="VarId">alloca</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">b</span> <span class="Symbol">-&gt;</span> <span class="Keyword">do</span>
+      <span class="VarId">cd</span> <span class="Symbol">&lt;-</span> <span class="VarId">readSomeData</span> <span class="VarId">b</span> <span class="Symbol">[]</span>
+      <span class="VarId">checkRet</span>
+      <span class="VarId">return</span> <span class="Symbol">$</span> <span class="ConId">Right</span> <span class="VarId">cd</span>
+  <span class="Keyword">where</span>
+    <span class="VarId">readSomeData</span> <span class="Symbol">::</span> <span class="ConId">Ptr</span> <span class="Symbol">(</span><span class="ConId">Ptr</span> <span class="ConId">CChar</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">String</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="ConId">String</span>
+    <span class="VarId">readSomeData</span> <span class="VarId">b</span> <span class="VarId">acc</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+      <span class="VarId">r</span> <span class="Symbol">&lt;-</span> <span class="VarId">pqGetCopyData</span> <span class="VarId">conn</span> <span class="VarId">b</span> <span class="Number">0</span>
+      <span class="Keyword">if</span> <span class="VarId">r</span> <span class="Symbol">/=</span> <span class="Symbol">-</span><span class="Number">1</span>
+        <span class="Keyword">then</span> <span class="Keyword">do</span>
+             <span class="VarId">b1</span> <span class="Symbol">&lt;-</span> <span class="VarId">peek</span> <span class="VarId">b</span>
+             <span class="VarId">s</span> <span class="Symbol">&lt;-</span> <span class="VarId">peekCStringLen</span> <span class="Symbol">(</span><span class="VarId">b1</span><span class="Symbol">,</span><span class="VarId">r</span><span class="Symbol">)</span>
+             <span class="VarId">pqFreemem</span> <span class="Symbol">$</span> <span class="VarId">castPtr</span> <span class="VarId">b1</span>
+             <span class="VarId">readSomeData</span> <span class="VarId">b</span> <span class="Symbol">(</span><span class="VarId">s</span><span class="Symbol">:</span><span class="VarId">acc</span><span class="Symbol">)</span>
+        <span class="Keyword">else</span> <span class="VarId">return</span> <span class="Symbol">$</span> <span class="VarId">concat</span> <span class="Symbol">$</span> <span class="VarId">reverse</span> <span class="VarId">acc</span>
+    <span class="VarId">checkRet</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+      <span class="VarId">cr</span> <span class="Symbol">&lt;-</span> <span class="VarId">pqGetResult</span> <span class="VarId">conn</span>
+      <span class="Keyword">case</span> <span class="VarId">cr</span> <span class="Keyword">of</span>
+              <span class="ConId">Just</span> <span class="VarId">cr1</span> <span class="Symbol">-&gt;</span> <span class="Keyword">do</span>
+                          <span class="VarId">cr2</span> <span class="Symbol">&lt;-</span> <span class="VarId">pqResultStatus</span> <span class="VarId">cr1</span>
+                          <span class="VarId">print</span> <span class="VarId">cr2</span>
+                          <span class="VarId">checkRet</span>
+              <span class="ConId">Nothing</span> <span class="Symbol">-&gt;</span> <span class="VarId">return</span> <span class="Symbol">()</span></pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

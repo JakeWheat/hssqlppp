@@ -1,0 +1,246 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >TableRefs</title
+    ><link href="../../../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >{-</p
+    ><p
+    >This file contains the checking for tablerefs (the from part of a select expression).</p
+    ><p
+    >Type checking joins is a real brain twister.</p
+    ><table
+    ><col width="13%"
+       /><tbody
+      ><tr class="odd"
+	><td align="left"
+	  >notes on how to write this file:</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >want to have inline diagrams - how to do this? - can't have inline in ides usually, but can have inline when rendering source to html with e.g. pandoc, but still want to be able to view the diagrams when reading/editing the source code</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >do in literate style</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >want to add transcripts of sessions with psql want to add output along the lines of 'load this sql, then pg_dump it, this is what you get' - stuff like this can be done usin a script which processes the source code and replaces the output, but need to know when it breaks, so the output also should be matched to check it's still working right, want an automated way of doing this rather than eyeballing diffs before commiting to source control</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >also, along these lines, want the automated tests to live here next to the code they exercise. Would be extra nice if could use code coverage to check that when the test is run, the code it's supposed to be testing is used.</td
+	  ></tr
+	></tbody
+      ></table
+    ><p
+    >Apart from the usual new annotated tree, tablerefs need to produce new local bindings information to feed to the other parts of a select expression, e.g. the field names and types than can be referenced in the select list.</p
+    ><p
+    >The different types of tablerefs are: table name sub select function (I think pg will promotes non set returning functions and non composite returning functions implicitly so they all work, the name of the function is used to supply the correlation name and field name if there is none) join</p
+    ><p
+    >Join is the tricky one, partly because it is recursive.</p
+    ><p
+    >The other complication is passing new local bindings into the sub nodes. So far, this is done only of the onexpr part of a join</p
+    ><p
+    >notes to add: mainly a list of sql statements and the /d+ from psql to show how the correlation names work with joins 1) natural/using joins when selected unqualified have the correlation name from the first table 2) you can get these fields with the other table's correlation name by using that table name.* or .field_name 3) can create a view with two fields with the same name from different tables. but if you add an alias to the join tref then they both attempt to have the same correlation name - error</p
+    ><p
+    >maybe put the localbindings tests in here as well, so each chunk is a bit of blather, some example sql/ possibly with /d+ or pg_dump output from pg with notes, then some test cases, then the code that makes it happen</p
+    ><p
+    >-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="Comment">-- lib update contains the updated id and star expansions coming out</span>
+<span class="Comment">-- of the tableref part of a select expression. These updates aren't</span>
+<span class="Comment">-- used for chaining these things for nested table refs (in join</span>
+<span class="Comment">-- statements) - use attributes for them</span>
+
+<span class="ConId">ATTR</span> <span class="ConId">TableRef</span> <span class="ConId">TableRefList</span> <span class="Symbol">[||</span> <span class="VarId">libUpdates</span><span class="Symbol">:</span> <span class="Symbol">{[</span><span class="ConId">LocalBindingsUpdate</span><span class="Symbol">]}]</span>
+
+<span class="Comment">-- use these attributes which contain a copy of the info in lib</span>
+<span class="Comment">-- updates in a form more digestible to the join attributes resolution</span>
+<span class="Comment">-- the main advantages is we don't have to pull the ids out of a list</span>
+<span class="Comment">-- of update wrappers, and we don't have to split the id bindings into</span>
+<span class="Comment">-- qualified and unqualified parts. We could do it just using the</span>
+<span class="Comment">-- libupdates in principle, but this way seems to be a bit more direct</span>
+<span class="Comment">-- and clear to write and read (i.e. when I tried to to it using</span>
+<span class="Comment">-- libupdates I failed and gave up several times).</span>
+<span class="Comment">--ATTR TableRef [|| libUpdatesidLookups: {[LocalBindingsUpdate]}]</span>
+
+<span class="Comment">-- set the annotations, just need to pick up any type errors whilst</span>
+<span class="Comment">-- calculating the new bindings</span>
+<span class="ConId">SEM</span> <span class="ConId">TableRef</span>
+    <span class="Symbol">|</span> <span class="ConId">SubTref</span> <span class="ConId">Tref</span> <span class="ConId">TrefFun</span> <span class="ConId">JoinedTref</span>
+        <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Symbol">=</span> <span class="VarId">addTypeErrors</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">errs</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span>
+
+<span class="ConId">SEM</span> <span class="ConId">TableRefList</span>
+    <span class="Symbol">|</span> <span class="ConId">Nil</span>
+        <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">libUpdates</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+    <span class="Symbol">|</span> <span class="ConId">Cons</span>
+        <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">libUpdates</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">hd</span><span class="Symbol">.</span><span class="VarId">libUpdates</span> <span class="Comment">-- todo, combine properly</span>
+
+</pre></div></div></div><p
+    >{-</p
+    ><p
+    >in the individual sem parts, we set four values: idlookups : [(string,type)] pairs for all the unqualified ids which will be in scope coming out of the tref qidlookups: [(string, [(string,type)])] for all the qualified ids starexpansion: to expand unqualified * qstarexpansion: to expand qualified * (we need idlookups and starexpansion because of pg system columns, which are a serious pain to deal with).</p
+    ><p
+    >These are set as local vars, because we need to feed the resultant lib update into the on expressions in joins lower down, which we can't do directly with a syn attribute, so we collect them in locals, the combined the in a local for libupdates. We copy all the parts and the lib updates to regular attributes so we can access them from other sems (the components (idlookups, etc.) are needed in working out joins attributes, and the libupdate is used in the join expression, so all this extra copying is only needed to support joins).</p
+    ><p
+    >in each part, we collect errors in the errs local which we can then add to the annotation for the node. when this happens, further type checking in the select statement should stop but this isn't properly implemented yet (this is to avoid too many type errors all over the tree resulting from one mistake - a user friendliness consideration)</p
+    ><p
+    >-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="ConId">SEM</span> <span class="ConId">TableRef</span>
+    <span class="Symbol">|</span> <span class="ConId">SubTref</span>
+</pre></div></div></div><p
+    >{- subtref - pull the type of the select expression out (which will be a setof composite then the lbupdate is these fields qualified with the tref's alias -}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">errs</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">selectAttrs</span> <span class="Keyword">of</span>
+                           <span class="ConId">Left</span> <span class="VarId">e</span> <span class="Symbol">-&gt;</span> <span class="VarId">e</span>
+                           <span class="ConId">Right</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[]</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">selectAttrs</span> <span class="Symbol">:</span> <span class="Symbol">{</span><span class="ConId">Either</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">]</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)]}</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">selectAttrs</span> <span class="Symbol">=</span> <span class="VarId">lmt</span> <span class="Symbol">@</span><span class="VarId">sel</span><span class="Symbol">.</span><span class="VarId">uType</span>
+        <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">libUpdates</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">LBTref</span> <span class="String">&quot;sub query&quot;</span> <span class="Symbol">(</span><span class="VarId">getAlias</span> <span class="String">&quot;&quot;</span> <span class="Symbol">@</span><span class="VarId">alias</span><span class="Symbol">)</span> <span class="Comment">--&quot;&quot; should be error</span>
+                                         <span class="Symbol">(</span><span class="VarId">fromRight</span> <span class="Symbol">[]</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">selectAttrs</span><span class="Symbol">)</span> <span class="Symbol">[]]</span>
+
+    <span class="Symbol">|</span> <span class="ConId">Tref</span>
+</pre></div></div></div><p
+    >{- tref - just a name of a table or view, just need to retrieve the fields from the catalog</p
+    ><p
+    >-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">errs</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+        <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">libUpdates</span> <span class="Symbol">=</span> <span class="VarId">maybe</span> <span class="Symbol">[]</span> <span class="VarId">id</span> <span class="Symbol">$</span> <span class="Keyword">do</span>
+                         <span class="Keyword">let</span> <span class="VarId">n</span> <span class="Symbol">=</span> <span class="VarId">getName</span> <span class="Symbol">@</span><span class="VarId">tbl</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+                         <span class="Symbol">(</span><span class="VarId">pu</span><span class="Symbol">,</span><span class="VarId">pr</span><span class="Symbol">)</span> <span class="Symbol">&lt;-</span> <span class="Symbol">@</span><span class="VarId">tbl</span><span class="Symbol">.</span><span class="VarId">tbUType</span>
+                         <span class="VarId">return</span> <span class="Symbol">[</span><span class="ConId">LBTref</span> <span class="Symbol">(</span><span class="String">&quot;tref: &quot;</span> <span class="Symbol">++</span> <span class="VarId">n</span><span class="Symbol">)</span>
+                                   <span class="Symbol">(</span><span class="VarId">getAlias</span> <span class="VarId">n</span> <span class="Symbol">@</span><span class="VarId">alias</span><span class="Symbol">)</span>
+                                   <span class="VarId">pu</span>
+                                   <span class="VarId">pr</span><span class="Symbol">]</span>
+
+
+    <span class="Symbol">|</span> <span class="ConId">TrefFun</span>
+</pre></div></div></div><p
+    >{-</p
+    ><p
+    >we rely on the funIdens function below to get the correlation name an column names and types - see that function for how this works</p
+    ><p
+    >-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">errs</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="Symbol">@</span><span class="VarId">eqfunIdens</span> <span class="Keyword">of</span>
+                     <span class="ConId">Left</span> <span class="VarId">e</span> <span class="Symbol">-&gt;</span> <span class="VarId">e</span>
+                     <span class="ConId">Right</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[]</span>
+
+
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">eqfunIdens</span> <span class="Symbol">:</span> <span class="Symbol">{</span><span class="ConId">Either</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">]</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)])}</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">eqfunIdens</span> <span class="Symbol">=</span> <span class="VarId">funIdens</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">cat</span> <span class="Symbol">(</span><span class="VarId">getAlias</span> <span class="String">&quot;&quot;</span> <span class="Symbol">@</span><span class="VarId">alias</span><span class="Symbol">)</span> <span class="Symbol">@</span><span class="VarId">fn</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Symbol">@</span><span class="VarId">fn</span><span class="Symbol">.</span><span class="VarId">uType</span>
+        <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">libUpdates</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">LBTref</span> <span class="String">&quot;fn&quot;</span>
+                                         <span class="Symbol">(</span><span class="VarId">fst</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">qfunIdens</span><span class="Symbol">)</span>
+                                         <span class="Symbol">(</span><span class="VarId">snd</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">qfunIdens</span><span class="Symbol">)</span>
+                                         <span class="Symbol">[]]</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">qfunIdens</span> <span class="Symbol">=</span> <span class="VarId">fromRight</span> <span class="Symbol">(</span><span class="String">&quot;&quot;</span><span class="Symbol">,[])</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">eqfunIdens</span>
+    <span class="Symbol">|</span> <span class="ConId">JoinedTref</span>
+</pre></div></div></div><p
+    >{- join - most of the hard work is done in local bindings -}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">errs</span> <span class="Symbol">=</span> <span class="VarId">fromLeft</span> <span class="Symbol">[]</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">newLib</span>
+                   <span class="Symbol">++</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">joinErrors</span>
+        <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">libUpdates</span> <span class="Symbol">=</span> <span class="Keyword">if</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">joinErrors</span> <span class="Symbol">==</span> <span class="Symbol">[]</span>
+                         <span class="Keyword">then</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">libUpdates</span>
+                         <span class="Keyword">else</span> <span class="Symbol">[]</span>
+                   <span class="Comment">--bit hacky, we want any errors from the join</span>
+                   <span class="Comment">-- to be added here, instead of upstream</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">joinErrors</span> <span class="Symbol">=</span> <span class="VarId">fromLeft</span> <span class="Symbol">[]</span> <span class="Symbol">(</span><span class="VarId">foldM</span> <span class="Symbol">(</span><span class="VarId">flip</span> <span class="Symbol">$</span> <span class="VarId">lbUpdate</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">cat</span><span class="Symbol">)</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">lib</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">libUpdates</span><span class="Symbol">)</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">libUpdates</span> <span class="Symbol">=</span>
+            <span class="Keyword">case</span> <span class="Symbol">(@</span><span class="VarId">tbl</span><span class="Symbol">.</span><span class="VarId">libUpdates</span><span class="Symbol">,</span> <span class="Symbol">@</span><span class="VarId">tbl1</span><span class="Symbol">.</span><span class="VarId">libUpdates</span><span class="Symbol">)</span> <span class="Keyword">of</span>
+              <span class="Symbol">([</span><span class="VarId">u1</span><span class="Symbol">],</span> <span class="Symbol">[</span><span class="VarId">u2</span><span class="Symbol">])</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">LBJoinTref</span> <span class="String">&quot;join&quot;</span> <span class="VarId">u1</span> <span class="VarId">u2</span> <span class="VarId">jids</span>
+                                              <span class="Symbol">(</span><span class="Keyword">case</span> <span class="Symbol">@</span><span class="VarId">alias</span> <span class="Keyword">of</span>
+                                                       <span class="ConId">NoAlias</span> <span class="Symbol">-&gt;</span> <span class="ConId">Nothing</span>
+                                                       <span class="ConId">TableAlias</span> <span class="VarId">t</span> <span class="Symbol">-&gt;</span> <span class="ConId">Just</span> <span class="VarId">t</span>
+                                                       <span class="ConId">FullAlias</span> <span class="VarId">t</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Just</span> <span class="VarId">t</span><span class="Symbol">)]</span>
+              <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[]</span>
+            <span class="Keyword">where</span>
+              <span class="VarId">jids</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="Symbol">(@</span><span class="VarId">nat</span><span class="Symbol">,</span> <span class="Symbol">@</span><span class="VarId">onExpr</span><span class="Symbol">.</span><span class="VarId">originalTree</span><span class="Symbol">)</span> <span class="Keyword">of</span>
+                          <span class="Symbol">(</span><span class="ConId">Natural</span><span class="Symbol">,</span> <span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="ConId">Left</span> <span class="Symbol">()</span>
+                          <span class="Symbol">(</span><span class="VarId">_</span><span class="Symbol">,</span><span class="ConId">Just</span> <span class="Symbol">(</span><span class="ConId">JoinUsing</span> <span class="VarId">_</span> <span class="VarId">s</span><span class="Symbol">))</span> <span class="Symbol">-&gt;</span> <span class="ConId">Right</span> <span class="VarId">s</span>
+                          <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Right</span> <span class="Symbol">[]</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">newLib</span> <span class="Symbol">:</span> <span class="Symbol">{</span><span class="ConId">Either</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">]</span> <span class="ConId">LocalBindings</span><span class="Symbol">}</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">newLib</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="Symbol">(@</span><span class="VarId">tbl</span><span class="Symbol">.</span><span class="VarId">libUpdates</span><span class="Symbol">,</span> <span class="Symbol">@</span><span class="VarId">tbl1</span><span class="Symbol">.</span><span class="VarId">libUpdates</span><span class="Symbol">)</span> <span class="Keyword">of</span>
+                       <span class="Symbol">([</span><span class="VarId">u1</span><span class="Symbol">],[</span><span class="VarId">u2</span><span class="Symbol">])</span> <span class="Symbol">-&gt;</span> <span class="VarId">lbUpdate</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">cat</span>
+                                        <span class="Symbol">(</span><span class="ConId">LBJoinTref</span> <span class="String">&quot;join&quot;</span> <span class="VarId">u1</span> <span class="VarId">u2</span> <span class="Symbol">(</span><span class="ConId">Right</span> <span class="Symbol">[])</span> <span class="ConId">Nothing</span><span class="Symbol">)</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">lib</span>
+                       <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Right</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">lib</span>
+        <span class="VarId">onExpr</span><span class="Symbol">.</span><span class="VarId">lib</span> <span class="Symbol">=</span> <span class="VarId">fromRight</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">lib</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">newLib</span>
+
+<span class="Symbol">{</span>
+
+
+
+</pre></div></div></div><p
+    >{- convert a function call into a [String,[(string,type)]] list for use in a tableref context first consideration is the alias: if there is an alias in the select, e.g. select * from generate_series(1,2) x; (alias is x) we use that, otherwise we use the name of the function second consideration is the attributes coming out, roughly speaking we have to convert an arbitrary type to a relation type if we have a relation valued function, we don't need to do anything if we have a setof non composite, we lift the single type to an attribute, using the function name for the attribute name if we have a non setof, we lift the single type to an attribute and then relation, using the function name for the attribute name need to check to see what should happen with arrayof</p
+    ><p
+    >-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="Function">funIdens</span> <span class="Symbol">::</span> <span class="ConId">Catalog</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">Type</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">]</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)])</span>
+<span class="Function">funIdens</span> <span class="VarId">cat</span> <span class="VarId">alias</span> <span class="VarId">fnVal</span> <span class="VarId">ft</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+   <span class="VarId">errorWhen</span> <span class="Symbol">(</span><span class="Keyword">case</span> <span class="VarId">fnVal</span> <span class="Keyword">of</span>
+                <span class="ConId">FunCall</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">False</span>
+                <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">True</span><span class="Symbol">)</span>
+             <span class="Symbol">[</span><span class="ConId">ContextError</span> <span class="String">&quot;FunCall&quot;</span><span class="Symbol">]</span>
+   <span class="Keyword">let</span> <span class="Symbol">(</span><span class="ConId">FunCall</span> <span class="VarId">_</span> <span class="VarId">fnName</span> <span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">fnVal</span>
+       <span class="VarId">cn</span> <span class="Symbol">=</span> <span class="Keyword">if</span> <span class="VarId">alias</span> <span class="Symbol">/=</span> <span class="String">&quot;&quot;</span>
+                           <span class="Keyword">then</span> <span class="VarId">alias</span>
+                           <span class="Keyword">else</span> <span class="VarId">fnName</span>
+   <span class="VarId">attrs</span> <span class="Symbol">&lt;-</span> <span class="Keyword">do</span>
+     <span class="VarId">fnt</span> <span class="Symbol">&lt;-</span> <span class="VarId">lmt</span> <span class="VarId">ft</span>
+     <span class="Keyword">case</span> <span class="VarId">fnt</span> <span class="Keyword">of</span>
+       <span class="ConId">SetOfType</span> <span class="Symbol">(</span><span class="ConId">NamedCompositeType</span> <span class="VarId">t</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">catCompositePublicAttrs</span> <span class="VarId">cat</span> <span class="Symbol">[]</span> <span class="VarId">t</span>
+       <span class="ConId">SetOfType</span> <span class="VarId">x</span> <span class="Symbol">-&gt;</span> <span class="VarId">return</span> <span class="Symbol">[(</span><span class="VarId">cn</span><span class="Symbol">,</span><span class="VarId">x</span><span class="Symbol">)]</span>
+       <span class="VarId">y</span> <span class="Symbol">-&gt;</span> <span class="VarId">return</span> <span class="Symbol">[(</span><span class="VarId">cn</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">)]</span>
+   <span class="VarId">return</span> <span class="Symbol">(</span><span class="VarId">cn</span><span class="Symbol">,</span> <span class="VarId">attrs</span><span class="Symbol">)</span>
+
+<span class="Function">getAlias</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">TableAlias</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+<span class="Function">getAlias</span> <span class="VarId">def</span> <span class="VarId">alias</span> <span class="Symbol">=</span>
+  <span class="Keyword">case</span> <span class="VarId">alias</span> <span class="Keyword">of</span>
+    <span class="ConId">NoAlias</span> <span class="Symbol">-&gt;</span> <span class="VarId">def</span>
+    <span class="ConId">TableAlias</span> <span class="VarId">t</span> <span class="Symbol">-&gt;</span> <span class="VarId">t</span>
+    <span class="ConId">FullAlias</span> <span class="VarId">t</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="VarId">t</span>
+
+<span class="Symbol">}</span>
+
+<span class="Comment">-- backtrees</span>
+
+<span class="ConId">SEM</span> <span class="ConId">TableRef</span>
+    <span class="Symbol">|</span> <span class="ConId">SubTref</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">SubTref</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">sel</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Symbol">@</span><span class="VarId">alias</span>
+    <span class="Symbol">|</span> <span class="ConId">Tref</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">Tref</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">tbl</span><span class="Symbol">.</span><span class="VarId">tbAnnotatedTree</span> <span class="Symbol">@</span><span class="VarId">alias</span>
+    <span class="Symbol">|</span> <span class="ConId">TrefFun</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">TrefFun</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">fn</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Symbol">@</span><span class="VarId">alias</span>
+    <span class="Symbol">|</span> <span class="ConId">JoinedTref</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">JoinedTref</span> <span class="Symbol">@</span><span class="VarId">ann</span>
+                                  <span class="Symbol">@</span><span class="VarId">tbl</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+                                  <span class="Symbol">@</span><span class="VarId">nat</span>
+                                  <span class="Symbol">@</span><span class="VarId">joinType</span>
+                                  <span class="Symbol">@</span><span class="VarId">tbl1</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+                                  <span class="Symbol">@</span><span class="VarId">onExpr</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+                                  <span class="Symbol">@</span><span class="VarId">alias</span>
+</pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

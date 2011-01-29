@@ -1,0 +1,109 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >index</title
+    ><link href="../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >Example code to show creation of typesafe wrappers for crud statements in haskell.</p
+    ><div id="typesafe-database-access"
+    ><h2
+      >Typesafe database access</h2
+      ><p
+      >Simple sketch for doing type safe access, not great yet. Uses template haskell to get the type of statements and make this available at compile time, relations are represented by lists of tuples, so the columns have the right types but no names. Lack of nullability inference means all the types are currently Maybes.</p
+      ><p
+      ><a href="pandoc_source/examples/Database/HsSqlPpp/Examples/Wrappers/ThTupleWrapper.lhs.html"
+	>template haskell, use tuples</a
+	></p
+      ><p
+      >There is example code which uses this wrapper to read and update a database - you must set up the sample database to compile or run it, then use <a href="pandoc_source/examples/RunWrappers.lhs.html"
+	>examples/RunWrappers.lhs</a
+	>. The source contains a copy of the output so you can see this without setting up the database.</p
+      ><p
+      >Sample database setup:</p
+      ><p
+      >Unpack the cabal source, then load testfiles/suppliers_and_parts.sql into a new database. Edit <a href="pandoc_source/examples/Database/HsSqlPpp/Examples/Wrappers/ConnectionString.hs.html"
+	>examples/Database/HsSqlPpp/Examples/Wrappers/ConnectionString.hs</a
+	> to set the database connection information to this database.</p
+      ><p
+      ><a href="pandoc_source/examples/Database/HsSqlPpp/Examples/Wrappers/ThTupleExample.lhs.html"
+	>example source</a
+	></p
+      ><p
+      >There is also some code to use hlists instead of tuples but it isn't currently working.</p
+      ><ul
+      ><li
+	><a href="ConnectionString.hs.html"
+	  >ConnectionString.hs</a
+	  ></li
+	><li
+	><a href="GenerateHListSourceExample.lhs.html"
+	  >GenerateHListSourceExample.lhs</a
+	  ></li
+	><li
+	><a href="GenerateHListWrapper.lhs.html"
+	  >GenerateHListWrapper.lhs</a
+	  ></li
+	><li
+	><a href="GenerateTupleSourceExample.lhs.html"
+	  >GenerateTupleSourceExample.lhs</a
+	  ></li
+	><li
+	><a href="GenerateTupleWrapper.lhs.html"
+	  >GenerateTupleWrapper.lhs</a
+	  ></li
+	><li
+	><a href="MakeLabels.hs.html"
+	  >MakeLabels.hs</a
+	  ></li
+	><li
+	><a href="RunWrappers.lhs.html"
+	  >RunWrappers.lhs</a
+	  ></li
+	><li
+	><a href="SelectRelation.lhs.html"
+	  >SelectRelation.lhs</a
+	  ></li
+	><li
+	><a href="ThHListExample.lhs.html"
+	  >ThHListExample.lhs</a
+	  ></li
+	><li
+	><a href="ThHListWrapper.lhs.html"
+	  >ThHListWrapper.lhs</a
+	  ></li
+	><li
+	><a href="ThTupleExample.lhs.html"
+	  >ThTupleExample.lhs</a
+	  ></li
+	><li
+	><a href="ThTupleWrapper.lhs.html"
+	  >ThTupleWrapper.lhs</a
+	  ></li
+	><li
+	><a href="WrapLib.lhs.html"
+	  >WrapLib.lhs</a
+	  ></li
+	><li
+	><a href="suppliers_and_parts.sql.html"
+	  >suppliers_and_parts.sql</a
+	  ></li
+	></ul
+      ></div
+    ><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

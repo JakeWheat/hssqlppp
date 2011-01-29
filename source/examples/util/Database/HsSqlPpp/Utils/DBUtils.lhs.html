@@ -1,0 +1,51 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >DBUtils</title
+    ><link href="../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >This file contains a few hacked together utility functions for working with postgres.</p
+    ><blockquote
+    ><p
+      >{-# LANGUAGE QuasiQuotes #-} module Database.HsSqlPpp.Utils.DBUtils (loadSqlUsingPsql ,loadSqlUsingPsqlFromFile ,clearDB ,clearDBN ,pgDump ,readCatalog) where</p
+      ><p
+      >import System import System.Process.Pipe</p
+      ><p
+      >import Database.HsSqlPpp.Utils.DbmsCommon import Database.HsSqlPpp.Utils.Here import Database.HsSqlPpp.Catalog import Database.HsSqlPpp.CatalogReader import Database.HsSqlPpp.SqlTypes</p
+      ><p
+      >-- | run psql to load the sql text into a database. loadSqlUsingPsql :: String -&gt; String -&gt; IO String loadSqlUsingPsql dbName = pipeString [(&quot;psql&quot;, [dbName ,&quot;-q&quot; ,&quot;--set&quot; ,&quot;ON_ERROR_STOP=on&quot; ,&quot;--file=-&quot;])]</p
+      ><p
+      >-- | run psql to load sql from the filename given into a database. loadSqlUsingPsqlFromFile :: String -&gt; FilePath -&gt; IO (Either String String) loadSqlUsingPsqlFromFile dbName fn = do ex &lt;- system (&quot;psql &quot; ++ dbName ++ &quot; -q --set ON_ERROR_STOP=on&quot; ++ &quot; --file=&quot; ++ fn) case ex of ExitFailure e -&gt; return $ Left $ &quot;psql failed with &quot; ++ show e ExitSuccess -&gt; return $ Right &quot;&quot;</p
+      ><p
+      >-- | use a dodgy hack to clear the database given clearDB :: IConnection conn =&gt; conn -&gt; IO () clearDB conn = do --withConn (&quot;dbname=&quot; ++ db) $  -&gt; do --runSqlCommand conn &quot;create language plpgsql;&quot; runSqlCommand conn &quot;drop language if exists plpgsql cascade;&quot; runSqlCommand conn &quot;create language plpgsql;&quot; runSqlCommand conn [$here|  |] runSqlCommand conn &quot;select drop_all_user();&quot; runSqlCommand conn &quot;drop language if exists plpgsql cascade;&quot;</p
+      ></blockquote
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">clearDBN</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="Symbol">()</span>
+<span class="Function">clearDBN</span> <span class="VarId">db</span> <span class="Symbol">=</span>
+  <span class="VarId">withConn</span> <span class="Symbol">(</span><span class="String">&quot;dbname=&quot;</span> <span class="Symbol">++</span> <span class="VarId">db</span><span class="Symbol">)</span> <span class="VarId">clearDB</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="Comment">-- | dump the given database to sql source using pg_dump</span>
+<span class="Function">pgDump</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="ConId">String</span>
+<span class="Function">pgDump</span> <span class="VarId">db</span> <span class="Symbol">=</span> <span class="VarId">pipeString</span> <span class="Symbol">[(</span><span class="String">&quot;pg_dump&quot;</span><span class="Symbol">,</span> <span class="Symbol">[</span><span class="VarId">db</span>
+                                    <span class="Symbol">,</span><span class="String">&quot;--schema-only&quot;</span>
+                                    <span class="Symbol">,</span><span class="String">&quot;--no-owner&quot;</span>
+                                    <span class="Symbol">,</span><span class="String">&quot;--no-privileges&quot;</span><span class="Symbol">])]</span> <span class="String">&quot;&quot;</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">-- | get the catalog from the database, and return an Catalog value</span>
+<span class="Function">readCatalog</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="Symbol">(</span><span class="ConId">Either</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">]</span> <span class="ConId">Catalog</span><span class="Symbol">)</span>
+<span class="Function">readCatalog</span> <span class="VarId">dbName</span> <span class="Symbol">=</span>
+  <span class="VarId">fmap</span> <span class="Symbol">(</span><span class="VarId">updateCatalog</span> <span class="VarId">defaultCatalog</span><span class="Symbol">)</span>
+       <span class="Symbol">(</span><span class="VarId">readCatalogFromDatabase</span> <span class="VarId">dbName</span><span class="Symbol">)</span></pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

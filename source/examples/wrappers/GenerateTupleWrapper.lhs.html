@@ -1,0 +1,195 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >GenerateTupleWrapper</title
+    ><link href="../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >Code isn't finished, shouldn't be too difficult to sort it out, but seems a bit pointless when the th version works nice.</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">{-# LANGUAGE FlexibleContexts #-}</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.Examples.Wrappers.GenerateTupleWrapper</span>
+    <span class="Symbol">(</span><span class="VarId">wrapperGen</span><span class="Symbol">)</span> <span class="Keyword">where</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">import</span> <span class="ConId">Language.Haskell.Exts</span> <span class="Keyword">hiding</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">)</span>
+<span class="Keyword">import</span> <span class="Keyword">qualified</span> <span class="ConId">Language.Haskell.Exts</span> <span class="Keyword">as</span> <span class="ConId">Exts</span>
+<span class="Keyword">import</span> <span class="ConId">Data.Generics.PlateData</span>
+<span class="Keyword">import</span> <span class="ConId">Data.Generics</span> <span class="Keyword">hiding</span> <span class="Symbol">(</span><span class="ConId">Prefix</span><span class="Symbol">,</span><span class="ConId">Infix</span><span class="Symbol">)</span>
+<span class="Keyword">import</span> <span class="ConId">Control.Monad.Error</span>
+<span class="Keyword">import</span> <span class="ConId">Data.Maybe</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.SqlTypes</span> <span class="Keyword">as</span> <span class="ConId">Sql</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Catalog</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.TypeChecker</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Parser</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Annotation</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">wrapperGen</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Comment">-- ^ name of database to typecheck against</span>
+           <span class="Symbol">-&gt;</span> <span class="ConId">FilePath</span> <span class="Comment">-- ^ haskell source filename to process</span>
+           <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="ConId">String</span> <span class="Comment">-- ^ generated wrapper source code</span>
+<span class="Function">wrapperGen</span> <span class="VarId">db</span> <span class="VarId">fn</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+  <span class="VarId">p</span> <span class="Symbol">&lt;-</span> <span class="VarId">parseFile</span> <span class="VarId">fn</span>
+  <span class="Keyword">case</span> <span class="VarId">p</span> <span class="Keyword">of</span>
+    <span class="ConId">ParseOk</span> <span class="VarId">ast</span> <span class="Symbol">-&gt;</span> <span class="Keyword">do</span>
+                   <span class="VarId">catU</span> <span class="Symbol">&lt;-</span> <span class="VarId">readCatalogFromDatabase</span> <span class="VarId">db</span>
+                   <span class="Keyword">case</span> <span class="VarId">updateCatalog</span> <span class="VarId">defaultCatalog</span> <span class="VarId">catU</span> <span class="Keyword">of</span>
+                     <span class="ConId">Left</span> <span class="VarId">er</span> <span class="Symbol">-&gt;</span> <span class="VarId">return</span> <span class="Symbol">$</span> <span class="VarId">show</span> <span class="VarId">er</span>
+                     <span class="ConId">Right</span> <span class="VarId">cat</span> <span class="Symbol">-&gt;</span>
+                         <span class="VarId">return</span> <span class="Symbol">$</span> <span class="Comment">{-ppShow ast ++  &quot;\n\n&quot; ++ -}</span> <span class="VarId">prettyPrint</span> <span class="Symbol">(</span><span class="VarId">processTree</span> <span class="VarId">cat</span> <span class="Symbol">(</span><span class="VarId">addImports</span> <span class="VarId">ast</span><span class="Symbol">))</span>
+    <span class="VarId">x</span> <span class="Symbol">-&gt;</span> <span class="VarId">return</span> <span class="Symbol">$</span> <span class="VarId">show</span> <span class="VarId">x</span></pre></div></div></div><p
+    >This is the function which finds the statements which look like ident = &quot;string&quot; and converts them into hdbc wrappers with the correct types</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">processTree</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="ConId">Catalog</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
+<span class="Function">processTree</span> <span class="VarId">cat</span> <span class="Symbol">=</span>
+    <span class="VarId">transformBi</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span>
+      <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+        <span class="Symbol">(</span><span class="ConId">PatBind</span> <span class="VarId">_</span>
+             <span class="Symbol">(</span><span class="ConId">PVar</span> <span class="Symbol">(</span><span class="ConId">Ident</span> <span class="VarId">fnName</span><span class="Symbol">))</span>
+             <span class="ConId">Nothing</span>
+             <span class="Symbol">(</span><span class="ConId">UnGuardedRhs</span><span class="Symbol">(</span><span class="ConId">Lit</span> <span class="Symbol">(</span><span class="ConId">Exts.String</span> <span class="VarId">sqlSrc</span><span class="Symbol">)))</span>
+             <span class="Symbol">(</span><span class="ConId">BDecls</span> <span class="Symbol">[]))</span> <span class="Symbol">:</span> <span class="VarId">tl</span>
+          <span class="Symbol">-&gt;</span> <span class="VarId">createWrapper</span> <span class="VarId">cat</span> <span class="VarId">fnName</span> <span class="VarId">sqlSrc</span> <span class="Symbol">++</span> <span class="VarId">tl</span>
+        <span class="VarId">x1</span> <span class="Symbol">-&gt;</span> <span class="VarId">x1</span></pre></div></div></div><p
+    >for each bind to convert, lookup the haskell types needed, then create a type sig and a function to use hdbc to run the sql</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">createWrapper</span> <span class="Symbol">::</span> <span class="ConId">Catalog</span>
+              <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+              <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+              <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Decl</span><span class="Symbol">]</span>
+<span class="Function">createWrapper</span> <span class="VarId">cat</span> <span class="VarId">fnName</span> <span class="VarId">sql</span> <span class="Symbol">=</span>
+    <span class="Keyword">let</span> <span class="VarId">rt</span> <span class="Symbol">=</span> <span class="VarId">getStatementType</span> <span class="VarId">cat</span> <span class="VarId">sql</span>
+    <span class="Keyword">in</span> <span class="Keyword">case</span> <span class="VarId">rt</span> <span class="Keyword">of</span>
+      <span class="ConId">Left</span> <span class="VarId">e</span> <span class="Symbol">-&gt;</span> <span class="VarId">error</span> <span class="VarId">e</span>
+      <span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">StatementType</span> <span class="VarId">pt</span> <span class="VarId">ts</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span>
+          <span class="Keyword">let</span> <span class="VarId">pts</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="VarId">sqlTypeToHaskellTypeName</span> <span class="VarId">pt</span>
+              <span class="VarId">tns</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="Symbol">(</span><span class="VarId">sqlTypeToHaskellTypeName</span> <span class="Symbol">.</span> <span class="VarId">snd</span><span class="Symbol">)</span> <span class="VarId">ts</span>
+          <span class="Keyword">in</span> <span class="Symbol">[</span><span class="VarId">makeTypeSig</span> <span class="VarId">fnName</span> <span class="VarId">pts</span> <span class="VarId">tns</span>
+             <span class="Symbol">,</span><span class="VarId">makeFn</span> <span class="VarId">fnName</span> <span class="VarId">sql</span> <span class="VarId">pts</span> <span class="VarId">tns</span><span class="Symbol">]</span></pre></div></div></div><p
+    >================================================================================</p
+    ><p
+    >create the type signature for a wrapper, produces something like (IConnection conn) =&gt; conn -&gt; inarg1 -&gt; inarg2 -&gt; ... -&gt; IO [(outarg1, outarg2, ...)]</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">makeTypeSig</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">String</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">String</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Decl</span>
+<span class="Function">makeTypeSig</span> <span class="VarId">fnName</span> <span class="VarId">argTypes</span> <span class="VarId">typeNames</span> <span class="Symbol">=</span>
+  <span class="ConId">TypeSig</span> <span class="VarId">noSrcLoc</span> <span class="Symbol">[</span><span class="ConId">Ident</span> <span class="VarId">fnName</span><span class="Symbol">]</span> <span class="Symbol">$</span>
+    <span class="ConId">TyForall</span> <span class="ConId">Nothing</span> <span class="Symbol">[</span><span class="ConId">ClassA</span> <span class="Symbol">(</span><span class="ConId">UnQual</span> <span class="Symbol">(</span><span class="ConId">Ident</span> <span class="String">&quot;IConnection&quot;</span><span class="Symbol">))</span> <span class="Symbol">[</span><span class="ConId">TyVar</span><span class="Symbol">(</span><span class="ConId">Ident</span> <span class="String">&quot;conn&quot;</span><span class="Symbol">)]]</span> <span class="Symbol">$</span>
+      <span class="VarId">foldr</span> <span class="ConId">TyFun</span> <span class="VarId">lastArg</span> <span class="VarId">args</span>
+  <span class="Keyword">where</span>
+    <span class="VarId">tc</span> <span class="Symbol">=</span> <span class="ConId">TyCon</span> <span class="Symbol">.</span> <span class="ConId">UnQual</span> <span class="Symbol">.</span> <span class="ConId">Ident</span>
+    <span class="VarId">tntt</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="ConId">TyApp</span> <span class="Symbol">(</span><span class="VarId">tc</span> <span class="String">&quot;Maybe&quot;</span><span class="Symbol">))</span> <span class="Symbol">.</span> <span class="VarId">tc</span>
+    <span class="VarId">args</span> <span class="Symbol">=</span> <span class="Symbol">((</span><span class="ConId">TyVar</span> <span class="Symbol">(</span><span class="ConId">Ident</span> <span class="String">&quot;conn&quot;</span><span class="Symbol">))</span> <span class="Symbol">:</span> <span class="VarId">map</span> <span class="VarId">tntt</span> <span class="VarId">argTypes</span><span class="Symbol">)</span>
+    <span class="VarId">lastArg</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="ConId">TyApp</span> <span class="Symbol">(</span><span class="VarId">tc</span> <span class="String">&quot;IO&quot;</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">TyList</span> <span class="Symbol">(</span><span class="ConId">TyTuple</span> <span class="ConId">Boxed</span> <span class="Symbol">$</span> <span class="VarId">map</span> <span class="VarId">tntt</span> <span class="VarId">typeNames</span><span class="Symbol">)))</span></pre></div></div></div><p
+    >================================================================================</p
+    ><p
+    >create the function which calls hdbc</p
+    ><p
+    >takes something like: pieces_at_pos = &quot;select * from pieces where x = ? and y = ?;&quot; and produces:</p
+    ><p
+    >pieces_at_pos conn b0 b1 = do r &lt;- selectRelation conn &quot;select * from pieces where x = ? and y = ?;&quot; [toSql b0, toSql b1] return $ flip map r $  [a0, a1, a2, a3, a4] -&gt; (fromSql a0, fromSql a1, fromSql a2, fromSql a3, fromSql a4)</p
+    ><p
+    >doesn't really need to know the types, just the number of inargs and outargs, since the work is done by hdbc's toSql and fromSql, and by the type signature that is generated in the function above</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">makeFn</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">String</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">String</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Decl</span>
+<span class="Function">makeFn</span> <span class="VarId">fnName</span> <span class="VarId">sql</span> <span class="VarId">pts</span> <span class="VarId">typeNames</span> <span class="Symbol">=</span> <span class="ConId">FunBind</span>
+      <span class="Symbol">[</span> <span class="ConId">Match</span> <span class="VarId">noSrcLoc</span><span class="Symbol">(</span>
+          <span class="ConId">Ident</span> <span class="VarId">fnName</span> <span class="Symbol">)</span>
+          <span class="Symbol">(</span><span class="ConId">PVar</span> <span class="Symbol">(</span><span class="ConId">Ident</span> <span class="String">&quot;conn&quot;</span><span class="Symbol">)</span> <span class="Symbol">:</span> <span class="VarId">map</span> <span class="Symbol">(</span><span class="ConId">PVar</span> <span class="Symbol">.</span> <span class="ConId">Ident</span><span class="Symbol">)</span> <span class="VarId">pNames</span><span class="Symbol">)</span>
+          <span class="ConId">Nothing</span> <span class="Symbol">(</span>
+          <span class="ConId">UnGuardedRhs</span> <span class="Symbol">(</span>
+            <span class="ConId">Do</span>
+              <span class="Symbol">[</span> <span class="ConId">Generator</span> <span class="VarId">noSrcLoc</span> <span class="Symbol">(</span>
+                  <span class="ConId">PVar</span> <span class="Symbol">(</span> <span class="ConId">Ident</span> <span class="String">&quot;r&quot;</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">(</span>
+                  <span class="ConId">App</span> <span class="Symbol">(</span>
+                    <span class="ConId">App</span> <span class="Symbol">(</span>
+                      <span class="ConId">App</span> <span class="Symbol">(</span>
+                        <span class="ConId">Var</span> <span class="Symbol">(</span> <span class="ConId">UnQual</span> <span class="Symbol">(</span> <span class="ConId">Ident</span> <span class="String">&quot;selectRelation&quot;</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">(</span>
+                        <span class="ConId">Var</span> <span class="Symbol">(</span> <span class="ConId">UnQual</span> <span class="Symbol">(</span> <span class="ConId">Ident</span> <span class="String">&quot;conn&quot;</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">(</span>
+                      <span class="ConId">Lit</span> <span class="Symbol">(</span> <span class="ConId">Exts.String</span> <span class="VarId">sql</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">(</span>
+                    <span class="ConId">List</span> <span class="Symbol">$</span> <span class="VarId">map</span> <span class="Symbol">(\</span><span class="VarId">l</span> <span class="Symbol">-&gt;</span> <span class="ConId">App</span> <span class="Symbol">(</span>
+                        <span class="ConId">Var</span> <span class="Symbol">(</span> <span class="ConId">UnQual</span> <span class="Symbol">(</span> <span class="ConId">Ident</span> <span class="String">&quot;toSql&quot;</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">(</span>
+                        <span class="ConId">Var</span> <span class="Symbol">(</span> <span class="ConId">UnQual</span> <span class="Symbol">(</span> <span class="ConId">Ident</span> <span class="VarId">l</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">))</span> <span class="VarId">pNames</span>
+                    <span class="Symbol">))</span>
+              <span class="Symbol">,</span> <span class="ConId">Qualifier</span> <span class="Symbol">(</span>
+                  <span class="ConId">InfixApp</span> <span class="Symbol">(</span>
+                    <span class="ConId">Var</span> <span class="Symbol">(</span> <span class="ConId">UnQual</span> <span class="Symbol">(</span> <span class="ConId">Ident</span> <span class="String">&quot;return&quot;</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">(</span>
+                    <span class="ConId">QVarOp</span> <span class="Symbol">(</span> <span class="ConId">UnQual</span> <span class="Symbol">(</span> <span class="ConId">Symbol</span> <span class="String">&quot;$&quot;</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">(</span>
+                    <span class="ConId">InfixApp</span> <span class="Symbol">(</span>
+                      <span class="ConId">App</span> <span class="Symbol">(</span>
+                        <span class="ConId">App</span> <span class="Symbol">(</span>
+                          <span class="ConId">Var</span> <span class="Symbol">(</span> <span class="ConId">UnQual</span> <span class="Symbol">(</span> <span class="ConId">Ident</span> <span class="String">&quot;flip&quot;</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">(</span>
+                          <span class="ConId">Var</span> <span class="Symbol">(</span> <span class="ConId">UnQual</span> <span class="Symbol">(</span> <span class="ConId">Ident</span> <span class="String">&quot;map&quot;</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">(</span>
+                        <span class="ConId">Var</span> <span class="Symbol">(</span> <span class="ConId">UnQual</span> <span class="Symbol">(</span> <span class="ConId">Ident</span> <span class="String">&quot;r&quot;</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">(</span>
+                      <span class="ConId">QVarOp</span> <span class="Symbol">(</span> <span class="ConId">UnQual</span> <span class="Symbol">(</span> <span class="ConId">Symbol</span> <span class="String">&quot;$&quot;</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">(</span>
+                      <span class="ConId">Lambda</span> <span class="VarId">noSrcLoc</span>
+                        <span class="Symbol">[</span> <span class="ConId">PList</span> <span class="Symbol">(</span><span class="VarId">map</span> <span class="Symbol">(</span><span class="ConId">PVar</span> <span class="Symbol">.</span> <span class="ConId">Ident</span><span class="Symbol">)</span> <span class="VarId">vns</span><span class="Symbol">)</span>
+                        <span class="Symbol">]</span> <span class="Symbol">(</span>
+                        <span class="ConId">Tuple</span> <span class="Symbol">(</span><span class="VarId">map</span> <span class="Symbol">(\</span><span class="VarId">n</span> <span class="Symbol">-&gt;</span> <span class="ConId">App</span> <span class="Symbol">(</span><span class="VarId">vui</span> <span class="String">&quot;fromSql&quot;</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="VarId">vui</span> <span class="VarId">n</span><span class="Symbol">))</span> <span class="VarId">vns</span><span class="Symbol">)</span>
+                        <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">)</span>
+              <span class="Symbol">]</span> <span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">(</span>
+          <span class="ConId">BDecls</span> <span class="Symbol">[]</span> <span class="Symbol">)</span>
+      <span class="Symbol">]</span>
+      <span class="Keyword">where</span>
+        <span class="VarId">varName</span> <span class="VarId">n</span> <span class="Symbol">=</span> <span class="String">&quot;a&quot;</span> <span class="Symbol">++</span> <span class="VarId">show</span> <span class="VarId">n</span>
+        <span class="VarId">vns</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="VarId">varName</span> <span class="Symbol">[</span><span class="Number">0</span><span class="Symbol">..</span><span class="VarId">length</span> <span class="VarId">typeNames</span> <span class="Symbol">-</span> <span class="Number">1</span><span class="Symbol">]</span>
+        <span class="VarId">vui</span> <span class="Symbol">=</span> <span class="ConId">Var</span> <span class="Symbol">.</span> <span class="ConId">UnQual</span> <span class="Symbol">.</span> <span class="ConId">Ident</span>
+        <span class="VarId">pName</span> <span class="VarId">n</span> <span class="Symbol">=</span> <span class="String">&quot;b&quot;</span> <span class="Symbol">++</span> <span class="VarId">show</span> <span class="VarId">n</span>
+        <span class="VarId">pNames</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="VarId">pName</span> <span class="Symbol">[</span><span class="Number">0</span><span class="Symbol">..</span><span class="VarId">length</span> <span class="VarId">pts</span> <span class="Symbol">-</span> <span class="Number">1</span><span class="Symbol">]</span></pre></div></div></div><p
+    >================================================================================</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">addImports</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
+<span class="Function">addImports</span> <span class="Symbol">=</span>
+    <span class="VarId">transformBi</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span>
+      <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+        <span class="ConId">Module</span> <span class="VarId">sl</span> <span class="VarId">mn</span> <span class="VarId">o</span> <span class="VarId">wt</span> <span class="VarId">es</span> <span class="VarId">im</span> <span class="VarId">d</span> <span class="Symbol">-&gt;</span> <span class="ConId">Module</span> <span class="VarId">sl</span> <span class="VarId">mn</span> <span class="VarId">o</span> <span class="VarId">wt</span> <span class="VarId">es</span> <span class="Symbol">(</span><span class="VarId">imports</span> <span class="Symbol">++</span> <span class="VarId">im</span><span class="Symbol">)</span> <span class="VarId">d</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">imports</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ImportDecl</span><span class="Symbol">]</span>
+<span class="Function">imports</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">ImportDecl</span> <span class="Symbol">{</span><span class="VarId">importLoc</span> <span class="Symbol">=</span> <span class="VarId">noSrcLoc</span>
+                      <span class="Symbol">,</span><span class="VarId">importModule</span> <span class="Symbol">=</span> <span class="ConId">ModuleName</span> <span class="String">&quot;Database.HDBC&quot;</span>
+                      <span class="Symbol">,</span><span class="VarId">importQualified</span> <span class="Symbol">=</span> <span class="ConId">False</span>
+                      <span class="Symbol">,</span><span class="VarId">importSrc</span> <span class="Symbol">=</span> <span class="ConId">False</span>
+                      <span class="Symbol">,</span><span class="VarId">importPkg</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+                      <span class="Symbol">,</span><span class="VarId">importAs</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+                      <span class="Symbol">,</span><span class="VarId">importSpecs</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+                      <span class="Symbol">}</span>
+          <span class="Symbol">,</span><span class="ConId">ImportDecl</span> <span class="Symbol">{</span><span class="VarId">importLoc</span> <span class="Symbol">=</span> <span class="VarId">noSrcLoc</span>
+                      <span class="Symbol">,</span><span class="VarId">importModule</span> <span class="Symbol">=</span> <span class="ConId">ModuleName</span> <span class="String">&quot;Database.HsSqlPpp.Dbms.WrapLib&quot;</span>
+                      <span class="Symbol">,</span><span class="VarId">importQualified</span> <span class="Symbol">=</span> <span class="ConId">False</span>
+                      <span class="Symbol">,</span><span class="VarId">importSrc</span> <span class="Symbol">=</span> <span class="ConId">False</span>
+                      <span class="Symbol">,</span><span class="VarId">importPkg</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+                      <span class="Symbol">,</span><span class="VarId">importAs</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+                      <span class="Symbol">,</span><span class="VarId">importSpecs</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+                      <span class="Symbol">}]</span></pre></div></div></div><p
+    >================================================================================</p
+    ><p
+    >parsing and typechecking</p
+    ><p
+    >get the input and output types for a parameterized sql statement:</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">getStatementType</span> <span class="Symbol">::</span> <span class="ConId">Catalog</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="ConId">String</span> <span class="ConId">StatementType</span>
+<span class="Function">getStatementType</span> <span class="VarId">cat</span> <span class="VarId">sql</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+    <span class="VarId">ast</span> <span class="Symbol">&lt;-</span> <span class="VarId">tsl</span> <span class="Symbol">$</span> <span class="VarId">parseSql</span> <span class="String">&quot;&quot;</span> <span class="VarId">sql</span>
+    <span class="Keyword">let</span> <span class="Symbol">(</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">aast</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">typeCheck</span> <span class="VarId">cat</span> <span class="VarId">ast</span>
+    <span class="Keyword">let</span> <span class="VarId">a</span> <span class="Symbol">=</span> <span class="VarId">getTopLevelInfos</span> <span class="VarId">aast</span>
+    <span class="VarId">return</span> <span class="Symbol">$</span> <span class="VarId">fromJust</span> <span class="Symbol">$</span> <span class="VarId">head</span> <span class="VarId">a</span></pre></div></div></div><p
+    >return the equivalent haskell type for a sql type as a string</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">sqlTypeToHaskellTypeName</span> <span class="Symbol">::</span> <span class="ConId">Sql.Type</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+<span class="Function">sqlTypeToHaskellTypeName</span> <span class="VarId">t</span> <span class="Symbol">=</span>
+    <span class="Keyword">case</span> <span class="VarId">t</span> <span class="Keyword">of</span>
+       <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span> <span class="Symbol">-&gt;</span> <span class="String">&quot;String&quot;</span>
+       <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span> <span class="Symbol">-&gt;</span> <span class="String">&quot;Int&quot;</span>
+       <span class="ConId">ScalarType</span> <span class="String">&quot;int8&quot;</span> <span class="Symbol">-&gt;</span> <span class="String">&quot;Int&quot;</span>
+       <span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span> <span class="Symbol">-&gt;</span> <span class="String">&quot;Bool&quot;</span>
+       <span class="ConId">DomainType</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="String">&quot;String&quot;</span>
+       <span class="VarId">x</span> <span class="Symbol">-&gt;</span> <span class="VarId">show</span> <span class="VarId">x</span></pre></div></div></div><p
+    >================================================================================</p
+    ><p
+    >simple ast shortcuts</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">noSrcLoc</span> <span class="Symbol">::</span> <span class="ConId">SrcLoc</span>
+<span class="Function">noSrcLoc</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="ConId">SrcLoc</span> <span class="String">&quot;&quot;</span> <span class="Number">0</span> <span class="Number">0</span><span class="Symbol">)</span></pre></div></div></div><p
+    >================================================================================</p
+    ><p
+    >error utility - convert either to ErrorT String</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">tsl</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">MonadError</span> <span class="ConId">String</span> <span class="VarId">m</span><span class="Symbol">,</span> <span class="ConId">Show</span> <span class="VarId">t</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span> <span class="ConId">Either</span> <span class="VarId">t</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">m</span> <span class="VarId">a</span>
+<span class="Function">tsl</span> <span class="VarId">x</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+               <span class="ConId">Left</span> <span class="VarId">s</span> <span class="Symbol">-&gt;</span> <span class="VarId">throwError</span> <span class="Symbol">$</span> <span class="VarId">show</span> <span class="VarId">s</span>
+               <span class="ConId">Right</span> <span class="VarId">b</span> <span class="Symbol">-&gt;</span> <span class="VarId">return</span> <span class="VarId">b</span></pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

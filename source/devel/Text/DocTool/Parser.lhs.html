@@ -1,0 +1,118 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >Parser</title
+    ><link href="../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >want to treat non literate source code in a similar way to lhs files - the code is syntax highlighted, and the comments are converted as markdown</p
+    ><p
+    >specifically: convert the multiline comments into markdown, and the rest into codeblocks</p
+    ><p
+    >first parse the all the comments out then run over the list to fix it up: a comment is converted to code if is isn't the first element and the previous element is code and doesn't end with  &gt;&gt; spaces it doesn't contain a  it isn't the last element and the next element doesn't start with spaces &gt;&gt; </p
+    ><p
+    >also: option to not have nested comments ignore multiline comment symbols inside single line comments</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">{-# LANGUAGE DeriveDataTypeable #-}</span>
+<span class="Keyword">module</span> <span class="ConId">Text.DocTool.Parser</span>
+    <span class="Symbol">(</span><span class="ConId">Cc</span><span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="VarId">parseSource</span><span class="Symbol">)</span> <span class="Keyword">where</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">import</span> <span class="ConId">Text.Parsec</span> <span class="Keyword">hiding</span><span class="Symbol">(</span><span class="VarId">many</span><span class="Symbol">,</span> <span class="VarId">optional</span><span class="Symbol">,</span> <span class="Symbol">(&lt;|&gt;),</span> <span class="VarId">string</span><span class="Symbol">,</span> <span class="VarId">label</span><span class="Symbol">)</span>
+<span class="Comment">--import Text.Parsec.Expr</span>
+<span class="Keyword">import</span> <span class="ConId">Text.Parsec.String</span>
+<span class="Comment">----import Text.Parsec.Perm</span>
+<span class="Keyword">import</span> <span class="ConId">Text.Parsec.Char</span>
+
+<span class="Keyword">import</span> <span class="ConId">Control.Applicative</span>
+<span class="Keyword">import</span> <span class="ConId">Control.Monad.Identity</span>
+<span class="Keyword">import</span> <span class="ConId">Control.Monad.Error</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">--import Debug.Trace</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">data</span> <span class="ConId">Cc</span> <span class="Symbol">=</span> <span class="ConId">Code</span> <span class="ConId">String</span>
+        <span class="Symbol">|</span> <span class="ConId">Comments</span> <span class="ConId">String</span>
+          <span class="Keyword">deriving</span> <span class="ConId">Show</span></pre></div></div></div><p
+    >===========================================</p
+    ><p
+    >fixup tree:</p
+    ><p
+    >todo</p
+    ><p
+    >===========================================</p
+    ><p
+    >parsing</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">type</span> <span class="ConId">SParser</span> <span class="Symbol">=</span>  <span class="ConId">GenParser</span> <span class="ConId">Token</span> <span class="Symbol">()</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">parseSource</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="ConId">ParseError</span> <span class="Symbol">[</span><span class="ConId">Cc</span><span class="Symbol">]</span>
+<span class="Function">parseSource</span> <span class="VarId">cs</span> <span class="VarId">ce</span> <span class="VarId">s</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+  <span class="VarId">l</span> <span class="Symbol">&lt;-</span> <span class="VarId">lexS</span> <span class="VarId">cs</span> <span class="VarId">ce</span> <span class="VarId">s</span>
+  <span class="Comment">--trace (show l) $ return ()</span>
+  <span class="VarId">runParser</span> <span class="Symbol">(</span><span class="VarId">many</span> <span class="VarId">item</span> <span class="Symbol">&lt;*</span> <span class="VarId">eof</span><span class="Symbol">)</span> <span class="Symbol">()</span> <span class="String">&quot;&quot;</span> <span class="VarId">l</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">item</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Cc</span>
+<span class="Function">item</span> <span class="Symbol">=</span> <span class="VarId">comment</span> <span class="Symbol">&lt;|&gt;</span> <span class="VarId">code</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">comment</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Cc</span>
+<span class="Function">comment</span> <span class="Symbol">=</span>
+  <span class="ConId">Comments</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">commentString</span>
+  <span class="Keyword">where</span>
+    <span class="VarId">commentString</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+      <span class="VarId">a</span> <span class="Symbol">&lt;-</span> <span class="VarId">commentStart</span>
+      <span class="VarId">b</span> <span class="Symbol">&lt;-</span> <span class="VarId">commentCtd</span>
+      <span class="VarId">return</span> <span class="Symbol">$</span> <span class="VarId">concat</span> <span class="Symbol">(</span><span class="VarId">a</span><span class="Symbol">:</span><span class="VarId">b</span><span class="Symbol">)</span>
+    <span class="VarId">commentCtd</span> <span class="Symbol">=</span> <span class="VarId">choice</span> <span class="Symbol">[</span>
+                  <span class="Keyword">do</span>
+                  <span class="VarId">a</span> <span class="Symbol">&lt;-</span> <span class="VarId">commentString</span>
+                  <span class="VarId">b</span> <span class="Symbol">&lt;-</span> <span class="VarId">commentCtd</span>
+                  <span class="VarId">return</span> <span class="Symbol">(</span><span class="VarId">a</span><span class="Symbol">:</span><span class="VarId">b</span><span class="Symbol">)</span>
+                 <span class="Symbol">,</span><span class="Keyword">do</span>
+                  <span class="VarId">a</span> <span class="Symbol">&lt;-</span> <span class="VarId">text</span>
+                  <span class="VarId">b</span> <span class="Symbol">&lt;-</span> <span class="VarId">commentCtd</span>
+                  <span class="VarId">return</span> <span class="Symbol">(</span><span class="VarId">a</span><span class="Symbol">:</span><span class="VarId">b</span><span class="Symbol">)</span>
+                 <span class="Symbol">,</span><span class="Keyword">do</span>
+                   <span class="VarId">a</span> <span class="Symbol">&lt;-</span> <span class="VarId">commentEnd</span>
+                   <span class="VarId">return</span> <span class="Symbol">[</span><span class="VarId">a</span><span class="Symbol">]</span>
+                 <span class="Symbol">]</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">code</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Cc</span>
+<span class="Function">code</span> <span class="Symbol">=</span> <span class="ConId">Code</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">text</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">commentStart</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">String</span>
+<span class="Function">commentStart</span> <span class="Symbol">=</span> <span class="VarId">mytoken</span> <span class="Symbol">(\</span><span class="VarId">tok</span> <span class="Symbol">-&gt;</span> <span class="Keyword">case</span> <span class="VarId">tok</span> <span class="Keyword">of</span>
+                                    <span class="ConId">CommentStart</span> <span class="VarId">s</span> <span class="Symbol">-&gt;</span> <span class="ConId">Just</span> <span class="VarId">s</span>
+                                    <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Nothing</span><span class="Symbol">)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">commentEnd</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">String</span>
+<span class="Function">commentEnd</span> <span class="Symbol">=</span> <span class="VarId">mytoken</span> <span class="Symbol">(\</span><span class="VarId">tok</span> <span class="Symbol">-&gt;</span> <span class="Keyword">case</span> <span class="VarId">tok</span> <span class="Keyword">of</span>
+                                    <span class="ConId">CommentEnd</span> <span class="VarId">s</span> <span class="Symbol">-&gt;</span> <span class="ConId">Just</span> <span class="VarId">s</span>
+                                    <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Nothing</span><span class="Symbol">)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">text</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">String</span>
+<span class="Function">text</span> <span class="Symbol">=</span> <span class="VarId">mytoken</span> <span class="Symbol">(\</span><span class="VarId">tok</span> <span class="Symbol">-&gt;</span> <span class="Keyword">case</span> <span class="VarId">tok</span> <span class="Keyword">of</span>
+                                    <span class="ConId">Text</span> <span class="VarId">s</span> <span class="Symbol">-&gt;</span> <span class="ConId">Just</span> <span class="VarId">s</span>
+                                    <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Nothing</span><span class="Symbol">)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">mytoken</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Tok</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">String</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="ConId">SParser</span> <span class="ConId">String</span>
+<span class="Function">mytoken</span> <span class="VarId">test</span>
+  <span class="Symbol">=</span> <span class="VarId">token</span> <span class="VarId">showToken</span> <span class="VarId">posToken</span> <span class="VarId">testToken</span>
+  <span class="Keyword">where</span>
+  <span class="VarId">showToken</span> <span class="Symbol">(</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">tok</span><span class="Symbol">)</span>   <span class="Symbol">=</span> <span class="VarId">show</span> <span class="VarId">tok</span>
+  <span class="VarId">posToken</span>  <span class="Symbol">(</span><span class="VarId">posi</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">)</span>  <span class="Symbol">=</span> <span class="VarId">posi</span>
+  <span class="VarId">testToken</span> <span class="Symbol">(</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">tok</span><span class="Symbol">)</span>   <span class="Symbol">=</span> <span class="VarId">test</span> <span class="VarId">tok</span></pre></div></div></div><p
+    >===========================================</p
+    ><p
+    >Lexing</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">type</span> <span class="ConId">Token</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="ConId">SourcePos</span><span class="Symbol">,</span> <span class="ConId">Tok</span><span class="Symbol">)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">data</span> <span class="ConId">Tok</span> <span class="Symbol">=</span> <span class="ConId">CommentStart</span> <span class="ConId">String</span>
+           <span class="Symbol">|</span> <span class="ConId">CommentEnd</span> <span class="ConId">String</span>
+           <span class="Symbol">|</span> <span class="ConId">Text</span> <span class="ConId">String</span>
+             <span class="Keyword">deriving</span> <span class="Symbol">(</span><span class="ConId">Eq</span><span class="Symbol">,</span><span class="ConId">Show</span><span class="Symbol">)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">lexS</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="ConId">ParseError</span> <span class="Symbol">[</span><span class="ConId">Token</span><span class="Symbol">]</span>
+<span class="Function">lexS</span> <span class="VarId">cs</span> <span class="VarId">ce</span> <span class="Symbol">=</span> <span class="VarId">runParser</span> <span class="Symbol">(</span><span class="VarId">many</span> <span class="Symbol">$</span> <span class="VarId">tk</span> <span class="VarId">cs</span> <span class="VarId">ce</span><span class="Symbol">)</span> <span class="Symbol">()</span> <span class="String">&quot;&quot;</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">type</span> <span class="ConId">TParser</span> <span class="Symbol">=</span>  <span class="ConId">GenParser</span> <span class="ConId">Char</span> <span class="Symbol">()</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">tk</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">TParser</span> <span class="ConId">Token</span>
+<span class="Function">tk</span> <span class="VarId">cst</span> <span class="VarId">cet</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+  <span class="VarId">sp</span> <span class="Symbol">&lt;-</span> <span class="VarId">getPosition</span>
+  <span class="VarId">x</span> <span class="Symbol">&lt;-</span> <span class="VarId">choice</span> <span class="Symbol">[</span>
+      <span class="ConId">CommentStart</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">cs</span>
+     <span class="Symbol">,</span><span class="ConId">CommentEnd</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">ce</span>
+     <span class="Symbol">,</span><span class="ConId">Text</span> <span class="Symbol">&lt;$&gt;</span> <span class="Symbol">(</span><span class="VarId">anyChar</span> <span class="Symbol">&lt;:&gt;</span> <span class="VarId">manyTill</span> <span class="VarId">anyChar</span> <span class="Symbol">(</span><span class="VarId">cse</span> <span class="Symbol">&lt;|&gt;</span> <span class="VarId">eof</span><span class="Symbol">))]</span>
+  <span class="Comment">--trace (&quot;got &quot; ++ show x) $ return ()</span>
+  <span class="VarId">return</span> <span class="Symbol">(</span><span class="VarId">sp</span><span class="Symbol">,</span><span class="VarId">x</span><span class="Symbol">)</span>
+    <span class="Keyword">where</span>
+      <span class="VarId">cse</span> <span class="Symbol">=</span> <span class="VarId">lookAhead</span> <span class="Symbol">(</span><span class="VarId">cs</span> <span class="Symbol">&lt;|&gt;</span> <span class="VarId">ce</span><span class="Symbol">)</span> <span class="Symbol">&gt;&gt;</span> <span class="VarId">return</span> <span class="Symbol">()</span>
+      <span class="VarId">cs</span> <span class="Symbol">=</span> <span class="VarId">try</span> <span class="Symbol">(</span><span class="VarId">string</span> <span class="VarId">cst</span><span class="Symbol">)</span>
+      <span class="VarId">ce</span> <span class="Symbol">=</span> <span class="VarId">try</span> <span class="Symbol">(</span><span class="VarId">string</span> <span class="VarId">cet</span><span class="Symbol">)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Symbol">(&lt;:&gt;)</span> <span class="Symbol">::</span> <span class="ConId">Monad</span> <span class="VarId">m</span> <span class="Symbol">=&gt;</span> <span class="VarId">m</span> <span class="VarId">a1</span> <span class="Symbol">-&gt;</span> <span class="VarId">m</span> <span class="Symbol">[</span><span class="VarId">a1</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="VarId">m</span> <span class="Symbol">[</span><span class="VarId">a1</span><span class="Symbol">]</span>
+<span class="Symbol">(&lt;:&gt;)</span> <span class="Symbol">=</span> <span class="VarId">liftM2</span> <span class="Symbol">(:)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">instance</span> <span class="ConId">Error</span> <span class="ConId">ParseError</span> <span class="Keyword">where</span>
+  <span class="VarId">noMsg</span> <span class="Symbol">=</span> <span class="VarId">error</span> <span class="String">&quot;gone wrong&quot;</span>
+  <span class="VarId">strMsg</span> <span class="Symbol">=</span> <span class="VarId">error</span> <span class="String">&quot;gone wrong&quot;</span></pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

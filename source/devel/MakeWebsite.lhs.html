@@ -1,0 +1,121 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >MakeWebsite</title
+    ><link href="../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >Make the website,</p
+    ><p
+    >To compile and run, use something like:</p
+    ><p
+    >ghc --make -threaded -XScopedTypeVariables -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -idevel:src/lib:src/qq:src/postgresql:examples/chaos:examples/extensions/:examples/util/:tests/ --make devel/DevelTool.lhs &amp;&amp; time</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">module</span> <span class="ConId">MakeWebsite</span> <span class="Symbol">(</span><span class="VarId">makeWebsite</span><span class="Symbol">,</span> <span class="VarId">sourceLinks</span><span class="Symbol">)</span> <span class="Keyword">where</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">import</span> <span class="ConId">System.FilePath.Find</span>
+<span class="Keyword">import</span> <span class="ConId">System.FilePath</span>
+<span class="Keyword">import</span> <span class="ConId">Data.Char</span>
+<span class="Keyword">import</span> <span class="ConId">System.Directory</span>
+<span class="Keyword">import</span> <span class="ConId">Control.Monad</span>
+<span class="Keyword">import</span> <span class="ConId">System.Environment</span>
+<span class="Keyword">import</span> <span class="ConId">Data.List</span> <span class="Keyword">hiding</span> <span class="Symbol">(</span><span class="VarId">find</span><span class="Symbol">)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">import</span> <span class="ConId">Text.DocTool.DocTool</span>
+<span class="Keyword">import</span> <span class="ConId">TestFileProcessor</span>
+<span class="Keyword">import</span> <span class="ConId">DoChaosSql</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">makeWebsite</span> <span class="Symbol">::</span> <span class="ConId">IO</span> <span class="Symbol">()</span>
+<span class="Function">makeWebsite</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+          <span class="VarId">f</span> <span class="Symbol">&lt;-</span> <span class="VarId">fileList</span>
+          <span class="VarId">docify</span> <span class="String">&quot;hssqlppp/&quot;</span> <span class="VarId">f</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">fileList</span> <span class="Symbol">::</span> <span class="ConId">IO</span> <span class="Symbol">[</span><span class="ConId">OutputFile</span><span class="Symbol">]</span>
+<span class="Function">fileList</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+  <span class="VarId">doesDirectoryExist</span> <span class="String">&quot;hssqlppp&quot;</span> <span class="Symbol">&gt;&gt;=</span>
+    <span class="VarId">flip</span> <span class="VarId">when</span> <span class="Symbol">(</span><span class="VarId">removeDirectoryRecursive</span> <span class="String">&quot;hssqlppp&quot;</span><span class="Symbol">)</span>
+  <span class="VarId">wso</span> <span class="Symbol">&lt;-</span> <span class="VarId">doF</span> <span class="String">&quot;website_source/&quot;</span> <span class="Symbol">(</span><span class="VarId">makeRelative</span> <span class="String">&quot;website_source&quot;</span><span class="Symbol">)</span>
+  <span class="VarId">src'</span> <span class="Symbol">&lt;-</span> <span class="VarId">doF</span> <span class="String">&quot;src/&quot;</span> <span class="Symbol">(</span><span class="String">&quot;source&quot;</span> <span class="Symbol">&lt;/&gt;)</span>
+  <span class="Keyword">let</span> <span class="VarId">src</span> <span class="Symbol">=</span> <span class="VarId">removeMatches</span> <span class="Symbol">[</span><span class="String">&quot;src/Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs&quot;</span><span class="Symbol">]</span> <span class="VarId">src'</span>
+  <span class="VarId">ex'</span> <span class="Symbol">&lt;-</span> <span class="VarId">doF</span> <span class="String">&quot;examples/&quot;</span> <span class="Symbol">(</span><span class="String">&quot;source&quot;</span> <span class="Symbol">&lt;/&gt;)</span>
+  <span class="Keyword">let</span> <span class="VarId">ex</span> <span class="Symbol">=</span> <span class="VarId">removeMatches</span> <span class="Symbol">[</span><span class="String">&quot;util/Database/HsSqlPpp/Utils/PQ.chs.h&quot;</span>
+                         <span class="Symbol">,</span><span class="String">&quot;util/Database/HsSqlPpp/Utils/PQ.hs&quot;</span><span class="Symbol">]</span> <span class="VarId">ex'</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">  <span class="VarId">devel</span> <span class="Symbol">&lt;-</span> <span class="VarId">doF</span> <span class="String">&quot;devel/&quot;</span> <span class="Symbol">(</span><span class="String">&quot;source&quot;</span> <span class="Symbol">&lt;/&gt;)</span>
+  <span class="VarId">tests</span> <span class="Symbol">&lt;-</span> <span class="VarId">doF</span> <span class="String">&quot;tests/&quot;</span> <span class="Symbol">(</span><span class="String">&quot;source&quot;</span> <span class="Symbol">&lt;/&gt;)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">  <span class="VarId">qq</span> <span class="Symbol">&lt;-</span> <span class="VarId">quasiQuoteTestsTable</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">  <span class="Keyword">let</span> <span class="VarId">tfp</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">OutputFile</span> <span class="Symbol">(</span><span class="ConId">Text</span> <span class="VarId">parserTestsTable</span><span class="Symbol">)</span>
+                        <span class="ConId">Txt</span> <span class="String">&quot;hssqlppp/ParserTests.html&quot;</span>
+                        <span class="String">&quot;HsSqlPpp parser examples&quot;</span>
+            <span class="Symbol">,</span><span class="ConId">OutputFile</span> <span class="Symbol">(</span><span class="ConId">Text</span> <span class="VarId">typeCheckTestsTable</span><span class="Symbol">)</span>
+                        <span class="ConId">Txt</span> <span class="String">&quot;hssqlppp/TypeCheckTests.html&quot;</span>
+                        <span class="String">&quot;HsSqlPpp type checking examples&quot;</span>
+            <span class="Symbol">,</span><span class="ConId">OutputFile</span> <span class="Symbol">(</span><span class="ConId">Text</span> <span class="VarId">qq</span><span class="Symbol">)</span>
+                        <span class="ConId">Txt</span> <span class="String">&quot;hssqlppp/QuasiQuoteTests.html&quot;</span>
+                        <span class="String">&quot;HsSqlPpp quasiquotation examples&quot;</span><span class="Symbol">]</span>
+  <span class="Comment">{-trch1 &lt;- flip fmap getTransformedChaosSql</span>
+<span class="Comment">                $ map $ \(title, fn, txt) -&gt;</span>
+<span class="Comment">                          OutputFile (Text txt)</span>
+<span class="Comment">                                     Txt</span>
+<span class="Comment">                                     (&quot;hssqlppp/source&quot; &lt;/&gt; fn)</span>
+<span class="Comment">                                     title-}</span>
+  <span class="VarId">return</span> <span class="Symbol">$</span> <span class="VarId">tfp</span> <span class="Symbol">++</span> <span class="VarId">src</span> <span class="Symbol">++</span> <span class="Comment">{-trch1 ++ -}</span> <span class="VarId">wso</span> <span class="Symbol">++</span> <span class="VarId">ex</span> <span class="Symbol">++</span> <span class="VarId">devel</span> <span class="Symbol">++</span> <span class="VarId">tests</span>
+  <span class="Keyword">where</span>
+    <span class="VarId">removeMatches</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">String</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">OutputFile</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">OutputFile</span><span class="Symbol">]</span>
+    <span class="VarId">removeMatches</span> <span class="VarId">bads</span> <span class="Symbol">=</span>
+      <span class="VarId">filter</span> <span class="Symbol">(\(</span><span class="ConId">OutputFile</span> <span class="Symbol">(</span><span class="ConId">File</span> <span class="VarId">fn</span><span class="Symbol">)</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">fn</span> <span class="Symbol">`</span><span class="VarId">notElem</span><span class="Symbol">`</span> <span class="VarId">bads</span><span class="Symbol">)</span>
+    <span class="VarId">doF</span> <span class="VarId">fl</span> <span class="VarId">c</span> <span class="Symbol">=</span> <span class="VarId">fmap</span> <span class="Symbol">(</span><span class="VarId">map</span> <span class="Symbol">$</span> <span class="VarId">toOf</span> <span class="VarId">c</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="VarId">find</span> <span class="VarId">always</span> <span class="VarId">supportedFileP</span> <span class="VarId">fl</span>
+    <span class="VarId">ft</span> <span class="VarId">f</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">map</span> <span class="VarId">toLower</span> <span class="Symbol">(</span><span class="VarId">takeExtension</span> <span class="VarId">f</span><span class="Symbol">)</span> <span class="Keyword">of</span>
+             <span class="String">&quot;.sql&quot;</span> <span class="Symbol">-&gt;</span> <span class="ConId">Sql</span>
+             <span class="String">&quot;.lhs&quot;</span> <span class="Symbol">-&gt;</span> <span class="ConId">Lhs</span>
+             <span class="String">&quot;.hs&quot;</span> <span class="Symbol">-&gt;</span> <span class="ConId">Hs</span>
+             <span class="String">&quot;.chs&quot;</span> <span class="Symbol">-&gt;</span> <span class="ConId">Hs</span>
+             <span class="String">&quot;.ag&quot;</span> <span class="Symbol">-&gt;</span> <span class="ConId">Ag</span>
+             <span class="String">&quot;.txt&quot;</span> <span class="Symbol">-&gt;</span> <span class="ConId">Txt</span>
+             <span class="String">&quot;.c&quot;</span> <span class="Symbol">-&gt;</span> <span class="ConId">C</span>
+             <span class="String">&quot;.h&quot;</span> <span class="Symbol">-&gt;</span> <span class="ConId">H</span>
+             <span class="String">&quot;.css&quot;</span> <span class="Symbol">-&gt;</span> <span class="ConId">Css</span>
+             <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="VarId">error</span> <span class="Symbol">$</span> <span class="String">&quot;don't know extension &quot;</span> <span class="Symbol">++</span> <span class="VarId">f</span>
+    <span class="VarId">toOf</span> <span class="VarId">c</span> <span class="VarId">fn</span> <span class="Symbol">=</span> <span class="ConId">OutputFile</span> <span class="Symbol">(</span><span class="ConId">File</span> <span class="VarId">fn</span><span class="Symbol">)</span>
+                         <span class="Symbol">(</span><span class="VarId">ft</span> <span class="VarId">fn</span><span class="Symbol">)</span>
+                         <span class="Symbol">(</span><span class="String">&quot;hssqlppp&quot;</span> <span class="Symbol">&lt;/&gt;</span> <span class="VarId">c</span> <span class="VarId">fn</span>
+                          <span class="Symbol">++</span> <span class="Keyword">case</span> <span class="VarId">ft</span> <span class="VarId">fn</span> <span class="Keyword">of</span>
+                               <span class="ConId">Css</span> <span class="Symbol">-&gt;</span> <span class="String">&quot;&quot;</span>
+                               <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="String">&quot;.html&quot;</span><span class="Symbol">)</span>
+                         <span class="Symbol">(</span><span class="VarId">takeBaseName</span> <span class="VarId">fn</span><span class="Symbol">)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">supportedFileP</span> <span class="Symbol">::</span> <span class="ConId">FindClause</span> <span class="ConId">Bool</span>
+<span class="Function">supportedFileP</span> <span class="Symbol">=</span> <span class="VarId">extension</span> <span class="Symbol">==?</span> <span class="String">&quot;.hs&quot;</span>
+                 <span class="Symbol">||?</span> <span class="VarId">extension</span> <span class="Symbol">==?</span> <span class="String">&quot;.lhs&quot;</span>
+                 <span class="Symbol">||?</span> <span class="VarId">extension</span> <span class="Symbol">==?</span> <span class="String">&quot;.ag&quot;</span>
+                 <span class="Symbol">||?</span> <span class="VarId">extension</span> <span class="Symbol">==?</span> <span class="String">&quot;.txt&quot;</span>
+                 <span class="Symbol">||?</span> <span class="VarId">extension</span> <span class="Symbol">==?</span> <span class="String">&quot;.sql&quot;</span>
+                 <span class="Symbol">||?</span> <span class="VarId">extension</span> <span class="Symbol">==?</span> <span class="String">&quot;.css&quot;</span>
+                 <span class="Symbol">||?</span> <span class="VarId">extension</span> <span class="Symbol">==?</span> <span class="String">&quot;.c&quot;</span>
+                 <span class="Symbol">||?</span> <span class="VarId">extension</span> <span class="Symbol">==?</span> <span class="String">&quot;.h&quot;</span>
+                 <span class="Symbol">||?</span> <span class="VarId">extension</span> <span class="Symbol">==?</span> <span class="String">&quot;.chs&quot;</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">sourceLinks</span> <span class="Symbol">::</span> <span class="ConId">IO</span> <span class="Symbol">()</span>
+<span class="Function">sourceLinks</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+  <span class="VarId">fns</span> <span class="Symbol">&lt;-</span> <span class="VarId">find</span> <span class="VarId">always</span> <span class="VarId">supportedFileP</span> <span class="String">&quot;.&quot;</span>
+  <span class="VarId">mapM_</span> <span class="VarId">putStrLn</span> <span class="Symbol">$</span> <span class="VarId">sortBy</span> <span class="VarId">sf</span> <span class="VarId">fns</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">sf</span> <span class="Symbol">::</span> <span class="ConId">FilePath</span> <span class="Symbol">-&gt;</span> <span class="ConId">FilePath</span> <span class="Symbol">-&gt;</span> <span class="ConId">Ordering</span>
+<span class="Function">sf</span> <span class="VarId">a</span> <span class="VarId">b</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="VarId">a1</span> <span class="Symbol">=</span> <span class="VarId">splitDirectories</span> <span class="VarId">a</span>
+             <span class="VarId">b1</span> <span class="Symbol">=</span> <span class="VarId">splitDirectories</span> <span class="VarId">b</span>
+         <span class="Keyword">in</span> <span class="VarId">compareLists</span> <span class="VarId">a1</span> <span class="VarId">b1</span>
+         <span class="Keyword">where</span>
+           <span class="VarId">compareLists</span> <span class="Symbol">[]</span> <span class="VarId">_</span> <span class="Symbol">=</span> <span class="VarId">error</span> <span class="String">&quot;error&quot;</span>
+           <span class="VarId">compareLists</span> <span class="VarId">_</span> <span class="Symbol">[]</span> <span class="Symbol">=</span> <span class="VarId">error</span> <span class="String">&quot;error&quot;</span>
+           <span class="VarId">compareLists</span> <span class="Symbol">[</span><span class="VarId">c</span><span class="Symbol">]</span> <span class="Symbol">[</span><span class="VarId">d</span><span class="Symbol">]</span> <span class="Symbol">=</span> <span class="VarId">compare</span> <span class="VarId">c</span> <span class="VarId">d</span>
+           <span class="VarId">compareLists</span> <span class="Symbol">[</span><span class="VarId">_</span><span class="Symbol">]</span> <span class="Symbol">(</span><span class="VarId">_</span><span class="Symbol">:</span><span class="VarId">_</span><span class="Symbol">:</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="ConId">LT</span>
+           <span class="VarId">compareLists</span> <span class="Symbol">(</span><span class="VarId">_</span><span class="Symbol">:</span><span class="VarId">_</span><span class="Symbol">:</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">[</span><span class="VarId">_</span><span class="Symbol">]</span> <span class="Symbol">=</span> <span class="ConId">GT</span>
+           <span class="VarId">compareLists</span> <span class="Symbol">(</span><span class="VarId">c</span><span class="Symbol">:</span><span class="VarId">cs</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="VarId">d</span><span class="Symbol">:</span><span class="VarId">ds</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">compare</span> <span class="VarId">c</span> <span class="VarId">d</span> <span class="Keyword">of</span>
+                                          <span class="ConId">LT</span> <span class="Symbol">-&gt;</span> <span class="ConId">LT</span>
+                                          <span class="ConId">GT</span> <span class="Symbol">-&gt;</span> <span class="ConId">GT</span>
+                                          <span class="ConId">EQ</span> <span class="Symbol">-&gt;</span> <span class="VarId">compareLists</span> <span class="VarId">cs</span> <span class="VarId">ds</span></pre></div></div></div><p
+    >comparing splitDirectories a b</p
+    ><p
+    >find -type f | grep -iP &quot;.(ag|sql|txt|hs|lhs|c|h|chs)$&quot; | sed -e &quot;s@^./@@&quot; | sed -e &quot;s/.*/<a href="0.html"
+      >\0</a
+      >/&quot;</p
+    ><p
+    >find . -type d -exec find {} -type f -maxdepth 1 ;</p
+    ><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

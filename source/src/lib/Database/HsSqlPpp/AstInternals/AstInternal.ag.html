@@ -1,0 +1,819 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >AstInternal</title
+    ><link href="../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >{-</p
+    ><p
+    >This file contains the ast nodes, and the api functions to pass an ast and get back type information.</p
+    ><p
+    >It uses the Utrecht University Attribute Grammar system:</p
+    ><ul
+    ><li
+      >http://www.cs.uu.nl/wiki/bin/view/HUT/AttributeGrammarSystem</li
+      ><li
+      >http://www.haskell.org/haskellwiki/The_Monad.Reader/Issue4/Why_Attribute_Grammars_Matter</li
+      ></ul
+    ><p
+    >The attr and sem definitions are in TypeChecking.ag, which is included into this file.</p
+    ><p
+    >These ast nodes are both used as the result of successful parsing, and as the input to the type checker (and the output from the type checker), and the pretty printer.</p
+    ><p
+    >= compiling</p
+    ><p
+    >use</p
+    ><p
+    >uuagc -dcfwsp --cycle --genlinepragmas AstInternal.ag</p
+    ><p
+    >to generate a new AstInternal.hs from this file (cycle will check for cycles - it's bad if you get any of these, and genlinepragmas mean that you'll be able to view the original source ag positions when there are errors or warnings compiling the generated hs file, which you want much more often than not).</p
+    ><p
+    >Depending on the alignment of the planets, you might need to use</p
+    ><p
+    >uuagc -dcfwsp AstInternal.ag</p
+    ><p
+    >At the moment, genlinepragmas seems to break when you use where with uuagc &gt; 0.9.19.</p
+    ><p
+    >(install uuagc with cabal install uuagc )</p
+    ><p
+    >-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+</pre></div></div></div><p
+    >{- | test -}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="ConId">MODULE</span> <span class="Symbol">{</span><span class="ConId">Database.HsSqlPpp.AstInternals.AstInternal</span><span class="Symbol">}</span>
+<span class="Symbol">{</span>
+    <span class="Comment">-- </span></pre></div></div></div><p
+    >{-# LANGUAGE DeriveDataTypeable,RankNTypes,ScopedTypeVariables #-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+    <span class="Comment">--from the ag files:</span>
+    <span class="Comment">--ast nodes</span>
+    <span class="ConId">Statement</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">SelectExpression</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">WithQueryList</span>
+   <span class="Symbol">,</span><span class="ConId">WithQuery</span><span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">FnBody</span> <span class="Symbol">(..)</span>
+   <span class="Comment">--,SetClause (..)</span>
+   <span class="Symbol">,</span><span class="ConId">TableRef</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">TableAlias</span><span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">JoinExpression</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">JoinType</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">SelectList</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">SelectItem</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">CopySource</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">AttributeDef</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">RowConstraint</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">AlterTableAction</span><span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">Constraint</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">TypeAttributeDef</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">ParamDef</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">VarDef</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">RaiseType</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">CombineType</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">Volatility</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">Language</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">TypeName</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">DropType</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">Cascade</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">Direction</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">Distinct</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">Natural</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">IfExists</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">Replace</span><span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">RestartIdentity</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">Expression</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">FrameClause</span><span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">InList</span> <span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">LiftFlavour</span><span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">TriggerWhen</span><span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">TriggerEvent</span><span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">TriggerFire</span><span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">StatementList</span>
+   <span class="Symbol">,</span><span class="ConId">ExpressionListStatementListPairList</span>
+   <span class="Symbol">,</span><span class="ConId">ExpressionListStatementListPair</span>
+   <span class="Symbol">,</span><span class="ConId">ExpressionList</span>
+   <span class="Symbol">,</span><span class="ConId">ParamDefList</span>
+   <span class="Symbol">,</span><span class="ConId">AttributeDefList</span>
+   <span class="Symbol">,</span><span class="ConId">ConstraintList</span>
+   <span class="Symbol">,</span><span class="ConId">TypeAttributeDefList</span>
+   <span class="Symbol">,</span><span class="ConId">TypeNameList</span>
+   <span class="Symbol">,</span><span class="ConId">StringTypeNameListPair</span>
+   <span class="Symbol">,</span><span class="ConId">StringTypeNameListPairList</span>
+   <span class="Symbol">,</span><span class="ConId">ExpressionStatementListPairList</span>
+   <span class="Comment">--,SetClauseList</span>
+   <span class="Symbol">,</span><span class="ConId">CaseExpressionListExpressionPairList</span>
+   <span class="Symbol">,</span><span class="ConId">MaybeExpression</span>
+   <span class="Symbol">,</span><span class="ConId">TableRefList</span>
+   <span class="Symbol">,</span><span class="ConId">ExpressionListList</span>
+   <span class="Symbol">,</span><span class="ConId">SelectItemList</span>
+   <span class="Symbol">,</span><span class="ConId">OnExpr</span>
+   <span class="Symbol">,</span><span class="ConId">RowConstraintList</span>
+   <span class="Symbol">,</span><span class="ConId">VarDefList</span>
+   <span class="Symbol">,</span><span class="ConId">ExpressionStatementListPair</span>
+   <span class="Symbol">,</span><span class="ConId">CaseExpressionListExpressionPair</span>
+   <span class="Symbol">,</span><span class="ConId">ExpressionDirectionPair</span>
+   <span class="Symbol">,</span><span class="ConId">ExpressionDirectionPairList</span>
+   <span class="Symbol">,</span><span class="ConId">MaybeBoolExpression</span>
+   <span class="Symbol">,</span><span class="ConId">MaybeSelectList</span>
+   <span class="Symbol">,</span><span class="ConId">SetValue</span><span class="Symbol">(..)</span>
+   <span class="Symbol">,</span><span class="ConId">AlterTableActionList</span>
+   <span class="Comment">-- typechecking</span>
+   <span class="Symbol">,</span><span class="VarId">typeCheck</span>
+   <span class="Symbol">,</span><span class="VarId">typeCheckPS</span>
+   <span class="Symbol">,</span><span class="VarId">typeCheckExpression</span>
+<span class="Symbol">}</span>
+
+<span class="Symbol">{</span>
+<span class="Keyword">import</span> <span class="ConId">Data.Maybe</span>
+<span class="Keyword">import</span> <span class="ConId">Data.List</span>
+<span class="Keyword">import</span> <span class="ConId">Control.Applicative</span>
+<span class="Keyword">import</span> <span class="ConId">Data.Generics</span>
+<span class="Keyword">import</span> <span class="ConId">Data.Char</span>
+<span class="Keyword">import</span> <span class="ConId">Control.Monad.State</span>
+
+<span class="Keyword">import</span> <span class="ConId">Data.Generics.PlateData</span>
+<span class="Keyword">import</span> <span class="ConId">Debug.Trace</span>
+
+
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.AstInternals.TypeType</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.AstInternals.AstAnnotation</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindings</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Utils.Utils</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils</span>
+
+<span class="Symbol">}</span>
+
+</pre></div></div></div><div id="section"
+    ><h1
+      >{-</h1
+      ><p
+      >SQL top level statements</p
+      ><p
+      >everything is chucked in here: dml, ddl, plpgsql statements</p
+      ><p
+      >-}</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="ConId">DATA</span> <span class="ConId">Statement</span>
+
+<span class="Comment">--queries</span>
+
+    <span class="Symbol">|</span> <span class="ConId">SelectStatement</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">ex</span><span class="Symbol">:</span><span class="ConId">SelectExpression</span>
+
+<span class="Comment">-- dml</span>
+
+    <span class="Comment">--table targetcolumns insertdata(values or select statement) returning</span>
+    <span class="Symbol">|</span> <span class="ConId">Insert</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+             <span class="VarId">table</span> <span class="Symbol">:</span> <span class="ConId">Expression</span>
+             <span class="VarId">targetCols</span> <span class="Symbol">:</span> <span class="Symbol">{[</span><span class="ConId">String</span><span class="Symbol">]}</span>
+             <span class="VarId">insData</span> <span class="Symbol">:</span> <span class="ConId">SelectExpression</span>
+             <span class="VarId">returning</span> <span class="Symbol">:</span> <span class="ConId">MaybeSelectList</span>
+    <span class="Comment">--tablename setitems where returning</span>
+    <span class="Symbol">|</span> <span class="ConId">Update</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+             <span class="VarId">table</span> <span class="Symbol">:</span> <span class="ConId">Expression</span>
+             <span class="VarId">assigns</span> <span class="Symbol">:</span> <span class="ConId">ExpressionList</span> <span class="Comment">--SetClauseList</span>
+             <span class="VarId">fromList</span> <span class="Symbol">:</span> <span class="ConId">TableRefList</span>
+             <span class="VarId">whr</span> <span class="Symbol">:</span> <span class="ConId">MaybeBoolExpression</span>
+             <span class="VarId">returning</span> <span class="Symbol">:</span> <span class="ConId">MaybeSelectList</span>
+    <span class="Comment">--tablename, where, returning</span>
+    <span class="Symbol">|</span> <span class="ConId">Delete</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+             <span class="VarId">table</span> <span class="Symbol">:</span> <span class="ConId">Expression</span>
+             <span class="VarId">using</span> <span class="Symbol">:</span> <span class="ConId">TableRefList</span>
+             <span class="VarId">whr</span> <span class="Symbol">:</span> <span class="ConId">MaybeBoolExpression</span>
+             <span class="VarId">returning</span> <span class="Symbol">:</span> <span class="ConId">MaybeSelectList</span>
+    <span class="Comment">--tablename column names, from</span>
+    <span class="Symbol">|</span> <span class="ConId">Copy</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+           <span class="VarId">table</span> <span class="Symbol">:</span> <span class="ConId">String</span>
+           <span class="VarId">targetCols</span> <span class="Symbol">:</span> <span class="Symbol">{[</span><span class="ConId">String</span><span class="Symbol">]}</span>
+           <span class="VarId">source</span> <span class="Symbol">:</span> <span class="ConId">CopySource</span>
+    <span class="Comment">--represents inline data for copy statement</span>
+    <span class="Symbol">|</span> <span class="ConId">CopyData</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">insData</span> <span class="Symbol">:</span> <span class="ConId">String</span>
+    <span class="Symbol">|</span> <span class="ConId">Truncate</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+               <span class="VarId">tables</span><span class="Symbol">:</span> <span class="Symbol">{[</span><span class="ConId">String</span><span class="Symbol">]}</span>
+               <span class="VarId">restartIdentity</span> <span class="Symbol">:</span> <span class="ConId">RestartIdentity</span>
+               <span class="VarId">cascade</span> <span class="Symbol">:</span> <span class="ConId">Cascade</span>
+
+<span class="Comment">-- ddl</span>
+
+    <span class="Symbol">|</span> <span class="ConId">CreateTable</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                  <span class="VarId">name</span> <span class="Symbol">:</span> <span class="ConId">String</span>
+                  <span class="VarId">atts</span> <span class="Symbol">:</span> <span class="ConId">AttributeDefList</span>
+                  <span class="VarId">cons</span> <span class="Symbol">:</span> <span class="ConId">ConstraintList</span>
+    <span class="Symbol">|</span> <span class="ConId">AlterTable</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                 <span class="VarId">name</span> <span class="Symbol">:</span> <span class="ConId">String</span>
+                 <span class="VarId">actions</span> <span class="Symbol">:</span> <span class="ConId">AlterTableActionList</span>
+    <span class="Symbol">|</span> <span class="ConId">CreateSequence</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                     <span class="VarId">name</span><span class="Symbol">:</span><span class="ConId">String</span>
+                     <span class="VarId">incr</span><span class="Symbol">:</span><span class="ConId">Integer</span>
+                     <span class="VarId">min</span><span class="Symbol">:</span><span class="ConId">Integer</span>
+                     <span class="VarId">max</span><span class="Symbol">:</span><span class="ConId">Integer</span>
+                     <span class="VarId">start</span><span class="Symbol">:</span><span class="ConId">Integer</span>
+                     <span class="VarId">cache</span><span class="Symbol">:</span><span class="ConId">Integer</span>
+    <span class="Symbol">|</span> <span class="ConId">AlterSequence</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                    <span class="VarId">name</span><span class="Symbol">:</span><span class="ConId">String</span>
+                    <span class="VarId">ownedBy</span><span class="Symbol">:</span> <span class="ConId">Expression</span>
+    <span class="Symbol">|</span> <span class="ConId">CreateTableAs</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                    <span class="VarId">name</span> <span class="Symbol">:</span> <span class="ConId">String</span>
+                    <span class="VarId">expr</span> <span class="Symbol">:</span> <span class="ConId">SelectExpression</span>
+    <span class="Symbol">|</span> <span class="ConId">CreateView</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                 <span class="VarId">name</span> <span class="Symbol">:</span> <span class="ConId">String</span>
+                 <span class="VarId">expr</span> <span class="Symbol">:</span> <span class="ConId">SelectExpression</span>
+    <span class="Symbol">|</span> <span class="ConId">CreateType</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                 <span class="VarId">name</span> <span class="Symbol">:</span> <span class="ConId">String</span>
+                 <span class="VarId">atts</span> <span class="Symbol">:</span> <span class="ConId">TypeAttributeDefList</span>
+    <span class="Comment">-- language name args rettype bodyquoteused body vol</span>
+    <span class="Symbol">|</span> <span class="ConId">CreateFunction</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                     <span class="VarId">name</span> <span class="Symbol">:</span> <span class="ConId">String</span>
+                     <span class="VarId">params</span> <span class="Symbol">:</span> <span class="ConId">ParamDefList</span>
+                     <span class="VarId">rettype</span> <span class="Symbol">:</span> <span class="ConId">TypeName</span>
+                     <span class="VarId">rep</span> <span class="Symbol">:</span> <span class="ConId">Replace</span>
+                     <span class="VarId">lang</span> <span class="Symbol">:</span> <span class="ConId">Language</span>
+                     <span class="VarId">body</span> <span class="Symbol">:</span> <span class="ConId">FnBody</span>
+                     <span class="VarId">vol</span> <span class="Symbol">:</span> <span class="ConId">Volatility</span>
+    <span class="Comment">-- name type checkexpression</span>
+    <span class="Symbol">|</span> <span class="ConId">CreateDomain</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                   <span class="VarId">name</span> <span class="Symbol">:</span> <span class="ConId">String</span>
+                   <span class="VarId">typ</span> <span class="Symbol">:</span> <span class="ConId">TypeName</span>
+                   <span class="VarId">checkName</span><span class="Symbol">:</span> <span class="ConId">String</span>
+                   <span class="VarId">check</span> <span class="Symbol">:</span> <span class="ConId">MaybeBoolExpression</span>
+    <span class="Symbol">|</span> <span class="ConId">CreateLanguage</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                     <span class="VarId">name</span><span class="Symbol">:</span><span class="ConId">String</span>
+    <span class="Symbol">|</span> <span class="ConId">CreateTrigger</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                    <span class="VarId">name</span><span class="Symbol">:</span><span class="ConId">String</span>
+                    <span class="VarId">wh</span> <span class="Symbol">:</span> <span class="ConId">TriggerWhen</span>
+                    <span class="VarId">events</span><span class="Symbol">:</span> <span class="Symbol">{[</span><span class="ConId">TriggerEvent</span><span class="Symbol">]}</span>
+                    <span class="VarId">tbl</span> <span class="Symbol">:</span> <span class="ConId">String</span>
+                    <span class="VarId">firing</span> <span class="Symbol">:</span> <span class="ConId">TriggerFire</span>
+                    <span class="VarId">fnName</span> <span class="Symbol">:</span> <span class="ConId">String</span>
+                    <span class="VarId">fnArgs</span> <span class="Symbol">:</span> <span class="ConId">ExpressionList</span>
+    <span class="Comment">-- ifexists (name,argtypes)* cascadeorrestrict</span>
+    <span class="Symbol">|</span> <span class="ConId">DropFunction</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                   <span class="VarId">ifE</span> <span class="Symbol">:</span> <span class="ConId">IfExists</span>
+                   <span class="VarId">sigs</span> <span class="Symbol">:</span> <span class="ConId">StringTypeNameListPairList</span>
+                   <span class="VarId">cascade</span> <span class="Symbol">:</span> <span class="ConId">Cascade</span>
+    <span class="Comment">-- ifexists names cascadeorrestrict</span>
+    <span class="Symbol">|</span> <span class="ConId">DropSomething</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                    <span class="VarId">dropType</span> <span class="Symbol">:</span> <span class="ConId">DropType</span>
+                    <span class="VarId">ifE</span> <span class="Symbol">:</span> <span class="ConId">IfExists</span>
+                    <span class="VarId">names</span> <span class="Symbol">:</span> <span class="Symbol">{[</span><span class="ConId">String</span><span class="Symbol">]}</span>
+                    <span class="VarId">cascade</span> <span class="Symbol">:</span> <span class="ConId">Cascade</span>
+    <span class="Symbol">|</span> <span class="ConId">Assignment</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                 <span class="VarId">target</span> <span class="Symbol">:</span> <span class="ConId">Expression</span>
+                 <span class="VarId">value</span> <span class="Symbol">:</span> <span class="ConId">Expression</span>
+    <span class="Symbol">|</span> <span class="ConId">Return</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+             <span class="VarId">value</span> <span class="Symbol">:</span> <span class="ConId">MaybeExpression</span>
+    <span class="Symbol">|</span> <span class="ConId">ReturnNext</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                 <span class="VarId">expr</span> <span class="Symbol">:</span> <span class="ConId">Expression</span>
+    <span class="Symbol">|</span> <span class="ConId">ReturnQuery</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                  <span class="VarId">sel</span> <span class="Symbol">:</span> <span class="ConId">SelectExpression</span>
+    <span class="Symbol">|</span> <span class="ConId">Raise</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+            <span class="VarId">level</span> <span class="Symbol">:</span> <span class="ConId">RaiseType</span>
+            <span class="VarId">message</span> <span class="Symbol">:</span> <span class="ConId">String</span>
+            <span class="VarId">args</span> <span class="Symbol">:</span> <span class="ConId">ExpressionList</span>
+    <span class="Symbol">|</span> <span class="ConId">NullStatement</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+    <span class="Symbol">|</span> <span class="ConId">Perform</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+              <span class="VarId">expr</span> <span class="Symbol">:</span> <span class="ConId">Expression</span>
+    <span class="Symbol">|</span> <span class="ConId">Execute</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+              <span class="VarId">expr</span> <span class="Symbol">:</span> <span class="ConId">Expression</span>
+    <span class="Symbol">|</span> <span class="ConId">ExecuteInto</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                  <span class="VarId">expr</span> <span class="Symbol">:</span> <span class="ConId">Expression</span>
+                  <span class="VarId">targets</span> <span class="Symbol">:</span> <span class="Symbol">{[</span><span class="ConId">String</span><span class="Symbol">]}</span>
+    <span class="Symbol">|</span> <span class="ConId">ForSelectStatement</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                         <span class="VarId">lb</span> <span class="Symbol">:</span> <span class="Symbol">{</span><span class="ConId">Maybe</span> <span class="ConId">String</span><span class="Symbol">}</span>
+                         <span class="VarId">var</span> <span class="Symbol">:</span> <span class="ConId">Expression</span>
+                         <span class="VarId">sel</span> <span class="Symbol">:</span> <span class="ConId">SelectExpression</span>
+                         <span class="VarId">sts</span> <span class="Symbol">:</span> <span class="ConId">StatementList</span>
+    <span class="Symbol">|</span> <span class="ConId">ForIntegerStatement</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                          <span class="VarId">lb</span> <span class="Symbol">:</span> <span class="Symbol">{</span><span class="ConId">Maybe</span> <span class="ConId">String</span><span class="Symbol">}</span>
+                          <span class="VarId">var</span> <span class="Symbol">:</span> <span class="ConId">Expression</span>
+                          <span class="VarId">from</span> <span class="Symbol">:</span> <span class="ConId">Expression</span>
+                          <span class="VarId">to</span> <span class="Symbol">:</span> <span class="ConId">Expression</span>
+                          <span class="VarId">sts</span> <span class="Symbol">:</span> <span class="ConId">StatementList</span>
+    <span class="Symbol">|</span> <span class="ConId">LoopStatement</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                    <span class="VarId">lb</span> <span class="Symbol">:</span> <span class="Symbol">{</span><span class="ConId">Maybe</span> <span class="ConId">String</span><span class="Symbol">}</span>
+                    <span class="VarId">sts</span> <span class="Symbol">:</span> <span class="ConId">StatementList</span>
+    <span class="Symbol">|</span> <span class="ConId">WhileStatement</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                     <span class="VarId">lb</span> <span class="Symbol">:</span> <span class="Symbol">{</span><span class="ConId">Maybe</span> <span class="ConId">String</span><span class="Symbol">}</span>
+                     <span class="VarId">expr</span> <span class="Symbol">:</span> <span class="ConId">Expression</span>
+                     <span class="VarId">sts</span> <span class="Symbol">:</span> <span class="ConId">StatementList</span>
+    <span class="Symbol">|</span> <span class="ConId">ContinueStatement</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">lb</span><span class="Symbol">:{</span><span class="ConId">Maybe</span> <span class="ConId">String</span><span class="Symbol">}</span>
+    <span class="Symbol">|</span> <span class="ConId">ExitStatement</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">lb</span><span class="Symbol">:{</span><span class="ConId">Maybe</span> <span class="ConId">String</span><span class="Symbol">}</span>
+    <span class="Comment">--variable, list of when parts, else part</span>
+    <span class="Symbol">|</span> <span class="ConId">CaseStatementSimple</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                    <span class="VarId">val</span> <span class="Symbol">:</span> <span class="ConId">Expression</span>
+                    <span class="VarId">cases</span> <span class="Symbol">:</span> <span class="ConId">ExpressionListStatementListPairList</span>
+                    <span class="VarId">els</span> <span class="Symbol">:</span> <span class="ConId">StatementList</span>
+    <span class="Symbol">|</span> <span class="ConId">CaseStatement</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                    <span class="VarId">cases</span> <span class="Symbol">:</span> <span class="ConId">ExpressionListStatementListPairList</span>
+                    <span class="VarId">els</span> <span class="Symbol">:</span> <span class="ConId">StatementList</span>
+    <span class="Comment">--list is</span>
+    <span class="Comment">--first if (condition, statements):elseifs(condition, statements)</span>
+    <span class="Comment">--last bit is else statements</span>
+    <span class="Symbol">|</span> <span class="ConId">If</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+         <span class="VarId">cases</span> <span class="Symbol">:</span> <span class="ConId">ExpressionStatementListPairList</span>
+         <span class="VarId">els</span> <span class="Symbol">:</span> <span class="ConId">StatementList</span>
+    <span class="Symbol">|</span> <span class="ConId">Block</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">lb</span><span class="Symbol">:{</span><span class="ConId">Maybe</span> <span class="ConId">String</span><span class="Symbol">}</span> <span class="VarId">vars</span><span class="Symbol">:</span><span class="ConId">VarDefList</span> <span class="VarId">sts</span> <span class="Symbol">:</span> <span class="ConId">StatementList</span>
+
+<span class="Comment">--misc</span>
+
+    <span class="Symbol">|</span> <span class="ConId">Set</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">name</span><span class="Symbol">:</span><span class="ConId">String</span> <span class="VarId">values</span><span class="Symbol">:{[</span><span class="ConId">SetValue</span><span class="Symbol">]}</span>
+    <span class="Symbol">|</span> <span class="ConId">Notify</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">name</span><span class="Symbol">:</span><span class="ConId">String</span>
+
+<span class="Comment">-- =============================================================================</span>
+
+<span class="Comment">--Statement components</span>
+
+<span class="Comment">-- maybe this should be called relation valued expression?</span>
+<span class="ConId">DATA</span> <span class="ConId">SelectExpression</span>
+    <span class="Symbol">|</span> <span class="ConId">Select</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+             <span class="VarId">selDistinct</span> <span class="Symbol">:</span> <span class="ConId">Distinct</span>
+             <span class="VarId">selSelectList</span> <span class="Symbol">:</span> <span class="ConId">SelectList</span>
+             <span class="VarId">selTref</span> <span class="Symbol">:</span> <span class="ConId">TableRefList</span>
+             <span class="VarId">selWhere</span> <span class="Symbol">:</span> <span class="ConId">MaybeBoolExpression</span>
+             <span class="VarId">selGroupBy</span> <span class="Symbol">:</span> <span class="ConId">ExpressionList</span>
+             <span class="VarId">selHaving</span> <span class="Symbol">:</span> <span class="ConId">MaybeBoolExpression</span>
+             <span class="VarId">selOrderBy</span> <span class="Symbol">:</span> <span class="ConId">ExpressionDirectionPairList</span>
+             <span class="VarId">selLimit</span> <span class="Symbol">:</span> <span class="ConId">MaybeExpression</span>
+             <span class="VarId">selOffset</span> <span class="Symbol">:</span> <span class="ConId">MaybeExpression</span>
+    <span class="Symbol">|</span> <span class="ConId">CombineSelect</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                    <span class="VarId">ctype</span> <span class="Symbol">:</span> <span class="ConId">CombineType</span>
+                    <span class="VarId">sel1</span> <span class="Symbol">:</span> <span class="ConId">SelectExpression</span>
+                    <span class="VarId">sel2</span> <span class="Symbol">:</span> <span class="ConId">SelectExpression</span>
+    <span class="Symbol">|</span> <span class="ConId">Values</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+             <span class="VarId">vll</span><span class="Symbol">:</span><span class="ConId">ExpressionListList</span>
+    <span class="Symbol">|</span> <span class="ConId">WithSelect</span> <span class="VarId">ann</span> <span class="Symbol">:</span> <span class="ConId">Annotation</span>
+                 <span class="VarId">withs</span> <span class="Symbol">:</span> <span class="ConId">WithQueryList</span>
+                 <span class="VarId">ex</span> <span class="Symbol">:</span> <span class="ConId">SelectExpression</span>
+
+<span class="ConId">TYPE</span> <span class="ConId">WithQueryList</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">WithQuery</span><span class="Symbol">]</span>
+<span class="ConId">DATA</span> <span class="ConId">WithQuery</span> <span class="Symbol">|</span> <span class="ConId">WithQuery</span> <span class="VarId">ann</span> <span class="Symbol">:</span> <span class="ConId">Annotation</span>
+                           <span class="VarId">name</span> <span class="Symbol">:</span> <span class="ConId">String</span>
+                           <span class="VarId">ex</span> <span class="Symbol">:</span> <span class="ConId">SelectExpression</span>
+
+<span class="ConId">DATA</span> <span class="ConId">FnBody</span> <span class="Symbol">|</span> <span class="ConId">SqlFnBody</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">sts</span> <span class="Symbol">:</span> <span class="ConId">StatementList</span>
+            <span class="Symbol">|</span> <span class="ConId">PlpgsqlFnBody</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">blk</span> <span class="Symbol">:</span> <span class="ConId">Statement</span>
+
+<span class="ConId">DATA</span> <span class="ConId">TableRef</span> <span class="Symbol">|</span> <span class="ConId">Tref</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                     <span class="VarId">tbl</span><span class="Symbol">:</span><span class="ConId">Expression</span>
+                     <span class="VarId">alias</span> <span class="Symbol">:</span> <span class="ConId">TableAlias</span>
+              <span class="Symbol">|</span> <span class="ConId">JoinedTref</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                           <span class="VarId">tbl</span> <span class="Symbol">:</span> <span class="ConId">TableRef</span>
+                           <span class="VarId">nat</span> <span class="Symbol">:</span> <span class="ConId">Natural</span>
+                           <span class="VarId">joinType</span> <span class="Symbol">:</span> <span class="ConId">JoinType</span>
+                           <span class="VarId">tbl1</span> <span class="Symbol">:</span> <span class="ConId">TableRef</span>
+                           <span class="VarId">onExpr</span> <span class="Symbol">:</span> <span class="ConId">OnExpr</span>
+                           <span class="VarId">alias</span> <span class="Symbol">:</span> <span class="ConId">TableAlias</span>
+              <span class="Symbol">|</span> <span class="ConId">SubTref</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                        <span class="VarId">sel</span> <span class="Symbol">:</span> <span class="ConId">SelectExpression</span>
+                        <span class="VarId">alias</span> <span class="Symbol">:</span> <span class="ConId">TableAlias</span>
+              <span class="Symbol">|</span> <span class="ConId">TrefFun</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                        <span class="VarId">fn</span><span class="Symbol">:</span><span class="ConId">Expression</span>
+                        <span class="VarId">alias</span> <span class="Symbol">:</span> <span class="ConId">TableAlias</span>
+<span class="Symbol">{</span>
+<span class="Keyword">data</span> <span class="ConId">TableAlias</span> <span class="Symbol">=</span> <span class="ConId">NoAlias</span>
+                <span class="Symbol">|</span> <span class="ConId">TableAlias</span> <span class="ConId">String</span> <span class="Comment">--alias:String</span>
+                <span class="Symbol">|</span> <span class="ConId">FullAlias</span> <span class="ConId">String</span> <span class="Symbol">[</span><span class="ConId">String</span><span class="Symbol">]</span> <span class="Comment">-- alias:String cols:{[String]}</span>
+                  <span class="Keyword">deriving</span> <span class="Symbol">(</span><span class="ConId">Show</span><span class="Symbol">,</span><span class="ConId">Eq</span><span class="Symbol">,</span><span class="ConId">Typeable</span><span class="Symbol">,</span><span class="ConId">Data</span><span class="Symbol">)</span>
+<span class="Symbol">}</span>
+
+<span class="ConId">DATA</span> <span class="ConId">JoinExpression</span> <span class="Symbol">|</span> <span class="ConId">JoinOn</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">expr</span><span class="Symbol">:</span><span class="ConId">Expression</span>
+                    <span class="Symbol">|</span> <span class="ConId">JoinUsing</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">x</span><span class="Symbol">:{[</span><span class="ConId">String</span><span class="Symbol">]}</span>
+
+<span class="Symbol">{</span>
+<span class="Keyword">data</span> <span class="ConId">JoinType</span> <span class="Symbol">=</span> <span class="ConId">Inner</span> <span class="Symbol">|</span> <span class="ConId">LeftOuter</span><span class="Symbol">|</span> <span class="ConId">RightOuter</span> <span class="Symbol">|</span> <span class="ConId">FullOuter</span> <span class="Symbol">|</span> <span class="ConId">Cross</span>
+                <span class="Keyword">deriving</span> <span class="Symbol">(</span><span class="ConId">Show</span><span class="Symbol">,</span><span class="ConId">Eq</span><span class="Symbol">,</span><span class="ConId">Typeable</span><span class="Symbol">,</span><span class="ConId">Data</span><span class="Symbol">)</span>
+<span class="Symbol">}</span>
+
+<span class="Comment">-- select columns, into columns</span>
+
+<span class="ConId">DATA</span> <span class="ConId">SelectList</span> <span class="Symbol">|</span> <span class="ConId">SelectList</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">items</span><span class="Symbol">:</span><span class="ConId">SelectItemList</span> <span class="VarId">into</span><span class="Symbol">:</span><span class="ConId">ExpressionList</span>
+
+<span class="ConId">DATA</span> <span class="ConId">SelectItem</span> <span class="Symbol">|</span> <span class="ConId">SelExp</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">ex</span><span class="Symbol">:</span><span class="ConId">Expression</span>
+                <span class="Symbol">|</span> <span class="ConId">SelectItem</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">ex</span><span class="Symbol">:</span><span class="ConId">Expression</span> <span class="VarId">name</span><span class="Symbol">:</span><span class="ConId">String</span>
+
+<span class="Symbol">{</span>
+<span class="Keyword">data</span> <span class="ConId">CopySource</span> <span class="Symbol">=</span> <span class="ConId">CopyFilename</span> <span class="ConId">String</span>
+                <span class="Symbol">|</span> <span class="ConId">Stdin</span>
+                  <span class="Keyword">deriving</span> <span class="Symbol">(</span><span class="ConId">Show</span><span class="Symbol">,</span><span class="ConId">Eq</span><span class="Symbol">,</span><span class="ConId">Typeable</span><span class="Symbol">,</span><span class="ConId">Data</span><span class="Symbol">)</span>
+<span class="Symbol">}</span>
+<span class="Comment">--name type default null constraint</span>
+
+<span class="ConId">DATA</span> <span class="ConId">AttributeDef</span> <span class="Symbol">|</span> <span class="ConId">AttributeDef</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                                 <span class="VarId">name</span> <span class="Symbol">:</span> <span class="ConId">String</span>
+                                 <span class="VarId">typ</span> <span class="Symbol">:</span> <span class="ConId">TypeName</span>
+                                 <span class="VarId">def</span><span class="Symbol">:</span> <span class="ConId">MaybeExpression</span>
+                                 <span class="VarId">cons</span> <span class="Symbol">:</span> <span class="ConId">RowConstraintList</span>
+
+<span class="Comment">--Constraints which appear attached to an individual field</span>
+
+<span class="ConId">DATA</span> <span class="ConId">RowConstraint</span> <span class="Symbol">|</span> <span class="ConId">NullConstraint</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">name</span><span class="Symbol">:</span><span class="ConId">String</span>
+                   <span class="Symbol">|</span> <span class="ConId">NotNullConstraint</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">name</span><span class="Symbol">:</span><span class="ConId">String</span>
+                   <span class="Symbol">|</span> <span class="ConId">RowCheckConstraint</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">name</span><span class="Symbol">:</span><span class="ConId">String</span> <span class="VarId">expr</span><span class="Symbol">:</span><span class="ConId">Expression</span>
+                   <span class="Symbol">|</span> <span class="ConId">RowUniqueConstraint</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">name</span><span class="Symbol">:</span><span class="ConId">String</span>
+                   <span class="Symbol">|</span> <span class="ConId">RowPrimaryKeyConstraint</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">name</span><span class="Symbol">:</span><span class="ConId">String</span>
+                   <span class="Symbol">|</span> <span class="ConId">RowReferenceConstraint</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">name</span><span class="Symbol">:</span><span class="ConId">String</span>
+                                            <span class="VarId">table</span> <span class="Symbol">:</span> <span class="ConId">String</span>
+                                            <span class="VarId">att</span> <span class="Symbol">:</span> <span class="Symbol">(</span><span class="ConId">Maybe</span> <span class="ConId">String</span><span class="Symbol">)</span>
+                                            <span class="VarId">onUpdate</span> <span class="Symbol">:</span> <span class="ConId">Cascade</span>
+                                            <span class="VarId">onDelete</span> <span class="Symbol">:</span> <span class="ConId">Cascade</span>
+
+<span class="Comment">--constraints which appear on a separate row in the create table</span>
+
+<span class="ConId">DATA</span> <span class="ConId">Constraint</span> <span class="Symbol">|</span> <span class="ConId">UniqueConstraint</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">name</span><span class="Symbol">:</span><span class="ConId">String</span> <span class="VarId">x</span><span class="Symbol">:{[</span><span class="ConId">String</span><span class="Symbol">]}</span>
+                <span class="Symbol">|</span> <span class="ConId">PrimaryKeyConstraint</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">name</span><span class="Symbol">:</span><span class="ConId">String</span> <span class="VarId">x</span><span class="Symbol">:{[</span><span class="ConId">String</span><span class="Symbol">]}</span>
+                <span class="Symbol">|</span> <span class="ConId">CheckConstraint</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">name</span><span class="Symbol">:</span><span class="ConId">String</span> <span class="VarId">expr</span><span class="Symbol">:</span><span class="ConId">Expression</span>
+                  <span class="Comment">-- sourcecols targettable targetcols ondelete onupdate</span>
+                <span class="Symbol">|</span> <span class="ConId">ReferenceConstraint</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                                      <span class="VarId">name</span><span class="Symbol">:</span><span class="ConId">String</span>
+                                      <span class="VarId">atts</span> <span class="Symbol">:</span> <span class="Symbol">{[</span><span class="ConId">String</span><span class="Symbol">]}</span>
+                                      <span class="VarId">table</span> <span class="Symbol">:</span> <span class="ConId">String</span>
+                                      <span class="VarId">tableAtts</span> <span class="Symbol">:</span> <span class="Symbol">{[</span><span class="ConId">String</span><span class="Symbol">]}</span>
+                                      <span class="VarId">onUpdate</span> <span class="Symbol">:</span> <span class="ConId">Cascade</span>
+                                      <span class="VarId">onDelete</span> <span class="Symbol">:</span> <span class="ConId">Cascade</span>
+
+<span class="ConId">DATA</span> <span class="ConId">TypeAttributeDef</span> <span class="Symbol">|</span> <span class="ConId">TypeAttDef</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                                   <span class="VarId">name</span> <span class="Symbol">:</span> <span class="ConId">String</span>
+                                   <span class="VarId">typ</span> <span class="Symbol">:</span> <span class="ConId">TypeName</span>
+
+<span class="ConId">DATA</span> <span class="ConId">AlterTableAction</span> <span class="Symbol">|</span> <span class="ConId">AlterColumnDefault</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                                           <span class="VarId">nm</span> <span class="Symbol">:</span> <span class="ConId">String</span>
+                                           <span class="VarId">def</span> <span class="Symbol">:</span> <span class="ConId">Expression</span>
+                      <span class="Symbol">|</span> <span class="ConId">AddConstraint</span> <span class="VarId">ann</span><span class="Symbol">:</span> <span class="ConId">Annotation</span>
+                                      <span class="VarId">con</span><span class="Symbol">:</span> <span class="ConId">Constraint</span>
+<span class="Symbol">{</span>
+<span class="Keyword">data</span> <span class="ConId">SetValue</span>
+    <span class="Symbol">=</span> <span class="ConId">SetStr</span> <span class="ConId">Annotation</span> <span class="ConId">String</span>
+    <span class="Symbol">|</span> <span class="ConId">SetId</span> <span class="ConId">Annotation</span> <span class="ConId">String</span>
+    <span class="Symbol">|</span> <span class="ConId">SetNum</span> <span class="ConId">Annotation</span> <span class="ConId">Double</span>
+      <span class="Keyword">deriving</span> <span class="Symbol">(</span><span class="ConId">Show</span><span class="Symbol">,</span><span class="ConId">Eq</span><span class="Symbol">,</span><span class="ConId">Typeable</span><span class="Symbol">,</span><span class="ConId">Data</span><span class="Symbol">)</span>
+
+
+<span class="Keyword">data</span> <span class="ConId">TriggerWhen</span> <span class="Symbol">=</span> <span class="ConId">TriggerBefore</span> <span class="Symbol">|</span> <span class="ConId">TriggerAfter</span>
+                   <span class="Keyword">deriving</span> <span class="Symbol">(</span><span class="ConId">Show</span><span class="Symbol">,</span><span class="ConId">Eq</span><span class="Symbol">,</span><span class="ConId">Typeable</span><span class="Symbol">,</span><span class="ConId">Data</span><span class="Symbol">)</span>
+<span class="Keyword">data</span> <span class="ConId">TriggerEvent</span> <span class="Symbol">=</span> <span class="ConId">TInsert</span><span class="Symbol">|</span> <span class="ConId">TUpdate</span> <span class="Symbol">|</span> <span class="ConId">TDelete</span>
+                    <span class="Keyword">deriving</span> <span class="Symbol">(</span><span class="ConId">Show</span><span class="Symbol">,</span><span class="ConId">Eq</span><span class="Symbol">,</span><span class="ConId">Typeable</span><span class="Symbol">,</span><span class="ConId">Data</span><span class="Symbol">)</span>
+<span class="Keyword">data</span> <span class="ConId">TriggerFire</span> <span class="Symbol">=</span> <span class="ConId">EachRow</span> <span class="Symbol">|</span> <span class="ConId">EachStatement</span>
+                   <span class="Keyword">deriving</span> <span class="Symbol">(</span><span class="ConId">Show</span><span class="Symbol">,</span><span class="ConId">Eq</span><span class="Symbol">,</span><span class="ConId">Typeable</span><span class="Symbol">,</span><span class="ConId">Data</span><span class="Symbol">)</span>
+<span class="Symbol">}</span>
+
+<span class="ConId">DATA</span> <span class="ConId">ParamDef</span> <span class="Symbol">|</span> <span class="ConId">ParamDef</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">name</span><span class="Symbol">:</span><span class="ConId">String</span> <span class="VarId">typ</span><span class="Symbol">:</span><span class="ConId">TypeName</span>
+              <span class="Symbol">|</span> <span class="ConId">ParamDefTp</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">typ</span><span class="Symbol">:</span><span class="ConId">TypeName</span>
+
+<span class="ConId">DATA</span> <span class="ConId">VarDef</span> <span class="Symbol">|</span> <span class="ConId">VarDef</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                     <span class="VarId">name</span> <span class="Symbol">:</span> <span class="ConId">String</span>
+                     <span class="VarId">typ</span> <span class="Symbol">:</span> <span class="ConId">TypeName</span>
+                     <span class="VarId">value</span> <span class="Symbol">:</span> <span class="Symbol">(</span><span class="ConId">Maybe</span> <span class="ConId">Expression</span><span class="Symbol">)</span>
+            <span class="Symbol">|</span> <span class="ConId">ParamAlias</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                         <span class="VarId">name</span> <span class="Symbol">:</span> <span class="ConId">String</span>
+                         <span class="VarId">i</span> <span class="Symbol">:</span> <span class="ConId">Integer</span>
+            <span class="Symbol">|</span> <span class="ConId">VarAlias</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                       <span class="VarId">name</span> <span class="Symbol">:</span> <span class="ConId">String</span>
+                       <span class="VarId">aliased</span> <span class="Symbol">:</span> <span class="ConId">String</span>
+<span class="Symbol">{</span>
+<span class="Keyword">data</span> <span class="ConId">RaiseType</span> <span class="Symbol">=</span> <span class="ConId">RNotice</span> <span class="Symbol">|</span> <span class="ConId">RException</span> <span class="Symbol">|</span> <span class="ConId">RError</span>
+                 <span class="Keyword">deriving</span> <span class="Symbol">(</span><span class="ConId">Show</span><span class="Symbol">,</span><span class="ConId">Eq</span><span class="Symbol">,</span><span class="ConId">Typeable</span><span class="Symbol">,</span><span class="ConId">Data</span><span class="Symbol">)</span>
+
+<span class="Keyword">data</span> <span class="ConId">CombineType</span> <span class="Symbol">=</span> <span class="ConId">Except</span> <span class="Symbol">|</span> <span class="ConId">Union</span> <span class="Symbol">|</span> <span class="ConId">Intersect</span> <span class="Symbol">|</span> <span class="ConId">UnionAll</span>
+                   <span class="Keyword">deriving</span> <span class="Symbol">(</span><span class="ConId">Show</span><span class="Symbol">,</span><span class="ConId">Eq</span><span class="Symbol">,</span><span class="ConId">Typeable</span><span class="Symbol">,</span><span class="ConId">Data</span><span class="Symbol">)</span>
+
+<span class="Keyword">data</span> <span class="ConId">Volatility</span> <span class="Symbol">=</span> <span class="ConId">Volatile</span> <span class="Symbol">|</span> <span class="ConId">Stable</span> <span class="Symbol">|</span> <span class="ConId">Immutable</span>
+                  <span class="Keyword">deriving</span> <span class="Symbol">(</span><span class="ConId">Show</span><span class="Symbol">,</span><span class="ConId">Eq</span><span class="Symbol">,</span><span class="ConId">Typeable</span><span class="Symbol">,</span><span class="ConId">Data</span><span class="Symbol">)</span>
+
+<span class="Keyword">data</span> <span class="ConId">Language</span> <span class="Symbol">=</span> <span class="ConId">Sql</span> <span class="Symbol">|</span> <span class="ConId">Plpgsql</span>
+                <span class="Keyword">deriving</span> <span class="Symbol">(</span><span class="ConId">Show</span><span class="Symbol">,</span><span class="ConId">Eq</span><span class="Symbol">,</span><span class="ConId">Typeable</span><span class="Symbol">,</span><span class="ConId">Data</span><span class="Symbol">)</span>
+<span class="Symbol">}</span>
+
+<span class="ConId">DATA</span> <span class="ConId">TypeName</span> <span class="Symbol">|</span> <span class="ConId">SimpleTypeName</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">tn</span><span class="Symbol">:</span><span class="ConId">String</span>
+              <span class="Symbol">|</span> <span class="ConId">PrecTypeName</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">tn</span><span class="Symbol">:</span><span class="ConId">String</span> <span class="VarId">prec</span><span class="Symbol">:</span><span class="ConId">Integer</span>
+              <span class="Symbol">|</span> <span class="ConId">Prec2TypeName</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">tn</span><span class="Symbol">:</span><span class="ConId">String</span> <span class="VarId">prec</span><span class="Symbol">:</span><span class="ConId">Integer</span> <span class="VarId">prec1</span><span class="Symbol">:</span><span class="ConId">Integer</span>
+              <span class="Symbol">|</span> <span class="ConId">ArrayTypeName</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">typ</span><span class="Symbol">:</span><span class="ConId">TypeName</span>
+              <span class="Symbol">|</span> <span class="ConId">SetOfTypeName</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">typ</span><span class="Symbol">:</span><span class="ConId">TypeName</span>
+<span class="Symbol">{</span>
+<span class="Keyword">data</span> <span class="ConId">DropType</span> <span class="Symbol">=</span> <span class="ConId">Table</span>
+              <span class="Symbol">|</span> <span class="ConId">Domain</span>
+              <span class="Symbol">|</span> <span class="ConId">View</span>
+              <span class="Symbol">|</span> <span class="ConId">Type</span>
+                <span class="Keyword">deriving</span> <span class="Symbol">(</span><span class="ConId">Show</span><span class="Symbol">,</span><span class="ConId">Eq</span><span class="Symbol">,</span><span class="ConId">Typeable</span><span class="Symbol">,</span><span class="ConId">Data</span><span class="Symbol">)</span>
+
+<span class="Keyword">data</span> <span class="ConId">Cascade</span> <span class="Symbol">=</span> <span class="ConId">Cascade</span> <span class="Symbol">|</span> <span class="ConId">Restrict</span>
+               <span class="Keyword">deriving</span> <span class="Symbol">(</span><span class="ConId">Show</span><span class="Symbol">,</span><span class="ConId">Eq</span><span class="Symbol">,</span><span class="ConId">Typeable</span><span class="Symbol">,</span><span class="ConId">Data</span><span class="Symbol">)</span>
+
+<span class="Keyword">data</span> <span class="ConId">Direction</span> <span class="Symbol">=</span> <span class="ConId">Asc</span> <span class="Symbol">|</span> <span class="ConId">Desc</span>
+                 <span class="Keyword">deriving</span> <span class="Symbol">(</span><span class="ConId">Show</span><span class="Symbol">,</span><span class="ConId">Eq</span><span class="Symbol">,</span><span class="ConId">Typeable</span><span class="Symbol">,</span><span class="ConId">Data</span><span class="Symbol">)</span>
+
+<span class="Keyword">data</span> <span class="ConId">Distinct</span> <span class="Symbol">=</span> <span class="ConId">Distinct</span> <span class="Symbol">|</span> <span class="ConId">Dupes</span>
+                <span class="Keyword">deriving</span> <span class="Symbol">(</span><span class="ConId">Show</span><span class="Symbol">,</span><span class="ConId">Eq</span><span class="Symbol">,</span><span class="ConId">Typeable</span><span class="Symbol">,</span><span class="ConId">Data</span><span class="Symbol">)</span>
+
+<span class="Keyword">data</span> <span class="ConId">Natural</span> <span class="Symbol">=</span> <span class="ConId">Natural</span> <span class="Symbol">|</span> <span class="ConId">Unnatural</span>
+               <span class="Keyword">deriving</span> <span class="Symbol">(</span><span class="ConId">Show</span><span class="Symbol">,</span><span class="ConId">Eq</span><span class="Symbol">,</span><span class="ConId">Typeable</span><span class="Symbol">,</span><span class="ConId">Data</span><span class="Symbol">)</span>
+
+<span class="Keyword">data</span> <span class="ConId">IfExists</span> <span class="Symbol">=</span> <span class="ConId">Require</span> <span class="Symbol">|</span> <span class="ConId">IfExists</span>
+                <span class="Keyword">deriving</span> <span class="Symbol">(</span><span class="ConId">Show</span><span class="Symbol">,</span><span class="ConId">Eq</span><span class="Symbol">,</span><span class="ConId">Typeable</span><span class="Symbol">,</span><span class="ConId">Data</span><span class="Symbol">)</span>
+
+<span class="Keyword">data</span> <span class="ConId">Replace</span> <span class="Symbol">=</span> <span class="ConId">Replace</span> <span class="Symbol">|</span> <span class="ConId">NoReplace</span>
+               <span class="Keyword">deriving</span> <span class="Symbol">(</span><span class="ConId">Show</span><span class="Symbol">,</span><span class="ConId">Eq</span><span class="Symbol">,</span><span class="ConId">Typeable</span><span class="Symbol">,</span><span class="ConId">Data</span><span class="Symbol">)</span>
+
+<span class="Keyword">data</span> <span class="ConId">RestartIdentity</span> <span class="Symbol">=</span> <span class="ConId">RestartIdentity</span> <span class="Symbol">|</span> <span class="ConId">ContinueIdentity</span>
+                       <span class="Keyword">deriving</span> <span class="Symbol">(</span><span class="ConId">Show</span><span class="Symbol">,</span><span class="ConId">Eq</span><span class="Symbol">,</span><span class="ConId">Typeable</span><span class="Symbol">,</span><span class="ConId">Data</span><span class="Symbol">)</span>
+<span class="Symbol">}</span>
+</pre></div></div></div></div
+    ><div id="section-1"
+    ><h1
+      >{-</h1
+      ><p
+      >Expressions</p
+      ><p
+      >Similarly to the statement type, all expressions are chucked into one even though there are many restrictions on which expressions can appear in different places. Maybe this should be called scalar expression?</p
+      ><p
+      >-}</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="ConId">DATA</span> <span class="ConId">Expression</span> <span class="Symbol">|</span> <span class="ConId">IntegerLit</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">i</span><span class="Symbol">:</span><span class="ConId">Integer</span>
+                <span class="Symbol">|</span> <span class="ConId">FloatLit</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">d</span><span class="Symbol">:</span><span class="ConId">Double</span>
+                <span class="Symbol">|</span> <span class="ConId">StringLit</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                            <span class="VarId">value</span> <span class="Symbol">:</span> <span class="ConId">String</span>
+                <span class="Symbol">|</span> <span class="ConId">NullLit</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                <span class="Symbol">|</span> <span class="ConId">BooleanLit</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">b</span><span class="Symbol">:</span><span class="ConId">Bool</span>
+                <span class="Symbol">|</span> <span class="ConId">PositionalArg</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">p</span><span class="Symbol">:</span><span class="ConId">Integer</span>
+                <span class="Symbol">|</span> <span class="ConId">Placeholder</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="Comment">-- represents a '?'</span>
+                <span class="Symbol">|</span> <span class="ConId">Cast</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                       <span class="VarId">expr</span><span class="Symbol">:</span><span class="ConId">Expression</span>
+                       <span class="VarId">tn</span><span class="Symbol">:</span><span class="ConId">TypeName</span>
+                <span class="Symbol">|</span> <span class="ConId">Identifier</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                             <span class="VarId">i</span><span class="Symbol">:</span><span class="ConId">String</span>
+                <span class="Symbol">|</span> <span class="ConId">QIdentifier</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                              <span class="VarId">qual</span><span class="Symbol">:</span><span class="ConId">Expression</span>
+                              <span class="VarId">i</span><span class="Symbol">:</span><span class="ConId">String</span>
+                <span class="Comment">-- bit hacky, preserve parens when they contain just an identifier</span>
+                <span class="Comment">-- or positional arg, so we can pretty print this since it is needed</span>
+                <span class="Comment">-- in some places for the pg parser</span>
+                </pre></div></div></div><p
+      >{- | PIdentifier ann:Annotation ex:Expression-}</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+                <span class="Symbol">|</span> <span class="ConId">Case</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                       <span class="VarId">cases</span> <span class="Symbol">:</span> <span class="ConId">CaseExpressionListExpressionPairList</span>
+                       <span class="VarId">els</span> <span class="Symbol">:</span> <span class="ConId">MaybeExpression</span>
+                <span class="Symbol">|</span> <span class="ConId">CaseSimple</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                             <span class="VarId">value</span> <span class="Symbol">:</span> <span class="ConId">Expression</span>
+                             <span class="VarId">cases</span> <span class="Symbol">:</span> <span class="ConId">CaseExpressionListExpressionPairList</span>
+                             <span class="VarId">els</span> <span class="Symbol">:</span> <span class="ConId">MaybeExpression</span>
+                <span class="Symbol">|</span> <span class="ConId">Exists</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                         <span class="VarId">sel</span> <span class="Symbol">:</span> <span class="ConId">SelectExpression</span>
+                <span class="Symbol">|</span> <span class="ConId">FunCall</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                          <span class="VarId">funName</span><span class="Symbol">:</span><span class="ConId">String</span>
+                          <span class="VarId">args</span><span class="Symbol">:</span><span class="ConId">ExpressionList</span>
+                <span class="Symbol">|</span> <span class="ConId">InPredicate</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                              <span class="VarId">expr</span><span class="Symbol">:</span><span class="ConId">Expression</span>
+                              <span class="VarId">i</span><span class="Symbol">:</span><span class="ConId">Bool</span>
+                              <span class="VarId">list</span><span class="Symbol">:</span><span class="ConId">InList</span>
+                <span class="Symbol">|</span> <span class="ConId">WindowFn</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                           <span class="VarId">fn</span> <span class="Symbol">:</span> <span class="ConId">Expression</span>
+                           <span class="VarId">partitionBy</span> <span class="Symbol">:</span> <span class="ConId">ExpressionList</span>
+                           <span class="VarId">orderBy</span> <span class="Symbol">:</span> <span class="ConId">ExpressionList</span>
+                           <span class="VarId">dir</span> <span class="Symbol">:</span> <span class="ConId">Direction</span>
+                           <span class="VarId">frm</span> <span class="Symbol">:</span> <span class="ConId">FrameClause</span>
+                <span class="Symbol">|</span> <span class="ConId">ScalarSubQuery</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                                 <span class="VarId">sel</span> <span class="Symbol">:</span> <span class="ConId">SelectExpression</span>
+                <span class="Symbol">|</span> <span class="ConId">LiftOperator</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span>
+                               <span class="VarId">oper</span><span class="Symbol">:</span><span class="ConId">String</span>
+                               <span class="VarId">flav</span><span class="Symbol">:</span><span class="ConId">LiftFlavour</span>
+                               <span class="VarId">args</span><span class="Symbol">:</span><span class="ConId">ExpressionList</span>
+<span class="Symbol">{</span>
+<span class="Keyword">data</span> <span class="ConId">LiftFlavour</span> <span class="Symbol">=</span> <span class="ConId">LiftAny</span> <span class="Symbol">|</span> <span class="ConId">LiftAll</span>
+                   <span class="Keyword">deriving</span> <span class="Symbol">(</span><span class="ConId">Show</span><span class="Symbol">,</span><span class="ConId">Eq</span><span class="Symbol">,</span><span class="ConId">Typeable</span><span class="Symbol">,</span><span class="ConId">Data</span><span class="Symbol">)</span>
+<span class="Symbol">}</span>
+
+<span class="Comment">--todo: use liftoperator to implement inlist?</span>
+<span class="ConId">DATA</span> <span class="ConId">InList</span> <span class="Symbol">|</span> <span class="ConId">InList</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">exprs</span> <span class="Symbol">:</span> <span class="ConId">ExpressionList</span>
+            <span class="Symbol">|</span> <span class="ConId">InSelect</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">sel</span> <span class="Symbol">:</span> <span class="ConId">SelectExpression</span>
+
+<span class="Symbol">{</span>
+<span class="Keyword">data</span> <span class="ConId">FrameClause</span> <span class="Symbol">=</span> <span class="ConId">FrameUnboundedPreceding</span>
+                 <span class="Symbol">|</span> <span class="ConId">FrameUnboundedFull</span>
+                 <span class="Symbol">|</span> <span class="ConId">FrameRowsUnboundedPreceding</span>
+                   <span class="Keyword">deriving</span> <span class="Symbol">(</span><span class="ConId">Show</span><span class="Symbol">,</span><span class="ConId">Eq</span><span class="Symbol">,</span><span class="ConId">Typeable</span><span class="Symbol">,</span><span class="ConId">Data</span><span class="Symbol">)</span>
+<span class="Symbol">}</span>
+</pre></div></div></div><p
+      >{-</p
+      ><p
+      >list of expression flavours from postgresql with the equivalents in this ast pg here -- ---- constant/literal integerlit, floatlit, unknownstringlit, nulllit, boollit column reference identifier positional parameter reference positionalarg subscripted expression funcall field selection expression identifier operator invocation funcall function call funcall aggregate expression funcall window function call windowfn type cast cast scalar subquery scalarsubquery array constructor funcall row constructor funall</p
+      ><p
+      >Anything that is represented in the ast as some sort of name plus a list of expressions as arguments is treated as the same type of node: FunCall.</p
+      ><p
+      >This includes symbol operators regular function calls keyword operators e.g. and, like (ones which can be parsed as normal syntactic operators) unusual syntax operators, e.g. between unusual syntax function calls e.g. substring(x from 5 for 3) arrayctors e.g. array[3,5,6] rowctors e.g. ROW (2,4,6) array subscripting</p
+      ><p
+      >list of keyword operators (regular prefix, infix and postfix): and, or, not is null, is not null, isnull, notnull is distinct from, is not distinct from is true, is not true,is false, is not false, is unknown, is not unknown like, not like, ilike, not ilike similar to, not similar to in, not in (don't include these here since the argument isn't always an expr)</p
+      ><p
+      >unusual syntax operators and fn calls between, not between, between symmetric overlay, substring, trim any, some, all</p
+      ><p
+      >Most of unusual syntax forms and keywords operators are not yet supported, so this is mainly a todo list.</p
+      ><p
+      >Keyword operators are encoded with the function name as a ! followed by a string e.g. operator 'and' -&gt; FunCall &quot;!and&quot; ... see keywordOperatorTypes value in AstUtils.lhs for the list of currently supported keyword operators.</p
+      ><p
+      >-}</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="Comment">-- some list nodes, not sure if all of these are needed as separately</span>
+<span class="Comment">-- named node types</span>
+
+<span class="ConId">TYPE</span> <span class="ConId">OnExpr</span> <span class="Symbol">=</span> <span class="ConId">MAYBE</span> <span class="ConId">JoinExpression</span>
+<span class="ConId">TYPE</span> <span class="ConId">MaybeSelectList</span> <span class="Symbol">=</span> <span class="ConId">MAYBE</span> <span class="ConId">SelectList</span>
+
+<span class="ConId">TYPE</span> <span class="ConId">TableRefList</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">TableRef</span><span class="Symbol">]</span>
+<span class="ConId">TYPE</span> <span class="ConId">MaybeExpression</span> <span class="Symbol">=</span> <span class="ConId">MAYBE</span> <span class="ConId">Expression</span>
+<span class="ConId">TYPE</span> <span class="ConId">MaybeBoolExpression</span> <span class="Symbol">=</span> <span class="ConId">MAYBE</span> <span class="ConId">Expression</span>
+
+<span class="ConId">TYPE</span> <span class="ConId">ExpressionList</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">Expression</span><span class="Symbol">]</span>
+<span class="ConId">TYPE</span> <span class="ConId">ExpressionListList</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">ExpressionList</span><span class="Symbol">]</span>
+
+<span class="Comment">-- TYPE SetClauseList = [SetClause]</span>
+<span class="ConId">TYPE</span> <span class="ConId">AttributeDefList</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">AttributeDef</span><span class="Symbol">]</span>
+<span class="ConId">TYPE</span> <span class="ConId">ConstraintList</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">Constraint</span><span class="Symbol">]</span>
+<span class="ConId">TYPE</span> <span class="ConId">TypeAttributeDefList</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">TypeAttributeDef</span><span class="Symbol">]</span>
+<span class="ConId">TYPE</span> <span class="ConId">ParamDefList</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">ParamDef</span><span class="Symbol">]</span>
+<span class="ConId">TYPE</span> <span class="ConId">TypeNameList</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">TypeName</span><span class="Symbol">]</span>
+<span class="ConId">TYPE</span> <span class="ConId">StringTypeNameListPair</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,</span> <span class="ConId">TypeNameList</span><span class="Symbol">)</span>
+<span class="ConId">TYPE</span> <span class="ConId">StringTypeNameListPairList</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">StringTypeNameListPair</span><span class="Symbol">]</span>
+<span class="ConId">TYPE</span> <span class="ConId">ExpressionListStatementListPair</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="ConId">ExpressionList</span><span class="Symbol">,</span><span class="ConId">StatementList</span><span class="Symbol">)</span>
+<span class="ConId">TYPE</span> <span class="ConId">ExpressionListStatementListPairList</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">ExpressionListStatementListPair</span><span class="Symbol">]</span>
+<span class="ConId">TYPE</span> <span class="ConId">ExpressionStatementListPair</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="ConId">Expression</span><span class="Symbol">,</span> <span class="ConId">StatementList</span><span class="Symbol">)</span>
+<span class="ConId">TYPE</span> <span class="ConId">ExpressionStatementListPairList</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">ExpressionStatementListPair</span><span class="Symbol">]</span>
+<span class="ConId">TYPE</span> <span class="ConId">VarDefList</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">VarDef</span><span class="Symbol">]</span>
+<span class="ConId">TYPE</span> <span class="ConId">SelectItemList</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">SelectItem</span><span class="Symbol">]</span>
+<span class="ConId">TYPE</span> <span class="ConId">RowConstraintList</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">RowConstraint</span><span class="Symbol">]</span>
+<span class="ConId">TYPE</span> <span class="ConId">CaseExpressionListExpressionPair</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="ConId">ExpressionList</span><span class="Symbol">,</span><span class="ConId">Expression</span><span class="Symbol">)</span>
+<span class="ConId">TYPE</span> <span class="ConId">CaseExpressionListExpressionPairList</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">CaseExpressionListExpressionPair</span><span class="Symbol">]</span>
+<span class="ConId">TYPE</span> <span class="ConId">StatementList</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span>
+<span class="ConId">TYPE</span> <span class="ConId">ExpressionDirectionPair</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="ConId">Expression</span><span class="Symbol">,</span><span class="ConId">Direction</span><span class="Symbol">)</span>
+<span class="ConId">TYPE</span> <span class="ConId">ExpressionDirectionPairList</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">ExpressionDirectionPair</span><span class="Symbol">]</span>
+<span class="ConId">TYPE</span> <span class="ConId">AlterTableActionList</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">AlterTableAction</span><span class="Symbol">]</span>
+<span class="Comment">-- Add a root data type so we can put initial values for inherited</span>
+<span class="Comment">-- attributes in the section which defines and uses those attributes</span>
+<span class="Comment">-- rather than in the sem_ calls</span>
+
+<span class="ConId">DATA</span> <span class="ConId">Root</span> <span class="Symbol">|</span> <span class="ConId">Root</span> <span class="VarId">statements</span><span class="Symbol">:</span><span class="ConId">StatementList</span>
+<span class="ConId">DERIVING</span> <span class="ConId">Root</span><span class="Symbol">:</span> <span class="ConId">Show</span>
+
+<span class="Comment">-- use an expression root also to support type checking,</span>
+<span class="Comment">-- etc., individual expressions</span>
+
+<span class="ConId">DATA</span> <span class="ConId">ExpressionRoot</span> <span class="Symbol">|</span> <span class="ConId">ExpressionRoot</span> <span class="VarId">expr</span><span class="Symbol">:</span><span class="ConId">Expression</span>
+<span class="ConId">DERIVING</span> <span class="ConId">ExpressionRoot</span><span class="Symbol">:</span> <span class="ConId">Show</span>
+
+</pre></div></div></div></div
+    ><div id="section-2"
+    ><h1
+      >{-</h1
+      ><p
+      >=some basic bookkeeping</p
+      ><p
+      >attributes which every node has -}</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="ConId">SET</span> <span class="ConId">AllNodes</span> <span class="Symbol">=</span> <span class="ConId">Statement</span> <span class="ConId">SelectExpression</span> <span class="ConId">FnBody</span> <span class="ConId">TableRef</span>
+               <span class="ConId">JoinExpression</span>
+               <span class="ConId">SelectList</span> <span class="ConId">SelectItem</span> <span class="ConId">AttributeDef</span> <span class="ConId">RowConstraint</span>
+               <span class="ConId">TypeAttributeDef</span> <span class="ConId">ParamDef</span> <span class="ConId">VarDef</span> <span class="ConId">Constraint</span>
+               <span class="ConId">TypeName</span>
+               <span class="ConId">Expression</span> <span class="ConId">InList</span> <span class="ConId">MaybeExpression</span> <span class="ConId">MaybeBoolExpression</span>
+               <span class="ConId">ExpressionList</span> <span class="ConId">ExpressionListList</span>
+               <span class="ConId">AttributeDefList</span> <span class="ConId">ConstraintList</span> <span class="ConId">TypeAttributeDefList</span>
+               <span class="ConId">ParamDefList</span> <span class="ConId">TypeNameList</span> <span class="ConId">StringTypeNameListPair</span>
+               <span class="ConId">StringTypeNameListPairList</span>
+               <span class="ConId">StatementList</span> <span class="ConId">ExpressionListStatementListPair</span>
+               <span class="ConId">ExpressionListStatementListPairList</span> <span class="ConId">ExpressionStatementListPair</span>
+               <span class="ConId">ExpressionStatementListPairList</span> <span class="ConId">VarDefList</span> <span class="ConId">SelectItemList</span>
+               <span class="ConId">RowConstraintList</span> <span class="ConId">CaseExpressionListExpressionPair</span>
+               <span class="ConId">CaseExpressionListExpressionPairList</span>
+               <span class="ConId">TableRefList</span> <span class="ConId">TableRef</span> <span class="ConId">OnExpr</span> <span class="ConId">MaybeSelectList</span>
+               <span class="ConId">AlterTableAction</span>
+               <span class="ConId">ExpressionDirectionPair</span>
+               <span class="ConId">ExpressionDirectionPairList</span> <span class="ConId">AlterTableActionList</span>
+               <span class="ConId">WithQueryList</span> <span class="ConId">WithQuery</span>
+
+
+<span class="ConId">DERIVING</span> <span class="ConId">AllNodes</span><span class="Symbol">:</span> <span class="ConId">Show</span><span class="Symbol">,</span><span class="ConId">Eq</span><span class="Symbol">,</span><span class="ConId">Typeable</span><span class="Symbol">,</span><span class="ConId">Data</span>
+
+
+<span class="ConId">INCLUDE</span> <span class="String">&quot;TypeChecking/TypeChecking.ag&quot;</span>
+
+</pre></div></div></div><p
+      >{-</p
+      ><p
+      >================================================================================</p
+      ><p
+      >used to use record syntax to try to insulate code from field changes, and not have to write out loads of nothings and [] for simple selects, but don't know how to create haskell named records from uuagc DATA things</p
+      ><p
+      >makeSelect :: Statement makeSelect = Select Dupes (SelectList [SelExp (Identifier &quot;*&quot;)] []) Nothing Nothing [] Nothing [] Asc Nothing Nothing</p
+      ><p
+      >================================================================================</p
+      ><p
+      >= annotation functions</p
+      ><p
+      >-}</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="Symbol">{</span>
+</pre></div></div></div><p
+      >{- -- | Type check multiple asts, allowing type checking references in -- later files to definitions in earlier files. This is probably -- more straightforward if you parse the files then concatenate the -- statementlists together before type checking rather than using -- this function typeCheckMany :: Catalog -&gt; [StatementList] -&gt; [StatementList] typeCheckMany cat sts = annInt cat sts [] where annInt e (s:ss) ress = let (e1,res) = typeCheck e s in annInt e1 ss (res:ress) annInt _ [] ress = reverse ress -}</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="Comment">-- | Takes an ast, checks against catalog passed, and adds</span>
+<span class="Comment">--   annotations, including types, type errors, and statement info.</span>
+<span class="Comment">--   Returns the updated catalog as well as the annotated ast.</span>
+<span class="Function">typeCheck</span> <span class="Symbol">::</span> <span class="ConId">Catalog</span> <span class="Symbol">-&gt;</span> <span class="ConId">StatementList</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="ConId">Catalog</span><span class="Symbol">,</span><span class="ConId">StatementList</span><span class="Symbol">)</span>
+<span class="Function">typeCheck</span> <span class="VarId">cat</span> <span class="VarId">sts</span> <span class="Symbol">=</span>
+    <span class="Keyword">let</span> <span class="VarId">t</span> <span class="Symbol">=</span> <span class="VarId">sem_Root</span> <span class="Symbol">(</span><span class="ConId">Root</span> <span class="Symbol">(</span><span class="VarId">fixupImplicitJoins</span> <span class="VarId">sts</span><span class="Symbol">))</span>
+        <span class="VarId">ta</span> <span class="Symbol">=</span> <span class="VarId">wrap_Root</span> <span class="VarId">t</span> <span class="ConId">Inh_Root</span> <span class="Symbol">{</span><span class="VarId">cat_Inh_Root</span> <span class="Symbol">=</span> <span class="VarId">cat</span>
+                                  <span class="Symbol">,</span><span class="VarId">lib_Inh_Root</span> <span class="Symbol">=</span> <span class="VarId">emptyBindings</span><span class="Symbol">}</span>
+        <span class="VarId">tl</span> <span class="Symbol">=</span> <span class="VarId">annotatedTree_Syn_Root</span> <span class="VarId">ta</span>
+        <span class="VarId">cat1</span> <span class="Symbol">=</span> <span class="VarId">producedCat_Syn_Root</span> <span class="VarId">ta</span>
+    <span class="Keyword">in</span> <span class="Keyword">case</span> <span class="VarId">tl</span> <span class="Keyword">of</span>
+         <span class="ConId">Root</span> <span class="VarId">r</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="VarId">cat1</span><span class="Symbol">,</span><span class="VarId">r</span><span class="Symbol">)</span>
+
+<span class="Comment">-- | Unfinished version of type check which can type check an</span>
+<span class="Comment">-- individual statement with ? or positional arg placeholders in</span>
+<span class="Comment">-- it. Will error if the statement isn't select, update, insert or</span>
+<span class="Comment">-- delete. For use in type checking embedded parameterized</span>
+<span class="Comment">-- statements. Does all typechecking and annotation that the regular</span>
+<span class="Comment">-- typecheck does.</span>
+<span class="Function">typeCheckPS</span> <span class="Symbol">::</span> <span class="ConId">Catalog</span> <span class="Symbol">-&gt;</span> <span class="ConId">Statement</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="ConId">String</span> <span class="ConId">Statement</span>
+<span class="Function">typeCheckPS</span> <span class="VarId">cat</span> <span class="VarId">st</span> <span class="Symbol">=</span>
+    <span class="Keyword">case</span> <span class="VarId">st</span> <span class="Keyword">of</span>
+      <span class="ConId">SelectStatement</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="VarId">tc</span>
+      <span class="ConId">Insert</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="VarId">tc</span>
+      <span class="ConId">Update</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="VarId">tc</span>
+      <span class="ConId">Delete</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="VarId">tc</span>
+      <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Left</span> <span class="String">&quot;requires select, update, insert or delete statement&quot;</span>
+    <span class="Keyword">where</span>
+      <span class="VarId">tc</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="VarId">t</span> <span class="Symbol">=</span> <span class="VarId">sem_Root</span> <span class="Symbol">(</span><span class="ConId">Root</span> <span class="Symbol">(</span><span class="VarId">fixupImplicitJoins</span> <span class="Symbol">[</span><span class="VarId">st</span><span class="Symbol">]))</span>
+               <span class="VarId">ta</span> <span class="Symbol">=</span> <span class="VarId">wrap_Root</span> <span class="VarId">t</span> <span class="ConId">Inh_Root</span> <span class="Symbol">{</span><span class="VarId">cat_Inh_Root</span> <span class="Symbol">=</span> <span class="VarId">cat</span>
+                                         <span class="Symbol">,</span><span class="VarId">lib_Inh_Root</span> <span class="Symbol">=</span> <span class="VarId">emptyBindings</span><span class="Symbol">}</span>
+               <span class="VarId">tl</span> <span class="Symbol">=</span> <span class="VarId">annotatedTree_Syn_Root</span> <span class="VarId">ta</span>
+               <span class="Comment">--cat1 = producedCat_Syn_Root ta</span>
+           <span class="Keyword">in</span> <span class="Keyword">case</span> <span class="VarId">tl</span> <span class="Keyword">of</span>
+                <span class="ConId">Root</span> <span class="Symbol">[</span><span class="VarId">st1</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Right</span> <span class="VarId">st1</span>
+                <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="VarId">error</span> <span class="String">&quot;impossible happened in typeCheckPS!&quot;</span>
+
+
+<span class="Comment">-- | Testing utility, mainly used to check an expression for type errors</span>
+<span class="Comment">-- or to get its type.</span>
+<span class="Function">typeCheckExpression</span> <span class="Symbol">::</span> <span class="ConId">Catalog</span> <span class="Symbol">-&gt;</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">Expression</span>
+<span class="Function">typeCheckExpression</span> <span class="VarId">cat</span> <span class="VarId">ex</span> <span class="Symbol">=</span>
+    <span class="Keyword">let</span> <span class="VarId">t</span> <span class="Symbol">=</span> <span class="VarId">sem_ExpressionRoot</span> <span class="Symbol">(</span><span class="ConId">ExpressionRoot</span> <span class="Symbol">(</span><span class="VarId">fixupImplicitJoins</span> <span class="VarId">ex</span><span class="Symbol">))</span>
+        <span class="VarId">rt</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="VarId">annotatedTree_Syn_ExpressionRoot</span>
+              <span class="Symbol">(</span><span class="VarId">wrap_ExpressionRoot</span> <span class="VarId">t</span> <span class="ConId">Inh_ExpressionRoot</span> <span class="Symbol">{</span><span class="VarId">cat_Inh_ExpressionRoot</span> <span class="Symbol">=</span> <span class="VarId">cat</span>
+                                                        <span class="Symbol">,</span><span class="VarId">lib_Inh_ExpressionRoot</span> <span class="Symbol">=</span> <span class="VarId">emptyBindings</span><span class="Symbol">}))</span>
+    <span class="Keyword">in</span> <span class="Keyword">case</span> <span class="VarId">rt</span> <span class="Keyword">of</span>
+         <span class="ConId">ExpressionRoot</span> <span class="VarId">e</span> <span class="Symbol">-&gt;</span> <span class="VarId">e</span>
+
+</pre></div></div></div><p
+      >{- bit of a hack, to avoid rewriting the tableref type checking to be able to do implicit joins, we just convert them in to the equivalent explicit join -}</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="Function">fixupImplicitJoins</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
+<span class="Function">fixupImplicitJoins</span> <span class="Symbol">=</span>
+    <span class="VarId">transformBi</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span>
+            <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+              <span class="Comment">-- alter asts to change implicit joins into explicit joins</span>
+              <span class="ConId">Select</span> <span class="VarId">an</span> <span class="VarId">dis</span> <span class="VarId">sl</span> <span class="VarId">trs</span><span class="Symbol">@(</span><span class="VarId">_</span><span class="Symbol">:</span><span class="VarId">_</span><span class="Symbol">:</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="VarId">whr</span> <span class="VarId">grp</span> <span class="VarId">hav</span> <span class="VarId">od</span> <span class="VarId">lim</span> <span class="VarId">off</span>
+                  <span class="Symbol">-&gt;</span> <span class="ConId">Select</span> <span class="VarId">an</span> <span class="VarId">dis</span> <span class="VarId">sl</span> <span class="Symbol">[</span><span class="VarId">convTrefs</span> <span class="VarId">trs</span><span class="Symbol">]</span> <span class="VarId">whr</span> <span class="VarId">grp</span> <span class="VarId">hav</span> <span class="VarId">od</span> <span class="VarId">lim</span> <span class="VarId">off</span>
+              <span class="VarId">x1</span> <span class="Symbol">-&gt;</span> <span class="VarId">x1</span>
+    <span class="Keyword">where</span>
+      <span class="VarId">convTrefs</span> <span class="Symbol">(</span><span class="VarId">tr</span><span class="Symbol">:</span><span class="VarId">tr1</span><span class="Symbol">:</span><span class="VarId">trs</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="ConId">JoinedTref</span> <span class="VarId">emptyAnnotation</span> <span class="VarId">tr</span> <span class="ConId">Unnatural</span> <span class="ConId">Cross</span> <span class="Symbol">(</span><span class="VarId">convTrefs</span> <span class="Symbol">(</span><span class="VarId">tr1</span><span class="Symbol">:</span><span class="VarId">trs</span><span class="Symbol">))</span> <span class="ConId">Nothing</span> <span class="ConId">NoAlias</span>
+      <span class="VarId">convTrefs</span> <span class="Symbol">(</span><span class="VarId">tr</span><span class="Symbol">:[])</span> <span class="Symbol">=</span> <span class="VarId">tr</span>
+      <span class="VarId">convTrefs</span> <span class="VarId">_</span> <span class="Symbol">=</span> <span class="VarId">error</span> <span class="String">&quot;failed doing implicit join fixup hack&quot;</span>
+
+<span class="Symbol">}</span>
+
+</pre></div></div></div><p
+      >{-</p
+      ><p
+      >Future plans:</p
+      ><p
+      >Investigate how much mileage can get out of making these nodes the parse tree nodes, and using a separate ast. Hinges on how much extra value can get from making the types more restrictive for the ast nodes compared to the parse tree. Starting to think this won't be worth it.</p
+      ><p
+      >Would like to turn this back into regular Haskell file, maybe could use AspectAG instead of uuagc to make this happen?</p
+      ><p
+      >-}</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+</pre></div></div></div></div
+    ><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

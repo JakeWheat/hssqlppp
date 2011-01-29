@@ -1,0 +1,52 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >Block</title
+    ><link href="../../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="ConId">ATTR</span> <span class="ConId">VarDef</span> <span class="Symbol">[||</span><span class="VarId">def</span> <span class="Symbol">:</span> <span class="Symbol">{(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Maybe</span> <span class="ConId">Type</span><span class="Symbol">)}]</span>
+
+<span class="ConId">ATTR</span> <span class="ConId">VarDefList</span> <span class="Symbol">[||</span><span class="VarId">defs</span> <span class="Symbol">:</span> <span class="Symbol">{[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Maybe</span> <span class="ConId">Type</span><span class="Symbol">)]}]</span>
+
+<span class="Comment">-- collect the information to update the local bindings from the declarations</span>
+<span class="Comment">--slightly hacky, should fix this better</span>
+<span class="Comment">-- this is going to change when plpgsql blocks are supported properly</span>
+<span class="ConId">SEM</span> <span class="ConId">VarDef</span>
+    <span class="Symbol">|</span> <span class="ConId">VarDef</span> <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">def</span> <span class="Symbol">=</span> <span class="Symbol">(@</span><span class="VarId">name</span><span class="Symbol">,</span> <span class="Keyword">if</span> <span class="Symbol">@</span><span class="VarId">typ</span><span class="Symbol">.</span><span class="VarId">namedType</span> <span class="Symbol">==</span> <span class="ConId">Just</span> <span class="Symbol">(</span><span class="ConId">Pseudo</span> <span class="ConId">Record</span><span class="Symbol">)</span>
+                               <span class="Keyword">then</span> <span class="ConId">Just</span> <span class="Symbol">(</span><span class="ConId">PgRecord</span> <span class="ConId">Nothing</span><span class="Symbol">)</span>
+                               <span class="Keyword">else</span> <span class="Symbol">@</span><span class="VarId">typ</span><span class="Symbol">.</span><span class="VarId">namedType</span><span class="Symbol">)</span>
+    <span class="Symbol">|</span> <span class="ConId">VarAlias</span> <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">def</span> <span class="Symbol">=</span> <span class="Symbol">(@</span><span class="VarId">name</span><span class="Symbol">,</span> <span class="ConId">Nothing</span><span class="Symbol">)</span>
+    <span class="Symbol">|</span> <span class="ConId">ParamAlias</span> <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">def</span> <span class="Symbol">=</span> <span class="Symbol">(@</span><span class="VarId">name</span><span class="Symbol">,</span> <span class="ConId">Nothing</span><span class="Symbol">)</span>
+
+<span class="ConId">SEM</span> <span class="ConId">VarDefList</span>
+    <span class="Symbol">|</span> <span class="ConId">Cons</span> <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">defs</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">hd</span><span class="Symbol">.</span><span class="VarId">def</span> <span class="Symbol">:</span> <span class="Symbol">@</span><span class="VarId">tl</span><span class="Symbol">.</span><span class="VarId">defs</span>
+    <span class="Symbol">|</span> <span class="ConId">Nil</span> <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">defs</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+
+<span class="ConId">SEM</span> <span class="ConId">Statement</span>
+    <span class="Symbol">|</span> <span class="ConId">Block</span>
+        <span class="VarId">sts</span><span class="Symbol">.</span><span class="VarId">lib</span> <span class="Symbol">=</span> <span class="VarId">fromRight</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">lib</span> <span class="Symbol">$</span>
+                  <span class="VarId">lbUpdate</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">cat</span>
+                           <span class="Symbol">(</span><span class="ConId">LBIds</span> <span class="String">&quot;declarations&quot;</span> <span class="Symbol">@</span><span class="VarId">lb</span> <span class="Symbol">$</span> <span class="VarId">mapMaybe</span> <span class="VarId">lv</span> <span class="Symbol">@</span><span class="VarId">vars</span><span class="Symbol">.</span><span class="VarId">defs</span><span class="Symbol">)</span>
+                           <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">lib</span>
+                  <span class="Keyword">where</span>
+                    <span class="VarId">lv</span> <span class="Symbol">(</span><span class="VarId">_</span><span class="Symbol">,</span><span class="ConId">Nothing</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+                    <span class="VarId">lv</span> <span class="Symbol">(</span><span class="VarId">s</span><span class="Symbol">,</span><span class="ConId">Just</span> <span class="VarId">t</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="ConId">Just</span> <span class="Symbol">(</span><span class="VarId">s</span><span class="Symbol">,</span><span class="VarId">t</span><span class="Symbol">)</span>
+
+</pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

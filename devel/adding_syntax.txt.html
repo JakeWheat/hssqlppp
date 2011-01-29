@@ -1,0 +1,255 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >adding_syntax</title
+    ><link href="../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><div id="adding-new-syntax"
+    ><h1
+      >Adding new syntax</h1
+      ><p
+      >This is an example of how to add new syntax to the library. The basic steps are:</p
+      ><p
+      >add tests to the appropriate file under tests/</p
+      ><p
+      >compile and run the tests to check the new test fails</p
+      ><p
+      >add new datatypes to AstInternals.ag</p
+      ><p
+      >fix any default uuagc rules if needed (the typechecker supports untypeable syntax reasonably gracefully at the moment so it can partially type check asts)</p
+      ><p
+      >run devel/MakeAntiNodes.lhs which is a crazy-baroque system to support the quasi-quotation system. Not sure how to make this non-crazy</p
+      ><p
+      >compile and run the tests to check that the new test now passes</p
+      ></div
+    ><div id="example"
+    ><h1
+      >Example</h1
+      ><p
+      >The parser currently the precision of types, e.g.</p
+      ><div class='sql'><pre class="sourceCode">create table t {
+   col float(24);
+}</pre></div><p
+      >We want it to also support two components, for numeric types:</p
+      ><div class='sql'><pre class="sourceCode">create table t {
+   col numeric(5,3);
+}</pre></div><div id="add-a-test"
+      ><h2
+	>Add a test</h2
+	><p
+	>The first step: add a test. Looking in the tests folder, this seems like the best file to add it to: tests/Database/HsSqlPpp/Tests/ParserTest.lhs. At the moment, all the parsing tests go in this file.</p
+	><p
+	>A quick look through shows a good place to add the test, right after the test for the float(24) example, which looks like this:</p
+	><div class='haskell'><pre class="sourceCode"><span class="Function">e</span> <span class="String">&quot;245::float(24)&quot;</span> <span class="Symbol">(</span><span class="ConId">Cast</span> <span class="VarId">ea</span> <span class="Symbol">(</span><span class="ConId">IntegerLit</span> <span class="VarId">ea</span> <span class="Number">245</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">PrecTypeName</span> <span class="VarId">ea</span> <span class="String">&quot;float&quot;</span> <span class="Number">24</span><span class="Symbol">))</span></pre></div><p
+	>To add the new test, we have to figure out how the new abstract syntax will look. We can defer this while we add the test, until we actually edit the abstract syntax types. The added code:</p
+	><div class='haskell'><pre class="sourceCode"><span class="Function">e</span> <span class="String">&quot;245.1::numeric(5,3)&quot;</span> <span class="Symbol">(</span><span class="ConId">Cast</span> <span class="VarId">ea</span> <span class="Symbol">(</span><span class="ConId">FloatLit</span> <span class="VarId">ea</span> <span class="Number">245.1</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">PrecTypeName</span> <span class="VarId">ea</span> <span class="String">&quot;numeric&quot;</span> <span class="Number">5</span><span class="Symbol">))</span></pre></div><p
+	>Now check the test fails, not really that useful at this time, but good sanity check if you are getting used to things. (Adding --ghc-options &quot;-Wall&quot; gives us all the warnings when compiling with cabal which is very useful).</p
+	><pre
+	><code
+	  >$ cabal configure -ftests --ghc-options &quot;-Wall&quot;
+$ cabal build
+$ dist/build/Tests/Tests -t &quot;numeric&quot;
+parserTests:
+  parse expressions:
+    simple operators:
+      parse 245.34::numeric(5,3): [Failed]
+Failed: (line 1, column 7):
+unexpected ((line 1, column 7),SymbolTok &quot;::&quot;)
+expecting operator or end of input
+:1:7:
+
+Context:
+245.34::numeric(5,3)
+      ^
+ERROR HERE
+
+
+
+         Test Cases  Total      
+ Passed  0           0          
+ Failed  1           1          
+ Total   1           1          
+~/wd/hssqlppp/trunk$ 
+</code
+	  ></pre
+	><p
+	>Well, the error message isn't very good, but it fails as expected. You can use -t [string] argument to the tests executable to only run the tests which match the string.</p
+	></div
+      ><div id="syntax"
+      ><h2
+	>Syntax</h2
+	><p
+	>It's not straightforward to work out what variations postgresql supports for these precision parameters to types. In particular, I can't immediately see if if is only for float and numeric types, and also if custom datatypes can potentially have an arbitrary number of parameters, and whether they can be types other than integers. If it's simple, then just add another variation on the float(24) support which allows two arguments instead of one.</p
+	><p
+	>Editing syntax is pretty hairy in hssqlppp (advice on how to improve the system is welcome). The first place to go is the AstInternals.ag file, which is not written in haskell syntax, but in uuagc syntax which isn't too different.</p
+	><p
+	>Searching for PrecTypeName in this file should give a good place to alter the syntax.</p
+	><p
+	>You get a block like this:</p
+	><div class='haskell'><pre class="sourceCode"><span class="ConId">DATA</span> <span class="ConId">TypeName</span> <span class="Symbol">|</span> <span class="ConId">SimpleTypeName</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">tn</span><span class="Symbol">:</span><span class="ConId">String</span>
+              <span class="Symbol">|</span> <span class="ConId">PrecTypeName</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">tn</span><span class="Symbol">:</span><span class="ConId">String</span> <span class="VarId">prec</span><span class="Symbol">:</span><span class="ConId">Integer</span>
+              <span class="Symbol">|</span> <span class="ConId">ArrayTypeName</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">typ</span><span class="Symbol">:</span><span class="ConId">TypeName</span>
+              <span class="Symbol">|</span> <span class="ConId">SetOfTypeName</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">typ</span><span class="Symbol">:</span><span class="ConId">TypeName</span></pre></div><p
+	>Add a new Prec2TypeName constructor with two integer args:</p
+	><div class='haskell'><pre class="sourceCode"><span class="ConId">DATA</span> <span class="ConId">TypeName</span> <span class="Symbol">|</span> <span class="ConId">SimpleTypeName</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">tn</span><span class="Symbol">:</span><span class="ConId">String</span>
+              <span class="Symbol">|</span> <span class="ConId">PrecTypeName</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">tn</span><span class="Symbol">:</span><span class="ConId">String</span> <span class="VarId">prec</span><span class="Symbol">:</span><span class="ConId">Integer</span>
+              <span class="Symbol">|</span> <span class="ConId">Prec2TypeName</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">tn</span><span class="Symbol">:</span><span class="ConId">String</span> <span class="VarId">prec</span><span class="Symbol">:</span><span class="ConId">Integer</span> <span class="VarId">prec1</span><span class="Symbol">:</span><span class="ConId">Integer</span>
+              <span class="Symbol">|</span> <span class="ConId">ArrayTypeName</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">typ</span><span class="Symbol">:</span><span class="ConId">TypeName</span>
+              <span class="Symbol">|</span> <span class="ConId">SetOfTypeName</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">typ</span><span class="Symbol">:</span><span class="ConId">TypeName</span></pre></div><p
+	>Now we have made changes to an ag file, we need to run uuagc to produce AstInternal.hs (see this file for the compilation instructions):</p
+	><pre
+	><code
+	  >$ cd src/lib/Database/HsSqlPpp/AstInternals
+$ uuagc  -dcfwsp AstInternal.ag
+./TypeChecking/Misc.ag:15:18: warning: Missing rule for synthesized attribute namedType in alternative Prec2TypeName of nonterminal TypeName.
+</code
+	  ></pre
+	><p
+	>OK, so this is a bit weird if you don't know uuagc. Looking at the file, the simplest fix seems to be to copy the style of the PrecTypeName part. The previous code:</p
+	><div class='haskell'><pre class="sourceCode"><span class="ConId">SEM</span> <span class="ConId">TypeName</span>
+     <span class="Symbol">|</span> <span class="ConId">SimpleTypeName</span> <span class="ConId">ArrayTypeName</span> <span class="ConId">SetOfTypeName</span> <span class="ConId">PrecTypeName</span>
+         <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">namedType</span> <span class="Symbol">=</span> <span class="VarId">etmt</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span>
+         <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Symbol">=</span> <span class="VarId">addTypeErrors</span> <span class="Symbol">(</span><span class="VarId">tes</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span><span class="Symbol">)</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span>
+
+<span class="ConId">SEM</span> <span class="ConId">TypeName</span>
+     <span class="Symbol">|</span> <span class="ConId">SimpleTypeName</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="VarId">catLookupType</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">cat</span> <span class="Symbol">$</span> <span class="VarId">canonicalizeTypeName</span> <span class="Symbol">@</span><span class="VarId">tn</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">SimpleTypeName</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">tn</span>
+     <span class="Symbol">|</span> <span class="ConId">ArrayTypeName</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="VarId">lmt</span> <span class="Symbol">@</span><span class="VarId">typ</span><span class="Symbol">.</span><span class="VarId">namedType</span> <span class="Symbol">&gt;&gt;=</span>  <span class="ConId">Right</span> <span class="Symbol">.</span> <span class="ConId">ArrayType</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">ArrayTypeName</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">typ</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+     <span class="Symbol">|</span> <span class="ConId">SetOfTypeName</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="VarId">lmt</span> <span class="Symbol">@</span><span class="VarId">typ</span><span class="Symbol">.</span><span class="VarId">namedType</span> <span class="Symbol">&gt;&gt;=</span>  <span class="ConId">Right</span> <span class="Symbol">.</span> <span class="ConId">SetOfType</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">SetOfTypeName</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">typ</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+     <span class="Symbol">|</span> <span class="ConId">PrecTypeName</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="VarId">catLookupType</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">cat</span> <span class="Symbol">$</span> <span class="VarId">canonicalizeTypeName</span> <span class="Symbol">@</span><span class="VarId">tn</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">PrecTypeName</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">tn</span> <span class="Symbol">@</span><span class="VarId">prec</span></pre></div><p
+	>And the updated code:</p
+	><div class='haskell'><pre class="sourceCode"><span class="ConId">SEM</span> <span class="ConId">TypeName</span>
+     <span class="Symbol">|</span> <span class="ConId">SimpleTypeName</span> <span class="ConId">ArrayTypeName</span> <span class="ConId">SetOfTypeName</span> <span class="ConId">PrecTypeName</span> <span class="ConId">Prec2TypeName</span>
+         <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">namedType</span> <span class="Symbol">=</span> <span class="VarId">etmt</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span>
+         <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Symbol">=</span> <span class="VarId">addTypeErrors</span> <span class="Symbol">(</span><span class="VarId">tes</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span><span class="Symbol">)</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span>
+
+<span class="ConId">SEM</span> <span class="ConId">TypeName</span>
+     <span class="Symbol">|</span> <span class="ConId">SimpleTypeName</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="VarId">catLookupType</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">cat</span> <span class="Symbol">$</span> <span class="VarId">canonicalizeTypeName</span> <span class="Symbol">@</span><span class="VarId">tn</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">SimpleTypeName</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">tn</span>
+     <span class="Symbol">|</span> <span class="ConId">ArrayTypeName</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="VarId">lmt</span> <span class="Symbol">@</span><span class="VarId">typ</span><span class="Symbol">.</span><span class="VarId">namedType</span> <span class="Symbol">&gt;&gt;=</span>  <span class="ConId">Right</span> <span class="Symbol">.</span> <span class="ConId">ArrayType</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">ArrayTypeName</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">typ</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+     <span class="Symbol">|</span> <span class="ConId">SetOfTypeName</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="VarId">lmt</span> <span class="Symbol">@</span><span class="VarId">typ</span><span class="Symbol">.</span><span class="VarId">namedType</span> <span class="Symbol">&gt;&gt;=</span>  <span class="ConId">Right</span> <span class="Symbol">.</span> <span class="ConId">SetOfType</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">SetOfTypeName</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">typ</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+     <span class="Symbol">|</span> <span class="ConId">PrecTypeName</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="VarId">catLookupType</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">cat</span> <span class="Symbol">$</span> <span class="VarId">canonicalizeTypeName</span> <span class="Symbol">@</span><span class="VarId">tn</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">PrecTypeName</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">tn</span> <span class="Symbol">@</span><span class="VarId">prec</span>
+     <span class="Symbol">|</span> <span class="ConId">Prec2TypeName</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="VarId">catLookupType</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">cat</span> <span class="Symbol">$</span> <span class="VarId">canonicalizeTypeName</span> <span class="Symbol">@</span><span class="VarId">tn</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">Prec2TypeName</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">tn</span> <span class="Symbol">@</span><span class="VarId">prec</span> <span class="Symbol">@</span><span class="VarId">prec1</span></pre></div><p
+	>Now uuagc runs without warnings.</p
+	><p
+	>The next step is to generate the antinodes. You probably don't want to know what this is all about. See the file devel/MakeAntiNodes.lhs for simple instructions on how to do this.</p
+	><p
+	>So each time you change the syntax types and want to recompile, you need to first run uuagc, and then run MakeAntiNodes.</p
+	><p
+	>Now use 'cabal build' to see if the tests still compile. Fortunately, they do in this case. The next step is to fix the test to match the newly created syntax, and check it still fails.</p
+	><p
+	>The line in ParserTests.lhs is now</p
+	><div class='haskell'><pre class="sourceCode"><span class="Function">e</span> <span class="String">&quot;(245.1)::numeric(5,3)&quot;</span> <span class="Symbol">(</span><span class="ConId">Cast</span> <span class="VarId">ea</span> <span class="Symbol">(</span><span class="ConId">FloatLit</span> <span class="VarId">ea</span> <span class="Number">245.1</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">Prec2TypeName</span> <span class="VarId">ea</span> <span class="String">&quot;numeric&quot;</span> <span class="Number">5</span> <span class="Number">3</span><span class="Symbol">))</span></pre></div><p
+	>Recompiling works, and running the test fails.</p
+	><p
+	>The next job is to add to the parser. The parsing code is mostly in src/lib/Database/HsSqlPpp/Parsing/ParserInternal.lhs.</p
+	><p
+	>Loading this file and searching for PrecTypeName gives the typeName parser function:</p
+	><div class='haskell'><pre class="sourceCode"><span class="Symbol">&gt;</span> <span class="VarId">typeName</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">TypeName</span>
+<span class="Symbol">&gt;</span> <span class="VarId">typeName</span> <span class="Symbol">=</span>
+<span class="Symbol">&gt;</span>   <span class="VarId">choice</span> <span class="Symbol">[</span>
+<span class="Symbol">&gt;</span>      <span class="ConId">SetOfTypeName</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*&gt;</span> <span class="Symbol">(</span><span class="VarId">keyword</span> <span class="String">&quot;setof&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">typeName</span><span class="Symbol">)</span>
+<span class="Symbol">&gt;</span>     <span class="Symbol">,</span><span class="VarId">otherTypeName</span><span class="Symbol">]</span>
+<span class="Symbol">&gt;</span>   <span class="Keyword">where</span>
+<span class="Symbol">&gt;</span>     <span class="VarId">otherTypeName</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+<span class="Symbol">&gt;</span>        <span class="VarId">p</span> <span class="Symbol">&lt;-</span> <span class="VarId">pos</span>
+<span class="Symbol">&gt;</span>        <span class="VarId">s</span> <span class="Symbol">&lt;-</span> <span class="VarId">map</span> <span class="VarId">toLower</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pTypeNameString</span>
+<span class="Symbol">&gt;</span>        <span class="VarId">choice</span> <span class="Symbol">[</span><span class="ConId">PrecTypeName</span> <span class="VarId">p</span> <span class="VarId">s</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">parens</span> <span class="VarId">integer</span>
+<span class="Symbol">&gt;</span>               <span class="Symbol">,</span><span class="VarId">arrayTypeName</span> <span class="VarId">p</span> <span class="VarId">s</span>
+<span class="Symbol">&gt;</span>               <span class="Symbol">,</span><span class="VarId">return</span> <span class="Symbol">$</span> <span class="ConId">SimpleTypeName</span> <span class="VarId">p</span> <span class="VarId">s</span><span class="Symbol">]</span>
+<span class="Symbol">&gt;</span>     <span class="VarId">arrayTypeName</span> <span class="VarId">p</span> <span class="VarId">s</span> <span class="Symbol">=</span> <span class="ConId">ArrayTypeName</span> <span class="VarId">p</span> <span class="Symbol">(</span><span class="ConId">SimpleTypeName</span> <span class="VarId">p</span> <span class="VarId">s</span><span class="Symbol">)</span>
+<span class="Symbol">&gt;</span>                         <span class="Symbol">&lt;$</span> <span class="VarId">symbol</span> <span class="String">&quot;[&quot;</span> <span class="Symbol">&lt;*</span> <span class="VarId">symbol</span> <span class="String">&quot;]&quot;</span>
+<span class="Symbol">&gt;</span>     <span class="Comment">--todo: add special cases for the other type names with spaces in them</span>
+<span class="Symbol">&gt;</span>     <span class="VarId">pTypeNameString</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="String">&quot;double precision&quot;</span> <span class="Symbol">&lt;$</span> <span class="VarId">try</span> <span class="Symbol">(</span><span class="VarId">keyword</span> <span class="String">&quot;double&quot;</span>
+<span class="Symbol">&gt;</span>                                                   <span class="Symbol">&lt;*</span> <span class="VarId">keyword</span> <span class="String">&quot;precision&quot;</span><span class="Symbol">))</span>
+<span class="Symbol">&gt;</span>                       <span class="Symbol">&lt;|&gt;</span> <span class="VarId">idString</span></pre></div><p
+	>Here is the updated version. It could probably be a bit better designed but getting a crappily written version working and passing tests is usually a good first step before trying to make it clean and elegant.</p
+	><div class='haskell'><pre class="sourceCode"><span class="Symbol">&gt;</span> <span class="VarId">typeName</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">TypeName</span>
+<span class="Symbol">&gt;</span> <span class="VarId">typeName</span> <span class="Symbol">=</span>
+<span class="Symbol">&gt;</span>   <span class="VarId">choice</span> <span class="Symbol">[</span>
+<span class="Symbol">&gt;</span>      <span class="ConId">SetOfTypeName</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*&gt;</span> <span class="Symbol">(</span><span class="VarId">keyword</span> <span class="String">&quot;setof&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">typeName</span><span class="Symbol">)</span>
+<span class="Symbol">&gt;</span>     <span class="Symbol">,</span><span class="VarId">otherTypeName</span><span class="Symbol">]</span>
+<span class="Symbol">&gt;</span>   <span class="Keyword">where</span>
+<span class="Symbol">&gt;</span>     <span class="VarId">otherTypeName</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+<span class="Symbol">&gt;</span>        <span class="VarId">p</span> <span class="Symbol">&lt;-</span> <span class="VarId">pos</span>
+<span class="Symbol">&gt;</span>        <span class="VarId">s</span> <span class="Symbol">&lt;-</span> <span class="VarId">map</span> <span class="VarId">toLower</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pTypeNameString</span>
+<span class="Symbol">&gt;</span>        <span class="VarId">choice</span> <span class="Symbol">[</span><span class="VarId">try</span> <span class="Symbol">(</span><span class="ConId">Prec2TypeName</span> <span class="VarId">p</span> <span class="VarId">s</span>
+<span class="Symbol">&gt;</span>                     <span class="Symbol">&lt;$&gt;</span> <span class="Symbol">(</span><span class="VarId">symbol</span> <span class="String">&quot;(&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">integer</span><span class="Symbol">)</span>
+<span class="Symbol">&gt;</span>                     <span class="Symbol">&lt;*&gt;</span> <span class="Symbol">(</span><span class="VarId">symbol</span> <span class="String">&quot;,&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">integer</span> <span class="Symbol">&lt;*</span> <span class="VarId">symbol</span> <span class="String">&quot;)&quot;</span><span class="Symbol">))</span>
+<span class="Symbol">&gt;</span>               <span class="Symbol">,</span><span class="ConId">PrecTypeName</span> <span class="VarId">p</span> <span class="VarId">s</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">parens</span> <span class="VarId">integer</span>
+<span class="Symbol">&gt;</span>               <span class="Symbol">,</span><span class="VarId">arrayTypeName</span> <span class="VarId">p</span> <span class="VarId">s</span>
+<span class="Symbol">&gt;</span>               <span class="Symbol">,</span><span class="VarId">return</span> <span class="Symbol">$</span> <span class="ConId">SimpleTypeName</span> <span class="VarId">p</span> <span class="VarId">s</span><span class="Symbol">]</span>
+<span class="Symbol">&gt;</span>     <span class="VarId">arrayTypeName</span> <span class="VarId">p</span> <span class="VarId">s</span> <span class="Symbol">=</span> <span class="ConId">ArrayTypeName</span> <span class="VarId">p</span> <span class="Symbol">(</span><span class="ConId">SimpleTypeName</span> <span class="VarId">p</span> <span class="VarId">s</span><span class="Symbol">)</span>
+<span class="Symbol">&gt;</span>                         <span class="Symbol">&lt;$</span> <span class="VarId">symbol</span> <span class="String">&quot;[&quot;</span> <span class="Symbol">&lt;*</span> <span class="VarId">symbol</span> <span class="String">&quot;]&quot;</span>
+<span class="Symbol">&gt;</span>     <span class="Comment">--todo: add special cases for the other type names with spaces in them</span>
+<span class="Symbol">&gt;</span>     <span class="VarId">pTypeNameString</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="String">&quot;double precision&quot;</span> <span class="Symbol">&lt;$</span> <span class="VarId">try</span> <span class="Symbol">(</span><span class="VarId">keyword</span> <span class="String">&quot;double&quot;</span>
+<span class="Symbol">&gt;</span>                                                   <span class="Symbol">&lt;*</span> <span class="VarId">keyword</span> <span class="String">&quot;precision&quot;</span><span class="Symbol">))</span>
+<span class="Symbol">&gt;</span>                       <span class="Symbol">&lt;|&gt;</span> <span class="VarId">idString</span></pre></div><p
+	>We have to use try with this approach since it Prec2TypeName starts out the same as PrecTypeName.</p
+	><p
+	>== Pretty printing</p
+	><p
+	>Compiling and running the tests gives:</p
+	><pre
+	><code
+	  >parserTests:
+  parse expressions:
+    simple operators:
+      parse 245.1::numeric(5,3): [Failed]
+ERROR: src/lib/Database/HsSqlPpp/PrettyPrinter.lhs:(565,2)-(568,67): Non-exhaustive patterns in function convTypeName
+
+
+         Test Cases  Total      
+ Passed  0           0          
+ Failed  1           1          
+ Total   1           1          
+</code
+	  ></pre
+	><p
+	>The issue here is that the pretty printer hasn't also been updated. The parsing tests all first parse the string given, check it is the same as the ast given, then pretty print and reparse the pretty printed string to check it still gives the same result. This is a reasonably good way of checking the pretty printing routines, and that parse then pretty print gives the same sql (and pretty print then parse gives the same ast).</p
+	><p
+	>The pretty printing routines are in 'src/lib/Database/HsSqlPpp.PrettyPrinter'. Here is the line I added after the PrecTypeName pretty printer:</p
+	><div class='haskell'><pre class="sourceCode"><span class="Symbol">&gt;</span> <span class="VarId">convTypeName</span> <span class="Symbol">(</span><span class="ConId">PrecTypeName</span> <span class="VarId">_</span> <span class="VarId">s</span> <span class="VarId">i</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">text</span> <span class="VarId">s</span> <span class="Symbol">&lt;&gt;</span> <span class="VarId">parens</span><span class="Symbol">(</span><span class="VarId">integer</span> <span class="VarId">i</span><span class="Symbol">)</span>
+<span class="Symbol">&gt;</span> <span class="VarId">convTypeName</span> <span class="Symbol">(</span><span class="ConId">Prec2TypeName</span> <span class="VarId">_</span> <span class="VarId">s</span> <span class="VarId">i</span> <span class="VarId">i1</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">text</span> <span class="VarId">s</span> <span class="Symbol">&lt;&gt;</span> <span class="VarId">parens</span> <span class="Symbol">(</span><span class="VarId">hcatCsv</span> <span class="Symbol">[</span><span class="VarId">integer</span> <span class="VarId">i</span><span class="Symbol">,</span> <span class="VarId">integer</span> <span class="VarId">i1</span><span class="Symbol">])</span></pre></div></div
+      ><div id="finished"
+      ><h2
+	>Finished</h2
+	><p
+	>Now the test passes and the only thing left is to run all the tests to check nothing else has been broken.</p
+	><p
+	>This is just a sketch guide, there are lots of missing details so if you give it a go and get stuck, please don't hesitate to email me with any questions.</p
+	></div
+      ></div
+    ><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

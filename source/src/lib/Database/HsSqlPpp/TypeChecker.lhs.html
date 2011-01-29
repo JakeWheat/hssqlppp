@@ -1,0 +1,59 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >TypeChecker</title
+    ><link href="../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >This is the public module for the type checking functionality.</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">{- | Contains the data types and functions for annotating</span>
+<span class="Comment"> an ast and working with annotated trees, including the</span>
+<span class="Comment"> representations of SQL data types.</span>
+
+<span class="Comment">Annotations:</span>
+
+<span class="Comment">* are attached to most of the ast node data types, but not quite all of them;</span>
+
+<span class="Comment">* types annotations are attached to most nodes during type checking;</span>
+
+<span class="Comment">* type errors are attached to the lowest down node that the type</span>
+<span class="Comment">  error is detected at;</span>
+
+<span class="Comment">* nodes who fail the type check or whose type depends on a node with</span>
+<span class="Comment">  a type error are given the type 'TypeCheckFailed';</span>
+
+<span class="Comment">* each statement has an additional 'StatementInfo' annotation attached to it;</span>
+
+<span class="Comment">* the parser fills in the source position annotation in every</span>
+<span class="Comment">  annotatable ast node.</span>
+
+<span class="Comment">-}</span>
+<span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.TypeChecker</span>
+    <span class="Symbol">(</span>
+     <span class="Comment">-- * typechecking/ annotation functions</span>
+     <span class="VarId">typeCheck</span>
+    <span class="Symbol">,</span><span class="VarId">typeCheckPS</span>
+    <span class="Symbol">,</span><span class="VarId">typeCheckExpression</span>
+     <span class="Comment">-- * Annotated tree utils</span>
+    <span class="Symbol">,</span><span class="VarId">getStatementAnnotations</span>
+    <span class="Symbol">)</span> <span class="Keyword">where</span>
+
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.AstInternals.AstInternal</span>
+<span class="Comment">--import Database.HsSqlPpp.AstInternals.AstAnnotation</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.AstInternals.AnnotationUtils</span></pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

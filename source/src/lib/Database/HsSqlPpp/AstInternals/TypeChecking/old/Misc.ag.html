@@ -1,0 +1,148 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >Misc</title
+    ><link href="../../../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >{-</p
+    ><p
+    >Contains bit and pieces of type checking which don't fit anywhere else</p
+    ><p
+    >================================================================================</p
+    ><p
+    >= type names</p
+    ><p
+    >Types with type modifiers (called PrecTypeName here, to be changed), are not supported at the moment.</p
+    ><p
+    >-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="ConId">ATTR</span> <span class="ConId">TypeName</span> <span class="Symbol">[||</span><span class="VarId">namedType</span> <span class="Symbol">:</span> <span class="Symbol">{</span><span class="ConId">Maybe</span> <span class="ConId">Type</span><span class="Symbol">}]</span>
+
+<span class="ConId">SEM</span> <span class="ConId">TypeName</span>
+     <span class="Symbol">|</span> <span class="ConId">SimpleTypeName</span> <span class="ConId">ArrayTypeName</span> <span class="ConId">SetOfTypeName</span> <span class="ConId">PrecTypeName</span>
+         <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">namedType</span> <span class="Symbol">=</span> <span class="VarId">etmt</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span>
+         <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Symbol">=</span> <span class="VarId">addTypeErrors</span> <span class="Symbol">(</span><span class="VarId">tes</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span><span class="Symbol">)</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span>
+
+<span class="ConId">SEM</span> <span class="ConId">TypeName</span>
+     <span class="Symbol">|</span> <span class="ConId">SimpleTypeName</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="VarId">catLookupType</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">cat</span> <span class="Symbol">$</span> <span class="VarId">canonicalizeTypeName</span> <span class="Symbol">@</span><span class="VarId">tn</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">SimpleTypeName</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">tn</span>
+     <span class="Symbol">|</span> <span class="ConId">ArrayTypeName</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="VarId">lmt</span> <span class="Symbol">@</span><span class="VarId">typ</span><span class="Symbol">.</span><span class="VarId">namedType</span> <span class="Symbol">&gt;&gt;=</span>  <span class="ConId">Right</span> <span class="Symbol">.</span> <span class="ConId">ArrayType</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">ArrayTypeName</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">typ</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+     <span class="Symbol">|</span> <span class="ConId">SetOfTypeName</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="VarId">lmt</span> <span class="Symbol">@</span><span class="VarId">typ</span><span class="Symbol">.</span><span class="VarId">namedType</span> <span class="Symbol">&gt;&gt;=</span>  <span class="ConId">Right</span> <span class="Symbol">.</span> <span class="ConId">SetOfType</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">SetOfTypeName</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">typ</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+     <span class="Symbol">|</span> <span class="ConId">PrecTypeName</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="VarId">catLookupType</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">cat</span> <span class="Symbol">$</span> <span class="VarId">canonicalizeTypeName</span> <span class="Symbol">@</span><span class="VarId">tn</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">PrecTypeName</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">tn</span> <span class="Symbol">@</span><span class="VarId">prec</span>
+
+
+</pre></div></div></div><div id="section"
+    ><h1
+      >{-</h1
+      ><p
+      >= generic node types</p
+      ><p
+      >-}</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="Symbol">{</span>
+</pre></div></div></div></div
+    ><div id="section-1"
+    ><h1
+      >{-</h1
+      ><p
+      >= some small utils</p
+      ><p
+      >-}</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+
+<span class="Function">addTypeErrors</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
+<span class="Function">addTypeErrors</span> <span class="VarId">es</span> <span class="VarId">el</span> <span class="Symbol">=</span> <span class="VarId">updateAnnotation</span> <span class="VarId">u</span> <span class="VarId">el</span>
+                      <span class="Keyword">where</span>
+                        <span class="VarId">u</span> <span class="VarId">a</span> <span class="Symbol">=</span> <span class="VarId">a</span> <span class="Symbol">{</span><span class="VarId">errs</span> <span class="Symbol">=</span> <span class="VarId">errs</span> <span class="VarId">a</span> <span class="Symbol">++</span> <span class="VarId">es</span><span class="Symbol">}</span>
+
+<span class="Function">setTypeAddErrors</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="ConId">Et</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
+<span class="Function">setTypeAddErrors</span> <span class="VarId">et</span> <span class="VarId">el</span> <span class="Symbol">=</span> <span class="VarId">updateAnnotation</span> <span class="Symbol">(</span><span class="VarId">setTypeAddErrorsA</span> <span class="VarId">et</span><span class="Symbol">)</span> <span class="VarId">el</span>
+
+<span class="Function">setTypeAddErrorsA</span> <span class="Symbol">::</span> <span class="ConId">Et</span> <span class="Symbol">-&gt;</span> <span class="ConId">Annotation</span> <span class="Symbol">-&gt;</span> <span class="ConId">Annotation</span>
+<span class="Function">setTypeAddErrorsA</span> <span class="VarId">et</span> <span class="VarId">a</span> <span class="Symbol">=</span>
+    <span class="Keyword">let</span> <span class="VarId">a1</span> <span class="Symbol">=</span> <span class="VarId">a</span> <span class="Symbol">{</span><span class="VarId">errs</span> <span class="Symbol">=</span> <span class="VarId">errs</span> <span class="VarId">a</span> <span class="Symbol">++</span> <span class="VarId">tes</span> <span class="VarId">et</span><span class="Symbol">}</span>
+    <span class="Keyword">in</span> <span class="Keyword">case</span> <span class="VarId">atype</span> <span class="VarId">a1</span> <span class="Keyword">of</span>
+         <span class="ConId">Just</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="VarId">a1</span> <span class="Symbol">{</span><span class="VarId">errs</span> <span class="Symbol">=</span> <span class="VarId">errs</span> <span class="VarId">a</span>
+                             <span class="Symbol">++</span> <span class="Symbol">[</span><span class="ConId">InternalError</span> <span class="Symbol">$</span> <span class="String">&quot;tried to set type a second time - &quot;</span> <span class="Symbol">++</span> <span class="VarId">show</span> <span class="Symbol">(</span><span class="VarId">etmt</span> <span class="VarId">et</span><span class="Symbol">)]}</span>
+         <span class="ConId">Nothing</span> <span class="Symbol">-&gt;</span> <span class="VarId">a1</span> <span class="Symbol">{</span><span class="VarId">atype</span> <span class="Symbol">=</span> <span class="VarId">etmt</span> <span class="VarId">et</span><span class="Symbol">}</span>
+
+<span class="Function">allJust</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Maybe</span> <span class="VarId">a</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="Symbol">[</span><span class="VarId">a</span><span class="Symbol">]</span>
+<span class="Function">allJust</span> <span class="VarId">ts</span> <span class="Symbol">=</span> <span class="VarId">sequence</span> <span class="VarId">ts</span>
+
+<span class="Comment">-- bit dogdy, needs some thought</span>
+<span class="Comment">-- this is just to convert the new approach of using &quot;.&quot; as an operator</span>
+<span class="Comment">-- to construct names, with the old approach which stuck the whole lot</span>
+<span class="Comment">-- in a string</span>
+<span class="Function">getName</span> <span class="Symbol">::</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+<span class="Function">getName</span> <span class="Symbol">(</span><span class="ConId">Identifier</span> <span class="VarId">_</span> <span class="VarId">i</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">i</span>
+<span class="Function">getName</span> <span class="Symbol">(</span><span class="ConId">FunCall</span> <span class="VarId">_</span> <span class="String">&quot;.&quot;</span> <span class="Symbol">[</span><span class="ConId">Identifier</span> <span class="VarId">_</span> <span class="VarId">_</span><span class="Symbol">,</span><span class="ConId">Identifier</span> <span class="VarId">_</span> <span class="VarId">i</span><span class="Symbol">])</span> <span class="Symbol">=</span> <span class="VarId">i</span>
+<span class="Function">getName</span> <span class="Symbol">(</span><span class="ConId">FunCall</span> <span class="VarId">_</span> <span class="String">&quot;.&quot;</span> <span class="Symbol">[</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">a</span><span class="Symbol">])</span> <span class="Symbol">=</span> <span class="VarId">getName</span> <span class="VarId">a</span>
+<span class="Function">getName</span> <span class="VarId">x</span> <span class="Symbol">=</span> <span class="VarId">error</span> <span class="Symbol">$</span> <span class="String">&quot;internal error getName called on: &quot;</span> <span class="Symbol">++</span> <span class="VarId">show</span> <span class="VarId">x</span>
+
+<span class="Function">unwrapLookup</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">String</span><span class="Symbol">],</span><span class="ConId">Type</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="ConId">Type</span>
+<span class="Function">unwrapLookup</span> <span class="Symbol">(</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">t</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">t</span>
+
+<span class="Function">unwrapStar</span> <span class="Symbol">::</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">String</span><span class="Symbol">],</span><span class="ConId">Type</span><span class="Symbol">)]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)]</span>
+<span class="Function">unwrapStar</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="VarId">uw</span>
+             <span class="Keyword">where</span>
+               <span class="VarId">uw</span> <span class="Symbol">(</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">n</span><span class="Symbol">,</span><span class="VarId">t</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="VarId">last</span> <span class="VarId">n</span><span class="Symbol">,</span> <span class="VarId">t</span><span class="Symbol">)</span>
+
+<span class="Function">allAtts</span> <span class="Symbol">::</span> <span class="Symbol">([(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)],[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)])</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)]</span>
+<span class="Function">allAtts</span> <span class="Symbol">(</span><span class="VarId">a</span><span class="Symbol">,</span><span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">a</span> <span class="Symbol">++</span> <span class="VarId">b</span>
+
+</pre></div></div></div></div
+    ><div id="section-2"
+    ><h1
+      >{-</h1
+      ><p
+      >proper dodgy: 1st pass is to add inferred types to the tree. This is done only for expressions in a funcall argument list atm. Then we pull out the placeholders after they've had this information added. Only the placeholders in funcall argument lists will have their type inferred in this way, to be expanded. Insert also does this currently, but in Dml.ag</p
+      ><p
+      >This should probably be done during the typechecking phase instead, but probably needs a proper type inferencing algorithm to be used, is done like this for development expediency.</p
+      ><p
+      >Trying to follow haskell naming convention (?) - the type that the node is expected to have as determined by it's parent node is the expectedType, and the type it claims to have by its own logic and the types of its child nodes is the inferred type. Confusingly, this means the inferredType is often the declared type, and not the type that has been inferred here...</p
+      ><p
+      >The plan is to have three attributes: inferredType, expectedType and type, where the type is Just iff the inferredType and expectedType are the same, or onne of them is Nothing.</p
+      ><p
+      >-}</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="Function">getPlaceholderTypes</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Maybe</span> <span class="ConId">Type</span><span class="Symbol">]</span>
+<span class="Function">getPlaceholderTypes</span> <span class="VarId">ex</span> <span class="Symbol">=</span>
+    <span class="Symbol">[</span><span class="VarId">infType</span> <span class="Symbol">(</span><span class="VarId">getAnnotation</span> <span class="VarId">x</span><span class="Symbol">)</span> <span class="Symbol">|</span> <span class="VarId">x</span> <span class="Symbol">&lt;-</span> <span class="VarId">universeBi</span> <span class="VarId">ex</span>
+                                 <span class="Symbol">,</span><span class="VarId">isPlaceholder</span> <span class="VarId">x</span><span class="Symbol">]</span>
+    <span class="Keyword">where</span>
+      <span class="VarId">isPlaceholder</span> <span class="VarId">e</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">e</span> <span class="Keyword">of</span>
+                          <span class="ConId">PositionalArg</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">True</span>
+                          <span class="ConId">Placeholder</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">True</span>
+                          <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">False</span>
+
+<span class="Symbol">}</span>
+</pre></div></div></div></div
+    ><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

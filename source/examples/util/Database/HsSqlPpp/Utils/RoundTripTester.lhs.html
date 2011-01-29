@@ -1,0 +1,258 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >RoundTripTester</title
+    ><link href="../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >This file is a confused mess. The plan is to completely start again, to produce a big multi function routine which analyzes sql:</p
+    ><ul
+    ><li
+      >check it parses</li
+      ><li
+      >lists type errors</li
+      ><li
+      >produces documentation</li
+      ><li
+      >catalog reference docs - so we can search an index, then click to go to definition in the rendered docs</li
+      ><li
+      >check the roundtripping, etc.</li
+      ></ul
+    ><p
+    >This will be mostly based on the runtestbattery function below.</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">{-# LANGUAGE DeriveDataTypeable, ScopedTypeVariables,FlexibleContexts,QuasiQuotes #-}</span>
+<span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.Utils.RoundTripTester</span>
+    <span class="Symbol">(</span><span class="VarId">roundTripTest</span>
+    <span class="Symbol">,</span><span class="ConId">RoundTripResults</span><span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">TypeErrorList</span>
+    <span class="Symbol">,</span><span class="VarId">rtShowBrief</span><span class="Symbol">)</span> <span class="Keyword">where</span>
+
+<span class="Keyword">import</span> <span class="ConId">System.Console.CmdArgs</span>
+<span class="Comment">--import System.IO</span>
+<span class="Keyword">import</span> <span class="ConId">Control.Monad.Error</span>
+<span class="Keyword">import</span> <span class="ConId">Data.List</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">--import Debug.Trace</span>
+<span class="Keyword">import</span> <span class="ConId">Data.Maybe</span>
+<span class="Keyword">import</span> <span class="ConId">Data.Generics.Uniplate.Data</span>
+
+<span class="Comment">--import Database.HsSqlPpp.Tests.Tests</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Utils.Utils</span>
+<span class="Comment">--import Database.HsSqlPpp.Utils.Here</span>
+
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Ast</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Catalog</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.TypeChecker</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Annotation</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.SqlTypes</span>
+
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Parser</span>
+<span class="Comment">--import Database.HsSqlPpp.Parsing.Lexer</span>
+
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.PrettyPrinter</span>
+
+<span class="Comment">--import Database.HsSqlPpp.Examples.AnnotateSource</span>
+
+<span class="Comment">--import Database.HsSqlPpp.DatabaseLoader.DatabaseLoader</span>
+<span class="Comment">--import Database.HsSqlPpp.Examples.WrapperGen</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Utils.DBUtils</span>
+
+<span class="Comment">--import Database.HsSqlPpp.DevelTools.MakeWebsite</span>
+<span class="Comment">--import Database.HsSqlPpp.DevelTools.MakeAntiNodes</span>
+<span class="Comment">--import Database.HsSqlPpp.Examples.Extensions.TransitionConstraints</span>
+<span class="Comment">--import Database.HsSqlPpp.Examples.Extensions.ChaosExtensions</span>
+<span class="Comment">--import Database.HsSqlPpp.Examples.Chaos2010</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">type</span> <span class="ConId">TypeErrorList</span> <span class="Symbol">=</span> <span class="Symbol">[(</span><span class="ConId">Maybe</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Int</span><span class="Symbol">,</span><span class="ConId">Int</span><span class="Symbol">),</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">])]</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">data</span> <span class="ConId">RoundTripResults</span> <span class="Symbol">=</span> <span class="ConId">RoundTripResults</span>
+    <span class="Symbol">{</span><span class="VarId">rtDatabaseName</span> <span class="Symbol">::</span> <span class="ConId">String</span>
+    <span class="Symbol">,</span><span class="VarId">rtFiles</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">FilePath</span><span class="Symbol">]</span>
+    <span class="Symbol">,</span><span class="VarId">rtEmptyCat</span> <span class="Symbol">::</span> <span class="ConId">Catalog</span>
+    <span class="Symbol">,</span><span class="VarId">rtOrigCat</span> <span class="Symbol">::</span> <span class="ConId">Catalog</span>
+    <span class="Symbol">,</span><span class="VarId">rtOrigAst</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span>
+    <span class="Symbol">,</span><span class="VarId">rtOrigTypeErrors</span> <span class="Symbol">::</span> <span class="ConId">TypeErrorList</span>
+    <span class="Symbol">,</span><span class="VarId">rtPgCat</span> <span class="Symbol">::</span> <span class="ConId">Catalog</span>
+    <span class="Symbol">,</span><span class="VarId">rtOrigPgCatDiff</span> <span class="Symbol">::</span> <span class="ConId">CatalogDiff</span>
+    <span class="Symbol">,</span><span class="VarId">rtDumpAst</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span>
+    <span class="Symbol">,</span><span class="VarId">rtDumpCat</span> <span class="Symbol">::</span> <span class="ConId">Catalog</span>
+    <span class="Symbol">,</span><span class="VarId">rtDumpTypeErrors</span> <span class="Symbol">::</span> <span class="ConId">TypeErrorList</span>
+    <span class="Symbol">,</span><span class="VarId">rtOrigDumpCatDiff</span> <span class="Symbol">::</span> <span class="ConId">CatalogDiff</span>
+    <span class="Symbol">}</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">rtShowBrief</span> <span class="Symbol">::</span> <span class="ConId">RoundTripResults</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+<span class="Function">rtShowBrief</span> <span class="VarId">rtt</span> <span class="Symbol">=</span>
+  <span class="VarId">header</span> <span class="String">&quot;initial type errors&quot;</span>
+  <span class="Symbol">++</span> <span class="VarId">intercalate</span> <span class="String">&quot;\n&quot;</span> <span class="Symbol">(</span><span class="VarId">ppTypeErrors</span> <span class="Symbol">(</span><span class="VarId">rtOrigTypeErrors</span> <span class="VarId">rtt</span><span class="Symbol">))</span>
+  <span class="Symbol">++</span> <span class="VarId">header</span> <span class="String">&quot;cat diff: orig to pg&quot;</span>
+  <span class="Symbol">++</span> <span class="VarId">ppCatDiff</span> <span class="Symbol">(</span><span class="VarId">rtOrigPgCatDiff</span> <span class="VarId">rtt</span><span class="Symbol">)</span>
+  <span class="Symbol">++</span> <span class="VarId">header</span> <span class="String">&quot;dump type errors&quot;</span>
+  <span class="Symbol">++</span> <span class="VarId">intercalate</span> <span class="String">&quot;\n&quot;</span> <span class="Symbol">(</span><span class="VarId">ppTypeErrors</span> <span class="Symbol">(</span><span class="VarId">rtDumpTypeErrors</span> <span class="VarId">rtt</span><span class="Symbol">))</span>
+  <span class="Symbol">++</span> <span class="VarId">header</span> <span class="String">&quot;cat diff: orig to dump&quot;</span>
+  <span class="Symbol">++</span> <span class="VarId">ppCatDiff</span> <span class="Symbol">(</span><span class="VarId">rtOrigDumpCatDiff</span> <span class="VarId">rtt</span><span class="Symbol">)</span>
+  <span class="Keyword">where</span>
+    <span class="VarId">header</span> <span class="VarId">x</span> <span class="Symbol">=</span> <span class="String">&quot;-------------&quot;</span> <span class="Symbol">++</span> <span class="VarId">x</span> <span class="Symbol">++</span> <span class="String">&quot;\n&quot;</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">{-ppCatalogA = mode $ PPCatalog {database = def</span>
+<span class="Comment">                              ,files = def &amp;= typ &quot;FILES&quot; &amp; args}</span>
+<span class="Comment">             &amp;= text &quot;reads each file, parses, type checks, then outputs the \</span>
+<span class="Comment">                     \changes to the catalog that the sql makes&quot;</span>
+
+<span class="Comment">ppCatalog :: String -&gt; [FilePath] -&gt; IO ()</span>
+<span class="Comment">ppCatalog db fns = wrapETs $ do</span>
+<span class="Comment">  scat &lt;- liftIO (readCatalog db) &gt;&gt;= tsl</span>
+<span class="Comment">  (ncat, _) &lt;- mapM (\f -&gt; (liftIO . readInput) f &gt;&gt;=</span>
+<span class="Comment">                           tsl . P.parseSql f) fns &gt;&gt;=</span>
+<span class="Comment">                 return . (concat |&gt;</span>
+<span class="Comment">                           astTransformer |&gt;</span>
+<span class="Comment">                           A.typeCheck scat)</span>
+<span class="Comment">  liftIO $ putStrLn $ ppCatDiff $ compareCatalogs scat emptyCatalog ncat</span></pre></div></div></div><hr
+     /><div id="load"
+    ><h1
+      >load</h1
+      ><p
+      >load sql files into a database via parsing and pretty printing them</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="Function">loadSql</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">String</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="Symbol">()</span>
+<span class="Function">loadSql</span> <span class="VarId">db</span> <span class="VarId">fns</span> <span class="Symbol">=</span> <span class="VarId">wrapETs</span> <span class="Symbol">$</span>
+     <span class="VarId">liftIO</span> <span class="Symbol">(</span><span class="VarId">hSetBuffering</span> <span class="VarId">stdout</span> <span class="ConId">NoBuffering</span><span class="Symbol">)</span> <span class="Symbol">&gt;&gt;</span>
+     <span class="VarId">mapM</span> <span class="Symbol">(\</span><span class="VarId">f</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="VarId">liftIO</span> <span class="Symbol">.</span> <span class="VarId">readInput</span><span class="Symbol">)</span> <span class="VarId">f</span> <span class="Symbol">&gt;&gt;=</span>
+                 <span class="VarId">tsl</span> <span class="Symbol">.</span> <span class="ConId">P.</span><span class="VarId">parseSql</span> <span class="VarId">f</span><span class="Symbol">)</span> <span class="VarId">fns</span> <span class="Symbol">&gt;&gt;=</span>
+     <span class="VarId">return</span> <span class="Symbol">.</span> <span class="Symbol">(</span><span class="VarId">concat</span> <span class="Symbol">|&gt;</span>
+               <span class="VarId">astTransformer</span><span class="Symbol">)</span> <span class="Symbol">&gt;&gt;=</span>
+     <span class="VarId">liftIO</span> <span class="Symbol">.</span> <span class="VarId">loadAst</span> <span class="VarId">db</span></pre></div></div></div><hr
+       /></div
+    ><div id="loadpsql"
+    ><h1
+      >loadPsql</h1
+      ><p
+      >load sql files into a database via psql</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">loadPsqlA</span> <span class="Symbol">=</span> <span class="VarId">mode</span> <span class="Symbol">$</span> <span class="ConId">LoadPsql</span> <span class="Symbol">{</span><span class="VarId">database</span> <span class="Symbol">=</span> <span class="VarId">def</span>
+                            <span class="Symbol">,</span><span class="VarId">files</span> <span class="Symbol">=</span> <span class="VarId">def</span> <span class="Symbol">&amp;=</span> <span class="VarId">typ</span> <span class="String">&quot;FILES&quot;</span> <span class="Symbol">&amp;</span> <span class="VarId">args</span><span class="Symbol">}</span>
+            <span class="Symbol">&amp;=</span> <span class="VarId">text</span> <span class="String">&quot;loads sql into a database using psql.&quot;</span>
+
+<span class="Function">loadSqlPsql</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">String</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="Symbol">()</span>
+<span class="Function">loadSqlPsql</span> <span class="VarId">db</span> <span class="Symbol">=</span> <span class="VarId">wrapETs</span> <span class="Symbol">.</span>
+  <span class="VarId">mapM_</span> <span class="Symbol">(\</span><span class="VarId">s</span> <span class="Symbol">-&gt;</span> <span class="VarId">liftIO</span> <span class="Symbol">(</span><span class="VarId">loadSqlUsingPsqlFromFile</span> <span class="VarId">db</span> <span class="VarId">s</span><span class="Symbol">)</span> <span class="Symbol">&gt;&gt;=</span>
+               <span class="VarId">tsl</span> <span class="Symbol">&gt;&gt;=</span>
+               <span class="VarId">liftIO</span> <span class="Symbol">.</span> <span class="VarId">putStrLn</span><span class="Symbol">)</span></pre></div></div></div><hr
+       /></div
+    ><div id="clearload"
+    ><h1
+      >clearLoad</h1
+      ><p
+      >like load above, but runs the clear command first</p
+      ><p
+      >might try to work out a way of running multiple commands in one invoc of this exe, then this command will disappear</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">clearLoadA</span> <span class="Symbol">=</span> <span class="VarId">mode</span> <span class="Symbol">$</span> <span class="ConId">ClearLoad</span> <span class="Symbol">{</span><span class="VarId">database</span> <span class="Symbol">=</span> <span class="VarId">def</span>
+                              <span class="Symbol">,</span><span class="VarId">files</span> <span class="Symbol">=</span> <span class="VarId">def</span> <span class="Symbol">&amp;=</span> <span class="VarId">typ</span> <span class="String">&quot;FILES&quot;</span> <span class="Symbol">&amp;</span> <span class="VarId">args</span><span class="Symbol">}</span>
+             <span class="Symbol">&amp;=</span> <span class="VarId">text</span> <span class="String">&quot;cleardb then loadsql&quot;</span>
+
+<span class="Function">clearAndLoadSql</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">String</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="Symbol">()</span>
+<span class="Function">clearAndLoadSql</span> <span class="VarId">db</span> <span class="VarId">fns</span> <span class="Symbol">=</span> <span class="VarId">cleardb</span> <span class="VarId">db</span> <span class="Symbol">&gt;&gt;</span> <span class="VarId">loadSql</span> <span class="VarId">db</span> <span class="VarId">fns</span> <span class="Symbol">-}</span></pre></div></div></div><hr
+       /></div
+    ><div id="testbattery"
+    ><h1
+      >testBattery</h1
+      ><p
+      >run test battery: run a bunch of tests including consistency on the database and sql files given</p
+      ><p
+      >The idea is to typecheck the sql, load it into pg and dump it via psql and via database loader, can then compare asts, catalogs, etc. in a lot of different ways</p
+      ><p
+      >currently: parse and type check sql, save the catalog load the sql into the db using psql, compare the catalog read from pg with the catalog from typechecking dump the sql and typecheck the dump, compare the catalog from this check with the catalog from the original typecheck</p
+      ><p
+      >todo: compare asts from initial parse with parsed dump - this is going to be a lot of work to get passing since the statements are re-ordered, and sometimes changed/ split up by pg</p
+      ><p
+      >also: load the sql using the extension system and database loader, then compare pg catalog with initial catalog, and dump and compare ast with original ast</p
+      ><p
+      >want to run a similar set of tests starting with the dump sql: get ast,cat from dump sql, load using psql and using databaseloader and check cats and subsequent dump asts.</p
+      ><p
+      >getting the dump ast comparing with the original ast:</p
+      ><p
+      >step one: convert tests in parser test to also roundtrip through database, see parsertests for details</p
+      ><p
+      >step two: write an ast conversion routine: assume that the pgdump ast is like the ast fed into pg but with a few statements split into components (e.g. create table with serial is split into create sequence and create table), and then the statements are reordered, so write a routine to mirror this - will then have (anyast -&gt; rearrange and reorder) == (anyast -&gt; pg-&gt;pgdump)</p
+      ><p
+      >rough new plan:</p
+      ><p
+      >combine this with the planned report generator</p
+      ><p
+      >have new annotation routine used in website, in annotatesource2 first part is to run this and produce html report of the source, then add the catalog summary page, and list of type errors as with the website generator</p
+      ><p
+      >then we do the round trip tests: load into database, then compare catalogs dump from database, reparse and compare catalogs then parse, typecheck the dumped code, list type errors and catalog differences when the code is up to it, compare the original ast to the dumped ast.</p
+      ><p
+      >make different stages optional:</p
+      ><p
+      >run as a check tool, just want the catalog differences and type errors on the command line. would be nice to try and link the catalog differences to source positions.</p
+      ><p
+      >do website generation, without the pg roundtrips</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">parseFiles</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">String</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="Symbol">[</span><span class="ConId">StatementList</span><span class="Symbol">]</span>
+<span class="Function">parseFiles</span> <span class="VarId">fns</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+  <span class="Keyword">as</span> <span class="Symbol">&lt;-</span> <span class="VarId">mapM</span> <span class="Symbol">(\</span><span class="VarId">f</span> <span class="Symbol">-&gt;</span> <span class="VarId">fmap</span> <span class="Symbol">(</span><span class="VarId">parseSql</span> <span class="VarId">f</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="VarId">readFile</span> <span class="VarId">f</span><span class="Symbol">)</span> <span class="VarId">fns</span>
+  <span class="VarId">return</span> <span class="Symbol">$</span> <span class="VarId">either</span> <span class="Symbol">(</span><span class="VarId">error</span> <span class="Symbol">.</span> <span class="VarId">show</span><span class="Symbol">)</span> <span class="VarId">id</span> <span class="Symbol">$</span> <span class="VarId">sequence</span> <span class="Keyword">as</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">roundTripTest</span> <span class="Symbol">::</span> <span class="Symbol">([</span><span class="ConId">Statement</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">])</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">FilePath</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="ConId">RoundTripResults</span>
+<span class="Function">roundTripTest</span> <span class="VarId">astTransformer</span> <span class="VarId">dbName</span> <span class="VarId">fns</span> <span class="Symbol">=</span> <span class="VarId">wrapETs</span> <span class="Symbol">$</span> <span class="Keyword">do</span>
+    <span class="Comment">-- clear target database</span>
+    <span class="VarId">liftIO</span> <span class="Symbol">$</span> <span class="VarId">clearDBN</span> <span class="VarId">dbName</span>
+    <span class="Comment">-- get the catalog of the empty database</span>
+    <span class="VarId">emptyCat</span> <span class="Symbol">&lt;-</span> <span class="VarId">readCat</span> <span class="VarId">dbName</span>
+    <span class="Comment">-- get the ast and catalog of the sql to test with the catalog</span>
+    <span class="Comment">-- determined by the hssqlppp typechecker</span>
+    <span class="Symbol">(</span><span class="VarId">origAst</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">])</span> <span class="Symbol">&lt;-</span> <span class="Symbol">(</span><span class="VarId">astTransformer</span> <span class="Symbol">.</span> <span class="VarId">concat</span><span class="Symbol">)</span> <span class="Symbol">`</span><span class="VarId">fmap</span><span class="Symbol">`</span> <span class="VarId">liftIO</span> <span class="Symbol">(</span><span class="VarId">parseFiles</span> <span class="VarId">fns</span><span class="Symbol">)</span>
+    <span class="Keyword">let</span> <span class="Symbol">(</span><span class="VarId">origCat</span> <span class="Symbol">::</span> <span class="ConId">Catalog</span><span class="Symbol">,</span> <span class="VarId">origAast</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">])</span> <span class="Symbol">=</span> <span class="VarId">typeCheck</span> <span class="VarId">emptyCat</span> <span class="VarId">origAst</span>
+    <span class="Keyword">let</span> <span class="VarId">origTypeErrors</span> <span class="Symbol">=</span> <span class="VarId">getTypeErrors</span> <span class="VarId">origAast</span>
+    <span class="Comment">-- load the test sql into postgresql using psql and get the</span>
+    <span class="Comment">-- new catalog from postgresql</span>
+    <span class="VarId">_</span> <span class="Symbol">&lt;-</span> <span class="VarId">liftIO</span> <span class="Symbol">$</span> <span class="VarId">loadSqlUsingPsql</span> <span class="VarId">dbName</span> <span class="Symbol">$</span> <span class="VarId">printSql</span> <span class="VarId">origAst</span>
+    <span class="VarId">pgCat</span> <span class="Symbol">&lt;-</span> <span class="VarId">readCat</span> <span class="VarId">dbName</span>
+    <span class="Comment">-- show the differences between the catalog as determined by the</span>
+    <span class="Comment">-- hssqlppp type checker and by loading into postgresql and reading</span>
+    <span class="Comment">-- the catalog from the loaded database</span>
+    <span class="Keyword">let</span> <span class="VarId">origPgCatDiff</span> <span class="Symbol">=</span> <span class="VarId">compareCatalogs</span> <span class="VarId">emptyCat</span> <span class="VarId">origCat</span> <span class="VarId">pgCat</span>
+    <span class="Comment">-- dump the database from postgresql, parse and run the dump sql through the</span>
+    <span class="Comment">-- hssqlppp type checker</span>
+    <span class="VarId">dumpSql</span> <span class="Symbol">&lt;-</span> <span class="VarId">liftIO</span> <span class="Symbol">$</span> <span class="VarId">pgDump</span> <span class="VarId">dbName</span>
+    <span class="VarId">dumpSqlAst</span> <span class="Symbol">&lt;-</span> <span class="VarId">etsr</span> <span class="Symbol">$</span> <span class="VarId">parseSql</span> <span class="String">&quot;&quot;</span> <span class="VarId">dumpSql</span>
+    <span class="Keyword">let</span> <span class="Symbol">(</span><span class="VarId">dumpCat</span><span class="Symbol">,</span><span class="VarId">dumpAast</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">typeCheck</span> <span class="VarId">emptyCat</span> <span class="VarId">dumpSqlAst</span>
+    <span class="Keyword">let</span> <span class="VarId">dumpTypeErrors</span> <span class="Symbol">=</span> <span class="VarId">getTypeErrors</span> <span class="VarId">dumpAast</span>
+    <span class="Keyword">let</span> <span class="VarId">origDumpCatDiff</span> <span class="Symbol">=</span> <span class="VarId">compareCatalogs</span> <span class="VarId">emptyCat</span> <span class="VarId">origCat</span> <span class="VarId">dumpCat</span>
+
+    <span class="VarId">return</span> <span class="Symbol">$</span> <span class="ConId">RoundTripResults</span>
+               <span class="Symbol">{</span><span class="VarId">rtDatabaseName</span> <span class="Symbol">=</span> <span class="VarId">dbName</span>
+               <span class="Symbol">,</span><span class="VarId">rtFiles</span> <span class="Symbol">=</span> <span class="VarId">fns</span>
+               <span class="Symbol">,</span><span class="VarId">rtEmptyCat</span> <span class="Symbol">=</span> <span class="VarId">emptyCat</span>
+               <span class="Symbol">,</span><span class="VarId">rtOrigCat</span> <span class="Symbol">=</span> <span class="VarId">origCat</span>
+               <span class="Symbol">,</span><span class="VarId">rtOrigAst</span> <span class="Symbol">=</span> <span class="VarId">origAast</span>
+               <span class="Symbol">,</span><span class="VarId">rtOrigTypeErrors</span> <span class="Symbol">=</span> <span class="VarId">origTypeErrors</span>
+               <span class="Symbol">,</span><span class="VarId">rtPgCat</span> <span class="Symbol">=</span> <span class="VarId">pgCat</span>
+               <span class="Symbol">,</span><span class="VarId">rtOrigPgCatDiff</span> <span class="Symbol">=</span> <span class="VarId">origPgCatDiff</span>
+               <span class="Symbol">,</span><span class="VarId">rtDumpAst</span> <span class="Symbol">=</span> <span class="VarId">dumpAast</span>
+               <span class="Symbol">,</span><span class="VarId">rtDumpCat</span> <span class="Symbol">=</span> <span class="VarId">dumpCat</span>
+               <span class="Symbol">,</span><span class="VarId">rtDumpTypeErrors</span> <span class="Symbol">=</span> <span class="VarId">dumpTypeErrors</span>
+               <span class="Symbol">,</span><span class="VarId">rtOrigDumpCatDiff</span> <span class="Symbol">=</span> <span class="VarId">origDumpCatDiff</span>
+               <span class="Symbol">}</span>
+    <span class="Keyword">where</span>
+      <span class="VarId">readCat</span> <span class="VarId">d</span> <span class="Symbol">=</span> <span class="VarId">liftIO</span> <span class="Symbol">(</span><span class="VarId">readCatalog</span> <span class="VarId">d</span><span class="Symbol">)</span> <span class="Symbol">&gt;&gt;=</span> <span class="VarId">etsr</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">-- | Pretty print list of type errors with optional source position</span>
+<span class="Comment">--   in emacs readable format.</span>
+<span class="Function">ppTypeErrors</span> <span class="Symbol">::</span> <span class="Symbol">[(</span><span class="ConId">Maybe</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Int</span><span class="Symbol">,</span><span class="ConId">Int</span><span class="Symbol">),</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">])]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">String</span><span class="Symbol">]</span>
+<span class="Function">ppTypeErrors</span> <span class="VarId">tes</span> <span class="Symbol">=</span>
+  <span class="VarId">map</span> <span class="VarId">showSpTe</span> <span class="VarId">tes</span>
+  <span class="Keyword">where</span>
+    <span class="VarId">showSpTe</span> <span class="Symbol">(</span><span class="ConId">Just</span> <span class="Symbol">(</span><span class="VarId">fn</span><span class="Symbol">,</span><span class="VarId">l</span><span class="Symbol">,</span><span class="VarId">c</span><span class="Symbol">),</span> <span class="VarId">e</span><span class="Symbol">)</span> <span class="Symbol">=</span>
+        <span class="VarId">fn</span> <span class="Symbol">++</span> <span class="String">&quot;:&quot;</span> <span class="Symbol">++</span> <span class="VarId">show</span> <span class="VarId">l</span> <span class="Symbol">++</span> <span class="String">&quot;:&quot;</span> <span class="Symbol">++</span> <span class="VarId">show</span> <span class="VarId">c</span> <span class="Symbol">++</span> <span class="String">&quot;:\n&quot;</span> <span class="Symbol">++</span> <span class="VarId">show</span> <span class="VarId">e</span>
+    <span class="VarId">showSpTe</span> <span class="Symbol">(</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">e</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="String">&quot;unknown:0:0:\n&quot;</span> <span class="Symbol">++</span> <span class="VarId">show</span> <span class="VarId">e</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">getTypeErrors</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[(</span><span class="ConId">Maybe</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Int</span><span class="Symbol">,</span><span class="ConId">Int</span><span class="Symbol">),</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">])]</span>
+<span class="Function">getTypeErrors</span> <span class="VarId">es</span> <span class="Symbol">=</span>
+  <span class="Keyword">let</span> <span class="Keyword">as</span> <span class="Symbol">=</span> <span class="Symbol">[(</span><span class="VarId">a</span><span class="Symbol">::</span><span class="ConId">Annotation</span><span class="Symbol">)</span> <span class="Symbol">|</span> <span class="VarId">a</span> <span class="Symbol">&lt;-</span> <span class="VarId">universeBi</span> <span class="VarId">es</span><span class="Symbol">]</span>
+  <span class="Keyword">in</span> <span class="VarId">mapMaybe</span> <span class="VarId">getTes</span> <span class="Keyword">as</span>
+  <span class="Keyword">where</span>
+    <span class="VarId">getTes</span> <span class="Keyword">as</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="VarId">tes</span> <span class="Symbol">=</span> <span class="VarId">errs</span> <span class="Keyword">as</span>
+                <span class="Keyword">in</span> <span class="Keyword">if</span> <span class="VarId">null</span> <span class="VarId">tes</span>
+                   <span class="Keyword">then</span> <span class="ConId">Nothing</span>
+                   <span class="Keyword">else</span> <span class="ConId">Just</span> <span class="Symbol">(</span><span class="VarId">asrc</span> <span class="Keyword">as</span><span class="Symbol">,</span> <span class="VarId">tes</span><span class="Symbol">)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">type</span> <span class="ConId">ErrorIO</span> <span class="VarId">e</span> <span class="VarId">a</span> <span class="Symbol">=</span> <span class="ConId">ErrorT</span> <span class="VarId">e</span> <span class="ConId">IO</span> <span class="VarId">a</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">etsr</span> <span class="Symbol">::</span> <span class="ConId">Show</span> <span class="VarId">e</span> <span class="Symbol">=&gt;</span> <span class="ConId">Either</span> <span class="VarId">e</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="ConId">ErrorIO</span> <span class="ConId">String</span> <span class="VarId">a</span>
+<span class="Function">etsr</span> <span class="Symbol">=</span> <span class="VarId">either</span> <span class="Symbol">(</span><span class="VarId">throwError</span> <span class="Symbol">.</span> <span class="VarId">show</span><span class="Symbol">)</span> <span class="VarId">return</span></pre></div></div></div></div
+    ><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

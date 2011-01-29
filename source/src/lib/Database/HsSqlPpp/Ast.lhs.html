@@ -1,0 +1,115 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >Ast</title
+    ><link href="../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">{- | This module contains the ast node data types. They are very</span>
+<span class="Comment">     permissive, in that they allow a lot of invalid SQL to be</span>
+<span class="Comment">     represented. The type checking process should catch all invalid</span>
+<span class="Comment">     trees, but doesn't quite manage at the moment.  Sorry about all</span>
+<span class="Comment">     the seemingly pointless type synonyms below, they are an</span>
+<span class="Comment">     artefact of using UUAGC. You can see labels for the fields by</span>
+<span class="Comment">     looking at the ag source here:</span>
+<span class="Comment">     &lt;http://jakewheat.github.com/hssqlppp/source/src/Database/HsSqlPpp/AstInternals/AstInternal.ag.html&gt;</span>
+<span class="Comment">     -}</span>
+
+<span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.Ast</span>
+    <span class="Symbol">(</span>
+     <span class="Comment">-- * Main nodes</span>
+     <span class="ConId">StatementList</span>
+    <span class="Symbol">,</span><span class="ConId">Statement</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">Expression</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">SelectExpression</span> <span class="Symbol">(..)</span>
+     <span class="Comment">-- * Components</span>
+     <span class="Comment">-- ** Selects</span>
+    <span class="Symbol">,</span><span class="ConId">SelectList</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">SelectItem</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">TableRef</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">TableAlias</span><span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">JoinExpression</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">JoinType</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">Natural</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">CombineType</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">Direction</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">Distinct</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">InList</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">LiftFlavour</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">FrameClause</span><span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">WithQueryList</span>
+    <span class="Symbol">,</span><span class="ConId">WithQuery</span><span class="Symbol">(..)</span>
+     <span class="Comment">-- ** dml</span>
+    <span class="Symbol">,</span><span class="ConId">CopySource</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">RestartIdentity</span> <span class="Symbol">(..)</span>
+     <span class="Comment">-- ** ddl</span>
+    <span class="Symbol">,</span><span class="ConId">AttributeDef</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">RowConstraint</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">Constraint</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">AlterTableAction</span><span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">TypeAttributeDef</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">TypeName</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">DropType</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">IfExists</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">Replace</span><span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">Cascade</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">TriggerWhen</span><span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">TriggerEvent</span><span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">TriggerFire</span><span class="Symbol">(..)</span>
+     <span class="Comment">-- ** functions</span>
+    <span class="Symbol">,</span><span class="ConId">FnBody</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">ParamDef</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">VarDef</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">RaiseType</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">Volatility</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">Language</span> <span class="Symbol">(..)</span>
+     <span class="Comment">-- ** misc</span>
+    <span class="Symbol">,</span><span class="ConId">SetValue</span><span class="Symbol">(..)</span>
+    <span class="Comment">-- ,Name(..)</span>
+     <span class="Comment">-- ** typedefs</span>
+    <span class="Symbol">,</span><span class="ConId">ExpressionListStatementListPairList</span>
+    <span class="Symbol">,</span><span class="ConId">ExpressionListStatementListPair</span>
+    <span class="Symbol">,</span><span class="ConId">ExpressionList</span>
+    <span class="Symbol">,</span><span class="ConId">MaybeSelectList</span>
+    <span class="Comment">--,StringList</span>
+    <span class="Symbol">,</span><span class="ConId">ParamDefList</span>
+    <span class="Symbol">,</span><span class="ConId">AttributeDefList</span>
+    <span class="Symbol">,</span><span class="ConId">ConstraintList</span>
+    <span class="Symbol">,</span><span class="ConId">TypeAttributeDefList</span>
+    <span class="Symbol">,</span><span class="ConId">TypeNameList</span>
+    <span class="Symbol">,</span><span class="ConId">StringTypeNameListPair</span>
+    <span class="Symbol">,</span><span class="ConId">StringTypeNameListPairList</span>
+    <span class="Symbol">,</span><span class="ConId">ExpressionStatementListPairList</span>
+    <span class="Symbol">,</span><span class="ConId">CaseExpressionListExpressionPairList</span>
+    <span class="Symbol">,</span><span class="ConId">MaybeExpression</span>
+    <span class="Symbol">,</span><span class="ConId">MaybeBoolExpression</span>
+    <span class="Symbol">,</span><span class="ConId">TableRefList</span>
+    <span class="Symbol">,</span><span class="ConId">ExpressionListList</span>
+    <span class="Symbol">,</span><span class="ConId">SelectItemList</span>
+    <span class="Symbol">,</span><span class="ConId">OnExpr</span>
+    <span class="Symbol">,</span><span class="ConId">RowConstraintList</span>
+    <span class="Symbol">,</span><span class="ConId">VarDefList</span>
+    <span class="Symbol">,</span><span class="ConId">ExpressionStatementListPair</span>
+    <span class="Symbol">,</span><span class="ConId">CaseExpressionListExpressionPair</span>
+    <span class="Symbol">,</span><span class="ConId">ExpressionDirectionPair</span>
+    <span class="Symbol">,</span><span class="ConId">ExpressionDirectionPairList</span>
+    <span class="Symbol">,</span><span class="ConId">AlterTableActionList</span>
+    <span class="Symbol">)</span> <span class="Keyword">where</span>
+
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.AstInternals.AstInternal</span>
+<span class="Comment">--import Database.HsSqlPpp.AstInternals.Name</span></pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

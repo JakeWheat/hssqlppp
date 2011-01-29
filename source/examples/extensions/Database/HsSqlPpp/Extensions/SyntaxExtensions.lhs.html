@@ -1,0 +1,65 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >SyntaxExtensions</title
+    ><link href="../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >just some notes atm</p
+    ><p
+    >Want to support extensions to sql. At the moment the extensions use one of the following approaches:</p
+    ><p
+    >overload function calls, so we write something like</p
+    ><p
+    >select extension_fn(some, extension, args);</p
+    ><p
+    >and the extension picks this up after parsing and converts it to something else in the ast.</p
+    ><p
+    >overload function calls with internal custom syntax, e.g.</p
+    ><p
+    >select extension_fn($$</p
+    ><p
+    >custom extension syntax which is parsed at ast transform time</p
+    ><p
+    >$$);</p
+    ><p
+    >some of the extensions take other regular sql syntax, but change it around slightly, e.g. the not null extension takes all attribute defs in create table statements and adds a not null constraint to them.</p
+    ><p
+    >Would like to support better range of custom syntax.</p
+    ><p
+    >One approach could be:</p
+    ><p
+    >Provide hooks in the lexer and parser to call custom syntax parsers at certain points. E.g. provide an additional parser which can be used when parsing a statement, so we can add new statement syntaxes. One lightweight way of doing this is to make the custom syntax parser output vanilla ast nodes, but this is very limiting since much of the custom syntax I want to write needs more context to decide what sql to ultimately generate.</p
+    ><p
+    >The constraints we want to work with are: allow new custom syntaxes to be added without changing the hssqlppp library source, and try to make sure we don't lose any type safety for parsing and working with sql without constraints.</p
+    ><p
+    >I think adding lots of hook points in the parser, and exposing its guts e.g. if someone wants to create a completely new statement parser, but reuse most of the existing individual statement type parsers like createtable and selectstatement.</p
+    ><p
+    >On the ast side, the simple solution would be to parameterize the ast type with a custom data type or types. If we just want to add new statement types, we could add a new wrapper statement type which could hold any data type to support custom syntaxes, e.g.</p
+    ><p
+    >data Statement a = CreateTable | SelectStatement ... | CustomStatement a</p
+    ><p
+    >The downside to this is we've lost some type safety, so e.g. when loading into pg, it's only at runtime when we hit a customstatement which hasn't been transformed out that we error. But this is cheap and cheerful and it's not too bad to live with.</p
+    ><p
+    >Is there a better way? Put some work into avoiding this when adding the antiquotes, which seemed to turn out quite well - leaving antiquote nodes in the tree under normal usage causes a compile time error.</p
+    ><p
+    >Have vague recollection of someone altering a haskell regular expression engine using something clever, without access to the source, see if can find and is relevant.</p
+    ><p
+    >If there is a better way, might be better for the antinode approach compared to the slightly ducttapey current approach of generating the ast antinodes - so parsing antiquote sql will use the extension system rather than being hardcoded into the parser.</p
+    ><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

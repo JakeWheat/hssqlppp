@@ -1,0 +1,614 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >Expressions</title
+    ><link href="../../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >{-</p
+    ><p
+    >This file contains the type checking code for the expression ast data type.</p
+    ><p
+    >-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="Comment">--gather the backtree, type errors and types together and add annotations</span>
+<span class="ConId">SEM</span> <span class="ConId">Expression</span>
+    <span class="Symbol">|</span> <span class="ConId">IntegerLit</span> <span class="ConId">StringLit</span> <span class="ConId">FloatLit</span> <span class="ConId">BooleanLit</span> <span class="ConId">NullLit</span> <span class="ConId">FunCall</span> <span class="ConId">Identifier</span>
+      <span class="ConId">QIdentifier</span>
+      <span class="ConId">Exists</span> <span class="ConId">Case</span> <span class="ConId">CaseSimple</span> <span class="ConId">Cast</span> <span class="ConId">InPredicate</span> <span class="ConId">ScalarSubQuery</span> <span class="ConId">LiftOperator</span>
+      <span class="ConId">PositionalArg</span> <span class="ConId">Placeholder</span> <span class="ConId">WindowFn</span>
+        <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Symbol">=</span> <span class="VarId">updateAnnotation</span>
+                              <span class="Symbol">(</span><span class="VarId">setTypeAddErrorsA</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span>
+                               <span class="Symbol">.</span> <span class="Symbol">\</span><span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span> <span class="Symbol">{</span><span class="VarId">fnProt</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">prototype</span>
+                                         <span class="Symbol">,</span><span class="VarId">infType</span> <span class="Symbol">=</span> <span class="VarId">msum</span> <span class="Symbol">[@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">expectedType</span>
+                                                         <span class="Symbol">,</span><span class="VarId">etmt</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span>
+                                                         <span class="Symbol">,</span><span class="ConId">Nothing</span><span class="Symbol">]})</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">:</span> <span class="ConId">Et</span>
+
+<span class="ConId">SEM</span> <span class="ConId">Expression</span>
+    <span class="Symbol">|</span> <span class="ConId">IntegerLit</span> <span class="ConId">StringLit</span> <span class="ConId">FloatLit</span> <span class="ConId">BooleanLit</span> <span class="ConId">NullLit</span> <span class="ConId">Identifier</span>
+      <span class="ConId">QIdentifier</span>
+      <span class="ConId">Exists</span> <span class="ConId">Case</span> <span class="ConId">CaseSimple</span> <span class="ConId">Cast</span> <span class="ConId">InPredicate</span> <span class="ConId">ScalarSubQuery</span> <span class="ConId">LiftOperator</span>
+      <span class="ConId">PositionalArg</span> <span class="ConId">Placeholder</span> <span class="ConId">WindowFn</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">prototype</span> <span class="Symbol">:</span> <span class="Symbol">{</span><span class="ConId">Maybe</span> <span class="ConId">FunctionPrototype</span><span class="Symbol">}</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">prototype</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+
+<span class="ConId">SEM</span> <span class="ConId">Expression</span>
+    <span class="Symbol">|</span> <span class="ConId">IntegerLit</span> <span class="ConId">StringLit</span> <span class="ConId">FloatLit</span> <span class="ConId">BooleanLit</span> <span class="ConId">NullLit</span>
+      <span class="ConId">Exists</span> <span class="ConId">Case</span> <span class="ConId">CaseSimple</span> <span class="ConId">Cast</span> <span class="ConId">InPredicate</span> <span class="ConId">ScalarSubQuery</span> <span class="ConId">LiftOperator</span>
+      <span class="ConId">PositionalArg</span> <span class="ConId">Placeholder</span> <span class="ConId">WindowFn</span>
+      <span class="ConId">Identifier</span> <span class="ConId">QIdentifier</span>
+      <span class="ConId">FunCall</span>
+        <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">ntAnnotatedTree</span> <span class="Symbol">=</span> <span class="VarId">updateAnnotation</span>
+                                 <span class="Symbol">(</span><span class="VarId">setTypeAddErrorsA</span> <span class="Symbol">(</span><span class="VarId">either</span> <span class="ConId">Left</span> <span class="Symbol">(</span><span class="ConId">Right</span> <span class="Symbol">.</span> <span class="ConId">CompositeType</span><span class="Symbol">)</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">ntType</span><span class="Symbol">)</span>
+                                 <span class="Symbol">.</span> <span class="Symbol">\</span><span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span> <span class="Symbol">{</span><span class="VarId">fnProt</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">prototype</span><span class="Symbol">})</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span>
+        <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">ntType</span> <span class="Symbol">=</span> <span class="VarId">either</span> <span class="Symbol">(</span><span class="VarId">const</span> <span class="Symbol">[])</span> <span class="VarId">id</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">ntType</span>
+
+</pre></div></div></div><p
+    >{-SEM Expression | FunCall lhs.ntAnnotatedTree = let bt = trace (&quot;check &quot; ++ show @loc.backTree) $ case @loc.backTree of FunCall a &quot;.&quot; args@[Identifier _ <em
+      >, Identifier</em
+      > <em
+      >] -&gt; let x = FunCall a &quot;.&quot; @args.ntAnnotatedTree in trace (&quot;use: &quot; ++ show x) x</em
+      > -&gt; trace &quot;same same&quot; @loc.backTree in updateAnnotation (setTypeAddErrorsA (either Left (Right . CompositeType) @loc.ntType) .  -&gt; a {fnProt = @loc.prototype}) bt lhs.ntType = either (const []) id @loc.ntType</p
+    ><p
+    >ATTR ExpressionList [||ntAnnotatedTree : ExpressionList]</p
+    ><p
+    >SEM ExpressionList | Cons lhs.ntAnnotatedTree = @hd.ntAnnotatedTree : @tl.ntAnnotatedTree lhs.ntTypes = @hd.ntType : @tl.ntTypes | Nil lhs.ntAnnotatedTree = [] lhs.ntTypes = [] -}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="ConId">ATTR</span> <span class="ConId">Expression</span> <span class="Symbol">[||</span><span class="VarId">ntAnnotatedTree</span> <span class="Symbol">:</span> <span class="ConId">Expression</span>
+                   <span class="VarId">ntType</span> <span class="Symbol">:</span> <span class="Symbol">{[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)]}</span>
+                   <span class="VarId">uType</span> <span class="Symbol">:</span> <span class="Symbol">{</span><span class="ConId">Maybe</span> <span class="ConId">Type</span><span class="Symbol">}</span>
+                   <span class="VarId">tbAnnotatedTree</span> <span class="Symbol">:</span> <span class="ConId">Expression</span>
+                   <span class="VarId">tbUType</span> <span class="Symbol">:</span> <span class="Symbol">{</span><span class="ConId">Maybe</span> <span class="Symbol">([(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)],[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)])}]</span>
+
+<span class="ConId">ATTR</span> <span class="ConId">ExpressionList</span> <span class="Symbol">[||</span><span class="VarId">tbUTypes</span> <span class="Symbol">:</span> <span class="Symbol">{[</span><span class="ConId">Maybe</span> <span class="Symbol">([(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)],[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)])]}]</span>
+
+<span class="ConId">SEM</span> <span class="ConId">Expression</span>
+    <span class="Symbol">|</span> <span class="ConId">IntegerLit</span> <span class="ConId">StringLit</span> <span class="ConId">FloatLit</span> <span class="ConId">BooleanLit</span> <span class="ConId">NullLit</span>
+      <span class="ConId">Exists</span> <span class="ConId">Case</span> <span class="ConId">CaseSimple</span> <span class="ConId">Cast</span> <span class="ConId">InPredicate</span> <span class="ConId">ScalarSubQuery</span> <span class="ConId">LiftOperator</span>
+      <span class="ConId">PositionalArg</span> <span class="ConId">Placeholder</span> <span class="ConId">WindowFn</span> <span class="ConId">FunCall</span>
+      <span class="ConId">FunCall</span> <span class="ConId">Identifier</span> <span class="ConId">QIdentifier</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tbUType</span> <span class="Symbol">:</span> <span class="Symbol">{</span><span class="ConId">E</span> <span class="Symbol">([(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)],</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)])}</span>
+        <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">tbAnnotatedTree</span> <span class="Symbol">=</span>
+            <span class="VarId">updateAnnotation</span>
+                                 <span class="Symbol">(\</span><span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span> <span class="Symbol">{</span><span class="VarId">fnProt</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">prototype</span>
+                                          <span class="Symbol">,</span><span class="VarId">errs</span> <span class="Symbol">=</span> <span class="VarId">errs</span> <span class="VarId">a</span> <span class="Symbol">++</span> <span class="VarId">tes</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tbUType</span><span class="Symbol">})</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span>
+        <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">tbUType</span> <span class="Symbol">=</span> <span class="VarId">either</span> <span class="Symbol">(</span><span class="VarId">const</span> <span class="ConId">Nothing</span><span class="Symbol">)</span> <span class="ConId">Just</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tbUType</span>
+
+    <span class="Symbol">|</span> <span class="ConId">IntegerLit</span> <span class="ConId">StringLit</span> <span class="ConId">FloatLit</span> <span class="ConId">BooleanLit</span> <span class="ConId">NullLit</span>
+      <span class="ConId">Exists</span> <span class="ConId">Case</span> <span class="ConId">CaseSimple</span> <span class="ConId">Cast</span> <span class="ConId">InPredicate</span> <span class="ConId">ScalarSubQuery</span> <span class="ConId">LiftOperator</span>
+      <span class="ConId">PositionalArg</span> <span class="ConId">Placeholder</span> <span class="ConId">WindowFn</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tbUType</span> <span class="Symbol">=</span> <span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">InternalError</span> <span class="String">&quot;bad context for tbUType&quot;</span><span class="Symbol">]</span>
+    <span class="Symbol">|</span> <span class="ConId">FunCall</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tbUType</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="Symbol">(@</span><span class="VarId">funName</span><span class="Symbol">,@</span><span class="VarId">args</span><span class="Symbol">.</span><span class="VarId">tbUTypes</span><span class="Symbol">)</span> <span class="Keyword">of</span>
+                       <span class="Symbol">(</span><span class="String">&quot;.&quot;</span><span class="Symbol">,</span> <span class="Symbol">[</span><span class="VarId">_</span><span class="Symbol">,</span><span class="ConId">Just</span> <span class="VarId">t</span><span class="Symbol">])</span> <span class="Symbol">-&gt;</span> <span class="ConId">Right</span> <span class="VarId">t</span>
+                       <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">InternalError</span> <span class="String">&quot;bad context for tbUType&quot;</span><span class="Symbol">]</span>
+    <span class="Symbol">|</span> <span class="ConId">Identifier</span> <span class="ConId">QIdentifier</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tbUType</span> <span class="Symbol">=</span> <span class="VarId">catCompositeAttrsPair</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">cat</span> <span class="VarId">relationComposites</span> <span class="Symbol">@</span><span class="VarId">i</span>
+
+<span class="ConId">SEM</span> <span class="ConId">ExpressionList</span>
+    <span class="Symbol">|</span> <span class="ConId">Cons</span> <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">tbUTypes</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">hd</span><span class="Symbol">.</span><span class="VarId">tbUType</span> <span class="Symbol">:</span> <span class="Symbol">@</span><span class="VarId">tl</span><span class="Symbol">.</span><span class="VarId">tbUTypes</span>
+    <span class="Symbol">|</span> <span class="ConId">Nil</span> <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">tbUTypes</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+
+<span class="ConId">ATTR</span> <span class="ConId">Expression</span> <span class="Symbol">[</span><span class="VarId">expectedType</span> <span class="Symbol">:</span> <span class="Symbol">{</span><span class="ConId">Maybe</span> <span class="ConId">Type</span><span class="Symbol">}||]</span>
+
+<span class="ConId">ATTR</span> <span class="ConId">ExpressionList</span> <span class="Symbol">[</span><span class="VarId">expectedTypes</span> <span class="Symbol">:</span> <span class="Symbol">{[</span><span class="ConId">Maybe</span> <span class="ConId">Type</span><span class="Symbol">]}||</span><span class="VarId">uType</span> <span class="Symbol">:</span> <span class="Symbol">{[</span><span class="ConId">Maybe</span> <span class="ConId">Type</span><span class="Symbol">]}]</span>
+
+
+<span class="ConId">SEM</span> <span class="ConId">Expression</span>
+    <span class="Symbol">|</span> <span class="ConId">IntegerLit</span> <span class="ConId">StringLit</span> <span class="ConId">FloatLit</span> <span class="ConId">BooleanLit</span> <span class="ConId">NullLit</span> <span class="ConId">FunCall</span> <span class="ConId">Identifier</span> <span class="ConId">QIdentifier</span>
+      <span class="ConId">Exists</span> <span class="ConId">Case</span> <span class="ConId">CaseSimple</span> <span class="ConId">Cast</span> <span class="ConId">InPredicate</span> <span class="ConId">ScalarSubQuery</span> <span class="ConId">LiftOperator</span>
+      <span class="ConId">PositionalArg</span> <span class="ConId">Placeholder</span> <span class="ConId">WindowFn</span>
+        <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">uType</span> <span class="Symbol">=</span> <span class="VarId">etmt</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span>
+
+<span class="ConId">SEM</span> <span class="ConId">ExpressionList</span>
+    <span class="Symbol">|</span> <span class="ConId">Cons</span> <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">uType</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">hd</span><span class="Symbol">.</span><span class="VarId">uType</span> <span class="Symbol">:</span> <span class="Symbol">@</span><span class="VarId">tl</span><span class="Symbol">.</span><span class="VarId">uType</span>
+    <span class="Symbol">|</span> <span class="ConId">Nil</span> <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">uType</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+
+
+<span class="ConId">ATTR</span> <span class="ConId">ExpressionListList</span> <span class="Symbol">[||</span><span class="VarId">uType</span> <span class="Symbol">:</span> <span class="Symbol">{[[</span><span class="ConId">Maybe</span> <span class="ConId">Type</span><span class="Symbol">]]}]</span>
+
+<span class="ConId">SEM</span> <span class="ConId">ExpressionListList</span>
+    <span class="Symbol">|</span> <span class="ConId">Cons</span> <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">uType</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">hd</span><span class="Symbol">.</span><span class="VarId">uType</span> <span class="Symbol">:</span> <span class="Symbol">@</span><span class="VarId">tl</span><span class="Symbol">.</span><span class="VarId">uType</span>
+    <span class="Symbol">|</span> <span class="ConId">Nil</span> <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">uType</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+
+
+<span class="ConId">ATTR</span> <span class="ConId">MaybeExpression</span>  <span class="Symbol">[||</span><span class="VarId">uType</span> <span class="Symbol">:</span> <span class="Symbol">{</span><span class="ConId">Maybe</span> <span class="ConId">Type</span><span class="Symbol">}]</span>
+
+<span class="ConId">SEM</span> <span class="ConId">MaybeExpression</span>
+    <span class="Symbol">|</span> <span class="ConId">Just</span> <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">uType</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">just</span><span class="Symbol">.</span><span class="VarId">uType</span>
+    <span class="Symbol">|</span> <span class="ConId">Nothing</span> <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">uType</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+
+<span class="Comment">-- maybe bool expression: if present, then check its type is bool</span>
+
+<span class="ConId">SEM</span> <span class="ConId">MaybeBoolExpression</span>
+    <span class="Symbol">|</span> <span class="ConId">Just</span>
+        <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="VarId">t</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">just</span><span class="Symbol">.</span><span class="VarId">uType</span>
+                            <span class="Keyword">in</span> <span class="Keyword">if</span> <span class="VarId">t</span> <span class="Symbol">`</span><span class="VarId">elem</span><span class="Symbol">`</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">,</span><span class="ConId">Just</span> <span class="VarId">typeBool</span><span class="Symbol">]</span>
+                               <span class="Keyword">then</span> <span class="ConId">Just</span> <span class="Symbol">@</span><span class="VarId">just</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+                               <span class="Keyword">else</span> <span class="ConId">Just</span> <span class="Symbol">$</span> <span class="VarId">addTypeErrors</span> <span class="Symbol">[</span><span class="ConId">ExpressionMustBeBool</span><span class="Symbol">]</span> <span class="Symbol">@</span><span class="VarId">just</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+
+<span class="Comment">-- life is too short</span>
+</pre></div></div></div><p
+    >{- ATTR AllNodes [overrideLib : {Maybe LocalBindings}||] ATTR AllNodes [overrideLibs : {[Maybe LocalBindings]}||]</p
+    ><p
+    >SEM ExpressionRoot | ExpressionRoot expr.overrideLib = Nothing expr.overrideLibs = []</p
+    ><p
+    >SEM Root | Root statements.overrideLib = Nothing statements.overrideLibs = []</p
+    ><p
+    >SEM Expression | FunCall args.overrideLibs = case @funName of &quot;.&quot; | [Identifier _ i,<em
+      >] &lt;- @args.annotatedTree -&gt; [Nothing ,either (const Nothing) Just $ lbUpdateDot @lhs.cat i @lhs.lib]</em
+      > -&gt; []</p
+    ><p
+    >SEM ExpressionList | Cons hd.overrideLib = case @lhs.overrideLibs of h : _ -&gt; h _ -&gt; Nothing tl.overrideLibs = case @lhs.overrideLibs of _ : t -&gt; t _ -&gt; [] -}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+</pre></div></div></div><p
+    >{- == literals</p
+    ><p
+    >pretty straightforward -}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="ConId">SEM</span> <span class="ConId">Expression</span>
+     <span class="Symbol">|</span> <span class="ConId">IntegerLit</span> <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="ConId">Right</span> <span class="VarId">typeInt</span>
+     <span class="Symbol">|</span> <span class="ConId">StringLit</span> <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="ConId">Right</span> <span class="ConId">UnknownType</span>
+     <span class="Symbol">|</span> <span class="ConId">FloatLit</span> <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="ConId">Right</span> <span class="VarId">typeNumeric</span>
+     <span class="Symbol">|</span> <span class="ConId">BooleanLit</span> <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="ConId">Right</span> <span class="VarId">typeBool</span>
+     <span class="Comment">-- I think a null has the same type resolution as an unknown string lit</span>
+     <span class="Symbol">|</span> <span class="ConId">NullLit</span> <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="ConId">Right</span> <span class="ConId">UnknownType</span>
+
+<span class="ConId">SEM</span> <span class="ConId">Expression</span>
+    <span class="Symbol">|</span> <span class="ConId">IntegerLit</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">IntegerLit</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">i</span>
+    <span class="Symbol">|</span> <span class="ConId">StringLit</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">StringLit</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">value</span>
+    <span class="Symbol">|</span> <span class="ConId">FloatLit</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">FloatLit</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">d</span>
+    <span class="Symbol">|</span> <span class="ConId">BooleanLit</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">BooleanLit</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">b</span>
+    <span class="Symbol">|</span> <span class="ConId">NullLit</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">NullLit</span> <span class="Symbol">@</span><span class="VarId">ann</span>
+
+
+</pre></div></div></div><p
+    >{-</p
+    ><p
+    >== cast expression</p
+    ><p
+    >all the work is done in the typename node -}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="ConId">SEM</span> <span class="ConId">Expression</span>
+    <span class="Symbol">|</span> <span class="ConId">Cast</span> <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="VarId">lmt</span> <span class="Symbol">@</span><span class="VarId">tn</span><span class="Symbol">.</span><span class="VarId">namedType</span>
+           <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">Cast</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">expr</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Symbol">@</span><span class="VarId">tn</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+
+</pre></div></div></div><p
+    >{- == operators and functions -}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="ConId">SEM</span> <span class="ConId">Expression</span>
+    <span class="Symbol">|</span> <span class="ConId">FunCall</span>
+        <span class="Symbol">(</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span>
+        <span class="Symbol">,</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">prototype</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">either</span> <span class="Symbol">(\</span><span class="VarId">e</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="ConId">Left</span> <span class="VarId">e</span><span class="Symbol">,</span> <span class="ConId">Nothing</span><span class="Symbol">))</span> <span class="VarId">id</span> <span class="Symbol">$</span> <span class="Keyword">do</span>
+                          <span class="VarId">args</span> <span class="Symbol">&lt;-</span> <span class="VarId">mapM</span> <span class="VarId">lmt</span> <span class="Symbol">@</span><span class="VarId">args</span><span class="Symbol">.</span><span class="VarId">uType</span>
+                          <span class="VarId">efp</span> <span class="Symbol">&lt;-</span> <span class="VarId">findCallMatch</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">cat</span>
+                                               <span class="Symbol">@</span><span class="VarId">funName</span>
+                                               <span class="VarId">args</span>
+                          <span class="Keyword">let</span> <span class="Symbol">(</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">r</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">efp</span>
+                          <span class="VarId">return</span> <span class="Symbol">(</span><span class="ConId">Right</span> <span class="VarId">r</span><span class="Symbol">,</span> <span class="ConId">Just</span> <span class="VarId">efp</span><span class="Symbol">)</span>
+
+
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">FunCall</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">funName</span> <span class="Symbol">@</span><span class="VarId">args</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+
+
+   <span class="Symbol">|</span> <span class="ConId">WindowFn</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="VarId">lmt</span> <span class="Symbol">@</span><span class="VarId">fn</span><span class="Symbol">.</span><span class="VarId">uType</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">WindowFn</span> <span class="Symbol">@</span><span class="VarId">ann</span>
+                                <span class="Symbol">@</span><span class="VarId">fn</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+                                <span class="Symbol">@</span><span class="VarId">partitionBy</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+                                <span class="Symbol">@</span><span class="VarId">orderBy</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+                                <span class="Symbol">@</span><span class="VarId">dir</span>
+                                <span class="Symbol">@</span><span class="VarId">frm</span>
+</pre></div></div></div><p
+    >{- lifted operator: pretty much the same as haskell 'any (lhs [op]) rhss' (or all instead of any) where lhs is the first argument and rhss is the second argument which must be an array</p
+    ><p
+    >pg allows the rhss to also be a subselect, this is a todo</p
+    ><p
+    >-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="ConId">SEM</span> <span class="ConId">Expression</span>
+    <span class="Symbol">|</span> <span class="ConId">LiftOperator</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+                  <span class="VarId">at</span> <span class="Symbol">&lt;-</span> <span class="VarId">mapM</span> <span class="VarId">lmt</span> <span class="Symbol">@</span><span class="VarId">args</span><span class="Symbol">.</span><span class="VarId">uType</span>
+                  <span class="VarId">errorWhen</span> <span class="Symbol">(</span><span class="VarId">length</span> <span class="VarId">at</span> <span class="Symbol">/=</span> <span class="Number">2</span><span class="Symbol">)</span>
+                            <span class="Symbol">[</span><span class="ConId">AnyAllError</span> <span class="Symbol">$</span> <span class="String">&quot;must have two args, got &quot;</span> <span class="Symbol">++</span> <span class="VarId">show</span> <span class="VarId">at</span><span class="Symbol">]</span>
+                  <span class="Keyword">let</span> <span class="Symbol">[</span><span class="VarId">aType</span><span class="Symbol">,</span><span class="VarId">bType</span><span class="Symbol">]</span> <span class="Symbol">=</span> <span class="VarId">at</span>
+                  <span class="VarId">errorWhen</span> <span class="Symbol">(</span><span class="VarId">not</span> <span class="Symbol">$</span> <span class="VarId">isArrayType</span> <span class="VarId">bType</span><span class="Symbol">)</span>
+                            <span class="Symbol">[</span><span class="ConId">AnyAllError</span> <span class="Symbol">$</span> <span class="String">&quot;second arg must be array, got &quot;</span> <span class="Symbol">++</span> <span class="VarId">show</span> <span class="VarId">at</span><span class="Symbol">]</span>
+                  <span class="VarId">elemType</span> <span class="Symbol">&lt;-</span> <span class="VarId">unwrapArray</span> <span class="Symbol">$</span> <span class="VarId">bType</span>
+                  <span class="VarId">resType</span> <span class="Symbol">&lt;-</span> <span class="VarId">fmap</span> <span class="Symbol">(\(</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">r</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">r</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="VarId">findCallMatch</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">cat</span>
+                                                                    <span class="Symbol">@</span><span class="VarId">oper</span>
+                                                                    <span class="Symbol">[</span><span class="VarId">aType</span><span class="Symbol">,</span><span class="VarId">elemType</span><span class="Symbol">]</span>
+                  <span class="VarId">errorWhen</span> <span class="Symbol">(</span><span class="VarId">resType</span> <span class="Symbol">/=</span> <span class="VarId">typeBool</span><span class="Symbol">)</span>
+                            <span class="Symbol">[</span><span class="ConId">AnyAllError</span> <span class="Symbol">$</span> <span class="String">&quot;operator must have bool return, got &quot;</span> <span class="Symbol">++</span> <span class="VarId">show</span> <span class="VarId">resType</span><span class="Symbol">]</span>
+                  <span class="VarId">return</span> <span class="VarId">resType</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">LiftOperator</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">oper</span> <span class="Symbol">@</span><span class="VarId">flav</span> <span class="Symbol">@</span><span class="VarId">args</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+
+
+</pre></div></div></div><p
+    >{- == case expression</p
+    ><p
+    >for non simple cases, we need all the when expressions to be bool, and then to collect the types of the then parts to see if we can resolve a common type</p
+    ><p
+    >for simple cases, we need to check all the when parts have the same type as the value to check against, then we collect the then parts as above.</p
+    ><p
+    >-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="ConId">ATTR</span> <span class="ConId">CaseExpressionListExpressionPairList</span> <span class="Symbol">[||</span><span class="VarId">whenTypes</span> <span class="Symbol">:</span> <span class="Symbol">{[[</span><span class="ConId">Maybe</span> <span class="ConId">Type</span><span class="Symbol">]]}</span>
+                                             <span class="VarId">thenTypes</span> <span class="Symbol">:</span> <span class="Symbol">{[</span><span class="ConId">Maybe</span> <span class="ConId">Type</span><span class="Symbol">]}]</span>
+<span class="ConId">SEM</span> <span class="ConId">CaseExpressionListExpressionPairList</span>
+  <span class="Symbol">|</span> <span class="ConId">Cons</span> <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">whenTypes</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">hd</span><span class="Symbol">.</span><span class="VarId">whenTypes</span> <span class="Symbol">:</span> <span class="Symbol">@</span><span class="VarId">tl</span><span class="Symbol">.</span><span class="VarId">whenTypes</span>
+         <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">thenTypes</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">hd</span><span class="Symbol">.</span><span class="VarId">thenType</span> <span class="Symbol">:</span> <span class="Symbol">@</span><span class="VarId">tl</span><span class="Symbol">.</span><span class="VarId">thenTypes</span>
+  <span class="Symbol">|</span> <span class="ConId">Nil</span> <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">whenTypes</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+        <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">thenTypes</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+
+<span class="ConId">ATTR</span> <span class="ConId">CaseExpressionListExpressionPair</span> <span class="Symbol">[||</span><span class="VarId">whenTypes</span> <span class="Symbol">:</span> <span class="Symbol">{[</span><span class="ConId">Maybe</span> <span class="ConId">Type</span><span class="Symbol">]}</span>
+                                         <span class="VarId">thenType</span> <span class="Symbol">:</span> <span class="Symbol">{</span><span class="ConId">Maybe</span> <span class="ConId">Type</span><span class="Symbol">}]</span>
+
+<span class="ConId">SEM</span> <span class="ConId">CaseExpressionListExpressionPair</span>
+    <span class="Symbol">|</span> <span class="ConId">Tuple</span> <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">whenTypes</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">x1</span><span class="Symbol">.</span><span class="VarId">uType</span>
+            <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">thenType</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">x2</span><span class="Symbol">.</span><span class="VarId">uType</span>
+
+
+<span class="ConId">SEM</span> <span class="ConId">Expression</span>
+    <span class="Symbol">|</span> <span class="ConId">Case</span> <span class="ConId">CaseSimple</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">whenTypes</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">cases</span><span class="Symbol">.</span><span class="VarId">whenTypes</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">thenTypes</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">cases</span><span class="Symbol">.</span><span class="VarId">thenTypes</span> <span class="Symbol">++</span> <span class="VarId">maybe</span> <span class="Symbol">[]</span> <span class="Symbol">((:[])</span> <span class="Symbol">.</span> <span class="ConId">Just</span><span class="Symbol">)</span> <span class="Symbol">@</span><span class="VarId">els</span><span class="Symbol">.</span><span class="VarId">uType</span>
+
+<span class="ConId">SEM</span> <span class="ConId">Expression</span>
+    <span class="Symbol">|</span> <span class="ConId">Case</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+                  <span class="VarId">wt</span> <span class="Symbol">&lt;-</span> <span class="VarId">mapM</span> <span class="VarId">lmt</span> <span class="Symbol">$</span> <span class="VarId">concat</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">whenTypes</span>
+                  <span class="Comment">-- probably the when types shoule be checked inside each when node</span>
+                  <span class="Comment">-- and type errors attach there, and ignored here</span>
+                  <span class="VarId">errorWhen</span> <span class="Symbol">(</span><span class="VarId">any</span> <span class="Symbol">(/=</span> <span class="VarId">typeBool</span><span class="Symbol">)</span> <span class="VarId">wt</span><span class="Symbol">)</span>
+                      <span class="Symbol">[</span><span class="ConId">WrongTypes</span> <span class="VarId">typeBool</span> <span class="VarId">wt</span><span class="Symbol">]</span>
+                  <span class="VarId">tt</span> <span class="Symbol">&lt;-</span> <span class="VarId">mapM</span> <span class="VarId">lmt</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">thenTypes</span>
+                  <span class="VarId">resolveResultSetType</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">cat</span> <span class="VarId">tt</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">Case</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">cases</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Symbol">@</span><span class="VarId">els</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+
+
+<span class="ConId">SEM</span> <span class="ConId">Expression</span>
+    <span class="Symbol">|</span> <span class="ConId">CaseSimple</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span>
+          <span class="Keyword">do</span>
+          <span class="VarId">wt</span> <span class="Symbol">&lt;-</span> <span class="VarId">mapM</span> <span class="VarId">lmt</span> <span class="Symbol">$</span> <span class="VarId">concat</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">whenTypes</span>
+          <span class="VarId">vt</span> <span class="Symbol">&lt;-</span> <span class="VarId">lmt</span> <span class="Symbol">@</span><span class="VarId">value</span><span class="Symbol">.</span><span class="VarId">uType</span>
+          <span class="VarId">_</span> <span class="Symbol">&lt;-</span> <span class="VarId">resolveResultSetType</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">cat</span> <span class="Symbol">(</span><span class="VarId">vt</span> <span class="Symbol">:</span> <span class="VarId">wt</span><span class="Symbol">)</span>
+          <span class="VarId">tt</span> <span class="Symbol">&lt;-</span> <span class="VarId">mapM</span> <span class="VarId">lmt</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">thenTypes</span>
+          <span class="VarId">resolveResultSetType</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">cat</span> <span class="VarId">tt</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">CaseSimple</span> <span class="Symbol">@</span><span class="VarId">ann</span>
+                                  <span class="Symbol">@</span><span class="VarId">value</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+                                  <span class="Symbol">@</span><span class="VarId">cases</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+                                  <span class="Symbol">@</span><span class="VarId">els</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+
+</pre></div></div></div><p
+    >{- == identifiers pull id types out of cat for identifiers</p
+    ><p
+    >-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+
+</pre></div></div></div><p
+    >{-</p
+    ><p
+    >Star expansion handling.</p
+    ><p
+    >In a few places - mainly the top level of a select list - if the identifier is a star or qualified star we want to expand the star. The cleanest way of doing this is to expand the stars in the ast to the expansions, but we need to do this at the last minute during the ag process since e.g. we might need the view information from the immediately previous statement. I don't know how to alter the ag process so that we can update a subtree and collect attributes from that which would be a clean way of doing it.</p
+    ><p
+    >So - use a bodge. When we want to get the identifier type, and star expansion is possible, use a different pair of tpe and backtree attributes to get the node information to the regular ones.</p
+    ><p
+    >-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="ConId">SEM</span> <span class="ConId">Expression</span>
+    <span class="Symbol">|</span> <span class="ConId">Identifier</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="VarId">unwrapLookup</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">lbLookupID</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">lib</span> <span class="Symbol">[@</span><span class="VarId">i</span><span class="Symbol">]</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">Identifier</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">i</span>
+
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">ntType</span> <span class="Symbol">:</span> <span class="Symbol">{</span><span class="ConId">E</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)]}</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">ntType</span> <span class="Symbol">=</span>
+            <span class="Keyword">if</span> <span class="Symbol">@</span><span class="VarId">i</span> <span class="Symbol">==</span> <span class="String">&quot;*&quot;</span>
+            <span class="Keyword">then</span> <span class="VarId">unwrapStar</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">lbExpandStar</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">lib</span> <span class="String">&quot;&quot;</span>
+            <span class="Keyword">else</span> <span class="Symbol">(\</span><span class="VarId">t</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[(@</span><span class="VarId">i</span><span class="Symbol">,</span> <span class="VarId">t</span><span class="Symbol">)])</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">unwrapLookup</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">lbLookupID</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">lib</span> <span class="Symbol">[@</span><span class="VarId">i</span><span class="Symbol">]</span>
+   <span class="Symbol">|</span> <span class="ConId">QIdentifier</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="VarId">x</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">qid</span> <span class="Keyword">of</span>
+                            <span class="ConId">Nothing</span> <span class="Symbol">-&gt;</span> <span class="VarId">byT</span>
+                            <span class="ConId">Just</span> <span class="VarId">q</span> <span class="Symbol">-&gt;</span> <span class="VarId">either</span> <span class="Symbol">(</span><span class="VarId">const</span> <span class="VarId">byT</span><span class="Symbol">)</span> <span class="ConId">Right</span> <span class="Symbol">$</span> <span class="VarId">unwrapLookup</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">lbLookupID</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">lib</span> <span class="Symbol">[</span><span class="VarId">q</span><span class="Symbol">,@</span><span class="VarId">i</span><span class="Symbol">]</span>
+                  <span class="Keyword">in</span> <span class="VarId">trace</span> <span class="Symbol">(</span><span class="String">&quot;tpe: &quot;</span> <span class="Symbol">++</span> <span class="VarId">show</span> <span class="VarId">x</span><span class="Symbol">)</span> <span class="VarId">x</span>
+                  <span class="Keyword">where</span>
+                    <span class="VarId">byT</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+                      <span class="Symbol">(</span><span class="VarId">t</span><span class="Symbol">::</span><span class="ConId">Type</span><span class="Symbol">)</span> <span class="Symbol">&lt;-</span> <span class="VarId">lmt</span> <span class="Symbol">@</span><span class="VarId">qual</span><span class="Symbol">.</span><span class="VarId">uType</span> <span class="Comment">--unwrapLookup &lt;$&gt; lbLookupID @lhs.lib [q]</span>
+                      <span class="VarId">unwrapLookup</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">lbLookupIDInType</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">cat</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">lib</span> <span class="VarId">t</span> <span class="Symbol">@</span><span class="VarId">i</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">qid</span> <span class="Symbol">:</span> <span class="Symbol">{</span><span class="ConId">Maybe</span> <span class="ConId">String</span><span class="Symbol">}</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">qid</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Keyword">of</span>
+                     <span class="ConId">QIdentifier</span> <span class="VarId">_</span> <span class="Symbol">(</span><span class="ConId">Identifier</span> <span class="VarId">_</span> <span class="VarId">q</span><span class="Symbol">)</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Just</span> <span class="VarId">q</span>
+                     <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Nothing</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">QIdentifier</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">qAnnTreeNoUnrec</span> <span class="Symbol">@</span><span class="VarId">i</span>
+
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">qAnnTreeNoUnrec</span> <span class="Symbol">=</span> <span class="VarId">updateAnnotation</span> <span class="Symbol">(\</span><span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span> <span class="Symbol">{</span><span class="VarId">errs</span> <span class="Symbol">=</span> <span class="Symbol">[]})</span> <span class="Symbol">@</span><span class="VarId">qual</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">ntType</span> <span class="Symbol">:</span> <span class="Symbol">{</span><span class="ConId">E</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)]}</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">ntType</span> <span class="Symbol">=</span>
+            <span class="Keyword">case</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">qid</span> <span class="Keyword">of</span>
+              <span class="ConId">Nothing</span> <span class="Symbol">-&gt;</span> <span class="VarId">undefined</span>
+              <span class="ConId">Just</span> <span class="VarId">q</span> <span class="Symbol">-&gt;</span>
+                  <span class="Keyword">if</span> <span class="Symbol">@</span><span class="VarId">i</span> <span class="Symbol">==</span> <span class="String">&quot;*&quot;</span>
+                  <span class="Keyword">then</span> <span class="VarId">unwrapStar</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">lbExpandStar</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">lib</span> <span class="VarId">q</span>
+                  <span class="Keyword">else</span> <span class="Symbol">(\</span><span class="VarId">t</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[(@</span><span class="VarId">i</span><span class="Symbol">,</span> <span class="VarId">t</span><span class="Symbol">)])</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">unwrapLookup</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">lbLookupID</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">lib</span> <span class="Symbol">[</span><span class="VarId">q</span><span class="Symbol">,@</span><span class="VarId">i</span><span class="Symbol">]</span>
+
+
+<span class="ConId">SEM</span> <span class="ConId">Expression</span>
+  <span class="Symbol">|</span> <span class="ConId">FunCall</span>
+      <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">liftedColumnName</span> <span class="Symbol">=</span>
+          <span class="Keyword">case</span> <span class="Symbol">@</span><span class="VarId">funName</span> <span class="Keyword">of</span>
+            <span class="String">&quot;.&quot;</span> <span class="Symbol">-&gt;</span> <span class="VarId">getName</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span>
+            <span class="VarId">x</span> <span class="Symbol">|</span> <span class="VarId">isOperatorName</span> <span class="VarId">x</span> <span class="Symbol">-&gt;</span> <span class="String">&quot;?column?&quot;</span>
+            <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="Symbol">@</span><span class="VarId">funName</span>
+  <span class="Symbol">|</span> <span class="ConId">Cast</span>
+      <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">liftedColumnName</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="Symbol">@</span><span class="VarId">tn</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Keyword">of</span>
+                               <span class="ConId">SimpleTypeName</span> <span class="VarId">_</span> <span class="VarId">tn</span> <span class="Symbol">-&gt;</span> <span class="VarId">tn</span>
+                               <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="String">&quot;&quot;</span>
+  <span class="Symbol">|</span> <span class="ConId">WindowFn</span>
+      <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">liftedColumnName</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="Symbol">(</span><span class="ConId">FunCall</span> <span class="VarId">_</span> <span class="VarId">fn</span> <span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">fn</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+                             <span class="Keyword">in</span> <span class="VarId">fn</span>
+
+<span class="ConId">SEM</span> <span class="ConId">Expression</span>
+  <span class="Symbol">|</span> <span class="ConId">BooleanLit</span> <span class="ConId">Case</span> <span class="ConId">Exists</span> <span class="ConId">FloatLit</span> <span class="ConId">IntegerLit</span> <span class="ConId">LiftOperator</span>
+    <span class="ConId">NullLit</span> <span class="ConId">PositionalArg</span> <span class="ConId">Placeholder</span> <span class="ConId">ScalarSubQuery</span> <span class="ConId">StringLit</span>
+    <span class="ConId">CaseSimple</span> <span class="ConId">InPredicate</span>
+      <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">liftedColumnName</span> <span class="Symbol">=</span> <span class="String">&quot;&quot;</span>
+
+<span class="ConId">SEM</span> <span class="ConId">Expression</span>
+  <span class="Symbol">|</span> <span class="ConId">FunCall</span> <span class="ConId">Cast</span> <span class="ConId">CaseSimple</span> <span class="ConId">InPredicate</span> <span class="ConId">WindowFn</span>
+    <span class="ConId">BooleanLit</span> <span class="ConId">Case</span> <span class="ConId">Exists</span> <span class="ConId">FloatLit</span> <span class="ConId">IntegerLit</span> <span class="ConId">LiftOperator</span>
+    <span class="ConId">NullLit</span> <span class="ConId">PositionalArg</span> <span class="ConId">Placeholder</span> <span class="ConId">ScalarSubQuery</span> <span class="ConId">StringLit</span>
+      <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">ntType</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+                   <span class="VarId">t</span> <span class="Symbol">&lt;-</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span>
+                   <span class="VarId">return</span> <span class="Symbol">[(</span><span class="Keyword">case</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">liftedColumnName</span> <span class="Keyword">of</span>
+                             <span class="String">&quot;&quot;</span> <span class="Symbol">-&gt;</span> <span class="String">&quot;?column?&quot;</span>
+                             <span class="VarId">n</span> <span class="Symbol">-&gt;</span> <span class="VarId">n</span>
+                          <span class="Symbol">,</span><span class="VarId">t</span><span class="Symbol">)]</span>
+
+</pre></div></div></div><p
+    >{- SEM Expression | FunCall loc.ntType : {E [(String,Type)]} loc.ntType = let t1 = do t &lt;- @loc.tpe return [(case @loc.liftedColumnName of &quot;&quot; -&gt; &quot;?column?&quot; n -&gt; n ,t)] in case (@loc.backTree, @args.ntTypes) of (FunCall a &quot;.&quot; [Identifier _ <em
+      >, Identifier</em
+      > &quot;*&quot;],[<em
+      >,t]) -&gt; Right t</em
+      > -&gt; t1 -}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="ConId">SEM</span> <span class="ConId">Expression</span>
+    <span class="Symbol">|</span> <span class="ConId">PositionalArg</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="VarId">unwrapLookup</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">lbLookupID</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">lib</span> <span class="Symbol">[</span><span class="Char">'$'</span><span class="Symbol">:</span><span class="VarId">show</span> <span class="Symbol">@</span><span class="VarId">p</span><span class="Symbol">]</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">PositionalArg</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">p</span>
+
+
+<span class="ConId">SEM</span> <span class="ConId">Expression</span>
+    <span class="Symbol">|</span> <span class="ConId">Placeholder</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="ConId">Right</span> <span class="ConId">UnknownType</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">Placeholder</span> <span class="Symbol">@</span><span class="VarId">ann</span>
+
+<span class="Comment">-- exists: will work on any subselect so we don't need to do any checking</span>
+<span class="ConId">SEM</span> <span class="ConId">Expression</span>
+    <span class="Symbol">|</span> <span class="ConId">Exists</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="ConId">Right</span> <span class="VarId">typeBool</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">Exists</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">sel</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+
+
+</pre></div></div></div><p
+    >{- == scalar subquery 1 col -&gt; type of that col 2 + cols -&gt; row type -}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="ConId">SEM</span> <span class="ConId">Expression</span>
+    <span class="Symbol">|</span> <span class="ConId">ScalarSubQuery</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span>
+            <span class="Keyword">do</span>
+            <span class="VarId">selType</span> <span class="Symbol">&lt;-</span> <span class="VarId">lmt</span> <span class="Symbol">(</span><span class="VarId">map</span> <span class="VarId">snd</span> <span class="Symbol">&lt;$&gt;</span> <span class="Symbol">@</span><span class="VarId">sel</span><span class="Symbol">.</span><span class="VarId">uType</span><span class="Symbol">)</span>
+            <span class="Keyword">case</span> <span class="VarId">length</span> <span class="VarId">selType</span> <span class="Keyword">of</span>
+              <span class="Number">0</span> <span class="Symbol">-&gt;</span> <span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">InternalError</span> <span class="String">&quot;no columns in scalar subquery?&quot;</span><span class="Symbol">]</span>
+              <span class="Number">1</span> <span class="Symbol">-&gt;</span> <span class="ConId">Right</span> <span class="Symbol">$</span> <span class="VarId">head</span> <span class="VarId">selType</span>
+              <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Right</span> <span class="Symbol">$</span> <span class="ConId">AnonymousRecordType</span> <span class="VarId">selType</span>
+
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">ScalarSubQuery</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">sel</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+</pre></div></div></div><p
+    >{- == inlist todo: make the ast and typechecking a special case of lifted operator -}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="ConId">SEM</span> <span class="ConId">Expression</span>
+    <span class="Symbol">|</span> <span class="ConId">InPredicate</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+                  <span class="VarId">lt</span> <span class="Symbol">&lt;-</span> <span class="Symbol">@</span><span class="VarId">list</span><span class="Symbol">.</span><span class="VarId">listType</span>
+                  <span class="VarId">expt</span> <span class="Symbol">&lt;-</span> <span class="VarId">lmt</span> <span class="Symbol">@</span><span class="VarId">expr</span><span class="Symbol">.</span><span class="VarId">uType</span>
+                  <span class="VarId">_</span> <span class="Symbol">&lt;-</span> <span class="VarId">resolveResultSetType</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">cat</span> <span class="Symbol">[</span><span class="VarId">expt</span><span class="Symbol">,</span> <span class="VarId">lt</span><span class="Symbol">]</span>
+                  <span class="VarId">return</span> <span class="VarId">typeBool</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">InPredicate</span> <span class="Symbol">@</span><span class="VarId">ann</span>
+                                   <span class="Symbol">@</span><span class="VarId">expr</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+                                   <span class="Symbol">@</span><span class="VarId">i</span>
+                                   <span class="Symbol">@</span><span class="VarId">list</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+
+
+<span class="ConId">ATTR</span> <span class="ConId">InList</span> <span class="Symbol">[||</span><span class="VarId">listType</span> <span class="Symbol">:</span> <span class="Symbol">{</span><span class="ConId">Either</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">]</span> <span class="ConId">Type</span><span class="Symbol">}]</span>
+
+<span class="ConId">SEM</span> <span class="ConId">InList</span>
+    <span class="Symbol">|</span> <span class="ConId">InList</span>
+        <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">listType</span> <span class="Symbol">=</span> <span class="VarId">mapM</span> <span class="VarId">lmt</span> <span class="Symbol">@</span><span class="VarId">exprs</span><span class="Symbol">.</span><span class="VarId">uType</span> <span class="Symbol">&gt;&gt;=</span> <span class="VarId">resolveResultSetType</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">cat</span>
+    <span class="Symbol">|</span> <span class="ConId">InSelect</span>
+        <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">listType</span> <span class="Symbol">=</span>
+            <span class="Keyword">do</span>
+            <span class="VarId">st</span> <span class="Symbol">&lt;-</span> <span class="VarId">lmt</span> <span class="Symbol">(</span><span class="VarId">map</span> <span class="VarId">snd</span> <span class="Symbol">&lt;$&gt;</span> <span class="Symbol">@</span><span class="VarId">sel</span><span class="Symbol">.</span><span class="VarId">uType</span><span class="Symbol">)</span>
+            <span class="Keyword">case</span> <span class="VarId">length</span> <span class="VarId">st</span> <span class="Keyword">of</span>
+                      <span class="Number">0</span> <span class="Symbol">-&gt;</span> <span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">InternalError</span>
+                                 <span class="String">&quot;got subquery with no columns? in inselect&quot;</span><span class="Symbol">]</span>
+                      <span class="Number">1</span> <span class="Symbol">-&gt;</span> <span class="ConId">Right</span> <span class="Symbol">$</span> <span class="VarId">head</span> <span class="VarId">st</span>
+                      <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Right</span> <span class="Symbol">$</span> <span class="ConId">AnonymousRecordType</span> <span class="VarId">st</span>
+</pre></div></div></div><div id="section"
+    ><h1
+      >{-</h1
+      ><p
+      >slightly dodgy type inference</p
+      ><p
+      >target is just to support parameterized statements at the moment, so lots missing and no unification or anything like that, although this wouldn't be too hard to add</p
+      ><p
+      >some more of the code is in insert.ag</p
+      ><p
+      >basically we just pass inferred types from function calls to the individual arguments using the matched function prototype, and we pass inferred types from the table's attribute types in an insert statement. No other inferrence is done, and the inferred types aren't checked for consistency with any type already in a node.</p
+      ><p
+      >Then we use this info only to get the types of any placeholders in a parameterized statement.</p
+      ><p
+      >-}</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+
+<span class="Comment">-- some of this could be filled in quite easily</span>
+
+<span class="ConId">SEM</span> <span class="ConId">AlterTableAction</span>
+    <span class="Symbol">|</span> <span class="ConId">AlterColumnDefault</span> <span class="VarId">def</span><span class="Symbol">.</span><span class="VarId">expectedType</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+
+
+<span class="ConId">SEM</span> <span class="ConId">CaseExpressionListExpressionPair</span>
+    <span class="Symbol">|</span> <span class="ConId">Tuple</span> <span class="VarId">x1</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+            <span class="VarId">x2</span><span class="Symbol">.</span><span class="VarId">expectedType</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+
+<span class="ConId">SEM</span> <span class="ConId">Constraint</span>
+    <span class="Symbol">|</span> <span class="ConId">CheckConstraint</span> <span class="VarId">expr</span><span class="Symbol">.</span><span class="VarId">expectedType</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+
+<span class="ConId">SEM</span> <span class="ConId">ExpressionDirectionPair</span>
+    <span class="Symbol">|</span> <span class="ConId">Tuple</span> <span class="VarId">x1</span><span class="Symbol">.</span><span class="VarId">expectedType</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+
+<span class="ConId">SEM</span> <span class="ConId">ExpressionList</span>
+    <span class="Symbol">|</span> <span class="ConId">Cons</span> <span class="VarId">hd</span><span class="Symbol">.</span><span class="VarId">expectedType</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span> <span class="Keyword">of</span>
+                               <span class="Symbol">(</span><span class="VarId">t</span><span class="Symbol">:</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">t</span>
+                               <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Nothing</span>
+           <span class="VarId">tl</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span>  <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span> <span class="Keyword">of</span>
+                               <span class="Symbol">(</span><span class="VarId">_</span><span class="Symbol">:</span><span class="VarId">ts</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">ts</span>
+                               <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[]</span>
+
+<span class="ConId">SEM</span> <span class="ConId">JoinExpression</span>
+    <span class="Symbol">|</span> <span class="ConId">JoinOn</span> <span class="VarId">expr</span><span class="Symbol">.</span><span class="VarId">expectedType</span> <span class="Symbol">=</span> <span class="ConId">Just</span> <span class="VarId">typeBool</span>
+
+<span class="ConId">SEM</span> <span class="ConId">MaybeBoolExpression</span>
+    <span class="Symbol">|</span> <span class="ConId">Just</span> <span class="VarId">just</span><span class="Symbol">.</span><span class="VarId">expectedType</span> <span class="Symbol">=</span> <span class="ConId">Just</span> <span class="VarId">typeBool</span>
+
+<span class="ConId">SEM</span> <span class="ConId">MaybeExpression</span>
+    <span class="Symbol">|</span> <span class="ConId">Just</span> <span class="VarId">just</span><span class="Symbol">.</span><span class="VarId">expectedType</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+
+<span class="ConId">SEM</span> <span class="ConId">RowConstraint</span>
+    <span class="Symbol">|</span> <span class="ConId">RowCheckConstraint</span> <span class="VarId">expr</span><span class="Symbol">.</span><span class="VarId">expectedType</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+
+<span class="ConId">SEM</span> <span class="ConId">SelectList</span>
+    <span class="Symbol">|</span> <span class="ConId">SelectList</span> <span class="VarId">into</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+
+
+<span class="ConId">SEM</span> <span class="ConId">SelectItem</span>
+    <span class="Symbol">|</span> <span class="ConId">SelExp</span> <span class="ConId">SelectItem</span> <span class="VarId">ex</span><span class="Symbol">.</span><span class="VarId">expectedType</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+
+<span class="ConId">SEM</span> <span class="ConId">Statement</span>
+    <span class="Symbol">|</span> <span class="ConId">Assignment</span> <span class="VarId">value</span><span class="Symbol">.</span><span class="VarId">expectedType</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+    <span class="Symbol">|</span> <span class="ConId">CaseStatementSimple</span> <span class="VarId">val</span><span class="Symbol">.</span><span class="VarId">expectedType</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+    <span class="Symbol">|</span> <span class="ConId">Execute</span> <span class="ConId">ExecuteInto</span> <span class="ConId">Perform</span> <span class="ConId">ReturnNext</span> <span class="ConId">WhileStatement</span>
+        <span class="VarId">expr</span><span class="Symbol">.</span><span class="VarId">expectedType</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+    <span class="Symbol">|</span> <span class="ConId">ForIntegerStatement</span> <span class="VarId">from</span><span class="Symbol">.</span><span class="VarId">expectedType</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+                          <span class="VarId">to</span><span class="Symbol">.</span><span class="VarId">expectedType</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+    <span class="Symbol">|</span> <span class="ConId">AlterSequence</span> <span class="VarId">ownedBy</span><span class="Symbol">.</span><span class="VarId">expectedType</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+    <span class="Symbol">|</span> <span class="ConId">Assignment</span> <span class="VarId">target</span><span class="Symbol">.</span><span class="VarId">expectedType</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+    <span class="Symbol">|</span> <span class="ConId">ForIntegerStatement</span> <span class="ConId">ForSelectStatement</span> <span class="VarId">var</span><span class="Symbol">.</span><span class="VarId">expectedType</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+<span class="ConId">SEM</span> <span class="ConId">TableRef</span>
+    <span class="Symbol">|</span> <span class="ConId">TrefFun</span> <span class="VarId">fn</span><span class="Symbol">.</span><span class="VarId">expectedType</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+    <span class="Symbol">|</span> <span class="ConId">Tref</span> <span class="VarId">tbl</span><span class="Symbol">.</span><span class="VarId">expectedType</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+
+<span class="ConId">SEM</span> <span class="ConId">ExpressionRoot</span>
+    <span class="Symbol">|</span> <span class="ConId">ExpressionRoot</span> <span class="VarId">expr</span><span class="Symbol">.</span><span class="VarId">expectedType</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+
+<span class="ConId">SEM</span> <span class="ConId">ExpressionStatementListPair</span>
+    <span class="Symbol">|</span> <span class="ConId">Tuple</span> <span class="VarId">x1</span><span class="Symbol">.</span><span class="VarId">expectedType</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+
+<span class="ConId">SEM</span> <span class="ConId">Expression</span>
+    <span class="Symbol">|</span> <span class="ConId">FunCall</span>
+        <span class="VarId">args</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span> <span class="Symbol">=</span> <span class="VarId">maybe</span> <span class="Symbol">[]</span> <span class="VarId">id</span> <span class="Symbol">$</span>
+                             <span class="Comment">-- hack for anonymousrecordtypes</span>
+                             <span class="Keyword">case</span> <span class="Symbol">(@</span><span class="VarId">funName</span><span class="Symbol">,@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">expectedType</span><span class="Symbol">)</span> <span class="Keyword">of</span>
+                               <span class="Symbol">(</span><span class="String">&quot;!rowctor&quot;</span><span class="Symbol">,</span> <span class="ConId">Just</span> <span class="Symbol">(</span><span class="ConId">AnonymousRecordType</span> <span class="VarId">ts</span><span class="Symbol">))</span> <span class="Symbol">-&gt;</span> <span class="VarId">return</span> <span class="Symbol">$</span> <span class="VarId">map</span> <span class="ConId">Just</span> <span class="VarId">ts</span>
+                               <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="Keyword">do</span>
+                                    <span class="Symbol">(</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">t</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">&lt;-</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">prototype</span>
+                                    <span class="VarId">return</span> <span class="Symbol">$</span> <span class="VarId">map</span> <span class="ConId">Just</span> <span class="VarId">t</span>
+    <span class="Symbol">|</span> <span class="ConId">LiftOperator</span>
+        <span class="VarId">args</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+    <span class="Symbol">|</span> <span class="ConId">WindowFn</span>
+        <span class="VarId">partitionBy</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+        <span class="VarId">orderBy</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+
+<span class="ConId">SEM</span> <span class="ConId">ExpressionListStatementListPair</span>
+    <span class="Symbol">|</span> <span class="ConId">Tuple</span> <span class="VarId">x1</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+
+<span class="ConId">SEM</span> <span class="ConId">InList</span>
+    <span class="Symbol">|</span> <span class="ConId">InList</span> <span class="VarId">exprs</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+
+<span class="ConId">SEM</span> <span class="ConId">SelectExpression</span>
+    <span class="Symbol">|</span> <span class="ConId">Select</span> <span class="VarId">selGroupBy</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+
+<span class="ConId">SEM</span> <span class="ConId">Statement</span>
+    <span class="Symbol">|</span> <span class="ConId">CreateTrigger</span> <span class="VarId">fnArgs</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+    <span class="Symbol">|</span> <span class="ConId">Raise</span> <span class="VarId">args</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+    <span class="Symbol">|</span> <span class="ConId">Update</span> <span class="VarId">assigns</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+
+<span class="Comment">-- inferred types in the select expresssion</span>
+
+<span class="ConId">ATTR</span> <span class="ConId">SelectExpression</span> <span class="Symbol">[</span><span class="VarId">expectedTypes</span><span class="Symbol">:</span> <span class="Symbol">{[</span><span class="ConId">Maybe</span> <span class="ConId">Type</span><span class="Symbol">]}||]</span>
+
+<span class="ConId">ATTR</span> <span class="ConId">ExpressionListList</span> <span class="Symbol">[</span><span class="VarId">expectedTypes</span><span class="Symbol">:</span> <span class="Symbol">{[</span><span class="ConId">Maybe</span> <span class="ConId">Type</span><span class="Symbol">]}||]</span>
+
+<span class="ConId">SEM</span> <span class="ConId">SelectExpression</span>
+    <span class="Symbol">|</span> <span class="ConId">Values</span> <span class="VarId">vll</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span>
+
+<span class="ConId">SEM</span> <span class="ConId">ExpressionListList</span>
+    <span class="Symbol">|</span> <span class="ConId">Cons</span> <span class="VarId">hd</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span>
+           <span class="VarId">tl</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span>
+
+<span class="ConId">SEM</span> <span class="ConId">Expression</span>
+    <span class="Symbol">|</span> <span class="ConId">Exists</span> <span class="ConId">ScalarSubQuery</span> <span class="VarId">sel</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+<span class="ConId">SEM</span> <span class="ConId">InList</span>
+    <span class="Symbol">|</span> <span class="ConId">InSelect</span> <span class="VarId">sel</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+<span class="ConId">SEM</span> <span class="ConId">Statement</span>
+    <span class="Symbol">|</span> <span class="ConId">CreateTableAs</span> <span class="ConId">CreateView</span> <span class="VarId">expr</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+    <span class="Symbol">|</span> <span class="ConId">ForSelectStatement</span> <span class="ConId">ReturnQuery</span>
+        <span class="VarId">sel</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+    <span class="Symbol">|</span> <span class="ConId">SelectStatement</span> <span class="VarId">ex</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+<span class="ConId">SEM</span> <span class="ConId">TableRef</span>
+    <span class="Symbol">|</span> <span class="ConId">SubTref</span> <span class="VarId">sel</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+<span class="ConId">SEM</span> <span class="ConId">WithQuery</span>
+    <span class="Symbol">|</span> <span class="ConId">WithQuery</span> <span class="VarId">ex</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+
+
+<span class="ConId">SEM</span> <span class="ConId">Statement</span>
+    <span class="Symbol">|</span> <span class="ConId">Insert</span> <span class="ConId">Update</span> <span class="ConId">Delete</span> <span class="VarId">table</span><span class="Symbol">.</span><span class="VarId">expectedType</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span></pre></div></div></div></div
+    ><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

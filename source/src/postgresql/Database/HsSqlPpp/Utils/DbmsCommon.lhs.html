@@ -1,0 +1,58 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >DbmsCommon</title
+    ><link href="../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >Some simple wrappers around HDBC for the code to use.</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.Utils.DbmsCommon</span>
+    <span class="Symbol">(</span><span class="VarId">withConn</span>
+    <span class="Symbol">,</span><span class="VarId">selectRelation</span>
+    <span class="Symbol">,</span><span class="VarId">runSqlCommand</span>
+    <span class="Symbol">,</span><span class="VarId">withTransaction</span>
+    <span class="Symbol">,</span><span class="ConId">Pg.Connection</span>
+    <span class="Symbol">,</span><span class="ConId">IConnection</span><span class="Symbol">)</span> <span class="Keyword">where</span>
+
+<span class="Keyword">import</span> <span class="Keyword">qualified</span> <span class="ConId">Database.HDBC.PostgreSQL</span> <span class="Keyword">as</span> <span class="ConId">Pg</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HDBC</span>
+<span class="Keyword">import</span> <span class="ConId">Control.Exception</span>
+
+<span class="Function">withConn</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="ConId">Pg.Connection</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="VarId">c</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="VarId">c</span>
+<span class="Function">withConn</span> <span class="VarId">cs</span> <span class="Symbol">=</span> <span class="VarId">bracket</span> <span class="Symbol">(</span><span class="ConId">Pg.</span><span class="VarId">connectPostgreSQL</span> <span class="VarId">cs</span><span class="Symbol">)</span> <span class="VarId">disconnect</span>
+
+<span class="Function">selectRelation</span> <span class="Symbol">::(</span><span class="ConId">IConnection</span> <span class="VarId">conn</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span>
+                 <span class="VarId">conn</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">String</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="Symbol">[[</span><span class="ConId">String</span><span class="Symbol">]]</span>
+<span class="Function">selectRelation</span> <span class="VarId">conn</span> <span class="VarId">query</span> <span class="VarId">args</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+  <span class="VarId">sth</span> <span class="Symbol">&lt;-</span> <span class="VarId">prepare</span> <span class="VarId">conn</span> <span class="VarId">query</span>
+  <span class="VarId">_</span> <span class="Symbol">&lt;-</span> <span class="VarId">execute</span> <span class="VarId">sth</span> <span class="Symbol">$</span> <span class="VarId">map</span> <span class="VarId">sToSql</span> <span class="VarId">args</span>
+  <span class="VarId">v</span> <span class="Symbol">&lt;-</span> <span class="VarId">fetchAllRows'</span> <span class="VarId">sth</span>
+  <span class="VarId">return</span> <span class="Symbol">$</span> <span class="VarId">map</span> <span class="Symbol">(</span><span class="VarId">map</span> <span class="VarId">sqlToS</span><span class="Symbol">)</span> <span class="VarId">v</span>
+
+<span class="Function">runSqlCommand</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">IConnection</span> <span class="VarId">conn</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span>
+          <span class="VarId">conn</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="Symbol">()</span>
+<span class="Function">runSqlCommand</span> <span class="VarId">conn</span> <span class="VarId">query</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+    <span class="VarId">_</span> <span class="Symbol">&lt;-</span> <span class="VarId">run</span> <span class="VarId">conn</span> <span class="VarId">query</span> <span class="Symbol">[]</span>
+    <span class="VarId">commit</span> <span class="VarId">conn</span>
+
+<span class="Function">sToSql</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">SqlValue</span>
+<span class="Function">sToSql</span> <span class="VarId">s</span> <span class="Symbol">=</span> <span class="VarId">toSql</span> <span class="Symbol">(</span><span class="VarId">s</span><span class="Symbol">::</span><span class="ConId">String</span><span class="Symbol">)</span>
+
+<span class="Function">sqlToS</span> <span class="Symbol">::</span> <span class="ConId">SqlValue</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+<span class="Function">sqlToS</span> <span class="Symbol">=</span> <span class="VarId">fromSql</span></pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

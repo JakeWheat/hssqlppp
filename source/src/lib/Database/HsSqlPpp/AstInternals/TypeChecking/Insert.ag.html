@@ -1,0 +1,72 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >Insert</title
+    ><link href="../../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >{-</p
+    ><p
+    >================================================================================</p
+    ><p
+    >= insert</p
+    ><p
+    >check the insert data is the correct type. Doesn't cope with columns with default values at the moment.</p
+    ><p
+    >-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="ConId">SEM</span> <span class="ConId">Statement</span>
+    <span class="Symbol">|</span> <span class="ConId">Insert</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="VarId">either</span> <span class="ConId">Left</span> <span class="Symbol">(</span><span class="VarId">const</span> <span class="Symbol">$</span> <span class="ConId">Right</span> <span class="Symbol">$</span> <span class="ConId">Pseudo</span> <span class="ConId">Void</span><span class="Symbol">)</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">columnTypes</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">statementType</span> <span class="Symbol">=</span> <span class="ConId">Just</span> <span class="Symbol">(</span><span class="VarId">catMaybes</span> <span class="Symbol">$</span> <span class="VarId">getPlaceholderTypes</span> <span class="Symbol">@</span><span class="VarId">insData</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+                                 <span class="Symbol">,@</span><span class="VarId">returning</span><span class="Symbol">.</span><span class="VarId">listType</span><span class="Symbol">)</span>
+        <span class="Comment">-- column types is the name,type list for the columns</span>
+        <span class="Comment">-- mentioned in the select expression being inserted</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">columnTypes</span> <span class="Symbol">:</span> <span class="Symbol">{</span><span class="ConId">Either</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">]</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)]}</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">columnTypes</span> <span class="Symbol">=</span>
+          <span class="Keyword">do</span>
+          <span class="VarId">atts</span> <span class="Symbol">&lt;-</span> <span class="VarId">lmt</span> <span class="Symbol">(</span><span class="VarId">allAtts</span> <span class="Symbol">&lt;$&gt;</span> <span class="Symbol">@</span><span class="VarId">table</span><span class="Symbol">.</span><span class="VarId">tbUType</span><span class="Symbol">)</span>
+          <span class="VarId">pAtts</span> <span class="Symbol">&lt;-</span> <span class="VarId">lmt</span> <span class="Symbol">(</span><span class="VarId">fst</span> <span class="Symbol">&lt;$&gt;</span> <span class="Symbol">@</span><span class="VarId">table</span><span class="Symbol">.</span><span class="VarId">tbUType</span><span class="Symbol">)</span>
+          <span class="VarId">tAtts</span> <span class="Symbol">&lt;-</span> <span class="Keyword">case</span> <span class="Symbol">@</span><span class="VarId">targetCols</span> <span class="Keyword">of</span>
+                        <span class="Symbol">[]</span> <span class="Symbol">-&gt;</span> <span class="VarId">return</span> <span class="VarId">pAtts</span>
+                        <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="VarId">mapM</span> <span class="Symbol">(</span><span class="VarId">lkpA</span> <span class="VarId">atts</span><span class="Symbol">)</span> <span class="Symbol">@</span><span class="VarId">targetCols</span>
+          <span class="VarId">expAtts</span> <span class="Symbol">&lt;-</span> <span class="VarId">lmt</span> <span class="Symbol">@</span><span class="VarId">insData</span><span class="Symbol">.</span><span class="VarId">uType</span>
+          <span class="VarId">checkAssignmentsValid</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">cat</span> <span class="Symbol">(</span><span class="VarId">map</span> <span class="VarId">snd</span> <span class="VarId">expAtts</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="VarId">map</span> <span class="VarId">snd</span> <span class="VarId">tAtts</span><span class="Symbol">)</span>
+          <span class="VarId">return</span> <span class="VarId">tAtts</span>
+          <span class="Keyword">where</span>
+            <span class="VarId">lkpA</span> <span class="Symbol">::</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)]</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">E</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)</span>
+            <span class="VarId">lkpA</span> <span class="VarId">m</span> <span class="VarId">n</span> <span class="Symbol">=</span> <span class="VarId">maybe</span> <span class="Symbol">(</span><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedIdentifier</span> <span class="VarId">n</span><span class="Symbol">])</span>
+                             <span class="Symbol">(\</span><span class="VarId">t</span> <span class="Symbol">-&gt;</span> <span class="ConId">Right</span> <span class="Symbol">(</span><span class="VarId">n</span><span class="Symbol">,</span><span class="VarId">t</span><span class="Symbol">))</span>
+                             <span class="Symbol">$</span> <span class="VarId">lookup</span> <span class="VarId">n</span> <span class="VarId">m</span>
+
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">Insert</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">table</span><span class="Symbol">.</span><span class="VarId">tbAnnotatedTree</span>
+                              <span class="Symbol">@</span><span class="VarId">targetCols</span>
+                              <span class="Symbol">@</span><span class="VarId">insData</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+                              <span class="Symbol">@</span><span class="VarId">returning</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">catUpdates</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+        <span class="VarId">insData</span><span class="Symbol">.</span><span class="VarId">expectedTypes</span> <span class="Symbol">=</span> <span class="VarId">maybe</span> <span class="Symbol">[]</span> <span class="VarId">id</span> <span class="Symbol">$</span> <span class="Keyword">do</span>
+                                <span class="VarId">ts</span> <span class="Symbol">&lt;-</span> <span class="VarId">etmt</span> <span class="Symbol">$</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">columnTypes</span>
+                                <span class="VarId">return</span> <span class="Symbol">$</span> <span class="VarId">map</span> <span class="Symbol">(</span><span class="ConId">Just</span> <span class="Symbol">.</span> <span class="VarId">snd</span><span class="Symbol">)</span> <span class="VarId">ts</span>
+
+        <span class="VarId">returning</span><span class="Symbol">.</span><span class="VarId">lib</span> <span class="Symbol">=</span>
+            <span class="VarId">either</span> <span class="Symbol">(</span><span class="VarId">const</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">lib</span><span class="Symbol">)</span> <span class="VarId">id</span> <span class="Symbol">$</span> <span class="Keyword">do</span>
+              <span class="VarId">atts</span> <span class="Symbol">&lt;-</span> <span class="VarId">lmt</span> <span class="Symbol">(</span><span class="VarId">allAtts</span> <span class="Symbol">&lt;$&gt;</span> <span class="Symbol">@</span><span class="VarId">table</span><span class="Symbol">.</span><span class="VarId">tbUType</span><span class="Symbol">)</span>
+              <span class="VarId">lbUpdate</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">cat</span> <span class="Symbol">(</span><span class="ConId">LBIds</span> <span class="String">&quot;insert target table&quot;</span> <span class="Symbol">(</span><span class="ConId">Just</span> <span class="Symbol">$</span> <span class="VarId">getName</span> <span class="Symbol">@</span><span class="VarId">table</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span><span class="Symbol">)</span> <span class="VarId">atts</span><span class="Symbol">)</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">lib</span>
+</pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

@@ -1,0 +1,248 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >C2HS</title
+    ><link href="../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">--  C-&gt;Haskell Compiler: Marshalling library</span>
+<span class="Symbol">--</span>
+<span class="Comment">--  Copyright (c) [1999...2005] Manuel M T Chakravarty</span>
+<span class="Symbol">--</span>
+<span class="Comment">--  Redistribution and use in source and binary forms, with or without</span>
+<span class="Comment">--  modification, are permitted provided that the following conditions are met:</span>
+<span class="Comment">-- </span>
+<span class="Comment">--  1. Redistributions of source code must retain the above copyright notice,</span>
+<span class="Comment">--     this list of conditions and the following disclaimer. </span>
+<span class="Comment">--  2. Redistributions in binary form must reproduce the above copyright</span>
+<span class="Comment">--     notice, this list of conditions and the following disclaimer in the</span>
+<span class="Comment">--     documentation and/or other materials provided with the distribution. </span>
+<span class="Comment">--  3. The name of the author may not be used to endorse or promote products</span>
+<span class="Comment">--     derived from this software without specific prior written permission. </span>
+<span class="Symbol">--</span>
+<span class="Comment">--  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR</span>
+<span class="Comment">--  IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES</span>
+<span class="Comment">--  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN</span>
+<span class="Comment">--  NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, </span>
+<span class="Comment">--  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED</span>
+<span class="Comment">--  TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR</span>
+<span class="Comment">--  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF</span>
+<span class="Comment">--  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING</span>
+<span class="Comment">--  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS</span>
+<span class="Comment">--  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</span>
+<span class="Symbol">--</span>
+<span class="Comment">--- Description ---------------------------------------------------------------</span>
+<span class="Symbol">--</span>
+<span class="Comment">--  Language: Haskell 98</span>
+<span class="Symbol">--</span>
+<span class="Comment">--  This module provides the marshaling routines for Haskell files produced by </span>
+<span class="Comment">--  C-&gt;Haskell for binding to C library interfaces.  It exports all of the</span>
+<span class="Comment">--  low-level FFI (language-independent plus the C-specific parts) together</span>
+<span class="Comment">--  with the C-&gt;HS-specific higher-level marshalling routines.</span>
+<span class="Symbol">--</span>
+
+<span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.Utils.C2HS</span> <span class="Symbol">(</span>
+
+  <span class="Comment">-- * Re-export the language-independent component of the FFI </span>
+  <span class="Keyword">module</span> <span class="ConId">Foreign</span><span class="Symbol">,</span>
+
+  <span class="Comment">-- * Re-export the C language component of the FFI</span>
+  <span class="Keyword">module</span> <span class="ConId">Foreign.C</span><span class="Symbol">,</span>
+
+  <span class="Comment">-- * Composite marshalling functions</span>
+  <span class="VarId">withCStringLenIntConv</span><span class="Symbol">,</span> <span class="VarId">peekCStringLenIntConv</span><span class="Symbol">,</span> <span class="VarId">withIntConv</span><span class="Symbol">,</span> <span class="VarId">withFloatConv</span><span class="Symbol">,</span>
+  <span class="VarId">peekIntConv</span><span class="Symbol">,</span> <span class="VarId">peekFloatConv</span><span class="Symbol">,</span> <span class="VarId">withBool</span><span class="Symbol">,</span> <span class="VarId">peekBool</span><span class="Symbol">,</span> <span class="VarId">withEnum</span><span class="Symbol">,</span> <span class="VarId">peekEnum</span><span class="Symbol">,</span>
+
+  <span class="Comment">-- * Conditional results using 'Maybe'</span>
+  <span class="VarId">nothingIf</span><span class="Symbol">,</span> <span class="VarId">nothingIfNull</span><span class="Symbol">,</span>
+
+  <span class="Comment">-- * Bit masks</span>
+  <span class="VarId">combineBitMasks</span><span class="Symbol">,</span> <span class="VarId">containsBitMask</span><span class="Symbol">,</span> <span class="VarId">extractBitMasks</span><span class="Symbol">,</span>
+
+  <span class="Comment">-- * Conversion between C and Haskell types</span>
+  <span class="VarId">cIntConv</span><span class="Symbol">,</span> <span class="VarId">cFloatConv</span><span class="Symbol">,</span> <span class="VarId">cToBool</span><span class="Symbol">,</span> <span class="VarId">cFromBool</span><span class="Symbol">,</span> <span class="VarId">cToEnum</span><span class="Symbol">,</span> <span class="VarId">cFromEnum</span>
+<span class="Symbol">)</span> <span class="Keyword">where</span> 
+
+
+<span class="Keyword">import</span> <span class="ConId">Foreign</span>
+       <span class="Keyword">hiding</span>       <span class="Symbol">(</span><span class="ConId">Word</span><span class="Symbol">)</span>
+		    <span class="Comment">-- Should also hide the Foreign.Marshal.Pool exports in</span>
+		    <span class="Comment">-- compilers that export them</span>
+<span class="Keyword">import</span> <span class="ConId">Foreign.C</span>
+
+<span class="Keyword">import</span> <span class="ConId">Control.Monad</span>        <span class="Symbol">(</span></pre></div></div></div><p
+    >{-when,-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"> <span class="VarId">liftM</span><span class="Symbol">)</span>
+
+
+<span class="Comment">-- Composite marshalling functions</span>
+<span class="Comment">-- -------------------------------</span>
+
+<span class="Comment">-- Strings with explicit length</span>
+<span class="Symbol">--</span>
+<span class="Function">withCStringLenIntConv</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Integral</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span>
+                         <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="Symbol">((</span><span class="ConId">Ptr</span> <span class="ConId">CChar</span><span class="Symbol">,</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="VarId">a</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="VarId">a</span>
+<span class="Function">withCStringLenIntConv</span> <span class="VarId">s</span> <span class="VarId">f</span>    <span class="Symbol">=</span> <span class="VarId">withCStringLen</span> <span class="VarId">s</span> <span class="Symbol">$</span> <span class="Symbol">\(</span><span class="VarId">p</span><span class="Symbol">,</span> <span class="VarId">n</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">f</span> <span class="Symbol">(</span><span class="VarId">p</span><span class="Symbol">,</span> <span class="VarId">cIntConv</span> <span class="VarId">n</span><span class="Symbol">)</span>
+<span class="Function">peekCStringLenIntConv</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Integral</span> <span class="VarId">t</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span>
+                         <span class="Symbol">(</span><span class="ConId">Ptr</span> <span class="ConId">CChar</span><span class="Symbol">,</span> <span class="VarId">t</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="ConId">String</span>
+<span class="Function">peekCStringLenIntConv</span> <span class="Symbol">(</span><span class="VarId">s</span><span class="Symbol">,</span> <span class="VarId">n</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">peekCStringLen</span> <span class="Symbol">(</span><span class="VarId">s</span><span class="Symbol">,</span> <span class="VarId">cIntConv</span> <span class="VarId">n</span><span class="Symbol">)</span>
+
+<span class="Comment">-- Marshalling of numerals</span>
+<span class="Symbol">--</span>
+
+<span class="Function">withIntConv</span>   <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Storable</span> <span class="VarId">b</span><span class="Symbol">,</span> <span class="ConId">Integral</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="ConId">Integral</span> <span class="VarId">b</span><span class="Symbol">)</span> 
+	      <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="ConId">Ptr</span> <span class="VarId">b</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="VarId">c</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="VarId">c</span>
+<span class="Function">withIntConv</span>    <span class="Symbol">=</span> <span class="VarId">with</span> <span class="Symbol">.</span> <span class="VarId">cIntConv</span>
+
+<span class="Function">withFloatConv</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Storable</span> <span class="VarId">b</span><span class="Symbol">,</span> <span class="ConId">RealFloat</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="ConId">RealFloat</span> <span class="VarId">b</span><span class="Symbol">)</span> 
+	      <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="ConId">Ptr</span> <span class="VarId">b</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="VarId">c</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="VarId">c</span>
+<span class="Function">withFloatConv</span>  <span class="Symbol">=</span> <span class="VarId">with</span> <span class="Symbol">.</span> <span class="VarId">cFloatConv</span>
+
+<span class="Function">peekIntConv</span>   <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Storable</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="ConId">Integral</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="ConId">Integral</span> <span class="VarId">b</span><span class="Symbol">)</span> 
+	      <span class="Symbol">=&gt;</span> <span class="ConId">Ptr</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="VarId">b</span>
+<span class="Function">peekIntConv</span>    <span class="Symbol">=</span> <span class="VarId">liftM</span> <span class="VarId">cIntConv</span> <span class="Symbol">.</span> <span class="VarId">peek</span>
+
+<span class="Function">peekFloatConv</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Storable</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="ConId">RealFloat</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="ConId">RealFloat</span> <span class="VarId">b</span><span class="Symbol">)</span> 
+	      <span class="Symbol">=&gt;</span> <span class="ConId">Ptr</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="VarId">b</span>
+<span class="Function">peekFloatConv</span>  <span class="Symbol">=</span> <span class="VarId">liftM</span> <span class="VarId">cFloatConv</span> <span class="Symbol">.</span> <span class="VarId">peek</span>
+
+<span class="Comment">-- Passing Booleans by reference</span>
+<span class="Symbol">--</span>
+
+<span class="Function">withBool</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Integral</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="ConId">Storable</span> <span class="VarId">a</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span> <span class="ConId">Bool</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="ConId">Ptr</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="VarId">b</span>
+<span class="Function">withBool</span>  <span class="Symbol">=</span> <span class="VarId">with</span> <span class="Symbol">.</span> <span class="VarId">fromBool</span>
+
+<span class="Function">peekBool</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Integral</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="ConId">Storable</span> <span class="VarId">a</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span> <span class="ConId">Ptr</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="ConId">Bool</span>
+<span class="Function">peekBool</span>  <span class="Symbol">=</span> <span class="VarId">liftM</span> <span class="VarId">toBool</span> <span class="Symbol">.</span> <span class="VarId">peek</span>
+
+
+<span class="Comment">-- Passing enums by reference</span>
+<span class="Symbol">--</span>
+
+<span class="Function">withEnum</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Enum</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="ConId">Integral</span> <span class="VarId">b</span><span class="Symbol">,</span> <span class="ConId">Storable</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="ConId">Ptr</span> <span class="VarId">b</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="VarId">c</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="VarId">c</span>
+<span class="Function">withEnum</span>  <span class="Symbol">=</span> <span class="VarId">with</span> <span class="Symbol">.</span> <span class="VarId">cFromEnum</span>
+
+<span class="Function">peekEnum</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Enum</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="ConId">Integral</span> <span class="VarId">b</span><span class="Symbol">,</span> <span class="ConId">Storable</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span> <span class="ConId">Ptr</span> <span class="VarId">b</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="VarId">a</span>
+<span class="Function">peekEnum</span>  <span class="Symbol">=</span> <span class="VarId">liftM</span> <span class="VarId">cToEnum</span> <span class="Symbol">.</span> <span class="VarId">peek</span>
+
+
+<span class="Comment">-- Storing of 'Maybe' values</span>
+<span class="Comment">-- -------------------------</span>
+
+<span class="Keyword">instance</span> <span class="ConId">Storable</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="ConId">Storable</span> <span class="Symbol">(</span><span class="ConId">Maybe</span> <span class="VarId">a</span><span class="Symbol">)</span> <span class="Keyword">where</span>
+  <span class="VarId">sizeOf</span>    <span class="VarId">_</span> <span class="Symbol">=</span> <span class="VarId">sizeOf</span>    <span class="Symbol">(</span><span class="VarId">undefined</span> <span class="Symbol">::</span> <span class="ConId">Ptr</span> <span class="Symbol">())</span>
+  <span class="VarId">alignment</span> <span class="VarId">_</span> <span class="Symbol">=</span> <span class="VarId">alignment</span> <span class="Symbol">(</span><span class="VarId">undefined</span> <span class="Symbol">::</span> <span class="ConId">Ptr</span> <span class="Symbol">())</span>
+
+  <span class="VarId">peek</span> <span class="VarId">p</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+	     <span class="VarId">ptr</span> <span class="Symbol">&lt;-</span> <span class="VarId">peek</span> <span class="Symbol">(</span><span class="VarId">castPtr</span> <span class="VarId">p</span><span class="Symbol">)</span>
+	     <span class="Keyword">if</span> <span class="VarId">ptr</span> <span class="Symbol">==</span> <span class="VarId">nullPtr</span>
+	       <span class="Keyword">then</span> <span class="VarId">return</span> <span class="ConId">Nothing</span>
+	       <span class="Keyword">else</span> <span class="VarId">liftM</span> <span class="ConId">Just</span> <span class="Symbol">$</span> <span class="VarId">peek</span> <span class="VarId">ptr</span>
+
+  <span class="VarId">poke</span> <span class="VarId">p</span> <span class="VarId">v</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+	       <span class="VarId">ptr</span> <span class="Symbol">&lt;-</span> <span class="Keyword">case</span> <span class="VarId">v</span> <span class="Keyword">of</span>
+		        <span class="ConId">Nothing</span> <span class="Symbol">-&gt;</span> <span class="VarId">return</span> <span class="VarId">nullPtr</span>
+			<span class="ConId">Just</span> <span class="VarId">v'</span> <span class="Symbol">-&gt;</span> <span class="VarId">new</span> <span class="VarId">v'</span>
+               <span class="VarId">poke</span> <span class="Symbol">(</span><span class="VarId">castPtr</span> <span class="VarId">p</span><span class="Symbol">)</span> <span class="VarId">ptr</span>
+
+
+<span class="Comment">-- Conditional results using 'Maybe'</span>
+<span class="Comment">-- ---------------------------------</span>
+
+<span class="Comment">-- Wrap the result into a 'Maybe' type.</span>
+<span class="Symbol">--</span>
+<span class="Comment">-- * the predicate determines when the result is considered to be non-existing,</span>
+<span class="Comment">--   ie, it is represented by `Nothing'</span>
+<span class="Symbol">--</span>
+<span class="Comment">-- * the second argument allows to map a result wrapped into `Just' to some</span>
+<span class="Comment">--   other domain</span>
+<span class="Symbol">--</span>
+<span class="Function">nothingIf</span>       <span class="Symbol">::</span> <span class="Symbol">(</span><span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="ConId">Bool</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="VarId">b</span>
+<span class="Function">nothingIf</span> <span class="VarId">p</span> <span class="VarId">f</span> <span class="VarId">x</span>  <span class="Symbol">=</span> <span class="Keyword">if</span> <span class="VarId">p</span> <span class="VarId">x</span> <span class="Keyword">then</span> <span class="ConId">Nothing</span> <span class="Keyword">else</span> <span class="ConId">Just</span> <span class="Symbol">$</span> <span class="VarId">f</span> <span class="VarId">x</span>
+
+<span class="Comment">-- |Instance for special casing null pointers.</span>
+<span class="Symbol">--</span>
+<span class="Function">nothingIfNull</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Ptr</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="ConId">Ptr</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="VarId">b</span>
+<span class="Function">nothingIfNull</span>  <span class="Symbol">=</span> <span class="VarId">nothingIf</span> <span class="Symbol">(==</span> <span class="VarId">nullPtr</span><span class="Symbol">)</span>
+
+
+<span class="Comment">-- Support for bit masks</span>
+<span class="Comment">-- ---------------------</span>
+
+<span class="Comment">-- Given a list of enumeration values that represent bit masks, combine these</span>
+<span class="Comment">-- masks using bitwise disjunction.</span>
+<span class="Symbol">--</span>
+<span class="Function">combineBitMasks</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Enum</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="ConId">Bits</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span> <span class="Symbol">[</span><span class="VarId">a</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="VarId">b</span>
+<span class="Function">combineBitMasks</span> <span class="Symbol">=</span> <span class="VarId">foldl</span> <span class="Symbol">(.|.)</span> <span class="Number">0</span> <span class="Symbol">.</span> <span class="VarId">map</span> <span class="Symbol">(</span><span class="VarId">fromIntegral</span> <span class="Symbol">.</span> <span class="VarId">fromEnum</span><span class="Symbol">)</span>
+
+<span class="Comment">-- Tests whether the given bit mask is contained in the given bit pattern</span>
+<span class="Comment">-- (i.e., all bits set in the mask are also set in the pattern).</span>
+<span class="Symbol">--</span>
+<span class="Function">containsBitMask</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Bits</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="ConId">Enum</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">b</span> <span class="Symbol">-&gt;</span> <span class="ConId">Bool</span>
+<span class="Function">bits</span> <span class="Symbol">`</span><span class="VarId">containsBitMask</span><span class="Symbol">`</span> <span class="VarId">bm</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="VarId">bm'</span> <span class="Symbol">=</span> <span class="VarId">fromIntegral</span> <span class="Symbol">.</span> <span class="VarId">fromEnum</span> <span class="Symbol">$</span> <span class="VarId">bm</span>
+			    <span class="Keyword">in</span>
+			    <span class="VarId">bm'</span> <span class="Symbol">.&amp;.</span> <span class="VarId">bits</span> <span class="Symbol">==</span> <span class="VarId">bm'</span>
+
+<span class="Comment">-- |Given a bit pattern, yield all bit masks that it contains.</span>
+<span class="Symbol">--</span>
+<span class="Comment">-- * This does *not* attempt to compute a minimal set of bit masks that when</span>
+<span class="Comment">--   combined yield the bit pattern, instead all contained bit masks are</span>
+<span class="Comment">--   produced.</span>
+<span class="Symbol">--</span>
+<span class="Function">extractBitMasks</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Bits</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="ConId">Enum</span> <span class="VarId">b</span><span class="Symbol">,</span> <span class="ConId">Bounded</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="VarId">b</span><span class="Symbol">]</span>
+<span class="Function">extractBitMasks</span> <span class="VarId">bits</span> <span class="Symbol">=</span> 
+  <span class="Symbol">[</span><span class="VarId">bm</span> <span class="Symbol">|</span> <span class="VarId">bm</span> <span class="Symbol">&lt;-</span> <span class="Symbol">[</span><span class="VarId">minBound</span><span class="Symbol">..</span><span class="VarId">maxBound</span><span class="Symbol">],</span> <span class="VarId">bits</span> <span class="Symbol">`</span><span class="VarId">containsBitMask</span><span class="Symbol">`</span> <span class="VarId">bm</span><span class="Symbol">]</span>
+
+
+<span class="Comment">-- Conversion routines</span>
+<span class="Comment">-- -------------------</span>
+
+<span class="Comment">-- |Integral conversion</span>
+<span class="Symbol">--</span>
+<span class="Function">cIntConv</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Integral</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="ConId">Integral</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">b</span>
+<span class="Function">cIntConv</span>  <span class="Symbol">=</span> <span class="VarId">fromIntegral</span>
+
+<span class="Comment">-- |Floating conversion</span>
+<span class="Symbol">--</span>
+<span class="Function">cFloatConv</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">RealFloat</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="ConId">RealFloat</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">b</span>
+<span class="Function">cFloatConv</span>  <span class="Symbol">=</span> <span class="VarId">realToFrac</span>
+<span class="Comment">-- As this conversion by default goes via `Rational', it can be very slow...</span>
+</pre></div></div></div><p
+    >{-# RULES &quot;cFloatConv/Float-&gt;Float&quot; forall (x::Float). cFloatConv x = x; &quot;cFloatConv/Double-&gt;Double&quot; forall (x::Double). cFloatConv x = x #-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="Comment">-- |Obtain C value from Haskell 'Bool'.</span>
+<span class="Symbol">--</span>
+<span class="Function">cFromBool</span> <span class="Symbol">::</span> <span class="ConId">Num</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="ConId">Bool</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
+<span class="Function">cFromBool</span>  <span class="Symbol">=</span> <span class="VarId">fromBool</span>
+
+<span class="Comment">-- |Obtain Haskell 'Bool' from C value.</span>
+<span class="Symbol">--</span>
+<span class="Function">cToBool</span> <span class="Symbol">::</span> <span class="ConId">Num</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="ConId">Bool</span>
+<span class="Function">cToBool</span>  <span class="Symbol">=</span> <span class="VarId">toBool</span>
+
+<span class="Comment">-- |Convert a C enumeration to Haskell.</span>
+<span class="Symbol">--</span>
+<span class="Function">cToEnum</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Integral</span> <span class="VarId">i</span><span class="Symbol">,</span> <span class="ConId">Enum</span> <span class="VarId">e</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span> <span class="VarId">i</span> <span class="Symbol">-&gt;</span> <span class="VarId">e</span>
+<span class="Function">cToEnum</span>  <span class="Symbol">=</span> <span class="VarId">toEnum</span> <span class="Symbol">.</span> <span class="VarId">cIntConv</span>
+
+<span class="Comment">-- |Convert a Haskell enumeration to C.</span>
+<span class="Symbol">--</span>
+<span class="Function">cFromEnum</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Enum</span> <span class="VarId">e</span><span class="Symbol">,</span> <span class="ConId">Integral</span> <span class="VarId">i</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span> <span class="VarId">e</span> <span class="Symbol">-&gt;</span> <span class="VarId">i</span>
+<span class="Function">cFromEnum</span>  <span class="Symbol">=</span> <span class="VarId">cIntConv</span> <span class="Symbol">.</span> <span class="VarId">fromEnum</span>
+</pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

@@ -1,0 +1,62 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >Drops</title
+    ><link href="../../../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >{-</p
+    ><p
+    >This file contains the code for drop statements, only does drop function at the moment</p
+    ><p
+    >-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="ConId">SEM</span> <span class="ConId">Statement</span>
+    <span class="Symbol">|</span> <span class="ConId">DropFunction</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="ConId">Right</span> <span class="Symbol">$</span> <span class="ConId">Pseudo</span> <span class="ConId">Void</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">DropFunction</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">ifE</span> <span class="Symbol">@</span><span class="VarId">sigs</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Symbol">@</span><span class="VarId">cascade</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">catUpdates</span> <span class="Symbol">=</span>
+            <span class="VarId">either</span> <span class="Symbol">(</span><span class="VarId">const</span> <span class="Symbol">[])</span> <span class="VarId">id</span> <span class="Symbol">$</span>
+            <span class="ConId">Right</span> <span class="Symbol">$</span> <span class="VarId">map</span> <span class="VarId">mcu</span> <span class="Symbol">$</span> <span class="VarId">mapMaybe</span> <span class="VarId">goodSig</span> <span class="Symbol">@</span><span class="VarId">sigs</span><span class="Symbol">.</span><span class="VarId">fnSigs</span>
+            <span class="Keyword">where</span>
+              <span class="VarId">mcu</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">Type</span><span class="Symbol">])</span> <span class="Symbol">-&gt;</span> <span class="ConId">CatalogUpdate</span>
+              <span class="VarId">mcu</span> <span class="Symbol">(</span><span class="VarId">nm</span><span class="Symbol">,</span><span class="VarId">args</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="ConId">CatDropFunction</span> <span class="VarId">ifE</span> <span class="VarId">nm</span> <span class="VarId">args</span>
+              <span class="VarId">ifE</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">ifE</span> <span class="Symbol">==</span> <span class="ConId">IfExists</span>
+              <span class="VarId">goodSig</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">Maybe</span> <span class="ConId">Type</span><span class="Symbol">])</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">Type</span><span class="Symbol">])</span>
+              <span class="VarId">goodSig</span> <span class="Symbol">(</span><span class="VarId">s</span><span class="Symbol">,</span> <span class="VarId">ts</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+                            <span class="VarId">ts1</span> <span class="Symbol">&lt;-</span> <span class="VarId">sequence</span> <span class="VarId">ts</span>
+                            <span class="VarId">return</span> <span class="Symbol">(</span><span class="VarId">s</span><span class="Symbol">,</span><span class="VarId">ts1</span><span class="Symbol">)</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">statementType</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+
+<span class="ConId">ATTR</span> <span class="ConId">StringTypeNameListPairList</span> <span class="Symbol">[||</span><span class="VarId">fnSigs</span><span class="Symbol">:{[(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">Maybe</span> <span class="ConId">Type</span><span class="Symbol">])]}]</span>
+<span class="ConId">SEM</span> <span class="ConId">StringTypeNameListPairList</span>
+    <span class="Symbol">|</span> <span class="ConId">Cons</span> <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">fnSigs</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">hd</span><span class="Symbol">.</span><span class="VarId">fnSig</span> <span class="Symbol">:</span> <span class="Symbol">@</span><span class="VarId">tl</span><span class="Symbol">.</span><span class="VarId">fnSigs</span>
+    <span class="Symbol">|</span> <span class="ConId">Nil</span> <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">fnSigs</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+
+<span class="ConId">ATTR</span> <span class="ConId">StringTypeNameListPair</span> <span class="Symbol">[||</span><span class="VarId">fnSig</span><span class="Symbol">:{(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">Maybe</span> <span class="ConId">Type</span><span class="Symbol">])}]</span>
+<span class="ConId">SEM</span> <span class="ConId">StringTypeNameListPair</span>
+    <span class="Symbol">|</span> <span class="ConId">Tuple</span> <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">fnSig</span> <span class="Symbol">=</span> <span class="Symbol">(@</span><span class="VarId">x1</span><span class="Symbol">,</span> <span class="Symbol">@</span><span class="VarId">x2</span><span class="Symbol">.</span><span class="VarId">namedTypes</span><span class="Symbol">)</span>
+
+<span class="ConId">ATTR</span> <span class="ConId">TypeNameList</span> <span class="Symbol">[||</span><span class="VarId">namedTypes</span><span class="Symbol">:{[</span><span class="ConId">Maybe</span> <span class="ConId">Type</span><span class="Symbol">]}]</span>
+
+<span class="ConId">SEM</span> <span class="ConId">TypeNameList</span>
+    <span class="Symbol">|</span> <span class="ConId">Cons</span> <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">namedTypes</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">hd</span><span class="Symbol">.</span><span class="VarId">namedType</span> <span class="Symbol">:</span> <span class="Symbol">@</span><span class="VarId">tl</span><span class="Symbol">.</span><span class="VarId">namedTypes</span>
+    <span class="Symbol">|</span> <span class="ConId">Nil</span> <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">namedTypes</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+</pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

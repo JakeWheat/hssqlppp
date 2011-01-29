@@ -1,0 +1,663 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >TypeConversion</title
+    ><link href="../../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >This file contains the functions for resolving types and function/operator resolution. See the pg manual chapter 10:</p
+    ><p
+    >http://www.postgresql.org/docs/8.4/interactive/typeconv.html</p
+    ><p
+    >This code is really spaghettified.</p
+    ><p
+    >findCallMatch - pass in a name and a list of arguments, and it returns the matching function. (pg manual 10.2,10.3)</p
+    ><p
+    >resolveResultSetType - pass in a set of types, and it tries to find the common type they can all be cast to. (pg manual 10.5)</p
+    ><p
+    >checkAssignmentValid - pass in source type and target type, returns typelist[] if ok, otherwise error, pg manual 10.4 Value Storage</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">{-# LANGUAGE PatternGuards #-}</span>
+<span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion</span> <span class="Symbol">(</span>
+                       <span class="VarId">findCallMatch</span>
+                      <span class="Symbol">,</span><span class="VarId">resolveResultSetType</span>
+                      <span class="Symbol">,</span><span class="VarId">checkAssignmentValid</span>
+                      <span class="Symbol">,</span><span class="VarId">checkAssignmentsValid</span>
+                      <span class="Symbol">)</span> <span class="Keyword">where</span>
+
+<span class="Keyword">import</span> <span class="ConId">Data.Maybe</span>
+<span class="Keyword">import</span> <span class="ConId">Data.List</span>
+<span class="Keyword">import</span> <span class="ConId">Data.Either</span>
+<span class="Comment">--import Debug.Trace</span>
+<span class="Keyword">import</span> <span class="ConId">Data.Char</span>
+
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.AstInternals.TypeType</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Utils.Utils</span></pre></div></div></div><blockquote
+    ><p
+      >traceIt :: Show a =&gt; String -&gt; a -&gt; a traceIt s t = trace (s ++ &quot;: &quot; ++ show t) t</p
+      ></blockquote
+    ><p
+    >= findCallMatch</p
+    ><pre
+    ><code
+      ><br
+	 />findCallMatch - partially implements the type conversion rules for
+finding an operator or function match given a name and list of
+arguments with partial or fully specified types
+
+TODO:, qualifiers
+namespaces
+function style casts not in catalog
+variadic args
+default args
+domains -&gt; base type
+what about aggregates and window functions?
+
+Algo:
+
+cands = all fns with matching names
+        and same number of args
+
+if exact match on types in this list, use it
+  (if binary operator being matched, and one arg is typed and one is
+  unknown, also match an operator by assuming the unknown is the same
+  as the typed arg)
+
+best match part:
+
+filter cands with args which don't exactly match input args, and input
+args cannot be converted by an implicit cast. unknowns count as
+matching anything
+if one left: use it
+
+filter for preferred types:
+
+for each cand, count each arg at each position which needs conversion,
+and the cand type is a preferred type at that position.
+if there are cands with count&gt;0, keep only cands with the max count,
+if one return it
+if there are no cands with count&gt;0, keep them all
+
+check unknowns:
+if any input args are unknown, and any cand accepts string at that
+position, fix that arg's category as string, otherwise if all cands
+accept same category at that position, fix that input args as that
+category.
+if we still have unknowns, then fail
+
+discard cands which don't match the new input arg/category list
+
+for each categorised input arg, if any cand accepts preferred type at
+that position, get rid of cands which don't accept preferred type at
+that position
+
+if one left: use
+else fail
+
+polymorphic matching:
+want to create a set of matches to insert into the cast pairs list
+so:
+
+find all matches on name, num args and have polymorphic parameters
+
+for each one, check the polymorphic categories - eliminate fns that
+have params in wrong category - array, non array, enum.
+work out the base types for the polymorphic args at each spot based on
+the args passed - so each arg is unchanged except arrays which have
+the array part stripped off
+
+now we have a list of types to match against the polymorphic params,
+use resolveResultSetType to see if we can produce a match, if so,
+create a new prototype which is the same as the polymorphic function
+but with this matching arg swapped in, work out the casts and add it
+into cand cast pairs, after exact match has been run.
+
+
+findCallMatch is a bit of a mess
+
+todos:
+
+rewrite this to try to make it a bit clearer
+
+find some way to draw a data flow diagram of the code easily
+
+add a logging facility so the function can explain what has happened
+at each state, so you can provide a detailed explanation e.g. if the
+code can't find an operator match to see what it has tried to match
+against.
+</code
+      ></pre
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">type</span> <span class="ConId">ProtArgCast</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="ConId">FunctionPrototype</span><span class="Symbol">,</span> <span class="Symbol">[</span><span class="ConId">ArgCastFlavour</span><span class="Symbol">])</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">      <span class="Comment">{-</span>
+<span class="Comment">        between, greatest and least are treated as syntactic sugar so we</span>
+<span class="Comment">        delegate the function lookups to the &lt;=/&gt;= operators.</span>
+<span class="Comment">        the row comparison should be more general than this, since it supports</span>
+<span class="Comment">        any operator satisfying some properties</span>
+<span class="Comment">-}</span>
+<span class="Function">findCallMatch</span> <span class="Symbol">::</span> <span class="ConId">Catalog</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Type</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span>  <span class="ConId">Either</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">]</span> <span class="ConId">FunctionPrototype</span>
+<span class="Function">findCallMatch</span> <span class="VarId">cat</span> <span class="VarId">fnName'</span> <span class="VarId">argsType</span> <span class="Symbol">=</span>
+    <span class="Comment">--trace (&quot;typecheckfncall &quot; ++ fnName' ++ show argsType) $</span>
+    <span class="Comment">--dependsOnRTpe argsType $</span>
+      <span class="Keyword">case</span> <span class="VarId">fnName</span> <span class="Keyword">of</span>
+              <span class="String">&quot;count&quot;</span> <span class="Symbol">-&gt;</span> <span class="Comment">-- not quite sure how this is suppose to work,</span>
+                         <span class="Comment">-- the counts in the pg catalog accept either</span>
+                         <span class="Comment">-- no args, or one arg of type any, but you can call</span>
+                         <span class="Comment">-- count with multiple arguments?</span>
+                         <span class="VarId">return</span> <span class="Symbol">(</span><span class="String">&quot;count&quot;</span><span class="Symbol">,</span> <span class="VarId">argsType</span><span class="Symbol">,</span> <span class="VarId">typeBigInt</span><span class="Symbol">,</span> <span class="ConId">False</span><span class="Symbol">)</span>
+              <span class="String">&quot;!between&quot;</span> <span class="Symbol">-&gt;</span> <span class="Keyword">do</span>
+                    <span class="VarId">f1</span> <span class="Symbol">&lt;-</span> <span class="VarId">lookupReturnType</span> <span class="String">&quot;&gt;=&quot;</span> <span class="Symbol">[</span><span class="VarId">argsType</span> <span class="Symbol">!!</span> <span class="Number">0</span><span class="Symbol">,</span> <span class="VarId">argsType</span> <span class="Symbol">!!</span> <span class="Number">1</span><span class="Symbol">]</span>
+                    <span class="VarId">f2</span> <span class="Symbol">&lt;-</span> <span class="VarId">lookupReturnType</span> <span class="String">&quot;&lt;=&quot;</span> <span class="Symbol">[</span><span class="VarId">argsType</span> <span class="Symbol">!!</span> <span class="Number">0</span><span class="Symbol">,</span> <span class="VarId">argsType</span> <span class="Symbol">!!</span> <span class="Number">2</span><span class="Symbol">]</span>
+                    <span class="VarId">_</span> <span class="Symbol">&lt;-</span> <span class="VarId">lookupFn</span> <span class="String">&quot;!and&quot;</span> <span class="Symbol">[</span><span class="VarId">f1</span><span class="Symbol">,</span><span class="VarId">f2</span><span class="Symbol">]</span>
+                    <span class="VarId">return</span> <span class="Symbol">(</span><span class="String">&quot;!between&quot;</span><span class="Symbol">,</span> <span class="Symbol">[</span><span class="VarId">f1</span><span class="Symbol">,</span><span class="VarId">f1</span><span class="Symbol">,</span><span class="VarId">f1</span><span class="Symbol">],</span> <span class="VarId">typeBool</span><span class="Symbol">,</span> <span class="ConId">False</span><span class="Symbol">)</span>
+              <span class="String">&quot;greatest&quot;</span> <span class="Symbol">-&gt;</span> <span class="Keyword">do</span>
+                    <span class="Symbol">(</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">a</span><span class="Symbol">,</span><span class="VarId">t</span><span class="Symbol">,</span><span class="VarId">x</span><span class="Symbol">)</span> <span class="Symbol">&lt;-</span> <span class="VarId">lookupFn</span> <span class="VarId">fnName</span> <span class="VarId">argsType</span>
+                    <span class="VarId">_</span> <span class="Symbol">&lt;-</span> <span class="VarId">lookupFn</span> <span class="String">&quot;&gt;=&quot;</span> <span class="Symbol">[</span><span class="VarId">t</span><span class="Symbol">,</span><span class="VarId">t</span><span class="Symbol">]</span>
+                    <span class="VarId">return</span> <span class="Symbol">(</span><span class="String">&quot;greatest&quot;</span><span class="Symbol">,</span><span class="VarId">a</span><span class="Symbol">,</span><span class="VarId">t</span><span class="Symbol">,</span><span class="VarId">x</span><span class="Symbol">)</span>
+              <span class="String">&quot;least&quot;</span> <span class="Symbol">-&gt;</span> <span class="Keyword">do</span>
+                    <span class="Symbol">(</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">a</span><span class="Symbol">,</span><span class="VarId">t</span><span class="Symbol">,</span><span class="VarId">x</span><span class="Symbol">)</span> <span class="Symbol">&lt;-</span> <span class="VarId">lookupFn</span> <span class="VarId">fnName</span> <span class="VarId">argsType</span>
+                    <span class="VarId">_</span> <span class="Symbol">&lt;-</span> <span class="VarId">lookupFn</span> <span class="String">&quot;&lt;=&quot;</span> <span class="Symbol">[</span><span class="VarId">t</span><span class="Symbol">,</span><span class="VarId">t</span><span class="Symbol">]</span>
+                    <span class="VarId">return</span> <span class="Symbol">(</span><span class="String">&quot;greatest&quot;</span><span class="Symbol">,</span><span class="VarId">a</span><span class="Symbol">,</span><span class="VarId">t</span><span class="Symbol">,</span><span class="VarId">x</span><span class="Symbol">)</span>
+              <span class="String">&quot;!rowctor&quot;</span> <span class="Symbol">-&gt;</span> <span class="VarId">return</span> <span class="Symbol">(</span><span class="String">&quot;!rowCtor&quot;</span><span class="Symbol">,</span> <span class="VarId">argsType</span><span class="Symbol">,</span> <span class="ConId">AnonymousRecordType</span> <span class="VarId">argsType</span><span class="Symbol">,</span> <span class="ConId">False</span><span class="Symbol">)</span>
+                    <span class="Comment">-- special case the row comparison ops</span>
+                    <span class="Comment">-- this needs to be fixed: we want to match</span>
+                    <span class="Comment">-- any implicit casts to functions on composite types</span>
+                    <span class="Comment">-- first, then we can use the anonymous record type on</span>
+                    <span class="Comment">-- any composite</span>
+              <span class="String">&quot;.&quot;</span> <span class="Symbol">|</span> <span class="Symbol">[</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">b</span><span class="Symbol">]</span> <span class="Symbol">&lt;-</span> <span class="VarId">argsType</span> <span class="Symbol">-&gt;</span> <span class="ConId">Right</span> <span class="Symbol">(</span><span class="String">&quot;.&quot;</span><span class="Symbol">,</span> <span class="VarId">argsType</span><span class="Symbol">,</span> <span class="VarId">b</span><span class="Symbol">,</span> <span class="ConId">False</span><span class="Symbol">)</span>
+              <span class="VarId">_</span> <span class="Symbol">|</span> <span class="VarId">fnName</span> <span class="Symbol">`</span><span class="VarId">elem</span><span class="Symbol">`</span> <span class="Symbol">[</span><span class="String">&quot;=&quot;</span><span class="Symbol">,</span> <span class="String">&quot;&lt;&gt;&quot;</span><span class="Symbol">,</span> <span class="String">&quot;&lt;=&quot;</span><span class="Symbol">,</span> <span class="String">&quot;&gt;=&quot;</span><span class="Symbol">,</span> <span class="String">&quot;&lt;&quot;</span><span class="Symbol">,</span> <span class="String">&quot;&gt;&quot;</span><span class="Symbol">]</span>
+                         <span class="Symbol">&amp;&amp;</span> <span class="VarId">length</span> <span class="VarId">argsType</span> <span class="Symbol">==</span> <span class="Number">2</span>
+                         <span class="Symbol">&amp;&amp;</span> <span class="VarId">all</span> <span class="VarId">isCompositeOrSetOfCompositeType</span> <span class="VarId">argsType</span><span class="Symbol">,</span>
+                         <span class="ConId">Just</span> <span class="VarId">a1</span> <span class="Symbol">&lt;-</span> <span class="VarId">matchCompTypes</span> <span class="VarId">argsType</span> <span class="Symbol">-&gt;</span>
+                         <span class="Comment">-- &amp;&amp; compositesCompatible cat (head argsType) (head $ tail argsType) -&gt;</span>
+                             <span class="VarId">return</span> <span class="Symbol">(</span><span class="VarId">fnName</span><span class="Symbol">,</span> <span class="VarId">a1</span><span class="Symbol">,</span> <span class="VarId">typeBool</span><span class="Symbol">,</span> <span class="ConId">False</span><span class="Symbol">)</span>
+              <span class="Comment">--checked for all special cases, so run general case now</span>
+              <span class="VarId">s</span> <span class="Symbol">-&gt;</span> <span class="VarId">lookupFn</span> <span class="VarId">s</span> <span class="VarId">argsType</span>
+    <span class="Keyword">where</span>
+      <span class="VarId">lookupReturnType</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Type</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">]</span> <span class="ConId">Type</span>
+      <span class="VarId">lookupReturnType</span> <span class="VarId">s1</span> <span class="VarId">args</span> <span class="Symbol">=</span> <span class="VarId">fmap</span> <span class="Symbol">(\(</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">r</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">r</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="VarId">lookupFn</span> <span class="VarId">s1</span> <span class="VarId">args</span>
+      <span class="VarId">lookupFn</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Type</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">]</span> <span class="ConId">FunctionPrototype</span>
+      <span class="VarId">lookupFn</span> <span class="VarId">s1</span> <span class="Symbol">=</span> <span class="VarId">findCallMatch1</span> <span class="VarId">cat</span>
+                             <span class="Symbol">(</span><span class="Keyword">if</span> <span class="VarId">s1</span> <span class="Symbol">==</span> <span class="String">&quot;u-&quot;</span> <span class="Keyword">then</span> <span class="String">&quot;-&quot;</span> <span class="Keyword">else</span> <span class="VarId">s1</span><span class="Symbol">)</span>
+      <span class="VarId">fnName</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="VarId">toLower</span> <span class="VarId">fnName'</span>
+      <span class="Comment">-- help the type inference for rowCtors. pretty unfinished. If we compare</span>
+      <span class="Comment">-- two compatible row constructors, then replace any unknown types with the</span>
+      <span class="Comment">-- pair type</span>
+      <span class="VarId">matchCompTypes</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Type</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="Symbol">[</span><span class="ConId">Type</span><span class="Symbol">]</span>
+      <span class="VarId">matchCompTypes</span> <span class="Symbol">[</span><span class="VarId">a</span><span class="Symbol">@(</span><span class="ConId">AnonymousRecordType</span> <span class="Keyword">as</span><span class="Symbol">),</span><span class="VarId">b</span><span class="Symbol">@(</span><span class="ConId">AnonymousRecordType</span> <span class="VarId">bs</span><span class="Symbol">)]</span> <span class="Symbol">=</span>
+        <span class="Keyword">if</span> <span class="VarId">not</span> <span class="Symbol">(</span><span class="VarId">compositesCompatible</span> <span class="VarId">cat</span> <span class="VarId">a</span> <span class="VarId">b</span><span class="Symbol">)</span>
+        <span class="Keyword">then</span> <span class="ConId">Nothing</span>
+        <span class="Keyword">else</span> <span class="Keyword">let</span> <span class="Symbol">(</span><span class="VarId">nt1</span><span class="Symbol">,</span><span class="VarId">nt2</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">unzip</span> <span class="Symbol">$</span> <span class="VarId">map</span> <span class="Symbol">(\(</span><span class="VarId">t</span><span class="Symbol">,</span><span class="VarId">t1</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="Keyword">case</span> <span class="Symbol">(</span><span class="VarId">t</span><span class="Symbol">,</span><span class="VarId">t1</span><span class="Symbol">)</span> <span class="Keyword">of</span>
+                                         <span class="Symbol">(</span><span class="ConId">UnknownType</span><span class="Symbol">,</span> <span class="VarId">u</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="VarId">u</span><span class="Symbol">,</span><span class="VarId">u</span><span class="Symbol">)</span>
+                                         <span class="Symbol">(</span><span class="VarId">u</span><span class="Symbol">,</span> <span class="ConId">UnknownType</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="VarId">u</span><span class="Symbol">,</span><span class="VarId">u</span><span class="Symbol">)</span>
+                                         <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="VarId">t</span><span class="Symbol">,</span><span class="VarId">t1</span><span class="Symbol">))</span> <span class="Symbol">$</span> <span class="VarId">zip</span> <span class="Keyword">as</span> <span class="VarId">bs</span>
+             <span class="Keyword">in</span> <span class="ConId">Just</span> <span class="Symbol">[</span><span class="ConId">AnonymousRecordType</span> <span class="VarId">nt1</span><span class="Symbol">,</span><span class="ConId">AnonymousRecordType</span> <span class="VarId">nt2</span><span class="Symbol">]</span>
+      <span class="VarId">matchCompTypes</span> <span class="Symbol">[</span><span class="VarId">a</span><span class="Symbol">,</span><span class="VarId">b</span><span class="Symbol">]</span> <span class="Symbol">=</span>
+        <span class="Keyword">if</span> <span class="VarId">not</span> <span class="Symbol">(</span><span class="VarId">compositesCompatible</span> <span class="VarId">cat</span> <span class="VarId">a</span> <span class="VarId">b</span><span class="Symbol">)</span>
+        <span class="Keyword">then</span> <span class="ConId">Nothing</span>
+        <span class="Keyword">else</span> <span class="ConId">Just</span> <span class="Symbol">[</span><span class="VarId">a</span><span class="Symbol">,</span><span class="VarId">b</span><span class="Symbol">]</span>
+      <span class="VarId">matchCompTypes</span> <span class="VarId">_</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="Function">findCallMatch1</span> <span class="Symbol">::</span> <span class="ConId">Catalog</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Type</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span>  <span class="ConId">Either</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">]</span> <span class="ConId">FunctionPrototype</span>
+<span class="Function">findCallMatch1</span> <span class="VarId">cat</span> <span class="VarId">f</span> <span class="VarId">inArgs</span> <span class="Symbol">=</span>
+    <span class="VarId">returnIfOnne</span> <span class="Symbol">[</span>
+       <span class="VarId">exactMatch</span>
+      <span class="Symbol">,</span><span class="VarId">binOp1UnknownMatch</span>
+      <span class="Symbol">,</span><span class="VarId">polymorpicExactMatches</span>
+      <span class="Symbol">,</span><span class="VarId">reachable</span>
+      <span class="Symbol">,</span><span class="VarId">mostExactMatches</span>
+      <span class="Symbol">,</span><span class="VarId">filteredForPreferred</span>
+      <span class="Symbol">,</span><span class="VarId">unknownMatchesByCat</span><span class="Symbol">]</span>
+      <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="VarId">f</span> <span class="VarId">inArgs</span><span class="Symbol">]</span>
+    <span class="Keyword">where</span>
+      <span class="Comment">-- basic lists which roughly mirror algo</span>
+      <span class="Comment">-- get the possibly matching candidates</span>
+      <span class="VarId">initialCandList</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">FunctionPrototype</span><span class="Symbol">]</span>
+      <span class="VarId">initialCandList</span> <span class="Symbol">=</span> <span class="VarId">filter</span> <span class="Symbol">(\(</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">candArgs</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span>
+                                  <span class="VarId">length</span> <span class="VarId">candArgs</span> <span class="Symbol">==</span> <span class="VarId">length</span> <span class="VarId">inArgs</span><span class="Symbol">)</span> <span class="Symbol">$</span>
+                               <span class="VarId">map</span> <span class="VarId">expandVariadic</span> <span class="Symbol">$</span> <span class="VarId">catLookupFns</span> <span class="VarId">cat</span> <span class="VarId">f</span>
+
+      <span class="VarId">expandVariadic</span> <span class="VarId">fp</span><span class="Symbol">@(</span><span class="VarId">fn</span><span class="Symbol">,</span><span class="VarId">a</span><span class="Symbol">,</span><span class="VarId">r</span><span class="Symbol">,</span><span class="VarId">v</span><span class="Symbol">)</span> <span class="Symbol">=</span>
+        <span class="Keyword">if</span> <span class="VarId">v</span>
+          <span class="Keyword">then</span> <span class="Keyword">case</span> <span class="VarId">last</span> <span class="VarId">a</span> <span class="Keyword">of</span>
+                 <span class="ConId">ArrayType</span> <span class="VarId">t</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="VarId">fn</span><span class="Symbol">,</span> <span class="VarId">na</span><span class="Symbol">,</span><span class="VarId">r</span><span class="Symbol">,</span><span class="VarId">v</span><span class="Symbol">)</span>
+                                <span class="Keyword">where</span> <span class="VarId">na</span> <span class="Symbol">=</span> <span class="VarId">init</span> <span class="VarId">a</span> <span class="Symbol">++</span> <span class="VarId">replicate</span> <span class="Symbol">(</span><span class="VarId">length</span> <span class="VarId">inArgs</span> <span class="Symbol">-</span> <span class="VarId">length</span> <span class="VarId">a</span> <span class="Symbol">+</span> <span class="Number">1</span><span class="Symbol">)</span> <span class="VarId">t</span>
+                 <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="VarId">fp</span> <span class="Comment">--should be error</span>
+          <span class="Keyword">else</span> <span class="VarId">fp</span>
+
+      <span class="Comment">-- record what casts are needed for each candidate</span>
+      <span class="VarId">castPairs</span> <span class="Symbol">::</span> <span class="Symbol">[[</span><span class="ConId">ArgCastFlavour</span><span class="Symbol">]]</span>
+      <span class="VarId">castPairs</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="Symbol">(</span><span class="VarId">listCastPairs</span> <span class="Symbol">.</span> <span class="VarId">getFnArgs</span><span class="Symbol">)</span> <span class="VarId">initialCandList</span>
+
+      <span class="VarId">candCastPairs</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span>
+      <span class="VarId">candCastPairs</span> <span class="Symbol">=</span> <span class="Comment">{-traceIt &quot;candCastPairs&quot; $-}</span> <span class="VarId">zip</span> <span class="VarId">initialCandList</span> <span class="VarId">castPairs</span>
+
+      <span class="Comment">-- see if we have an exact match</span>
+      <span class="VarId">exactMatch</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span>
+      <span class="VarId">exactMatch</span> <span class="Symbol">=</span> <span class="VarId">filterCandCastPairs</span> <span class="Symbol">(</span><span class="VarId">all</span> <span class="Symbol">(==</span><span class="ConId">ExactMatch</span><span class="Symbol">))</span> <span class="VarId">candCastPairs</span>
+
+      <span class="Comment">-- implement the one known, one unknown resolution for binary operators</span>
+      <span class="VarId">binOp1UnknownMatch</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span>
+      <span class="VarId">binOp1UnknownMatch</span> <span class="Symbol">=</span> <span class="VarId">getBinOp1UnknownMatch</span> <span class="VarId">candCastPairs</span>
+
+      <span class="Comment">--collect possible polymorphic matches</span>
+      <span class="VarId">polymorphicMatches</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span>
+      <span class="VarId">polymorphicMatches</span> <span class="Symbol">=</span> <span class="VarId">filterPolymorphics</span> <span class="VarId">candCastPairs</span>
+
+      <span class="VarId">polymorpicExactMatches</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span>
+      <span class="VarId">polymorpicExactMatches</span> <span class="Symbol">=</span> <span class="VarId">filterCandCastPairs</span> <span class="Symbol">(</span><span class="VarId">all</span> <span class="Symbol">(==</span><span class="ConId">ExactMatch</span><span class="Symbol">))</span> <span class="VarId">polymorphicMatches</span>
+
+      <span class="Comment">-- eliminate candidates for which the inargs cannot be casted to</span>
+      <span class="VarId">reachable</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span>
+      <span class="VarId">reachable</span> <span class="Symbol">=</span> <span class="VarId">mergePolys</span> <span class="Symbol">(</span><span class="VarId">filterCandCastPairs</span> <span class="Symbol">(</span><span class="VarId">none</span> <span class="Symbol">(==</span><span class="ConId">CannotCast</span><span class="Symbol">))</span> <span class="VarId">candCastPairs</span><span class="Symbol">)</span>
+                    <span class="VarId">polymorphicMatches</span>
+
+      <span class="VarId">mostExactMatches</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span>
+      <span class="VarId">mostExactMatches</span> <span class="Symbol">=</span>
+        <span class="Keyword">let</span> <span class="VarId">inArgsBase</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="Symbol">(</span><span class="VarId">replaceWithBase</span> <span class="VarId">cat</span><span class="Symbol">)</span> <span class="VarId">inArgs</span>
+            <span class="VarId">exactCounts</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Int</span><span class="Symbol">]</span>
+            <span class="VarId">exactCounts</span> <span class="Symbol">=</span>
+              <span class="VarId">map</span> <span class="Symbol">((</span><span class="VarId">length</span>
+                      <span class="Symbol">.</span> <span class="VarId">filter</span> <span class="Symbol">(\(</span><span class="VarId">a1</span><span class="Symbol">,</span><span class="VarId">a2</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">a1</span><span class="Symbol">==</span><span class="VarId">replaceWithBase</span> <span class="VarId">cat</span> <span class="VarId">a2</span><span class="Symbol">)</span>
+                      <span class="Symbol">.</span> <span class="VarId">zip</span> <span class="VarId">inArgsBase</span><span class="Symbol">)</span>
+                <span class="Symbol">.</span> <span class="Symbol">(\((</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">a</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">),</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span><span class="Symbol">))</span> <span class="VarId">reachable</span>
+            <span class="VarId">pairs</span> <span class="Symbol">=</span> <span class="VarId">zip</span> <span class="VarId">reachable</span> <span class="VarId">exactCounts</span>
+            <span class="VarId">maxm</span> <span class="Symbol">=</span> <span class="VarId">maximum</span> <span class="VarId">exactCounts</span>
+        <span class="Keyword">in</span> <span class="Keyword">case</span> <span class="Symbol">()</span> <span class="Keyword">of</span>
+             <span class="VarId">_</span> <span class="Symbol">|</span> <span class="VarId">null</span> <span class="VarId">reachable</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[]</span>
+               <span class="Symbol">|</span> <span class="VarId">maxm</span> <span class="Symbol">&gt;</span> <span class="Number">0</span> <span class="Symbol">-&gt;</span> <span class="VarId">map</span> <span class="VarId">fst</span> <span class="Symbol">$</span> <span class="VarId">filter</span> <span class="Symbol">(\(</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">b</span> <span class="Symbol">==</span> <span class="VarId">maxm</span><span class="Symbol">)</span> <span class="VarId">pairs</span>
+               <span class="Symbol">|</span> <span class="VarId">otherwise</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[]</span>
+
+      <span class="Comment">-- keep the cands with the most casts to preferred types</span>
+      <span class="VarId">preferredTypesCounts</span> <span class="Symbol">=</span> <span class="VarId">countPreferredTypeCasts</span> <span class="VarId">reachable</span>
+      <span class="VarId">keepCounts</span> <span class="Symbol">=</span> <span class="VarId">maximum</span> <span class="VarId">preferredTypesCounts</span>
+      <span class="VarId">itemCountPairs</span> <span class="Symbol">::</span> <span class="Symbol">[(</span><span class="ConId">ProtArgCast</span><span class="Symbol">,</span><span class="ConId">Int</span><span class="Symbol">)]</span>
+      <span class="VarId">itemCountPairs</span> <span class="Symbol">=</span> <span class="VarId">zip</span> <span class="VarId">reachable</span> <span class="VarId">preferredTypesCounts</span>
+      <span class="VarId">filteredForPreferred</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span>
+      <span class="VarId">filteredForPreferred</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="VarId">fst</span> <span class="Symbol">$</span> <span class="VarId">filter</span> <span class="Symbol">(\(</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">i</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">i</span> <span class="Symbol">==</span> <span class="VarId">keepCounts</span><span class="Symbol">)</span> <span class="VarId">itemCountPairs</span>
+
+      <span class="Comment">-- collect the inArg type categories to do unknown inArg resolution</span>
+      <span class="VarId">argCats</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Either</span> <span class="Symbol">()</span> <span class="ConId">String</span><span class="Symbol">]</span>
+      <span class="VarId">argCats</span> <span class="Symbol">=</span> <span class="VarId">getCastCategoriesForUnknowns</span> <span class="VarId">filteredForPreferred</span>
+      <span class="VarId">unknownMatchesByCat</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span>
+      <span class="VarId">unknownMatchesByCat</span> <span class="Symbol">=</span> <span class="VarId">getCandCatMatches</span> <span class="VarId">filteredForPreferred</span> <span class="VarId">argCats</span>
+
+      <span class="Symbol">-------------</span>
+
+      <span class="VarId">listCastPairs</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Type</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">ArgCastFlavour</span><span class="Symbol">]</span>
+      <span class="VarId">listCastPairs</span> <span class="VarId">l</span> <span class="Symbol">=</span> <span class="VarId">listCastPairs'</span> <span class="VarId">inArgs</span> <span class="VarId">l</span>
+                        <span class="Keyword">where</span>
+                          <span class="VarId">listCastPairs'</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Type</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Type</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">ArgCastFlavour</span><span class="Symbol">]</span>
+                          <span class="VarId">listCastPairs'</span> <span class="Symbol">(</span><span class="VarId">ia</span><span class="Symbol">:</span><span class="VarId">ias</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="VarId">ca</span><span class="Symbol">:</span><span class="VarId">cas</span><span class="Symbol">)</span> <span class="Symbol">=</span>
+                              <span class="Symbol">(</span><span class="Keyword">case</span> <span class="Symbol">()</span> <span class="Keyword">of</span>
+                                 <span class="VarId">_</span> <span class="Symbol">|</span> <span class="VarId">ia</span> <span class="Symbol">==</span> <span class="VarId">ca</span> <span class="Symbol">-&gt;</span> <span class="ConId">ExactMatch</span>
+                                   <span class="Symbol">|</span> <span class="VarId">castableFromTo</span> <span class="VarId">cat</span> <span class="ConId">ImplicitCastContext</span> <span class="VarId">ia</span> <span class="VarId">ca</span> <span class="Symbol">-&gt;</span>
+                                       <span class="Keyword">if</span> <span class="VarId">forceRight</span> <span class="Symbol">(</span><span class="VarId">catPreferredType</span> <span class="VarId">cat</span> <span class="VarId">ca</span><span class="Symbol">)</span>
+                                         <span class="Keyword">then</span> <span class="ConId">ImplicitToPreferred</span>
+                                         <span class="Keyword">else</span> <span class="ConId">ImplicitToNonPreferred</span>
+                                   <span class="Symbol">|</span> <span class="VarId">otherwise</span> <span class="Symbol">-&gt;</span> <span class="ConId">CannotCast</span>
+                              <span class="Symbol">)</span> <span class="Symbol">:</span> <span class="VarId">listCastPairs'</span> <span class="VarId">ias</span> <span class="VarId">cas</span>
+                          <span class="VarId">listCastPairs'</span> <span class="Symbol">[]</span> <span class="Symbol">[]</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+                          <span class="VarId">listCastPairs'</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="Symbol">=</span> <span class="VarId">error</span> <span class="String">&quot;internal error: mismatched num args in implicit cast algorithm&quot;</span>
+
+
+      <span class="VarId">getBinOp1UnknownMatch</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span>
+      <span class="VarId">getBinOp1UnknownMatch</span> <span class="VarId">cands</span> <span class="Symbol">=</span>
+          <span class="Keyword">if</span> <span class="VarId">not</span> <span class="Symbol">(</span><span class="VarId">isOperatorName</span> <span class="VarId">f</span> <span class="Symbol">&amp;&amp;</span>
+                  <span class="VarId">length</span> <span class="VarId">inArgs</span> <span class="Symbol">==</span> <span class="Number">2</span> <span class="Symbol">&amp;&amp;</span>
+                  <span class="VarId">count</span> <span class="Symbol">(==</span><span class="ConId">UnknownType</span><span class="Symbol">)</span> <span class="VarId">inArgs</span> <span class="Symbol">==</span> <span class="Number">1</span><span class="Symbol">)</span>
+            <span class="Keyword">then</span> <span class="Symbol">[]</span>
+            <span class="Keyword">else</span> <span class="Keyword">let</span> <span class="VarId">newInArgs</span> <span class="Symbol">=</span>
+                         <span class="VarId">replicate</span> <span class="Number">2</span> <span class="Symbol">(</span><span class="Keyword">if</span> <span class="VarId">head</span> <span class="VarId">inArgs</span> <span class="Symbol">==</span> <span class="ConId">UnknownType</span>
+                                        <span class="Keyword">then</span> <span class="VarId">inArgs</span> <span class="Symbol">!!</span> <span class="Number">1</span>
+                                        <span class="Keyword">else</span> <span class="VarId">head</span> <span class="VarId">inArgs</span><span class="Symbol">)</span>
+                 <span class="Keyword">in</span> <span class="VarId">filter</span> <span class="Symbol">(\((</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">a</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">),</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span> <span class="Symbol">==</span> <span class="VarId">newInArgs</span><span class="Symbol">)</span> <span class="VarId">cands</span>
+
+      <span class="VarId">filterPolymorphics</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span>
+      <span class="VarId">filterPolymorphics</span> <span class="VarId">cl</span> <span class="Symbol">=</span>
+          <span class="Keyword">let</span> <span class="VarId">ms</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span>
+              <span class="VarId">ms</span> <span class="Symbol">=</span> <span class="VarId">filter</span> <span class="VarId">canMatch</span> <span class="VarId">polys</span>
+              <span class="VarId">polyTypes</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Maybe</span> <span class="ConId">Type</span><span class="Symbol">]</span>
+              <span class="VarId">polyTypes</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="VarId">resolvePolyType</span> <span class="VarId">ms</span>
+              <span class="VarId">polyTypePairs</span> <span class="Symbol">::</span> <span class="Symbol">[(</span><span class="ConId">Maybe</span> <span class="ConId">Type</span><span class="Symbol">,</span> <span class="ConId">ProtArgCast</span><span class="Symbol">)]</span>
+              <span class="VarId">polyTypePairs</span> <span class="Symbol">=</span> <span class="VarId">zip</span> <span class="VarId">polyTypes</span> <span class="VarId">ms</span>
+              <span class="VarId">keepPolyTypePairs</span> <span class="Symbol">::</span> <span class="Symbol">[(</span><span class="ConId">Type</span><span class="Symbol">,</span> <span class="ConId">ProtArgCast</span><span class="Symbol">)]</span>
+              <span class="VarId">keepPolyTypePairs</span> <span class="Symbol">=</span>
+                <span class="VarId">mapMaybe</span> <span class="Symbol">(\(</span><span class="VarId">t</span><span class="Symbol">,</span><span class="VarId">p</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="Keyword">case</span> <span class="VarId">t</span> <span class="Keyword">of</span>
+                                           <span class="ConId">Nothing</span> <span class="Symbol">-&gt;</span> <span class="ConId">Nothing</span>
+                                           <span class="ConId">Just</span> <span class="VarId">t'</span> <span class="Symbol">-&gt;</span> <span class="ConId">Just</span> <span class="Symbol">(</span><span class="VarId">t'</span><span class="Symbol">,</span><span class="VarId">p</span><span class="Symbol">))</span>
+                              <span class="VarId">polyTypePairs</span>
+              <span class="VarId">finalRows</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="Symbol">(\(</span><span class="VarId">t</span><span class="Symbol">,</span><span class="VarId">p</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">instantiatePolyType</span> <span class="VarId">p</span> <span class="VarId">t</span><span class="Symbol">)</span>
+                              <span class="VarId">keepPolyTypePairs</span>
+              <span class="Comment">--create the new cast lists</span>
+              <span class="VarId">cps</span> <span class="Symbol">::</span> <span class="Symbol">[[</span><span class="ConId">ArgCastFlavour</span><span class="Symbol">]]</span>
+              <span class="VarId">cps</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="Symbol">(</span><span class="VarId">listCastPairs</span> <span class="Symbol">.</span> <span class="VarId">getFnArgs</span> <span class="Symbol">.</span> <span class="VarId">fst</span><span class="Symbol">)</span> <span class="VarId">finalRows</span>
+          <span class="Keyword">in</span> <span class="VarId">zip</span> <span class="Symbol">(</span><span class="VarId">map</span> <span class="VarId">fst</span> <span class="VarId">finalRows</span><span class="Symbol">)</span> <span class="VarId">cps</span>
+          <span class="Keyword">where</span>
+            <span class="VarId">polys</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span>
+            <span class="VarId">polys</span> <span class="Symbol">=</span> <span class="VarId">filter</span> <span class="Symbol">(\((</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">a</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">),</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">any</span> <span class="Symbol">(`</span><span class="VarId">elem</span><span class="Symbol">`</span>
+                                              <span class="Comment">-- bit hacky</span>
+                                             <span class="Symbol">[</span><span class="ConId">Pseudo</span> <span class="ConId">Any</span>
+                                             <span class="Symbol">,</span><span class="ConId">Pseudo</span> <span class="ConId">AnyArray</span>
+                                             <span class="Symbol">,</span><span class="ConId">Pseudo</span> <span class="ConId">AnyElement</span>
+                                             <span class="Symbol">,</span><span class="ConId">Pseudo</span> <span class="ConId">AnyEnum</span>
+                                             <span class="Symbol">,</span><span class="ConId">Pseudo</span> <span class="ConId">AnyNonArray</span><span class="Symbol">])</span> <span class="VarId">a</span><span class="Symbol">)</span> <span class="VarId">cl</span>
+            <span class="VarId">canMatch</span> <span class="Symbol">::</span> <span class="ConId">ProtArgCast</span> <span class="Symbol">-&gt;</span> <span class="ConId">Bool</span>
+            <span class="VarId">canMatch</span> <span class="VarId">pac</span> <span class="Symbol">=</span>
+               <span class="Keyword">let</span> <span class="Symbol">((</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">fnArgs</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">),</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">pac</span>
+               <span class="Keyword">in</span> <span class="VarId">canMatch'</span> <span class="VarId">inArgs</span> <span class="VarId">fnArgs</span>
+               <span class="Keyword">where</span>
+                 <span class="VarId">canMatch'</span> <span class="Symbol">[]</span> <span class="Symbol">[]</span> <span class="Symbol">=</span> <span class="ConId">True</span>
+                 <span class="VarId">canMatch'</span> <span class="Symbol">(</span><span class="VarId">ia</span><span class="Symbol">:</span><span class="VarId">ias</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="VarId">pa</span><span class="Symbol">:</span><span class="VarId">pas</span><span class="Symbol">)</span> <span class="Symbol">=</span>
+                   <span class="Keyword">case</span> <span class="VarId">pa</span> <span class="Keyword">of</span>
+                     <span class="ConId">Pseudo</span> <span class="ConId">Any</span> <span class="Symbol">-&gt;</span> <span class="VarId">nextMatch</span>
+                     <span class="ConId">Pseudo</span> <span class="ConId">AnyArray</span> <span class="Symbol">-&gt;</span> <span class="VarId">isArrayType</span> <span class="VarId">ia</span> <span class="Symbol">&amp;&amp;</span> <span class="VarId">nextMatch</span>
+                     <span class="ConId">Pseudo</span> <span class="ConId">AnyElement</span> <span class="Symbol">-&gt;</span> <span class="VarId">nextMatch</span>
+                     <span class="ConId">Pseudo</span> <span class="ConId">AnyEnum</span> <span class="Symbol">-&gt;</span> <span class="ConId">False</span>
+                     <span class="ConId">Pseudo</span> <span class="ConId">AnyNonArray</span> <span class="Symbol">-&gt;</span> <span class="Keyword">if</span> <span class="VarId">isArrayType</span> <span class="VarId">ia</span>
+                                             <span class="Keyword">then</span> <span class="ConId">False</span>
+                                             <span class="Keyword">else</span> <span class="VarId">nextMatch</span>
+                     <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">True</span>
+                   <span class="Keyword">where</span>
+                     <span class="VarId">nextMatch</span> <span class="Symbol">=</span> <span class="VarId">canMatch'</span> <span class="VarId">ias</span> <span class="VarId">pas</span>
+                 <span class="VarId">canMatch'</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="Symbol">=</span> <span class="VarId">error</span> <span class="String">&quot;internal error: mismatched lists in canMatch'&quot;</span>
+            <span class="VarId">resolvePolyType</span> <span class="Symbol">::</span> <span class="ConId">ProtArgCast</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">Type</span>
+            <span class="VarId">resolvePolyType</span> <span class="Symbol">((</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">fnArgs</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">),</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">=</span>
+                <span class="Comment">{-trace (&quot;\nresolving &quot; ++ show fnArgs ++ &quot; against &quot; ++ show inArgs ++ &quot;\n&quot;) $-}</span>
+                <span class="Keyword">let</span> <span class="VarId">argPairs</span> <span class="Symbol">=</span> <span class="VarId">zip</span> <span class="VarId">inArgs</span> <span class="VarId">fnArgs</span>
+                    <span class="VarId">typeList</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Type</span><span class="Symbol">]</span>
+                    <span class="VarId">typeList</span> <span class="Symbol">=</span> <span class="VarId">catMaybes</span> <span class="Symbol">$</span> <span class="VarId">flip</span> <span class="VarId">map</span> <span class="VarId">argPairs</span>
+                                 <span class="Symbol">$</span> <span class="Symbol">\(</span><span class="VarId">ia</span><span class="Symbol">,</span><span class="VarId">fa</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="Keyword">case</span> <span class="VarId">fa</span> <span class="Keyword">of</span>
+                                                  <span class="ConId">Pseudo</span> <span class="ConId">Any</span> <span class="Symbol">-&gt;</span> <span class="Keyword">if</span> <span class="VarId">isArrayType</span> <span class="VarId">ia</span>
+                                                                <span class="Keyword">then</span> <span class="VarId">eitherToMaybe</span> <span class="Symbol">$</span> <span class="VarId">unwrapArray</span> <span class="VarId">ia</span>
+                                                                <span class="Keyword">else</span> <span class="ConId">Just</span> <span class="VarId">ia</span>
+                                                  <span class="ConId">Pseudo</span> <span class="ConId">AnyArray</span> <span class="Symbol">-&gt;</span> <span class="VarId">eitherToMaybe</span> <span class="Symbol">$</span> <span class="VarId">unwrapArray</span> <span class="VarId">ia</span>
+                                                  <span class="ConId">Pseudo</span> <span class="ConId">AnyElement</span> <span class="Symbol">-&gt;</span> <span class="Keyword">if</span> <span class="VarId">isArrayType</span> <span class="VarId">ia</span>
+                                                                       <span class="Keyword">then</span> <span class="VarId">eitherToMaybe</span> <span class="Symbol">$</span> <span class="VarId">unwrapArray</span> <span class="VarId">ia</span>
+                                                                       <span class="Keyword">else</span> <span class="ConId">Just</span> <span class="VarId">ia</span>
+                                                  <span class="ConId">Pseudo</span> <span class="ConId">AnyEnum</span> <span class="Symbol">-&gt;</span> <span class="ConId">Nothing</span>
+                                                  <span class="ConId">Pseudo</span> <span class="ConId">AnyNonArray</span> <span class="Symbol">-&gt;</span> <span class="ConId">Just</span> <span class="VarId">ia</span>
+                                                  <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Nothing</span>
+                <span class="Keyword">in</span> <span class="Comment">{-trace (&quot;\nresolve types: &quot; ++ show typeList ++ &quot;\n&quot;) $-}</span>
+                   <span class="Keyword">case</span> <span class="VarId">resolveResultSetType</span> <span class="VarId">cat</span> <span class="VarId">typeList</span> <span class="Keyword">of</span>
+                     <span class="ConId">Left</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Nothing</span>
+                     <span class="ConId">Right</span> <span class="VarId">t</span> <span class="Symbol">-&gt;</span> <span class="ConId">Just</span> <span class="VarId">t</span>
+            <span class="VarId">instantiatePolyType</span> <span class="Symbol">::</span> <span class="ConId">ProtArgCast</span> <span class="Symbol">-&gt;</span> <span class="ConId">Type</span> <span class="Symbol">-&gt;</span> <span class="ConId">ProtArgCast</span>
+            <span class="VarId">instantiatePolyType</span> <span class="VarId">pac</span> <span class="VarId">t</span> <span class="Symbol">=</span>
+              <span class="Keyword">let</span> <span class="Symbol">((</span><span class="VarId">fn</span><span class="Symbol">,</span><span class="VarId">a</span><span class="Symbol">,</span><span class="VarId">r</span><span class="Symbol">,</span><span class="VarId">v</span><span class="Symbol">),</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">pac</span>
+                  <span class="VarId">instArgs</span> <span class="Symbol">=</span> <span class="VarId">swapPolys</span> <span class="VarId">t</span> <span class="VarId">a</span>
+                  <span class="VarId">p1</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="VarId">fn</span><span class="Symbol">,</span> <span class="VarId">instArgs</span><span class="Symbol">,</span> <span class="VarId">swapPoly</span> <span class="VarId">t</span> <span class="VarId">r</span><span class="Symbol">,</span><span class="VarId">v</span><span class="Symbol">)</span>
+              <span class="Keyword">in</span> <span class="Keyword">let</span> <span class="VarId">x</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="VarId">p1</span><span class="Symbol">,</span><span class="VarId">listCastPairs</span> <span class="VarId">instArgs</span><span class="Symbol">)</span>
+                 <span class="Keyword">in</span> <span class="Comment">{-trace (&quot;\nfixed:&quot; ++ show x ++ &quot;\n&quot;)-}</span> <span class="VarId">x</span>
+              <span class="Keyword">where</span>
+                <span class="VarId">swapPolys</span> <span class="Symbol">::</span> <span class="ConId">Type</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Type</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Type</span><span class="Symbol">]</span>
+                <span class="VarId">swapPolys</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="Symbol">.</span> <span class="VarId">swapPoly</span>
+                <span class="VarId">swapPoly</span> <span class="Symbol">::</span> <span class="ConId">Type</span> <span class="Symbol">-&gt;</span> <span class="ConId">Type</span> <span class="Symbol">-&gt;</span> <span class="ConId">Type</span>
+                <span class="VarId">swapPoly</span> <span class="VarId">pit</span> <span class="VarId">at</span> <span class="Symbol">=</span>
+                  <span class="Keyword">case</span> <span class="VarId">at</span> <span class="Keyword">of</span>
+                    <span class="ConId">Pseudo</span> <span class="ConId">Any</span> <span class="Symbol">-&gt;</span> <span class="Keyword">if</span> <span class="VarId">isArrayType</span> <span class="VarId">at</span>
+                                    <span class="Keyword">then</span> <span class="ConId">ArrayType</span> <span class="VarId">pit</span>
+                                    <span class="Keyword">else</span> <span class="VarId">pit</span>
+                    <span class="ConId">Pseudo</span> <span class="ConId">AnyArray</span> <span class="Symbol">-&gt;</span> <span class="ConId">ArrayType</span> <span class="VarId">pit</span>
+                    <span class="ConId">Pseudo</span> <span class="ConId">AnyElement</span> <span class="Symbol">-&gt;</span> <span class="Keyword">if</span> <span class="VarId">isArrayType</span> <span class="VarId">at</span>
+                                           <span class="Keyword">then</span> <span class="ConId">ArrayType</span> <span class="VarId">pit</span>
+                                           <span class="Keyword">else</span> <span class="VarId">pit</span>
+                    <span class="ConId">Pseudo</span> <span class="ConId">AnyEnum</span> <span class="Symbol">-&gt;</span> <span class="VarId">pit</span>
+                    <span class="ConId">Pseudo</span> <span class="ConId">AnyNonArray</span> <span class="Symbol">-&gt;</span> <span class="VarId">pit</span>
+                    <span class="ConId">SetOfType</span> <span class="Symbol">(</span><span class="ConId">Pseudo</span> <span class="ConId">AnyElement</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="Keyword">if</span> <span class="VarId">isArrayType</span> <span class="VarId">at</span>
+                                                     <span class="Keyword">then</span> <span class="ConId">SetOfType</span> <span class="Symbol">(</span><span class="ConId">ArrayType</span> <span class="VarId">pit</span><span class="Symbol">)</span>
+                                                     <span class="Keyword">else</span> <span class="ConId">SetOfType</span> <span class="VarId">pit</span>
+                    <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="VarId">at</span>
+      <span class="Comment">--merge in the instantiated poly functions, with a twist:</span>
+      <span class="Comment">-- if we already have the exact same set of args in the non poly list</span>
+      <span class="Comment">-- as a poly, then don't include that poly</span>
+      <span class="VarId">mergePolys</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span>
+      <span class="VarId">mergePolys</span> <span class="VarId">orig</span> <span class="VarId">polys</span> <span class="Symbol">=</span>
+          <span class="Keyword">let</span> <span class="VarId">origArgs</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="Symbol">(\((</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">a</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">),</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span><span class="Symbol">)</span> <span class="VarId">orig</span>
+              <span class="VarId">filteredPolys</span> <span class="Symbol">=</span> <span class="VarId">filter</span> <span class="Symbol">(\((</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">a</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">),</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span> <span class="Symbol">`</span><span class="VarId">notElem</span><span class="Symbol">`</span> <span class="VarId">origArgs</span><span class="Symbol">)</span> <span class="VarId">polys</span>
+          <span class="Keyword">in</span> <span class="VarId">orig</span> <span class="Symbol">++</span> <span class="VarId">filteredPolys</span>
+
+      <span class="VarId">countPreferredTypeCasts</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Int</span><span class="Symbol">]</span>
+      <span class="VarId">countPreferredTypeCasts</span> <span class="Symbol">=</span>
+          <span class="VarId">map</span> <span class="Symbol">(\(</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">cp</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">count</span> <span class="Symbol">(==</span><span class="ConId">ImplicitToPreferred</span><span class="Symbol">)</span> <span class="VarId">cp</span><span class="Symbol">)</span>
+
+      <span class="Comment">-- Left () is used for inArgs which aren't unknown,</span>
+      <span class="Comment">--                      and for unknowns which we don't have a</span>
+      <span class="Comment">--                      unique category</span>
+      <span class="Comment">-- Right s -&gt; s is the single letter category at</span>
+      <span class="Comment">--                           that position</span>
+      <span class="VarId">getCastCategoriesForUnknowns</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Either</span> <span class="Symbol">()</span> <span class="ConId">String</span><span class="Symbol">]</span>
+      <span class="VarId">getCastCategoriesForUnknowns</span> <span class="VarId">cands</span> <span class="Symbol">=</span>
+          <span class="VarId">filterArgN</span> <span class="Number">0</span>
+          <span class="Keyword">where</span>
+            <span class="VarId">candArgLists</span> <span class="Symbol">::</span> <span class="Symbol">[[</span><span class="ConId">Type</span><span class="Symbol">]]</span>
+            <span class="VarId">candArgLists</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="Symbol">(\((</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">a</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">),</span> <span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span><span class="Symbol">)</span> <span class="VarId">cands</span>
+            <span class="VarId">filterArgN</span> <span class="Symbol">::</span> <span class="ConId">Int</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Either</span> <span class="Symbol">()</span> <span class="ConId">String</span><span class="Symbol">]</span>
+            <span class="VarId">filterArgN</span> <span class="VarId">n</span> <span class="Symbol">=</span>
+                <span class="Keyword">if</span> <span class="VarId">n</span> <span class="Symbol">==</span> <span class="VarId">length</span> <span class="VarId">inArgs</span>
+                  <span class="Keyword">then</span> <span class="Symbol">[]</span>
+                  <span class="Keyword">else</span> <span class="Keyword">let</span> <span class="VarId">targType</span> <span class="Symbol">=</span> <span class="VarId">inArgs</span> <span class="Symbol">!!</span> <span class="VarId">n</span>
+                       <span class="Keyword">in</span> <span class="Symbol">((</span><span class="Keyword">if</span> <span class="VarId">targType</span> <span class="Symbol">/=</span> <span class="ConId">UnknownType</span>
+                              <span class="Keyword">then</span> <span class="ConId">Left</span> <span class="Symbol">()</span>
+                              <span class="Keyword">else</span> <span class="VarId">getCandsCatAt</span> <span class="VarId">n</span><span class="Symbol">)</span> <span class="Symbol">:</span> <span class="VarId">filterArgN</span> <span class="Symbol">(</span><span class="VarId">n</span><span class="Symbol">+</span><span class="Number">1</span><span class="Symbol">))</span>
+                <span class="Keyword">where</span>
+                  <span class="VarId">getCandsCatAt</span> <span class="Symbol">::</span> <span class="ConId">Int</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="Symbol">()</span> <span class="ConId">String</span>
+                  <span class="VarId">getCandsCatAt</span> <span class="VarId">n'</span> <span class="Symbol">=</span>
+                      <span class="Keyword">let</span> <span class="VarId">typesAtN</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="Symbol">(!!</span><span class="VarId">n'</span><span class="Symbol">)</span> <span class="VarId">candArgLists</span>
+                          <span class="VarId">catsAtN</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="Symbol">(</span><span class="VarId">forceRight</span> <span class="Symbol">.</span> <span class="VarId">catTypeCategory</span> <span class="VarId">cat</span><span class="Symbol">)</span> <span class="VarId">typesAtN</span>
+                      <span class="Keyword">in</span> <span class="Keyword">case</span> <span class="Symbol">()</span> <span class="Keyword">of</span>
+                           <span class="Comment">--if any are string choose string</span>
+                           <span class="VarId">_</span> <span class="Symbol">|</span> <span class="VarId">any</span> <span class="Symbol">(==</span> <span class="String">&quot;S&quot;</span><span class="Symbol">)</span> <span class="VarId">catsAtN</span> <span class="Symbol">-&gt;</span> <span class="ConId">Right</span> <span class="String">&quot;S&quot;</span>
+                             <span class="Comment">-- if all are same cat choose that</span>
+                             <span class="Symbol">|</span> <span class="VarId">all</span> <span class="Symbol">(==</span> <span class="VarId">head</span> <span class="VarId">catsAtN</span><span class="Symbol">)</span> <span class="VarId">catsAtN</span> <span class="Symbol">-&gt;</span> <span class="ConId">Right</span> <span class="Symbol">$</span> <span class="VarId">head</span> <span class="VarId">catsAtN</span>
+                             <span class="Comment">-- otherwise no match, this will be</span>
+                             <span class="Comment">-- picked up as complete failure to match</span>
+                             <span class="Comment">-- later on</span>
+                             <span class="Symbol">|</span> <span class="VarId">otherwise</span> <span class="Symbol">-&gt;</span> <span class="ConId">Left</span> <span class="Symbol">()</span>
+
+      <span class="VarId">getCandCatMatches</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Either</span> <span class="Symbol">()</span> <span class="ConId">String</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span>
+      <span class="VarId">getCandCatMatches</span> <span class="VarId">candsA</span> <span class="VarId">cats</span> <span class="Symbol">=</span> <span class="VarId">getMatches</span> <span class="VarId">candsA</span> <span class="Number">0</span>
+         <span class="Keyword">where</span>
+           <span class="VarId">getMatches</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Int</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span>
+           <span class="VarId">getMatches</span> <span class="VarId">cands</span> <span class="VarId">n</span> <span class="Symbol">=</span>
+               <span class="Keyword">case</span> <span class="Symbol">()</span> <span class="Keyword">of</span>
+                 <span class="VarId">_</span> <span class="Symbol">|</span> <span class="VarId">n</span> <span class="Symbol">==</span> <span class="VarId">length</span> <span class="VarId">inArgs</span> <span class="Symbol">-&gt;</span> <span class="VarId">cands</span>
+                   <span class="Symbol">|</span> <span class="Symbol">(</span><span class="VarId">inArgs</span> <span class="Symbol">!!</span> <span class="VarId">n</span><span class="Symbol">)</span> <span class="Symbol">/=</span> <span class="ConId">UnknownType</span> <span class="Symbol">-&gt;</span> <span class="VarId">getMatches</span> <span class="VarId">cands</span> <span class="Symbol">(</span><span class="VarId">n</span> <span class="Symbol">+</span> <span class="Number">1</span><span class="Symbol">)</span>
+                   <span class="Symbol">|</span> <span class="VarId">otherwise</span> <span class="Symbol">-&gt;</span>
+                       <span class="Keyword">let</span> <span class="VarId">catMatches</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span>
+                           <span class="VarId">catMatches</span> <span class="Symbol">=</span> <span class="VarId">filter</span> <span class="Symbol">(\</span><span class="VarId">c</span> <span class="Symbol">-&gt;</span> <span class="ConId">Right</span> <span class="Symbol">(</span><span class="VarId">getCatForArgN</span> <span class="VarId">n</span> <span class="VarId">c</span><span class="Symbol">)</span> <span class="Symbol">==</span>
+                                                     <span class="Symbol">(</span><span class="VarId">cats</span> <span class="Symbol">!!</span> <span class="VarId">n</span><span class="Symbol">))</span> <span class="VarId">cands</span>
+                           <span class="VarId">prefMatches</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span>
+                           <span class="VarId">prefMatches</span> <span class="Symbol">=</span> <span class="VarId">filter</span> <span class="Symbol">(</span><span class="VarId">forceRight</span> <span class="Symbol">.</span> <span class="VarId">catPreferredType</span> <span class="VarId">cat</span> <span class="Symbol">.</span>
+                                                   <span class="VarId">getTypeForArgN</span> <span class="VarId">n</span><span class="Symbol">)</span> <span class="VarId">catMatches</span>
+                           <span class="VarId">keepMatches</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span>
+                           <span class="VarId">keepMatches</span> <span class="Symbol">=</span> <span class="Keyword">if</span> <span class="VarId">length</span> <span class="VarId">prefMatches</span> <span class="Symbol">&gt;</span> <span class="Number">0</span>
+                                           <span class="Keyword">then</span> <span class="VarId">prefMatches</span>
+                                           <span class="Keyword">else</span> <span class="VarId">catMatches</span>
+                       <span class="Keyword">in</span> <span class="VarId">getMatches</span> <span class="VarId">keepMatches</span> <span class="Symbol">(</span><span class="VarId">n</span> <span class="Symbol">+</span> <span class="Number">1</span><span class="Symbol">)</span>
+           <span class="VarId">getTypeForArgN</span> <span class="Symbol">::</span> <span class="ConId">Int</span> <span class="Symbol">-&gt;</span> <span class="ConId">ProtArgCast</span> <span class="Symbol">-&gt;</span> <span class="ConId">Type</span>
+           <span class="VarId">getTypeForArgN</span> <span class="VarId">n</span> <span class="Symbol">((</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">a</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">),</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">a</span> <span class="Symbol">!!</span> <span class="VarId">n</span>
+           <span class="VarId">getCatForArgN</span> <span class="Symbol">::</span> <span class="ConId">Int</span> <span class="Symbol">-&gt;</span> <span class="ConId">ProtArgCast</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+           <span class="VarId">getCatForArgN</span> <span class="VarId">n</span> <span class="Symbol">=</span> <span class="VarId">forceRight</span> <span class="Symbol">.</span> <span class="VarId">catTypeCategory</span> <span class="VarId">cat</span> <span class="Symbol">.</span> <span class="VarId">getTypeForArgN</span> <span class="VarId">n</span>
+
+      <span class="Comment">-- utils</span>
+      <span class="Comment">-- filter a candidate/cast flavours pair by a predicate on each</span>
+      <span class="Comment">-- individual cast flavour</span>
+      <span class="VarId">filterCandCastPairs</span> <span class="Symbol">::</span> <span class="Symbol">([</span><span class="ConId">ArgCastFlavour</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Bool</span><span class="Symbol">)</span>
+                          <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span>
+                          <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span>
+      <span class="VarId">filterCandCastPairs</span> <span class="VarId">predi</span> <span class="Symbol">=</span> <span class="VarId">filter</span> <span class="Symbol">(\(</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">cp</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">predi</span> <span class="VarId">cp</span><span class="Symbol">)</span>
+
+      <span class="VarId">getFnArgs</span> <span class="Symbol">::</span> <span class="ConId">FunctionPrototype</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Type</span><span class="Symbol">]</span>
+      <span class="VarId">getFnArgs</span> <span class="Symbol">(</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">a</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">a</span>
+      <span class="VarId">returnIfOnne</span> <span class="Symbol">[]</span> <span class="VarId">e</span> <span class="Symbol">=</span> <span class="ConId">Left</span> <span class="VarId">e</span>
+      <span class="VarId">returnIfOnne</span> <span class="Symbol">(</span><span class="VarId">l</span><span class="Symbol">:</span><span class="VarId">ls</span><span class="Symbol">)</span> <span class="VarId">e</span> <span class="Symbol">=</span> <span class="Keyword">if</span> <span class="VarId">length</span> <span class="VarId">l</span> <span class="Symbol">==</span> <span class="Number">1</span>
+                              <span class="Keyword">then</span> <span class="ConId">Right</span> <span class="Symbol">$</span> <span class="VarId">getHeadFn</span> <span class="VarId">l</span>
+                              <span class="Keyword">else</span> <span class="VarId">returnIfOnne</span> <span class="VarId">ls</span> <span class="VarId">e</span>
+
+      <span class="VarId">getHeadFn</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ProtArgCast</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">FunctionPrototype</span>
+      <span class="VarId">getHeadFn</span> <span class="VarId">l</span> <span class="Symbol">=</span>  <span class="Keyword">let</span> <span class="Symbol">((</span><span class="VarId">hdFn</span><span class="Symbol">,</span> <span class="VarId">_</span><span class="Symbol">):</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">l</span>
+                     <span class="Keyword">in</span> <span class="VarId">hdFn</span>
+      <span class="VarId">none</span> <span class="VarId">p</span> <span class="Symbol">=</span> <span class="VarId">not</span> <span class="Symbol">.</span> <span class="VarId">any</span> <span class="VarId">p</span>
+      <span class="VarId">count</span> <span class="VarId">p</span> <span class="Symbol">=</span> <span class="VarId">length</span> <span class="Symbol">.</span> <span class="VarId">filter</span> <span class="VarId">p</span>
+
+<span class="Keyword">data</span> <span class="ConId">ArgCastFlavour</span> <span class="Symbol">=</span> <span class="ConId">ExactMatch</span>
+                    <span class="Symbol">|</span> <span class="ConId">CannotCast</span>
+                    <span class="Symbol">|</span> <span class="ConId">ImplicitToPreferred</span>
+                    <span class="Symbol">|</span> <span class="ConId">ImplicitToNonPreferred</span>
+                      <span class="Keyword">deriving</span> <span class="Symbol">(</span><span class="ConId">Eq</span><span class="Symbol">,</span><span class="ConId">Show</span><span class="Symbol">)</span>
+</pre></div></div></div><pre
+    ><code
+      >resolveResultSetType -
+partially implement the typing of results sets where the types aren't
+all the same and not unknown
+used in union,except,intersect columns, case, array ctor, values, greatest and least
+
+algo:
+if all inputs are same and not unknown -&gt; that type
+replace domains with base types
+if all inputs are unknown then text
+if the non unknown types aren't all in same category then fail
+choose first input type that is a preferred type if there is one
+choose last non unknown type that has implicit casts from all preceding inputs
+check all can convert to selected type else fail
+
+code is not as much of a mess as findCallMatch
+</code
+      ></pre
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">resolveResultSetType</span> <span class="Symbol">::</span> <span class="ConId">Catalog</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Type</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">]</span> <span class="ConId">Type</span>
+<span class="Function">resolveResultSetType</span> <span class="VarId">cat</span> <span class="VarId">inArgs</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+  <span class="VarId">errorWhen</span> <span class="Symbol">(</span><span class="VarId">null</span> <span class="VarId">inArgs</span><span class="Symbol">)</span> <span class="Symbol">[</span><span class="ConId">TypelessEmptyArray</span><span class="Symbol">]</span>
+  <span class="VarId">returnWhen</span> <span class="VarId">allSameType</span> <span class="Symbol">(</span><span class="VarId">head</span> <span class="VarId">inArgs</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="Keyword">do</span>
+  <span class="VarId">returnWhen</span> <span class="VarId">allSameBaseType</span> <span class="Symbol">(</span><span class="VarId">head</span> <span class="VarId">inArgsBase</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="Keyword">do</span>
+  <span class="Comment">--returnWhen allUnknown (UnknownType) $ do</span>
+  <span class="VarId">errorWhen</span> <span class="Symbol">(</span><span class="VarId">not</span> <span class="VarId">allSameCat</span><span class="Symbol">)</span> <span class="Symbol">[</span><span class="ConId">IncompatibleTypeSet</span> <span class="VarId">inArgs</span><span class="Symbol">]</span>
+  <span class="VarId">returnWhen</span> <span class="Symbol">(</span><span class="VarId">isJust</span> <span class="VarId">targetType</span> <span class="Symbol">&amp;&amp;</span>
+              <span class="VarId">allConvertibleToFrom</span> <span class="Symbol">(</span><span class="VarId">fromMaybe</span> <span class="Symbol">(</span><span class="VarId">error</span> <span class="String">&quot;TypeConversion.resolveresultsettype 1: fromJust&quot;</span><span class="Symbol">)</span> <span class="VarId">targetType</span><span class="Symbol">)</span> <span class="VarId">inArgs</span><span class="Symbol">)</span>
+              <span class="Symbol">(</span><span class="VarId">fromMaybe</span> <span class="Symbol">(</span><span class="VarId">error</span> <span class="String">&quot;TypeConversion.resolveresultsettype 2: fromJust&quot;</span><span class="Symbol">)</span> <span class="VarId">targetType</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="Keyword">do</span>
+  <span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">IncompatibleTypeSet</span> <span class="VarId">inArgs</span><span class="Symbol">]</span>
+  <span class="Keyword">where</span>
+     <span class="VarId">allSameType</span> <span class="Symbol">=</span> <span class="VarId">all</span> <span class="Symbol">(==</span> <span class="VarId">head</span> <span class="VarId">inArgs</span><span class="Symbol">)</span> <span class="VarId">inArgs</span> <span class="Comment">-- &amp;&amp;</span>
+                     <span class="Comment">--head inArgs /= UnknownType</span>
+     <span class="VarId">allSameBaseType</span> <span class="Symbol">=</span> <span class="VarId">all</span> <span class="Symbol">(==</span> <span class="VarId">head</span> <span class="VarId">inArgsBase</span><span class="Symbol">)</span> <span class="VarId">inArgsBase</span> <span class="Symbol">&amp;&amp;</span>
+                     <span class="VarId">head</span> <span class="VarId">inArgsBase</span> <span class="Symbol">/=</span> <span class="ConId">UnknownType</span>
+     <span class="VarId">inArgsBase</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="Symbol">(</span><span class="VarId">replaceWithBase</span> <span class="VarId">cat</span><span class="Symbol">)</span> <span class="VarId">inArgs</span>
+     <span class="Comment">--allUnknown = all (==UnknownType) inArgsBase</span>
+     <span class="VarId">allSameCat</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="VarId">firstCat</span> <span class="Symbol">=</span> <span class="VarId">catTypeCategory</span> <span class="VarId">cat</span> <span class="Symbol">(</span><span class="VarId">head</span> <span class="VarId">knownTypes</span><span class="Symbol">)</span>
+                  <span class="Keyword">in</span> <span class="VarId">all</span> <span class="Symbol">(\</span><span class="VarId">t</span> <span class="Symbol">-&gt;</span> <span class="VarId">catTypeCategory</span> <span class="VarId">cat</span> <span class="VarId">t</span> <span class="Symbol">==</span> <span class="VarId">firstCat</span><span class="Symbol">)</span>
+                         <span class="VarId">knownTypes</span>
+     <span class="VarId">targetType</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">catMaybes</span> <span class="Symbol">[</span><span class="VarId">firstPreferred</span><span class="Symbol">,</span> <span class="VarId">lastAllConvertibleTo</span><span class="Symbol">]</span> <span class="Keyword">of</span>
+                    <span class="Symbol">[]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Nothing</span>
+                    <span class="Symbol">(</span><span class="VarId">x</span><span class="Symbol">:</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="ConId">Just</span> <span class="VarId">x</span>
+     <span class="VarId">firstPreferred</span> <span class="Symbol">=</span> <span class="VarId">find</span> <span class="Symbol">(</span><span class="VarId">forceRight</span> <span class="Symbol">.</span> <span class="VarId">catPreferredType</span> <span class="VarId">cat</span><span class="Symbol">)</span> <span class="VarId">knownTypes</span>
+     <span class="VarId">lastAllConvertibleTo</span> <span class="Symbol">=</span> <span class="VarId">firstAllConvertibleTo</span> <span class="Symbol">(</span><span class="VarId">reverse</span> <span class="VarId">knownTypes</span><span class="Symbol">)</span>
+     <span class="VarId">firstAllConvertibleTo</span> <span class="Symbol">(</span><span class="VarId">x</span><span class="Symbol">:</span><span class="VarId">xs</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="Keyword">if</span> <span class="VarId">allConvertibleToFrom</span> <span class="VarId">x</span> <span class="VarId">xs</span>
+                                      <span class="Keyword">then</span> <span class="ConId">Just</span> <span class="VarId">x</span>
+                                      <span class="Keyword">else</span> <span class="VarId">firstAllConvertibleTo</span> <span class="VarId">xs</span>
+     <span class="VarId">firstAllConvertibleTo</span> <span class="Symbol">[]</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+     <span class="VarId">knownTypes</span> <span class="Symbol">=</span> <span class="VarId">filter</span> <span class="Symbol">(/=</span><span class="ConId">UnknownType</span><span class="Symbol">)</span> <span class="VarId">inArgsBase</span>
+     <span class="VarId">allConvertibleToFrom</span> <span class="Symbol">=</span> <span class="VarId">all</span> <span class="Symbol">.</span> <span class="VarId">flip</span> <span class="Symbol">(</span><span class="VarId">castableFromTo</span> <span class="VarId">cat</span> <span class="ConId">ImplicitCastContext</span><span class="Symbol">)</span></pre></div></div></div><p
+    >todo: cast empty array, where else can an empty array work?</p
+    ><p
+    >================================================================================</p
+    ><p
+    >= checkAssignmentValue</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">checkAssignmentValid</span> <span class="Symbol">::</span> <span class="ConId">Catalog</span> <span class="Symbol">-&gt;</span> <span class="ConId">Type</span> <span class="Symbol">-&gt;</span> <span class="ConId">Type</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">]</span> <span class="Symbol">()</span>
+<span class="Function">checkAssignmentValid</span> <span class="VarId">cat</span> <span class="VarId">from</span> <span class="VarId">to</span> <span class="Symbol">=</span>
+    <span class="Keyword">if</span> <span class="VarId">castableFromTo</span> <span class="VarId">cat</span> <span class="ConId">AssignmentCastContext</span> <span class="VarId">from</span> <span class="VarId">to</span>
+    <span class="Keyword">then</span> <span class="ConId">Right</span> <span class="Symbol">()</span>
+    <span class="Keyword">else</span> <span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">IncompatibleTypes</span> <span class="VarId">to</span> <span class="VarId">from</span><span class="Symbol">]</span>
+
+<span class="Function">compositesCompatible</span> <span class="Symbol">::</span> <span class="ConId">Catalog</span> <span class="Symbol">-&gt;</span> <span class="ConId">Type</span> <span class="Symbol">-&gt;</span> <span class="ConId">Type</span> <span class="Symbol">-&gt;</span> <span class="ConId">Bool</span>
+<span class="Function">compositesCompatible</span> <span class="VarId">cat</span> <span class="Symbol">=</span>
+    <span class="VarId">castableFromTo</span> <span class="VarId">cat</span> <span class="ConId">ImplicitCastContext</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">checkAssignmentsValid</span> <span class="Symbol">::</span> <span class="ConId">Catalog</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Type</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Type</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">]</span> <span class="Symbol">()</span>
+<span class="Function">checkAssignmentsValid</span> <span class="VarId">cat</span> <span class="VarId">from</span> <span class="VarId">to</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+    <span class="Comment">-- special case for assigning to composite</span>
+    <span class="Keyword">let</span> <span class="VarId">f</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">to</span> <span class="Keyword">of</span>
+                   <span class="Symbol">[</span><span class="VarId">t</span><span class="Symbol">]</span> <span class="Symbol">|</span> <span class="VarId">isCompositeType</span> <span class="VarId">t</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">AnonymousRecordType</span> <span class="VarId">from</span><span class="Symbol">]</span>
+                   <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="VarId">from</span>
+    <span class="VarId">errorWhen</span> <span class="Symbol">(</span><span class="VarId">length</span> <span class="VarId">f</span> <span class="Symbol">/=</span> <span class="VarId">length</span> <span class="VarId">to</span><span class="Symbol">)</span>
+              <span class="Symbol">[</span><span class="ConId">WrongNumberOfColumns</span><span class="Symbol">]</span>
+    <span class="Keyword">let</span> <span class="VarId">ls</span> <span class="Symbol">=</span> <span class="VarId">concat</span> <span class="Symbol">$</span> <span class="VarId">lefts</span> <span class="Symbol">$</span> <span class="VarId">zipWith</span> <span class="Symbol">(</span><span class="VarId">checkAssignmentValid</span> <span class="VarId">cat</span><span class="Symbol">)</span> <span class="VarId">f</span> <span class="VarId">to</span>
+    <span class="VarId">errorWhen</span> <span class="Symbol">(</span><span class="VarId">not</span> <span class="Symbol">(</span><span class="VarId">null</span> <span class="VarId">ls</span><span class="Symbol">))</span> <span class="VarId">ls</span></pre></div></div></div><p
+    >================================================================================</p
+    ><p
+    >= castable function</p
+    ><p
+    >wrapper around the catalog to add a bunch of extra valid casts</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">castableFromTo</span> <span class="Symbol">::</span> <span class="ConId">Catalog</span> <span class="Symbol">-&gt;</span> <span class="ConId">CastContext</span> <span class="Symbol">-&gt;</span> <span class="ConId">Type</span> <span class="Symbol">-&gt;</span> <span class="ConId">Type</span> <span class="Symbol">-&gt;</span> <span class="ConId">Bool</span>
+<span class="Function">castableFromTo</span> <span class="VarId">cat</span> <span class="VarId">cc</span> <span class="VarId">from</span> <span class="VarId">to</span> <span class="Symbol">=</span>
+  <span class="Comment">--trace (&quot;check cast &quot; ++ show from ++ &quot;-&gt;&quot; ++ show to) $</span>
+  <span class="Comment">-- put this here to avoid having to write it everywhere else</span>
+  <span class="VarId">from</span> <span class="Symbol">==</span> <span class="VarId">to</span>
+  <span class="Comment">-- unknown can be implicitly cast to anything (is this completely true?)</span>
+  <span class="Symbol">||</span> <span class="VarId">from</span> <span class="Symbol">==</span> <span class="ConId">UnknownType</span>
+  <span class="Comment">--hack?</span>
+  <span class="Symbol">||</span> <span class="VarId">to</span> <span class="Symbol">==</span> <span class="ConId">UnknownType</span>
+  <span class="Comment">-- check base types of domains</span>
+  <span class="Symbol">||</span> <span class="Symbol">((</span><span class="VarId">isDomainType</span> <span class="VarId">from</span> <span class="Symbol">||</span> <span class="VarId">isDomainType</span> <span class="VarId">to</span><span class="Symbol">)</span>
+      <span class="Symbol">&amp;&amp;</span> <span class="VarId">castableFromTo</span> <span class="VarId">cat</span> <span class="VarId">cc</span> <span class="Symbol">(</span><span class="VarId">replaceWithBase</span> <span class="VarId">cat</span> <span class="VarId">from</span><span class="Symbol">)</span>
+                               <span class="Symbol">(</span><span class="VarId">replaceWithBase</span> <span class="VarId">cat</span> <span class="VarId">to</span><span class="Symbol">))</span>
+  <span class="Comment">-- check the casts listed in the catalog</span>
+  <span class="Symbol">||</span> <span class="VarId">forceRight</span> <span class="Symbol">(</span><span class="VarId">catCast</span> <span class="VarId">cat</span> <span class="VarId">cc</span> <span class="VarId">from</span> <span class="VarId">to</span><span class="Symbol">)</span>
+  <span class="Comment">-- implicitcast =&gt; assignment cast</span>
+  <span class="Symbol">||</span> <span class="Symbol">(</span><span class="VarId">cc</span> <span class="Symbol">==</span> <span class="ConId">AssignmentCastContext</span>
+      <span class="Symbol">&amp;&amp;</span> <span class="VarId">forceRight</span> <span class="Symbol">(</span><span class="VarId">catCast</span> <span class="VarId">cat</span> <span class="ConId">ImplicitCastContext</span> <span class="VarId">from</span> <span class="VarId">to</span><span class="Symbol">))</span>
+  <span class="Comment">-- can assign composite to record</span>
+  <span class="Symbol">||</span> <span class="Symbol">(</span><span class="VarId">cc</span> <span class="Symbol">==</span> <span class="ConId">AssignmentCastContext</span>
+      <span class="Symbol">&amp;&amp;</span> <span class="VarId">isCompOrSetoOfComp</span> <span class="VarId">from</span>
+      <span class="Symbol">&amp;&amp;</span> <span class="Keyword">case</span> <span class="VarId">to</span> <span class="Keyword">of</span>
+           <span class="ConId">PgRecord</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">True</span>
+           <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">False</span><span class="Symbol">)</span>
+  <span class="Comment">-- check unboxing: wrapped single attribute</span>
+  <span class="Symbol">||</span> <span class="VarId">recurseTransFrom</span> <span class="Symbol">(</span><span class="VarId">unboxedSingleType</span> <span class="VarId">from</span><span class="Symbol">)</span>
+  <span class="Symbol">||</span> <span class="VarId">recurseTransTo</span> <span class="Symbol">(</span><span class="VarId">unboxedSingleType</span> <span class="VarId">to</span><span class="Symbol">)</span>
+  <span class="Comment">-- check unboxing: wrapped composite</span>
+  <span class="Symbol">||</span> <span class="VarId">recurseTransFrom</span> <span class="Symbol">(</span><span class="VarId">unboxedSetOfType</span> <span class="VarId">from</span><span class="Symbol">)</span>
+  <span class="Symbol">||</span> <span class="VarId">recurseTransTo</span> <span class="Symbol">(</span><span class="VarId">unboxedSetOfType</span> <span class="VarId">to</span><span class="Symbol">)</span>
+  <span class="Comment">-- check composites compatible by comparing attribute types</span>
+  <span class="Symbol">||</span> <span class="Keyword">case</span> <span class="Symbol">(</span><span class="VarId">getCompositeTypes</span> <span class="VarId">from</span>
+          <span class="Symbol">,</span><span class="VarId">getCompositeTypes</span> <span class="VarId">to</span><span class="Symbol">)</span> <span class="Keyword">of</span>
+       <span class="Comment">-- zip almost does the right thing here, needs a bit of tweaking</span>
+       <span class="Symbol">(</span><span class="ConId">Just</span> <span class="VarId">ft</span><span class="Symbol">,</span> <span class="ConId">Just</span> <span class="VarId">tt</span><span class="Symbol">)</span> <span class="Symbol">|</span> <span class="VarId">length</span> <span class="VarId">ft</span> <span class="Symbol">==</span> <span class="VarId">length</span> <span class="VarId">tt</span> <span class="Symbol">-&gt;</span> <span class="VarId">all</span> <span class="Symbol">(</span><span class="VarId">uncurry</span> <span class="Symbol">$</span> <span class="VarId">castableFromTo</span> <span class="VarId">cat</span> <span class="VarId">cc</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="VarId">zip</span> <span class="VarId">ft</span> <span class="VarId">tt</span>
+       <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">False</span>
+  <span class="Keyword">where</span>
+
+    <span class="VarId">getCompositeTypes</span> <span class="Symbol">(</span><span class="ConId">NamedCompositeType</span> <span class="VarId">n</span><span class="Symbol">)</span> <span class="Symbol">=</span>
+        <span class="ConId">Just</span> <span class="Symbol">$</span> <span class="VarId">map</span> <span class="VarId">snd</span> <span class="Symbol">$</span> <span class="VarId">fromRight</span> <span class="Symbol">[]</span> <span class="Symbol">$</span> <span class="VarId">catCompositePublicAttrs</span> <span class="VarId">cat</span> <span class="Symbol">[]</span> <span class="VarId">n</span>
+    <span class="VarId">getCompositeTypes</span> <span class="Symbol">(</span><span class="ConId">CompositeType</span> <span class="VarId">t</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="ConId">Just</span> <span class="Symbol">$</span> <span class="VarId">map</span> <span class="VarId">snd</span> <span class="VarId">t</span>
+    <span class="VarId">getCompositeTypes</span> <span class="Symbol">(</span><span class="ConId">AnonymousRecordType</span> <span class="VarId">t</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="ConId">Just</span> <span class="VarId">t</span>
+    <span class="VarId">getCompositeTypes</span> <span class="Symbol">(</span><span class="ConId">PgRecord</span> <span class="ConId">Nothing</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+    <span class="VarId">getCompositeTypes</span> <span class="Symbol">(</span><span class="ConId">PgRecord</span> <span class="Symbol">(</span><span class="ConId">Just</span> <span class="VarId">t</span><span class="Symbol">))</span> <span class="Symbol">=</span> <span class="VarId">getCompositeTypes</span> <span class="VarId">t</span>
+    <span class="VarId">getCompositeTypes</span> <span class="VarId">_</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+
+    <span class="VarId">isCompOrSetoOfComp</span> <span class="Symbol">(</span><span class="ConId">SetOfType</span> <span class="VarId">c</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">isCompositeType</span> <span class="VarId">c</span>
+    <span class="VarId">isCompOrSetoOfComp</span> <span class="VarId">c</span> <span class="Symbol">=</span> <span class="VarId">isCompositeType</span> <span class="VarId">c</span>
+
+    <span class="VarId">unboxedSingleType</span> <span class="Symbol">(</span><span class="ConId">SetOfType</span> <span class="Symbol">(</span><span class="ConId">CompositeType</span> <span class="Symbol">[(</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">t</span><span class="Symbol">)]))</span> <span class="Symbol">=</span> <span class="ConId">Just</span> <span class="VarId">t</span>
+    <span class="VarId">unboxedSingleType</span> <span class="Symbol">(</span><span class="ConId">PgRecord</span> <span class="Symbol">(</span><span class="ConId">Just</span> <span class="VarId">t</span><span class="Symbol">))</span> <span class="Symbol">=</span> <span class="VarId">unboxedSingleType</span> <span class="VarId">t</span>
+    <span class="VarId">unboxedSingleType</span> <span class="VarId">_</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+
+    <span class="VarId">unboxedSetOfType</span> <span class="Symbol">(</span><span class="ConId">SetOfType</span> <span class="VarId">a</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="ConId">Just</span> <span class="VarId">a</span>
+    <span class="VarId">unboxedSetOfType</span> <span class="Symbol">(</span><span class="ConId">PgRecord</span> <span class="Symbol">(</span><span class="ConId">Just</span> <span class="VarId">t</span><span class="Symbol">))</span> <span class="Symbol">=</span> <span class="VarId">unboxedSetOfType</span> <span class="VarId">t</span>
+    <span class="VarId">unboxedSetOfType</span> <span class="VarId">_</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
+
+    <span class="VarId">recurseTransFrom</span> <span class="Symbol">=</span> <span class="VarId">maybe</span> <span class="ConId">False</span> <span class="Symbol">(</span><span class="VarId">flip</span> <span class="Symbol">(</span><span class="VarId">castableFromTo</span> <span class="VarId">cat</span> <span class="VarId">cc</span><span class="Symbol">)</span> <span class="VarId">to</span><span class="Symbol">)</span>
+    <span class="VarId">recurseTransTo</span> <span class="Symbol">=</span> <span class="VarId">maybe</span> <span class="ConId">False</span> <span class="Symbol">(</span><span class="VarId">castableFromTo</span> <span class="VarId">cat</span> <span class="VarId">cc</span> <span class="VarId">from</span><span class="Symbol">)</span>
+
+<span class="Function">replaceWithBase</span> <span class="Symbol">::</span> <span class="ConId">Catalog</span> <span class="Symbol">-&gt;</span> <span class="ConId">Type</span> <span class="Symbol">-&gt;</span> <span class="ConId">Type</span>
+<span class="Function">replaceWithBase</span> <span class="VarId">cat</span> <span class="VarId">t</span><span class="Symbol">@(</span><span class="ConId">DomainType</span> <span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">forceRight</span> <span class="Symbol">$</span> <span class="VarId">catDomainBaseType</span> <span class="VarId">cat</span> <span class="VarId">t</span>
+<span class="Function">replaceWithBase</span> <span class="VarId">_</span> <span class="VarId">t</span> <span class="Symbol">=</span> <span class="VarId">t</span></pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

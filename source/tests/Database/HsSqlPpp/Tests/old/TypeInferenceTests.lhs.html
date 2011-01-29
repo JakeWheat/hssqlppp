@@ -1,0 +1,75 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >TypeInferenceTests</title
+    ><link href="../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">{-# LANGUAGE QuasiQuotes #-}</span>
+<span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.Tests.TypeInferenceTests</span> <span class="Symbol">(</span><span class="VarId">typeInferenceTests</span><span class="Symbol">)</span> <span class="Keyword">where</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">import</span> <span class="ConId">Test.HUnit</span>
+<span class="Keyword">import</span> <span class="ConId">Test.Framework</span>
+<span class="Keyword">import</span> <span class="ConId">Test.Framework.Providers.HUnit</span>
+<span class="Comment">--import Data.List</span>
+<span class="Keyword">import</span> <span class="ConId">Data.Generics.Uniplate.Data</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">--import Debug.Trace</span>
+
+<span class="Comment">--import Database.HsSqlPpp.Utils.Here</span>
+<span class="Comment">--import Database.HsSqlPpp.Parser</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.TypeChecker</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Annotation</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Catalog</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.SqlTypes</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.SqlQuote</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Ast</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.PrettyPrinter</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">data</span> <span class="ConId">Item</span> <span class="Symbol">=</span> <span class="ConId">Expr</span> <span class="ConId">Expression</span> <span class="Symbol">[</span><span class="ConId">Maybe</span> <span class="ConId">Type</span><span class="Symbol">]</span>
+          <span class="Symbol">|</span> <span class="ConId">Group</span> <span class="ConId">String</span> <span class="Symbol">[</span><span class="ConId">Item</span><span class="Symbol">]</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">typeInferenceTests</span> <span class="Symbol">::</span> <span class="ConId">Test.Framework.Test</span>
+<span class="Function">typeInferenceTests</span> <span class="Symbol">=</span> <span class="VarId">itemToTft</span> <span class="VarId">typeInferenceTestData</span>
+
+<span class="Function">typeInferenceTestData</span> <span class="Symbol">::</span> <span class="ConId">Item</span>
+<span class="Function">typeInferenceTestData</span> <span class="Symbol">=</span>
+  <span class="ConId">Group</span> <span class="String">&quot;typeInferenceTests&quot;</span> <span class="Symbol">[</span>
+    <span class="VarId">e</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="Number">1</span> <span class="Symbol">=</span> <span class="Char">'2'</span><span class="Symbol">|]</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="VarId">typeBool</span>
+                           <span class="Symbol">,</span><span class="ConId">Just</span> <span class="VarId">typeInt</span>
+                           <span class="Symbol">,</span><span class="ConId">Just</span> <span class="VarId">typeInt</span><span class="Symbol">]</span>
+   <span class="Symbol">,</span><span class="VarId">e</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="Symbol">(</span><span class="Number">3</span><span class="Symbol">,</span><span class="Number">4</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="Char">'2'</span><span class="Symbol">,</span><span class="Char">'3'</span><span class="Symbol">)|]</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="VarId">typeBool</span>
+                                     <span class="Symbol">,</span><span class="ConId">Just</span> <span class="Symbol">$</span> <span class="ConId">AnonymousRecordType</span> <span class="Symbol">[</span><span class="VarId">typeInt</span><span class="Symbol">,</span><span class="VarId">typeInt</span><span class="Symbol">]</span>
+                                     <span class="Symbol">,</span><span class="ConId">Just</span> <span class="VarId">typeInt</span>
+                                     <span class="Symbol">,</span><span class="ConId">Just</span> <span class="VarId">typeInt</span>
+                                     <span class="Symbol">,</span><span class="ConId">Just</span> <span class="Symbol">$</span> <span class="ConId">AnonymousRecordType</span> <span class="Symbol">[</span><span class="VarId">typeInt</span><span class="Symbol">,</span><span class="VarId">typeInt</span><span class="Symbol">]</span>
+                                     <span class="Symbol">,</span><span class="ConId">Just</span> <span class="VarId">typeInt</span>
+                                     <span class="Symbol">,</span><span class="ConId">Just</span> <span class="VarId">typeInt</span><span class="Symbol">]</span>
+   <span class="Symbol">,</span><span class="VarId">e</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="Symbol">(</span><span class="Char">'2'</span><span class="Symbol">,</span><span class="Char">'3'</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="Number">3</span><span class="Symbol">,</span><span class="Number">4</span><span class="Symbol">)|]</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="VarId">typeBool</span>
+                                     <span class="Symbol">,</span><span class="ConId">Just</span> <span class="Symbol">$</span> <span class="ConId">AnonymousRecordType</span> <span class="Symbol">[</span><span class="VarId">typeInt</span><span class="Symbol">,</span><span class="VarId">typeInt</span><span class="Symbol">]</span>
+                                     <span class="Symbol">,</span><span class="ConId">Just</span> <span class="VarId">typeInt</span>
+                                     <span class="Symbol">,</span><span class="ConId">Just</span> <span class="VarId">typeInt</span>
+                                     <span class="Symbol">,</span><span class="ConId">Just</span> <span class="Symbol">$</span> <span class="ConId">AnonymousRecordType</span> <span class="Symbol">[</span><span class="VarId">typeInt</span><span class="Symbol">,</span><span class="VarId">typeInt</span><span class="Symbol">]</span>
+                                     <span class="Symbol">,</span><span class="ConId">Just</span> <span class="VarId">typeInt</span>
+                                     <span class="Symbol">,</span><span class="ConId">Just</span> <span class="VarId">typeInt</span><span class="Symbol">]</span>
+   <span class="Symbol">,</span><span class="VarId">e</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="Symbol">(</span><span class="Char">'2'</span><span class="Symbol">,</span><span class="Number">3</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="Number">3</span><span class="Symbol">,</span><span class="Char">'4'</span><span class="Symbol">)|]</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="VarId">typeBool</span>
+                                     <span class="Symbol">,</span><span class="ConId">Just</span> <span class="Symbol">$</span> <span class="ConId">AnonymousRecordType</span> <span class="Symbol">[</span><span class="VarId">typeInt</span><span class="Symbol">,</span><span class="VarId">typeInt</span><span class="Symbol">]</span>
+                                     <span class="Symbol">,</span><span class="ConId">Just</span> <span class="VarId">typeInt</span>
+                                     <span class="Symbol">,</span><span class="ConId">Just</span> <span class="VarId">typeInt</span>
+                                     <span class="Symbol">,</span><span class="ConId">Just</span> <span class="Symbol">$</span> <span class="ConId">AnonymousRecordType</span> <span class="Symbol">[</span><span class="VarId">typeInt</span><span class="Symbol">,</span><span class="VarId">typeInt</span><span class="Symbol">]</span>
+                                     <span class="Symbol">,</span><span class="ConId">Just</span> <span class="VarId">typeInt</span>
+                                     <span class="Symbol">,</span><span class="ConId">Just</span> <span class="VarId">typeInt</span><span class="Symbol">]</span>
+  <span class="Symbol">]</span>
+  <span class="Keyword">where</span>
+    <span class="VarId">e</span> <span class="Symbol">=</span> <span class="ConId">Expr</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">itemToTft</span> <span class="Symbol">::</span> <span class="ConId">Item</span> <span class="Symbol">-&gt;</span> <span class="ConId">Test.Framework.Test</span>
+<span class="Function">itemToTft</span> <span class="Symbol">(</span><span class="ConId">Group</span> <span class="VarId">s</span> <span class="VarId">is</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">testGroup</span> <span class="VarId">s</span> <span class="Symbol">$</span> <span class="VarId">map</span> <span class="VarId">itemToTft</span> <span class="VarId">is</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">itemToTft</span> <span class="Symbol">(</span><span class="ConId">Expr</span> <span class="VarId">e</span> <span class="VarId">t</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">testCase</span> <span class="Symbol">(</span><span class="VarId">printExpression</span> <span class="VarId">e</span><span class="Symbol">)</span> <span class="Symbol">$</span>
+    <span class="Keyword">let</span> <span class="VarId">a</span> <span class="Symbol">=</span> <span class="VarId">typeCheckExpression</span> <span class="VarId">defaultTemplate1Catalog</span> <span class="VarId">e</span>
+        <span class="VarId">t1</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="VarId">infType</span> <span class="VarId">el</span> <span class="Symbol">|</span> <span class="VarId">el</span> <span class="Symbol">&lt;-</span> <span class="VarId">universeBi</span> <span class="VarId">a</span><span class="Symbol">]</span>
+    <span class="Keyword">in</span> <span class="VarId">assertEqual</span> <span class="String">&quot;&quot;</span> <span class="VarId">t</span> <span class="VarId">t1</span></pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

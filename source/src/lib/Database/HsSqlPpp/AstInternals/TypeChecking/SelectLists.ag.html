@@ -1,0 +1,152 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >SelectLists</title
+    ><link href="../../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >{-</p
+    ><p
+    >This file contains the code that handles the select list part of a select expression.</p
+    ><p
+    >TODO: stop wrapping string,type lists in unnamedcompositetypes, pointless</p
+    ><p
+    >-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="Comment">-- this is in the wrong file</span>
+<span class="Comment">--ATTR SelectExpression [||libUpdates : {[LocalBindingsUpdate]}]</span>
+
+<span class="ConId">ATTR</span> <span class="ConId">MaybeSelectList</span> <span class="Symbol">[||</span><span class="VarId">listType</span> <span class="Symbol">:</span> <span class="Symbol">{[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)]}]</span>
+
+<span class="ConId">ATTR</span> <span class="ConId">SelectItemList</span> <span class="ConId">SelectList</span> <span class="Symbol">[||</span><span class="VarId">listType</span> <span class="Symbol">:</span> <span class="Symbol">{[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)]}]</span>
+
+<span class="Symbol">{</span>
+</pre></div></div></div><p
+    >{-data SiType = SiType (String,Maybe Type) | SiStarType [(String,Maybe Type)]-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="Symbol">}</span>
+
+<span class="ConId">ATTR</span> <span class="ConId">SelectItem</span> <span class="Symbol">[||</span><span class="VarId">itemType</span> <span class="Symbol">:</span> <span class="Symbol">{[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)]}]</span>
+
+<span class="ConId">ATTR</span> <span class="ConId">SelectList</span> <span class="Symbol">[||</span><span class="VarId">libUpdates</span> <span class="Symbol">:</span> <span class="Symbol">{[</span><span class="ConId">LocalBindingsUpdate</span><span class="Symbol">]}]</span>
+
+<span class="Comment">-- ATTR SelectItem [||columnName : String]</span>
+
+
+<span class="ConId">SEM</span> <span class="ConId">SelectItem</span>
+    <span class="Symbol">|</span> <span class="ConId">SelExp</span>
+        <span class="Comment">-- allow star expansions for unaliased elements</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Symbol">=</span> <span class="ConId">SelExp</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">ex</span><span class="Symbol">.</span><span class="VarId">ntAnnotatedTree</span>
+    <span class="Symbol">|</span> <span class="ConId">SelectItem</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Symbol">=</span> <span class="ConId">SelectItem</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">ex</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Symbol">@</span><span class="VarId">name</span>
+
+
+<span class="ConId">SEM</span> <span class="ConId">MaybeSelectList</span>
+    <span class="Symbol">|</span> <span class="ConId">Just</span> <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">listType</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">just</span><span class="Symbol">.</span><span class="VarId">listType</span>
+    <span class="Symbol">|</span> <span class="ConId">Nothing</span> <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">listType</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+
+<span class="ConId">SEM</span> <span class="ConId">SelectItemList</span>
+    <span class="Symbol">|</span> <span class="ConId">Cons</span> <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">listType</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">hd</span><span class="Symbol">.</span><span class="VarId">itemType</span> <span class="Symbol">++</span> <span class="Symbol">@</span><span class="VarId">tl</span><span class="Symbol">.</span><span class="VarId">listType</span>
+    <span class="Symbol">|</span> <span class="ConId">Nil</span> <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">listType</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+
+
+</pre></div></div></div><p
+    >{-</p
+    ><p
+    >a function returning setof can only be used in a select item list (i think?), where it creates a kind of join so (a,b,setof c,d) where c returns (c1,c2,...) expands to (a,b,c1,d) (a,b,c2,d) (a,b,...,d) so the type of that column is the type wrapped with setof</p
+    ><p
+    >-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="ConId">SEM</span> <span class="ConId">SelectItem</span>
+    <span class="Symbol">|</span> <span class="ConId">SelExp</span>
+        <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">itemType</span> <span class="Symbol">=</span> <span class="VarId">unwrapSetofs</span> <span class="Symbol">@</span><span class="VarId">ex</span><span class="Symbol">.</span><span class="VarId">ntType</span>
+    <span class="Symbol">|</span> <span class="ConId">SelectItem</span>
+        <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">itemType</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="Symbol">@</span><span class="VarId">ex</span><span class="Symbol">.</span><span class="VarId">ntType</span> <span class="Keyword">of</span>
+                         <span class="Symbol">[(</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">t</span><span class="Symbol">)]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[(@</span><span class="VarId">name</span><span class="Symbol">,</span> <span class="VarId">unwrapSetof</span> <span class="VarId">t</span><span class="Symbol">)]</span>
+                         <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[]</span> <span class="Comment">--error?</span>
+
+<span class="Symbol">{</span>
+<span class="Function">unwrapSetofs</span> <span class="Symbol">::</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)]</span>
+<span class="Function">unwrapSetofs</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="Symbol">(\(</span><span class="VarId">n</span><span class="Symbol">,</span><span class="VarId">t</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="VarId">n</span><span class="Symbol">,</span> <span class="VarId">unwrapSetof</span> <span class="VarId">t</span><span class="Symbol">))</span>
+
+<span class="Function">unwrapSetof</span> <span class="Symbol">::</span> <span class="ConId">Type</span> <span class="Symbol">-&gt;</span> <span class="ConId">Type</span>
+<span class="Function">unwrapSetof</span> <span class="Symbol">(</span><span class="ConId">SetOfType</span> <span class="VarId">u</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">u</span>
+<span class="Function">unwrapSetof</span> <span class="VarId">v</span> <span class="Symbol">=</span> <span class="VarId">v</span>
+
+<span class="Symbol">}</span>
+
+
+<span class="ConId">SEM</span> <span class="ConId">SelectList</span>
+    <span class="Symbol">|</span> <span class="ConId">SelectList</span>
+        <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">listType</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">items</span><span class="Symbol">.</span><span class="VarId">listType</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">intoFroms</span> <span class="Symbol">:</span> <span class="Symbol">{</span><span class="ConId">E</span> <span class="Symbol">([(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)],[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)])}</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">intoFroms</span> <span class="Symbol">=</span>
+          <span class="Comment">-- get the name and type of the assigning to identifiers</span>
+          <span class="Comment">-- and the type of the assigning from vars</span>
+          <span class="VarId">returnWhen</span> <span class="Symbol">(@</span><span class="VarId">into</span><span class="Symbol">.</span><span class="VarId">originalTree</span> <span class="Symbol">==</span> <span class="Symbol">[])</span> <span class="Symbol">([],[])</span> <span class="Symbol">$</span> <span class="Keyword">do</span>
+          <span class="Comment">-- special case when the intoTypes is a single composite type: missing</span>
+          <span class="VarId">it</span> <span class="Symbol">&lt;-</span> <span class="VarId">lmt</span> <span class="VarId">intoTypes</span>
+          <span class="Keyword">let</span> <span class="VarId">ft</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">items</span><span class="Symbol">.</span><span class="VarId">listType</span>
+          <span class="VarId">return</span> <span class="Symbol">(</span><span class="VarId">it</span><span class="Symbol">,</span><span class="VarId">ft</span><span class="Symbol">)</span>
+          <span class="Keyword">where</span>
+            <span class="VarId">intoTypes</span> <span class="Symbol">::</span> <span class="ConId">Maybe</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)]</span>
+            <span class="VarId">intoTypes</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+                        <span class="VarId">ts</span> <span class="Symbol">&lt;-</span> <span class="VarId">sequence</span> <span class="Symbol">@</span><span class="VarId">into</span><span class="Symbol">.</span><span class="VarId">uType</span>
+                        <span class="Keyword">let</span> <span class="VarId">ns</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="VarId">getName</span> <span class="Symbol">@</span><span class="VarId">into</span><span class="Symbol">.</span><span class="VarId">originalTree</span>
+                        <span class="VarId">return</span> <span class="Symbol">$</span> <span class="VarId">zip</span> <span class="VarId">ns</span> <span class="VarId">ts</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span>
+            <span class="VarId">returnWhen</span> <span class="Symbol">(@</span><span class="VarId">into</span><span class="Symbol">.</span><span class="VarId">originalTree</span> <span class="Symbol">==</span> <span class="Symbol">[])</span> <span class="Symbol">()</span> <span class="Symbol">$</span> <span class="Keyword">do</span>
+            <span class="Symbol">(</span><span class="VarId">it</span><span class="Symbol">,</span><span class="VarId">ft</span><span class="Symbol">)</span> <span class="Symbol">&lt;-</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">intoFroms</span>
+            <span class="VarId">checkAssignmentsValid</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">cat</span> <span class="Symbol">(</span><span class="VarId">map</span> <span class="VarId">snd</span> <span class="VarId">ft</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="VarId">map</span> <span class="VarId">snd</span> <span class="VarId">it</span><span class="Symbol">)</span>
+
+        <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">libUpdates</span> <span class="Symbol">=</span>
+            <span class="VarId">maybe</span> <span class="Symbol">[]</span> <span class="VarId">id</span> <span class="Symbol">$</span> <span class="Keyword">do</span>
+            <span class="VarId">_</span> <span class="Symbol">&lt;-</span> <span class="VarId">etmt</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span>
+            <span class="Symbol">(</span><span class="VarId">it</span><span class="Symbol">,</span><span class="VarId">ft</span><span class="Symbol">)</span> <span class="Symbol">&lt;-</span> <span class="VarId">etmt</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">intoFroms</span>
+            <span class="Comment">-- not complete, we only cope with situation when</span>
+            <span class="Comment">-- assigning to a single record type on its own</span>
+            <span class="VarId">return</span> <span class="Symbol">$</span> <span class="Keyword">case</span> <span class="VarId">it</span> <span class="Keyword">of</span>
+              <span class="Symbol">[(</span><span class="VarId">n</span><span class="Symbol">,</span><span class="ConId">PgRecord</span> <span class="VarId">_</span><span class="Symbol">)]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">LBIds</span> <span class="String">&quot;set record actual fields from select into&quot;</span>
+                                         <span class="ConId">Nothing</span>
+                                         <span class="Symbol">[(</span><span class="VarId">n</span><span class="Symbol">,</span><span class="ConId">PgRecord</span> <span class="Symbol">$</span> <span class="ConId">Just</span> <span class="Symbol">$</span> <span class="ConId">CompositeType</span> <span class="VarId">ft</span><span class="Symbol">)]]</span>
+              <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[]</span>
+
+</pre></div></div></div><p
+    >{- somewhere this has gone wrong. we need @items.listType to be maybe [(String,Maybe Type)] not [(String,Type)] this is only so we can give better error messages it doesn't make any difference when it type checks</p
+    ><p
+    >we need the outer maybe to say the types feeding in have gone completely wrong, so don't add any more errors</p
+    ><p
+    >we need the maybes on the types to keep the columns lined up, so that e.g. if we have</p
+    ><p
+    >select t1,typerror,t3 into a,b,c ...</p
+    ><p
+    >we don't get weird type errors as it tries to assign to the wrong vars,</p
+    ><p
+    >-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+
+        <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Symbol">=</span> <span class="VarId">addTypeErrors</span> <span class="Symbol">(</span><span class="VarId">tes</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span><span class="Symbol">)</span> <span class="Symbol">$</span>
+                            <span class="ConId">SelectList</span> <span class="Symbol">@</span><span class="VarId">ann</span>
+                                       <span class="Symbol">@</span><span class="VarId">items</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+                                       <span class="Symbol">@</span><span class="VarId">into</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+
+<span class="Comment">--[(@var,@loc.selType)]</span>
+</pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

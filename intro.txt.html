@@ -1,0 +1,214 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >intro</title
+    ><link href="main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><div id="introduction"
+    ><h1
+      >Introduction</h1
+      ><p
+      >HsSqlPpp is abstract syntax types, a parser, pretty printer, quasiquoter and type checker for SQL. If this doesn't mean anything to you then this is the page that attempts to explain what it all means, and hopefully what the uses are.</p
+      ><div id="abstract-syntax-concrete-syntax-parsing-pretty-printing"
+      ><h2
+	>abstract syntax/ concrete syntax, parsing, pretty printing</h2
+	><p
+	>Abstract syntax is a tree representation of source code, in this case SQL. This can be contrasted with concrete syntax, which is the actual source code.</p
+	><p
+	>some examples concrete syntax abstract syntax</p
+	><p
+	>Parsing is the process of converting concrete syntax into abstract syntax trees (asts).</p
+	><p
+	>example parse &quot;...&quot; -&gt; ast parse &quot;...&quot; -&gt; error</p
+	><p
+	>In this case, pretty printing is the process of converting asts back into valid source code. This hopefully makes pretty printing the parsing asts produce the original asts.</p
+	><p
+	>couple of examples</p
+	></div
+      ><div id="quasiquoting"
+      ><h2
+	>Quasiquoting</h2
+	><p
+	>There are a few things we can do with a set of ast types, and a parser and pretty printer.</p
+	><ul
+	><li
+	  >parse source code sql to check the syntax is valid</li
+	  ><li
+	  >take an ast and perform some queries on it, e.g. count how many times a function is called</li
+	  ><li
+	  >take an ast and modify it to produce a new ast</li
+	  ></ul
+	><p
+	>All of this can be made much more powerful and easy to use using quasiquoting.</p
+	><p
+	>It is a well known issue that writing out and working with ast types in code can be verbose, unreadable, and error prone. Consider the following code:</p
+	><div class='haskell'><pre class="sourceCode"><span class="Function">ast</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span>
+<span class="Function">ast</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">CreateTable</span> <span class="Symbol">[</span><span class="ConId">SourcePos</span> <span class="String">&quot;test.sql&quot;</span> <span class="Number">1</span> <span class="Number">8</span><span class="Symbol">]</span> <span class="String">&quot;pieces&quot;</span>
+         <span class="Symbol">[</span><span class="ConId">AttributeDef</span> <span class="Symbol">[</span><span class="ConId">SourcePos</span> <span class="String">&quot;test.sql&quot;</span> <span class="Number">2</span> <span class="Number">5</span><span class="Symbol">]</span> <span class="String">&quot;ptype&quot;</span>
+            <span class="Symbol">(</span><span class="ConId">SimpleTypeName</span> <span class="Symbol">[</span><span class="ConId">SourcePos</span> <span class="String">&quot;test.sql&quot;</span> <span class="Number">2</span> <span class="Number">11</span><span class="Symbol">]</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)</span>
+            <span class="ConId">Nothing</span>
+            <span class="Symbol">[</span><span class="ConId">RowReferenceConstraint</span> <span class="Symbol">[</span><span class="ConId">SourcePos</span> <span class="String">&quot;test.sql&quot;</span> <span class="Number">2</span> <span class="Number">16</span><span class="Symbol">]</span> <span class="String">&quot;&quot;</span>
+               <span class="String">&quot;piece_prototypes_mr&quot;</span>
+               <span class="ConId">Nothing</span>
+               <span class="ConId">Restrict</span>
+               <span class="ConId">Restrict</span><span class="Symbol">],</span>
+          <span class="ConId">AttributeDef</span> <span class="Symbol">[</span><span class="ConId">SourcePos</span> <span class="String">&quot;test.sql&quot;</span> <span class="Number">3</span> <span class="Number">5</span><span class="Symbol">]</span> <span class="String">&quot;allegiance&quot;</span>
+            <span class="Symbol">(</span><span class="ConId">SimpleTypeName</span> <span class="Symbol">[</span><span class="ConId">SourcePos</span> <span class="String">&quot;test.sql&quot;</span> <span class="Number">3</span> <span class="Number">16</span><span class="Symbol">]</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)</span>
+            <span class="ConId">Nothing</span>
+            <span class="Symbol">[],</span>
+          <span class="ConId">AttributeDef</span> <span class="Symbol">[</span><span class="ConId">SourcePos</span> <span class="String">&quot;test.sql&quot;</span> <span class="Number">4</span> <span class="Number">5</span><span class="Symbol">]</span> <span class="String">&quot;tag&quot;</span>
+            <span class="Symbol">(</span><span class="ConId">SimpleTypeName</span> <span class="Symbol">[</span><span class="ConId">SourcePos</span> <span class="String">&quot;test.sql&quot;</span> <span class="Number">4</span> <span class="Number">9</span><span class="Symbol">]</span> <span class="String">&quot;int&quot;</span><span class="Symbol">)</span>
+            <span class="ConId">Nothing</span>
+            <span class="Symbol">[],</span>
+          <span class="ConId">AttributeDef</span> <span class="Symbol">[</span><span class="ConId">SourcePos</span> <span class="String">&quot;test.sql&quot;</span> <span class="Number">5</span> <span class="Number">5</span><span class="Symbol">]</span> <span class="String">&quot;x&quot;</span>
+      <span class="Symbol">(</span><span class="ConId">SimpleTypeName</span> <span class="Symbol">[</span><span class="ConId">SourcePos</span> <span class="String">&quot;test.sql&quot;</span> <span class="Number">5</span> <span class="Number">7</span><span class="Symbol">]</span> <span class="String">&quot;int&quot;</span><span class="Symbol">)</span>
+            <span class="ConId">Nothing</span>
+            <span class="Symbol">[],</span>
+          <span class="ConId">AttributeDef</span> <span class="Symbol">[</span><span class="ConId">SourcePos</span> <span class="String">&quot;test.sql&quot;</span> <span class="Number">6</span> <span class="Number">5</span><span class="Symbol">]</span> <span class="String">&quot;y&quot;</span>
+            <span class="Symbol">(</span><span class="ConId">SimpleTypeName</span> <span class="Symbol">[</span><span class="ConId">SourcePos</span> <span class="String">&quot;test.sql&quot;</span> <span class="Number">6</span> <span class="Number">7</span><span class="Symbol">]</span> <span class="String">&quot;int&quot;</span><span class="Symbol">)</span>
+            <span class="ConId">Nothing</span>
+            <span class="Symbol">[]]</span>
+         <span class="Symbol">[</span><span class="ConId">PrimaryKeyConstraint</span> <span class="Symbol">[</span><span class="ConId">SourcePos</span> <span class="String">&quot;test.sql&quot;</span> <span class="Number">7</span> <span class="Number">5</span><span class="Symbol">]</span> <span class="String">&quot;&quot;</span>
+            <span class="Symbol">[</span><span class="String">&quot;ptype&quot;</span><span class="Symbol">,</span> <span class="String">&quot;allegiance&quot;</span><span class="Symbol">,</span> <span class="String">&quot;tag&quot;</span><span class="Symbol">]]]</span></pre></div><p
+	>It's pretty difficult to read and modify. We can use a parsing function to convert this to:</p
+	><div class='haskell'><pre class="sourceCode"><span class="Function">ast</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span>
+<span class="Function">ast</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">parseSql</span> <span class="Symbol">[$</span><span class="VarId">here</span><span class="Symbol">|</span>
+
+<span class="Function">create</span> <span class="VarId">table</span> <span class="VarId">pieces</span> <span class="Symbol">(</span>
+    <span class="VarId">ptype</span> <span class="VarId">text</span> <span class="VarId">references</span> <span class="VarId">piece_prototypes_mr</span><span class="Symbol">,</span>
+    <span class="VarId">allegiance</span> <span class="VarId">text</span><span class="Symbol">,</span>
+    <span class="VarId">tag</span> <span class="VarId">int</span><span class="Symbol">,</span>
+    <span class="VarId">x</span> <span class="VarId">int</span><span class="Symbol">,</span>
+    <span class="VarId">y</span> <span class="VarId">int</span><span class="Symbol">,</span>
+    <span class="VarId">primary</span> <span class="VarId">key</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">)</span>
+<span class="Symbol">);</span>
+                          <span class="Symbol">|]</span> <span class="Keyword">of</span>
+        <span class="ConId">Right</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
+        <span class="ConId">Left</span> <span class="VarId">e</span> <span class="Symbol">-&gt;</span> <span class="VarId">error</span> <span class="Symbol">$</span> <span class="VarId">show</span> <span class="VarId">e</span></pre></div><p
+	>Which is much more pleasant to read and modify. One of the problems that has been introduced is that if the SQL code has a parsing error, we get an error at runtime, which couldn't happen before - if the ast was incorrect, we got a compile error.</p
+	><p
+	>The first thing quasiquoting can do is move this parsing and error checking to compile time, we write:</p
+	><div class='haskell'><pre class="sourceCode"><span class="Function">ast</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span>
+<span class="Function">ast</span> <span class="Symbol">=</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+
+<span class="Function">create</span> <span class="VarId">table</span> <span class="VarId">pieces</span> <span class="Symbol">(</span>
+    <span class="VarId">ptype</span> <span class="VarId">text</span> <span class="VarId">references</span> <span class="VarId">piece_prototypes_mr</span><span class="Symbol">,</span>
+    <span class="VarId">allegiance</span> <span class="VarId">text</span><span class="Symbol">,</span>
+    <span class="VarId">tag</span> <span class="VarId">int</span><span class="Symbol">,</span>
+    <span class="VarId">x</span> <span class="VarId">int</span><span class="Symbol">,</span>
+    <span class="VarId">y</span> <span class="VarId">int</span><span class="Symbol">,</span>
+    <span class="VarId">primary</span> <span class="VarId">key</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">)</span>
+<span class="Symbol">);</span>
+                          <span class="Symbol">|]</span></pre></div><p
+	>Then, the SQL is converted into the ast above ( [CreateTable [ ... ) when the Haskell code is being compiled, so if there are any parse errors, we get them at compile time instead of runtime. This gives us the best of both worlds.</p
+	><p
+	>example of loading haskell with an error</p
+	><p
+	>We can also use quasiquotation in pattern matching. Say we want to transform some parsed sql to change all calls to a function called calculate_it('stuff') with a call to calculate_it_safe('stuff'). Using asts directy gives us something like:</p
+	><div class='haskell'><pre class="sourceCode">
+<span class="Function">replace</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span>
+<span class="Function">replace</span> <span class="Symbol">=</span>
+     <span class="VarId">transformBi</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span>
+       <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+         <span class="ConId">FunCall</span> <span class="VarId">a</span> <span class="String">&quot;calculate_it&quot;</span> <span class="Symbol">[</span><span class="ConId">StringLit</span> <span class="VarId">a1</span> <span class="String">&quot;stuff&quot;</span><span class="Symbol">])</span> <span class="Symbol">-&gt;</span>
+           <span class="ConId">FunCall</span> <span class="VarId">a</span> <span class="String">&quot;calculate_it_safe&quot;</span> <span class="Symbol">[</span><span class="ConId">StringLit</span> <span class="VarId">a1</span> <span class="String">&quot;stuff&quot;</span><span class="Symbol">]</span>
+         <span class="VarId">x1</span> <span class="Symbol">-&gt;</span> <span class="VarId">x1</span>
+</pre></div><p
+	>Using quasiquotes, we can instead write</p
+	><div class='haskell'><pre class="sourceCode">
+<span class="Function">replace</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span>
+<span class="Function">replace</span> <span class="Symbol">=</span>
+     <span class="VarId">transformBi</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span>
+       <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+         <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="VarId">calculate_it</span><span class="Symbol">(</span>'<span class="VarId">stuff'</span><span class="Symbol">)|]</span>
+           <span class="Symbol">-&gt;</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="VarId">calculate_it_safe</span><span class="Symbol">(</span>'<span class="VarId">stuff'</span><span class="Symbol">)|]</span>
+         <span class="VarId">x1</span> <span class="Symbol">-&gt;</span> <span class="VarId">x1</span>
+</pre></div><p
+	>Which is a bit clearer in this case, but becomes much clearer when doing more complicated transformations.</p
+	><p
+	>Antiquotes are the interesting bit in quasiquotation.</p
+	><p
+	>We can generate code according to a template, a silly example is create a function with the given name which returns the given string.</p
+	><div class='haskell'><pre class="sourceCode"><span class="Function">silly</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Statement</span>
+<span class="Function">silly</span> <span class="VarId">fn</span> <span class="VarId">v</span> <span class="Symbol">=</span>
+  <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+  <span class="VarId">create</span> <span class="VarId">function</span> <span class="Symbol">$(</span><span class="VarId">fn</span><span class="Symbol">)()</span> <span class="VarId">returns</span> <span class="VarId">text</span> <span class="Keyword">as</span> <span class="Symbol">$$</span>
+    <span class="VarId">select</span> <span class="Symbol">$</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">v</span><span class="Symbol">);</span>
+  <span class="Symbol">$$</span> <span class="VarId">language</span> <span class="VarId">sql</span><span class="Symbol">;</span></pre></div><p
+	>example of calling and what it produces:</p
+	><p
+	>The $() syntax is antiquotation, (chosen to look a bit like the antiquotation syntax from template haskell), you need different variations depending on what you are splicing in, e.g. the $s() means a string.</p
+	><p
+	>We can use antiquotation in pattern matching too, e.g. scan an ast for calls to a create_var function and replace them with a create table statement:</p
+	><div class='haskell'><pre class="sourceCode"><span class="Function">createVarSimple</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
+<span class="Function">createVarSimple</span> <span class="Symbol">=</span>
+     <span class="VarId">transformBi</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span>
+       <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+         <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span> <span class="VarId">select</span> <span class="VarId">create_var</span><span class="Symbol">($</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">varname</span><span class="Symbol">),</span> <span class="Symbol">$</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">typename</span><span class="Symbol">));</span> <span class="Symbol">|]</span>
+             <span class="Symbol">-&gt;</span> <span class="Keyword">let</span> <span class="VarId">tablename</span> <span class="Symbol">=</span> <span class="VarId">varname</span> <span class="Symbol">++</span> <span class="String">&quot;_table&quot;</span>
+                <span class="Keyword">in</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+
+   <span class="VarId">create</span> <span class="VarId">table</span> <span class="Symbol">$(</span><span class="VarId">tablename</span><span class="Symbol">)</span> <span class="Symbol">(</span>
+    <span class="Symbol">$(</span><span class="VarId">varname</span><span class="Symbol">)</span> <span class="Symbol">$(</span><span class="VarId">typename</span><span class="Symbol">)</span>
+   <span class="Symbol">);</span>
+
+                    <span class="Symbol">|]</span>
+         <span class="VarId">x1</span> <span class="Symbol">-&gt;</span> <span class="VarId">x1</span></pre></div><p
+	>[example use]</p
+	><p
+	>This is the makings of a custom syntax system for sql/plpgsql. link to chaos2010 extensions</p
+	></div
+      ></div
+    ><div id="type-checker"
+    ><h1
+      >Type checker</h1
+      ><p
+      >The type checker takes asts, and runs over them checking that the types are consistent and adding type and other annotaions to the ast.</p
+      ><p
+      >Some possible uses:</p
+      ><p
+      >check for type errors, e.g. change the name of a table</p
+      ><p
+      >create table t1 ( a int );</p
+      ><p
+      >create view v1 as select a from t1 where a &gt; 10;</p
+      ><p
+      >change the source to</p
+      ><p
+      >create table t2 ( a int );</p
+      ><p
+      >create view v1 as select a from t1 where a &gt; 10;</p
+      ><p
+      >run the type checker, and we get: test.sql:6:10: [UnrecognisedIdentifier &quot;a&quot;] test.sql:6:17: [UnrecognisedRelation &quot;t1&quot;] test.sql:6:26: [UnrecognisedIdentifier &quot;a&quot;]</p
+      ><p
+      >which hopefully helps us to update the view to reflect the new table name easily. This is obviously much more useful when the view definition is many lines away from the table definition, or in a different file.</p
+      ><p
+      >get the catalog produced by some sql:</p
+      ><p
+      >create table t2 ( a int );</p
+      ><p
+      >gives us</p
+      ><p
+      >CatCreateTable t1( &quot;a&quot; ScalarType &quot;int4&quot; )( &quot;tableoid&quot; ScalarType &quot;oid&quot; &quot;cmax&quot; ScalarType &quot;cid&quot; &quot;xmax&quot; ScalarType &quot;xid&quot; &quot;cmin&quot; ScalarType &quot;cid&quot; &quot;xmin&quot; ScalarType &quot;xid&quot; &quot;ctid&quot; ScalarType &quot;tid&quot; ) CatCreateView v1( &quot;a&quot; ScalarType &quot;int4&quot; )</p
+      ><p
+      >We could possibly then run some checks over this catalog, for instance. This can also be used to create an annotated form of the source sql which includes e.g. the names and types of all the columns of a view in a comment before the view.</p
+      ><p
+      >typesafe database access</p
+      ></div
+    ><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

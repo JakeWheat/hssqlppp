@@ -1,0 +1,66 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >Update</title
+    ><link href="../../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >{-</p
+    ><p
+    >================================================================================</p
+    ><p
+    >= update</p
+    ><p
+    >check the set clause assignments are ok, and inject ids into the where part</p
+    ><p
+    >-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="ConId">SEM</span> <span class="ConId">Statement</span>
+    <span class="Symbol">|</span> <span class="ConId">Update</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span> <span class="ConId">Right</span> <span class="Symbol">$</span> <span class="ConId">Pseudo</span> <span class="ConId">Void</span>
+        <span class="Comment">-- todo: add tests and code to check the assign targets are columns</span>
+        <span class="Comment">-- or rows of columns</span>
+        <span class="Comment">--assigns.attrs = @loc.attrs</span>
+
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">statementType</span> <span class="Symbol">=</span>
+              <span class="Keyword">do</span>
+              <span class="VarId">pt</span> <span class="Symbol">&lt;-</span> <span class="VarId">sequence</span> <span class="Symbol">$</span> <span class="VarId">getPlaceholderTypes</span> <span class="Symbol">@</span><span class="VarId">assigns</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+                               <span class="Symbol">++</span> <span class="VarId">getPlaceholderTypes</span> <span class="Symbol">@</span><span class="VarId">whr</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+              <span class="VarId">return</span> <span class="Symbol">(</span><span class="VarId">pt</span><span class="Symbol">,@</span><span class="VarId">returning</span><span class="Symbol">.</span><span class="VarId">listType</span><span class="Symbol">)</span>
+
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">Update</span> <span class="Symbol">@</span><span class="VarId">ann</span>
+                              <span class="Symbol">@</span><span class="VarId">table</span><span class="Symbol">.</span><span class="VarId">tbAnnotatedTree</span>
+                              <span class="Symbol">@</span><span class="VarId">assigns</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+                              <span class="Symbol">@</span><span class="VarId">fromList</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+                              <span class="Symbol">@</span><span class="VarId">whr</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+                              <span class="Symbol">@</span><span class="VarId">returning</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">catUpdates</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+
+<span class="Comment">-- local identifier bindings: pass the table attribute names and types</span>
+<span class="Comment">-- into the where expression, and the set clause expressions</span>
+
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">lib</span> <span class="Symbol">=</span>
+             <span class="VarId">either</span> <span class="Symbol">(</span><span class="VarId">const</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">lib</span><span class="Symbol">)</span> <span class="VarId">id</span> <span class="Symbol">$</span> <span class="Keyword">do</span>
+             <span class="VarId">a</span> <span class="Symbol">&lt;-</span> <span class="VarId">lmt</span> <span class="Symbol">(</span><span class="VarId">allAtts</span> <span class="Symbol">&lt;$&gt;</span> <span class="Symbol">@</span><span class="VarId">table</span><span class="Symbol">.</span><span class="VarId">tbUType</span><span class="Symbol">)</span>
+             <span class="VarId">lbUpdate</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">cat</span> <span class="Symbol">(</span><span class="ConId">LBIds</span> <span class="String">&quot;updated table attrs&quot;</span> <span class="Symbol">(</span><span class="ConId">Just</span> <span class="Symbol">$</span> <span class="VarId">getName</span> <span class="Symbol">@</span><span class="VarId">table</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span><span class="Symbol">)</span> <span class="VarId">a</span><span class="Symbol">)</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">lib</span>
+        <span class="VarId">whr</span><span class="Symbol">.</span><span class="VarId">lib</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">lib</span>
+        <span class="VarId">assigns</span><span class="Symbol">.</span><span class="VarId">lib</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">lib</span>
+        <span class="VarId">returning</span><span class="Symbol">.</span><span class="VarId">lib</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">lib</span>
+</pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

@@ -1,0 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >index</title
+    ><link href="../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><div id="examples"
+    ><h1
+      >Examples</h1
+      ><p
+      >All this code is currently available in the cabal source package, recommended that you get the source:</p
+      ><div class='sh'><pre class="sourceCode">cabal unpack hssqlppp</pre></div><p
+      >To build one of the executables, rather than use cabal you could try something like:</p
+      ><div class='sh'><pre class="sourceCode">ghc -XDeriveDataTypeable -DPOSTGRES -hide-package hssqlppp -cpp -pgmPcpphs -optP--cpp -idevel<span class="Symbol">:</span>src<span class="Symbol">:</span>examples<span class="Symbol">/</span>chaos<span class="Symbol">:</span>examples<span class="Symbol">/</span>extensions<span class="Symbol">/:</span>examples<span class="Symbol">/</span>util<span class="Symbol">/:</span>tests<span class="Symbol">/</span> --make examples<span class="Symbol">/</span>util<span class="Symbol">/</span>HsSqlPppUtil<span class="Symbol">.</span>lhs</pre></div><p
+      >Rough examples of parsing, type checking and quasi quoting generated from the test files:</p
+      ><ul
+      ><li
+	><a href="../../ParserTests.html"
+	  >Parsing examples</a
+	  ></li
+	><li
+	><a href="../../TypeCheckTests.html"
+	  >Type-checking examples</a
+	  ></li
+	><li
+	><a href="../../QuasiQuoteTests.html"
+	  >Quasiquotation examples</a
+	  ></li
+	></ul
+      ><p
+      >Command line demo of parsing and type checking: <a href="util/HsSqlPppUtil.lhs.html"
+	>HsSqlPppUtil.lhs</a
+	></p
+      ><p
+      ><a href="wrappers/index.txt.html"
+	>Wrappers</a
+	> - demonstration of typesafe database access from haskell - broken at the moment.</p
+      ><p
+      ><a href="extensions/index.txt.html"
+	>Extensions</a
+	> - examples of using the library to implement custom sql syntax, mainly uses quasi quotation.</p
+      ><p
+      ><a href="chaos/index.txt.html"
+	>Chaos2010</a
+	> example database (for an unfinished game) which uses the above extensions plus a few custom ones, shows how to transform and load sql into postgresql.</p
+      ><p
+      >Files:</p
+      ><ul
+      ><li
+	><a href="util/DatabaseLoader.lhs.html"
+	  >util/DatabaseLoader.lhs</a
+	  ></li
+	><li
+	><a href="util/HsSqlPppUtil.lhs.html"
+	  >util/HsSqlPppUtil.lhs</a
+	  ></li
+	><li
+	><a href="util/Database/HsSqlPpp/Utils/C2HS.hs.html"
+	  >util/Database/HsSqlPpp/Utils/C2HS.hs</a
+	  ></li
+	><li
+	><a href="util/Database/HsSqlPpp/Utils/DBUtils.lhs.html"
+	  >util/Database/HsSqlPpp/Utils/DBUtils.lhs</a
+	  ></li
+	><li
+	><a href="util/Database/HsSqlPpp/Utils/DatabaseLoader.lhs.html"
+	  >util/Database/HsSqlPpp/Utils/DatabaseLoader.lhs</a
+	  ></li
+	><li
+	><a href="util/Database/HsSqlPpp/Utils/PPExpr.lhs.html"
+	  >util/Database/HsSqlPpp/Utils/PPExpr.lhs</a
+	  ></li
+	><li
+	><a href="util/Database/HsSqlPpp/Utils/PQ.chs.html"
+	  >util/Database/HsSqlPpp/Utils/PQ.chs</a
+	  ></li
+	><li
+	><a href="util/Database/HsSqlPpp/Utils/PQH.lhs.html"
+	  >util/Database/HsSqlPpp/Utils/PQH.lhs</a
+	  ></li
+	></ul
+      ></div
+    ><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

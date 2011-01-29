@@ -1,0 +1,185 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >QuasiQuoteTests</title
+    ><link href="../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >Tests mainly for antiquotation, plus examples of where antiquotes work.</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">{-# LANGUAGE QuasiQuotes,ScopedTypeVariables #-}</span>
+
+<span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.Tests.QuasiQuoteTests</span> <span class="Symbol">(</span><span class="VarId">quasiQuoteTests</span><span class="Symbol">,</span> <span class="VarId">quasiQuoteTestData</span><span class="Symbol">,</span> <span class="ConId">Item</span><span class="Symbol">(..))</span> <span class="Keyword">where</span>
+
+<span class="Keyword">import</span> <span class="ConId">Test.HUnit</span>
+<span class="Keyword">import</span> <span class="ConId">Test.Framework</span>
+<span class="Keyword">import</span> <span class="ConId">Test.Framework.Providers.HUnit</span>
+<span class="Keyword">import</span> <span class="ConId">Data.Generics</span>
+
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Ast</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Annotation</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.PrettyPrinter</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.SqlQuote</span>
+
+<span class="Keyword">data</span> <span class="ConId">Item</span> <span class="Symbol">=</span> <span class="ConId">Expr</span> <span class="ConId">Expression</span> <span class="ConId">Expression</span>
+          <span class="Symbol">|</span> <span class="ConId">Stmts</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span>
+          <span class="Symbol">|</span> <span class="ConId">PgSqlStmts</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span>
+          <span class="Symbol">|</span> <span class="ConId">Stmt</span> <span class="ConId">Statement</span> <span class="ConId">Statement</span>
+          <span class="Symbol">|</span> <span class="ConId">PgSqlStmt</span> <span class="ConId">Statement</span> <span class="ConId">Statement</span>
+          <span class="Symbol">|</span> <span class="ConId">Group</span> <span class="ConId">String</span> <span class="Symbol">[</span><span class="ConId">Item</span><span class="Symbol">]</span>
+<span class="Function">quasiQuoteTests</span> <span class="Symbol">::</span> <span class="ConId">Test.Framework.Test</span>
+<span class="Function">quasiQuoteTests</span> <span class="Symbol">=</span> <span class="VarId">itemToTft</span> <span class="VarId">quasiQuoteTestData</span>
+
+<span class="Function">quasiQuoteTestData</span> <span class="Symbol">::</span> <span class="ConId">Item</span>
+<span class="Function">quasiQuoteTestData</span> <span class="Symbol">=</span>
+  <span class="ConId">Group</span> <span class="String">&quot;quasiQuoteTests&quot;</span> <span class="Symbol">[</span></pre></div></div></div><hr
+     /><p
+    >expressions</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">   <span class="ConId">Group</span> <span class="String">&quot;stuff&quot;</span> <span class="Symbol">[</span>
+     <span class="Keyword">let</span> <span class="VarId">tablename</span> <span class="Symbol">=</span> <span class="String">&quot;my_table&quot;</span>
+         <span class="VarId">varname</span> <span class="Symbol">=</span> <span class="String">&quot;my_field&quot;</span>
+         <span class="VarId">typename</span> <span class="Symbol">=</span> <span class="String">&quot;text&quot;</span>
+     <span class="Keyword">in</span> <span class="ConId">Stmt</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+
+     <span class="VarId">create</span> <span class="VarId">table</span> <span class="Symbol">$(</span><span class="VarId">tablename</span><span class="Symbol">)</span> <span class="Symbol">(</span>
+       <span class="Symbol">$(</span><span class="VarId">varname</span><span class="Symbol">)</span> <span class="Symbol">$(</span><span class="VarId">typename</span><span class="Symbol">)</span>
+     <span class="Symbol">);</span>
+
+     <span class="Symbol">|]</span>
+     <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+     <span class="VarId">create</span> <span class="VarId">table</span> <span class="VarId">my_table</span> <span class="Symbol">(</span>
+       <span class="VarId">my_field</span> <span class="VarId">text</span>
+     <span class="Symbol">);</span>
+     <span class="Symbol">|]</span>
+
+    <span class="Symbol">,</span><span class="Keyword">let</span> <span class="VarId">fnname</span> <span class="Symbol">=</span> <span class="String">&quot;my_function&quot;</span>
+         <span class="VarId">tablename</span> <span class="Symbol">=</span> <span class="String">&quot;my_table&quot;</span>
+         <span class="VarId">typename</span> <span class="Symbol">=</span> <span class="String">&quot;int&quot;</span>
+     <span class="Keyword">in</span> <span class="ConId">Stmt</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+
+  <span class="VarId">create</span> <span class="VarId">function</span> <span class="Symbol">$(</span><span class="VarId">fnname</span><span class="Symbol">)()</span> <span class="VarId">returns</span> <span class="Symbol">$(</span><span class="VarId">typename</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="Symbol">$</span><span class="VarId">a</span><span class="Symbol">$</span>
+    <span class="VarId">select</span> <span class="Symbol">*</span> <span class="VarId">from</span> <span class="Symbol">$(</span><span class="VarId">tablename</span><span class="Symbol">);</span>
+  <span class="Symbol">$</span><span class="VarId">a</span><span class="Symbol">$</span> <span class="VarId">language</span> <span class="VarId">sql</span> <span class="VarId">stable</span><span class="Symbol">;</span>
+
+     <span class="Symbol">|]</span>
+     <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+  <span class="VarId">create</span> <span class="VarId">function</span> <span class="VarId">my_function</span><span class="Symbol">()</span> <span class="VarId">returns</span> <span class="VarId">int</span> <span class="Keyword">as</span> <span class="Symbol">$</span><span class="VarId">a</span><span class="Symbol">$</span>
+    <span class="VarId">select</span> <span class="Symbol">*</span> <span class="VarId">from</span> <span class="VarId">my_table</span><span class="Symbol">;</span>
+  <span class="Symbol">$</span><span class="VarId">a</span><span class="Symbol">$</span> <span class="VarId">language</span> <span class="VarId">sql</span> <span class="VarId">stable</span><span class="Symbol">;</span>
+     <span class="Symbol">|]</span>
+
+    <span class="Symbol">,</span><span class="Keyword">let</span> <span class="VarId">fnname</span> <span class="Symbol">=</span> <span class="String">&quot;my_function&quot;</span>
+     <span class="Keyword">in</span> <span class="ConId">Stmt</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span> <span class="VarId">drop</span> <span class="VarId">function</span> <span class="Symbol">$(</span><span class="VarId">fnname</span><span class="Symbol">)();|]</span>
+             <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span> <span class="VarId">drop</span> <span class="VarId">function</span> <span class="VarId">my_function</span><span class="Symbol">();|]</span>
+
+    <span class="Symbol">,</span><span class="Keyword">let</span> <span class="VarId">expr</span> <span class="Symbol">=</span> <span class="ConId">Identifier</span> <span class="VarId">ea</span> <span class="String">&quot;testing&quot;</span>
+     <span class="Keyword">in</span> <span class="ConId">PgSqlStmt</span> <span class="Symbol">[$</span><span class="VarId">pgsqlStmt</span><span class="Symbol">|</span> <span class="VarId">return</span> <span class="Symbol">$(</span><span class="VarId">expr</span><span class="Symbol">);</span> <span class="Symbol">|]</span>
+                  <span class="Symbol">[$</span><span class="VarId">pgsqlStmt</span><span class="Symbol">|</span> <span class="VarId">return</span> <span class="String">&quot;testing&quot;</span><span class="Symbol">;</span> <span class="Symbol">|]</span>
+
+    <span class="Symbol">,</span><span class="Keyword">let</span> <span class="VarId">expr</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="ConId">FunCall</span> <span class="VarId">ea</span> <span class="String">&quot;+&quot;</span> <span class="Symbol">[</span><span class="ConId">IntegerLit</span> <span class="VarId">ea</span> <span class="Number">3</span><span class="Symbol">,</span><span class="ConId">IntegerLit</span> <span class="VarId">ea</span> <span class="Number">4</span><span class="Symbol">])</span>
+     <span class="Keyword">in</span> <span class="ConId">PgSqlStmt</span> <span class="Symbol">[$</span><span class="VarId">pgsqlStmt</span><span class="Symbol">|</span> <span class="VarId">return</span> <span class="Symbol">$(</span><span class="VarId">expr</span><span class="Symbol">);</span> <span class="Symbol">|]</span>
+                  <span class="Symbol">[$</span><span class="VarId">pgsqlStmt</span><span class="Symbol">|</span> <span class="VarId">return</span> <span class="Number">3</span> <span class="Symbol">+</span> <span class="Number">4</span><span class="Symbol">;</span> <span class="Symbol">|]</span>
+
+    <span class="Symbol">,</span><span class="Keyword">let</span> <span class="VarId">errMsg</span> <span class="Symbol">=</span> <span class="String">&quot;this splice is slighty dodgy&quot;</span>
+     <span class="Keyword">in</span> <span class="ConId">PgSqlStmt</span> <span class="Symbol">[$</span><span class="VarId">pgsqlStmt</span><span class="Symbol">|</span>
+     <span class="Keyword">if</span> <span class="VarId">true</span> <span class="Keyword">then</span>
+       <span class="VarId">raise</span> <span class="VarId">exception</span> '<span class="Symbol">$(</span><span class="VarId">errMsg</span><span class="Symbol">)</span>'<span class="Symbol">;</span>
+     <span class="VarId">end</span> <span class="Keyword">if</span><span class="Symbol">;|]</span>
+     <span class="Symbol">[$</span><span class="VarId">pgsqlStmt</span><span class="Symbol">|</span>
+     <span class="Keyword">if</span> <span class="VarId">true</span> <span class="Keyword">then</span>
+       <span class="VarId">raise</span> <span class="VarId">exception</span> '<span class="VarId">this</span> <span class="VarId">splice</span> <span class="VarId">is</span> <span class="VarId">slighty</span> <span class="VarId">dodgy'</span><span class="Symbol">;</span>
+     <span class="VarId">end</span> <span class="Keyword">if</span><span class="Symbol">;|]</span>
+
+    <span class="Symbol">,</span><span class="Keyword">let</span> <span class="VarId">triggername</span> <span class="Symbol">=</span> <span class="String">&quot;my_trigger&quot;</span>
+         <span class="VarId">tablename</span> <span class="Symbol">=</span> <span class="String">&quot;my_table&quot;</span>
+         <span class="VarId">opname</span> <span class="Symbol">=</span> <span class="String">&quot;my_function&quot;</span>
+     <span class="Keyword">in</span> <span class="ConId">Stmt</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+  <span class="VarId">create</span> <span class="VarId">trigger</span> <span class="Symbol">$(</span><span class="VarId">triggername</span><span class="Symbol">)</span>
+    <span class="VarId">after</span> <span class="VarId">insert</span> <span class="VarId">or</span> <span class="VarId">update</span> <span class="VarId">or</span> <span class="VarId">delete</span> <span class="VarId">on</span> <span class="Symbol">$(</span><span class="VarId">tablename</span><span class="Symbol">)</span>
+    <span class="VarId">for</span> <span class="VarId">each</span> <span class="VarId">statement</span>
+    <span class="VarId">execute</span> <span class="VarId">procedure</span> <span class="Symbol">$(</span><span class="VarId">opname</span><span class="Symbol">)();</span>
+            <span class="Symbol">|]</span>
+             <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+  <span class="VarId">create</span> <span class="VarId">trigger</span> <span class="VarId">my_trigger</span>
+    <span class="VarId">after</span> <span class="VarId">insert</span> <span class="VarId">or</span> <span class="VarId">update</span> <span class="VarId">or</span> <span class="VarId">delete</span> <span class="VarId">on</span> <span class="VarId">my_table</span>
+    <span class="VarId">for</span> <span class="VarId">each</span> <span class="VarId">statement</span>
+    <span class="VarId">execute</span> <span class="VarId">procedure</span> <span class="VarId">my_function</span><span class="Symbol">();</span>
+            <span class="Symbol">|]</span>
+    <span class="Symbol">,</span><span class="Keyword">let</span> <span class="VarId">tablename</span> <span class="Symbol">=</span> <span class="String">&quot;lotsastuff&quot;</span>
+     <span class="Keyword">in</span> <span class="ConId">Expr</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|(</span><span class="VarId">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="VarId">from</span> <span class="Symbol">$(</span><span class="VarId">tablename</span><span class="Symbol">))|]</span>
+             <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|(</span><span class="VarId">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="VarId">from</span> <span class="VarId">lotsastuff</span><span class="Symbol">)|]</span>
+
+    <span class="Symbol">,</span><span class="Keyword">let</span> <span class="VarId">trigname</span> <span class="Symbol">=</span> <span class="String">&quot;tbl_trig1&quot;</span>
+         <span class="VarId">tablename</span> <span class="Symbol">=</span> <span class="String">&quot;tbl&quot;</span>
+         <span class="VarId">tevent</span> <span class="Symbol">=</span> <span class="ConId">TUpdate</span>
+         <span class="VarId">fn</span> <span class="Symbol">=</span> <span class="String">&quot;checkit&quot;</span>
+     <span class="Keyword">in</span> <span class="ConId">Stmt</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+     <span class="VarId">create</span> <span class="VarId">trigger</span> <span class="Symbol">$(</span><span class="VarId">trigname</span><span class="Symbol">)</span>
+        <span class="VarId">after</span> <span class="Symbol">$(</span><span class="VarId">tevent</span><span class="Symbol">)</span> <span class="VarId">on</span> <span class="Symbol">$(</span><span class="VarId">tablename</span><span class="Symbol">)</span>
+        <span class="VarId">for</span> <span class="VarId">each</span> <span class="VarId">row</span>
+        <span class="VarId">execute</span> <span class="VarId">procedure</span> <span class="Symbol">$(</span><span class="VarId">fn</span><span class="Symbol">)();</span>
+            <span class="Symbol">|]</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+     <span class="VarId">create</span> <span class="VarId">trigger</span> <span class="VarId">tbl_trig1</span>
+        <span class="VarId">after</span> <span class="VarId">update</span> <span class="VarId">on</span> <span class="VarId">tbl</span>
+        <span class="VarId">for</span> <span class="VarId">each</span> <span class="VarId">row</span>
+        <span class="VarId">execute</span> <span class="VarId">procedure</span> <span class="VarId">checkit</span><span class="Symbol">();</span>
+            <span class="Symbol">|]</span>
+    <span class="Symbol">,</span><span class="Keyword">let</span> <span class="VarId">x</span> <span class="Symbol">=</span> <span class="String">&quot;fnname&quot;</span>
+     <span class="Keyword">in</span> <span class="ConId">Expr</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="Symbol">$(</span><span class="VarId">x</span><span class="Symbol">)(</span><span class="Char">'a'</span><span class="Symbol">)</span> <span class="Symbol">|]</span>
+             <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="VarId">fnname</span><span class="Symbol">(</span><span class="Char">'a'</span><span class="Symbol">)</span> <span class="Symbol">|]</span>
+    <span class="Symbol">,</span><span class="Keyword">let</span> <span class="VarId">x</span> <span class="Symbol">=</span> <span class="String">&quot;splicedstring&quot;</span>
+     <span class="Keyword">in</span> <span class="ConId">Expr</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="Symbol">$</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">x</span><span class="Symbol">)</span> <span class="Symbol">|]</span>
+             <span class="Symbol">(</span><span class="ConId">StringLit</span> <span class="VarId">ea</span> <span class="String">&quot;splicedstring&quot;</span><span class="Symbol">)</span>
+    <span class="Symbol">,</span><span class="Keyword">let</span> <span class="VarId">x</span> <span class="Symbol">=</span> <span class="String">&quot;splicedIdentifier&quot;</span>
+     <span class="Keyword">in</span> <span class="ConId">Expr</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="Symbol">$</span><span class="VarId">i</span><span class="Symbol">(</span><span class="VarId">x</span><span class="Symbol">)</span> <span class="Symbol">|]</span>
+             <span class="Symbol">(</span><span class="ConId">Identifier</span> <span class="VarId">ea</span> <span class="String">&quot;splicedIdentifier&quot;</span><span class="Symbol">)</span>
+    <span class="Symbol">,</span><span class="Keyword">let</span> <span class="VarId">errMsg</span> <span class="Symbol">=</span> <span class="String">&quot;this splice isn't too dodgy&quot;</span>
+     <span class="Keyword">in</span> <span class="ConId">PgSqlStmt</span> <span class="Symbol">[$</span><span class="VarId">pgsqlStmt</span><span class="Symbol">|</span> <span class="VarId">raise</span> <span class="VarId">exception</span> <span class="Symbol">$</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">errMsg</span><span class="Symbol">);</span> <span class="Symbol">|]</span>
+                  <span class="Symbol">[$</span><span class="VarId">pgsqlStmt</span><span class="Symbol">|</span> <span class="VarId">raise</span> <span class="VarId">exception</span> '<span class="VarId">this</span> <span class="VarId">splice</span> <span class="VarId">isn''t</span> <span class="VarId">too</span> <span class="VarId">dodgy'</span><span class="Symbol">;</span> <span class="Symbol">|]</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">    <span class="Comment">{-,let s1 = [$sqlStmts| select * from tbl; |]</span>
+<span class="Comment">     in Stmts [$sqlStmts|</span>
+<span class="Comment">     select 1;</span>
+<span class="Comment">     $(s1);</span>
+<span class="Comment">     select 2;|]</span>
+<span class="Comment">       [$sqlStmts|</span>
+<span class="Comment">     select 1;</span>
+<span class="Comment">     select * from tbl;</span>
+<span class="Comment">     select 2;|]</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">    <span class="Symbol">,</span><span class="Keyword">let</span> <span class="VarId">s1</span> <span class="Symbol">=</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span> <span class="VarId">select</span> <span class="Symbol">*</span> <span class="VarId">from</span> <span class="VarId">tbl</span><span class="Symbol">;</span> <span class="Symbol">|]</span>
+         <span class="VarId">s2</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="VarId">s1</span><span class="Symbol">,</span><span class="VarId">s2</span><span class="Symbol">]</span>
+     <span class="Keyword">in</span> <span class="ConId">Stmts</span> <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span>
+     <span class="VarId">select</span> <span class="Number">1</span><span class="Symbol">;</span>
+     <span class="Symbol">$(</span><span class="VarId">s2</span><span class="Symbol">);</span>
+     <span class="VarId">select</span> <span class="Number">2</span><span class="Symbol">;|]</span>
+       <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span>
+     <span class="VarId">select</span> <span class="Number">1</span><span class="Symbol">;</span>
+     <span class="VarId">select</span> <span class="Symbol">*</span> <span class="VarId">from</span> <span class="VarId">tbl</span><span class="Symbol">;</span>
+     <span class="VarId">select</span> <span class="Symbol">*</span> <span class="VarId">from</span> <span class="VarId">tbl</span><span class="Symbol">;</span>
+     <span class="VarId">select</span> <span class="Number">2</span><span class="Symbol">;|]-}</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">  <span class="Symbol">]]</span></pre></div></div></div><p
+    >================================================================================</p
+    ><p
+    >Unit test helpers</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">itemToTft</span> <span class="Symbol">::</span> <span class="ConId">Item</span> <span class="Symbol">-&gt;</span> <span class="ConId">Test.Framework.Test</span>
+<span class="Function">itemToTft</span> <span class="Symbol">(</span><span class="ConId">Expr</span> <span class="VarId">a</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">testCase</span> <span class="Symbol">(</span><span class="VarId">printExpression</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="VarId">stripEqual</span> <span class="VarId">a</span> <span class="VarId">b</span>
+<span class="Function">itemToTft</span> <span class="Symbol">(</span><span class="ConId">PgSqlStmt</span> <span class="VarId">a</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">testCase</span> <span class="Symbol">(</span><span class="VarId">printSql</span> <span class="Symbol">[</span><span class="VarId">b</span><span class="Symbol">])</span> <span class="Symbol">$</span> <span class="VarId">stripEqual</span> <span class="VarId">a</span> <span class="VarId">b</span>
+<span class="Function">itemToTft</span> <span class="Symbol">(</span><span class="ConId">Stmt</span> <span class="VarId">a</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">testCase</span> <span class="Symbol">(</span><span class="VarId">printSql</span> <span class="Symbol">[</span><span class="VarId">b</span><span class="Symbol">])</span> <span class="Symbol">$</span>  <span class="VarId">stripEqual</span> <span class="VarId">a</span> <span class="VarId">b</span>
+<span class="Function">itemToTft</span> <span class="Symbol">(</span><span class="ConId">PgSqlStmts</span> <span class="VarId">a</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">testCase</span> <span class="Symbol">(</span><span class="VarId">printSql</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="VarId">stripEqual</span> <span class="VarId">a</span> <span class="VarId">b</span>
+<span class="Function">itemToTft</span> <span class="Symbol">(</span><span class="ConId">Stmts</span> <span class="VarId">a</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">testCase</span> <span class="Symbol">(</span><span class="VarId">printSql</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="VarId">stripEqual</span> <span class="VarId">a</span> <span class="VarId">b</span>
+<span class="Function">itemToTft</span> <span class="Symbol">(</span><span class="ConId">Group</span> <span class="VarId">s</span> <span class="VarId">is</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">testGroup</span> <span class="VarId">s</span> <span class="Symbol">$</span> <span class="VarId">map</span> <span class="VarId">itemToTft</span> <span class="VarId">is</span>
+<span class="Function">stripEqual</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Data</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="ConId">Eq</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="ConId">Show</span> <span class="VarId">a</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span>
+              <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="ConId">Assertion</span>
+<span class="Function">stripEqual</span> <span class="VarId">a</span> <span class="VarId">b</span> <span class="Symbol">=</span> <span class="VarId">assertEqual</span> <span class="String">&quot;&quot;</span> <span class="Symbol">(</span><span class="VarId">resetAnnotations</span> <span class="VarId">a</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="VarId">resetAnnotations</span> <span class="VarId">b</span><span class="Symbol">)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">ea</span> <span class="Symbol">::</span> <span class="ConId">Annotation</span>
+<span class="Function">ea</span> <span class="Symbol">=</span> <span class="VarId">emptyAnnotation</span></pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

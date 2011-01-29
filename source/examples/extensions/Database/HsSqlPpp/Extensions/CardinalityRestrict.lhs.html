@@ -1,0 +1,86 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >CardinalityRestrict</title
+    ><link href="../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >constraint shorthand to restrict cardinality of table</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">{-# LANGUAGE QuasiQuotes #-}</span>
+
+<span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.Extensions.CardinalityRestrict</span>
+    <span class="Keyword">where</span>
+
+<span class="Keyword">import</span> <span class="ConId">Data.Generics</span>
+<span class="Keyword">import</span> <span class="ConId">Data.Generics.Uniplate.Data</span>
+
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Ast</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Extensions.ExtensionsUtils</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.SqlQuote</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.PrettyPrinter</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Extensions.CreateAssertion</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Annotation</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Extensions.AstUtils</span></pre></div></div></div><p
+    >challenge: make a constraint that works like this:</p
+    ><p
+    >select restrict_cardinality('tablename', '&lt;= 3');</p
+    ><p
+    >or</p
+    ><p
+    >select restrict_cardinality('tablename', '&gt;=5 &amp;&amp; &lt;= 10');</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">cardinalityRestrictExample</span> <span class="Symbol">::</span> <span class="ConId">ExtensionTest</span>
+<span class="Function">cardinalityRestrictExample</span> <span class="Symbol">=</span> <span class="ConId">ExtensionTest</span>
+  <span class="String">&quot;cardinalityRestrict&quot;</span>
+  <span class="Symbol">(</span><span class="VarId">createAssertion</span> <span class="Symbol">.</span> <span class="VarId">cardinalityRestrict</span><span class="Symbol">)</span>
+  <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span>
+
+     <span class="VarId">create</span> <span class="VarId">table</span> <span class="VarId">tablename</span> <span class="Symbol">(</span>
+       <span class="VarId">varname</span> <span class="VarId">vartype</span>
+     <span class="Symbol">);</span>
+
+     <span class="VarId">select</span> <span class="VarId">restrict_cardinality</span><span class="Symbol">(</span>'<span class="VarId">tablename'</span><span class="Symbol">,</span> <span class="Number">1</span><span class="Symbol">);</span> <span class="Symbol">|]</span>
+  <span class="Symbol">(</span><span class="VarId">createAssertion</span> <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span>
+
+     <span class="VarId">create</span> <span class="VarId">table</span> <span class="VarId">tablename</span> <span class="Symbol">(</span>
+       <span class="VarId">varname</span> <span class="VarId">vartype</span>
+     <span class="Symbol">);</span>
+
+     <span class="VarId">select</span> <span class="VarId">create_assertion</span><span class="Symbol">(</span>'<span class="VarId">tablename_card'</span><span class="Symbol">,</span>
+                             '<span class="Symbol">(</span><span class="VarId">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="VarId">from</span> <span class="VarId">tablename</span><span class="Symbol">)</span> <span class="Symbol">&lt;=</span> <span class="Number">1</span>'<span class="Symbol">);</span>
+
+  <span class="Symbol">|])</span>
+
+<span class="Function">cardinalityRestrict</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
+<span class="Function">cardinalityRestrict</span> <span class="Symbol">=</span>
+    <span class="VarId">transformBi</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span>
+      <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+        <span class="VarId">s</span><span class="Symbol">@[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+          <span class="VarId">select</span> <span class="VarId">restrict_cardinality</span><span class="Symbol">($</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">tablename</span><span class="Symbol">),</span> <span class="Symbol">$(</span><span class="VarId">num</span><span class="Symbol">));</span> <span class="Symbol">|]</span>
+            <span class="Symbol">-&gt;</span> <span class="Keyword">let</span> <span class="Comment">--i = [$sqlExpr| $(num) |]</span>
+                   <span class="VarId">expr</span> <span class="Symbol">=</span> <span class="VarId">printExpression</span>
+                            <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="Symbol">(</span><span class="VarId">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="VarId">from</span> <span class="Symbol">$(</span><span class="VarId">tablename</span><span class="Symbol">))</span>
+                                        <span class="Symbol">&lt;=</span> <span class="Symbol">$(</span><span class="VarId">num</span><span class="Symbol">)</span> <span class="Symbol">|]</span>
+                   <span class="VarId">conname</span> <span class="Symbol">=</span> <span class="VarId">tablename</span> <span class="Symbol">++</span> <span class="String">&quot;_card&quot;</span>
+               <span class="Keyword">in</span> <span class="VarId">replaceSourcePos1</span> <span class="VarId">s</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+
+                  <span class="VarId">select</span> <span class="VarId">create_assertion</span><span class="Symbol">($</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">conname</span><span class="Symbol">),</span> <span class="Symbol">$</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">expr</span><span class="Symbol">));</span>
+
+                   <span class="Symbol">|]</span>
+        <span class="VarId">x1</span> <span class="Symbol">-&gt;</span> <span class="VarId">x1</span>
+</pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

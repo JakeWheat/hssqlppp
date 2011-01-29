@@ -1,0 +1,402 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >ChaosExtensions</title
+    ><link href="../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >Here are a few Chaos2000 specific extensions, written just to get chaos working again then will review approach.</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">{-# LANGUAGE QuasiQuotes #-}</span>
+<span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.Chaos.ChaosExtensions</span>
+    <span class="Symbol">(</span>
+     <span class="VarId">chaosExtensions</span>
+    <span class="Symbol">,</span><span class="VarId">chaosExtensionsExamples</span>
+    <span class="Symbol">)</span> <span class="Keyword">where</span>
+
+<span class="Keyword">import</span> <span class="ConId">Data.Generics</span>
+<span class="Keyword">import</span> <span class="ConId">Data.Generics.Uniplate.Data</span>
+
+
+<span class="Keyword">import</span> <span class="ConId">Data.List</span>
+
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Ast</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Parser</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Annotation</span>
+
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Extensions.ExtensionsUtils</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.SqlQuote</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Extensions.TransitionConstraints</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Extensions.Modules</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Extensions.CreateAssertion</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Extensions.CreateVar</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Extensions.CardinalityRestrict</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Extensions.SimplifiedCatalog</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Extensions.Denormalized6nf</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Extensions.AstUtils</span>
+
+
+<span class="Comment">-- | run all the extensions needed for chaos</span>
+<span class="Function">chaosExtensions</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span> <span class="Comment">-- Data a =&gt; a -&gt; a</span>
+<span class="Function">chaosExtensions</span> <span class="Symbol">=</span>   <span class="VarId">modules</span>
+                  <span class="Symbol">.</span> <span class="VarId">createAssertion</span>
+                  <span class="Symbol">.</span> <span class="VarId">transitionConstraints</span>
+                  <span class="Symbol">.</span> <span class="VarId">createVar</span>
+                  <span class="Symbol">.</span> <span class="VarId">cardinalityRestrict</span>
+                  <span class="Symbol">.</span> <span class="VarId">clientActionWrapper</span>
+                  <span class="Symbol">.</span> <span class="VarId">noDelIns</span>
+                  <span class="Symbol">.</span> <span class="VarId">generateSpellChoiceActions</span>
+                  <span class="Symbol">.</span> <span class="VarId">notNull</span>
+                  <span class="Symbol">.</span> <span class="VarId">denormalized6nf</span>
+                  <span class="Symbol">.</span> <span class="VarId">simplifiedCatalog</span>
+                  <span class="Symbol">.</span> <span class="VarId">makeFKsCascade</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">chaosExtensionsExamples</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ExtensionTest</span><span class="Symbol">]</span>
+<span class="Function">chaosExtensionsExamples</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="VarId">clientActionWrapperExample</span>
+                          <span class="Symbol">,</span><span class="VarId">noDelInsExample</span>
+                          <span class="Symbol">,</span><span class="VarId">generateSpellChoiceActionsExample</span>
+                          <span class="Symbol">,</span><span class="VarId">notNullExample1</span>
+                          <span class="Symbol">,</span><span class="VarId">notNullExample2</span>
+                          <span class="Symbol">,</span><span class="VarId">makeFKsCascadeExample1</span>
+                          <span class="Symbol">,</span><span class="VarId">makeFKsCascadeExample2</span><span class="Symbol">]</span></pre></div></div></div><hr
+     /><p
+    >client action wrapper</p
+    ><p
+    >a sort of numpty partial application thing, to support key presses: a key is pressed, and the key_pressed function is called with the key. This looks up the action to call in a table, but we only store actions with no arguments in this table, so need to create wrappers which have any arguments already bound. e.g. there is a move_cursor function which takes the direction to move in, we create a wrapper for each direction which takes no arguments which we can put in the action lookup table. TODO: rewrite this paragraph in english.</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">clientActionWrapperExample</span> <span class="Symbol">::</span> <span class="ConId">ExtensionTest</span>
+<span class="Function">clientActionWrapperExample</span> <span class="Symbol">=</span>
+  <span class="ConId">ExtensionTest</span>
+    <span class="String">&quot;clientActionWrapper&quot;</span>
+    <span class="VarId">clientActionWrapper</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span>
+        <span class="VarId">select</span> <span class="VarId">create_client_action_wrapper</span><span class="Symbol">(</span>'<span class="VarId">move_cursor_down'</span>
+                                           <span class="Symbol">,$$</span><span class="VarId">move_cursor</span><span class="Symbol">(</span>'<span class="VarId">down'</span><span class="Symbol">)$$);|]</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span>
+        <span class="VarId">create</span> <span class="VarId">function</span> <span class="VarId">action_move_cursor_down</span><span class="Symbol">()</span> <span class="VarId">returns</span> <span class="VarId">void</span> <span class="Keyword">as</span> <span class="Symbol">$$</span>
+        <span class="VarId">begin</span>
+          <span class="VarId">perform</span> <span class="VarId">action_move_cursor</span><span class="Symbol">(</span>'<span class="VarId">down'</span><span class="Symbol">);</span>
+        <span class="VarId">end</span><span class="Symbol">;</span>
+        <span class="Symbol">$$</span> <span class="VarId">language</span> <span class="VarId">plpgsql</span> <span class="VarId">volatile</span><span class="Symbol">;</span>
+     <span class="Symbol">|]</span>
+
+<span class="Function">clientActionWrapper</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
+<span class="Function">clientActionWrapper</span> <span class="Symbol">=</span>
+    <span class="VarId">transformBi</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span>
+      <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+        <span class="VarId">s</span><span class="Symbol">@[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+           <span class="VarId">select</span> <span class="VarId">create_client_action_wrapper</span><span class="Symbol">($</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">actname</span><span class="Symbol">)</span>
+                                              <span class="Symbol">,$</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">actcall</span><span class="Symbol">));</span> <span class="Symbol">|]</span>
+            <span class="Symbol">-&gt;</span> <span class="Keyword">let</span> <span class="VarId">actionname</span> <span class="Symbol">=</span> <span class="String">&quot;action_&quot;</span> <span class="Symbol">++</span> <span class="VarId">actname</span>
+                   <span class="VarId">expr</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">parseExpression</span> <span class="String">&quot;&quot;</span> <span class="Symbol">(</span><span class="String">&quot;action_&quot;</span> <span class="Symbol">++</span> <span class="VarId">actcall</span><span class="Symbol">)</span> <span class="Keyword">of</span>
+                            <span class="ConId">Left</span> <span class="VarId">e</span> <span class="Symbol">-&gt;</span> <span class="VarId">error</span> <span class="Symbol">$</span> <span class="VarId">show</span> <span class="VarId">e</span>
+                            <span class="ConId">Right</span> <span class="VarId">e1</span> <span class="Symbol">-&gt;</span> <span class="VarId">e1</span>
+               <span class="Keyword">in</span> <span class="VarId">replaceSourcePos1</span> <span class="VarId">s</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+                   <span class="VarId">create</span> <span class="VarId">function</span> <span class="Symbol">$(</span><span class="VarId">actionname</span><span class="Symbol">)()</span> <span class="VarId">returns</span> <span class="VarId">void</span> <span class="Keyword">as</span> <span class="Symbol">$$</span>
+                   <span class="VarId">begin</span>
+                     <span class="VarId">perform</span> <span class="Symbol">$(</span><span class="VarId">expr</span><span class="Symbol">);</span>
+                   <span class="VarId">end</span><span class="Symbol">;</span>
+                   <span class="Symbol">$$</span> <span class="VarId">language</span> <span class="VarId">plpgsql</span> <span class="VarId">volatile</span><span class="Symbol">;</span>
+                   <span class="Symbol">|]</span>
+        <span class="VarId">x1</span> <span class="Symbol">-&gt;</span> <span class="VarId">x1</span>
+</pre></div></div></div><hr
+     /><p
+    >restrict table to have no deletes or inserts (only updates) except when starting a new game</p
+    ><p
+    >which is better - doing something like this, or dropping the constraints temporarily during new_game? trick question: we should use multiple updates.</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">noDelInsExample</span> <span class="Symbol">::</span> <span class="ConId">ExtensionTest</span>
+<span class="Function">noDelInsExample</span> <span class="Symbol">=</span>
+  <span class="ConId">ExtensionTest</span>
+    <span class="String">&quot;noDelIns&quot;</span>
+    <span class="Symbol">(</span><span class="VarId">transitionConstraints</span> <span class="Symbol">.</span> <span class="VarId">noDelIns</span><span class="Symbol">)</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span>
+        <span class="VarId">select</span> <span class="VarId">no_deletes_inserts_except_new_game</span><span class="Symbol">(</span>'<span class="VarId">relvar'</span><span class="Symbol">);</span>
+     <span class="Symbol">|]</span>
+    <span class="Symbol">(</span><span class="VarId">transitionConstraints</span> <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span>
+        <span class="VarId">select</span> <span class="VarId">create_insert_transition_tuple_constraint</span>
+                   <span class="Symbol">(</span>'<span class="VarId">relvar'</span>
+                   <span class="Symbol">,</span>'<span class="VarId">relvar_no_insert'</span>
+                   <span class="Symbol">,</span>'<span class="VarId">exists</span><span class="Symbol">(</span><span class="VarId">select</span> <span class="Number">1</span> <span class="VarId">from</span> <span class="VarId">creating_new_game_table</span>
+                            <span class="Keyword">where</span> <span class="VarId">creating_new_game</span> <span class="Symbol">=</span> <span class="VarId">true</span><span class="Symbol">)</span>'<span class="Symbol">);</span>
+        <span class="VarId">select</span> <span class="VarId">create_delete_transition_tuple_constraint</span>
+                   <span class="Symbol">(</span>'<span class="VarId">relvar'</span>
+                   <span class="Symbol">,</span>'<span class="VarId">relvar_no_delete'</span>
+                   <span class="Symbol">,</span>'<span class="VarId">exists</span><span class="Symbol">(</span><span class="VarId">select</span> <span class="Number">1</span> <span class="VarId">from</span> <span class="VarId">creating_new_game_table</span>
+                            <span class="Keyword">where</span> <span class="VarId">creating_new_game</span> <span class="Symbol">=</span> <span class="VarId">true</span><span class="Symbol">)</span>'<span class="Symbol">);</span>
+        <span class="Symbol">|])</span>
+
+<span class="Function">noDelIns</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
+<span class="Function">noDelIns</span> <span class="Symbol">=</span>
+    <span class="VarId">transformBi</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span>
+      <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+        <span class="VarId">s</span><span class="Symbol">@[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span> <span class="VarId">select</span> <span class="VarId">no_deletes_inserts_except_new_game</span><span class="Symbol">($</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">table</span><span class="Symbol">));|]</span> <span class="Symbol">:</span> <span class="VarId">tl</span> <span class="Symbol">-&gt;</span>
+          <span class="Keyword">let</span> <span class="VarId">icn</span> <span class="Symbol">=</span> <span class="VarId">table</span> <span class="Symbol">++</span> <span class="String">&quot;_no_insert&quot;</span>
+              <span class="VarId">dcn</span> <span class="Symbol">=</span> <span class="VarId">table</span> <span class="Symbol">++</span> <span class="String">&quot;_no_delete&quot;</span>
+              <span class="VarId">exprt</span> <span class="Symbol">=</span> <span class="String">&quot;exists(select 1 from creating_new_game_table\n\
+                      \       where creating_new_game = true)&quot;</span>
+          <span class="Keyword">in</span> <span class="VarId">replaceSourcePos</span> <span class="VarId">s</span> <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span>
+              <span class="VarId">select</span> <span class="VarId">create_insert_transition_tuple_constraint</span>
+                   <span class="Symbol">($</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">table</span><span class="Symbol">),$</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">icn</span><span class="Symbol">),$</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">exprt</span><span class="Symbol">));</span>
+              <span class="VarId">select</span> <span class="VarId">create_delete_transition_tuple_constraint</span>
+                   <span class="Symbol">($</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">table</span><span class="Symbol">),$</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">dcn</span><span class="Symbol">),$</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">exprt</span><span class="Symbol">));</span>
+              <span class="Symbol">|]</span> <span class="Symbol">++</span> <span class="VarId">tl</span>
+        <span class="VarId">x1</span> <span class="Symbol">-&gt;</span> <span class="VarId">x1</span></pre></div></div></div><hr
+     /><p
+    >generate_spell_choice_actions</p
+    ><p
+    >quite dynamic: need to read the data from the spells_mr table to generate the names of the functions</p
+    ><p
+    >approach: first: remove the create function generate_spell_choice_actions, the select generate_spel..., and the drop function so these aren't used at all second: at the point where generate_spell_choice_actions was called, insert the create functions. To do this need to get the copydata for the copy statement which set up the data in spells_mr, then read the first cell from each line in the copy data string.</p
+    ><p
+    >additional hack: just hardcode the spell names here since they are unlikely to change for quite a while - fix this after doing the readonly tables/ compile time constant relations stuff</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">generateSpellChoiceActionsExample</span> <span class="Symbol">::</span> <span class="ConId">ExtensionTest</span>
+<span class="Function">generateSpellChoiceActionsExample</span> <span class="Symbol">=</span>
+  <span class="ConId">ExtensionTest</span>
+    <span class="String">&quot;spellChoiceActions&quot;</span>
+    <span class="Symbol">(</span><span class="VarId">generateSpellChoiceActionsRun</span> <span class="Symbol">[</span><span class="String">&quot;horse&quot;</span><span class="Symbol">])</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span> <span class="VarId">select</span> <span class="VarId">generate_spell_choice_actions</span><span class="Symbol">();</span> <span class="Symbol">|]</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span>
+
+<span class="ConId">CREATE</span> <span class="ConId">FUNCTION</span> <span class="VarId">action_choose_horse_spell</span><span class="Symbol">()</span> <span class="ConId">RETURNS</span> <span class="VarId">void</span>
+    <span class="ConId">LANGUAGE</span> <span class="VarId">plpgsql</span>
+    <span class="ConId">AS</span> <span class="Symbol">$$</span>
+<span class="Function">begin</span>
+  <span class="VarId">perform</span> <span class="VarId">check_can_run_action</span><span class="Symbol">(</span>'<span class="VarId">choose_horse_spell'</span><span class="Symbol">);</span>
+  <span class="VarId">perform</span> <span class="VarId">action_choose_spell</span><span class="Symbol">(</span>'<span class="VarId">horse'</span><span class="Symbol">);</span>
+<span class="Function">end</span><span class="Symbol">;</span>
+<span class="Symbol">$$;</span>
+
+     <span class="Symbol">|]</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">getSpellNames</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">String</span><span class="Symbol">]</span> <span class="Comment">--Data a =&gt; a -&gt; [String]</span>
+<span class="Function">getSpellNames</span> <span class="Symbol">=</span>   <span class="Symbol">[</span><span class="String">&quot;chaos&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;dark_citadel&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;dark_power&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;decree&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;disbelieve&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;eagle&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;elf&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;faun&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;ghost&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;giant_rat&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;giant&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;goblin&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;golden_dragon&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;gooey_blob&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;gorilla&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;green_dragon&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;gryphon&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;harpy&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;horse&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;hydra&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;justice&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;king_cobra&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;large_chaos&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;large_law&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;law&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;lightning&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;lion&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;magic_armour&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;magic_bolt&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;magic_bow&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;magic_castle&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;magic_fire&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;magic_knife&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;magic_shield&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;magic_sword&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;magic_wings&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;magic_wood&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;manticore&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;ogre&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;orc&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;pegasus&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;raise_dead&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;red_dragon&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;shadow_form&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;shadow_wood&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;skeleton&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;spectre&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;subversion&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;turmoil&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;unicorn&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;vampire&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;vengeance&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;wall&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;wraith&quot;</span>
+                  <span class="Symbol">,</span><span class="String">&quot;zombie&quot;</span><span class="Symbol">]</span>
+
+<span class="Function">generateSpellChoiceActions</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
+<span class="Function">generateSpellChoiceActions</span> <span class="Symbol">=</span> <span class="VarId">generateSpellChoiceActionsRun</span> <span class="VarId">getSpellNames</span>
+
+<span class="Function">generateSpellChoiceActionsRun</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="Symbol">[</span><span class="ConId">String</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
+<span class="Function">generateSpellChoiceActionsRun</span> <span class="VarId">spells</span> <span class="Symbol">=</span>
+    <span class="VarId">transformBi</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span>
+      <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+        <span class="VarId">s</span><span class="Symbol">@[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span> <span class="VarId">select</span> <span class="VarId">generate_spell_choice_actions</span><span class="Symbol">();</span> <span class="Symbol">|]</span> <span class="Symbol">:</span> <span class="VarId">tl</span>
+            <span class="Symbol">-&gt;</span> <span class="VarId">flip</span> <span class="VarId">map</span> <span class="VarId">spells</span> <span class="Symbol">(\</span><span class="VarId">spell</span> <span class="Symbol">-&gt;</span>
+               <span class="Keyword">let</span> <span class="VarId">actionname</span> <span class="Symbol">=</span> <span class="String">&quot;choose_&quot;</span> <span class="Symbol">++</span> <span class="VarId">spell</span> <span class="Symbol">++</span> <span class="String">&quot;_spell&quot;</span>
+                   <span class="VarId">wrappername</span> <span class="Symbol">=</span> <span class="String">&quot;action_&quot;</span> <span class="Symbol">++</span> <span class="VarId">actionname</span>
+               <span class="Keyword">in</span> <span class="VarId">replaceSourcePos1</span> <span class="VarId">s</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+
+<span class="Function">create</span> <span class="VarId">function</span> <span class="Symbol">$(</span><span class="VarId">wrappername</span><span class="Symbol">)()</span> <span class="VarId">returns</span> <span class="VarId">void</span> <span class="Keyword">as</span> <span class="Symbol">$$</span>
+<span class="Function">begin</span>
+  <span class="VarId">perform</span> <span class="VarId">check_can_run_action</span><span class="Symbol">($</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">actionname</span><span class="Symbol">));</span>
+  <span class="VarId">perform</span> <span class="VarId">action_choose_spell</span><span class="Symbol">($</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">spell</span><span class="Symbol">));</span>
+<span class="Function">end</span><span class="Symbol">;</span>
+<span class="Symbol">$$</span> <span class="VarId">language</span> <span class="VarId">plpgsql</span> <span class="VarId">volatile</span><span class="Symbol">;</span>
+
+                   <span class="Symbol">|])</span> <span class="Symbol">++</span> <span class="VarId">tl</span>
+        <span class="VarId">x1</span> <span class="Symbol">-&gt;</span> <span class="VarId">x1</span></pre></div></div></div><hr
+     /><div id="not-null"
+    ><h2
+      >not null</h2
+      ><p
+      >saves us putting not null all over almost every table definition</p
+      ><p
+      >The _mr suffix was left over from an attempt to do some sort of poor man's multirelation system. The _mr tables can contain nullable as well as non-nullable columns, so we leave them alone when setting non nulls and ignore them when checking for nullable attributes.</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">notNullExample1</span> <span class="Symbol">::</span> <span class="ConId">ExtensionTest</span>
+<span class="Function">notNullExample1</span> <span class="Symbol">=</span>
+  <span class="ConId">ExtensionTest</span>
+    <span class="String">&quot;notNull1&quot;</span>
+    <span class="VarId">notNull</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span>
+     <span class="VarId">create</span> <span class="VarId">table</span> <span class="VarId">t1</span> <span class="Symbol">(</span>
+       <span class="VarId">a</span> <span class="VarId">text</span><span class="Symbol">,</span>
+       <span class="VarId">b</span> <span class="VarId">int</span>
+     <span class="Symbol">);</span> <span class="Symbol">|]</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span>
+     <span class="VarId">create</span> <span class="VarId">table</span> <span class="VarId">t1</span> <span class="Symbol">(</span>
+       <span class="VarId">a</span> <span class="VarId">text</span> <span class="VarId">not</span> <span class="VarId">null</span><span class="Symbol">,</span>
+       <span class="VarId">b</span> <span class="VarId">int</span> <span class="VarId">not</span> <span class="VarId">null</span>
+     <span class="Symbol">);</span>
+     <span class="Symbol">|]</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">notNullExample2</span> <span class="Symbol">::</span> <span class="ConId">ExtensionTest</span>
+<span class="Function">notNullExample2</span> <span class="Symbol">=</span>
+  <span class="ConId">ExtensionTest</span>
+    <span class="String">&quot;notNull2&quot;</span>
+    <span class="VarId">notNull</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span>
+     <span class="VarId">create</span> <span class="VarId">table</span> <span class="VarId">t1_mr</span> <span class="Symbol">(</span>
+       <span class="VarId">a</span> <span class="VarId">text</span><span class="Symbol">,</span>
+       <span class="VarId">b</span> <span class="VarId">int</span>
+     <span class="Symbol">);</span> <span class="Symbol">|]</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span>
+     <span class="VarId">create</span> <span class="VarId">table</span> <span class="VarId">t1_mr</span> <span class="Symbol">(</span>
+       <span class="VarId">a</span> <span class="VarId">text</span><span class="Symbol">,</span>
+       <span class="VarId">b</span> <span class="VarId">int</span>
+     <span class="Symbol">);</span>
+     <span class="Symbol">|]</span>
+<span class="Function">notNull</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
+<span class="Function">notNull</span> <span class="Symbol">=</span>
+    <span class="VarId">transformBi</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span>
+      <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+        <span class="ConId">CreateTable</span> <span class="VarId">a</span> <span class="VarId">nm</span> <span class="VarId">atts</span> <span class="VarId">c</span> <span class="Symbol">|</span> <span class="VarId">not</span> <span class="Symbol">(</span><span class="String">&quot;_mr&quot;</span> <span class="Symbol">`</span><span class="VarId">isSuffixOf</span><span class="Symbol">`</span> <span class="VarId">nm</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span>
+          <span class="ConId">CreateTable</span> <span class="VarId">a</span> <span class="VarId">nm</span> <span class="Symbol">(</span><span class="VarId">map</span> <span class="VarId">fixAtt</span> <span class="VarId">atts</span><span class="Symbol">)</span> <span class="VarId">c</span>
+        <span class="VarId">x1</span> <span class="Symbol">-&gt;</span> <span class="VarId">x1</span>
+    <span class="Keyword">where</span>
+      <span class="Comment">-- this works because there are no null or not null</span>
+      <span class="Comment">-- constraints in the source sql except in the tables</span>
+      <span class="Comment">-- that are skipped (*_mr)</span>
+      <span class="VarId">fixAtt</span> <span class="Symbol">(</span><span class="ConId">AttributeDef</span> <span class="VarId">a</span> <span class="VarId">n</span> <span class="VarId">t</span> <span class="VarId">d</span> <span class="VarId">c</span><span class="Symbol">)</span> <span class="Symbol">=</span>
+         <span class="ConId">AttributeDef</span> <span class="VarId">a</span> <span class="VarId">n</span> <span class="VarId">t</span> <span class="VarId">d</span>
+           <span class="Symbol">(</span><span class="ConId">NotNullConstraint</span> <span class="VarId">emptyAnnotation</span> <span class="String">&quot;&quot;</span> <span class="Symbol">:</span> <span class="VarId">c</span><span class="Symbol">)</span></pre></div></div></div><hr
+       /><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">makeFKsCascadeExample1</span> <span class="Symbol">::</span> <span class="ConId">ExtensionTest</span>
+<span class="Function">makeFKsCascadeExample1</span> <span class="Symbol">=</span>
+  <span class="ConId">ExtensionTest</span>
+    <span class="String">&quot;makeFKsCascade1&quot;</span>
+    <span class="VarId">makeFKsCascade</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span>
+     <span class="VarId">create</span> <span class="VarId">table</span> <span class="VarId">t1</span> <span class="Symbol">(</span>
+       <span class="VarId">a</span> <span class="VarId">text</span> <span class="VarId">primary</span> <span class="VarId">key</span>
+     <span class="Symbol">);</span>
+     <span class="VarId">create</span> <span class="VarId">table</span> <span class="VarId">t2</span> <span class="Symbol">(</span>
+       <span class="VarId">a</span> <span class="VarId">text</span> <span class="VarId">primary</span> <span class="VarId">key</span> <span class="VarId">references</span> <span class="VarId">t1</span>
+     <span class="Symbol">);</span>
+    <span class="Symbol">|]</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span>
+     <span class="VarId">create</span> <span class="VarId">table</span> <span class="VarId">t1</span> <span class="Symbol">(</span>
+       <span class="VarId">a</span> <span class="VarId">text</span> <span class="VarId">primary</span> <span class="VarId">key</span>
+     <span class="Symbol">);</span>
+     <span class="VarId">create</span> <span class="VarId">table</span> <span class="VarId">t2</span> <span class="Symbol">(</span>
+       <span class="VarId">a</span> <span class="VarId">text</span> <span class="VarId">primary</span> <span class="VarId">key</span> <span class="VarId">references</span> <span class="VarId">t1</span> <span class="VarId">on</span> <span class="VarId">delete</span> <span class="VarId">cascade</span> <span class="VarId">on</span> <span class="VarId">update</span> <span class="VarId">cascade</span>
+     <span class="Symbol">);</span>
+     <span class="Symbol">|]</span>
+
+<span class="Function">makeFKsCascadeExample2</span> <span class="Symbol">::</span> <span class="ConId">ExtensionTest</span>
+<span class="Function">makeFKsCascadeExample2</span> <span class="Symbol">=</span>
+  <span class="ConId">ExtensionTest</span>
+    <span class="String">&quot;makeFKsCascade2&quot;</span>
+    <span class="VarId">makeFKsCascade</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span>
+     <span class="VarId">create</span> <span class="VarId">table</span> <span class="VarId">t1</span> <span class="Symbol">(</span>
+       <span class="VarId">a</span> <span class="VarId">text</span> <span class="VarId">primary</span> <span class="VarId">key</span>
+     <span class="Symbol">);</span>
+     <span class="VarId">create</span> <span class="VarId">table</span> <span class="VarId">t2</span> <span class="Symbol">(</span>
+       <span class="VarId">a</span> <span class="VarId">text</span> <span class="VarId">primary</span> <span class="VarId">key</span><span class="Symbol">,</span>
+       <span class="VarId">foreign</span> <span class="VarId">key</span> <span class="Symbol">(</span><span class="VarId">a</span><span class="Symbol">)</span> <span class="VarId">references</span> <span class="VarId">t1</span>
+     <span class="Symbol">);</span>
+    <span class="Symbol">|]</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span>
+     <span class="VarId">create</span> <span class="VarId">table</span> <span class="VarId">t1</span> <span class="Symbol">(</span>
+       <span class="VarId">a</span> <span class="VarId">text</span> <span class="VarId">primary</span> <span class="VarId">key</span>
+     <span class="Symbol">);</span>
+     <span class="VarId">create</span> <span class="VarId">table</span> <span class="VarId">t2</span> <span class="Symbol">(</span>
+       <span class="VarId">a</span> <span class="VarId">text</span> <span class="VarId">primary</span> <span class="VarId">key</span><span class="Symbol">,</span>
+       <span class="VarId">foreign</span> <span class="VarId">key</span> <span class="Symbol">(</span><span class="VarId">a</span><span class="Symbol">)</span> <span class="VarId">references</span> <span class="VarId">t1</span> <span class="VarId">on</span> <span class="VarId">update</span> <span class="VarId">cascade</span> <span class="VarId">on</span> <span class="VarId">delete</span> <span class="VarId">cascade</span>
+     <span class="Symbol">);</span>
+     <span class="Symbol">|]</span>
+
+<span class="Function">makeFKsCascade</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
+<span class="Function">makeFKsCascade</span> <span class="Symbol">=</span>
+    <span class="VarId">transformBi</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span>
+      <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+        <span class="ConId">Restrict</span> <span class="Symbol">-&gt;</span> <span class="ConId">Cascade</span>
+        <span class="VarId">x1</span> <span class="Symbol">-&gt;</span> <span class="VarId">x1</span></pre></div></div></div><p
+      >todo - fix these up to new style and get working.</p
+      ><p
+      >also want to figure out how to support notifies on views and on arbitrary selects in the client to support the ui code.</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">-- | looks for calls to function set_relvar_type and adds triggers to prevent the</span>
+<span class="Comment">-- referenced table from being updated</span>
+<span class="Comment">{-addReadonlyTriggers :: Data a =&gt; a -&gt; a</span>
+<span class="Comment">addReadonlyTriggers =</span>
+<span class="Comment">    transformBi $ \x -&gt;</span>
+<span class="Comment">      case x of</span>
+<span class="Comment">        (funCallView -&gt; FunCallView an &quot;set_relvar_type&quot; [StringLit _ _ tableName,StringLit _ _ &quot;readonly&quot;]):tl</span>
+<span class="Comment">            -&gt; (flip map &quot;diu&quot; ( \t -&gt;</span>
+<span class="Comment">                    (CreateFunction an (&quot;check_&quot; ++ tableName ++ &quot;_&quot; ++ [t] ++ &quot;_readonly&quot;) []</span>
+<span class="Comment">                                    (SimpleTypeName an &quot;trigger&quot;) Plpgsql</span>
+<span class="Comment">                                    &quot;$a$&quot;</span>
+<span class="Comment">                                    (PlpgsqlFnBody an [] [</span>
+<span class="Comment">                                      If an</span>
+<span class="Comment">                                        [(FunCall an &quot;!not&quot; [BooleanLit an False]</span>
+<span class="Comment">                                         ,[Raise an RException</span>
+<span class="Comment">                                           &quot;delete on base_relvar_metadata \</span>
+<span class="Comment">                                           \violates transition constraint \</span>
+<span class="Comment">                                           \base_relvar_metadata_d_readonly&quot; []])] []</span>
+<span class="Comment">                                     ,Return an $ Just $ NullLit an])</span>
+<span class="Comment">                                    Volatile)) ++ tl)</span>
+<span class="Comment">        x1 -&gt; x1</span>
+<span class="Comment">-- | add a trigger to each data table to raise a notify signal when changed</span>
+<span class="Comment">addNotifyTriggers :: Data a =&gt; a -&gt; a</span>
+<span class="Comment">addNotifyTriggers =</span>
+<span class="Comment">    transformBi $ \x -&gt;</span>
+<span class="Comment">      case x of</span>
+<span class="Comment">        (funCallView -&gt; FunCallView an &quot;set_relvar_type&quot; [StringLit _ _ tableName,StringLit _ _ &quot;data&quot;]):tl</span>
+<span class="Comment">          -&gt; (CreateFunction an (tableName ++ &quot;_changed&quot;) []</span>
+<span class="Comment">                                    (SimpleTypeName an &quot;trigger&quot;) Plpgsql</span>
+<span class="Comment">                                    &quot;$a$&quot;</span>
+<span class="Comment">                                    (PlpgsqlFnBody an [] [</span>
+<span class="Comment">                                      Notify an tableName</span>
+<span class="Comment">                                     ,Return an $ Just $ NullLit an</span>
+<span class="Comment">                                     ]) Volatile : tl)</span>
+<span class="Comment">        x1 -&gt; x1 -}</span></pre></div></div></div></div
+    ><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

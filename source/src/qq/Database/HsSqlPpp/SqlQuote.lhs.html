@@ -1,0 +1,243 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >SqlQuote</title
+    ><link href="../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">{- | A quasiquoter for SQL. Antiquoting is a bit inconsistent. The</span>
+<span class="Comment">splice variable names must be all lower case because of a limitation</span>
+<span class="Comment">in the parser.</span>
+
+<span class="Comment">Example:</span>
+
+<span class="Comment">&gt;</span>
+<span class="Comment">&gt; {-# LANGUAGE QuasiQuotes #-}</span>
+<span class="Comment">&gt; import Database.HsSqlPpp.Ast</span>
+<span class="Comment">&gt; import Database.HsSqlPpp.SqlQuote</span>
+<span class="Comment">&gt; import Database.HsSqlPpp.Annotation</span>
+<span class="Comment">&gt;</span>
+<span class="Comment">&gt; test :: Statement</span>
+<span class="Comment">&gt; test = [$sqlStmt|</span>
+<span class="Comment">&gt;</span>
+<span class="Comment">&gt;   create table $(tablename) (</span>
+<span class="Comment">&gt;    $(varname) $(typename)</span>
+<span class="Comment">&gt;   );</span>
+<span class="Comment">&gt;</span>
+<span class="Comment">&gt;         |]</span>
+<span class="Comment">&gt;   where</span>
+<span class="Comment">&gt;     tablename = &quot;my_table&quot;</span>
+<span class="Comment">&gt;     varname = &quot;my_field&quot;</span>
+<span class="Comment">&gt;     typename = &quot;text&quot;</span>
+<span class="Comment">&gt;</span>
+
+<span class="Comment">See &lt;http://jakewheat.github.com/hssqlppp/QuasiQuoteTests.html&gt;</span>
+<span class="Comment">for more simple examples, and</span>
+<span class="Comment">&lt;http://jakewheat.github.com/hssqlppp/source/examples/Database/HsSqlPpp/Examples/Extensions/&gt;</span>
+<span class="Comment">for some example files which use quasiquotation to do ast</span>
+<span class="Comment">transformations which implement syntax extensions to sql</span>
+<span class="Comment">     -}</span>
+
+<span class="Comment">{-# LANGUAGE ScopedTypeVariables #-}</span>
+
+<span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.SqlQuote</span>
+    <span class="Symbol">(</span><span class="VarId">sqlStmts</span><span class="Symbol">,</span><span class="VarId">sqlStmt</span><span class="Symbol">,</span><span class="VarId">pgsqlStmts</span><span class="Symbol">,</span><span class="VarId">pgsqlStmt</span><span class="Symbol">,</span><span class="VarId">sqlExpr</span><span class="Symbol">)</span> <span class="Keyword">where</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">import</span> <span class="ConId">Language.Haskell.TH.Quote</span>
+<span class="Keyword">import</span> <span class="ConId">Language.Haskell.TH</span>
+<span class="Keyword">import</span> <span class="ConId">Data.Generics</span>
+<span class="Keyword">import</span> <span class="ConId">Data.List</span>
+
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Parsing.ParserInternal</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Annotation</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.AstInternals.AstAnti</span>
+</pre></div></div></div><p
+    >public api: the quasiquote functions</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">-- | parses Statements</span>
+<span class="Function">sqlStmts</span> <span class="Symbol">::</span> <span class="ConId">QuasiQuoter</span>
+<span class="Function">sqlStmts</span> <span class="Symbol">=</span> <span class="VarId">makeQQ</span> <span class="VarId">parseAntiSql</span>
+
+<span class="Comment">-- | parses a single Statement</span>
+<span class="Function">sqlStmt</span> <span class="Symbol">::</span> <span class="ConId">QuasiQuoter</span>
+<span class="Function">sqlStmt</span> <span class="Symbol">=</span> <span class="VarId">makeQQ</span> <span class="VarId">parseOneAntiSql</span>
+
+<span class="Comment">-- | parses plpgsql Statements</span>
+<span class="Function">pgsqlStmts</span> <span class="Symbol">::</span> <span class="ConId">QuasiQuoter</span>
+<span class="Function">pgsqlStmts</span> <span class="Symbol">=</span> <span class="VarId">makeQQ</span> <span class="VarId">parseAntiPlpgsql</span>
+
+<span class="Comment">-- | parses a plpgsql Statement</span>
+<span class="Function">pgsqlStmt</span> <span class="Symbol">::</span> <span class="ConId">QuasiQuoter</span>
+<span class="Function">pgsqlStmt</span> <span class="Symbol">=</span> <span class="VarId">makeQQ</span> <span class="VarId">parseOneAntiPlpgsql</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">-- | parse an Expression</span>
+<span class="Function">sqlExpr</span> <span class="Symbol">::</span> <span class="ConId">QuasiQuoter</span>
+<span class="Function">sqlExpr</span> <span class="Symbol">=</span> <span class="VarId">makeQQ</span> <span class="VarId">parseAntiExpression</span></pre></div></div></div><p
+    >boilerplate utils to hook everything together</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">type</span> <span class="ConId">Parser</span> <span class="VarId">e</span> <span class="VarId">a</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="ConId">String</span>
+                   <span class="Symbol">-&gt;</span> <span class="ConId">Int</span>
+                   <span class="Symbol">-&gt;</span> <span class="ConId">Int</span>
+                   <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+                   <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="VarId">e</span> <span class="VarId">a</span><span class="Symbol">)</span>
+
+<span class="Function">makeQQ</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Show</span> <span class="VarId">e</span><span class="Symbol">,</span> <span class="ConId">Data</span> <span class="VarId">a</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span>
+          <span class="ConId">Parser</span> <span class="VarId">e</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="ConId">QuasiQuoter</span>
+<span class="Function">makeQQ</span> <span class="VarId">p</span> <span class="Symbol">=</span> <span class="ConId">QuasiQuoter</span> <span class="Symbol">(</span><span class="VarId">parseExprExp</span> <span class="VarId">p</span><span class="Symbol">)</span>
+                       <span class="Symbol">(</span><span class="VarId">parseExprPat</span> <span class="VarId">p</span><span class="Symbol">)</span>
+</pre></div></div></div><p
+    >these return asts of from the module Database.HsSqlPpp.AstInternals.AstAnti, but when you expect the result of a quasiquote to be from the module Database.HsSqlPpp.Ast, it magically converts from one to the other ...</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">parseExprExp</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Show</span> <span class="VarId">e</span><span class="Symbol">,</span> <span class="ConId">Data</span> <span class="VarId">a</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span>
+                <span class="ConId">Parser</span> <span class="VarId">e</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Q</span> <span class="ConId">Exp</span>
+<span class="Function">parseExprExp</span> <span class="VarId">p</span> <span class="VarId">s</span> <span class="Symbol">=</span> <span class="VarId">parseSql'</span> <span class="VarId">p</span> <span class="VarId">s</span>
+                   <span class="Symbol">&gt;&gt;=</span>  <span class="VarId">dataToExpQ</span> <span class="Symbol">(</span><span class="VarId">const</span> <span class="ConId">Nothing</span>
+                                    <span class="Symbol">`</span><span class="VarId">extQ</span><span class="Symbol">`</span> <span class="VarId">antiExpE</span>
+                                    <span class="Symbol">`</span><span class="VarId">extQ</span><span class="Symbol">`</span> <span class="VarId">antiStrE</span>
+                                    <span class="Symbol">`</span><span class="VarId">extQ</span><span class="Symbol">`</span> <span class="VarId">antiTriggerEventE</span>
+                                    <span class="Symbol">`</span><span class="VarId">extQ</span><span class="Symbol">`</span> <span class="VarId">antiStatementE</span><span class="Symbol">)</span>
+
+<span class="Function">parseExprPat</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Show</span> <span class="VarId">e</span><span class="Symbol">,</span> <span class="ConId">Data</span> <span class="VarId">a</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span>
+                <span class="ConId">Parser</span> <span class="VarId">e</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span>  <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Q</span> <span class="ConId">Pat</span>
+<span class="Function">parseExprPat</span> <span class="VarId">p</span> <span class="VarId">s</span> <span class="Symbol">=</span> <span class="VarId">parseSql'</span> <span class="VarId">p</span> <span class="VarId">s</span>
+                   <span class="Symbol">&gt;&gt;=</span>  <span class="VarId">dataToPatQ</span> <span class="Symbol">(</span><span class="VarId">const</span> <span class="ConId">Nothing</span>
+                                    <span class="Symbol">`</span><span class="VarId">extQ</span><span class="Symbol">`</span> <span class="VarId">antiExprP</span>
+                                    <span class="Symbol">`</span><span class="VarId">extQ</span><span class="Symbol">`</span> <span class="VarId">antiStrP</span>
+                                    <span class="Symbol">`</span><span class="VarId">extQ</span><span class="Symbol">`</span> <span class="VarId">annotToWildCard</span>
+                                    <span class="Comment">--`extQ` antiTriggerEventE</span>
+                                    <span class="Comment">--`extQ` antiStatementE</span>
+                                   <span class="Symbol">)</span>
+</pre></div></div></div><p
+    >wrapper for all the different parsers which sets the source location and converts left to fail</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">parseSql'</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Data</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="ConId">Show</span> <span class="VarId">e</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span> <span class="ConId">Parser</span> <span class="VarId">e</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Q</span> <span class="VarId">a</span>
+<span class="Function">parseSql'</span> <span class="VarId">p</span> <span class="VarId">s</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+    <span class="ConId">Loc</span> <span class="VarId">fn</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="Symbol">(</span><span class="VarId">l</span><span class="Symbol">,</span><span class="VarId">c</span><span class="Symbol">)</span> <span class="VarId">_</span> <span class="Symbol">&lt;-</span> <span class="VarId">location</span>
+    <span class="VarId">either</span> <span class="Symbol">(</span><span class="VarId">fail</span> <span class="Symbol">.</span> <span class="VarId">show</span><span class="Symbol">)</span> <span class="VarId">return</span> <span class="Symbol">(</span><span class="VarId">p</span> <span class="VarId">fn</span> <span class="VarId">l</span> <span class="VarId">c</span> <span class="VarId">s</span><span class="Symbol">)</span></pre></div></div></div><p
+    >wrappers - the Parser module doesn't expose methods which parse exactly one statement</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">parseOneAntiPlpgsql</span> <span class="Symbol">::</span> <span class="ConId">Parser</span> <span class="ConId">String</span> <span class="ConId">Statement</span>
+<span class="Function">parseOneAntiPlpgsql</span> <span class="VarId">f</span> <span class="VarId">l</span> <span class="VarId">c</span> <span class="VarId">s</span> <span class="Symbol">=</span>
+    <span class="Keyword">case</span> <span class="VarId">parseAntiPlpgsql</span> <span class="VarId">f</span> <span class="VarId">l</span> <span class="VarId">c</span> <span class="VarId">s</span> <span class="Keyword">of</span>
+      <span class="ConId">Right</span> <span class="Symbol">[</span><span class="VarId">st</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Right</span> <span class="VarId">st</span>
+      <span class="ConId">Right</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Left</span> <span class="String">&quot;got multiple statements&quot;</span>
+      <span class="ConId">Left</span> <span class="VarId">e</span> <span class="Symbol">-&gt;</span> <span class="ConId">Left</span> <span class="Symbol">$</span> <span class="VarId">show</span> <span class="VarId">e</span>
+
+<span class="Function">parseOneAntiSql</span> <span class="Symbol">::</span> <span class="ConId">Parser</span> <span class="ConId">String</span> <span class="ConId">Statement</span>
+<span class="Function">parseOneAntiSql</span> <span class="VarId">f</span> <span class="VarId">l</span> <span class="VarId">c</span> <span class="VarId">s</span> <span class="Symbol">=</span>
+    <span class="Keyword">case</span> <span class="VarId">parseAntiSql</span> <span class="VarId">f</span> <span class="VarId">l</span> <span class="VarId">c</span> <span class="VarId">s</span> <span class="Keyword">of</span>
+      <span class="ConId">Right</span> <span class="Symbol">[</span><span class="VarId">st</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Right</span> <span class="VarId">st</span>
+      <span class="ConId">Right</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Left</span> <span class="String">&quot;got multiple statements&quot;</span>
+      <span class="ConId">Left</span> <span class="VarId">e</span> <span class="Symbol">-&gt;</span> <span class="ConId">Left</span> <span class="Symbol">$</span> <span class="VarId">show</span> <span class="VarId">e</span></pre></div></div></div><p
+    >hack: replace the annotations in asts produced by parsing with wildcards, if we don't do this then pattern matches generally don't work since the source position annotations from the parser don't match up. The source position annotations are still available so that e.g. a function can pattern match against a statement then get the source position from the matched statements.</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">annotToWildCard</span> <span class="Symbol">::</span> <span class="ConId">Annotation</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">PatQ</span>
+<span class="Function">annotToWildCard</span> <span class="VarId">_</span> <span class="Symbol">=</span> <span class="ConId">Just</span> <span class="Symbol">$</span> <span class="VarId">return</span> <span class="ConId">WildP</span></pre></div></div></div><p
+    >= individual antinode lookup functions</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">antiExpE</span> <span class="Symbol">::</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">ExpQ</span>
+<span class="Function">antiExpE</span> <span class="VarId">v</span> <span class="Symbol">=</span> <span class="VarId">fmap</span> <span class="VarId">varE</span> <span class="Symbol">(</span><span class="VarId">antiExp</span> <span class="VarId">v</span><span class="Symbol">)</span>
+
+<span class="Function">antiExprP</span> <span class="Symbol">::</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">PatQ</span>
+<span class="Function">antiExprP</span> <span class="VarId">v</span> <span class="Symbol">=</span> <span class="VarId">fmap</span> <span class="VarId">varP</span> <span class="Symbol">$</span> <span class="VarId">antiExp</span> <span class="VarId">v</span>
+
+<span class="Function">antiExp</span> <span class="Symbol">::</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">Name</span>
+<span class="Function">antiExp</span> <span class="Symbol">(</span><span class="ConId">AntiExpression</span> <span class="VarId">v</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="ConId">Just</span> <span class="Symbol">$</span> <span class="VarId">mkName</span> <span class="VarId">v</span>
+<span class="Function">antiExp</span> <span class="VarId">_</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span></pre></div></div></div><p
+    >antistatements not working ... trying to replace a single antistatement node with multiple statement nodes and my generics skills aren't up to the task.</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">antiStatementE</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">ExpQ</span>
+<span class="Function">antiStatementE</span> <span class="Symbol">(</span><span class="ConId">AntiStatement</span> <span class="VarId">v</span> <span class="Symbol">:</span> <span class="VarId">tl</span><span class="Symbol">)</span> <span class="Symbol">=</span>
+   <span class="ConId">Just</span> <span class="Symbol">(</span><span class="VarId">listE</span> <span class="Symbol">(</span><span class="VarId">vref</span> <span class="Symbol">:</span> <span class="VarId">conArgs</span><span class="Symbol">))</span>
+   <span class="Keyword">where</span>
+     <span class="VarId">conArgs</span> <span class="Symbol">=</span> <span class="VarId">gmapQ</span> <span class="Symbol">(</span><span class="VarId">dataToExpQ</span> <span class="Symbol">(</span><span class="VarId">const</span> <span class="ConId">Nothing</span>
+                       <span class="Symbol">`</span><span class="VarId">extQ</span><span class="Symbol">`</span> <span class="VarId">antiExpE</span>
+                       <span class="Symbol">`</span><span class="VarId">extQ</span><span class="Symbol">`</span> <span class="VarId">antiStrE</span>
+                       <span class="Symbol">`</span><span class="VarId">extQ</span><span class="Symbol">`</span> <span class="VarId">antiTriggerEventE</span>
+                       <span class="Symbol">`</span><span class="VarId">extQ</span><span class="Symbol">`</span> <span class="VarId">antiStatementE</span><span class="Symbol">))</span> <span class="VarId">tl</span>
+     <span class="VarId">vref</span> <span class="Symbol">::</span> <span class="ConId">ExpQ</span>
+     <span class="VarId">vref</span> <span class="Symbol">=</span> <span class="VarId">varE</span> <span class="Symbol">$</span> <span class="VarId">mkName</span> <span class="VarId">v</span>
+<span class="Function">antiStatementE</span> <span class="VarId">_</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">antiStrE</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">ExpQ</span>
+<span class="Function">antiStrE</span> <span class="VarId">v</span> <span class="Symbol">=</span> <span class="VarId">fmap</span> <span class="VarId">varE</span> <span class="Symbol">$</span> <span class="VarId">antiStr</span> <span class="VarId">v</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">antiStrP</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">PatQ</span>
+<span class="Function">antiStrP</span> <span class="VarId">v</span> <span class="Symbol">=</span> <span class="VarId">fmap</span> <span class="VarId">varP</span> <span class="Symbol">$</span> <span class="VarId">antiStr</span> <span class="VarId">v</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">antiStr</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">Name</span>
+<span class="Function">antiStr</span> <span class="VarId">v</span> <span class="Symbol">=</span>
+  <span class="VarId">fmap</span> <span class="VarId">mkName</span> <span class="Symbol">$</span> <span class="VarId">getSpliceName</span> <span class="VarId">v</span>
+  <span class="Keyword">where</span>
+    <span class="VarId">getSpliceName</span> <span class="VarId">s</span> <span class="Symbol">|</span> <span class="VarId">isPrefixOf</span> <span class="String">&quot;$(&quot;</span> <span class="VarId">s</span> <span class="Symbol">&amp;&amp;</span> <span class="VarId">last</span> <span class="VarId">s</span> <span class="Symbol">==</span> <span class="Char">')'</span> <span class="Symbol">=</span>
+      <span class="ConId">Just</span> <span class="Symbol">$</span> <span class="VarId">drop</span> <span class="Number">2</span> <span class="Symbol">$</span> <span class="VarId">take</span> <span class="Symbol">(</span><span class="VarId">length</span> <span class="VarId">s</span> <span class="Symbol">-</span> <span class="Number">1</span><span class="Symbol">)</span> <span class="VarId">s</span>
+                    <span class="Symbol">|</span> <span class="VarId">isPrefixOf</span> <span class="String">&quot;$s(&quot;</span> <span class="VarId">s</span> <span class="Symbol">&amp;&amp;</span> <span class="VarId">last</span> <span class="VarId">s</span> <span class="Symbol">==</span> <span class="Char">')'</span> <span class="Symbol">=</span>
+      <span class="ConId">Just</span> <span class="Symbol">$</span> <span class="VarId">drop</span> <span class="Number">3</span> <span class="Symbol">$</span> <span class="VarId">take</span> <span class="Symbol">(</span><span class="VarId">length</span> <span class="VarId">s</span> <span class="Symbol">-</span> <span class="Number">1</span><span class="Symbol">)</span> <span class="VarId">s</span>
+                    <span class="Symbol">|</span> <span class="VarId">isPrefixOf</span> <span class="String">&quot;$i(&quot;</span> <span class="VarId">s</span> <span class="Symbol">&amp;&amp;</span> <span class="VarId">last</span> <span class="VarId">s</span> <span class="Symbol">==</span> <span class="Char">')'</span> <span class="Symbol">=</span>
+      <span class="ConId">Just</span> <span class="Symbol">$</span> <span class="VarId">drop</span> <span class="Number">3</span> <span class="Symbol">$</span> <span class="VarId">take</span> <span class="Symbol">(</span><span class="VarId">length</span> <span class="VarId">s</span> <span class="Symbol">-</span> <span class="Number">1</span><span class="Symbol">)</span> <span class="VarId">s</span>
+                    <span class="Symbol">|</span> <span class="VarId">otherwise</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="Function">antiTriggerEventE</span> <span class="Symbol">::</span> <span class="ConId">TriggerEvent</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">ExpQ</span>
+<span class="Function">antiTriggerEventE</span> <span class="Symbol">(</span><span class="ConId">AntiTriggerEvent</span> <span class="VarId">v</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="ConId">Just</span> <span class="Symbol">$</span> <span class="VarId">varE</span> <span class="Symbol">$</span> <span class="VarId">mkName</span> <span class="VarId">v</span>
+<span class="Function">antiTriggerEventE</span> <span class="VarId">_</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span></pre></div></div></div><pre
+    ><code
+      ><br
+	 /> &gt; antiExpP :: Expression -&gt; Maybe PatQ
+ &gt; antiExpP (AntiExpression v ) = Just $ varP $ mkName v
+ &gt; antiExpP _ = Nothing
+
+to add support for a new splice location, add the type name to the
+list at the top of MakeAntiNodes, adjust the parser to parse splices
+at that point, and add a new antiQ function in this file
+
+
+new idea - to support antiquotation as much as possible, have more
+than one splice syntax:
+
+[$sqlExpr| $(x) |] - want to do a splice like this, sometimes it
+should be
+
+where x= &quot;str&quot; gives
+Identifier [] &quot;str&quot; &lt;- need $(x) to parse as an antiidentifier
+
+and sometimes
+
+where x = FunCall [] &quot;fn&quot; []
+gives
+FunCall [] &quot;fn&quot; [] &lt;- need $(x) to parse as an antiexpression
+
+need context which we don't have to make this decision (and would
+probably be really hard even if the context was available)
+
+so - use two different splice syntaxes.
+
+to avoid doing string splices using [$sqlExpr| '$(sp)' |] which is
+ugly and wrong (?), add another splice for strings?
+
+...
+
+work on tests to try to get some sort of design - want to minimise the
+number of splice syntaxes at the same time not make it difficult to
+work out which syntax to use in which spot.
+
+
+
+what needs to be done to support _ in pattern quasiquotes? -&gt; I think
+it's just adding a wildcard ctor to the appropriate ast types using
+makeantinodes, and adding in lexing and parsing support - actually
+using wildcards is now working with the annotation approach above
+</code
+      ></pre
+    ><p
+    >Some ideas about moving forward</p
+    ><p
+    >after working on a number of extensions, it seems clear that the quasi quotation is a bit limited, specifically the number of splice points is too limiting and a lot of ast transforms end up using a lot of ast types directly rather than via quotes which is crap.</p
+    ><p
+    >some possible resolutions:</p
+    ><p
+    >live with it</p
+    ><p
+    >add lots more splice points, will need lots of different splice syntaxes e.g. to cope with splicing a trigger event list or a single trigger event. Will also need to have a load more quote functions to parse sql fragments for different contexts.</p
+    ><p
+    >try and use e.g. a haskell or lisp like syntax for sql, to reduce the number of ast types drastically - this will allow much more regular use of splice points, quotes, etc.</p
+    ><p
+    >variant on this idea is instead to move to a tutorial d like syntax, which is vastly more regular than sql syntax and should allow for a much smaller range of quoters and splice syntaxes also.</p
+    ><p
+    >maybe might as well switch to haskelldb? the haskell or lisp like version of sql syntax keeps us writing the databases in sql, whereas tutorial d. haskelldb mean sql really disappears into the plumbing. These approaches might solve some problems with custom syntax also.</p
+    ><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

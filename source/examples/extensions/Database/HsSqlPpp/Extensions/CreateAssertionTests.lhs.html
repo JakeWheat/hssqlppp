@@ -1,0 +1,430 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >CreateAssertionTests</title
+    ><link href="../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >The test/examples for create assertion</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">{-# LANGUAGE QuasiQuotes, ScopedTypeVariables #-}</span>
+<span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.Extensions.CreateAssertionTests</span>
+    <span class="Symbol">(</span><span class="VarId">createAssertionExamples</span><span class="Symbol">)</span> <span class="Keyword">where</span>
+
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Ast</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.PrettyPrinter</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Extensions.ExtensionsUtils</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.SqlQuote</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Extensions.CreateAssertion</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Annotation</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="Function">createAssertionExamples</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ExtensionTest</span><span class="Symbol">]</span>
+<span class="Function">createAssertionExamples</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="VarId">cardinalityExample</span>
+                          <span class="Symbol">,</span><span class="VarId">doubleCardinalityExample</span>
+                          <span class="Symbol">,</span><span class="VarId">simpleViewExample</span>
+                          <span class="Symbol">,</span><span class="VarId">simpleFunctionExample</span>
+                          <span class="Symbol">,</span><span class="VarId">simpleMultiConstraint</span>
+                          <span class="Symbol">,</span><span class="VarId">threewayMultiConstraint</span><span class="Symbol">]</span></pre></div></div></div><p
+    >we don't check the constraints work yet, only that the apparently correct ddl is generated</p
+    ><div id="cardinality-check"
+    ><h2
+      >cardinality check</h2
+      ><p
+      >accesses multiple rows from one table</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">cardinalityExample</span> <span class="Symbol">::</span> <span class="ConId">ExtensionTest</span>
+<span class="Function">cardinalityExample</span>  <span class="Symbol">=</span>
+  <span class="ConId">ExtensionTest</span>
+    <span class="String">&quot;CreateAssertion cardinality&quot;</span>
+    <span class="VarId">createAssertion</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="Function">create</span> <span class="VarId">table</span> <span class="VarId">test_table</span> <span class="Symbol">(</span>
+   <span class="VarId">field</span> <span class="VarId">text</span>
+<span class="Symbol">);</span>
+
+<span class="Function">select</span> <span class="VarId">create_assertion</span><span class="Symbol">(</span>'<span class="VarId">test_table_count'</span>
+                       <span class="Symbol">,</span>'<span class="Symbol">(</span><span class="VarId">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="VarId">from</span> <span class="VarId">test_table</span><span class="Symbol">)</span> <span class="Symbol">&lt;</span> <span class="Number">10</span>'<span class="Symbol">);</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">    <span class="Symbol">|]</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="Function">create</span> <span class="VarId">table</span> <span class="VarId">test_table</span> <span class="Symbol">(</span>
+   <span class="VarId">field</span> <span class="VarId">text</span>
+<span class="Symbol">);</span>
+
+<span class="Function">create</span> <span class="VarId">function</span> <span class="VarId">check_con_test_table_count</span><span class="Symbol">()</span> <span class="VarId">returns</span> <span class="VarId">bool</span> <span class="Keyword">as</span> <span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span>
+<span class="Function">begin</span>
+  <span class="VarId">return</span> <span class="Symbol">(</span><span class="VarId">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="VarId">from</span> <span class="VarId">test_table</span><span class="Symbol">)</span> <span class="Symbol">&lt;</span> <span class="Number">10</span><span class="Symbol">;</span>
+<span class="Function">end</span><span class="Symbol">;</span>
+<span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span> <span class="VarId">language</span> <span class="VarId">plpgsql</span> <span class="VarId">stable</span><span class="Symbol">;</span>
+
+<span class="Function">create</span> <span class="VarId">function</span> <span class="VarId">test_table_constraint_trigger_operator</span><span class="Symbol">()</span> <span class="VarId">returns</span> <span class="VarId">trigger</span> <span class="Keyword">as</span> <span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span>
+<span class="Function">begin</span>
+  <span class="Keyword">if</span> <span class="VarId">not</span> <span class="VarId">check_con_test_table_count</span><span class="Symbol">()</span> <span class="Keyword">then</span>
+    <span class="VarId">raise</span> <span class="VarId">exception</span> '<span class="VarId">update</span> <span class="VarId">violates</span> <span class="VarId">database</span> <span class="VarId">constraint</span> <span class="VarId">test_table_count'</span><span class="Symbol">;</span>
+  <span class="VarId">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="VarId">return</span> <span class="ConId">OLD</span><span class="Symbol">;</span>
+<span class="Function">end</span><span class="Symbol">;</span>
+<span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span> <span class="VarId">language</span> <span class="VarId">plpgsql</span> <span class="VarId">stable</span><span class="Symbol">;</span>
+
+<span class="Function">create</span> <span class="VarId">trigger</span> <span class="VarId">test_table_constraint_trigger</span>
+  <span class="VarId">after</span> <span class="VarId">insert</span> <span class="VarId">or</span> <span class="VarId">update</span> <span class="VarId">or</span> <span class="VarId">delete</span> <span class="VarId">on</span> <span class="VarId">test_table</span>
+  <span class="VarId">for</span> <span class="VarId">each</span> <span class="VarId">statement</span>
+  <span class="VarId">execute</span> <span class="VarId">procedure</span> <span class="VarId">test_table_constraint_trigger_operator</span><span class="Symbol">();</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">     <span class="Symbol">|]</span></pre></div></div></div></div
+    ><div id="double-cardinality"
+    ><h2
+      >double cardinality</h2
+      ><p
+      >accesses two tables</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">doubleCardinalityExample</span> <span class="Symbol">::</span> <span class="ConId">ExtensionTest</span>
+<span class="Function">doubleCardinalityExample</span>  <span class="Symbol">=</span>
+  <span class="ConId">ExtensionTest</span>
+    <span class="String">&quot;createAssertion double cardinality&quot;</span>
+    <span class="VarId">createAssertion</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="Function">create</span> <span class="VarId">table</span> <span class="VarId">test_table</span> <span class="Symbol">(</span>
+   <span class="VarId">field</span> <span class="VarId">text</span>
+<span class="Symbol">);</span>
+
+<span class="Function">create</span> <span class="VarId">table</span> <span class="VarId">test_table1</span> <span class="Symbol">(</span>
+   <span class="VarId">field</span> <span class="VarId">text</span>
+<span class="Symbol">);</span>
+
+<span class="Function">select</span> <span class="VarId">create_assertion</span><span class="Symbol">(</span>'<span class="VarId">test_tables_count'</span>
+                       <span class="Symbol">,</span>'<span class="Symbol">((</span><span class="VarId">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="VarId">from</span> <span class="VarId">test_table</span><span class="Symbol">)</span> <span class="Symbol">+</span>
+                          <span class="Symbol">(</span><span class="VarId">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="VarId">from</span> <span class="VarId">test_table1</span><span class="Symbol">))</span> <span class="Symbol">&lt;</span> <span class="Number">10</span>'<span class="Symbol">);</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">    <span class="Symbol">|]</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="Function">create</span> <span class="VarId">table</span> <span class="VarId">test_table</span> <span class="Symbol">(</span>
+   <span class="VarId">field</span> <span class="VarId">text</span>
+<span class="Symbol">);</span>
+
+<span class="Function">create</span> <span class="VarId">table</span> <span class="VarId">test_table1</span> <span class="Symbol">(</span>
+   <span class="VarId">field</span> <span class="VarId">text</span>
+<span class="Symbol">);</span>
+
+<span class="Function">create</span> <span class="VarId">function</span> <span class="VarId">check_con_test_tables_count</span><span class="Symbol">()</span> <span class="VarId">returns</span> <span class="VarId">bool</span> <span class="Keyword">as</span> <span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span>
+<span class="Function">begin</span>
+  <span class="VarId">return</span> <span class="Symbol">((</span><span class="VarId">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="VarId">from</span> <span class="VarId">test_table</span><span class="Symbol">)</span> <span class="Symbol">+</span>
+          <span class="Symbol">(</span><span class="VarId">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="VarId">from</span> <span class="VarId">test_table1</span><span class="Symbol">))</span> <span class="Symbol">&lt;</span> <span class="Number">10</span><span class="Symbol">;</span>
+<span class="Function">end</span><span class="Symbol">;</span>
+<span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span> <span class="VarId">language</span> <span class="VarId">plpgsql</span> <span class="VarId">stable</span><span class="Symbol">;</span>
+
+<span class="Function">create</span> <span class="VarId">function</span> <span class="VarId">test_table_constraint_trigger_operator</span><span class="Symbol">()</span> <span class="VarId">returns</span> <span class="VarId">trigger</span> <span class="Keyword">as</span> <span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span>
+<span class="Function">begin</span>
+  <span class="Keyword">if</span> <span class="VarId">not</span> <span class="VarId">check_con_test_tables_count</span><span class="Symbol">()</span> <span class="Keyword">then</span>
+    <span class="VarId">raise</span> <span class="VarId">exception</span> '<span class="VarId">update</span> <span class="VarId">violates</span> <span class="VarId">database</span> <span class="VarId">constraint</span> <span class="VarId">test_tables_count'</span><span class="Symbol">;</span>
+  <span class="VarId">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="VarId">return</span> <span class="ConId">OLD</span><span class="Symbol">;</span>
+<span class="Function">end</span><span class="Symbol">;</span>
+<span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span> <span class="VarId">language</span> <span class="VarId">plpgsql</span> <span class="VarId">stable</span><span class="Symbol">;</span>
+
+<span class="Function">create</span> <span class="VarId">trigger</span> <span class="VarId">test_table_constraint_trigger</span>
+  <span class="VarId">after</span> <span class="VarId">insert</span> <span class="VarId">or</span> <span class="VarId">update</span> <span class="VarId">or</span> <span class="VarId">delete</span> <span class="VarId">on</span> <span class="VarId">test_table</span>
+  <span class="VarId">for</span> <span class="VarId">each</span> <span class="VarId">statement</span>
+  <span class="VarId">execute</span> <span class="VarId">procedure</span> <span class="VarId">test_table_constraint_trigger_operator</span><span class="Symbol">();</span>
+
+<span class="Function">create</span> <span class="VarId">function</span> <span class="VarId">test_table1_constraint_trigger_operator</span><span class="Symbol">()</span> <span class="VarId">returns</span> <span class="VarId">trigger</span> <span class="Keyword">as</span> <span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span>
+<span class="Function">begin</span>
+  <span class="Keyword">if</span> <span class="VarId">not</span> <span class="VarId">check_con_test_tables_count</span><span class="Symbol">()</span> <span class="Keyword">then</span>
+    <span class="VarId">raise</span> <span class="VarId">exception</span> '<span class="VarId">update</span> <span class="VarId">violates</span> <span class="VarId">database</span> <span class="VarId">constraint</span> <span class="VarId">test_tables_count'</span><span class="Symbol">;</span>
+  <span class="VarId">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="VarId">return</span> <span class="ConId">OLD</span><span class="Symbol">;</span>
+<span class="Function">end</span><span class="Symbol">;</span>
+<span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span> <span class="VarId">language</span> <span class="VarId">plpgsql</span> <span class="VarId">stable</span><span class="Symbol">;</span>
+
+<span class="Function">create</span> <span class="VarId">trigger</span> <span class="VarId">test_table1_constraint_trigger</span>
+  <span class="VarId">after</span> <span class="VarId">insert</span> <span class="VarId">or</span> <span class="VarId">update</span> <span class="VarId">or</span> <span class="VarId">delete</span> <span class="VarId">on</span> <span class="VarId">test_table1</span>
+  <span class="VarId">for</span> <span class="VarId">each</span> <span class="VarId">statement</span>
+  <span class="VarId">execute</span> <span class="VarId">procedure</span> <span class="VarId">test_table1_constraint_trigger_operator</span><span class="Symbol">();</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">     <span class="Symbol">|]</span></pre></div></div></div></div
+    ><div id="simpleview"
+    ><h2
+      >simpleview</h2
+      ><p
+      >constraint on a view rather than a table</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">simpleViewExample</span> <span class="Symbol">::</span> <span class="ConId">ExtensionTest</span>
+<span class="Function">simpleViewExample</span>  <span class="Symbol">=</span>
+  <span class="ConId">ExtensionTest</span>
+    <span class="String">&quot;createAssertion simpleview&quot;</span>
+    <span class="VarId">createAssertion</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="Function">create</span> <span class="VarId">table</span> <span class="VarId">test_table</span> <span class="Symbol">(</span>
+   <span class="VarId">field</span> <span class="VarId">text</span>
+<span class="Symbol">);</span>
+
+<span class="Function">create</span> <span class="VarId">view</span> <span class="VarId">test_view</span> <span class="Keyword">as</span>
+   <span class="VarId">select</span> <span class="Symbol">*</span> <span class="VarId">from</span> <span class="VarId">test_table</span> <span class="Keyword">where</span> <span class="VarId">field</span> <span class="Symbol">&lt;&gt;</span> <span class="String">&quot;a&quot;</span><span class="Symbol">;</span>
+
+<span class="Function">select</span> <span class="VarId">create_assertion</span><span class="Symbol">(</span>'<span class="VarId">test_view_count'</span>
+                       <span class="Symbol">,</span>'<span class="Symbol">(</span><span class="VarId">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="VarId">from</span> <span class="VarId">test_view</span><span class="Symbol">)</span> <span class="Symbol">&lt;</span> <span class="Number">10</span>'<span class="Symbol">);</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">    <span class="Symbol">|]</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="Function">create</span> <span class="VarId">table</span> <span class="VarId">test_table</span> <span class="Symbol">(</span>
+   <span class="VarId">field</span> <span class="VarId">text</span>
+<span class="Symbol">);</span>
+
+<span class="Function">create</span> <span class="VarId">view</span> <span class="VarId">test_view</span> <span class="Keyword">as</span>
+   <span class="VarId">select</span> <span class="Symbol">*</span> <span class="VarId">from</span> <span class="VarId">test_table</span> <span class="Keyword">where</span> <span class="VarId">field</span> <span class="Symbol">&lt;&gt;</span> <span class="String">&quot;a&quot;</span><span class="Symbol">;</span>
+
+<span class="Function">create</span> <span class="VarId">function</span> <span class="VarId">check_con_test_view_count</span><span class="Symbol">()</span> <span class="VarId">returns</span> <span class="VarId">bool</span> <span class="Keyword">as</span> <span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span>
+<span class="Function">begin</span>
+  <span class="VarId">return</span> <span class="Symbol">(</span><span class="VarId">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="VarId">from</span> <span class="VarId">test_view</span><span class="Symbol">)</span> <span class="Symbol">&lt;</span> <span class="Number">10</span><span class="Symbol">;</span>
+<span class="Function">end</span><span class="Symbol">;</span>
+<span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span> <span class="VarId">language</span> <span class="VarId">plpgsql</span> <span class="VarId">stable</span><span class="Symbol">;</span>
+
+<span class="Function">create</span> <span class="VarId">function</span> <span class="VarId">test_table_constraint_trigger_operator</span><span class="Symbol">()</span> <span class="VarId">returns</span> <span class="VarId">trigger</span> <span class="Keyword">as</span> <span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span>
+<span class="Function">begin</span>
+  <span class="Keyword">if</span> <span class="VarId">not</span> <span class="VarId">check_con_test_view_count</span><span class="Symbol">()</span> <span class="Keyword">then</span>
+    <span class="VarId">raise</span> <span class="VarId">exception</span> '<span class="VarId">update</span> <span class="VarId">violates</span> <span class="VarId">database</span> <span class="VarId">constraint</span> <span class="VarId">test_view_count'</span><span class="Symbol">;</span>
+  <span class="VarId">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="VarId">return</span> <span class="ConId">OLD</span><span class="Symbol">;</span>
+<span class="Function">end</span><span class="Symbol">;</span>
+<span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span> <span class="VarId">language</span> <span class="VarId">plpgsql</span> <span class="VarId">stable</span><span class="Symbol">;</span>
+
+<span class="Function">create</span> <span class="VarId">trigger</span> <span class="VarId">test_table_constraint_trigger</span>
+  <span class="VarId">after</span> <span class="VarId">insert</span> <span class="VarId">or</span> <span class="VarId">update</span> <span class="VarId">or</span> <span class="VarId">delete</span> <span class="VarId">on</span> <span class="VarId">test_table</span>
+  <span class="VarId">for</span> <span class="VarId">each</span> <span class="VarId">statement</span>
+  <span class="VarId">execute</span> <span class="VarId">procedure</span> <span class="VarId">test_table_constraint_trigger_operator</span><span class="Symbol">();</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">     <span class="Symbol">|]</span></pre></div></div></div></div
+    ><div id="simplefunction"
+    ><h2
+      >simpleFunction</h2
+      ><p
+      >constraint on the result of a function call</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">simpleFunctionExample</span> <span class="Symbol">::</span> <span class="ConId">ExtensionTest</span>
+<span class="Function">simpleFunctionExample</span>  <span class="Symbol">=</span>
+  <span class="ConId">ExtensionTest</span>
+    <span class="String">&quot;createAssertion simplefunction&quot;</span>
+    <span class="VarId">createAssertion</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="Function">create</span> <span class="VarId">table</span> <span class="VarId">test_table</span> <span class="Symbol">(</span>
+   <span class="VarId">field</span> <span class="VarId">text</span>
+<span class="Symbol">);</span>
+
+<span class="Function">create</span> <span class="VarId">function</span> <span class="VarId">test_table_count</span><span class="Symbol">()</span> <span class="VarId">returns</span> <span class="VarId">int</span> <span class="Keyword">as</span> <span class="Symbol">$$</span>
+  <span class="VarId">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="VarId">from</span> <span class="VarId">test_table</span><span class="Symbol">;</span>
+<span class="Symbol">$$</span> <span class="VarId">language</span> <span class="VarId">sql</span> <span class="VarId">stable</span><span class="Symbol">;</span>
+
+<span class="Function">select</span> <span class="VarId">create_assertion</span><span class="Symbol">(</span>'<span class="VarId">test_function_count'</span>
+                       <span class="Symbol">,</span>'<span class="VarId">test_table_count</span><span class="Symbol">()</span> <span class="Symbol">&lt;</span> <span class="Number">10</span>'<span class="Symbol">);</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">    <span class="Symbol">|]</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="Function">create</span> <span class="VarId">table</span> <span class="VarId">test_table</span> <span class="Symbol">(</span>
+   <span class="VarId">field</span> <span class="VarId">text</span>
+<span class="Symbol">);</span>
+
+<span class="Function">create</span> <span class="VarId">function</span> <span class="VarId">test_table_count</span><span class="Symbol">()</span> <span class="VarId">returns</span> <span class="VarId">int</span> <span class="Keyword">as</span> <span class="Symbol">$$</span>
+  <span class="VarId">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="VarId">from</span> <span class="VarId">test_table</span><span class="Symbol">;</span>
+<span class="Symbol">$$</span> <span class="VarId">language</span> <span class="VarId">sql</span> <span class="VarId">stable</span><span class="Symbol">;</span>
+
+<span class="Function">create</span> <span class="VarId">function</span> <span class="VarId">check_con_test_function_count</span><span class="Symbol">()</span> <span class="VarId">returns</span> <span class="VarId">bool</span> <span class="Keyword">as</span> <span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span>
+<span class="Function">begin</span>
+  <span class="VarId">return</span> <span class="VarId">test_table_count</span><span class="Symbol">()</span> <span class="Symbol">&lt;</span> <span class="Number">10</span><span class="Symbol">;</span>
+<span class="Function">end</span><span class="Symbol">;</span>
+<span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span> <span class="VarId">language</span> <span class="VarId">plpgsql</span> <span class="VarId">stable</span><span class="Symbol">;</span>
+
+<span class="Function">create</span> <span class="VarId">function</span> <span class="VarId">test_table_constraint_trigger_operator</span><span class="Symbol">()</span> <span class="VarId">returns</span> <span class="VarId">trigger</span> <span class="Keyword">as</span> <span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span>
+<span class="Function">begin</span>
+  <span class="Keyword">if</span> <span class="VarId">not</span> <span class="VarId">check_con_test_function_count</span><span class="Symbol">()</span> <span class="Keyword">then</span>
+    <span class="VarId">raise</span> <span class="VarId">exception</span> '<span class="VarId">update</span> <span class="VarId">violates</span> <span class="VarId">database</span> <span class="VarId">constraint</span> <span class="VarId">test_function_count'</span><span class="Symbol">;</span>
+  <span class="VarId">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="VarId">return</span> <span class="ConId">OLD</span><span class="Symbol">;</span>
+<span class="Function">end</span><span class="Symbol">;</span>
+<span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span> <span class="VarId">language</span> <span class="VarId">plpgsql</span> <span class="VarId">stable</span><span class="Symbol">;</span>
+
+<span class="Function">create</span> <span class="VarId">trigger</span> <span class="VarId">test_table_constraint_trigger</span>
+  <span class="VarId">after</span> <span class="VarId">insert</span> <span class="VarId">or</span> <span class="VarId">update</span> <span class="VarId">or</span> <span class="VarId">delete</span> <span class="VarId">on</span> <span class="VarId">test_table</span>
+  <span class="VarId">for</span> <span class="VarId">each</span> <span class="VarId">statement</span>
+  <span class="VarId">execute</span> <span class="VarId">procedure</span> <span class="VarId">test_table_constraint_trigger_operator</span><span class="Symbol">();</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">     <span class="Symbol">|]</span></pre></div></div></div></div
+    ><div id="multiple-constraints-one-table"
+    ><h2
+      >multiple constraints one table</h2
+      ><p
+      >check that adding multiple constraints on one table does the right thing</p
+      ><p
+      >accesses two tables</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">simpleMultiConstraint</span> <span class="Symbol">::</span> <span class="ConId">ExtensionTest</span>
+<span class="Function">simpleMultiConstraint</span>  <span class="Symbol">=</span>
+  <span class="ConId">ExtensionTest</span>
+    <span class="String">&quot;createAssertion simple multi&quot;</span>
+    <span class="VarId">createAssertion</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="Function">create</span> <span class="VarId">table</span> <span class="VarId">test_table</span> <span class="Symbol">(</span>
+   <span class="VarId">field</span> <span class="VarId">text</span>
+<span class="Symbol">);</span>
+
+<span class="Function">select</span> <span class="VarId">create_assertion</span><span class="Symbol">(</span>'<span class="VarId">test_table_count'</span>
+                       <span class="Symbol">,</span>'<span class="Symbol">(</span><span class="VarId">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="VarId">from</span> <span class="VarId">test_table</span><span class="Symbol">)</span> <span class="Symbol">&lt;</span> <span class="Number">10</span>'<span class="Symbol">);</span>
+
+<span class="Function">select</span> <span class="VarId">create_assertion</span><span class="Symbol">(</span>'<span class="VarId">test_table_stuff_count'</span>
+                       <span class="Symbol">,$$(</span><span class="VarId">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="VarId">from</span> <span class="VarId">test_table</span> <span class="Keyword">where</span> <span class="VarId">field</span> <span class="Symbol">=</span>'<span class="VarId">stuff'</span><span class="Symbol">)</span> <span class="Symbol">&lt;</span> <span class="Number">5</span><span class="Symbol">$$);</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">    <span class="Symbol">|]</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="Function">create</span> <span class="VarId">table</span> <span class="VarId">test_table</span> <span class="Symbol">(</span>
+   <span class="VarId">field</span> <span class="VarId">text</span>
+<span class="Symbol">);</span>
+
+<span class="Function">create</span> <span class="VarId">function</span> <span class="VarId">check_con_test_table_count</span><span class="Symbol">()</span> <span class="VarId">returns</span> <span class="VarId">bool</span> <span class="Keyword">as</span> <span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span>
+<span class="Function">begin</span>
+  <span class="VarId">return</span> <span class="Symbol">(</span><span class="VarId">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="VarId">from</span> <span class="VarId">test_table</span><span class="Symbol">)</span> <span class="Symbol">&lt;</span> <span class="Number">10</span><span class="Symbol">;</span>
+<span class="Function">end</span><span class="Symbol">;</span>
+<span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span> <span class="VarId">language</span> <span class="VarId">plpgsql</span> <span class="VarId">stable</span><span class="Symbol">;</span>
+
+<span class="Function">create</span> <span class="VarId">function</span> <span class="VarId">test_table_constraint_trigger_operator</span><span class="Symbol">()</span> <span class="VarId">returns</span> <span class="VarId">trigger</span> <span class="Keyword">as</span> <span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span>
+<span class="Function">begin</span>
+  <span class="Keyword">if</span> <span class="VarId">not</span> <span class="VarId">check_con_test_table_count</span><span class="Symbol">()</span> <span class="Keyword">then</span>
+    <span class="VarId">raise</span> <span class="VarId">exception</span> '<span class="VarId">update</span> <span class="VarId">violates</span> <span class="VarId">database</span> <span class="VarId">constraint</span> <span class="VarId">test_table_count'</span><span class="Symbol">;</span>
+  <span class="VarId">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="VarId">return</span> <span class="ConId">OLD</span><span class="Symbol">;</span>
+<span class="Function">end</span><span class="Symbol">;</span>
+<span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span> <span class="VarId">language</span> <span class="VarId">plpgsql</span> <span class="VarId">stable</span><span class="Symbol">;</span>
+
+<span class="Function">create</span> <span class="VarId">trigger</span> <span class="VarId">test_table_constraint_trigger</span>
+  <span class="VarId">after</span> <span class="VarId">insert</span> <span class="VarId">or</span> <span class="VarId">update</span> <span class="VarId">or</span> <span class="VarId">delete</span> <span class="VarId">on</span> <span class="VarId">test_table</span>
+  <span class="VarId">for</span> <span class="VarId">each</span> <span class="VarId">statement</span>
+  <span class="VarId">execute</span> <span class="VarId">procedure</span> <span class="VarId">test_table_constraint_trigger_operator</span><span class="Symbol">();</span>
+
+<span class="Symbol">--</span>
+
+<span class="Function">create</span> <span class="VarId">function</span> <span class="VarId">check_con_test_table_stuff_count</span><span class="Symbol">()</span> <span class="VarId">returns</span> <span class="VarId">bool</span> <span class="Keyword">as</span> <span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span>
+<span class="Function">begin</span>
+  <span class="VarId">return</span> <span class="Symbol">(</span><span class="VarId">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="VarId">from</span> <span class="VarId">test_table</span> <span class="Keyword">where</span> <span class="VarId">field</span> <span class="Symbol">=</span>'<span class="VarId">stuff'</span><span class="Symbol">)</span> <span class="Symbol">&lt;</span> <span class="Number">5</span><span class="Symbol">;</span>
+<span class="Function">end</span><span class="Symbol">;</span>
+<span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span> <span class="VarId">language</span> <span class="VarId">plpgsql</span> <span class="VarId">stable</span><span class="Symbol">;</span>
+
+<span class="Function">create</span> <span class="VarId">or</span> <span class="VarId">replace</span> <span class="VarId">function</span> <span class="VarId">test_table_constraint_trigger_operator</span><span class="Symbol">()</span> <span class="VarId">returns</span> <span class="VarId">trigger</span> <span class="Keyword">as</span> <span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span>
+<span class="Function">begin</span>
+  <span class="Keyword">if</span> <span class="VarId">not</span> <span class="VarId">check_con_test_table_stuff_count</span><span class="Symbol">()</span> <span class="Keyword">then</span>
+    <span class="VarId">raise</span> <span class="VarId">exception</span> '<span class="VarId">update</span> <span class="VarId">violates</span> <span class="VarId">database</span> <span class="VarId">constraint</span> <span class="VarId">test_table_stuff_count'</span><span class="Symbol">;</span>
+  <span class="VarId">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="Keyword">if</span> <span class="VarId">not</span> <span class="VarId">check_con_test_table_count</span><span class="Symbol">()</span> <span class="Keyword">then</span>
+    <span class="VarId">raise</span> <span class="VarId">exception</span> '<span class="VarId">update</span> <span class="VarId">violates</span> <span class="VarId">database</span> <span class="VarId">constraint</span> <span class="VarId">test_table_count'</span><span class="Symbol">;</span>
+  <span class="VarId">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="VarId">return</span> <span class="ConId">OLD</span><span class="Symbol">;</span>
+<span class="Function">end</span><span class="Symbol">;</span>
+<span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span> <span class="VarId">language</span> <span class="VarId">plpgsql</span> <span class="VarId">stable</span><span class="Symbol">;</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">     <span class="Symbol">|]</span></pre></div></div></div></div
+    ><div id="three-constraints-three-tables"
+    ><h2
+      >three constraints three tables</h2
+      ><pre
+      ><code
+	>table a constraints x y
+table b constraints x z
+table c constraints z x
+
+createtable a
+createtable b
+createtable c
+
+add constraint x a b
+add constraint y b c
+add constraint z c a
+</code
+	></pre
+      ><p
+      >if the test is harder to understand than the code it's testing, is that bad?</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">threewayMultiConstraint</span> <span class="Symbol">::</span> <span class="ConId">ExtensionTest</span>
+<span class="Function">threewayMultiConstraint</span> <span class="Symbol">=</span>
+  <span class="ConId">ExtensionTest</span>
+    <span class="String">&quot;createAssertion three way multi&quot;</span>
+    <span class="VarId">createAssertion</span>
+    <span class="Symbol">[</span><span class="VarId">createTable</span> <span class="String">&quot;a&quot;</span>
+    <span class="Symbol">,</span><span class="VarId">createTable</span> <span class="String">&quot;b&quot;</span>
+    <span class="Symbol">,</span><span class="VarId">createTable</span> <span class="String">&quot;c&quot;</span>
+    <span class="Symbol">,</span><span class="VarId">constraint</span> <span class="String">&quot;x&quot;</span> <span class="String">&quot;a&quot;</span> <span class="String">&quot;b&quot;</span>
+    <span class="Symbol">,</span><span class="VarId">constraint</span> <span class="String">&quot;y&quot;</span> <span class="String">&quot;b&quot;</span> <span class="String">&quot;c&quot;</span>
+    <span class="Symbol">,</span><span class="VarId">constraint</span> <span class="String">&quot;z&quot;</span> <span class="String">&quot;c&quot;</span> <span class="String">&quot;a&quot;</span><span class="Symbol">]</span>
+    <span class="Symbol">[</span><span class="VarId">createTable</span> <span class="String">&quot;a&quot;</span>
+    <span class="Symbol">,</span><span class="VarId">createTable</span> <span class="String">&quot;b&quot;</span>
+    <span class="Symbol">,</span><span class="VarId">createTable</span> <span class="String">&quot;c&quot;</span>
+    <span class="Symbol">,</span><span class="VarId">check</span> <span class="String">&quot;x&quot;</span> <span class="String">&quot;a&quot;</span> <span class="String">&quot;b&quot;</span>
+    <span class="Symbol">,</span><span class="VarId">fn</span> <span class="String">&quot;a&quot;</span> <span class="String">&quot;x&quot;</span>
+    <span class="Symbol">,</span><span class="VarId">trig</span> <span class="String">&quot;a&quot;</span>
+    <span class="Symbol">,</span><span class="VarId">fn</span> <span class="String">&quot;b&quot;</span> <span class="String">&quot;x&quot;</span>
+    <span class="Symbol">,</span><span class="VarId">trig</span> <span class="String">&quot;b&quot;</span>
+    <span class="Symbol">,</span><span class="VarId">check</span> <span class="String">&quot;y&quot;</span> <span class="String">&quot;b&quot;</span> <span class="String">&quot;c&quot;</span>
+    <span class="Symbol">,</span><span class="VarId">fn1</span> <span class="String">&quot;b&quot;</span> <span class="String">&quot;x&quot;</span> <span class="String">&quot;y&quot;</span>
+    <span class="Symbol">,</span><span class="VarId">fn</span> <span class="String">&quot;c&quot;</span> <span class="String">&quot;y&quot;</span>
+    <span class="Symbol">,</span><span class="VarId">trig</span> <span class="String">&quot;c&quot;</span>
+    <span class="Symbol">,</span><span class="VarId">check</span> <span class="String">&quot;z&quot;</span> <span class="String">&quot;c&quot;</span> <span class="String">&quot;a&quot;</span>
+    <span class="Symbol">,</span><span class="VarId">fn1</span> <span class="String">&quot;c&quot;</span> <span class="String">&quot;y&quot;</span> <span class="String">&quot;z&quot;</span>
+    <span class="Symbol">,</span><span class="VarId">fn1</span> <span class="String">&quot;a&quot;</span> <span class="String">&quot;x&quot;</span> <span class="String">&quot;z&quot;</span><span class="Symbol">]</span>
+    <span class="Keyword">where</span>
+      <span class="VarId">createTable</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Statement</span>
+      <span class="VarId">createTable</span> <span class="VarId">n</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="VarId">tablename</span> <span class="Symbol">=</span> <span class="String">&quot;table_&quot;</span> <span class="Symbol">++</span> <span class="VarId">n</span>
+                      <span class="Keyword">in</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+                        <span class="VarId">create</span> <span class="VarId">table</span> <span class="Symbol">$(</span><span class="VarId">tablename</span><span class="Symbol">)</span> <span class="Symbol">(</span>
+                           <span class="VarId">field</span> <span class="VarId">text</span>
+                        <span class="Symbol">);</span> <span class="Symbol">|]</span>
+      <span class="VarId">constraint</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Statement</span>
+      <span class="VarId">constraint</span> <span class="VarId">nm</span> <span class="VarId">t1</span> <span class="VarId">t2</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="VarId">cn</span> <span class="Symbol">=</span> <span class="VarId">conname</span> <span class="VarId">nm</span>
+                                <span class="VarId">exs</span> <span class="Symbol">=</span> <span class="VarId">exprs</span> <span class="VarId">t1</span> <span class="VarId">t2</span>
+                            <span class="Keyword">in</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+                    <span class="VarId">select</span> <span class="VarId">create_assertion</span><span class="Symbol">(</span>'<span class="Symbol">$(</span><span class="VarId">cn</span><span class="Symbol">)</span><span class="Char">','</span><span class="Symbol">$(</span><span class="VarId">exs</span><span class="Symbol">)</span>'<span class="Symbol">);</span>
+                                <span class="Symbol">|]</span>
+      <span class="VarId">conname</span> <span class="VarId">nm</span> <span class="Symbol">=</span> <span class="String">&quot;valid_&quot;</span> <span class="Symbol">++</span> <span class="VarId">nm</span>
+      <span class="VarId">exprs</span> <span class="VarId">t1</span> <span class="VarId">t2</span> <span class="Symbol">=</span> <span class="VarId">printExpression</span> <span class="Symbol">$</span> <span class="VarId">exprn</span> <span class="VarId">t1</span> <span class="VarId">t2</span>
+      <span class="VarId">exprn</span> <span class="VarId">t1</span> <span class="VarId">t2</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="VarId">t1n</span> <span class="Symbol">=</span> <span class="String">&quot;table_&quot;</span> <span class="Symbol">++</span> <span class="VarId">t1</span>
+                        <span class="VarId">t2n</span> <span class="Symbol">=</span> <span class="String">&quot;table_&quot;</span> <span class="Symbol">++</span> <span class="VarId">t2</span>
+                    <span class="Keyword">in</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|((</span><span class="VarId">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="VarId">from</span> <span class="Symbol">$(</span><span class="VarId">t1n</span><span class="Symbol">))</span>
+                               <span class="Symbol">+</span> <span class="Symbol">(</span><span class="VarId">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="VarId">from</span> <span class="Symbol">$(</span><span class="VarId">t2n</span><span class="Symbol">)))</span> <span class="Symbol">&lt;</span> <span class="Number">10</span> <span class="Symbol">|]</span>
+      <span class="VarId">check</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Statement</span>
+      <span class="VarId">check</span> <span class="VarId">nm</span> <span class="VarId">t1</span> <span class="VarId">t2</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="VarId">cfn</span> <span class="Symbol">=</span> <span class="String">&quot;check_con_valid_&quot;</span> <span class="Symbol">++</span> <span class="VarId">nm</span>
+                           <span class="VarId">ex</span> <span class="Symbol">=</span> <span class="VarId">exprn</span> <span class="VarId">t1</span> <span class="VarId">t2</span>
+                       <span class="Keyword">in</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+                             <span class="VarId">create</span> <span class="VarId">function</span> <span class="Symbol">$(</span><span class="VarId">cfn</span><span class="Symbol">)()</span> <span class="VarId">returns</span> <span class="VarId">bool</span> <span class="Keyword">as</span> <span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span>
+                               <span class="VarId">begin</span>
+                                 <span class="VarId">return</span> <span class="Symbol">$(</span><span class="VarId">ex</span><span class="Symbol">);</span>
+                               <span class="VarId">end</span><span class="Symbol">;</span>
+                             <span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span> <span class="VarId">language</span> <span class="VarId">plpgsql</span> <span class="VarId">stable</span><span class="Symbol">;</span>
+                           <span class="Symbol">|]</span>
+      <span class="VarId">fn</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Statement</span>
+      <span class="VarId">fn</span> <span class="VarId">t</span> <span class="VarId">c</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="VarId">nm</span> <span class="Symbol">=</span> <span class="String">&quot;table_&quot;</span> <span class="Symbol">++</span> <span class="VarId">t</span> <span class="Symbol">++</span> <span class="String">&quot;_constraint_trigger_operator&quot;</span>
+                   <span class="VarId">cn</span> <span class="Symbol">=</span> <span class="ConId">FunCall</span> <span class="VarId">ea</span> <span class="Symbol">(</span><span class="String">&quot;check_con_valid_&quot;</span> <span class="Symbol">++</span> <span class="VarId">c</span><span class="Symbol">)</span> <span class="Symbol">[]</span>
+                        <span class="Comment">--&quot;check_con_valid_&quot; ++ c</span>
+                   <span class="VarId">errMsg</span> <span class="Symbol">=</span> <span class="String">&quot;update violates database constraint valid_&quot;</span> <span class="Symbol">++</span> <span class="VarId">c</span>
+               <span class="Keyword">in</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+                        <span class="VarId">create</span> <span class="VarId">function</span> <span class="Symbol">$(</span><span class="VarId">nm</span><span class="Symbol">)()</span> <span class="VarId">returns</span> <span class="VarId">trigger</span> <span class="Keyword">as</span> <span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span>
+                        <span class="VarId">begin</span>
+                          <span class="Keyword">if</span> <span class="VarId">not</span> <span class="Symbol">$(</span><span class="VarId">cn</span><span class="Symbol">)</span> <span class="Keyword">then</span>
+                            <span class="VarId">raise</span> <span class="VarId">exception</span> '<span class="Symbol">$(</span><span class="VarId">errMsg</span><span class="Symbol">)</span>'<span class="Symbol">;</span>
+                          <span class="VarId">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+                          <span class="VarId">return</span> <span class="ConId">OLD</span><span class="Symbol">;</span>
+                        <span class="VarId">end</span><span class="Symbol">;</span>
+                        <span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span> <span class="VarId">language</span> <span class="VarId">plpgsql</span> <span class="VarId">stable</span><span class="Symbol">;</span>
+                   <span class="Symbol">|]</span>
+      <span class="VarId">fn1</span> <span class="VarId">t</span> <span class="VarId">c1</span> <span class="VarId">c2</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="VarId">nm</span> <span class="Symbol">=</span> <span class="String">&quot;table_&quot;</span> <span class="Symbol">++</span> <span class="VarId">t</span> <span class="Symbol">++</span> <span class="String">&quot;_constraint_trigger_operator&quot;</span>
+                        <span class="VarId">c1n</span> <span class="Symbol">=</span> <span class="ConId">FunCall</span> <span class="VarId">ea</span> <span class="Symbol">(</span><span class="String">&quot;check_con_valid_&quot;</span> <span class="Symbol">++</span> <span class="VarId">c1</span><span class="Symbol">)</span> <span class="Symbol">[]</span>
+                        <span class="VarId">c2n</span> <span class="Symbol">=</span> <span class="ConId">FunCall</span> <span class="VarId">ea</span> <span class="Symbol">(</span><span class="String">&quot;check_con_valid_&quot;</span> <span class="Symbol">++</span> <span class="VarId">c2</span><span class="Symbol">)</span> <span class="Symbol">[]</span>
+                        <span class="VarId">errMsg1</span> <span class="Symbol">=</span> <span class="String">&quot;update violates database constraint valid_&quot;</span> <span class="Symbol">++</span> <span class="VarId">c1</span>
+                        <span class="VarId">errMsg2</span> <span class="Symbol">=</span> <span class="String">&quot;update violates database constraint valid_&quot;</span> <span class="Symbol">++</span> <span class="VarId">c2</span>
+                    <span class="Keyword">in</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+                        <span class="VarId">create</span> <span class="VarId">or</span> <span class="VarId">replace</span> <span class="VarId">function</span> <span class="Symbol">$(</span><span class="VarId">nm</span><span class="Symbol">)()</span> <span class="VarId">returns</span> <span class="VarId">trigger</span> <span class="Keyword">as</span> <span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span>
+                        <span class="VarId">begin</span>
+                          <span class="Keyword">if</span> <span class="VarId">not</span> <span class="Symbol">$(</span><span class="VarId">c2n</span><span class="Symbol">)</span> <span class="Keyword">then</span>
+                            <span class="VarId">raise</span> <span class="VarId">exception</span> '<span class="Symbol">$(</span><span class="VarId">errMsg2</span><span class="Symbol">)</span>'<span class="Symbol">;</span>
+                          <span class="VarId">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+                          <span class="Keyword">if</span> <span class="VarId">not</span> <span class="Symbol">$(</span><span class="VarId">c1n</span><span class="Symbol">)</span> <span class="Keyword">then</span>
+                            <span class="VarId">raise</span> <span class="VarId">exception</span> '<span class="Symbol">$(</span><span class="VarId">errMsg1</span><span class="Symbol">)</span>'<span class="Symbol">;</span>
+                         <span class="VarId">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+                          <span class="VarId">return</span> <span class="ConId">OLD</span><span class="Symbol">;</span>
+                        <span class="VarId">end</span><span class="Symbol">;</span>
+                        <span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span> <span class="VarId">language</span> <span class="VarId">plpgsql</span> <span class="VarId">stable</span><span class="Symbol">;</span>
+                        <span class="Symbol">|]</span>
+      <span class="VarId">trig</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Statement</span>
+      <span class="VarId">trig</span> <span class="VarId">t</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="VarId">tn</span> <span class="Symbol">=</span> <span class="String">&quot;table_&quot;</span> <span class="Symbol">++</span> <span class="VarId">t</span>
+                   <span class="VarId">trn</span> <span class="Symbol">=</span> <span class="VarId">tn</span> <span class="Symbol">++</span> <span class="String">&quot;_constraint_trigger&quot;</span>
+                   <span class="VarId">cfn</span> <span class="Symbol">=</span> <span class="VarId">tn</span> <span class="Symbol">++</span> <span class="String">&quot;_constraint_trigger_operator&quot;</span>
+               <span class="Keyword">in</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+                   <span class="VarId">create</span> <span class="VarId">trigger</span> <span class="Symbol">$(</span><span class="VarId">trn</span><span class="Symbol">)</span>
+                     <span class="VarId">after</span> <span class="VarId">insert</span> <span class="VarId">or</span> <span class="VarId">update</span> <span class="VarId">or</span> <span class="VarId">delete</span> <span class="VarId">on</span> <span class="Symbol">$(</span><span class="VarId">tn</span><span class="Symbol">)</span>
+                     <span class="VarId">for</span> <span class="VarId">each</span> <span class="VarId">statement</span>
+                     <span class="VarId">execute</span> <span class="VarId">procedure</span> <span class="Symbol">$(</span><span class="VarId">cfn</span><span class="Symbol">)();</span>
+                   <span class="Symbol">|]</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">ea</span> <span class="Symbol">::</span> <span class="ConId">Annotation</span>
+<span class="Function">ea</span> <span class="Symbol">=</span> <span class="VarId">emptyAnnotation</span></pre></div></div></div></div
+    ><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

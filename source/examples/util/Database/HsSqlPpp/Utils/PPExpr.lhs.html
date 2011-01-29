@@ -1,0 +1,34 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >PPExpr</title
+    ><link href="../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.Utils.PPExpr</span> <span class="Keyword">where</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">import</span> <span class="Keyword">qualified</span> <span class="ConId">Language.Haskell.Exts</span> <span class="Keyword">as</span> <span class="ConId">Exts</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">-- dodgy code to pretty print a value using haskell-src-exts to try</span>
+<span class="Comment">-- and format it nicely</span>
+
+<span class="Function">ppExpr</span> <span class="Symbol">::</span> <span class="ConId">Show</span> <span class="VarId">s</span> <span class="Symbol">=&gt;</span> <span class="VarId">s</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+<span class="Function">ppExpr</span> <span class="VarId">s</span> <span class="Symbol">=</span>
+  <span class="Keyword">case</span> <span class="ConId">Exts.</span><span class="VarId">parseExp</span> <span class="Symbol">(</span><span class="VarId">show</span> <span class="VarId">s</span><span class="Symbol">)</span> <span class="Keyword">of</span>
+    <span class="ConId">Exts.ParseOk</span> <span class="VarId">ast</span> <span class="Symbol">-&gt;</span> <span class="ConId">Exts.</span><span class="VarId">prettyPrint</span> <span class="VarId">ast</span>
+    <span class="VarId">x</span> <span class="Symbol">-&gt;</span> <span class="VarId">error</span> <span class="Symbol">$</span> <span class="VarId">show</span> <span class="VarId">x</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">ppExprT</span> <span class="Symbol">::</span> <span class="ConId">Show</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="Symbol">(</span><span class="ConId">Exts.Exp</span> <span class="Symbol">-&gt;</span> <span class="ConId">Exts.Exp</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+<span class="Function">ppExprT</span> <span class="VarId">t</span> <span class="VarId">s</span> <span class="Symbol">=</span>
+  <span class="Keyword">case</span> <span class="ConId">Exts.</span><span class="VarId">parseExp</span> <span class="Symbol">(</span><span class="VarId">show</span> <span class="VarId">s</span><span class="Symbol">)</span> <span class="Keyword">of</span>
+    <span class="ConId">Exts.ParseOk</span> <span class="VarId">ast</span> <span class="Symbol">-&gt;</span> <span class="ConId">Exts.</span><span class="VarId">prettyPrint</span> <span class="Symbol">$</span> <span class="VarId">t</span> <span class="VarId">ast</span>
+    <span class="VarId">x</span> <span class="Symbol">-&gt;</span> <span class="VarId">error</span> <span class="Symbol">$</span> <span class="VarId">show</span> <span class="VarId">x</span></pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

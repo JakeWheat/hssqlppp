@@ -1,0 +1,87 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >CreateVarSimple</title
+    ><link href="../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><div id="demonstration-extension-createvarsimple"
+    ><h1
+      >Demonstration extension: createVarSimple</h1
+      ><p
+      >Takes a name and a type and creates a table with a single attribute with that name and type.</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">{-# LANGUAGE QuasiQuotes, ScopedTypeVariables #-}</span>
+
+<span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.Extensions.CreateVarSimple</span>
+    <span class="Keyword">where</span>
+
+<span class="Keyword">import</span> <span class="ConId">Data.Generics</span>
+<span class="Keyword">import</span> <span class="ConId">Data.Generics.Uniplate.Data</span>
+
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Ast</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Extensions.ExtensionsUtils</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.SqlQuote</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Annotation</span>
+<span class="Comment">--import Debug.Trace</span></pre></div></div></div><div id="example-test"
+      ><h2
+	>Example/ Test</h2
+	><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">createVarSimpleExample</span> <span class="Symbol">::</span> <span class="ConId">ExtensionTest</span>
+<span class="Function">createVarSimpleExample</span> <span class="Symbol">=</span>
+  <span class="ConId">ExtensionTest</span>
+
+    <span class="Comment">-- name of the extension, used when running the tests</span>
+    <span class="String">&quot;CreateVarSimple&quot;</span>
+
+    <span class="Comment">-- the transformation function itself, implemented below</span>
+    <span class="VarId">createVarSimple</span>
+
+    <span class="Comment">-- example of the SQL we want to replace</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span> <span class="VarId">select</span> <span class="VarId">create_var</span><span class="Symbol">(</span>'<span class="VarId">varname'</span><span class="Symbol">,</span> '<span class="VarId">vartype'</span><span class="Symbol">);</span> <span class="Symbol">|]</span>
+
+    <span class="Comment">-- what the example SQL should be transformed into:</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span>
+
+      <span class="VarId">create</span> <span class="VarId">table</span> <span class="VarId">varname_table</span> <span class="Symbol">(</span>
+        <span class="VarId">varname</span> <span class="VarId">vartype</span>
+      <span class="Symbol">);</span>
+
+     <span class="Symbol">|]</span></pre></div></div></div></div
+      ><div id="ast-transform-function"
+      ><h2
+	>Ast transform function</h2
+	><p
+	>We look for a function call with the function name &quot;create_var&quot; and two string literal arguments (calls to create_var which don't use exactly two string literals will be silently ignored by this code).</p
+	><p
+	>We want to replace it with a create table statement.</p
+	><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">createVarSimple</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
+<span class="Function">createVarSimple</span> <span class="Symbol">=</span>
+    <span class="VarId">transformBi</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span>
+      <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+        <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span> <span class="VarId">select</span> <span class="VarId">create_var</span><span class="Symbol">($</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">varname</span><span class="Symbol">),</span> <span class="Symbol">$</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">typename</span><span class="Symbol">));</span> <span class="Symbol">|]</span>
+            <span class="Symbol">-&gt;</span> <span class="Keyword">let</span> <span class="VarId">tablename</span> <span class="Symbol">=</span> <span class="VarId">varname</span> <span class="Symbol">++</span> <span class="String">&quot;_table&quot;</span>
+               <span class="Keyword">in</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+
+  <span class="VarId">create</span> <span class="VarId">table</span> <span class="Symbol">$(</span><span class="VarId">tablename</span><span class="Symbol">)</span> <span class="Symbol">(</span>
+   <span class="Symbol">$(</span><span class="VarId">varname</span><span class="Symbol">)</span> <span class="Symbol">$(</span><span class="VarId">typename</span><span class="Symbol">)</span>
+  <span class="Symbol">);</span>
+
+                   <span class="Symbol">|]</span>
+        <span class="VarId">x1</span> <span class="Symbol">-&gt;</span> <span class="VarId">x1</span>
+</pre></div></div></div></div
+      ></div
+    ><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

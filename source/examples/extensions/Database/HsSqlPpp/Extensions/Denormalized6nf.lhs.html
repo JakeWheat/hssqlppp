@@ -1,0 +1,206 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >Denormalized6nf</title
+    ><link href="../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >silly name, idea is to match some sort of oo inheritance approach to create a set of 6nf relvars, and then implement using a single table with nulls, adding appropriate constraints to restrict which combinations of nulls are possible, and add views which return subsets with no nulls in</p
+    ><p
+    >example idea:</p
+    ><p
+    >this is the basic table we want to produce</p
+    ><div class='sql'><pre class="sourceCode">create table piece_prototypes (
+  ptype text primary key,
+  flying boolean null,
+  speed int null,
+  agility int null,
+  undead boolean null,
+  ridable boolean null,
+  ranged_weapon_type text,
+  range int null,
+  ranged_attack_strength int null,
+  attack_strength int null,
+  physical_defense int null,
+  magic_defense int null
+);</pre></div><p
+    >these fields are group as follows</p
+    ><pre
+    ><code
+      >proto
+  ptype
+creature
+  flying
+  speed
+  agility
+attacking
+  attack_strength
+attackable
+  physical_defense
+  magic_defense
+ranged
+  ranged_weapon_type
+  range
+monster
+  undead
+  ridable
+</code
+      ></pre
+    ><p
+    >so if a row has a non null in one member of a group, they all must be non null (e.g. flying,speed, agility must all be null or all non null)</p
+    ><p
+    >we also have group dependencies,e.g. if a row is monster,(i.e. undead and ridable are non null), it also has to be a creature, attacking and attackable (so all their fields have to be non null)</p
+    ><p
+    >want to describe the table in these terms and have:</p
+    ><ul
+    ><li
+      >the full table created</li
+      ><li
+      >check constraints on combinations of null with nice error messages</li
+      ><li
+      >views which show restrict/projections without the nulls</li
+      ></ul
+    ><p
+    >see the examples file for more details</p
+    ><p
+    >question: how can a client read a whole table like this and not have to deal with nulls/ maybe types?</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">{-# LANGUAGE QuasiQuotes, ScopedTypeVariables #-}</span>
+<span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.Extensions.Denormalized6nf</span>
+    <span class="Symbol">(</span><span class="VarId">denormalized6nf</span><span class="Symbol">)</span> <span class="Keyword">where</span>
+
+<span class="Keyword">import</span> <span class="ConId">Data.Generics</span>
+<span class="Keyword">import</span> <span class="ConId">Data.Generics.Uniplate.Data</span>
+<span class="Keyword">import</span> <span class="ConId">Data.List</span>
+<span class="Keyword">import</span> <span class="ConId">Data.Maybe</span>
+
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Extensions.DenormSyntax</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Ast</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.SqlQuote</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Annotation</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Extensions.AstUtils</span>
+
+<span class="Function">denormalized6nf</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
+<span class="Function">denormalized6nf</span> <span class="Symbol">=</span>
+  <span class="VarId">transformBi</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span>
+      <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+        <span class="VarId">st</span><span class="Symbol">@[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span> <span class="VarId">select</span> <span class="VarId">create6nf</span><span class="Symbol">($(</span><span class="VarId">stuff</span><span class="Symbol">));</span> <span class="Symbol">|]</span> <span class="Symbol">:</span> <span class="VarId">tl</span>
+            <span class="Symbol">-&gt;</span> <span class="Keyword">let</span> <span class="Symbol">(</span><span class="VarId">f</span><span class="Symbol">,</span><span class="VarId">l</span><span class="Symbol">,</span><span class="VarId">c</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">fromMaybe</span> <span class="Symbol">(</span><span class="String">&quot;&quot;</span><span class="Symbol">,</span><span class="Number">1</span><span class="Symbol">,</span><span class="Number">1</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="VarId">asrc</span> <span class="Symbol">$</span> <span class="VarId">getAnnotation</span> <span class="VarId">stuff</span>
+                   <span class="Symbol">(</span><span class="ConId">StringLit</span> <span class="VarId">_</span> <span class="VarId">s</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">stuff</span>
+               <span class="Keyword">in</span> <span class="VarId">replaceSourcePos</span> <span class="VarId">st</span> <span class="Symbol">(</span><span class="VarId">createStatements</span> <span class="VarId">f</span> <span class="VarId">l</span> <span class="VarId">c</span> <span class="VarId">s</span><span class="Symbol">)</span> <span class="Symbol">++</span> <span class="VarId">tl</span>
+        <span class="VarId">x1</span> <span class="Symbol">-&gt;</span> <span class="VarId">x1</span>
+  <span class="Keyword">where</span>
+      <span class="VarId">createStatements</span> <span class="VarId">f</span> <span class="VarId">l</span> <span class="VarId">c</span> <span class="VarId">s</span> <span class="Symbol">=</span>
+          <span class="Keyword">case</span> <span class="VarId">parseD6nf</span> <span class="VarId">f</span> <span class="VarId">l</span> <span class="VarId">c</span> <span class="VarId">s</span> <span class="Keyword">of</span>
+            <span class="ConId">Left</span> <span class="VarId">e</span> <span class="Symbol">-&gt;</span> <span class="VarId">error</span> <span class="VarId">e</span>
+            <span class="ConId">Right</span> <span class="VarId">t</span> <span class="Symbol">-&gt;</span> <span class="Keyword">let</span> <span class="Symbol">(</span><span class="VarId">cons</span><span class="Symbol">,</span> <span class="VarId">vs</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="VarId">makeViews</span> <span class="VarId">t</span><span class="Symbol">)</span>
+                       <span class="Keyword">in</span> <span class="VarId">makeTable</span> <span class="VarId">cons</span> <span class="VarId">t</span> <span class="Symbol">:</span> <span class="VarId">vs</span>
+
+<span class="Function">makeTable</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Constraint</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">D6nfStatement</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Statement</span>
+<span class="Function">makeTable</span> <span class="VarId">cs</span> <span class="VarId">dss</span> <span class="Symbol">=</span>
+    <span class="Keyword">let</span> <span class="Symbol">(</span><span class="VarId">s2</span><span class="Symbol">,</span><span class="VarId">f2</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">head</span> <span class="Symbol">[(</span><span class="VarId">s1</span><span class="Symbol">,</span><span class="VarId">f1</span><span class="Symbol">)</span> <span class="Symbol">|</span> <span class="ConId">DTable</span> <span class="VarId">s1</span> <span class="Symbol">[]</span> <span class="VarId">f1</span> <span class="Symbol">&lt;-</span> <span class="VarId">universeBi</span> <span class="VarId">dss</span><span class="Symbol">]</span>
+        <span class="VarId">f3</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="VarId">f1</span> <span class="Symbol">|</span> <span class="ConId">DTable</span> <span class="VarId">s3</span> <span class="VarId">_</span> <span class="VarId">f1</span> <span class="Symbol">&lt;-</span> <span class="VarId">universeBi</span> <span class="VarId">dss</span><span class="Symbol">,</span> <span class="VarId">s3</span> <span class="Symbol">/=</span> <span class="VarId">s2</span><span class="Symbol">]</span>
+    <span class="Keyword">in</span> <span class="ConId">CreateTable</span> <span class="VarId">ea</span> <span class="VarId">s2</span> <span class="Symbol">(</span><span class="VarId">map</span> <span class="VarId">notNullify</span> <span class="VarId">f2</span> <span class="Symbol">++</span> <span class="VarId">map</span> <span class="VarId">nullify</span> <span class="Symbol">(</span><span class="VarId">concat</span> <span class="VarId">f3</span><span class="Symbol">))</span> <span class="VarId">cs</span>
+
+
+<span class="Function">notNullify</span> <span class="Symbol">::</span> <span class="ConId">AttributeDef</span> <span class="Symbol">-&gt;</span> <span class="ConId">AttributeDef</span>
+<span class="Function">notNullify</span> <span class="VarId">ad</span><span class="Symbol">@(</span><span class="ConId">AttributeDef</span> <span class="VarId">a</span> <span class="VarId">n</span> <span class="VarId">t</span> <span class="VarId">d</span> <span class="VarId">cs</span><span class="Symbol">)</span> <span class="Symbol">=</span>
+  <span class="Keyword">if</span> <span class="VarId">hasPk</span>
+  <span class="Keyword">then</span> <span class="VarId">ad</span>
+  <span class="Keyword">else</span> <span class="ConId">AttributeDef</span> <span class="VarId">a</span> <span class="VarId">n</span> <span class="VarId">t</span> <span class="VarId">d</span> <span class="Symbol">(</span><span class="ConId">NotNullConstraint</span> <span class="VarId">ea</span> <span class="String">&quot;&quot;</span> <span class="Symbol">:</span> <span class="VarId">cs</span><span class="Symbol">)</span>
+  <span class="Keyword">where</span>
+    <span class="VarId">hasPk</span> <span class="Symbol">=</span> <span class="VarId">isJust</span> <span class="Symbol">$</span> <span class="VarId">flip</span> <span class="VarId">find</span> <span class="VarId">cs</span>
+                       <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">l</span> <span class="Symbol">-&gt;</span> <span class="Keyword">case</span> <span class="VarId">l</span> <span class="Keyword">of</span>
+                                      <span class="ConId">RowPrimaryKeyConstraint</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">True</span>
+                                      <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">False</span>
+
+<span class="Function">nullify</span> <span class="Symbol">::</span> <span class="ConId">AttributeDef</span> <span class="Symbol">-&gt;</span> <span class="ConId">AttributeDef</span>
+<span class="Function">nullify</span> <span class="Symbol">(</span><span class="ConId">AttributeDef</span> <span class="VarId">a</span> <span class="VarId">n</span> <span class="VarId">t</span> <span class="VarId">d</span> <span class="VarId">cs</span><span class="Symbol">)</span> <span class="Symbol">=</span>
+    <span class="ConId">AttributeDef</span> <span class="VarId">a</span> <span class="VarId">n</span> <span class="VarId">t</span> <span class="VarId">d</span> <span class="Symbol">(</span><span class="ConId">NullConstraint</span> <span class="VarId">ea</span> <span class="String">&quot;&quot;</span> <span class="Symbol">:</span> <span class="VarId">cs</span><span class="Symbol">)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">attributeName</span> <span class="Symbol">::</span> <span class="ConId">AttributeDef</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+<span class="Function">attributeName</span> <span class="Symbol">(</span><span class="ConId">AttributeDef</span> <span class="VarId">_</span> <span class="VarId">n</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">n</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">makeViews</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">D6nfStatement</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">([</span><span class="ConId">Constraint</span><span class="Symbol">],</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">])</span>
+<span class="Function">makeViews</span> <span class="VarId">dss</span> <span class="Symbol">=</span>
+    <span class="Keyword">let</span> <span class="Symbol">(</span><span class="VarId">bottomTableName</span><span class="Symbol">,</span><span class="VarId">f2</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">head</span> <span class="Symbol">[(</span><span class="VarId">s1</span><span class="Symbol">,</span><span class="VarId">f1</span><span class="Symbol">)</span> <span class="Symbol">|</span> <span class="ConId">DTable</span> <span class="VarId">s1</span> <span class="Symbol">[]</span> <span class="VarId">f1</span> <span class="Symbol">&lt;-</span> <span class="VarId">universeBi</span> <span class="VarId">dss</span><span class="Symbol">]</span>
+        <span class="VarId">subt</span> <span class="Symbol">=</span> <span class="Symbol">[(</span><span class="VarId">tn</span><span class="Symbol">,</span><span class="VarId">sts</span><span class="Symbol">,</span><span class="VarId">f1</span><span class="Symbol">)</span> <span class="Symbol">|</span> <span class="ConId">DTable</span> <span class="VarId">tn</span> <span class="VarId">sts</span> <span class="VarId">f1</span> <span class="Symbol">&lt;-</span> <span class="VarId">universeBi</span> <span class="VarId">dss</span><span class="Symbol">,</span> <span class="VarId">tn</span> <span class="Symbol">/=</span> <span class="VarId">bottomTableName</span><span class="Symbol">]</span>
+        <span class="VarId">baseName</span> <span class="Symbol">=</span> <span class="VarId">bottomTableName</span> <span class="Symbol">++</span> <span class="String">&quot;_base&quot;</span>
+        <span class="VarId">baseAttrIds</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="VarId">idFromAttr</span> <span class="VarId">f2</span>
+        <span class="VarId">fixSelectList</span> <span class="VarId">attrs</span> <span class="VarId">st</span> <span class="Symbol">=</span>
+          <span class="VarId">flip</span> <span class="VarId">transformBi</span> <span class="VarId">st</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span>
+            <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+              <span class="ConId">SelectList</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">SelectList</span> <span class="VarId">ea</span> <span class="Symbol">(</span><span class="VarId">map</span> <span class="Symbol">(</span><span class="ConId">SelExp</span> <span class="VarId">ea</span><span class="Symbol">)</span> <span class="VarId">attrs</span><span class="Symbol">)</span> <span class="Symbol">[]</span>
+              <span class="Comment">-- x1 -&gt; x1</span>
+        <span class="VarId">makeConstraint</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,[(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">Expression</span><span class="Symbol">])])</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">Constraint</span>
+        <span class="VarId">makeConstraint</span> <span class="Symbol">(</span><span class="VarId">tn</span><span class="Symbol">,</span> <span class="VarId">flds</span><span class="Symbol">)</span> <span class="Symbol">=</span>
+          <span class="Keyword">let</span> <span class="VarId">newFields</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">reverse</span> <span class="VarId">flds</span> <span class="Keyword">of</span>
+                              <span class="Symbol">(</span><span class="VarId">_</span><span class="Symbol">,</span> <span class="VarId">f</span><span class="Symbol">):</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="VarId">f</span>
+                              <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[]</span>
+              <span class="VarId">noNewFields</span> <span class="Symbol">=</span> <span class="VarId">null</span> <span class="VarId">newFields</span>
+              <span class="VarId">allFields</span> <span class="Symbol">=</span> <span class="VarId">nub</span> <span class="Symbol">$</span> <span class="VarId">concatMap</span> <span class="VarId">snd</span> <span class="VarId">flds</span>
+              <span class="Comment">-- want to make sure if any of the new fields are not null</span>
+              <span class="Comment">-- than all the fields from parents as well must be not null</span>
+              <span class="VarId">nots</span> <span class="Symbol">=</span> <span class="VarId">andTogether</span> <span class="Symbol">$</span> <span class="VarId">map</span> <span class="VarId">makeNotNull</span> <span class="VarId">allFields</span>
+              <span class="Comment">-- only want to ensure the new fields have to all be null</span>
+              <span class="Comment">-- don't care about parent fields</span>
+              <span class="VarId">nulls</span> <span class="Symbol">=</span> <span class="VarId">andTogether</span> <span class="Symbol">$</span> <span class="VarId">map</span> <span class="VarId">makeNull</span> <span class="VarId">newFields</span>
+          <span class="Keyword">in</span>
+             <span class="Keyword">if</span> <span class="VarId">noNewFields</span> <span class="Symbol">||</span> <span class="VarId">null</span> <span class="VarId">allFields</span> <span class="Symbol">||</span> <span class="VarId">null</span> <span class="Symbol">(</span><span class="VarId">tail</span> <span class="VarId">allFields</span><span class="Symbol">)</span>
+             <span class="Keyword">then</span> <span class="ConId">Nothing</span>
+             <span class="Keyword">else</span> <span class="ConId">Just</span> <span class="Symbol">$</span> <span class="ConId">CheckConstraint</span> <span class="VarId">ea</span> <span class="Symbol">(</span><span class="VarId">tn</span> <span class="Symbol">++</span> <span class="String">&quot;_fields&quot;</span><span class="Symbol">)</span>
+                          <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="Symbol">($(</span><span class="VarId">nulls</span><span class="Symbol">))</span> <span class="VarId">or</span> <span class="Symbol">($(</span><span class="VarId">nots</span><span class="Symbol">))</span> <span class="Symbol">|]</span>
+        <span class="VarId">makeView</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,[(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">Expression</span><span class="Symbol">])])</span> <span class="Symbol">-&gt;</span> <span class="ConId">Statement</span>
+        <span class="VarId">makeView</span> <span class="Symbol">(</span><span class="VarId">tn</span><span class="Symbol">,</span> <span class="VarId">flds</span><span class="Symbol">)</span> <span class="Symbol">=</span>
+          <span class="Keyword">let</span> <span class="VarId">allFields</span> <span class="Symbol">=</span> <span class="VarId">nub</span> <span class="Symbol">$</span> <span class="VarId">concatMap</span> <span class="VarId">snd</span> <span class="VarId">flds</span>
+              <span class="VarId">allFirstFields</span> <span class="Symbol">=</span> <span class="VarId">nub</span> <span class="Symbol">$</span> <span class="VarId">mapMaybe</span> <span class="Symbol">((\</span><span class="VarId">f</span> <span class="Symbol">-&gt;</span> <span class="Keyword">case</span> <span class="VarId">f</span> <span class="Keyword">of</span>
+                                                             <span class="VarId">fh</span> <span class="Symbol">:</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Just</span> <span class="VarId">fh</span>
+                                                             <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Nothing</span><span class="Symbol">)</span> <span class="Symbol">.</span> <span class="VarId">snd</span><span class="Symbol">)</span> <span class="VarId">flds</span>
+              <span class="VarId">expr</span> <span class="Symbol">=</span> <span class="Comment">-- constraints mean we only need to check one field</span>
+                     <span class="VarId">andTogether</span> <span class="Symbol">$</span> <span class="VarId">map</span> <span class="VarId">makeNotNull</span> <span class="VarId">allFirstFields</span>
+                     <span class="Comment">--makeNotNull $ head allFields</span>
+          <span class="Keyword">in</span> <span class="VarId">fixSelectList</span> <span class="Symbol">(</span><span class="VarId">baseAttrIds</span> <span class="Symbol">++</span> <span class="VarId">allFields</span><span class="Symbol">)</span>
+               <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span> <span class="VarId">create</span> <span class="VarId">view</span> <span class="Symbol">$(</span><span class="VarId">tn</span><span class="Symbol">)</span> <span class="Keyword">as</span>
+                          <span class="VarId">select</span> <span class="VarId">selectList</span> <span class="VarId">from</span> <span class="Symbol">$(</span><span class="VarId">bottomTableName</span><span class="Symbol">)</span>
+                            <span class="Keyword">where</span> <span class="Symbol">$(</span><span class="VarId">expr</span><span class="Symbol">);</span> <span class="Symbol">|]</span>
+    <span class="Keyword">in</span> <span class="Symbol">(</span><span class="VarId">mapMaybe</span> <span class="VarId">makeConstraint</span> <span class="Symbol">(</span><span class="VarId">getExtraFields</span> <span class="VarId">subt</span><span class="Symbol">)</span>
+       <span class="Symbol">,</span><span class="VarId">fixSelectList</span> <span class="VarId">baseAttrIds</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span> <span class="VarId">create</span> <span class="VarId">view</span> <span class="Symbol">$(</span><span class="VarId">baseName</span><span class="Symbol">)</span> <span class="Keyword">as</span>
+                                 <span class="VarId">select</span> <span class="VarId">selectList</span> <span class="VarId">from</span> <span class="Symbol">$(</span><span class="VarId">bottomTableName</span><span class="Symbol">);|]</span> <span class="Symbol">:</span>
+        <span class="VarId">map</span> <span class="VarId">makeView</span> <span class="Symbol">(</span><span class="VarId">getExtraFields</span> <span class="VarId">subt</span><span class="Symbol">))</span>
+    <span class="Keyword">where</span>
+      <span class="VarId">idFromAttr</span> <span class="Symbol">=</span> <span class="ConId">Identifier</span> <span class="VarId">ea</span> <span class="Symbol">.</span> <span class="VarId">attributeName</span>
+      <span class="VarId">getExtraFields</span> <span class="Symbol">::</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">String</span><span class="Symbol">],[</span><span class="ConId">AttributeDef</span><span class="Symbol">])]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,[(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">Expression</span><span class="Symbol">])])]</span> <span class="Comment">-- table name, sourcetable,fieldlist</span>
+      <span class="VarId">getExtraFields</span> <span class="VarId">tinfo</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="VarId">t1</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="VarId">gef</span> <span class="VarId">tinfo</span>
+                             <span class="Keyword">in</span> <span class="VarId">map</span> <span class="Symbol">(\</span><span class="VarId">a</span><span class="Symbol">@((</span><span class="VarId">tn</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">):</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="VarId">tn</span><span class="Symbol">,</span> <span class="VarId">reverse</span> <span class="VarId">a</span><span class="Symbol">))</span> <span class="VarId">t1</span> <span class="Comment">--first reverse here</span>
+        <span class="Keyword">where</span>
+          <span class="VarId">gef</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">String</span><span class="Symbol">],[</span><span class="ConId">AttributeDef</span><span class="Symbol">])</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">Expression</span><span class="Symbol">])]</span>
+          <span class="VarId">gef</span> <span class="Symbol">(</span><span class="VarId">tn</span><span class="Symbol">,</span><span class="VarId">subtns</span><span class="Symbol">,</span><span class="VarId">attrs</span><span class="Symbol">)</span> <span class="Symbol">=</span>
+            <span class="Keyword">let</span> <span class="VarId">subtnlist</span> <span class="Symbol">::</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">String</span><span class="Symbol">],[</span><span class="ConId">AttributeDef</span><span class="Symbol">])]</span>
+                <span class="VarId">subtnlist</span> <span class="Symbol">=</span> <span class="VarId">mapMaybe</span> <span class="VarId">lookupst</span> <span class="VarId">subtns</span>
+            <span class="Keyword">in</span> <span class="Symbol">(</span><span class="VarId">tn</span><span class="Symbol">,</span> <span class="VarId">map</span> <span class="VarId">idFromAttr</span> <span class="VarId">attrs</span><span class="Symbol">)</span> <span class="Symbol">:</span> <span class="VarId">concatMap</span> <span class="VarId">gef</span> <span class="Symbol">(</span><span class="VarId">reverse</span> <span class="VarId">subtnlist</span><span class="Symbol">)</span> <span class="Comment">-- second reverse here</span>
+          <span class="VarId">lookupst</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">String</span><span class="Symbol">],[</span><span class="ConId">AttributeDef</span><span class="Symbol">])</span>
+          <span class="VarId">lookupst</span> <span class="VarId">st</span> <span class="Symbol">=</span> <span class="VarId">find</span> <span class="Symbol">(\(</span><span class="VarId">tn</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">tn</span> <span class="Symbol">==</span> <span class="VarId">st</span><span class="Symbol">)</span> <span class="VarId">tinfo</span></pre></div></div></div><p
+    >the two reverses seem to be what's needed to get the field lists for each view in the order a) they appear in the file, and b) base classes first.</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="Function">makeNotNull</span> <span class="Symbol">::</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">Expression</span>
+<span class="Function">makeNotNull</span> <span class="VarId">x</span> <span class="Symbol">=</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="Symbol">$(</span><span class="VarId">x</span><span class="Symbol">)</span> <span class="VarId">is</span> <span class="VarId">not</span> <span class="VarId">null</span> <span class="Symbol">|]</span>
+
+<span class="Function">makeNull</span> <span class="Symbol">::</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">Expression</span>
+<span class="Function">makeNull</span> <span class="VarId">x</span> <span class="Symbol">=</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="Symbol">$(</span><span class="VarId">x</span><span class="Symbol">)</span> <span class="VarId">is</span> <span class="VarId">null</span> <span class="Symbol">|]</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">andTogether</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Expression</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Expression</span>
+<span class="Function">andTogether</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="VarId">t</span> <span class="Symbol">=</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="ConId">True</span> <span class="Symbol">|]</span>
+              <span class="Keyword">in</span> <span class="VarId">foldr</span> <span class="Symbol">(\</span><span class="VarId">a</span> <span class="VarId">b</span> <span class="Symbol">-&gt;</span>
+                         <span class="Keyword">if</span> <span class="VarId">b</span> <span class="Symbol">==</span> <span class="VarId">t</span>
+                         <span class="Keyword">then</span> <span class="VarId">a</span>
+                         <span class="Keyword">else</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="Symbol">$(</span><span class="VarId">a</span><span class="Symbol">)</span> <span class="VarId">and</span> <span class="Symbol">$(</span><span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">|])</span> <span class="VarId">t</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">ea</span> <span class="Symbol">::</span> <span class="ConId">Annotation</span>
+<span class="Function">ea</span> <span class="Symbol">=</span> <span class="VarId">emptyAnnotation</span></pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

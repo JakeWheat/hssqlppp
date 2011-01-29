@@ -1,0 +1,964 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >HsSqlPpp type checking examples</title
+    ><link href="main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >The type checking examples have the sql on the left and the result of type checking on the right. Different sections are using different tests:</p
+    ><ul
+    ><li
+      >parse and type check expression, return either type error or type</li
+      ><li
+      >parse and type check a list of statements, return either type error or the top level statement type annotation</li
+      ><li
+      >update the catalog, then check a list of statements</li
+      ><li
+      >parse and type check some ddl statements, return the list of catalog updates they generate</li
+      ></ul
+    ><p
+    >It's a bit rough at the moment, the clarity will be improved.</p
+    >The source this file is generated from is here: <a href="source/tests/Database/HsSqlPpp/Tests/TypeCheckTests.lhs.html"
+    >TypeCheckTests.lhs</a
+    ><table></table><div id="astchecktests"
+    ><h1
+      >astCheckTests</h1
+      ><table>
+</table></div
+    ><div id="basic-literal-types"
+    ><h1
+      >basic literal types</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">1</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">1.0</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;numeric&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">'test'</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="ConId">UnknownType</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">true</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">array[1,2,3]</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ArrayType</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">))</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">array['a','b']</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ArrayType</span> <span class="ConId">UnknownType</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">array['a'::text,'b']</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ArrayType</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">))</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">array['a','b'::text]</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ArrayType</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">))</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">array[1,'b']</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ArrayType</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">))</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">array[1,true]</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span>
+  <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;!arrayctor&quot;</span>
+     <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">]]</span></pre></div></td></tr></table></div
+    ><div id="some-expressions"
+    ><h1
+      >some expressions</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">1=1</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">1=true</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span>
+  <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;=&quot;</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">]]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">substring('aqbc' from 2 for 2)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">substring(3 from 2 for 2)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span>
+  <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;!substring&quot;</span>
+     <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">]]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">substring('aqbc' from 2 for true)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span>
+  <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;!substring&quot;</span>
+     <span class="Symbol">[</span><span class="ConId">UnknownType</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">]]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">3 between 2 and 4</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">3 between true and 4</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span>
+  <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;&gt;=&quot;</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">]]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">array[1,2,3][2]</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">array['a','b'][1]</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="ConId">UnknownType</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">array['a'::text,'b'][1]</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">not true</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">not 1</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;!not&quot;</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">]]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">@ 3</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">@ true</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;@&quot;</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">]]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">-3</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">-'a'</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;-&quot;</span> <span class="Symbol">[</span><span class="ConId">UnknownType</span><span class="Symbol">]]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">4-3</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">1 is null</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">1 is not null</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">1+1</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">1+1</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">31*511</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">5/2</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">2^10</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;float8&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">17%5</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">3 and 4</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span>
+  <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;!and&quot;</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">]]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">True and False</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">false or true</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">lower('TEST')</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">lower(1)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;lower&quot;</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">]]</span></pre></div></td></tr></table></div
+    ><div id="special-functions"
+    ><h1
+      >special functions</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">coalesce(null,1,2,null)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">coalesce('3',1,2,null)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">coalesce('3',1,true,null)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span>
+  <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;coalesce&quot;</span>
+     <span class="Symbol">[</span><span class="ConId">UnknownType</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">,</span> <span class="ConId">UnknownType</span><span class="Symbol">]]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">nullif('hello','hello')</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="ConId">UnknownType</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">nullif('hello'::text,'hello')</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">nullif(3,4)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">nullif(true,3)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span>
+  <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;nullif&quot;</span>
+     <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">]]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">greatest(3,5,6,4,3)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">least(3,5,6,4,3)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">least(5,true)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span>
+  <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;least&quot;</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">]]</span></pre></div></td></tr></table></div
+    ><div id="some-expressions-1"
+    ><h1
+      >some expressions</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">3 + '4'</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">3.0 + '4'</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;numeric&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">'3' + '4'</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;+&quot;</span> <span class="Symbol">[</span><span class="ConId">UnknownType</span><span class="Symbol">,</span> <span class="ConId">UnknownType</span><span class="Symbol">]]</span></pre></div></td></tr></table></div
+    ><div id="exists-expressions"
+    ><h1
+      >exists expressions</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">exists (select 1 from pg_type)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">exists (select testit from pg_type)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedIdentifier</span> <span class="String">&quot;testit&quot;</span><span class="Symbol">]</span></pre></div></td></tr></table></div
+    ><div id="row-comparison-expressions"
+    ><h1
+      >row comparison expressions</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">row(1)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">AnonymousRecordType</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">])</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">row(1,2)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">AnonymousRecordType</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">])</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">row('t1','t2')</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">AnonymousRecordType</span> <span class="Symbol">[</span><span class="ConId">UnknownType</span><span class="Symbol">,</span> <span class="ConId">UnknownType</span><span class="Symbol">])</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">row(true,1,'t3')</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">(</span><span class="ConId">AnonymousRecordType</span>
+     <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">,</span> <span class="ConId">UnknownType</span><span class="Symbol">])</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">(true,1,'t3',75.3)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">(</span><span class="ConId">AnonymousRecordType</span>
+     <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">,</span> <span class="ConId">UnknownType</span><span class="Symbol">,</span>
+      <span class="ConId">ScalarType</span> <span class="String">&quot;numeric&quot;</span><span class="Symbol">])</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">row(1) = row(2)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">row(1,2) = row(2,1)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">(1,2) = (2,1)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">(1,2,3) = (2,1)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span>
+  <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;=&quot;</span>
+     <span class="Symbol">[</span><span class="ConId">AnonymousRecordType</span>
+        <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">],</span>
+      <span class="ConId">AnonymousRecordType</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">]]]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">('1',2) = (2,'1')</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">(1,true) = (2,1)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span>
+  <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;=&quot;</span>
+     <span class="Symbol">[</span><span class="ConId">AnonymousRecordType</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">],</span>
+      <span class="ConId">AnonymousRecordType</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">]]]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">(1,2) &lt;&gt; (2,1)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">(1,2) &gt;= (2,1)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">(1,2) &lt;= (2,1)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">(1,2) &gt; (2,1)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">(1,2) &lt; (2,1)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span></pre></div></td></tr></table></div
+    ><div id="case-expressions"
+    ><h1
+      >case expressions</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">case
+ when true then 1
+end</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">case
+ when 1=2 then 'stuff'
+ when 2=3 then 'blah'
+ else 'test'
+end</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="ConId">UnknownType</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">case
+ when 1=2 then 'stuff'
+ when 2=3 then 'blah'
+ else 'test'::text
+end</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">case
+ when 1=2 then 'stuff'
+ when true=3 then 'blah'
+ else 'test'
+end</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span>
+  <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;=&quot;</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">]]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">case
+ when 1=2 then true
+ when 2=3 then false
+ else 1
+end</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span>
+  <span class="Symbol">[</span><span class="ConId">IncompatibleTypeSet</span>
+     <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">]]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">case
+ when 1=2 then false
+ when 2=3 then 1
+ else true
+end</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span>
+  <span class="Symbol">[</span><span class="ConId">IncompatibleTypeSet</span>
+     <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">]]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">case 1 when 2 then 3 else 4 end</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">case 1 when true then 3 else 4 end</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">IncompatibleTypeSet</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">]]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">case 1 when 2 then true else false end</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">case 1 when 2 then 3 else false end</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">IncompatibleTypeSet</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">]]</span></pre></div></td></tr></table></div
+    ><div id="polymorphic-functions"
+    ><h1
+      >polymorphic functions</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">array_append(ARRAY[1,2], 3)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ArrayType</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">))</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">array_append(ARRAY['a','b'], 'c')</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ArrayType</span> <span class="ConId">UnknownType</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">array_append(ARRAY['a','b'], 'c'::text)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ArrayType</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">))</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">array_append(ARRAY['a','b'::text], 'c')</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ArrayType</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">))</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">array_append(ARRAY['a'::int,'b'], 'c')</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ArrayType</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">))</span></pre></div></td></tr></table></div
+    ><div id="cast-expressions"
+    ><h1
+      >cast expressions</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">cast ('1' as integer)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">cast ('1' as baz)</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnknownTypeName</span> <span class="String">&quot;baz&quot;</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">array[]</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">Pseudo</span> <span class="ConId">AnyArray</span><span class="Symbol">)</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">array[] :: text[]</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ArrayType</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">))</span></pre></div></td></tr></table></div
+    ><div id="simple-selects"
+    ><h1
+      >simple selects</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select 1;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;?column?&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select 1 as a;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select 1,2;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span>
+     <span class="Symbol">([],</span>
+      <span class="Symbol">[(</span><span class="String">&quot;?column?&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span>
+       <span class="Symbol">(</span><span class="String">&quot;?column?&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select 1 as a, 2 as b;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;b&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select 1+2 as a, 'a' || 'b';</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span>
+     <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;?column?&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">values (1,2);</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span>
+     <span class="Symbol">([],</span>
+      <span class="Symbol">[(</span><span class="String">&quot;column1&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;column2&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">values (1,2),('3', '4');</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span>
+     <span class="Symbol">([],</span>
+      <span class="Symbol">[(</span><span class="String">&quot;column1&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;column2&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">values (1,2),('a', true);</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">IncompatibleTypeSet</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">]]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">values ('3', '4'),(1,2);</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span>
+     <span class="Symbol">([],</span>
+      <span class="Symbol">[(</span><span class="String">&quot;column1&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;column2&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">values ('a', true),(1,2);</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">IncompatibleTypeSet</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">]]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">values ('a'::text, '2'::int2),('1','2');</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span>
+     <span class="Symbol">([],</span>
+      <span class="Symbol">[(</span><span class="String">&quot;column1&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;column2&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int2&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">values (1,2,3),(1,2);</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">ValuesListsMustBeSameLength</span><span class="Symbol">]</span></pre></div></td></tr></table></div
+    ><div id="simple-combine-selects"
+    ><h1
+      >simple combine selects</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select 1,2  union select '3', '4';</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span>
+     <span class="Symbol">([],</span>
+      <span class="Symbol">[(</span><span class="String">&quot;?column?&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span>
+       <span class="Symbol">(</span><span class="String">&quot;?column?&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select 1,2 intersect select 'a', true;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">IncompatibleTypeSet</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">]]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select '3', '4' except select 1,2;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span>
+     <span class="Symbol">([],</span>
+      <span class="Symbol">[(</span><span class="String">&quot;?column?&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span>
+       <span class="Symbol">(</span><span class="String">&quot;?column?&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select 'a', true union select 1,2;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">IncompatibleTypeSet</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">]]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select 'a'::text, '2'::int2 intersect select '1','2';</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span>
+     <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;text&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;int2&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int2&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select 1,2,3 except select 1,2;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">ValuesListsMustBeSameLength</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select '3' as a, '4' as b except select 1,2;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;b&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">with a as (select 1 as a1),
+                b as (select * from a)
+                select * from a
+                union select * from b;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;a1&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr></table></div
+    ><div id="simple-selects-from"
+    ><h1
+      >simple selects from</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select a from (select 1 as a, 2 as b) x;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select b from (select 1 as a, 2 as b) x;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;b&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select c from (select 1 as a, 2 as b) x;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedIdentifier</span> <span class="String">&quot;c&quot;</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select typlen from pg_type;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;typlen&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int2&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select oid from pg_type;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;oid&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;oid&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select p.oid from pg_type p;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;oid&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;oid&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select typlen from nope;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedIdentifier</span> <span class="String">&quot;typlen&quot;</span><span class="Symbol">,</span> <span class="ConId">UnrecognisedRelation</span> <span class="String">&quot;nope&quot;</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select generate_series from generate_series(1,7);</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;generate_series&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select generate_series.generate_series from generate_series(1,7);</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;generate_series&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select g from generate_series(1,7) g;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;g&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select g.g from generate_series(1,7) g;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;g&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select generate_series.g from generate_series(1,7) g;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedCorrelationName</span> <span class="String">&quot;generate_series&quot;</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select g.generate_series from generate_series(1,7) g;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedIdentifier</span> <span class="String">&quot;g.generate_series&quot;</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select * from pg_attrdef;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span>
+     <span class="Symbol">([],</span>
+      <span class="Symbol">[(</span><span class="String">&quot;adrelid&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;oid&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;adnum&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int2&quot;</span><span class="Symbol">),</span>
+       <span class="Symbol">(</span><span class="String">&quot;adbin&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;adsrc&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select abs from abs(3);</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;abs&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr></table></div
+    ><div id="simple-selects-from-2"
+    ><h1
+      >simple selects from 2</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="Symbol">[</span><span class="ConId">CatCreateComposite</span> <span class="String">&quot;testType&quot;</span>
+   <span class="Symbol">[(</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;b&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span>
+    <span class="Symbol">(</span><span class="String">&quot;c&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)],</span>
+ <span class="ConId">CatCreateFunction</span> <span class="ConId">FunName</span> <span class="String">&quot;testfunc&quot;</span> <span class="Symbol">[]</span>
+   <span class="Symbol">(</span><span class="ConId">SetOfType</span> <span class="Symbol">(</span><span class="ConId">NamedCompositeType</span> <span class="String">&quot;testType&quot;</span><span class="Symbol">))</span>
+   <span class="ConId">False</span><span class="Symbol">]</span></pre></div><div class='SqlPostgresql'><pre class="sourceCode">select a,b from testfunc();</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;b&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="Symbol">[</span><span class="ConId">CatCreateFunction</span> <span class="ConId">FunName</span> <span class="String">&quot;testfunc&quot;</span> <span class="Symbol">[]</span> <span class="Symbol">(</span><span class="ConId">Pseudo</span> <span class="ConId">Void</span><span class="Symbol">)</span> <span class="ConId">False</span><span class="Symbol">]</span></pre></div><div class='SqlPostgresql'><pre class="sourceCode">select testfunc();</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[])]</span></pre></div></td></tr></table></div
+    ><div id="simple-scalar-identifier-qualification"
+    ><h1
+      >simple scalar identifier qualification</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select a.* from 
+(select 1 as a, 2 as b) a 
+cross join (select 3 as c, 4 as d) b;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;b&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select nothere.* from 
+(select 1 as a, 2 as b) a 
+cross join (select 3 as c, 4 as d) b;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedCorrelationName</span> <span class="String">&quot;nothere&quot;</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select pg_attrdef.adsrc from pg_attrdef;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;adsrc&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select a.adsrc from pg_attrdef a;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;adsrc&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select pg_attrdef.adsrc from pg_attrdef a;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedCorrelationName</span> <span class="String">&quot;pg_attrdef&quot;</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select a from (select 2 as b, 1 as a) a
+natural inner join (select 4.5 as d, 1 as a) b;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr></table></div
+    ><div id="aggregates"
+    ><h1
+      >aggregates</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select max(prorettype::int) from pg_proc;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;max&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr></table></div
+    ><div id="simple-wheres"
+    ><h1
+      >simple wheres</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select 1 from pg_type where true;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;?column?&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select 1 from pg_type where 1;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">ExpressionMustBeBool</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select typname from pg_type where typbyval;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;typname&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;name&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select typname from pg_type where typtype = 'b';</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;typname&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;name&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select typname from pg_type where what = 'b';</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedIdentifier</span> <span class="String">&quot;what&quot;</span><span class="Symbol">]</span></pre></div></td></tr></table></div
+    ><div id="unnest"
+    ><h1
+      >unnest</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select conname,unnest(conkey) as attnum from pg_constraint;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span>
+     <span class="Symbol">([],</span>
+      <span class="Symbol">[(</span><span class="String">&quot;conname&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;name&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;attnum&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int2&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr></table></div
+    ><div id="subqueries"
+    ><h1
+      >subqueries</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select relname as relvar_name
+    from pg_class
+    where ((relnamespace =
+           (select oid
+              from pg_namespace
+              where (nspname = 'public'))) and (relkind = 'r'));</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;relvar_name&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;name&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select relname from pg_class where relkind in ('r', 'v');</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;relname&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;name&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select * from generate_series(1,7) g
+where g not in (select * from generate_series(3,5));</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;g&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select 3 = any(array[1,2,3]);</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;?column?&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr></table></div
+    ><div id="insert"
+    ><h1
+      >insert</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">insert into nope (a,b) values (c,d);</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span>
+  <span class="Symbol">[</span><span class="ConId">UnrecognisedRelation</span> <span class="String">&quot;nope&quot;</span><span class="Symbol">,</span> <span class="ConId">UnrecognisedIdentifier</span> <span class="String">&quot;c&quot;</span><span class="Symbol">,</span>
+   <span class="ConId">UnrecognisedIdentifier</span> <span class="String">&quot;d&quot;</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">insert into pg_attrdef (adrelid,adnum,adbin,adsrc)
+values (1,2, 'a', 'b');</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">insert into pg_attrdef
+values (1,2, 'a', 'c');</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">insert into pg_attrdef (hello,adnum,adbin,adsrc)
+values (1,2, 'a', 'b');</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedIdentifier</span> <span class="String">&quot;hello&quot;</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">insert into pg_attrdef (adrelid,adnum,adbin,adsrc)
+values (1,true, 'a', 'b');</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">IncompatibleTypes</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int2&quot;</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">insert into pg_attrdef (adrelid,adnum,adbin,adsrc)
+values (1,true, 'a', 'b','c');</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">WrongNumberOfColumns</span><span class="Symbol">]</span></pre></div></td></tr></table></div
+    ><div id="update"
+    ><h1
+      >update</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">update nope set a = 1;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedRelation</span> <span class="String">&quot;nope&quot;</span><span class="Symbol">,</span> <span class="ConId">UnrecognisedIdentifier</span> <span class="String">&quot;a&quot;</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">update pg_attrdef set adsrc = '' where 1;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">ExpressionMustBeBool</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">update pg_attrdef set (adbin,adsrc) = ('a','b','c');</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span>
+  <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;=&quot;</span>
+     <span class="Symbol">[</span><span class="ConId">AnonymousRecordType</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">],</span>
+      <span class="ConId">AnonymousRecordType</span> <span class="Symbol">[</span><span class="ConId">UnknownType</span><span class="Symbol">,</span> <span class="ConId">UnknownType</span><span class="Symbol">,</span> <span class="ConId">UnknownType</span><span class="Symbol">]]]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">update pg_attrdef set (adrelid,adsrc) = (true,'b');</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span>
+  <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;=&quot;</span>
+     <span class="Symbol">[</span><span class="ConId">AnonymousRecordType</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;oid&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">],</span>
+      <span class="ConId">AnonymousRecordType</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">,</span> <span class="ConId">UnknownType</span><span class="Symbol">]]]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">update pg_attrdef set (shmadrelid,adsrc) = ('a','b');</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedIdentifier</span> <span class="String">&quot;shmadrelid&quot;</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">update pg_attrdef set adsrc='';</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">update pg_attrdef set adsrc='' where 1=2;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">update pg_attrdef set adsrc='' where adsrc='';</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">update pg_attrdef set adnum = adnum + 1;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[])]</span></pre></div></td></tr></table></div
+    ><div id="delete"
+    ><h1
+      >delete</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">delete from nope;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedRelation</span> <span class="String">&quot;nope&quot;</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">delete from pg_attrdef where 1=2;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">delete from pg_attrdef where 1;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">ExpressionMustBeBool</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">delete from pg_attrdef where adsrc='';</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[])]</span></pre></div></td></tr></table></div
+    ><div id="creates"
+    ><h1
+      >creates</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create table t1 (
+   a int,
+   b text
+);</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="Symbol">[</span><span class="ConId">CatCreateTable</span> <span class="String">&quot;t1&quot;</span>
+   <span class="Symbol">[(</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;b&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)]</span>
+   <span class="Symbol">[(</span><span class="String">&quot;tableoid&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;oid&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;cmax&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;cid&quot;</span><span class="Symbol">),</span>
+    <span class="Symbol">(</span><span class="String">&quot;xmax&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;xid&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;cmin&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;cid&quot;</span><span class="Symbol">),</span>
+    <span class="Symbol">(</span><span class="String">&quot;xmin&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;xid&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;ctid&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;tid&quot;</span><span class="Symbol">)]]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create type t1 as (
+   a int,
+   b text
+);</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="Symbol">[</span><span class="ConId">CatCreateComposite</span> <span class="String">&quot;t1&quot;</span>
+   <span class="Symbol">[(</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;b&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)]]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create domain t1 as text;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="Symbol">[</span><span class="ConId">CatCreateDomain</span> <span class="Symbol">(</span><span class="ConId">DomainType</span> <span class="String">&quot;t1&quot;</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create domain t1 as text check (value in ('a', 'b'));
+select 'text'::t1;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="Symbol">[</span><span class="ConId">CatCreateDomain</span> <span class="Symbol">(</span><span class="ConId">DomainType</span> <span class="String">&quot;t1&quot;</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create view v1 as select * from pg_attrdef;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="Symbol">[</span><span class="ConId">CatCreateView</span> <span class="String">&quot;v1&quot;</span>
+   <span class="Symbol">[(</span><span class="String">&quot;adrelid&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;oid&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;adnum&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int2&quot;</span><span class="Symbol">),</span>
+    <span class="Symbol">(</span><span class="String">&quot;adbin&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;adsrc&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)]]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function t1(text) returns text as $$
+null;
+$$ language sql stable;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="Symbol">[</span><span class="ConId">CatCreateFunction</span> <span class="ConId">FunName</span> <span class="String">&quot;t1&quot;</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">]</span>
+   <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)</span>
+   <span class="ConId">False</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create language plpgsql;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="Symbol">[</span><span class="ConId">CatCreateFunction</span> <span class="ConId">FunName</span> <span class="String">&quot;plpgsql_call_handler&quot;</span> <span class="Symbol">[]</span>
+   <span class="Symbol">(</span><span class="ConId">Pseudo</span> <span class="ConId">LanguageHandler</span><span class="Symbol">)</span>
+   <span class="ConId">False</span><span class="Symbol">,</span>
+ <span class="ConId">CatCreateFunction</span> <span class="ConId">FunName</span> <span class="String">&quot;plpgsql_validator&quot;</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;oid&quot;</span><span class="Symbol">]</span>
+   <span class="Symbol">(</span><span class="ConId">Pseudo</span> <span class="ConId">Void</span><span class="Symbol">)</span>
+   <span class="ConId">False</span><span class="Symbol">]</span></pre></div></td></tr></table></div
+    ><div id="create-function-identifier-resolution"
+    ><h1
+      >create function identifier resolution</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function t1(stuff text) returns text as $$
+begin
+  return stuff || ' and stuff';
+end;
+$$ language plpgsql stable;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function t1(stuff text) returns text as $$
+begin
+  return badstuff || ' and stuff';
+end;
+$$ language plpgsql stable;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedIdentifier</span> <span class="String">&quot;badstuff&quot;</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function t1() returns text as $$
+declare
+  stuff text;
+begin
+  return stuff || ' and stuff';
+end;
+$$ language plpgsql stable;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div></td></tr></table></div
+    ><div id="plpgsqlbits"
+    ><h1
+      >plpgsqlbits</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function t1(stuff text) returns text as $$
+begin
+  return stuff || ' and stuff';
+end;
+$$ language plpgsql stable;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function t1(stuff text) returns text as $$
+begin
+  return badstuff || ' and stuff';
+end;
+$$ language plpgsql stable;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedIdentifier</span> <span class="String">&quot;badstuff&quot;</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function t1() returns text as $$
+declare
+  stuff text;
+begin
+  return stuff || ' and stuff';
+end;
+$$ language plpgsql stable;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div></td></tr></table></div
+    ><div id="plpgsqlbits-1"
+    ><h1
+      >plpgsqlbits</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function t1() returns void as $$
+declare
+  a bool;
+begin
+  a := 3;
+end;
+$$ language plpgsql stable;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">IncompatibleTypes</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function t1() returns void as $$
+declare
+  a boolean;
+begin
+  a := true;
+end;
+$$ language plpgsql stable;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div></td></tr></table></div
+    ><div id="for-loops"
+    ><h1
+      >for loops</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function t1() returns void as $$
+declare
+  r record;
+  t int;
+begin
+  for r in select * from pg_attrdef loop
+    t := r.adnum;
+  end loop;
+end;
+$$ language plpgsql stable;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function test() returns void as $$
+declare
+  i int;
+  i1 int;
+begin
+  for i in 0 .. 10 loop
+    i1 := i;
+  end loop;
+end;
+$$ language plpgsql volatile;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function test() returns void as $$
+declare
+  i1 int;
+begin
+  for i in 0 .. 10 loop
+    i1 := i;
+  end loop;
+end;
+$$ language plpgsql volatile;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function test() returns void as $$
+declare
+  i bool;
+begin
+  for i in 0 .. 10 loop
+    null;
+  end loop;
+end;
+$$ language plpgsql volatile;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">IncompatibleTypes</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function test() returns void as $$
+declare
+  t bool;
+begin
+  for i in 0 .. 10 loop
+    t := i;
+  end loop;
+end;
+       $$ language plpgsql volatile;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">IncompatibleTypes</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)]</span></pre></div></td></tr></table></div
+    ><div id="check-catalog-chaining"
+    ><h1
+      >check catalog chaining</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function t1() returns void as $$
+begin
+  null;
+end;
+$$ language plpgsql stable;
+select t1();</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">,</span> <span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select t1();
+create function t1() returns void as $$
+begin
+  null;
+end;
+$$ language plpgsql stable;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;t1&quot;</span> <span class="Symbol">[]]</span></pre></div></td></tr></table></div
+    ><div id="select-into"
+    ><h1
+      >select into</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">insert into pg_attrdef (adrelid,adnum,adbin,adsrc)
+values (1,2, 'a', 'b') returning adnum,adbin;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span>
+     <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;adnum&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int2&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;adbin&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">update pg_attrdef set adnum = adnum + 1 returning adnum;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;adnum&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int2&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">delete from pg_attrdef returning adnum,adbin;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span>
+     <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;adnum&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int2&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;adbin&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function t1() returns void as $$
+declare
+  a int;
+  b text;
+begin
+  select adnum,adbin into a,b from pg_attrdef;
+end;
+$$ language plpgsql stable;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function t1() returns void as $$
+declare
+  a int;
+  b text;
+begin
+  select adnum,adbin into b,a from pg_attrdef;
+end;
+$$ language plpgsql stable;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span>
+  <span class="Symbol">[</span><span class="ConId">IncompatibleTypes</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int2&quot;</span><span class="Symbol">),</span>
+   <span class="ConId">IncompatibleTypes</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function t1() returns void as $$
+declare
+  a int;
+  b text;
+begin
+  select adnum,adbin into a,c from pg_attrdef;
+end;
+$$ language plpgsql stable;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedIdentifier</span> <span class="String">&quot;c&quot;</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function t1() returns void as $$
+declare
+  a int;
+  b text;
+begin
+  select adnum,adbin into a from pg_attrdef;
+end;
+$$ language plpgsql stable;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">WrongNumberOfColumns</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function t1() returns void as $$
+declare
+  r record;
+  a int;
+  b text;
+begin
+  select adnum,adbin into r from pg_attrdef;
+  a := r.adnum;
+  b := r.adbin;
+end;
+$$ language plpgsql stable;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function t1() returns void as $$
+declare
+  r record;
+  a int;
+  b text;
+begin
+  select adnum,adbin into r from pg_attrdef;
+  a := r.adnum;
+  b := r.adsrc;
+end;
+$$ language plpgsql stable;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedIdentifier</span> <span class="String">&quot;adsrc&quot;</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function t1() returns void as $$
+declare
+  r pg_attrdef;
+begin
+  select * into r from pg_attrdef;
+end;
+$$ language plpgsql stable;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function t1() returns void as $$
+declare
+  r pg_class;
+begin
+  select adnum,adbin into r from pg_attrdef;
+end;
+$$ language plpgsql stable;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span>
+  <span class="Symbol">[</span><span class="ConId">IncompatibleTypes</span> <span class="Symbol">(</span><span class="ConId">NamedCompositeType</span> <span class="String">&quot;pg_class&quot;</span><span class="Symbol">)</span>
+     <span class="Symbol">(</span><span class="ConId">AnonymousRecordType</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;int2&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">])]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function t1() returns void as $$
+declare
+  r record;
+begin
+  select adnum,adbin into r from pg_attrdef;
+  select relname into r from pg_class;
+end;
+$$ language plpgsql stable;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div></td></tr></table></div
+    ><div id="composite-elements"
+    ><h1
+      >composite elements</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function t1() returns void as $$
+declare
+  r pg_attrdef;
+  a int;
+  b text;
+begin
+  b = r.adsrc;
+  r.adnum := a;
+  b = r.adsrc;
+end;
+$$ language plpgsql stable;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div></td></tr></table></div
+    ><div id="positional-args"
+    ><h1
+      >positional args</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function distance(int, int, int, int) returns float(24) as $$
+  select (point($1, $2) &lt;-&gt; point($3, $4))::float(24) as result;
+$$ language sql immutable;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function distance(int, int, int, int) returns float(24) as $$
+  select (point($1, $2) &lt;-&gt; point($3, $5))::float(24) as result;
+$$ language sql immutable;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedIdentifier</span> <span class="String">&quot;$5&quot;</span><span class="Symbol">]</span></pre></div></td></tr></table></div
+    ><div id="window-fns"
+    ><h1
+      >window fns</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">select *, row_number() over () from pg_attrdef;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span>
+     <span class="Symbol">([],</span>
+      <span class="Symbol">[(</span><span class="String">&quot;adrelid&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;oid&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;adnum&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int2&quot;</span><span class="Symbol">),</span>
+       <span class="Symbol">(</span><span class="String">&quot;adbin&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;adsrc&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">),</span>
+       <span class="Symbol">(</span><span class="String">&quot;row_number&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int8&quot;</span><span class="Symbol">)])]</span></pre></div></td></tr></table></div
+    ><div id="drop-stuff"
+    ><h1
+      >drop stuff</h1
+      ><table>
+<tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function test(a int) returns void as $$
+begin
+  null;
+end
+$$ language plpgsql;</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="Symbol">[</span><span class="ConId">CatCreateFunction</span> <span class="ConId">FunName</span> <span class="String">&quot;test&quot;</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">]</span> <span class="Symbol">(</span><span class="ConId">Pseudo</span> <span class="ConId">Void</span><span class="Symbol">)</span>
+   <span class="ConId">False</span><span class="Symbol">]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">create function test(a int) returns void as $$
+begin
+  null;
+end
+$$ language plpgsql;
+drop function test(int);</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="Symbol">[]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">drop function test(int);</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="Symbol">[]</span></pre></div></td></tr><tr><td style='width:50%'>
+<div class='SqlPostgresql'><pre class="sourceCode">drop function if exists test(int);</pre></div></td><td style='width:50%'>
+<div class='haskell'><pre class="sourceCode"><span class="Symbol">[]</span></pre></div></td></tr></table></div
+    ><div id="triggers"
+    ><h1
+      >triggers</h1
+      ><table>
+</table>
+</div
+    ><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

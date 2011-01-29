@@ -1,0 +1,187 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >AnnotateSource2</title
+    ><link href="../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >Idea is to add a load of information to SQL source code for some sort of presentation.</p
+    ><ol style="list-style-type: decimal;"
+    ><li
+      ><p
+	>fix extensions to copy the source positions on each transformed statement. might need to add more than one source position, e.g. for modules, we have the module declaration, and the statement which both produce an additional insert statement, this insert statement's primary source position is that of the ddl statement it is for, but has a secondary source position which is the module declaration.</p
+	></li
+      ><li
+      ><p
+	>write method to split source files by statement:</p
+	></li
+      ></ol
+    ><p
+    >[FilePath] -&gt; [(String,Statement)]</p
+    ><p
+    >The text is split at the source position of each statement, so any comments before the first token in the statement get attached to the previous statement. TODO: add source position of the ';' at the end of each statement to the parsed ast in the parser.</p
+    ><ol start="3" style="list-style-type: decimal;"
+    ><li
+      >add annotations (not sql ast annotations):</li
+      ></ol
+    ><p
+    >(a -&gt; b) -&gt; [a] -&gt; [(a,b)] annotate -&gt; list -&gt; annotated list</p
+    ><p
+    >for each statement we want:</p
+    ><p
+    >the transformed ast iff it is different from the original -&gt; need to run the whole tree through the extensions needed, and then link back using the source position annotation on the statements as a key/ fk. - put all the transformed tree statements in first, and then can filter using ==</p
+    ><p
+    >annotate :: [Statement] -&gt; [Statement] -&gt; [(Statement,[Statement])] annotate sourceAst transformedAst = ...</p
+    ><p
+    >all the annotations from type checking the transformed tree, so pass the typechecked transformed tree into the previous function</p
+    ><ul
+    ><li
+      >provide this result as one public function:</li
+      ></ul
+    ><p
+    >[FilePath] -&gt; [(String,(Statement,[Statement]))] (originaltext,(parse tree of original text, [transformed and annotated trees]))</p
+    ><p
+    >then have a second function to render this:</p
+    ><p
+    >source statement in original formatting up to the ';' ast of source statement if statement isn't transformed (i.e. the annotation-stripped asts are identical)</p
+    ><p
+    >dostatement = ast of statement annotations, ast of statement without annotations, full ast with all annotations, separated out highlighted list of type error annotations</p
+    ><p
+    >if the statement is transformed: then for each statement in the transformed list, show the sql source of that statement, then run the dostatement above.</p
+    ><p
+    >finally, the trailing comments</p
+    ><p
+    >so we do (string,Statement,[Statement]) -&gt; (string,string,string)</p
+    ><p
+    >then concat the lot together, and can then render with pandoc</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">{-# LANGUAGE ScopedTypeVariables #-}</span>
+<span class="Keyword">module</span> <span class="ConId">AnnotateSource2</span>
+    <span class="Symbol">(</span><span class="VarId">annotateSource2</span><span class="Symbol">)</span> <span class="Keyword">where</span>
+
+<span class="Keyword">import</span> <span class="ConId">Control.Monad.Error</span>
+<span class="Keyword">import</span> <span class="ConId">Data.List</span>
+<span class="Keyword">import</span> <span class="ConId">Data.Maybe</span>
+<span class="Keyword">import</span> <span class="ConId">Control.Applicative</span>
+<span class="Keyword">import</span> <span class="ConId">Control.Arrow</span>
+<span class="Comment">--import Debug.Trace</span>
+
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Utils.Utils</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Parser</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Ast</span> <span class="Keyword">hiding</span> <span class="Symbol">(</span><span class="ConId">Sql</span><span class="Symbol">)</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Annotation</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.PrettyPrinter</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.TypeChecker</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Utils.DBUtils</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">annotateSource2</span> <span class="Symbol">::</span> <span class="ConId">Maybe</span> <span class="Symbol">([</span><span class="ConId">Statement</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">])</span>
+                <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="Symbol">(</span><span class="ConId">Annotation</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span><span class="Symbol">)</span>
+                <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+                <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">FilePath</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">String</span><span class="Symbol">)]</span>
+
+<span class="Function">annotateSource2</span> <span class="VarId">astTransform</span> <span class="VarId">annotPrinter</span> <span class="VarId">dbName</span> <span class="VarId">fs</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+  <span class="VarId">origAst</span> <span class="Symbol">&lt;-</span> <span class="VarId">readSourceFiles</span> <span class="VarId">fs</span>
+  <span class="VarId">cat</span> <span class="Symbol">&lt;-</span> <span class="VarId">either</span> <span class="Symbol">(\</span><span class="VarId">l</span> <span class="Symbol">-&gt;</span> <span class="VarId">error</span> <span class="Symbol">$</span> <span class="VarId">show</span> <span class="VarId">l</span><span class="Symbol">)</span> <span class="VarId">id</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">readCatalog</span> <span class="VarId">dbName</span>
+  <span class="Keyword">let</span> <span class="VarId">transformedAst</span> <span class="Symbol">=</span> <span class="VarId">maybe</span> <span class="VarId">origAst</span> <span class="Symbol">(\</span><span class="VarId">t</span> <span class="Symbol">-&gt;</span> <span class="VarId">t</span> <span class="VarId">origAst</span><span class="Symbol">)</span> <span class="VarId">astTransform</span>
+      <span class="Symbol">(</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">transformedAast</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">typeCheck</span> <span class="VarId">cat</span> <span class="VarId">transformedAst</span>
+  <span class="Keyword">let</span> <span class="VarId">sps</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Maybe</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Int</span><span class="Symbol">,</span><span class="ConId">Int</span><span class="Symbol">)]</span>
+      <span class="VarId">sps</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="Symbol">(</span><span class="VarId">asrc</span> <span class="Symbol">.</span> <span class="VarId">getAnnotation</span><span class="Symbol">)</span> <span class="VarId">transformedAst</span>
+  <span class="VarId">when</span> <span class="Symbol">(</span><span class="VarId">any</span> <span class="Symbol">(==</span><span class="ConId">Nothing</span><span class="Symbol">)</span> <span class="VarId">sps</span><span class="Symbol">)</span>
+       <span class="Symbol">$</span> <span class="VarId">error</span> <span class="String">&quot;statements without source positions&quot;</span>
+  <span class="Keyword">let</span> <span class="VarId">afns</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="Symbol">(\(</span><span class="VarId">f</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">f</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="VarId">catMaybes</span> <span class="VarId">sps</span>
+  <span class="VarId">when</span> <span class="Symbol">(</span><span class="VarId">any</span> <span class="Symbol">(`</span><span class="VarId">notElem</span><span class="Symbol">`</span> <span class="VarId">fs</span><span class="Symbol">)</span> <span class="VarId">afns</span><span class="Symbol">)</span>
+       <span class="Symbol">$</span> <span class="VarId">error</span> <span class="String">&quot;statements with unrecognised source file&quot;</span></pre></div></div></div><p
+    >TODO: check order of statements</p
+    ><p
+    >partition transformed ast by source position filename then for each file we have the filename and the list of transformed statements we want to print each of these transformed statements in order to a new file interspersed we want chunks of the original source</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">  <span class="Keyword">let</span> <span class="VarId">p</span> <span class="Symbol">=</span> <span class="VarId">npartition</span> <span class="Symbol">(</span><span class="VarId">fromMaybe</span> <span class="Symbol">(</span><span class="VarId">head</span> <span class="VarId">fs</span><span class="Symbol">)</span> <span class="Symbol">.</span> <span class="VarId">fmap</span> <span class="Symbol">(\(</span><span class="VarId">a</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span><span class="Symbol">)</span> <span class="Symbol">.</span> <span class="VarId">asrc</span> <span class="Symbol">.</span> <span class="VarId">getAnnotation</span><span class="Symbol">)</span> <span class="VarId">transformedAast</span>
+  <span class="Symbol">(</span><span class="VarId">f1</span> <span class="Symbol">::</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,[(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">Statement</span><span class="Symbol">])])])</span> <span class="Symbol">&lt;-</span> <span class="VarId">forM</span> <span class="VarId">p</span> <span class="Symbol">(\(</span><span class="VarId">f</span><span class="Symbol">,</span> <span class="VarId">sts</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="Keyword">do</span>
+             <span class="VarId">src</span> <span class="Symbol">&lt;-</span> <span class="VarId">readFile</span> <span class="VarId">f</span>
+             <span class="VarId">return</span> <span class="Symbol">(</span><span class="VarId">f</span><span class="Symbol">,</span> <span class="VarId">intersperseSource</span> <span class="VarId">f</span> <span class="VarId">src</span> <span class="VarId">sts</span><span class="Symbol">))</span>
+  <span class="Keyword">let</span> <span class="VarId">annPr</span> <span class="Symbol">=</span> <span class="VarId">fromMaybe</span> <span class="VarId">defaultAnnotationPrinter</span> <span class="VarId">annotPrinter</span>
+  <span class="Keyword">let</span> <span class="Symbol">(</span><span class="VarId">f2</span> <span class="Symbol">::</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">String</span><span class="Symbol">)])</span> <span class="Symbol">=</span>
+          <span class="VarId">flip</span> <span class="VarId">map</span> <span class="VarId">f1</span> <span class="Symbol">$</span> <span class="Symbol">\(</span><span class="VarId">f</span><span class="Symbol">,</span><span class="VarId">e</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="VarId">f</span><span class="Symbol">,</span> <span class="VarId">unlines</span> <span class="Symbol">$</span> <span class="VarId">map</span> <span class="Symbol">(</span><span class="VarId">showEntry</span> <span class="VarId">annPr</span><span class="Symbol">)</span> <span class="VarId">e</span><span class="Symbol">)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">  <span class="VarId">return</span> <span class="VarId">f2</span>
+  <span class="Keyword">where</span>
+    <span class="VarId">showEntry</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Annotation</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">])</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+    <span class="VarId">showEntry</span> <span class="VarId">a</span> <span class="Symbol">(</span><span class="VarId">s</span><span class="Symbol">,</span> <span class="VarId">sts</span><span class="Symbol">)</span> <span class="Symbol">=</span>
+        <span class="Keyword">let</span> <span class="VarId">sto</span> <span class="Symbol">=</span> <span class="VarId">either</span> <span class="Symbol">(</span><span class="VarId">const</span> <span class="Symbol">[])</span> <span class="VarId">id</span> <span class="Symbol">$</span> <span class="VarId">parseSql</span> <span class="String">&quot;&quot;</span> <span class="VarId">s</span> <span class="Comment">-- bit crap, we could reuse the already parsed statements</span>
+            <span class="VarId">s1</span> <span class="Symbol">=</span> <span class="VarId">resetAnnotations</span> <span class="VarId">sto</span>
+            <span class="VarId">s2</span> <span class="Symbol">=</span> <span class="VarId">resetAnnotations</span> <span class="VarId">sts</span>
+        <span class="Keyword">in</span> <span class="Keyword">case</span> <span class="Symbol">()</span> <span class="Keyword">of</span>
+             <span class="VarId">_</span> <span class="Symbol">|</span> <span class="VarId">trim</span> <span class="VarId">s</span> <span class="Symbol">==</span> <span class="String">&quot;&quot;</span> <span class="Symbol">&amp;&amp;</span> <span class="VarId">sts</span> <span class="Symbol">==</span> <span class="Symbol">[]</span> <span class="Symbol">-&gt;</span> <span class="String">&quot;&quot;</span>
+               <span class="Symbol">|</span> <span class="Comment">--hack</span>
+                 <span class="VarId">trim</span> <span class="VarId">s</span> <span class="Symbol">==</span> <span class="String">&quot;/*&quot;</span> <span class="Symbol">&amp;&amp;</span> <span class="VarId">sts</span> <span class="Symbol">==</span> <span class="Symbol">[]</span> <span class="Symbol">-&gt;</span> <span class="String">&quot;&quot;</span>
+               <span class="Symbol">|</span> <span class="VarId">s1</span> <span class="Symbol">==</span> <span class="VarId">s2</span> <span class="Symbol">-&gt;</span> <span class="VarId">concatMap</span> <span class="Symbol">(</span><span class="VarId">annStr</span> <span class="VarId">a</span><span class="Symbol">)</span> <span class="VarId">s2</span>
+                             <span class="Symbol">++</span> <span class="VarId">printStatement</span> <span class="String">&quot;&quot;</span> <span class="String">&quot;&quot;</span> <span class="String">&quot;&quot;</span> <span class="VarId">s</span>
+               <span class="Symbol">|</span> <span class="VarId">isPrefixOf</span> <span class="VarId">s1</span> <span class="VarId">s2</span> <span class="Symbol">-&gt;</span> <span class="VarId">printStatement</span> <span class="String">&quot;&quot;</span> <span class="String">&quot;&quot;</span> <span class="Symbol">(</span><span class="VarId">concatMap</span> <span class="Symbol">(</span><span class="VarId">annStr</span> <span class="VarId">a</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="VarId">take</span> <span class="Symbol">(</span><span class="VarId">length</span> <span class="VarId">s1</span><span class="Symbol">)</span> <span class="VarId">sts</span><span class="Symbol">))</span> <span class="VarId">s</span>
+                                     <span class="Symbol">++</span> <span class="VarId">printStatement</span> <span class="String">&quot;GeneratedSql&quot;</span> <span class="String">&quot;generated sql&quot;</span> <span class="String">&quot;&quot;</span>
+                                        <span class="Symbol">(</span><span class="VarId">prSql</span> <span class="VarId">a</span> <span class="Symbol">$</span> <span class="VarId">drop</span> <span class="Symbol">(</span><span class="VarId">length</span> <span class="VarId">s1</span><span class="Symbol">)</span> <span class="VarId">sts</span><span class="Symbol">)</span>
+               <span class="Symbol">|</span> <span class="VarId">otherwise</span> <span class="Symbol">-&gt;</span> <span class="VarId">printStatement</span> <span class="String">&quot;UnusedSql&quot;</span> <span class="String">&quot;replaced sql&quot;</span> <span class="String">&quot;&quot;</span> <span class="VarId">s</span>
+                              <span class="Symbol">++</span> <span class="VarId">printStatement</span> <span class="String">&quot;GeneratedSql&quot;</span> <span class="String">&quot;generated sql&quot;</span> <span class="String">&quot;&quot;</span> <span class="Symbol">(</span><span class="VarId">prSql</span> <span class="VarId">a</span> <span class="VarId">sts</span><span class="Symbol">)</span>
+    <span class="VarId">prSql</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Annotation</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+    <span class="VarId">prSql</span> <span class="VarId">a</span> <span class="Symbol">=</span> <span class="VarId">concatMap</span> <span class="Symbol">(\</span><span class="VarId">st</span> <span class="Symbol">-&gt;</span> <span class="VarId">annStr</span> <span class="VarId">a</span> <span class="VarId">st</span> <span class="Symbol">++</span> <span class="VarId">printSql</span> <span class="Symbol">[</span><span class="VarId">st</span><span class="Symbol">])</span>
+    <span class="VarId">annStr</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Annotation</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="ConId">Statement</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+    <span class="VarId">annStr</span> <span class="VarId">a</span> <span class="VarId">st</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">a</span> <span class="Symbol">(</span><span class="VarId">getAnnotation</span> <span class="VarId">st</span><span class="Symbol">)</span> <span class="Keyword">of</span>
+                     <span class="VarId">y</span> <span class="Symbol">|</span> <span class="VarId">trim</span> <span class="VarId">y</span> <span class="Symbol">==</span> <span class="String">&quot;&quot;</span> <span class="Symbol">-&gt;</span> <span class="String">&quot;&quot;</span>
+                     <span class="VarId">x</span> <span class="Symbol">-&gt;</span> <span class="String">&quot;/*&quot;</span> <span class="Symbol">++</span> <span class="VarId">x</span> <span class="Symbol">++</span> <span class="String">&quot;*/\n&quot;</span>
+    <span class="VarId">printStatement</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+    <span class="VarId">printStatement</span> <span class="VarId">cssClass</span> <span class="VarId">comment</span> <span class="VarId">pre</span> <span class="VarId">st</span> <span class="Symbol">=</span>
+       <span class="Keyword">let</span> <span class="VarId">cc</span> <span class="Symbol">=</span> <span class="Keyword">if</span> <span class="VarId">cssClass</span> <span class="Symbol">==</span> <span class="String">&quot;&quot;</span>
+                <span class="Keyword">then</span> <span class="String">&quot;.SqlPostgresql&quot;</span>
+                <span class="Keyword">else</span> <span class="String">&quot;.SqlPostgresql .&quot;</span> <span class="Symbol">++</span> <span class="VarId">cssClass</span>
+       <span class="Keyword">in</span> <span class="String">&quot;\n\n~~~~{&quot;</span> <span class="Symbol">++</span> <span class="VarId">cc</span> <span class="Symbol">++</span> <span class="String">&quot;}\n&quot;</span>
+              <span class="Symbol">++</span> <span class="Symbol">(</span><span class="Keyword">if</span> <span class="VarId">comment</span> <span class="Symbol">/=</span> <span class="String">&quot;&quot;</span>
+                  <span class="Keyword">then</span> <span class="String">&quot;-- &quot;</span> <span class="Symbol">++</span> <span class="VarId">comment</span> <span class="Symbol">++</span> <span class="String">&quot; ------------------------\n&quot;</span>
+                  <span class="Keyword">else</span> <span class="String">&quot;&quot;</span><span class="Symbol">)</span>
+              <span class="Symbol">++</span>
+              <span class="VarId">pre</span> <span class="Symbol">++</span> <span class="VarId">trim</span> <span class="VarId">st</span>
+              <span class="Symbol">++</span> <span class="String">&quot;\n~~~~\n\n&quot;</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">intersperseSource</span> <span class="Symbol">::</span> <span class="ConId">FilePath</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">Statement</span><span class="Symbol">])]</span>
+<span class="Function">intersperseSource</span> <span class="VarId">fileName</span> <span class="VarId">src</span> <span class="VarId">statements</span> <span class="Symbol">=</span>
+  <span class="Keyword">let</span> <span class="VarId">firstLine</span> <span class="Symbol">=</span> <span class="VarId">fromJust</span> <span class="Symbol">$</span> <span class="VarId">msum</span> <span class="Symbol">$</span> <span class="VarId">map</span> <span class="Symbol">(\</span><span class="VarId">s</span> <span class="Symbol">-&gt;</span> <span class="Keyword">case</span> <span class="Symbol">(</span><span class="VarId">asrc</span> <span class="Symbol">.</span> <span class="VarId">getAnnotation</span><span class="Symbol">)</span> <span class="VarId">s</span> <span class="Keyword">of</span>
+                                                 <span class="ConId">Just</span> <span class="Symbol">(</span><span class="VarId">f</span><span class="Symbol">,</span><span class="VarId">l</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">|</span> <span class="VarId">f</span> <span class="Symbol">==</span> <span class="VarId">fileName</span> <span class="Symbol">-&gt;</span> <span class="Comment">{-trace (&quot;sp: &quot; ++ (ppExpr s)) $-}</span> <span class="ConId">Just</span> <span class="VarId">l</span>
+                                                 <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Nothing</span><span class="Symbol">)</span> <span class="VarId">statements</span>
+  <span class="Keyword">in</span> <span class="Comment">{-trace (&quot;firstLine: &quot; ++ show firstLine) $ -}</span>
+     <span class="Symbol">(</span><span class="VarId">unlines</span> <span class="Symbol">$</span> <span class="VarId">take</span> <span class="VarId">firstLine</span> <span class="VarId">fl</span><span class="Symbol">,</span> <span class="Symbol">[])</span> <span class="Symbol">:</span>
+     <span class="VarId">reverse</span> <span class="Symbol">(</span><span class="VarId">map</span> <span class="Symbol">(</span><span class="VarId">second</span> <span class="VarId">reverse</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="VarId">addSource</span> <span class="Symbol">[]</span> <span class="VarId">firstLine</span> <span class="Symbol">[]</span> <span class="VarId">statements</span><span class="Symbol">)</span>
+  <span class="Keyword">where</span>
+    <span class="VarId">addSource</span> <span class="Symbol">::</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">Statement</span><span class="Symbol">])]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Int</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">Statement</span><span class="Symbol">])]</span>
+    <span class="VarId">addSource</span> <span class="VarId">acc</span> <span class="VarId">lno</span> <span class="VarId">sts1</span> <span class="Symbol">(</span><span class="VarId">st</span><span class="Symbol">:</span><span class="VarId">sts</span><span class="Symbol">)</span> <span class="Symbol">=</span>
+      <span class="Keyword">case</span> <span class="Symbol">(</span><span class="VarId">asrc</span> <span class="Symbol">.</span> <span class="VarId">getAnnotation</span><span class="Symbol">)</span> <span class="VarId">st</span> <span class="Keyword">of</span>
+           <span class="ConId">Nothing</span> <span class="Symbol">-&gt;</span> <span class="VarId">addSource</span> <span class="VarId">acc</span> <span class="VarId">lno</span> <span class="Symbol">(</span><span class="VarId">st</span><span class="Symbol">:</span><span class="VarId">sts1</span><span class="Symbol">)</span> <span class="VarId">sts</span>
+           <span class="ConId">Just</span> <span class="Symbol">(</span><span class="VarId">f</span><span class="Symbol">,</span><span class="VarId">l</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">|</span> <span class="VarId">f</span> <span class="Symbol">/=</span> <span class="VarId">fileName</span> <span class="Symbol">||</span> <span class="VarId">l</span> <span class="Symbol">==</span> <span class="VarId">lno</span> <span class="Symbol">-&gt;</span> <span class="VarId">addSource</span> <span class="VarId">acc</span> <span class="VarId">lno</span> <span class="Symbol">(</span><span class="VarId">st</span><span class="Symbol">:</span><span class="VarId">sts1</span><span class="Symbol">)</span> <span class="VarId">sts</span>
+                        <span class="Symbol">|</span> <span class="VarId">otherwise</span> <span class="Symbol">-&gt;</span> <span class="VarId">addSource</span> <span class="Symbol">((</span><span class="VarId">fileLines</span> <span class="VarId">lno</span> <span class="VarId">l</span><span class="Symbol">,</span> <span class="VarId">sts1</span><span class="Symbol">):</span><span class="VarId">acc</span><span class="Symbol">)</span>
+                                               <span class="VarId">l</span> <span class="Symbol">[</span><span class="VarId">st</span><span class="Symbol">]</span> <span class="VarId">sts</span>
+    <span class="VarId">addSource</span> <span class="VarId">acc</span> <span class="VarId">lno</span> <span class="VarId">sts1</span> <span class="Symbol">[]</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="VarId">fileLines</span> <span class="VarId">lno</span> <span class="Symbol">(</span><span class="VarId">length</span> <span class="VarId">fl</span><span class="Symbol">),</span> <span class="VarId">sts1</span><span class="Symbol">):</span><span class="VarId">acc</span>
+    <span class="VarId">fileLines</span> <span class="Symbol">::</span> <span class="ConId">Int</span> <span class="Symbol">-&gt;</span> <span class="ConId">Int</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+    <span class="VarId">fileLines</span> <span class="VarId">s</span> <span class="VarId">e</span> <span class="Symbol">=</span> <span class="VarId">unlines</span> <span class="Symbol">$</span> <span class="VarId">take</span> <span class="Symbol">(</span><span class="VarId">e</span> <span class="Symbol">-</span> <span class="VarId">s</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="VarId">drop</span> <span class="Symbol">(</span><span class="VarId">s</span> <span class="Symbol">-</span> <span class="Number">1</span><span class="Symbol">)</span> <span class="VarId">fl</span><span class="Symbol">)</span>
+    <span class="VarId">fl</span> <span class="Symbol">=</span> <span class="VarId">lines</span> <span class="VarId">src</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">readSourceFiles</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">String</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span>
+<span class="Function">readSourceFiles</span> <span class="VarId">fns</span> <span class="Symbol">=</span> <span class="VarId">wrapETs</span> <span class="Symbol">$</span>
+  <span class="VarId">mapM</span> <span class="Symbol">(\</span><span class="VarId">f</span> <span class="Symbol">-&gt;</span> <span class="VarId">liftIO</span> <span class="Symbol">(</span><span class="VarId">parseSqlFile</span> <span class="VarId">f</span><span class="Symbol">)</span> <span class="Symbol">&gt;&gt;=</span> <span class="VarId">tsl</span><span class="Symbol">)</span> <span class="VarId">fns</span> <span class="Symbol">&gt;&gt;=</span>
+  <span class="VarId">concat</span> <span class="Symbol">|&gt;</span> <span class="VarId">return</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">{-getSp :: Statement -&gt; Maybe (String,Int)</span>
+<span class="Comment">getSp st =</span>
+<span class="Comment">  getSP (getAnnotation st)</span>
+<span class="Comment">  where</span>
+<span class="Comment">    getSP (SourcePos f l _ : _ ) = Just (f,l)</span>
+<span class="Comment">    getSP (_ : xs) = getSP xs</span>
+<span class="Comment">    getSP [] = Nothing-}</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">defaultAnnotationPrinter</span> <span class="Symbol">::</span> <span class="ConId">Annotation</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+<span class="Function">defaultAnnotationPrinter</span> <span class="VarId">a</span> <span class="Symbol">=</span>
+  <span class="VarId">intercalate</span> <span class="String">&quot;\n&quot;</span> <span class="Symbol">$</span> <span class="VarId">catMaybes</span> <span class="Symbol">[</span><span class="VarId">fmap</span> <span class="VarId">show</span> <span class="Symbol">$</span> <span class="VarId">stType</span> <span class="VarId">a</span>
+                               <span class="Symbol">,</span><span class="VarId">fmap</span> <span class="VarId">show</span> <span class="Symbol">$</span> <span class="VarId">nl</span> <span class="Symbol">$</span> <span class="VarId">catUpd</span> <span class="VarId">a</span>
+                               <span class="Symbol">,</span><span class="VarId">fmap</span> <span class="VarId">show</span> <span class="Symbol">$</span> <span class="VarId">nl</span> <span class="Symbol">$</span> <span class="VarId">errs</span> <span class="VarId">a</span><span class="Symbol">]</span>
+  <span class="Keyword">where</span>
+    <span class="VarId">nl</span> <span class="VarId">l</span> <span class="Symbol">=</span> <span class="Keyword">if</span> <span class="VarId">null</span> <span class="VarId">l</span>
+           <span class="Keyword">then</span> <span class="ConId">Nothing</span>
+           <span class="Keyword">else</span> <span class="ConId">Just</span> <span class="VarId">l</span></pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

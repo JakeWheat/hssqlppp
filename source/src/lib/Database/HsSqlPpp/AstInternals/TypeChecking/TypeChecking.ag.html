@@ -1,0 +1,174 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >TypeChecking</title
+    ><link href="../../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >{-</p
+    ><p
+    >New plan: need typechecking to work, to work better on more complex queries.</p
+    ><p
+    >Initial targets:</p
+    ><p
+    >only interested in select expressions</p
+    ><ul
+    ><li
+      >want all the function prototypes in there so can insert explicit casts, and make use of the prototype annotation to find aggregates, etc.</li
+      ><li
+      >add in all range qualifiers so can tell which table an id comes from</li
+      ><li
+      >support a renaming process so can eliminate duplicate column names and unnamed columns whilst giving the same results except column name differences only where needed to avoid the above (renaming is for the entire tree, not just the results</li
+      ></ul
+    ><p
+    >this is all to support</p
+    ><hr
+     /><p
+    >This file contains the attr and sem definitions, which do the type checking, etc..</p
+    ><p
+    >A lot of the haskell code has been moved into other files: TypeCheckingH, AstUtils.lhs, it is intended that only small amounts of code appear (i.e. one-liners) inline in this file, and larger bits go in AstUtils.lhs. These are only divided because the attribute grammar system uses a custom syntax with a custom preprocessor. These guidelines aren't followed very well.</p
+    ><p
+    >The current type checking approach doesn't quite match how SQL works. The main problem is that you can e.g. exec create table statements inside a function. This is something that the type checker will probably not be able to deal for a while if ever. (Will need hooks into postgresql to do this properly, which might not be impossible...).</p
+    ><p
+    >Once most of the type checking is working, all the code and documentation will be overhauled quite a lot. Alternatively put, this code is in need of better documentation and organisation, and serious refactoring.</p
+    ><p
+    >An unholy mixture of Maybe, Either, Either/Error Monad and TypeCheckFailed is used to do error handling.</p
+    ><p
+    >One of the common patterns is when type checking a node:</p
+    ><p
+    >first check any types of subnodes which it depends on, if any are typecheckfailed, then this node's type is typecheckfailed and we stop there.</p
+    ><p
+    >otherwise, calculate the type of this node, or get an error if there is a problem, this is put into loc.tpe which is Either TypeError Type. Then some common code takes this value and sets the node type to the type or typecheckfailed if tpe is left, and if it is left add a type error annotation also.</p
+    ><p
+    >================================================================================</p
+    ><p
+    >= main attributes used</p
+    ><p
+    >Here are the main attributes used in the type checking:</p
+    ><p
+    >cat is used to chain the catalogs up and down the tree, to allow access to the catalog information, and to store the in catalog identifier names and types e.g. inside a select expression.</p
+    ><p
+    >annotatedTree is used to create a copy of the ast with the type, etc. annotations.</p
+    ><p
+    >-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="ConId">ATTR</span> <span class="ConId">AllNodes</span> <span class="ConId">Root</span> <span class="ConId">ExpressionRoot</span>
+  <span class="Symbol">[</span> <span class="VarId">cat</span> <span class="Symbol">:</span> <span class="ConId">Catalog</span>
+    <span class="VarId">lib</span> <span class="Symbol">:</span> <span class="ConId">LocalBindings</span> <span class="Symbol">||</span> <span class="VarId">annotatedTree</span> <span class="Symbol">:</span> <span class="ConId">SELF</span>
+                                     <span class="Comment">-- workaround: avoid bogus cycle</span>
+                                     <span class="Comment">-- detections search for this,</span>
+                                     <span class="Comment">-- replace with annotated tree</span>
+                                     <span class="Comment">-- and uuagc can't tell that</span>
+                                     <span class="Comment">-- there aren't any real cycles</span>
+                                     <span class="VarId">originalTree</span> <span class="Symbol">:</span> <span class="ConId">SELF</span><span class="Symbol">]</span>
+
+
+<span class="ConId">INCLUDE</span> <span class="String">&quot;TypeChecking/Misc.ag&quot;</span>
+<span class="ConId">INCLUDE</span> <span class="String">&quot;TypeChecking/Expressions.ag&quot;</span>
+<span class="ConId">INCLUDE</span> <span class="String">&quot;TypeChecking/Statements.ag&quot;</span>
+
+
+</pre></div></div></div><p
+    >{-</p
+    ><p
+    >old stuff:</p
+    ><p
+    >================================================================================</p
+    ><p
+    >= static tests</p
+    ><p
+    >Try to use a list of message data types to hold all sorts of information which works its way out to the top level where the client code gets it. Want to have the lists concatenated together automatically from subnodes to parent node, and then to be able to add extra messages to this list at each node also.</p
+    ><p
+    >Problem 1: can't have two sem statements for the same node type which both add messages, and then the messages get combined to provide the final message list attribute value for that node. You want this so that e.g. that different sorts of checks appear in different sections. Workaround is instead of having each check in it's own section, to combine them all into one SEM. Can work around this without too much difficulty by using local attributes. Not sure if something more clever would be an improvement.</p
+    ><p
+    >Problem 2: no shorthand to combine what the default rule for messages would be and then add a bit extra - so if you want all the children messages, plus possibly an extra message or two, have to write out the default rule in full explicitly. Can get round this by writing out loads of code, which is error prone. Don't know if there is a better way</p
+    ><p
+    >================================================================================</p
+    ><p
+    >= inloop testing</p
+    ><p
+    >inloop - use to check continue, exit, and other commands that can only appear inside loops (for, while, loop)</p
+    ><p
+    >the only nodes that really need this attribute are the ones which can contain statements</p
+    ><p
+    >The inloop test is the only thing which uses the messages atm. It shouldn't, at some point inloop testing will become part of the type checking.</p
+    ><p
+    >This is just some example code, will probably do something a lot more heavy weight like symbolic interpretation - want to do all sorts of loop, return, nullability, etc. analysis.</p
+    ><p
+    >-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+</pre></div></div></div><p
+    >{- ATTR AllNodes Root ExpressionRoot [||messages USE {++} {[]} : {[Message]}]</p
+    ><p
+    >ATTR AllNodes [ inLoop: Bool||]</p
+    ><p
+    >SEM Root | Root statements.inLoop = False</p
+    ><p
+    >SEM ExpressionRoot | ExpressionRoot expr.inLoop = False</p
+    ><p
+    >-- set the inloop stuff which nests, it's reset inside a create -- function statement, in case you have a create function inside a -- loop, seems unlikely you'd do this though</p
+    ><p
+    >SEM Statement | ForSelectStatement ForIntegerStatement WhileStatement sts.inLoop = True | CreateFunction body.inLoop = False</p
+    ><p
+    >-- now we can check when we hit a continue statement if it is in the -- right context SEM Statement | ContinueStatement lhs.messages = if not @lhs.inLoop then [Error ContinueNotInLoop] else [] -}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+</pre></div></div></div><div id="section"
+    ><h1
+      >{-</h1
+      ><p
+      >= notes and todo</p
+      ><p
+      >containment guide for select expressions: combineselect 2 selects insert ?select createtableas 1 select createview 1 select return query 1 select forselect 1 select select-&gt;subselect select expression-&gt;exists select scalarsubquery select inselect select</p
+      ><p
+      >containment guide for statements: forselect [statement] forinteger [statement] while [statement] casestatement [[statement]] if [[statement]] createfunction-&gt;fnbody [Statement]</p
+      ><p
+      >TODO</p
+      ><p
+      >some non type-check checks: check plpgsql only in plpgsql function orderby in top level select only copy followed immediately by copydata iff stdin, copydata only follows copy from stdin count args to raise, etc., check same number as placeholders in string no natural with onexpr in joins typename -&gt; setof (&amp; fix parsing), what else like this? expressions: positionalarg in function, window function only in select list top level</p
+      ><p
+      >review all ast checks, and see if we can also catch them during parsing (e.g. typeName parses setof, but this should only be allowed for a function return, and we can make this a parse error when parsing from source code rather than checking a generated ast. This needs judgement to say whether a parse error is better than a check error, I think for setof it is, but e.g. for a continue not in a loop (which could be caught during parsing) works better as a check error, looking at the error message the user will get. This might be wrong, haven't thought too carefully about it yet).</p
+      ><p
+      >TODO: canonicalize ast process, as part of type checking produces a canonicalized ast which: all implicit casts appear explicitly in the ast (maybe distinguished from explicit casts?) all names fully qualified all types use canonical names literal values and selectors in one form (use row style?) nodes are tagged with types what else?</p
+      ><p
+      >Canonical form only defined for type consistent asts.</p
+      ><p
+      >This canonical form should pretty print and parse back to the same form, and type check correctly.</p
+      ><p
+      >================================================================================</p
+      ><p
+      >type inferencing</p
+      ><p
+      >some random ideas about using type inferencing</p
+      ><ol style="list-style-type: decimal;"
+      ><li
+	>need to be able to gather the constraints: introduce a variable name for each node that has a type collect together all the equations that relate these variables</li
+	><li
+	>need to be able to unify these to get types or errors</li
+	><li
+	>need to rebuild the tree containing the results of this process in the annotations, either types or errors</li
+	></ol
+      ><p
+      >possible issues, don't know how these will affect the process:</p
+      ><p
+      >literal strings in pg have the type unknown as well as possibly a real type determined by inference the implicit type casting e.g. for function resolution is pretty wacky combinining these, function call resolution apparently distinguishes between arguments which are unknown and then resolve to being text, and arguments which are already known to be text, e.g.</p
+      ><p
+      >-}</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+</pre></div></div></div></div
+    ><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

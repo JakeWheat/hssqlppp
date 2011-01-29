@@ -1,0 +1,66 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >suppliers_and_parts</title
+    ><link href="../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">create table s (
+       s_no int primary key,
+       sname text not null,
+       status int not null,
+       city text not null
+);
+
+create table p (
+       p_po int primary key,
+       pname text not null,
+       color text not null,
+       weight int not null,
+       city text not null
+);
+
+create table sp (
+       s_no int not null references s,
+       p_no int not null references p,
+       qty int not null,
+       primary key (s_no,p_no)
+);
+
+create view good_supplier
+  as selet s_no,status,city from s where status &gt; 15;
+
+
+
+</pre></div></div></div><p
+    >/*</p
+    ><p
+    >select * from s;</p
+    ><p
+    >delete from sp where p_no =2</p
+    ><p
+    >update s set status =2 * status ,city = rome where city = paris;</p
+    ><p
+    >94-95 select s#,status from good_supplier where city = london</p
+    ><p
+    >insert into p p#pname weight values ?pno ?pname ?pwt delete from sp where ?city = (select city from s where s.sno= sp.snp);</p
+    ><p
+    >update s set status = status + :raise where city = 'london';</p
+    ><p
+    >*/</p
+    ><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

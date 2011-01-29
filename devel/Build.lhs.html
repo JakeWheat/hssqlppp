@@ -1,0 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >Build</title
+    ><link href="../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >just chucked together</p
+    ><p
+    >use runghc Build.lhs from the src/ folder to regenerate the html files in the root from these txt files written in pandoc flavour markdown</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">import</span> <span class="ConId">System.Cmd</span>
+<span class="Keyword">import</span> <span class="ConId">System.FilePath</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">main</span> <span class="Symbol">::</span> <span class="ConId">IO</span> <span class="Symbol">()</span>
+<span class="Function">main</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+  <span class="Keyword">let</span> <span class="VarId">files</span> <span class="Symbol">=</span> <span class="Symbol">[(</span><span class="String">&quot;index.txt&quot;</span><span class="Symbol">,</span> <span class="String">&quot;HsSqlPpp developer notes&quot;</span><span class="Symbol">)</span>
+              <span class="Symbol">,(</span><span class="String">&quot;background_reading.txt&quot;</span><span class="Symbol">,</span> <span class="String">&quot;Background reading&quot;</span><span class="Symbol">)</span>
+              <span class="Symbol">,(</span><span class="String">&quot;applicative_parsing.txt&quot;</span><span class="Symbol">,</span> <span class="String">&quot;Applicative Parsing intro&quot;</span><span class="Symbol">)</span>
+              <span class="Symbol">,(</span><span class="String">&quot;compiling_and_running_tests.txt&quot;</span><span class="Symbol">,</span> <span class="String">&quot;Compiling and running the tests&quot;</span><span class="Symbol">)</span>
+              <span class="Symbol">,(</span><span class="String">&quot;adding_syntax.txt&quot;</span><span class="Symbol">,</span> <span class="String">&quot;Adding new syntax&quot;</span><span class="Symbol">)]</span>
+  <span class="VarId">mapM_</span> <span class="VarId">pandocerize</span> <span class="VarId">files</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">pandocerize</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">String</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="Symbol">()</span>
+<span class="Function">pandocerize</span> <span class="Symbol">(</span><span class="VarId">pdnm</span><span class="Symbol">,</span> <span class="VarId">title</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+  <span class="VarId">_</span> <span class="Symbol">&lt;-</span> <span class="VarId">system</span> <span class="Symbol">$</span> <span class="String">&quot;pandoc -s &quot;</span> <span class="Symbol">++</span> <span class="VarId">pdnm</span> <span class="Symbol">++</span> <span class="String">&quot; -o &quot;</span> <span class="Symbol">++</span> <span class="String">&quot;../&quot;</span> <span class="Symbol">++</span> <span class="VarId">htmlname</span> <span class="Symbol">++</span> <span class="String">&quot; -c main.css -T \&quot;&quot;</span> <span class="Symbol">++</span> <span class="VarId">title</span> <span class="Symbol">++</span> <span class="String">&quot;\&quot;&quot;</span>
+  <span class="VarId">return</span> <span class="Symbol">()</span>
+  <span class="Keyword">where</span>
+    <span class="VarId">htmlname</span> <span class="Symbol">=</span> <span class="VarId">dropExtension</span> <span class="VarId">pdnm</span> <span class="Symbol">++</span> <span class="String">&quot;.html&quot;</span></pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

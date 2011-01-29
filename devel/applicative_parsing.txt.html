@@ -1,0 +1,230 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >applicative_parsing</title
+    ><link href="../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><div id="applicative-parsing"
+    ><h1
+      >Applicative Parsing</h1
+      ><p
+      >Most of the parser is written in something called applicative style. This is sort of a variant on monadic style parsing which is what most of the examples for parsec you find are written in. (Applicative style was developed for parsing, but has many more applications.)</p
+      ><p
+      >This is a short, pragmatic, example based intro.</p
+      ><p
+      >The way I originally got applicative parsing (after looking at lots of information on Applicative and parsing and none of it sinking in) was by writing parsers like this:</p
+      ><div class='haskell'><pre class="sourceCode"><span class="Function">integerLit</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+    <span class="VarId">p</span> <span class="Symbol">&lt;-</span> <span class="VarId">pos</span>
+    <span class="VarId">i</span> <span class="Symbol">&lt;-</span> <span class="VarId">integer</span>
+    <span class="VarId">return</span> <span class="Symbol">$</span> <span class="ConId">IntegerLit</span> <span class="VarId">p</span> <span class="VarId">i</span></pre></div><p
+      >and thinking, 'there must be a way to write it in one step - without the all the temporary names'. (<code
+	>pos</code
+	> is not a parser, but is used to attach source positions to the ast nodes).</p
+      ><p
+      >Applicative parsing comes to the rescue:</p
+      ><div class='haskell'><pre class="sourceCode"><span class="Function">integerLit</span> <span class="Symbol">=</span> <span class="ConId">IntegerLit</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">integer</span></pre></div><p
+      >It reduces the amount of boilerplate for simple parsing functions. Once you get use to it, it is very quick to read and write.</p
+      ><p
+      >To get started, I would write out the first version using the conventional monad style, then convert piecemeal to applicative style:</p
+      ><div class='haskell'><pre class="sourceCode"><span class="Function">integerLit</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+    <span class="VarId">p</span> <span class="Symbol">&lt;-</span> <span class="VarId">pos</span>
+    <span class="VarId">i</span> <span class="Symbol">&lt;-</span> <span class="VarId">integer</span>
+    <span class="VarId">return</span> <span class="Symbol">$</span> <span class="ConId">IntegerLit</span> <span class="VarId">p</span> <span class="VarId">i</span></pre></div><div class='haskell'><pre class="sourceCode"><span class="Function">integerLit</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+    <span class="VarId">p</span> <span class="Symbol">&lt;-</span> <span class="VarId">pos</span>
+    <span class="Symbol">(</span><span class="ConId">IntegerLit</span> <span class="VarId">p</span><span class="Symbol">)</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">integer</span></pre></div><div class='haskell'><pre class="sourceCode"><span class="Function">integerLit</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+    <span class="ConId">IntegerLit</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">integer</span></pre></div><div class='haskell'><pre class="sourceCode"><span class="Function">integerLit</span> <span class="Symbol">=</span> <span class="ConId">IntegerLit</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">integer</span></pre></div><p
+      >When I got stuck writing applicative style parsers before getting used to them (and the errors you get from ghc when you make a mistake), I would write the parser in monadic style first, check it compiles and test it, then convert it in stages to applicative style. For editing applicative parsers, if I got into a mess, I would revert back to the unedited parser, rewrite it in monadic style, make the changes, and again check in compiles, test it, then convert back to applicative in stages.</p
+      ><div id="some-guidelines"
+      ><h2
+	>Some guidelines:</h2
+	><div class='haskell'><pre class="sourceCode"><span class="Function">parser</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+   <span class="VarId">a</span> <span class="Symbol">&lt;-</span> <span class="VarId">subParser1</span>
+   <span class="VarId">b</span> <span class="Symbol">&lt;-</span> <span class="VarId">subParser2</span>
+   <span class="VarId">c</span> <span class="Symbol">&lt;-</span> <span class="VarId">subParser3</span>
+   <span class="VarId">d</span> <span class="Symbol">&lt;-</span> <span class="VarId">subParser4</span>
+   <span class="VarId">return</span> <span class="Symbol">$</span> <span class="ConId">AstNode</span> <span class="VarId">a</span> <span class="VarId">b</span> <span class="VarId">c</span> <span class="VarId">d</span></pre></div><p
+	>is rewritten like this:</p
+	><div class='haskell'><pre class="sourceCode"><span class="Function">parser</span> <span class="Symbol">=</span> <span class="ConId">AstNode</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">subParser1</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">subParser2</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">subParser3</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">subParser4</span></pre></div><div class='haskell'><pre class="sourceCode"><span class="Function">parser</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+   <span class="VarId">a</span> <span class="Symbol">&lt;-</span> <span class="VarId">subParser1</span>
+   <span class="VarId">return</span> <span class="Symbol">$</span> <span class="ConId">AstNode1</span> <span class="VarId">a</span></pre></div><p
+	>would be</p
+	><div class='haskell'><pre class="sourceCode"><span class="Function">parser</span> <span class="Symbol">=</span> <span class="ConId">AstNode1</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">subParser1</span></pre></div><p
+	>and</p
+	><div class='haskell'><pre class="sourceCode"><span class="Function">parser</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+   <span class="VarId">a</span> <span class="Symbol">&lt;-</span> <span class="VarId">subParser1</span>
+   <span class="VarId">b</span> <span class="Symbol">&lt;-</span> <span class="VarId">subParser2</span>
+   <span class="VarId">return</span> <span class="Symbol">$</span> <span class="ConId">AstNode2</span> <span class="VarId">a</span> <span class="VarId">b</span></pre></div><p
+	>would be</p
+	><div class='haskell'><pre class="sourceCode"><span class="Function">parser</span> <span class="Symbol">=</span> <span class="ConId">AstNode2</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">subParser1</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">subParser2</span></pre></div><p
+	>The main thing to notice is that you follow the pure constructor AstNodeX with <code
+	  >&lt;$&gt;</code
+	  > and the first argument, then to add additional arguments you use <code
+	  >&lt;*&gt;</code
+	  >.</p
+	><p
+	>What's nice about this is that the parser looks similar to creating a pure value:</p
+	><div class='haskell'><pre class="sourceCode"><span class="Function">parser</span> <span class="Symbol">=</span> <span class="ConId">AstNode</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">subParser1</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">subParser2</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">subParser3</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">subParser4</span></pre></div><div class='haskell'><pre class="sourceCode"><span class="Function">value</span> <span class="Symbol">=</span> <span class="ConId">AstNode</span> <span class="VarId">subValue1</span> <span class="VarId">subValue2</span> <span class="VarId">subValue4</span> <span class="VarId">subValue4</span></pre></div><p
+	>The limitations are that it is difficult to convert the following monadic parsers into applicative syntax.</p
+	><div class='haskell'><pre class="sourceCode"><span class="Function">parser</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+   <span class="VarId">a</span> <span class="Symbol">&lt;-</span> <span class="VarId">subParser1</span>
+   <span class="VarId">b</span> <span class="Symbol">&lt;-</span> <span class="VarId">subParser2</span>
+   <span class="VarId">return</span> <span class="Symbol">$</span> <span class="ConId">AstNode2</span> <span class="VarId">b</span> <span class="VarId">a</span></pre></div><p
+	>The values are passed to the constructor in the reverse order to the order in which they are parsed. Here is a way to make this work:</p
+	><div class='haskell'><pre class="sourceCode"><span class="Function">parser</span> <span class="Symbol">=</span> <span class="VarId">revAstNode2</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">a</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">b</span>
+  <span class="Keyword">where</span>
+    <span class="VarId">revAstNode2</span> <span class="VarId">a</span> <span class="VarId">b</span> <span class="Symbol">=</span> <span class="ConId">AstNode2</span> <span class="VarId">b</span> <span class="VarId">a</span> <span class="Comment">-- can use flip here as well</span></pre></div><p
+	>There may also be performance implications when using applicative compared to monadic (applicative might be faster or use less memory in some circumstances) but I don't know much about this.</p
+	></div
+      ><div id="ignoring-the-results-of-parsers"
+      ><h2
+	>Ignoring the results of parsers</h2
+	><p
+	>What about this:</p
+	><div class='haskell'><pre class="sourceCode"><span class="Function">createView</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+  <span class="VarId">p</span> <span class="Symbol">&lt;-</span> <span class="VarId">pos</span>
+  <span class="VarId">_</span> <span class="Symbol">&lt;-</span> <span class="VarId">keyword</span> <span class="String">&quot;view&quot;</span>
+  <span class="VarId">i</span> <span class="Symbol">&lt;-</span> <span class="VarId">idString</span>
+  <span class="VarId">_</span> <span class="Symbol">&lt;-</span> <span class="VarId">keyword</span> <span class="String">&quot;as&quot;</span>
+  <span class="VarId">e</span> <span class="Symbol">&lt;-</span> <span class="VarId">selectExpression</span>
+  <span class="VarId">return</span> <span class="Symbol">$</span> <span class="ConId">CreateView</span> <span class="VarId">p</span> <span class="VarId">i</span> <span class="VarId">e</span></pre></div><p
+	>(If this parser for a sql create view statement doesn't look quite right it may be because it is only called when the initial 'create' keyword has already been parsed - this means the position won't be quite correct.)</p
+	><p
+	>Can this be rewritten even though it ignores the results of some of the parsers (e.g. '<code
+	  >_ &lt;- keyword &quot;view&quot;</code
+	  >')?</p
+	><p
+	>This is how it is done:</p
+	><div class='haskell'><pre class="sourceCode"><span class="Function">createView</span> <span class="Symbol">=</span> <span class="ConId">CreateView</span>
+             <span class="Symbol">&lt;$&gt;</span> <span class="Symbol">(</span><span class="VarId">pos</span> <span class="Symbol">&lt;*</span> <span class="VarId">keyword</span> <span class="String">&quot;view&quot;</span><span class="Symbol">)</span>
+             <span class="Symbol">&lt;*&gt;</span> <span class="VarId">idString</span>
+             <span class="Symbol">&lt;*&gt;</span> <span class="Symbol">(</span><span class="VarId">keyword</span> <span class="String">&quot;as&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">selectExpression</span><span class="Symbol">)</span></pre></div><p
+	>If this is broken down, you can see how it works:</p
+	><div class='haskell'><pre class="sourceCode"><span class="Function">createView</span> <span class="Symbol">=</span> <span class="ConId">CreateView</span>
+             <span class="Symbol">&lt;$&gt;</span> <span class="VarId">posThenIgnoreView</span>
+             <span class="Symbol">&lt;*&gt;</span> <span class="VarId">idString</span>
+             <span class="Symbol">&lt;*&gt;</span> <span class="VarId">ignoreAsThenSelectExpression</span>
+             <span class="Keyword">where</span>
+               <span class="VarId">posThenIgnoreView</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+                 <span class="VarId">p</span> <span class="Symbol">&lt;-</span> <span class="VarId">pos</span>
+                 <span class="VarId">_</span> <span class="Symbol">&lt;-</span> <span class="VarId">keyword</span> <span class="String">&quot;view&quot;</span>
+                 <span class="VarId">return</span> <span class="VarId">p</span>
+               <span class="VarId">ignoreAsThenSelectExpression</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+                 <span class="VarId">_</span> <span class="Symbol">&lt;-</span> <span class="VarId">keyword</span> <span class="String">&quot;as&quot;</span>
+                 <span class="VarId">e</span> <span class="Symbol">&lt;-</span> <span class="VarId">selectExpression</span>
+                 <span class="VarId">return</span> <span class="VarId">e</span>
+                 <span class="Comment">-- or just</span>
+                 <span class="Comment">-- _ &lt;- keyword &quot;as&quot;</span>
+                 <span class="Comment">-- selectExpression</span></pre></div><p
+	>This shows the code using the applicative style without any tricks. The operators <code
+	  >&lt;*</code
+	  > and <code
+	  >*&gt;</code
+	  > are used to run subparsers, and ignore the results:</p
+	><div class='haskell'><pre class="sourceCode"><span class="Function">createView</span> <span class="Symbol">=</span> <span class="ConId">CreateView</span>
+             <span class="Symbol">&lt;$&gt;</span> <span class="VarId">posAndIgnoreView</span>
+             <span class="Symbol">&lt;*&gt;</span> <span class="VarId">idString</span>
+             <span class="Symbol">&lt;*&gt;</span> <span class="VarId">ignoreAsAndSelectExpression</span>
+             <span class="Keyword">where</span>
+               <span class="VarId">posAndIgnoreView</span> <span class="Symbol">=</span>
+                 <span class="VarId">pos</span> <span class="Symbol">&lt;*</span> <span class="VarId">keyword</span> <span class="String">&quot;view&quot;</span>
+               <span class="VarId">ignoreAsAndSelectExpression</span> <span class="Symbol">=</span>
+                 <span class="VarId">keyword</span> <span class="String">&quot;as&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">selectExpression</span></pre></div><p
+	>Basically, <code
+	  >&lt;*</code
+	  > runs the parser to the left, then the one to the right, and returns the result of the left parser and ignores the result of the right parser:</p
+	><div class='haskell'><pre class="sourceCode"><span class="Function">meat</span> <span class="Symbol">&lt;*</span> <span class="VarId">veg</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+  <span class="VarId">meat'</span> <span class="Symbol">&lt;-</span> <span class="VarId">meat</span>
+  <span class="VarId">_</span> <span class="Symbol">&lt;-</span> <span class="VarId">veg</span>
+  <span class="VarId">return</span> <span class="VarId">meat'</span></pre></div><p
+	>(This is equivalent to what happens, but not the actual implementation.)</p
+	><p
+	>This leads to the final implementation:</p
+	><div class='haskell'><pre class="sourceCode"><span class="Function">createView</span> <span class="Symbol">=</span> <span class="ConId">CreateView</span>
+             <span class="Symbol">&lt;$&gt;</span> <span class="Symbol">(</span><span class="VarId">pos</span> <span class="Symbol">&lt;*</span> <span class="VarId">keyword</span> <span class="String">&quot;view&quot;</span><span class="Symbol">)</span>
+             <span class="Symbol">&lt;*&gt;</span> <span class="VarId">idString</span>
+             <span class="Symbol">&lt;*&gt;</span> <span class="Symbol">(</span><span class="VarId">keyword</span> <span class="String">&quot;as&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">selectExpression</span><span class="Symbol">)</span></pre></div><p
+	><code
+	  >*&gt;</code
+	  > is a lot like <code
+	  >&gt;&gt;</code
+	  > which is used with monads.</p
+	></div
+      ><div id="ignoring-the-results-of-parsers-2"
+      ><h2
+	>Ignoring the results of parsers 2</h2
+	><div class='haskell'><pre class="sourceCode"><span class="Function">booleanLit</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+  <span class="VarId">p</span> <span class="Symbol">&lt;-</span> <span class="VarId">pos</span>
+  <span class="VarId">v</span> <span class="Symbol">&lt;-</span> <span class="Symbol">((</span><span class="Keyword">do</span>
+         <span class="VarId">_</span> <span class="Symbol">&lt;-</span> <span class="VarId">keyword</span> <span class="String">&quot;true&quot;</span>
+         <span class="VarId">return</span> <span class="ConId">True</span><span class="Symbol">)</span>
+        <span class="Symbol">&lt;|&gt;</span>
+        <span class="Symbol">(</span><span class="Keyword">do</span>
+         <span class="VarId">_</span> <span class="Symbol">&lt;-</span> <span class="VarId">keyword</span> <span class="String">&quot;false&quot;</span>
+         <span class="VarId">return</span> <span class="ConId">False</span><span class="Symbol">))</span>
+  <span class="VarId">return</span> <span class="Symbol">$</span> <span class="ConId">BooleanLit</span> <span class="VarId">p</span> <span class="VarId">v</span></pre></div><p
+	>In this case, it is ignoring the parser result completely, and returning a pure value. You can rewrite this using <code
+	  >*&gt;</code
+	  > and returns, but there is a shorter way:</p
+	><div class='haskell'><pre class="sourceCode"><span class="Function">booleanLit</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+  <span class="VarId">p</span> <span class="Symbol">&lt;-</span> <span class="VarId">pos</span>
+  <span class="VarId">v</span> <span class="Symbol">&lt;-</span> <span class="Symbol">((</span><span class="ConId">True</span> <span class="Symbol">&lt;$</span> <span class="VarId">keyword</span> <span class="String">&quot;true&quot;</span><span class="Symbol">)</span>
+        <span class="Symbol">&lt;|&gt;</span>
+        <span class="Symbol">(</span><span class="Keyword">do</span>
+         <span class="VarId">_</span> <span class="Symbol">&lt;-</span> <span class="VarId">keyword</span> <span class="String">&quot;false&quot;</span>
+         <span class="VarId">return</span> <span class="ConId">False</span><span class="Symbol">))</span>
+  <span class="VarId">return</span> <span class="Symbol">$</span> <span class="ConId">BooleanLit</span> <span class="VarId">p</span> <span class="VarId">v</span></pre></div><p
+	>The <code
+	  >&lt;$</code
+	  > operator returns the first argument which is pure, if the second argument succeeds (and ignores the result of the second argument). I think it is mainly used in this way to parse to parameterless constructors. Finishing off rewriting <code
+	  >booleanLit</code
+	  >:</p
+	><div class='haskell'><pre class="sourceCode"><span class="Function">booleanLit</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+  <span class="VarId">p</span> <span class="Symbol">&lt;-</span> <span class="VarId">pos</span>
+  <span class="VarId">v</span> <span class="Symbol">&lt;-</span> <span class="Symbol">((</span><span class="ConId">True</span> <span class="Symbol">&lt;$</span> <span class="VarId">keyword</span> <span class="String">&quot;true&quot;</span><span class="Symbol">)</span>
+        <span class="Symbol">&lt;|&gt;</span>
+        <span class="Symbol">(</span><span class="ConId">False</span> <span class="Symbol">&lt;$</span> <span class="VarId">keyword</span> <span class="String">&quot;false&quot;</span><span class="Symbol">))</span>
+  <span class="VarId">return</span> <span class="Symbol">$</span> <span class="ConId">BooleanLit</span> <span class="VarId">p</span> <span class="VarId">v</span></pre></div><div class='haskell'><pre class="sourceCode"><span class="Function">booleanLit</span> <span class="Symbol">=</span> <span class="ConId">BooleanLit</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*&gt;</span> <span class="Symbol">((</span><span class="ConId">True</span> <span class="Symbol">&lt;$</span> <span class="VarId">keyword</span> <span class="String">&quot;true&quot;</span><span class="Symbol">)</span>
+                                     <span class="Symbol">&lt;|&gt;</span>
+                                     <span class="Symbol">(</span><span class="ConId">False</span> <span class="Symbol">&lt;$</span> <span class="VarId">keyword</span> <span class="String">&quot;false&quot;</span><span class="Symbol">))</span></pre></div><p
+	>Here is a page with info about applicative parsing:</p
+	><p
+	><a href="http://www.serpentine.com/blog/2008/02/06/the-basics-of-applicative-functors-put-to-practical-work/"
+	  >http://www.serpentine.com/blog/2008/02/06/the-basics-of-applicative-functors-put-to-practical-work/</a
+	  ></p
+	><p
+	>Make sure you check out Brent Yorgey's (2nd) comment at the bottom.</p
+	><p
+	>There is some information in Real World Haskell:</p
+	><p
+	><a href="http://book.realworldhaskell.org/read/using-parsec.html"
+	  >http://book.realworldhaskell.org/read/using-parsec.html</a
+	  ></p
+	><p
+	>The section is called 'Applicative functors for parsing'.</p
+	><p
+	>This is a more academic approach, pretty hard work:</p
+	><p
+	>Grammars and Parsing by Johan Jeuring and Doaitse Swierstra <a href="http://www.cs.uu.nl/docs/vakken/gont/diktaat.pdf"
+	  >http://www.cs.uu.nl/docs/vakken/gont/diktaat.pdf</a
+	  ></p
+	><p
+	>If you get through it, you can probably fix all the problems with the hssqlppp parser that I am unable to.</p
+	></div
+      ></div
+    ><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

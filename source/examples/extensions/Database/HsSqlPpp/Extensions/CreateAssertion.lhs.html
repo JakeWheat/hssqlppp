@@ -1,0 +1,226 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >CreateAssertion</title
+    ><link href="../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><div id="sketch"
+    ><h2
+      >sketch</h2
+      ><p
+      >something like an implementation of the rarely implemented create assertion sql syntax</p
+      ><p
+      >The basic approach is to analyze the constraint expression to get a list of ultimately reference tables, then:</p
+      ><p
+      >create a check function which returns a bool to say whether the expression is true,</p
+      ><p
+      >create a trigger and trigger function for each table which calls all the check functions who reference this table and raise if any are false</p
+      ><p
+      >when we add a constraint which references a table with an existing constraint, we add the new check function, and create or replace the trigger function with the new check function added to the existing ones, which avoids having to also drop and create the trigger</p
+      ><p
+      >could add an optimisation to say that if there are no crud statements inbetween two constraints, we can skip creating the first trigger function, and change create or replace to create on the second one, and move the add trigger down. Also - want to try to limit any crud to using the table values extension, which may be relevant to this.</p
+      ></div
+    ><div id="todo-issues"
+    ><h2
+      >todo/ issues</h2
+      ><p
+      >add catalog entries. not null and key constrainsts are part of a table, but the regular check and foreign key constraints possibly could appear in assertion catalog along with the constraints added by this extension</p
+      ><p
+      >the logic which determines which tables are referenced by an expression is a bit dodgy: it only copes with all the create assertions being set in one ast, so we can load one file, then load another file later and it do the right thing.</p
+      ><p
+      >this logic is also wrong for functions - it doesn't take into account function overloading, to fix this need to type check to determine which exact functions are called, might be a bit tricky, since we run extensions on asts which only neccessarily type check after all the extensions have been applied.</p
+      ><p
+      >Since pg has no multiple updates, some sort of hack may be needed for some updates in combination with some constraints.</p
+      ><p
+      >I'm pretty sure the constraint system works fine as long as * you never change the columns on a table after adding a constraint * you only add constraints, never change or remove them * all database transactions are run one at a time, serialised (actually serialised, not just using sql isolation serializable).</p
+      ><p
+      >If any of these assumptions are broken, you might break your database, load bad data in or get weird errors for stuff that should work.</p
+      ><p
+      >foreign keys without having to create a view first i.e. a literal view expression in the constraint.</p
+      ><p
+      >alternative key syntax to remove the distinction between primary key and unique not null?</p
+      ><p
+      >could add support for check constraints referring to multiple rows in same table? don't want to allow check constraints which refer to other tables. Maybe go further: following tutorial d, only allow key and not null constraints in create table or alter table, and move chek and foreign keys out to create assertions or shorthand wrappers? Inline constraints can be more readable though?</p
+      ><p
+      >maybe add a parser extension to parse:</p
+      ><pre
+      ><code
+	>create assertion constraint_name check(expression);
+</code
+	></pre
+      ><p
+      >add some syntax to say: not too sure about how this all works, write a seperate bunch of code to read all the constraints either out of the catalog or from the source, then use the final version of the sql code, type check it, and use the type check information to check all the constraints seem to have been added ok.</p
+      ><ul
+      ><li
+	>here are some example sets of relation values which should be accepted by the constraint</li
+	><li
+	>here are some which should not be accepted by the constraint</li
+	></ul
+      ><p
+      >and have a way to check these (this stuff goes in the client program using the constraints).</p
+      ><p
+      >add supplemental expressions for error reporting: so instead of saying x constraint failed, can run through the expressions one at a time and when one passes or fails or something can give a more useful error message depending on how it failed.</p
+      ><pre
+      ><code
+	>=== ghetto test thing
+want to write some tests for this constraint system just as a sanity
+check for now:
+arbitrary check e.g. cardinality &lt; 5
+arbitrary check multiple tables e.g. sum cardinality of two tables
+check without acceleration?:
+fk
+fk to view
+unique
+x,y in board size range from another table
+
+for each check:
+check adding constraint to invalid tables throws
+check adding constraint to valid tables OK
+insert OK data into constrained tables
+insert bad data into constrained tables
+
+accelerated checks
+fk to view
+x,y in board size range
+check acceleration for normal checks &amp; fk without pg?
+
+pg accelerated checks:
+just check pg catalog to see if inserted
+check
+fk
+unique
+
+all todo: yes, that means there is no direct testing of any of the
+constraint stuff...
+</code
+	></pre
+      ><p
+      >not too sure about how this all works, write a seperate bunch of code to read all the constraints either out of the catalog or from the source, then use the final version of the sql code, type check it, and use the type check information to check all the constraints seem to have been added ok.</p
+      ><hr
+       /><p
+      >Tests/examples in CreateAssertionTests.lhs</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">{-# LANGUAGE QuasiQuotes, ScopedTypeVariables, TupleSections #-}</span>
+
+<span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.Extensions.CreateAssertion</span>
+    <span class="Symbol">(</span><span class="VarId">createAssertion</span><span class="Symbol">)</span> <span class="Keyword">where</span>
+
+<span class="Comment">--import Data.Generics</span>
+<span class="Keyword">import</span> <span class="ConId">Data.Generics.Uniplate.Data</span>
+<span class="Comment">--import Debug.Trace</span>
+<span class="Keyword">import</span> <span class="ConId">Control.Monad.State</span>
+<span class="Keyword">import</span> <span class="ConId">Data.Maybe</span>
+
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Ast</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Parser</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Utils.Utils</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.SqlQuote</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Extensions.AstUtils</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Annotation</span></pre></div></div></div></div
+    ><div id="implementation"
+    ><h1
+      >implementation</h1
+      ><p
+      >when we go through, need to record the constraints we've already seen. using transformBiM with state monad, gives us the constraints in reverse order of the statement list, so chuck three reverses in there to make it work right.</p
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">createAssertion</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span>
+<span class="Function">createAssertion</span> <span class="VarId">ast</span> <span class="Symbol">=</span> <span class="VarId">reverse</span> <span class="Symbol">$</span>
+ <span class="Symbol">(\</span><span class="VarId">f</span> <span class="Symbol">-&gt;</span> <span class="VarId">evalState</span> <span class="Symbol">(</span><span class="VarId">transformBiM</span> <span class="VarId">f</span> <span class="Symbol">(</span><span class="VarId">reverse</span> <span class="VarId">ast</span><span class="Symbol">))</span> <span class="Symbol">([]</span> <span class="Symbol">::</span> <span class="ConId">ConstraintRecord</span><span class="Symbol">))</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span>
+      <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+        <span class="VarId">s</span><span class="Symbol">@[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span> <span class="VarId">select</span> <span class="VarId">create_assertion</span><span class="Symbol">($</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">name</span><span class="Symbol">)</span>
+                                          <span class="Symbol">,$</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">exprtext</span><span class="Symbol">));|]</span> <span class="Symbol">:</span> <span class="VarId">tl</span> <span class="Symbol">-&gt;</span> <span class="Keyword">do</span>
+            <span class="VarId">existing</span> <span class="Symbol">&lt;-</span> <span class="VarId">get</span>
+            <span class="Keyword">let</span> <span class="Symbol">(</span><span class="VarId">new</span><span class="Symbol">,</span> <span class="VarId">rast</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">makeConstraintDdl</span> <span class="VarId">existing</span> <span class="VarId">name</span> <span class="VarId">exprtext</span>
+            <span class="VarId">put</span> <span class="VarId">new</span>
+            <span class="VarId">return</span> <span class="Symbol">$</span> <span class="VarId">replaceSourcePos</span> <span class="VarId">s</span> <span class="VarId">rast</span> <span class="Symbol">++</span> <span class="VarId">tl</span>
+        <span class="VarId">x1</span> <span class="Symbol">-&gt;</span> <span class="VarId">return</span> <span class="VarId">x1</span>
+ <span class="Keyword">where</span>
+   <span class="VarId">asti</span> <span class="Symbol">=</span> <span class="VarId">getAstInfo</span> <span class="VarId">ast</span>
+   <span class="VarId">makeConstraintDdl</span> <span class="Symbol">::</span> <span class="ConId">ConstraintRecord</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="ConId">ConstraintRecord</span><span class="Symbol">,</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">])</span>
+   <span class="VarId">makeConstraintDdl</span> <span class="VarId">cons</span> <span class="VarId">name</span> <span class="VarId">exprText</span> <span class="Symbol">=</span>
+     <span class="Keyword">let</span> <span class="VarId">expr</span> <span class="Symbol">=</span> <span class="VarId">either</span> <span class="Symbol">(</span><span class="VarId">error</span> <span class="Symbol">.</span> <span class="VarId">show</span><span class="Symbol">)</span> <span class="VarId">id</span>
+                  <span class="Symbol">$</span> <span class="VarId">parseExpression</span> <span class="String">&quot;&quot;</span> <span class="VarId">exprText</span>
+     <span class="Keyword">in</span> <span class="Symbol">(</span><span class="VarId">newcons</span> <span class="VarId">cons</span> <span class="Symbol">(</span><span class="VarId">tableNames</span> <span class="VarId">expr</span><span class="Symbol">)</span> <span class="VarId">name</span>
+        <span class="Symbol">,</span><span class="VarId">reverse</span> <span class="Symbol">(</span><span class="VarId">makeCheckFn</span> <span class="VarId">name</span> <span class="VarId">expr</span> <span class="Symbol">:</span> <span class="VarId">extras</span> <span class="VarId">cons</span> <span class="VarId">name</span> <span class="VarId">expr</span><span class="Symbol">))</span>
+   <span class="VarId">extras</span> <span class="Symbol">::</span> <span class="ConId">ConstraintRecord</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span>
+   <span class="VarId">extras</span> <span class="VarId">cons</span> <span class="VarId">name</span> <span class="VarId">expr</span> <span class="Symbol">=</span> <span class="VarId">flip</span> <span class="VarId">concatMap</span> <span class="Symbol">(</span><span class="VarId">tableNames</span> <span class="VarId">expr</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">tn</span> <span class="Symbol">-&gt;</span>
+                 <span class="Keyword">let</span> <span class="VarId">ec</span> <span class="Symbol">=</span> <span class="VarId">existingConstraints</span> <span class="VarId">tn</span> <span class="VarId">cons</span>
+                 <span class="Keyword">in</span> <span class="Keyword">if</span> <span class="VarId">null</span> <span class="VarId">ec</span>
+                    <span class="Keyword">then</span> <span class="Symbol">[</span><span class="VarId">makeTriggerFn</span> <span class="ConId">False</span> <span class="VarId">tn</span> <span class="Symbol">[</span><span class="VarId">name</span><span class="Symbol">]</span>
+                         <span class="Symbol">,</span><span class="VarId">makeTrigger</span> <span class="VarId">tn</span><span class="Symbol">]</span>
+                    <span class="Keyword">else</span> <span class="Symbol">[</span><span class="VarId">makeTriggerFn</span> <span class="ConId">True</span> <span class="VarId">tn</span> <span class="Symbol">(</span><span class="VarId">name</span><span class="Symbol">:</span><span class="VarId">ec</span><span class="Symbol">)]</span>
+   <span class="VarId">tableNames</span> <span class="VarId">expr</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="VarId">y</span> <span class="Symbol">=</span> <span class="VarId">getReferencedTableList</span> <span class="VarId">asti</span> <span class="VarId">expr</span>
+                     <span class="Keyword">in</span> <span class="VarId">y</span>
+   <span class="VarId">newcons</span> <span class="VarId">cons</span> <span class="VarId">tns</span> <span class="VarId">nm</span> <span class="Symbol">=</span> <span class="VarId">foldr</span> <span class="Symbol">(</span><span class="VarId">uncurry</span> <span class="Symbol">(</span><span class="VarId">insertWith</span> <span class="Symbol">(++)))</span> <span class="VarId">cons</span> <span class="Symbol">(</span><span class="VarId">map</span> <span class="Symbol">(,[</span><span class="VarId">nm</span><span class="Symbol">])</span> <span class="VarId">tns</span><span class="Symbol">)</span>
+   <span class="VarId">existingConstraints</span> <span class="VarId">tn</span> <span class="VarId">cons</span> <span class="Symbol">=</span> <span class="VarId">fromMaybe</span> <span class="Symbol">[]</span> <span class="Symbol">$</span> <span class="VarId">lookup</span> <span class="VarId">tn</span> <span class="VarId">cons</span>
+
+<span class="Keyword">type</span> <span class="ConId">ConstraintRecord</span> <span class="Symbol">=</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">String</span><span class="Symbol">])]</span> <span class="Comment">-- tablename, list of constraint names</span>
+
+<span class="Function">makeCheckFn</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">Statement</span>
+<span class="Function">makeCheckFn</span> <span class="VarId">name</span> <span class="VarId">expr</span> <span class="Symbol">=</span>
+    <span class="Keyword">let</span> <span class="VarId">checkfn</span> <span class="Symbol">=</span> <span class="String">&quot;check_con_&quot;</span> <span class="Symbol">++</span> <span class="VarId">name</span>
+    <span class="Keyword">in</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+             <span class="VarId">create</span> <span class="VarId">function</span> <span class="Symbol">$(</span><span class="VarId">checkfn</span><span class="Symbol">)()</span> <span class="VarId">returns</span> <span class="VarId">bool</span> <span class="Keyword">as</span> <span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span>
+             <span class="VarId">begin</span>
+               <span class="VarId">return</span> <span class="Symbol">$(</span><span class="VarId">expr</span><span class="Symbol">);</span>
+             <span class="VarId">end</span><span class="Symbol">;</span>
+             <span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span> <span class="VarId">language</span> <span class="VarId">plpgsql</span> <span class="VarId">stable</span><span class="Symbol">;</span>
+           <span class="Symbol">|]</span>
+
+<span class="Function">makeTriggerFn</span> <span class="Symbol">::</span> <span class="ConId">Bool</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">String</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Statement</span>
+<span class="Function">makeTriggerFn</span> <span class="VarId">r</span> <span class="VarId">tn</span> <span class="VarId">nms</span> <span class="Symbol">=</span>
+  <span class="Keyword">let</span> <span class="VarId">trigopname</span> <span class="Symbol">=</span> <span class="VarId">tn</span> <span class="Symbol">++</span> <span class="String">&quot;_constraint_trigger_operator&quot;</span>
+      <span class="VarId">ifs</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span>
+      <span class="VarId">ifs</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="VarId">makeIf</span> <span class="VarId">nms</span>
+      <span class="Comment">-- using template approach cos can't get antistatement -&gt; [statement] working</span>
+      <span class="VarId">template</span> <span class="Symbol">=</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+                  <span class="VarId">create</span> <span class="VarId">function</span> <span class="Symbol">$(</span><span class="VarId">trigopname</span><span class="Symbol">)()</span> <span class="VarId">returns</span> <span class="VarId">trigger</span> <span class="Keyword">as</span> <span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span>
+                  <span class="VarId">begin</span>
+                    <span class="VarId">null</span><span class="Symbol">;</span>
+                    <span class="VarId">return</span> <span class="ConId">OLD</span><span class="Symbol">;</span>
+                  <span class="VarId">end</span><span class="Symbol">;</span>
+                  <span class="Symbol">$</span><span class="VarId">xxx</span><span class="Symbol">$</span> <span class="VarId">language</span> <span class="VarId">plpgsql</span> <span class="VarId">stable</span><span class="Symbol">;</span>
+                  <span class="Symbol">|]</span>
+      <span class="VarId">rep</span> <span class="Symbol">=</span> <span class="Keyword">if</span> <span class="VarId">r</span>
+            <span class="Keyword">then</span> <span class="VarId">transformBi</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span>
+                   <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+                          <span class="ConId">NoReplace</span> <span class="Symbol">-&gt;</span> <span class="ConId">Replace</span>
+                          <span class="VarId">x1</span> <span class="Symbol">-&gt;</span> <span class="VarId">x1</span>
+            <span class="Keyword">else</span> <span class="VarId">id</span>
+  <span class="Keyword">in</span> <span class="VarId">flip</span> <span class="VarId">transformBi</span> <span class="Symbol">(</span><span class="VarId">rep</span> <span class="VarId">template</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span>
+       <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+             <span class="ConId">NullStatement</span> <span class="VarId">_</span> <span class="Symbol">:</span> <span class="VarId">tl</span> <span class="Symbol">-&gt;</span> <span class="VarId">ifs</span> <span class="Symbol">++</span> <span class="VarId">tl</span>
+             <span class="VarId">x1</span> <span class="Symbol">-&gt;</span> <span class="VarId">x1</span>
+  <span class="Keyword">where</span>
+    <span class="VarId">makeIf</span> <span class="VarId">nm</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="VarId">chk</span> <span class="Symbol">=</span> <span class="String">&quot;check_con_&quot;</span> <span class="Symbol">++</span> <span class="VarId">nm</span>
+                    <span class="VarId">errMsg</span> <span class="Symbol">=</span> <span class="String">&quot;update violates database constraint &quot;</span> <span class="Symbol">++</span> <span class="VarId">nm</span>
+                <span class="Keyword">in</span> <span class="Symbol">[$</span><span class="VarId">pgsqlStmt</span><span class="Symbol">|</span>
+                   <span class="Keyword">if</span> <span class="VarId">not</span> <span class="Symbol">$(</span><span class="VarId">chk</span><span class="Symbol">)()</span> <span class="Keyword">then</span>
+                      <span class="VarId">raise</span> <span class="VarId">exception</span> '<span class="Symbol">$(</span><span class="VarId">errMsg</span><span class="Symbol">)</span>'<span class="Symbol">;</span>
+                   <span class="VarId">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+                   <span class="Symbol">|]</span>
+
+<span class="Function">makeTrigger</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Statement</span>
+<span class="Function">makeTrigger</span> <span class="VarId">tn</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="VarId">trigname</span> <span class="Symbol">=</span> <span class="VarId">tn</span> <span class="Symbol">++</span> <span class="String">&quot;_constraint_trigger&quot;</span>
+                     <span class="VarId">opname</span> <span class="Symbol">=</span> <span class="VarId">tn</span> <span class="Symbol">++</span> <span class="String">&quot;_constraint_trigger_operator&quot;</span>
+                 <span class="Keyword">in</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+  <span class="VarId">create</span> <span class="VarId">trigger</span> <span class="Symbol">$(</span><span class="VarId">trigname</span><span class="Symbol">)</span>
+    <span class="VarId">after</span> <span class="VarId">insert</span> <span class="VarId">or</span> <span class="VarId">update</span> <span class="VarId">or</span> <span class="VarId">delete</span> <span class="VarId">on</span> <span class="Symbol">$(</span><span class="VarId">tn</span><span class="Symbol">)</span>
+    <span class="VarId">for</span> <span class="VarId">each</span> <span class="VarId">statement</span>
+    <span class="VarId">execute</span> <span class="VarId">procedure</span> <span class="Symbol">$(</span><span class="VarId">opname</span><span class="Symbol">)();</span>
+                       <span class="Symbol">|]</span></pre></div></div></div></div
+    ><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

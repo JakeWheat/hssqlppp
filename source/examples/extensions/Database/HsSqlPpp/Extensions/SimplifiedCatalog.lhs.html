@@ -1,0 +1,206 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >SimplifiedCatalog</title
+    ><link href="../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >Currently a mess and not usable.</p
+    ><p
+    >Prepend view definitions for a simplified catalog.</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">{-# LANGUAGE QuasiQuotes #-}</span>
+
+<span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.Extensions.SimplifiedCatalog</span>
+    <span class="Keyword">where</span>
+
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Ast</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Annotation</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.SqlQuote</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Extensions.AstUtils</span>
+
+<span class="Function">simplifiedCatalogSt</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span>
+<span class="Function">simplifiedCatalogSt</span> <span class="Symbol">=</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+<span class="Symbol">/*</span>
+<span class="Symbol">=</span> <span class="ConId">Catalog</span>
+
+<span class="ConId">Some</span> <span class="VarId">new</span> <span class="VarId">catalog</span> <span class="VarId">views</span> <span class="VarId">to</span> <span class="VarId">use</span><span class="Symbol">,</span> <span class="VarId">supposed</span> <span class="VarId">to</span> <span class="VarId">be</span> <span class="VarId">a</span> <span class="VarId">bit</span> <span class="VarId">more</span> <span class="VarId">straight</span>
+<span class="Function">forward</span> <span class="VarId">than</span> <span class="VarId">the</span> <span class="VarId">sql</span> <span class="VarId">or</span> <span class="VarId">pg</span> <span class="VarId">catalogs</span><span class="Symbol">.</span>
+
+
+<span class="Symbol">==</span> <span class="VarId">system</span> <span class="VarId">implementation</span> <span class="VarId">objects</span>
+
+<span class="ConId">Quite</span> <span class="VarId">a</span> <span class="VarId">lot</span> <span class="Keyword">of</span> <span class="VarId">the</span> <span class="VarId">code</span> <span class="Keyword">in</span> <span class="VarId">this</span> <span class="VarId">file</span> <span class="VarId">generates</span> <span class="VarId">extra</span> <span class="VarId">functions</span><span class="Symbol">,</span>
+<span class="Function">triggers</span> <span class="VarId">and</span> <span class="VarId">uses</span> <span class="VarId">extra</span> <span class="VarId">tables</span><span class="Symbol">.</span> <span class="ConId">When</span> <span class="VarId">you're</span> <span class="VarId">browsing</span> <span class="VarId">the</span> <span class="VarId">catalog</span><span class="Symbol">,</span>
+<span class="Function">e</span><span class="Symbol">.</span><span class="VarId">g</span><span class="Symbol">.</span> <span class="Keyword">as</span> <span class="VarId">a</span> <span class="VarId">designer</span> <span class="Keyword">of</span> <span class="VarId">a</span> <span class="VarId">schema</span><span class="Symbol">,</span> <span class="VarId">or</span> <span class="VarId">trying</span> <span class="VarId">to</span> <span class="VarId">work</span> <span class="VarId">out</span> <span class="VarId">the</span> <span class="Keyword">data</span>
+<span class="Function">structures</span> <span class="VarId">for</span> <span class="VarId">a</span> <span class="VarId">program</span><span class="Symbol">,</span> <span class="VarId">you</span> <span class="VarId">don't</span> <span class="VarId">usually</span> <span class="VarId">want</span> <span class="VarId">to</span> <span class="VarId">see</span> <span class="VarId">all</span> <span class="VarId">this</span> <span class="VarId">extra</span>
+<span class="Function">stuff</span><span class="Symbol">,</span> <span class="VarId">so</span> <span class="VarId">tag</span> <span class="VarId">them</span><span class="Symbol">.</span>
+
+<span class="ConId">Also</span><span class="Symbol">,</span> <span class="VarId">objects</span> <span class="Keyword">in</span> <span class="VarId">this</span> <span class="VarId">table</span> <span class="VarId">should</span> <span class="VarId">not</span> <span class="VarId">be</span> <span class="VarId">visible</span> <span class="VarId">to</span> <span class="VarId">user</span> <span class="VarId">code</span><span class="Symbol">,</span> <span class="VarId">only</span>
+<span class="Function">to</span> <span class="VarId">the</span> <span class="VarId">code</span> <span class="Keyword">in</span> <span class="VarId">this</span> <span class="VarId">file</span> <span class="Symbol">(</span><span class="VarId">just</span> <span class="VarId">have</span> <span class="VarId">to</span> <span class="VarId">pretend</span> <span class="VarId">for</span> <span class="VarId">now</span><span class="Symbol">).</span>
+
+<span class="ConId">Implementation</span> <span class="VarId">objects</span> <span class="VarId">include</span> <span class="VarId">objects</span> <span class="VarId">which</span> <span class="VarId">are</span> <span class="VarId">part</span> <span class="Keyword">of</span> <span class="VarId">the</span> <span class="VarId">catalog</span>
+<span class="Function">and</span> <span class="VarId">extensions</span> <span class="VarId">themselves</span> <span class="Keyword">as</span> <span class="VarId">well</span> <span class="Keyword">as</span> <span class="VarId">objects</span> <span class="VarId">which</span> <span class="VarId">are</span> <span class="VarId">generated</span> <span class="VarId">when</span>
+<span class="Function">user</span> <span class="VarId">code</span> <span class="VarId">uses</span> <span class="VarId">the</span> <span class="VarId">extensions</span><span class="Symbol">.</span>
+
+<span class="ConId">Should</span> <span class="VarId">probably</span> <span class="VarId">put</span> <span class="VarId">the</span> <span class="VarId">catalog</span> <span class="Keyword">in</span> <span class="VarId">a</span> <span class="VarId">separate</span> <span class="Keyword">module</span> <span class="VarId">to</span> <span class="VarId">the</span> <span class="VarId">internal</span>
+<span class="Function">objects</span><span class="Symbol">.</span>
+
+<span class="Symbol">*/</span>
+
+<span class="Function">create</span> <span class="VarId">table</span> <span class="VarId">system_implementation_objects</span> <span class="Symbol">(</span>
+  <span class="VarId">object_name</span> <span class="VarId">text</span><span class="Symbol">,</span>
+  <span class="VarId">object_type</span> <span class="VarId">text</span> <span class="VarId">check</span> <span class="Symbol">(</span><span class="VarId">object_type</span> <span class="Keyword">in</span><span class="Symbol">(</span>
+                   '<span class="VarId">scalar'</span><span class="Symbol">,</span>
+                   '<span class="VarId">base_relvar'</span><span class="Symbol">,</span>
+                   '<span class="VarId">operator'</span><span class="Symbol">,</span>
+                   '<span class="VarId">view'</span><span class="Symbol">,</span>
+                   '<span class="VarId">trigger'</span><span class="Symbol">,</span>
+                   '<span class="VarId">database_constraint'</span><span class="Symbol">))</span>
+<span class="Symbol">);</span>
+<span class="Function">insert</span> <span class="VarId">into</span> <span class="VarId">system_implementation_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span> <span class="VarId">object_type</span><span class="Symbol">)</span>
+  <span class="VarId">values</span> <span class="Symbol">(</span>'<span class="VarId">system_implementation_objects'</span><span class="Symbol">,</span> '<span class="VarId">base_relvar'</span><span class="Symbol">);</span>
+
+<span class="Function">create</span> <span class="VarId">view</span> <span class="VarId">base_relvars</span> <span class="Keyword">as</span>
+  <span class="VarId">select</span> <span class="VarId">relname</span> <span class="Keyword">as</span> <span class="VarId">relvar_name</span> <span class="VarId">from</span> <span class="VarId">pg_class</span> <span class="Keyword">where</span> <span class="VarId">relnamespace</span> <span class="Symbol">=</span>
+    <span class="Symbol">(</span><span class="VarId">select</span> <span class="VarId">oid</span> <span class="VarId">from</span> <span class="VarId">pg_namespace</span> <span class="Keyword">where</span> <span class="VarId">nspname</span> <span class="Symbol">=</span> '<span class="VarId">public'</span><span class="Symbol">)</span>
+    <span class="VarId">and</span> <span class="VarId">relkind</span> <span class="Symbol">=</span> <span class="Char">'r'</span><span class="Symbol">;</span>
+
+<span class="Function">create</span> <span class="VarId">view</span> <span class="VarId">base_relvar_attributes</span> <span class="Keyword">as</span>
+  <span class="VarId">select</span> <span class="VarId">attname</span> <span class="Keyword">as</span> <span class="VarId">attribute_name</span><span class="Symbol">,</span>
+         <span class="VarId">typname</span> <span class="Keyword">as</span> <span class="VarId">type_name</span><span class="Symbol">,</span>
+         <span class="VarId">relname</span> <span class="Keyword">as</span> <span class="VarId">relvar_name</span>
+    <span class="VarId">from</span> <span class="VarId">pg_attribute</span> <span class="VarId">inner</span> <span class="VarId">join</span> <span class="VarId">pg_class</span> <span class="VarId">on</span> <span class="Symbol">(</span><span class="VarId">attrelid</span> <span class="Symbol">=</span> <span class="VarId">pg_class</span><span class="Symbol">.</span><span class="VarId">oid</span><span class="Symbol">)</span>
+    <span class="VarId">inner</span> <span class="VarId">join</span> <span class="VarId">pg_type</span> <span class="VarId">on</span> <span class="Symbol">(</span><span class="VarId">atttypid</span> <span class="Symbol">=</span> <span class="VarId">pg_type</span><span class="Symbol">.</span><span class="VarId">oid</span><span class="Symbol">)</span>
+    <span class="VarId">inner</span> <span class="VarId">join</span> <span class="VarId">base_relvars</span> <span class="VarId">on</span> <span class="Symbol">(</span><span class="VarId">relname</span> <span class="Symbol">=</span> <span class="VarId">base_relvars</span><span class="Symbol">.</span><span class="VarId">relvar_name</span><span class="Symbol">)</span>
+    <span class="Keyword">where</span> <span class="VarId">attnum</span> <span class="Symbol">&gt;=</span> <span class="Number">1</span><span class="Symbol">;</span>
+
+<span class="Symbol">/*</span>
+<span class="Function">scalars</span> <span class="VarId">here</span> <span class="VarId">since</span> <span class="VarId">we</span> <span class="VarId">are</span> <span class="VarId">using</span> <span class="VarId">the</span> <span class="VarId">base</span> <span class="VarId">relvar</span> <span class="VarId">attributes</span> <span class="VarId">table</span>
+<span class="Function">to</span> <span class="VarId">try</span> <span class="VarId">to</span> <span class="VarId">only</span> <span class="VarId">show</span> <span class="VarId">scalar</span> <span class="VarId">types</span> <span class="VarId">which</span> <span class="VarId">are</span> <span class="VarId">used</span> <span class="VarId">and</span> <span class="VarId">not</span> <span class="VarId">the</span> <span class="VarId">vast</span>
+<span class="Function">array</span> <span class="VarId">that</span> <span class="VarId">pg</span> <span class="VarId">comes</span> <span class="VarId">with</span><span class="Symbol">.</span> <span class="ConId">This</span> <span class="VarId">is</span> <span class="VarId">a</span> <span class="VarId">bit</span> <span class="Keyword">of</span> <span class="VarId">a</span> <span class="VarId">hack</span> <span class="VarId">job</span><span class="Symbol">,</span> <span class="VarId">probably</span>
+<span class="Function">a</span> <span class="VarId">bit</span> <span class="VarId">inaccurate</span>
+<span class="Symbol">*/</span>
+<span class="Function">create</span> <span class="VarId">view</span> <span class="VarId">scalars</span> <span class="Keyword">as</span>
+<span class="Comment">--   select typname as scalar_name from pg_type</span>
+<span class="Comment">--     where typtype in ('b', 'd')</span>
+<span class="Comment">--     and typnamespace =</span>
+<span class="Comment">--     (select oid from pg_namespace where nspname='public')</span>
+<span class="Comment">--   union</span>
+  <span class="VarId">select</span> <span class="VarId">distinct</span> <span class="VarId">type_name</span> <span class="Keyword">as</span> <span class="VarId">scalar_name</span>
+    <span class="VarId">from</span> <span class="VarId">base_relvar_attributes</span><span class="Symbol">;</span>
+
+<span class="Function">create</span> <span class="VarId">view</span> <span class="VarId">base_relvar_keys</span> <span class="Keyword">as</span>
+  <span class="VarId">select</span> <span class="VarId">conname</span> <span class="Keyword">as</span> <span class="VarId">constraint_name</span><span class="Symbol">,</span> <span class="VarId">relvar_name</span>
+    <span class="VarId">from</span> <span class="VarId">pg_constraint</span>
+  <span class="VarId">natural</span> <span class="VarId">inner</span> <span class="VarId">join</span>
+    <span class="Symbol">(</span><span class="VarId">select</span> <span class="VarId">oid</span> <span class="Keyword">as</span> <span class="VarId">conrelid</span><span class="Symbol">,</span> <span class="VarId">relname</span> <span class="Keyword">as</span> <span class="VarId">relvar_name</span> <span class="VarId">from</span> <span class="VarId">pg_class</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">b</span>
+  <span class="Keyword">where</span> <span class="VarId">contype</span> <span class="Keyword">in</span><span class="Symbol">(</span><span class="Char">'p'</span><span class="Symbol">,</span> <span class="Char">'u'</span><span class="Symbol">)</span> <span class="VarId">and</span> <span class="VarId">connamespace</span> <span class="Symbol">=</span>
+    <span class="Symbol">(</span><span class="VarId">select</span> <span class="VarId">oid</span> <span class="VarId">from</span> <span class="VarId">pg_namespace</span> <span class="Keyword">where</span> <span class="VarId">nspname</span><span class="Symbol">=</span>'<span class="VarId">public'</span><span class="Symbol">);</span>
+
+<span class="Function">create</span> <span class="VarId">view</span> <span class="VarId">base_relvar_key_attributes</span> <span class="Keyword">as</span>
+  <span class="VarId">select</span> <span class="VarId">constraint_name</span><span class="Symbol">,</span> <span class="VarId">attribute_name</span> <span class="VarId">from</span>
+    <span class="Symbol">(</span><span class="VarId">select</span> <span class="VarId">conname</span> <span class="Keyword">as</span> <span class="VarId">constraint_name</span><span class="Symbol">,</span> <span class="VarId">conrelid</span><span class="Symbol">,</span>
+      <span class="VarId">unnest</span><span class="Symbol">(</span><span class="VarId">conkey</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">attnum</span>
+      <span class="VarId">from</span> <span class="VarId">pg_constraint</span>
+      <span class="Keyword">where</span> <span class="VarId">contype</span> <span class="Keyword">in</span><span class="Symbol">(</span><span class="Char">'p'</span><span class="Symbol">,</span> <span class="Char">'u'</span><span class="Symbol">)</span> <span class="VarId">and</span> <span class="VarId">connamespace</span> <span class="Symbol">=</span>
+        <span class="Symbol">(</span><span class="VarId">select</span> <span class="VarId">oid</span> <span class="VarId">from</span> <span class="VarId">pg_namespace</span> <span class="Keyword">where</span> <span class="VarId">nspname</span><span class="Symbol">=</span>'<span class="VarId">public'</span><span class="Symbol">))</span> <span class="Keyword">as</span> <span class="VarId">a</span>
+  <span class="VarId">natural</span> <span class="VarId">inner</span> <span class="VarId">join</span>
+    <span class="Symbol">(</span><span class="VarId">select</span> <span class="VarId">oid</span> <span class="Keyword">as</span> <span class="VarId">conrelid</span><span class="Symbol">,</span> <span class="VarId">relname</span> <span class="Keyword">as</span> <span class="VarId">relvar_name</span> <span class="VarId">from</span> <span class="VarId">pg_class</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">b</span>
+  <span class="VarId">natural</span> <span class="VarId">inner</span> <span class="VarId">join</span>
+    <span class="Symbol">(</span><span class="VarId">select</span> <span class="VarId">attrelid</span> <span class="Keyword">as</span> <span class="VarId">conrelid</span><span class="Symbol">,</span> <span class="VarId">attname</span> <span class="Keyword">as</span> <span class="VarId">attribute_name</span><span class="Symbol">,</span>
+    <span class="VarId">attnum</span> <span class="VarId">from</span> <span class="VarId">pg_attribute</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">c</span>
+<span class="Comment">--  order by constraint_name</span>
+  <span class="Symbol">;</span>
+
+<span class="Function">create</span> <span class="VarId">view</span> <span class="VarId">operators</span> <span class="Keyword">as</span>
+  <span class="VarId">select</span> <span class="VarId">proname</span> <span class="Keyword">as</span> <span class="VarId">operator_name</span> <span class="VarId">from</span> <span class="VarId">pg_proc</span>
+    <span class="Keyword">where</span> <span class="VarId">pronamespace</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="VarId">select</span> <span class="VarId">oid</span> <span class="VarId">from</span> <span class="VarId">pg_namespace</span>
+                           <span class="Keyword">where</span> <span class="VarId">nspname</span> <span class="Symbol">=</span> '<span class="VarId">public'</span><span class="Symbol">);</span>
+
+<span class="Function">create</span> <span class="VarId">view</span> <span class="VarId">operator_source</span> <span class="Keyword">as</span>
+  <span class="VarId">select</span> <span class="VarId">proname</span> <span class="Keyword">as</span> <span class="VarId">operator_name</span><span class="Symbol">,</span> <span class="VarId">prosrc</span> <span class="Keyword">as</span> <span class="VarId">source</span> <span class="VarId">from</span> <span class="VarId">pg_proc</span>
+    <span class="Keyword">where</span> <span class="VarId">pronamespace</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="VarId">select</span> <span class="VarId">oid</span> <span class="VarId">from</span> <span class="VarId">pg_namespace</span>
+                           <span class="Keyword">where</span> <span class="VarId">nspname</span> <span class="Symbol">=</span> '<span class="VarId">public'</span><span class="Symbol">);</span>
+
+<span class="Function">create</span> <span class="VarId">view</span> <span class="VarId">triggers</span> <span class="Keyword">as</span>
+  <span class="VarId">select</span> <span class="VarId">relname</span> <span class="Keyword">as</span> <span class="VarId">relvar_name</span><span class="Symbol">,</span> <span class="VarId">tgname</span> <span class="Keyword">as</span> <span class="VarId">trigger_name</span><span class="Symbol">,</span>
+    <span class="VarId">proname</span> <span class="Keyword">as</span> <span class="VarId">operator_name</span>
+    <span class="VarId">from</span> <span class="VarId">pg_trigger</span>
+    <span class="VarId">inner</span> <span class="VarId">join</span> <span class="VarId">pg_class</span> <span class="VarId">on</span> <span class="Symbol">(</span><span class="VarId">tgrelid</span> <span class="Symbol">=</span> <span class="VarId">pg_class</span><span class="Symbol">.</span><span class="VarId">oid</span><span class="Symbol">)</span>
+    <span class="VarId">inner</span> <span class="VarId">join</span> <span class="VarId">pg_proc</span> <span class="VarId">on</span> <span class="Symbol">(</span><span class="VarId">tgfoid</span> <span class="Symbol">=</span> <span class="VarId">pg_proc</span><span class="Symbol">.</span><span class="VarId">oid</span><span class="Symbol">)</span>
+    <span class="VarId">inner</span> <span class="VarId">join</span> <span class="VarId">base_relvars</span> <span class="VarId">on</span> <span class="Symbol">(</span><span class="VarId">relname</span> <span class="Symbol">=</span> <span class="VarId">base_relvars</span><span class="Symbol">.</span><span class="VarId">relvar_name</span><span class="Symbol">)</span>
+    <span class="Keyword">where</span> <span class="VarId">not</span> <span class="VarId">tgisconstraint</span><span class="Symbol">;</span> <span class="Comment">-- eliminate pg internal triggers</span>
+
+<span class="Function">create</span> <span class="VarId">view</span> <span class="VarId">views</span> <span class="Keyword">as</span>
+  <span class="VarId">select</span> <span class="VarId">viewname</span> <span class="Keyword">as</span> <span class="VarId">view_name</span><span class="Symbol">,</span> <span class="VarId">definition</span>
+    <span class="VarId">from</span> <span class="VarId">pg_views</span>
+    <span class="Keyword">where</span> <span class="VarId">schemaname</span> <span class="Symbol">=</span> '<span class="VarId">public'</span><span class="Symbol">;</span>
+
+<span class="Function">create</span> <span class="VarId">view</span> <span class="VarId">view_attributes</span> <span class="Keyword">as</span>
+  <span class="VarId">select</span> <span class="VarId">attname</span> <span class="Keyword">as</span> <span class="VarId">attribute_name</span><span class="Symbol">,</span>
+         <span class="VarId">typname</span> <span class="Keyword">as</span> <span class="VarId">type_name</span><span class="Symbol">,</span>
+         <span class="VarId">relname</span> <span class="Keyword">as</span> <span class="VarId">relvar_name</span>
+    <span class="VarId">from</span> <span class="VarId">pg_attribute</span> <span class="VarId">inner</span> <span class="VarId">join</span> <span class="VarId">pg_class</span> <span class="VarId">on</span> <span class="Symbol">(</span><span class="VarId">attrelid</span> <span class="Symbol">=</span> <span class="VarId">pg_class</span><span class="Symbol">.</span><span class="VarId">oid</span><span class="Symbol">)</span>
+    <span class="VarId">inner</span> <span class="VarId">join</span> <span class="VarId">pg_type</span> <span class="VarId">on</span> <span class="Symbol">(</span><span class="VarId">atttypid</span> <span class="Symbol">=</span> <span class="VarId">pg_type</span><span class="Symbol">.</span><span class="VarId">oid</span><span class="Symbol">)</span>
+    <span class="VarId">inner</span> <span class="VarId">join</span> <span class="VarId">views</span> <span class="VarId">on</span> <span class="Symbol">(</span><span class="VarId">relname</span> <span class="Symbol">=</span> <span class="VarId">view_name</span><span class="Symbol">)</span>
+    <span class="Keyword">where</span> <span class="VarId">attnum</span> <span class="Symbol">&gt;=</span> <span class="Number">1</span><span class="Symbol">;</span>
+
+<span class="Symbol">/*</span>
+<span class="Symbol">==</span> <span class="VarId">constraints</span>
+<span class="Symbol">*/</span>
+<span class="Function">create</span> <span class="VarId">table</span> <span class="VarId">database_constraints</span> <span class="Symbol">(</span>
+  <span class="VarId">constraint_name</span> <span class="VarId">text</span><span class="Symbol">,</span>
+  <span class="VarId">expression</span> <span class="VarId">text</span>
+<span class="Symbol">);</span>
+<span class="Symbol">/*</span>
+<span class="Symbol">==</span> <span class="VarId">all</span> <span class="VarId">database</span> <span class="VarId">objects</span>
+<span class="Symbol">*/</span>
+<span class="Function">create</span> <span class="VarId">view</span> <span class="VarId">all_database_objects</span> <span class="Keyword">as</span>
+  <span class="VarId">select</span> '<span class="VarId">scalar'</span> <span class="Keyword">as</span> <span class="VarId">object_type</span><span class="Symbol">,</span>
+    <span class="VarId">scalar_name</span> <span class="Keyword">as</span> <span class="VarId">object_name</span> <span class="VarId">from</span> <span class="VarId">scalars</span>
+  <span class="VarId">union</span> <span class="VarId">select</span> '<span class="VarId">base_relvar'</span> <span class="Keyword">as</span> <span class="VarId">object_type</span><span class="Symbol">,</span>
+    <span class="VarId">relvar_name</span> <span class="Keyword">as</span> <span class="VarId">object_name</span> <span class="VarId">from</span> <span class="VarId">base_relvars</span>
+  <span class="VarId">union</span> <span class="VarId">select</span> '<span class="VarId">operator'</span> <span class="Keyword">as</span> <span class="VarId">object_type</span><span class="Symbol">,</span>
+    <span class="VarId">operator_name</span> <span class="Keyword">as</span> <span class="VarId">object_name</span> <span class="VarId">from</span> <span class="VarId">operators</span>
+  <span class="VarId">union</span> <span class="VarId">select</span> '<span class="VarId">view'</span> <span class="Keyword">as</span> <span class="VarId">object_type</span><span class="Symbol">,</span>
+    <span class="VarId">view_name</span> <span class="Keyword">as</span> <span class="VarId">object_name</span> <span class="VarId">from</span> <span class="VarId">views</span>
+  <span class="VarId">union</span> <span class="VarId">select</span> '<span class="VarId">trigger'</span> <span class="Keyword">as</span> <span class="VarId">object_type</span><span class="Symbol">,</span>
+    <span class="VarId">trigger_name</span> <span class="Keyword">as</span> <span class="VarId">object_name</span> <span class="VarId">from</span> <span class="VarId">triggers</span>
+  <span class="VarId">union</span> <span class="VarId">select</span> '<span class="VarId">database_constraint'</span> <span class="Keyword">as</span> <span class="VarId">object_type</span><span class="Symbol">,</span>
+    <span class="VarId">constraint_name</span> <span class="Keyword">as</span> <span class="VarId">object_name</span> <span class="VarId">from</span> <span class="VarId">database_constraints</span><span class="Symbol">;</span>
+<span class="Function">insert</span> <span class="VarId">into</span> <span class="VarId">system_implementation_objects</span>
+  <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span> <span class="VarId">object_type</span><span class="Symbol">)</span> <span class="VarId">values</span>
+  <span class="Symbol">(</span>'<span class="VarId">all_database_objects'</span><span class="Symbol">,</span> '<span class="VarId">view'</span><span class="Symbol">);</span>
+<span class="Function">create</span> <span class="VarId">view</span> <span class="VarId">public_database_objects</span> <span class="Keyword">as</span>
+  <span class="VarId">select</span> <span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span> <span class="VarId">from</span> <span class="VarId">all_database_objects</span>
+  <span class="VarId">except</span>
+  <span class="VarId">select</span> <span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span> <span class="VarId">from</span> <span class="VarId">system_implementation_objects</span><span class="Symbol">;</span>
+
+<span class="Function">create</span> <span class="VarId">view</span> <span class="VarId">object_orders</span> <span class="Keyword">as</span>
+  <span class="VarId">select</span> '<span class="VarId">scalar'</span><span class="Symbol">::</span><span class="VarId">text</span> <span class="Keyword">as</span> <span class="VarId">object_type</span><span class="Symbol">,</span> <span class="Number">0</span> <span class="Keyword">as</span> <span class="VarId">object_order</span>
+  <span class="VarId">union</span> <span class="VarId">select</span> '<span class="VarId">database_constraint'</span><span class="Symbol">,</span> <span class="Number">1</span>
+  <span class="VarId">union</span> <span class="VarId">select</span> '<span class="VarId">base_relvar'</span><span class="Symbol">,</span> <span class="Number">2</span>
+  <span class="VarId">union</span> <span class="VarId">select</span> '<span class="VarId">operator'</span><span class="Symbol">,</span> <span class="Number">3</span>
+  <span class="VarId">union</span> <span class="VarId">select</span> '<span class="VarId">view'</span><span class="Symbol">,</span> <span class="Number">4</span>
+  <span class="VarId">union</span> <span class="VarId">select</span> '<span class="VarId">trigger'</span><span class="Symbol">,</span> <span class="Number">5</span>
+<span class="Symbol">;</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">    <span class="Symbol">|]</span>
+
+<span class="Function">simplifiedCatalog</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span>
+<span class="Function">simplifiedCatalog</span> <span class="VarId">xs</span> <span class="Symbol">=</span> <span class="VarId">replaceSourcePos</span> <span class="Symbol">(</span><span class="VarId">head</span> <span class="VarId">xs</span><span class="Symbol">)</span> <span class="VarId">simplifiedCatalogSt</span> <span class="Symbol">++</span> <span class="VarId">xs</span></pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

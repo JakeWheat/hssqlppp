@@ -1,0 +1,68 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >ThHListExample</title
+    ><link href="../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >Example of using the template haskell hlist wrapper. Can't get it to compile, some sort of type class issue related to hlists.</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">{-# LANGUAGE TemplateHaskell #-}</span> <span class="Comment">-- , RelaxedPolyRec #-}</span>
+
+<span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.Examples.Wrappers.ThHListExample</span>
+    <span class="Symbol">(</span><span class="VarId">runTest</span><span class="Symbol">)</span> <span class="Keyword">where</span>
+
+<span class="Keyword">import</span> <span class="ConId">Data.List</span>
+<span class="Comment">{-import Data.HList</span>
+<span class="Comment">import Data.HList.Label1 ()</span>
+<span class="Comment">import Data.HList.TypeEqGeneric1 ()</span>
+<span class="Comment">import Data.HList.TypeCastGeneric1 ()-}</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">--import Database.HDBC</span>
+
+<span class="Comment">--import Database.HsSqlPpp.Utils.DbmsCommon</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Examples.Wrappers.ConnectionString</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Examples.Wrappers.ThHListWrapper</span>
+
+<span class="Function">runTest</span> <span class="Symbol">::</span> <span class="ConId">IO</span> <span class="ConId">String</span>
+<span class="Function">runTest</span> <span class="Symbol">=</span>
+  <span class="Comment">-- the connection string here is used at runtime</span>
+  <span class="VarId">withConn</span> <span class="Symbol">(</span><span class="String">&quot;dbname=&quot;</span> <span class="Symbol">++</span> <span class="VarId">connectionString</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">conn</span> <span class="Symbol">-&gt;</span> <span class="Keyword">do</span>
+  <span class="VarId">x</span> <span class="Symbol">&lt;-</span> <span class="VarId">suppliers</span> <span class="VarId">conn</span>
+  <span class="VarId">y</span> <span class="Symbol">&lt;-</span> <span class="VarId">goodSuppliers</span> <span class="VarId">conn</span> <span class="Symbol">(</span><span class="ConId">Just</span> <span class="Number">4</span><span class="Symbol">)</span>
+  <span class="VarId">return</span> <span class="String">&quot;&quot;</span>
+  <span class="Comment">--return $ &quot;suppliers\n&quot; ++ showl x ++</span>
+  <span class="Comment">--         &quot;\nsuppliers 4\n&quot; ++ showl y</span>
+  <span class="Keyword">where</span>
+    <span class="Comment">--showl = intercalate &quot;\n&quot; . map showSup</span>
+<span class="Keyword">type</span> <span class="ConId">SupplierRecord</span> <span class="Symbol">=</span> <span class="ConId">Record</span> <span class="Symbol">(</span><span class="ConId">HCons</span> <span class="Symbol">(</span><span class="ConId">LVPair</span> <span class="Symbol">(</span><span class="ConId">Proxy</span> <span class="ConId">S_no</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">Maybe</span> <span class="ConId">Int</span><span class="Symbol">))</span>
+                             <span class="Symbol">(</span><span class="ConId">HCons</span> <span class="Symbol">(</span><span class="ConId">LVPair</span> <span class="Symbol">(</span><span class="ConId">Proxy</span> <span class="ConId">Sname</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">Maybe</span> <span class="ConId">String</span><span class="Symbol">))</span>
+                             <span class="Symbol">(</span><span class="ConId">HCons</span> <span class="Symbol">(</span><span class="ConId">LVPair</span> <span class="Symbol">(</span><span class="ConId">Proxy</span> <span class="ConId">Status</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">Maybe</span> <span class="ConId">Int</span><span class="Symbol">))</span>
+                             <span class="Symbol">(</span><span class="ConId">HCons</span> <span class="Symbol">(</span><span class="ConId">LVPair</span> <span class="Symbol">(</span><span class="ConId">Proxy</span> <span class="ConId">City</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">Maybe</span> <span class="ConId">String</span><span class="Symbol">))</span>
+                              <span class="ConId">HNil</span><span class="Symbol">))))</span></pre></div></div></div><blockquote
+    ><p
+      >showSup :: SupplierRecord -&gt; String showSup r = &quot;s_no: &quot; ++ show (r # s_no) ++ &quot;, &quot; ++ &quot;sname: &quot; ++ show (r # sname) ++ &quot;, &quot; ++ &quot;status: &quot; ++ show (r # status) ++ &quot;, &quot; ++ &quot;city: &quot; ++ show (r # city)</p
+      ></blockquote
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">-- the connection string here is used at compile time to get the</span>
+<span class="Comment">-- type of the sql statement</span></pre></div></div></div><blockquote
+    ><p
+      >suppliers :: IConnection conn =&gt; conn -&gt; IO [(Maybe Int, Maybe String, Maybe Int, Maybe String)]</p
+      ></blockquote
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">suppliers</span> <span class="Symbol">=</span> <span class="Symbol">$(</span><span class="VarId">sqlQuery</span> <span class="VarId">connectionString</span> <span class="String">&quot;select * from s;&quot;</span><span class="Symbol">)</span></pre></div></div></div><blockquote
+    ><p
+      >goodSuppliers :: IConnection conn =&gt; conn -&gt; Maybe Int -&gt; IO [(Maybe Int, Maybe String, Maybe Int, Maybe String)]</p
+      ></blockquote
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">goodSuppliers</span> <span class="Symbol">=</span> <span class="Symbol">$(</span><span class="VarId">sqlQuery</span> <span class="VarId">connectionString</span> <span class="String">&quot;select * from s where status &gt;= ?;&quot;</span><span class="Symbol">)</span></pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

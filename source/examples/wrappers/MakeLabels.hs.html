@@ -1,0 +1,142 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >MakeLabels</title
+    ><link href="../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../index.txt.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >{-# LANGUAGE TemplateHaskell, FlexibleInstances, EmptyDataDecls, DeriveDataTypeable #-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="Comment">-- robbed from the darcs version of hlist</span>
+
+<span class="Comment">-- Making labels</span>
+
+</pre></div></div></div><p
+    >{- The following TH splice $(makeLabels [&quot;getX&quot;,&quot;getY&quot;,&quot;draw&quot;])</p
+    ><p
+    >should expand into the following declarations</p
+    ><p
+    >data GetX deriving Typeable; foo :: Proxy Foo; getX = proxy::Proxy GetX data GetY deriving Typeable; getY :: Proxy Foo; getY = proxy::Proxy GetY data Draw deriving Typeable; draw :: Proxy Foo; draw = proxy::Proxy Draw</p
+    ><p
+    >-}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+
+<span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.Examples.Wrappers.MakeLabels</span> <span class="Symbol">(</span><span class="VarId">makeLabels</span><span class="Symbol">,</span><span class="VarId">label</span><span class="Symbol">)</span> <span class="Keyword">where</span>
+
+<span class="Keyword">import</span> <span class="ConId">Data.HList.FakePrelude</span>
+
+<span class="Keyword">import</span> <span class="ConId">Language.Haskell.TH.Ppr</span> <span class="Symbol">()</span> <span class="Comment">--pprint,Ppr)</span>
+<span class="Keyword">import</span> <span class="ConId">Language.Haskell.TH.Syntax</span>
+
+<span class="Keyword">import</span> <span class="ConId">Data.Char</span> <span class="Symbol">(</span><span class="VarId">toUpper</span><span class="Symbol">,</span> <span class="VarId">toLower</span><span class="Symbol">)</span>
+<span class="Keyword">import</span> <span class="ConId">Control.Monad</span> <span class="Symbol">(</span><span class="VarId">liftM</span><span class="Symbol">)</span>
+
+<span class="Keyword">import</span> <span class="ConId">Data.Typeable</span>
+
+<span class="Function">capitalize</span><span class="Symbol">,</span> <span class="VarId">uncapitalize</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+<span class="Function">capitalize</span>   <span class="Symbol">(</span><span class="VarId">c</span><span class="Symbol">:</span><span class="VarId">rest</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">toUpper</span> <span class="VarId">c</span> <span class="Symbol">:</span> <span class="VarId">rest</span>
+<span class="Function">capitalize</span> <span class="Symbol">[]</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+<span class="Function">uncapitalize</span> <span class="Symbol">(</span><span class="VarId">c</span><span class="Symbol">:</span><span class="VarId">rest</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">toLower</span> <span class="VarId">c</span> <span class="Symbol">:</span> <span class="VarId">rest</span>
+<span class="Function">uncapitalize</span> <span class="Symbol">[]</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
+
+
+<span class="Comment">-- Make the name of the type constructor whose string representation</span>
+<span class="Comment">-- is capitalized str</span>
+<span class="Function">make_tname</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Name</span>
+<span class="Function">make_tname</span> <span class="VarId">str</span> <span class="Symbol">=</span> <span class="VarId">mkName</span> <span class="Symbol">$</span> <span class="VarId">capitalize</span> <span class="VarId">str</span>
+
+<span class="Comment">-- Make the name of the value identifier whose string representation</span>
+<span class="Comment">-- is uncapitalized str</span>
+<span class="Function">make_dname</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Name</span>
+<span class="Function">make_dname</span> <span class="VarId">str</span> <span class="Symbol">=</span> <span class="VarId">mkName</span> <span class="Symbol">$</span> <span class="VarId">uncapitalize</span> <span class="VarId">str</span>
+
+<span class="Comment">-- The template of our declaration. We will then replace all occurences</span>
+<span class="Comment">-- of Foo with the desired name</span>
+
+<span class="Comment">-- this has been changed to add type sig plus deriving</span>
+<span class="Function">dcl_template</span> <span class="Symbol">::</span> <span class="ConId">Q</span> <span class="Symbol">[</span><span class="ConId">Dec</span><span class="Symbol">]</span>
+<span class="Function">dcl_template</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="VarId">d</span><span class="Symbol">|</span> <span class="Keyword">data</span> <span class="ConId">Foo</span> <span class="Keyword">deriving</span> <span class="ConId">Typeable</span><span class="Symbol">;</span> <span class="VarId">foo</span> <span class="Symbol">::</span> <span class="ConId">Proxy</span> <span class="ConId">Foo</span><span class="Symbol">;</span> <span class="VarId">foo</span> <span class="Symbol">=</span> <span class="VarId">proxy</span><span class="Symbol">::</span><span class="ConId">Proxy</span> <span class="ConId">Foo</span> <span class="Symbol">|]</span>
+
+<span class="Comment">-- A very dirty traversal/replacement...</span>
+
+<span class="Keyword">class</span> <span class="ConId">ReplaceSyntax</span> <span class="VarId">a</span> <span class="Keyword">where</span>
+    <span class="VarId">replace_name</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Name</span><span class="Symbol">,</span><span class="ConId">Name</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="ConId">Name</span><span class="Symbol">,</span><span class="ConId">Name</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
+
+<span class="Keyword">instance</span> <span class="ConId">ReplaceSyntax</span> <span class="Symbol">[</span><span class="ConId">Dec</span><span class="Symbol">]</span> <span class="Keyword">where</span>
+    <span class="VarId">replace_name</span> <span class="VarId">frm</span> <span class="VarId">to</span> <span class="VarId">dcls</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="Symbol">(</span><span class="VarId">replace_name</span> <span class="VarId">frm</span> <span class="VarId">to</span><span class="Symbol">)</span> <span class="VarId">dcls</span>
+
+<span class="Keyword">instance</span> <span class="ConId">ReplaceSyntax</span> <span class="ConId">Dec</span> <span class="Keyword">where</span>
+    <span class="VarId">replace_name</span> <span class="Symbol">(</span><span class="VarId">tfrom</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="VarId">tto</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">)</span>
+                 <span class="VarId">dcl</span><span class="Symbol">@(</span><span class="ConId">DataD</span> <span class="VarId">ctx</span> <span class="VarId">n</span> <span class="VarId">parms</span> <span class="VarId">con</span> <span class="VarId">othern</span><span class="Symbol">)</span> <span class="Symbol">=</span>
+                     <span class="Keyword">if</span> <span class="VarId">tfrom</span> <span class="Symbol">==</span> <span class="VarId">n</span> <span class="Keyword">then</span>
+                        <span class="ConId">DataD</span> <span class="VarId">ctx</span> <span class="VarId">tto</span> <span class="VarId">parms</span> <span class="VarId">con</span> <span class="VarId">othern</span>
+                        <span class="Keyword">else</span> <span class="VarId">dcl</span>
+    <span class="VarId">replace_name</span> <span class="Symbol">(</span><span class="VarId">tfrom</span><span class="Symbol">,</span><span class="VarId">dfrom</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="VarId">tto</span><span class="Symbol">,</span><span class="VarId">dto</span><span class="Symbol">)</span>
+                 <span class="Symbol">(</span><span class="ConId">ValD</span> <span class="Symbol">(</span><span class="ConId">VarP</span> <span class="VarId">n</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">NormalB</span> <span class="VarId">body</span><span class="Symbol">)</span> <span class="Symbol">[])</span> <span class="Symbol">=</span>
+          <span class="Keyword">let</span> <span class="VarId">n'</span> <span class="Symbol">=</span> <span class="Keyword">if</span> <span class="VarId">n</span> <span class="Symbol">==</span> <span class="VarId">dfrom</span> <span class="Keyword">then</span> <span class="VarId">dto</span> <span class="Keyword">else</span> <span class="VarId">n</span>
+          <span class="Keyword">in</span> <span class="ConId">ValD</span> <span class="Symbol">(</span><span class="ConId">VarP</span> <span class="VarId">n'</span><span class="Symbol">)</span>
+                  <span class="Symbol">(</span><span class="ConId">NormalB</span> <span class="Symbol">(</span><span class="VarId">replace_name</span> <span class="Symbol">(</span><span class="VarId">tfrom</span><span class="Symbol">,</span><span class="VarId">dfrom</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="VarId">tto</span><span class="Symbol">,</span><span class="VarId">dto</span><span class="Symbol">)</span> <span class="VarId">body</span><span class="Symbol">))</span> <span class="Symbol">[]</span>
+
+    <span class="VarId">replace_name</span> <span class="Symbol">(</span><span class="VarId">tfrom</span><span class="Symbol">,</span><span class="VarId">dfrom</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="VarId">tto</span><span class="Symbol">,</span><span class="VarId">dto</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">SigD</span> <span class="VarId">n</span> <span class="VarId">t</span><span class="Symbol">)</span> <span class="Symbol">=</span>
+          <span class="Keyword">let</span> <span class="VarId">n'</span> <span class="Symbol">=</span> <span class="Keyword">if</span> <span class="VarId">n</span> <span class="Symbol">==</span> <span class="VarId">dfrom</span> <span class="Keyword">then</span> <span class="VarId">dto</span> <span class="Keyword">else</span> <span class="VarId">n</span>
+          <span class="Keyword">in</span> <span class="ConId">SigD</span> <span class="VarId">n'</span> <span class="Symbol">(</span><span class="VarId">replace_name</span> <span class="Symbol">(</span><span class="VarId">tfrom</span><span class="Symbol">,</span><span class="VarId">dfrom</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="VarId">tto</span><span class="Symbol">,</span><span class="VarId">dto</span><span class="Symbol">)</span> <span class="VarId">t</span><span class="Symbol">)</span>
+
+    <span class="VarId">replace_name</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="VarId">dcl</span> <span class="Symbol">=</span>
+        <span class="VarId">error</span> <span class="Symbol">$</span> <span class="String">&quot;Can't handle: &quot;</span> <span class="Symbol">++</span> <span class="VarId">show</span> <span class="VarId">dcl</span>
+
+
+<span class="Keyword">instance</span> <span class="ConId">ReplaceSyntax</span> <span class="ConId">Exp</span> <span class="Keyword">where</span>
+    <span class="VarId">replace_name</span> <span class="VarId">from</span> <span class="VarId">to</span> <span class="Symbol">(</span><span class="ConId">SigE</span> <span class="VarId">exp'</span> <span class="VarId">tp</span><span class="Symbol">)</span> <span class="Symbol">=</span>
+                     <span class="ConId">SigE</span> <span class="Symbol">(</span><span class="VarId">replace_name</span> <span class="VarId">from</span> <span class="VarId">to</span> <span class="VarId">exp'</span><span class="Symbol">)</span>
+                          <span class="Symbol">(</span><span class="VarId">replace_name</span> <span class="VarId">from</span> <span class="VarId">to</span> <span class="VarId">tp</span><span class="Symbol">)</span>
+    <span class="VarId">replace_name</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="VarId">exp'</span> <span class="Symbol">=</span> <span class="VarId">exp'</span>
+
+
+<span class="Keyword">instance</span> <span class="ConId">ReplaceSyntax</span> <span class="ConId">Type</span> <span class="Keyword">where</span>
+    <span class="VarId">replace_name</span> <span class="Symbol">(</span><span class="VarId">tfrom</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="VarId">tto</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="VarId">tp</span><span class="Symbol">@(</span><span class="ConId">ConT</span> <span class="VarId">n</span><span class="Symbol">)</span> <span class="Symbol">=</span>
+        <span class="Keyword">if</span> <span class="VarId">n</span> <span class="Symbol">==</span> <span class="VarId">tfrom</span> <span class="Keyword">then</span> <span class="Symbol">(</span><span class="ConId">ConT</span> <span class="VarId">tto</span><span class="Symbol">)</span> <span class="Keyword">else</span> <span class="VarId">tp</span>
+    <span class="VarId">replace_name</span> <span class="VarId">from</span> <span class="VarId">to</span> <span class="Symbol">(</span><span class="ConId">AppT</span> <span class="VarId">t1</span> <span class="VarId">t2</span><span class="Symbol">)</span> <span class="Symbol">=</span>
+        <span class="Symbol">(</span><span class="ConId">AppT</span> <span class="Symbol">(</span><span class="VarId">replace_name</span> <span class="VarId">from</span> <span class="VarId">to</span> <span class="VarId">t1</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="VarId">replace_name</span> <span class="VarId">from</span> <span class="VarId">to</span> <span class="VarId">t2</span><span class="Symbol">))</span>
+    <span class="VarId">replace_name</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="VarId">t</span> <span class="Symbol">=</span> <span class="VarId">error</span> <span class="Symbol">$</span> <span class="String">&quot;Can't handle: &quot;</span> <span class="Symbol">++</span> <span class="VarId">show</span> <span class="VarId">t</span>
+
+
+<span class="Comment">-- Our main function</span>
+<span class="Function">makeLabels</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">String</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Q</span> <span class="Symbol">[</span><span class="ConId">Dec</span><span class="Symbol">]</span>
+<span class="Function">makeLabels</span> <span class="Symbol">=</span> <span class="VarId">liftM</span> <span class="VarId">concat</span> <span class="Symbol">.</span> <span class="VarId">sequence</span> <span class="Symbol">.</span> <span class="VarId">map</span> <span class="VarId">repl</span>
+ <span class="Keyword">where</span>
+ <span class="VarId">repl</span> <span class="VarId">n</span> <span class="Symbol">=</span> <span class="VarId">liftM</span> <span class="Symbol">(</span><span class="VarId">replace_name</span> <span class="VarId">from</span> <span class="Symbol">(</span><span class="VarId">to</span> <span class="VarId">n</span><span class="Symbol">))</span> <span class="VarId">dcl_template</span>
+ <span class="VarId">from</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="VarId">make_tname</span> <span class="String">&quot;foo&quot;</span><span class="Symbol">,</span><span class="VarId">make_dname</span> <span class="String">&quot;foo&quot;</span><span class="Symbol">)</span>
+ <span class="VarId">to</span> <span class="VarId">n</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="VarId">make_tname</span> <span class="VarId">n</span><span class="Symbol">,</span><span class="VarId">make_dname</span> <span class="VarId">n</span><span class="Symbol">)</span>
+
+<span class="Function">label</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Q</span> <span class="Symbol">[</span><span class="ConId">Dec</span><span class="Symbol">]</span>
+<span class="Function">label</span> <span class="VarId">s</span> <span class="Symbol">=</span> <span class="VarId">makeLabels</span> <span class="Symbol">[</span><span class="VarId">s</span><span class="Symbol">]</span>
+
+</pre></div></div></div><p
+    >{- -- Show the code expression show_code :: Ppr a =&gt; Q a -&gt; IO () show_code cde = runQ cde &gt;&gt;= putStrLn . pprint</p
+    ><p
+    >t1 :: IO () t1 = show_code [d| data Foo |]</p
+    ><p
+    >t2 :: String t2 = showName $ mkName &quot;Foo&quot;</p
+    ><p
+    >t3 :: IO () t3 = show_code $ liftM (replace_name (make_tname &quot;foo&quot;,make_dname &quot;foo&quot;) (make_tname &quot;bar&quot;,make_dname &quot;bar&quot;)) dcl_template</p
+    ><p
+    >t4 :: IO () t4 = show_code $ makeLabels [&quot;getX&quot;,&quot;getY&quot;,&quot;draw&quot;] -}</p
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+</pre></div></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>
