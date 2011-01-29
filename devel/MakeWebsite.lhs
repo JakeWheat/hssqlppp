@@ -2,7 +2,7 @@ Make the website,
 
 To compile and run, use something like:
 
-time ghc -threaded -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -idevel:src:examples/chaos:examples/extensions/:examples/util/:tests/ --make devel/MakeWebsite.lhs && time devel/MakeWebsite +RTS -N
+ghc --make -threaded -XScopedTypeVariables -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -idevel:src/lib:src/qq:src/postgresql:examples/chaos:examples/extensions/:examples/util/:tests/ --make devel/DevelTool.lhs && time 
 
 > module MakeWebsite (makeWebsite, sourceLinks) where
 
@@ -28,7 +28,7 @@ time ghc -threaded -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -i
 > fileList = do
 >   doesDirectoryExist "hssqlppp" >>=
 >     flip when (removeDirectoryRecursive "hssqlppp")
->   wso <- doF "docs/website/" (makeRelative "docs/website/")
+>   wso <- doF "website_source/" (makeRelative "website_source")
 >   src' <- doF "src/" ("source" </>)
 >   let src = removeMatches ["src/Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs"] src'
 >   ex' <- doF "examples/" ("source" </>)
@@ -55,7 +55,7 @@ time ghc -threaded -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -i
 >                                      Txt
 >                                      ("hssqlppp/source" </> fn)
 >                                      title-}
->   return $ tfp ++ src ++ {-trch1 ++ -} wso ++  ex ++ devel ++ tests
+>   return $ {-tfp ++ src ++-} {-trch1 ++ -} wso {- ++  ex ++ devel ++ tests-}
 >   where
 >     removeMatches :: [String] -> [OutputFile] -> [OutputFile]
 >     removeMatches bads =

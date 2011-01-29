@@ -17,7 +17,7 @@ Description:
     and PL/pgSQL.
     .
     Documentation, examples on the homepage:
-    < http://jakewheat.github.com/hssqlppp/http://community.haskell.org/~JakeWheat/hssqlppp/index.html>.
+    <http://jakewheat.github.com/hssqlppp/>.
 
 -- to run haddock use 'cabal configure --ghc-options "-pgmPcpphs -optP--cpp"' first
 

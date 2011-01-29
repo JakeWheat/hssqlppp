@@ -25,9 +25,9 @@
 > >     typename = "text"
 > >
 >
-> See <http://community.haskell.org/~JakeWheat/hssqlppp/QuasiQuoteTests.html>
+> See <http://jakewheat.github.com/hssqlppp/QuasiQuoteTests.html>
 > for more simple examples, and
-> <http://community.haskell.org/~JakeWheat/hssqlppp/source/examples/Database/HsSqlPpp/Examples/Extensions/>
+> <http://jakewheat.github.com/hssqlppp/source/examples/Database/HsSqlPpp/Examples/Extensions/>
 > for some example files which use quasiquotation to do ast
 > transformations which implement syntax extensions to sql
 >      -}

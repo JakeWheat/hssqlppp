@@ -7,7 +7,7 @@ licensed.
 
 This documentation is for the HEAD of the master branch in github:
 
-https://github.com/JakeWheat/hssqlppp
+[https://github.com/JakeWheat/hssqlppp](https://github.com/JakeWheat/hssqlppp)
 
 This documentation is a work in progress.
 
@@ -40,7 +40,8 @@ kind of SQL can currently be parsed:
 
 * [Parsing examples](ParserTests.html)
 
-The type checker is currently in a mess.
+The type checker is currently in a mess after some reworking of
+parsing and ast types.
 
 Extract from the type checking tests:
 
@@ -82,16 +83,17 @@ cabal install hssqlppp
 to install the library with the defaults, or e.g.
 
 ~~~~~{.sh}
-cabal install hssqlppp -f-postgres -f-quasiquotes
+cabal install hssqlppp -fpostgres -fquasiquotes
 ~~~~~
 
-for minimal dependency version, or
+for postgresql extras and quasiquotation support, and
 
 ~~~~~{.sh}
 cabal install hssqlppp -ftests
 ~~~~~
 
-for the tests.
+to compile the tests executable as well (this also forces postgres and
+quasiquote support).
 
 Documentation
 =============
@@ -102,6 +104,8 @@ Some simple examples coming soon.
 
 See the [htmlized source for the library, tests, and examples](source.txt.html); has lots of
 comments but is quite rough at the moment.
+
+Developer notes: [devel/index.txt.html](devel/index.txt.html)
 
 Homepage: [http://jakewheat.github.com/hssqlppp/](http://jakewheat.github.com/hssqlppp/)
 

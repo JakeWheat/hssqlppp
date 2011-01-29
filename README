@@ -6,24 +6,10 @@ cabal update
 cabal install hssqlppp
 
 Website, with docs and examples:
-http://community.haskell.org/~JakeWheat/hssqlppp/index.html
+http://jakewheat.github.com/hssqlppp/
 
 Hackage: http://hackage.haskell.org/package/hssqlppp
 
 Repository: https://github.com/JakeWheat/hssqlppp
 
 Contact: jakewheatmail@gmail.com
-
-Modifying the code:
-
-To work with the code, you can use cabal to build, but this won't work
-if you need to change the ast types. In this case, you need to install
-uuagc-0.9.15 (some of the other versions don't work but this one
-definitely does).
-
-Make your changes to the .ag files
-(src/Database/HsSqlPpp/AstInternals/AstInternal.ag is the main one),
-then generate AstInternal.hs using the instructions at the top of
-AstInternal.ag. You then need to run another hacky utility. See
-devel/MakeAntiNodes.lhs for instructions. You can then use cabal again
-to build with the update ast node types.

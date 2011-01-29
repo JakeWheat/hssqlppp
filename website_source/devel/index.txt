@@ -19,12 +19,12 @@ some sort of extensible syntax and parsing. The idea would be to be
 able to read extended syntax and then convert to normal sql and
 plpgsql before type checking.
 
-[Background reading](background_reading.html)
+[Background reading](background_reading.txt.html)
 
-[Applicative parsing](applicative_parsing.html)
+[Applicative parsing](applicative_parsing.txt.html)
 
-[Compiling and running tests](compiling_and_running_tests.html)
+[Compiling and running tests](compiling_and_running_tests.txt.html)
 
-[Adding new syntax](adding_syntax.html)
+[Adding new syntax](adding_syntax.txt.html)
 
 Email me at jakewheatmail@gmail.com if I haven't made anything clear.

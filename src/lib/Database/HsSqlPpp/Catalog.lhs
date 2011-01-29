@@ -47,9 +47,6 @@ Forward the public part of CatalogInternal.
 >     ,compareCatalogs
 >     ,ppCatDiff
 >      -- * Functions
-#if POSTGRES
->     ,readCatalogFromDatabase
-#endif
 >     ,updateCatalog
 >     ,deconstructCatalog
 >      -- * operator utils
@@ -59,7 +56,4 @@ Forward the public part of CatalogInternal.
 >     ) where
 >
 > import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
-#if POSTGRES
-> import Database.HsSqlPpp.AstInternals.Catalog.CatalogReader
-#endif
 > import Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog

@@ -17,6 +17,7 @@ with postgres.
 > import Database.HsSqlPpp.Utils.DbmsCommon
 > import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.CatalogReader
 > import Database.HsSqlPpp.SqlTypes
 >
 >

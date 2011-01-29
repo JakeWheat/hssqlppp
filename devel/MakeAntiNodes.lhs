@@ -40,7 +40,7 @@ writeAntiNodes
 > import Database.HsSqlPpp.Utils.PPExpr
 
 > writeAntiNodes :: IO()
-> writeAntiNodes = makeAntiNodes >>= writeFile "src/Database/HsSqlPpp/AstInternals/AstAnti.hs"
+> writeAntiNodes = makeAntiNodes >>= writeFile "src/lib/Database/HsSqlPpp/AstInternals/AstAnti.hs"
 
 >
 > preamble :: String

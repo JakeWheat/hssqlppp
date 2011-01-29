@@ -1,21 +1,25 @@
 # Compiling and running the tests
 
-To be fleshed out...
-
 A full compile from scratch involves the following steps:
 
 recompile the AstInternals.hs from AstInternals.ag et al using
-uuagc. See src/Database/AstInternals/AstInternals.ag for instructions
+uuagc. See src/lib/Database/HsSqlPpp/AstInternals/AstInternals.ag for instructions
 
 update the antinodes using devel/MakeAntiNodes.lhs, see this file for
 instructions
 
-compile the tests executable using something like:
+Compile the tests executable using cabal:
 
-ghc -XScopedTypeVariables -XDeriveDataTypeable -cpp -pgmPcpphs -optP--cpp --make -isrc:tests:devel:examples/chaos/:examples/extensions/:examples/util/:examples/wrappers/ tests/Tests.lhs
+~~~~
+cabal configure -ftests
+cabal build
+~~~~
 
-run them using
-tests/Tests.lhs
+The run the tests using:
+
+~~~~
+dist/build/Tests/Tests
+~~~~
 
 expect 12 failures at the moment, which are in the broken typechecker,
 and not likely to be fixed for a while.
