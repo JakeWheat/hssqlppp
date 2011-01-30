@@ -1,3 +1,25 @@
+new todo for 0.4.0
+fix epxression parsing
+support most postgresql syntax
+better approach wrt parse tree and ast
+production type checking for selects, and dml?
+use doctool for documentation, upload to github
+refactor tests to reorganise
+fix up website
+add examples page to website
+report generator
+hssqlppputil work
+simple syntax extensions support
+build script to do uuagc, antinodes, etc.
+quasi quoting: lots more splices, pluc embedded haskell syntax
+get chaos parsing and working properly, add to tests
+do wrappers
+
+
+
+
+
+
 new medium term goal
 packages:
 sqlppp: sql ast + parsetree?, parser, pretty printer, quasi quotes, syntax

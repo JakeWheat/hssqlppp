@@ -51,6 +51,7 @@ right choice, but it seems to do the job pretty well at the moment.
 > import Database.HsSqlPpp.Annotation as A
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Catalog
+> --import Debug.Trace
 
 --------------------------------------------------------------------------------
 
@@ -1054,12 +1055,19 @@ work
 First job is to take care of forms which start like a vanilla
 expression, and then add a suffix on
 
->   threadOptionalSuffixes fct [castSuffix
->                              ,betweenSuffix
->                              ,inPredicateSuffix
->                              ,arraySubSuffix
->                              ,qualIdSuffix]
+>   fct >>= tryExprSuffix
 >   where
+>     tryExprSuffix e =
+>       option e $ do
+>       e1 <- choice $ map (\f -> f e)
+>               [inPredicateSuffix
+>               ,functionCallSuffix
+>               ,windowFnSuffix
+>               ,castSuffix
+>               ,betweenSuffix
+>               ,arraySubSuffix
+>               ,qualIdSuffix]
+>       tryExprSuffix e1
 >     fct = choice [
 
 order these so the ones which can be valid prefixes of others appear
@@ -1082,7 +1090,7 @@ a row constructor looking thing, then finally vanilla parens
 
 >       --,
 >        scalarSubQuery
->       ,try $ threadOptionalSuffix rowCtor inPredicateSuffix
+>       ,try rowCtor
 >       ,parens expr
 
 try a few random things which can't start a different expression
@@ -1120,14 +1128,8 @@ want to parse as an antiexpression rather than an antiidentifier
 
 >       ,antiExpression
 >       ,antiIdentifier1
->       --,qName
->       ,threadOptionalSuffixes identifier
->                               [inPredicateSuffix
->                               ,\l -> threadOptionalSuffix
->                                        (functionCallSuffix l)
->                                        windowFnSuffix]]
-
-
+>       ,identifier
+>       ]
 
 operator table
 --------------
@@ -1398,7 +1400,7 @@ TODO: copy this approach here.
 >                                       <|> keyword "distinct")
 >                             *> commaSep expr)
 > functionCallSuffix s =
->   error $ "internal error: cannot make functioncall from " ++ show s
+>   fail $ "cannot make functioncall from " ++ show s
 >
 > castKeyword :: SParser Expression
 > castKeyword = Cast

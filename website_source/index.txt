@@ -113,6 +113,15 @@ Hackage: [http://hackage.haskell.org/package/hssqlppp](http://hackage.haskell.or
 
 Repository: [https://github.com/JakeWheat/hssqlppp](https://github.com/JakeWheat/hssqlppp)
 
+Reporting issues and feature requests
+=====================================
+
+Use the github issue tracker. Please supply an example of sql which
+doesn't work where relevant.
+
+https://github.com/JakeWheat/hssqlppp/issues
+
+
 Future Plans
 ============
 

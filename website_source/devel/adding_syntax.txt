@@ -15,11 +15,14 @@ partially type check asts)
 run devel/MakeAntiNodes.lhs which is a crazy-baroque system to support
 the quasi-quotation system. Not sure how to make this non-crazy
 
+add code for parsing and pretty printing the new syntax
+
 compile and run the tests to check that the new test now passes
 
 # Example
 
-The parser currently the precision of types, e.g.
+The parser currently supports the precision of flaoting point types,
+e.g.
 
 ~~~~{.sql}
 create table t {

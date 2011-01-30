@@ -49,13 +49,13 @@ ghc --make -threaded -XScopedTypeVariables -XDeriveDataTypeable -DPOSTGRES -cpp 
 >             ,OutputFile (Text qq)
 >                         Txt "hssqlppp/QuasiQuoteTests.html"
 >                         "HsSqlPpp quasiquotation examples"]
->   {-trch1 <- flip fmap getTransformedChaosSql
+>   trch1 <- flip fmap getTransformedChaosSql
 >                 $ map $ \(title, fn, txt) ->
 >                           OutputFile (Text txt)
 >                                      Txt
 >                                      ("hssqlppp/source" </> fn)
->                                      title-}
->   return $ {-tfp ++ src ++-} {-trch1 ++ -} wso {- ++  ex ++ devel ++ tests-}
+>                                      title
+>   return $ tfp ++ src ++ trch1 ++ wso ++ ex ++ devel ++ tests
 >   where
 >     removeMatches :: [String] -> [OutputFile] -> [OutputFile]
 >     removeMatches bads =
