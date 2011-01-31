@@ -41,7 +41,7 @@ right choice, but it seems to do the job pretty well at the moment.
 > import Data.Char
 >
 > import Data.Generics.PlateData
-> import Data.Generics hiding (Prefix,Infix)
+> import Data.Data hiding (Prefix,Infix)
 >
 > import Database.HsSqlPpp.Parsing.Lexer
 > import Database.HsSqlPpp.Parsing.ParseErrors
@@ -1058,16 +1058,15 @@ expression, and then add a suffix on
 >   fct >>= tryExprSuffix
 >   where
 >     tryExprSuffix e =
->       option e $ do
->       e1 <- choice $ map (\f -> f e)
->               [inPredicateSuffix
->               ,functionCallSuffix
->               ,windowFnSuffix
->               ,castSuffix
->               ,betweenSuffix
->               ,arraySubSuffix
->               ,qualIdSuffix]
->       tryExprSuffix e1
+>       option e (choice (map (\f -> f e)
+>                                  [inPredicateSuffix
+>                                  ,functionCallSuffix
+>                                  ,windowFnSuffix
+>                                  ,castSuffix
+>                                  ,betweenSuffix
+>                                  ,arraySubSuffix
+>                                  ,qualIdSuffix])
+>                 >>= tryExprSuffix)
 >     fct = choice [
 
 order these so the ones which can be valid prefixes of others appear

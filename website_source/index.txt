@@ -100,12 +100,15 @@ Documentation
 
 Some simple examples coming soon.
 
-* [Haddock](haddock/index.html)
+[Haddock docs](haddock/index.html)
 
 See the [htmlized source for the library, tests, and examples](source.txt.html); has lots of
 comments but is quite rough at the moment.
 
 Developer notes: [devel/index.txt.html](devel/index.txt.html)
+
+Useful links
+============
 
 Homepage: [http://jakewheat.github.com/hssqlppp/](http://jakewheat.github.com/hssqlppp/)
 
@@ -119,7 +122,7 @@ Reporting issues and feature requests
 Use the github issue tracker. Please supply an example of sql which
 doesn't work where relevant.
 
-https://github.com/JakeWheat/hssqlppp/issues
+[https://github.com/JakeWheat/hssqlppp/issues](https://github.com/JakeWheat/hssqlppp/issues)
 
 
 Future Plans
@@ -136,6 +139,7 @@ Provisional for 0.4.0:
 * add slightly better support for custom syntax
 * report function which can be run on a big bit of sql - so you can
   easily find out how well your sql is supported by hssqlppp
+* production quality parsing and type checking for queries
 
 Contact
 =======

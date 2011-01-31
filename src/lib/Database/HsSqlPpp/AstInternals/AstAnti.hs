@@ -34,7 +34,7 @@ module Database.HsSqlPpp.AstInternals.AstAnti
         ExpressionDirectionPairList, MaybeBoolExpression, MaybeSelectList,
         AlterTableActionList)
        where
-import Data.Generics
+import Data.Data
 import Database.HsSqlPpp.AstInternals.AstAnnotation
 import qualified Database.HsSqlPpp.AstInternals.AstInternal as A
  

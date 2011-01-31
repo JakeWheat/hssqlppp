@@ -44,7 +44,7 @@ modules.
 >
 > import Control.Monad
 > import Data.List
-> import Data.Generics
+> import Data.Data
 > -- import Debug.Trace
 > import Data.Char
 >

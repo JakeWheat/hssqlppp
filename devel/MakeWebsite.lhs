@@ -2,7 +2,9 @@ Make the website,
 
 To compile and run, use something like:
 
-ghc --make -threaded -XScopedTypeVariables -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -idevel:src/lib:src/qq:src/postgresql:examples/chaos:examples/extensions/:examples/util/:tests/ --make devel/DevelTool.lhs && time 
+ghc --make -threaded -XScopedTypeVariables -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -idevel:src/lib:src/qq:src/postgresql:examples/chaos:examples/extensions/:examples/util/:tests/ --make devel/DevelTool.lhs
+
+time devel/DevelTool makewebsite +RTS -N
 
 > module MakeWebsite (makeWebsite, sourceLinks) where
 
@@ -22,6 +24,7 @@ ghc --make -threaded -XScopedTypeVariables -XDeriveDataTypeable -DPOSTGRES -cpp 
 > makeWebsite = do
 >           f <- fileList
 >           docify "hssqlppp/" f
+>           renameFile "hssqlppp/index.txt.html" "hssqlppp/index.html"
 
 
 > fileList :: IO [OutputFile]

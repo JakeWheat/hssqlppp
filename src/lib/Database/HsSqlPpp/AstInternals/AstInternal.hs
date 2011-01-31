@@ -83,7 +83,7 @@ module Database.HsSqlPpp.AstInternals.AstInternal(
 import Data.Maybe
 import Data.List
 import Control.Applicative
-import Data.Generics
+import Data.Data
 import Data.Char
 import Control.Monad.State
 
@@ -99,6 +99,9 @@ import Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindings
 import Database.HsSqlPpp.Utils.Utils
 import Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
 
+
+
+{-# LANGUAGE DeriveDataTypeable,RankNTypes,ScopedTypeVariables #-}
 
 
 data TableAlias = NoAlias

@@ -10,7 +10,7 @@ asts and annotations which depend on the ast types.
 >     ,resetAnnotations
 >     ) where
 >
-> import Data.Generics
+> import Data.Data
 > import Data.Generics.Uniplate.Data
 >
 > import Database.HsSqlPpp.AstInternals.AstInternal

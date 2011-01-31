@@ -1,7 +1,9 @@
 
 Small hack transform and load the chaos sql into the database.
 
-ghc -XDeriveDataTypeable -isrc:devel:tests:examples/extensions:examples/dbload:examples/chaos -hide-package monads-fd --make examples/chaos/Chaos2010.lhs && time examples/chaos/Chaos2010 sql > chaos1.sql && time examples/chaos/Chaos2010 clear && time psql chaos -q --set ON_ERROR_STOP=on --file=chaos1.sql
+ghc --make -threaded -XScopedTypeVariables -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -idevel:src/lib:src/qq:src/postgresql:examples/chaos:examples/extensions/:examples/util/:tests/ --make examples/chaos/Chaos2010.lhs
+
+time examples/chaos/Chaos2010 sql > chaos1.sql && time examples/chaos/Chaos2010 clear && time psql chaos -q --set ON_ERROR_STOP=on --file=chaos1.sql
 
 
 > import System.Environment

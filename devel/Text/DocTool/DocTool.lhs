@@ -97,7 +97,7 @@
 >          case x of
 >            [] -> Nothing
 >            _ | "sql" `elem` x
->                || "SqlPostgresql" `elem` x -> Just ""
+>                || "SqlPostgresql" `elem` x -> Just "sql"
 >              | "haskell" `elem` x -> Just "haskell"
 >              | "sh" `elem` x -> Just "sh"
 >              | "c" `elem` x -> Just "c"
@@ -154,7 +154,7 @@ bit dodgy
 >       << a
 >   +++ [br,br,br]
 >   where
->     a = anchor ! [href "/website/index.txt.html"]
+>     a = anchor ! [href "/website/index.html"]
 >                    << ("HsSqlPpp-" ++ v)
 
 todo: add the last modified time for each file individually

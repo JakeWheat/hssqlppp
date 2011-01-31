@@ -14,7 +14,7 @@ module Database.HsSqlPpp.Utils.PQ where
 #include <string.h>
 #include <errno.h>
 #include <sys/time.h>
-#include "libpq-fe.h"
+#include <postgresql/libpq-fe.h>
 
 import Foreign
 import Database.HsSqlPpp.Utils.C2HS

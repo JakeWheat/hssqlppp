@@ -53,7 +53,7 @@ out. If not, will have to add another type.
 > import Control.Monad.Trans.Error
 > import Control.Monad.Error
 >
-> import Data.Generics
+> import Data.Data
 > import Data.Generics.PlateData
 >
 > data Type = ScalarType String

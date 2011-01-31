@@ -1,5 +1,11 @@
+immediate todo:
+rearrange all files under src/, redo the index.txts
+add parsing the chaos files to the automated tests
+sql lexer for illuminate
+fold in changes from selects branch, start work on tpc-h parsing
+
 new todo for 0.4.0
-fix epxression parsing
+fix expression parsing
 support most postgresql syntax
 better approach wrt parse tree and ast
 production type checking for selects, and dml?
@@ -14,7 +20,10 @@ build script to do uuagc, antinodes, etc.
 quasi quoting: lots more splices, pluc embedded haskell syntax
 get chaos parsing and working properly, add to tests
 do wrappers
-
+revert plan with selects branch: fold changes in selects branch back
+   into trunk and discontinue selects branch. Want a less disruptive
+   improvement - fix query typechecking whilst keeping other stuff in
+   current condition
 
 
 
