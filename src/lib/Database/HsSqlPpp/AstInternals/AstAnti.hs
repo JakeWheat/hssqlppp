@@ -20,10 +20,10 @@ module Database.HsSqlPpp.AstInternals.AstAnti
         CombineType(..), Volatility(..), Language(..), TypeName(..),
         DropType(..), Cascade(..), Direction(..), Distinct(..),
         Natural(..), IfExists(..), Replace(..), RestartIdentity(..),
-        ScalarExpr(..), IntervalField(..), FrameClause(..), InList(..),
-        LiftFlavour(..), TriggerWhen(..), TriggerEvent(..),
-        TriggerFire(..), SetValue(..), WithQueryList, StatementList,
-        ScalarExprListStatementListPairList,
+        ScalarExpr(..), IntervalField(..), ExtractField(..),
+        FrameClause(..), InList(..), LiftFlavour(..), TriggerWhen(..),
+        TriggerEvent(..), TriggerFire(..), SetValue(..), WithQueryList,
+        StatementList, ScalarExprListStatementListPairList,
         ScalarExprListStatementListPair, ScalarExprList, ParamDefList,
         AttributeDefList, ConstraintList, TypeAttributeDefList,
         TypeNameList, StringTypeNameListPair, StringTypeNameListPairList,
@@ -153,6 +153,29 @@ data IntervalField = IntervalYear
                    | IntervalMinuteToSecond
                    deriving (Show, Eq, Typeable, Data)
  
+data ExtractField = ExtractCentury
+                  | ExtractDay
+                  | ExtractDecade
+                  | ExtractDow
+                  | ExtractDoy
+                  | ExtractEpoch
+                  | ExtractHour
+                  | ExtractIsodow
+                  | ExtractIsoyear
+                  | ExtractMicroseconds
+                  | ExtractMillennium
+                  | ExtractMilliseconds
+                  | ExtractMinute
+                  | ExtractMonth
+                  | ExtractQuarter
+                  | ExtractSecond
+                  | ExtractTimezone
+                  | ExtractTimezoneHour
+                  | ExtractTimezoneMinute
+                  | ExtractWeek
+                  | ExtractYear
+                  deriving (Show, Eq, Typeable, Data)
+ 
 data FrameClause = FrameUnboundedPreceding
                  | FrameUnboundedFull
                  | FrameRowsUnboundedPreceding
@@ -215,6 +238,7 @@ data ScalarExpr = BooleanLit (Annotation) (Bool)
                              (CaseScalarExprListScalarExprPairList) (MaybeScalarExpr)
                 | Cast (Annotation) (ScalarExpr) (TypeName)
                 | Exists (Annotation) (QueryExpr)
+                | Extract (Annotation) (ExtractField) (ScalarExpr)
                 | FloatLit (Annotation) (Double)
                 | FunCall (Annotation) (String) (ScalarExprList)
                 | Identifier (Annotation) (String)
@@ -537,6 +561,31 @@ intervalField x
         IntervalHourToSecond -> A.IntervalHourToSecond
         IntervalMinuteToSecond -> A.IntervalMinuteToSecond
  
+extractField :: ExtractField -> A.ExtractField
+extractField x
+  = case x of
+        ExtractCentury -> A.ExtractCentury
+        ExtractDay -> A.ExtractDay
+        ExtractDecade -> A.ExtractDecade
+        ExtractDow -> A.ExtractDow
+        ExtractDoy -> A.ExtractDoy
+        ExtractEpoch -> A.ExtractEpoch
+        ExtractHour -> A.ExtractHour
+        ExtractIsodow -> A.ExtractIsodow
+        ExtractIsoyear -> A.ExtractIsoyear
+        ExtractMicroseconds -> A.ExtractMicroseconds
+        ExtractMillennium -> A.ExtractMillennium
+        ExtractMilliseconds -> A.ExtractMilliseconds
+        ExtractMinute -> A.ExtractMinute
+        ExtractMonth -> A.ExtractMonth
+        ExtractQuarter -> A.ExtractQuarter
+        ExtractSecond -> A.ExtractSecond
+        ExtractTimezone -> A.ExtractTimezone
+        ExtractTimezoneHour -> A.ExtractTimezoneHour
+        ExtractTimezoneMinute -> A.ExtractTimezoneMinute
+        ExtractWeek -> A.ExtractWeek
+        ExtractYear -> A.ExtractYear
+ 
 frameClause :: FrameClause -> A.FrameClause
 frameClause x
   = case x of
@@ -641,6 +690,7 @@ scalarExpr x
                                     (maybeScalarExpr a4)
         Cast a1 a2 a3 -> A.Cast a1 (scalarExpr a2) (typeName a3)
         Exists a1 a2 -> A.Exists a1 (queryExpr a2)
+        Extract a1 a2 a3 -> A.Extract a1 (extractField a2) (scalarExpr a3)
         FloatLit a1 a2 -> A.FloatLit a1 a2
         FunCall a1 a2 a3 -> A.FunCall a1 a2 (scalarExprList a3)
         Identifier a1 a2 -> A.Identifier a1 a2

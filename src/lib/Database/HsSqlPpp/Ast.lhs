@@ -34,6 +34,7 @@
 >     ,WithQueryList
 >     ,WithQuery(..)
 >     ,IntervalField(..)
+>     ,ExtractField(..)
 >      -- ** dml
 >     ,CopySource (..)
 >     ,RestartIdentity (..)

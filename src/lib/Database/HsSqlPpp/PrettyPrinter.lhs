@@ -728,6 +728,34 @@ Statement components
 >     convPrec = case p of
 >                  Nothing -> empty
 >                  Just i -> parens (int i)
+> convExp (Extract _ f e) =
+>   text "extract"
+>   <> parens (text convField <+> text "from" <+> convExp e)
+>   where
+>     convField =
+>       case f of
+>              ExtractCentury -> "century"
+>              ExtractDay -> "day"
+>              ExtractDecade -> "decade"
+>              ExtractDow -> "dow"
+>              ExtractDoy -> "doy"
+>              ExtractEpoch -> "epoch"
+>              ExtractHour -> "hour"
+>              ExtractIsodow -> "isodow"
+>              ExtractIsoyear -> "isoyear"
+>              ExtractMicroseconds -> "microseconds"
+>              ExtractMillennium -> "millennium"
+>              ExtractMilliseconds -> "milliseconds"
+>              ExtractMinute -> "minute"
+>              ExtractMonth -> "month"
+>              ExtractQuarter -> "quarter"
+>              ExtractSecond -> "second"
+>              ExtractTimezone -> "timezone"
+>              ExtractTimezoneHour -> "timezone_hour"
+>              ExtractTimezoneMinute -> "timezone_minute"
+>              ExtractWeek -> "week"
+>              ExtractYear -> "year"
+
 
 > convExpSl :: ScalarExpr -> Doc
 > convExpSl (FunCall _ "." es) | [a@(Identifier _ _), b] <- es =

@@ -40,6 +40,7 @@ module Database.HsSqlPpp.AstInternals.AstInternal(
    ,RestartIdentity (..)
    ,ScalarExpr (..)
    ,IntervalField(..)
+   ,ExtractField(..)
    ,FrameClause(..)
    ,InList (..)
    ,LiftFlavour(..)
@@ -191,6 +192,30 @@ data IntervalField = IntervalYear
                    | IntervalHourToSecond
                    | IntervalMinuteToSecond
                      deriving (Show,Eq,Typeable,Data)
+
+data ExtractField = ExtractCentury
+                  | ExtractDay
+                  | ExtractDecade
+                  | ExtractDow
+                  | ExtractDoy
+                  | ExtractEpoch
+                  | ExtractHour
+                  | ExtractIsodow
+                  | ExtractIsoyear
+                  | ExtractMicroseconds
+                  | ExtractMillennium
+                  | ExtractMilliseconds
+                  | ExtractMinute
+                  | ExtractMonth
+                  | ExtractQuarter
+                  | ExtractSecond
+                  | ExtractTimezone
+                  | ExtractTimezoneHour
+                  | ExtractTimezoneMinute
+                  | ExtractWeek
+                  | ExtractYear
+                    deriving (Show,Eq,Typeable,Data)
+
 
 
 data FrameClause = FrameUnboundedPreceding
@@ -3489,6 +3514,13 @@ sem_RowConstraintList_Nil  =
             local backTree    : _
             local annotatedTree : _
             local originalTree : _
+      alternative Extract:
+         child ann            : {Annotation}
+         child field          : {ExtractField}
+         child e              : ScalarExpr 
+         visit 0:
+            local annotatedTree : _
+            local originalTree : _
       alternative FloatLit:
          child ann            : {Annotation}
          child d              : {Double}
@@ -3687,6 +3719,7 @@ data ScalarExpr  = BooleanLit (Annotation) (Bool)
                  | CaseSimple (Annotation) (ScalarExpr) (CaseScalarExprListScalarExprPairList) (MaybeScalarExpr) 
                  | Cast (Annotation) (ScalarExpr) (TypeName) 
                  | Exists (Annotation) (QueryExpr) 
+                 | Extract (Annotation) (ExtractField) (ScalarExpr) 
                  | FloatLit (Annotation) (Double) 
                  | FunCall (Annotation) (String) (ScalarExprList) 
                  | Identifier (Annotation) (String) 
@@ -3716,6 +3749,8 @@ sem_ScalarExpr (Cast _ann _expr _tn )  =
     (sem_ScalarExpr_Cast _ann (sem_ScalarExpr _expr ) (sem_TypeName _tn ) )
 sem_ScalarExpr (Exists _ann _sel )  =
     (sem_ScalarExpr_Exists _ann (sem_QueryExpr _sel ) )
+sem_ScalarExpr (Extract _ann _field _e )  =
+    (sem_ScalarExpr_Extract _ann _field (sem_ScalarExpr _e ) )
 sem_ScalarExpr (FloatLit _ann _d )  =
     (sem_ScalarExpr_FloatLit _ann _d )
 sem_ScalarExpr (FunCall _ann _funName _args )  =
@@ -4302,6 +4337,70 @@ sem_ScalarExpr_Exists ann_ sel_  =
                   _lhsIlib
               ( _selIannotatedTree,_selIlibUpdates,_selIoriginalTree,_selIuType) =
                   (sel_ _selOcat _selOexpectedTypes _selOlib )
+          in  ( _lhsOannotatedTree,_lhsOntAnnotatedTree,_lhsOntType,_lhsOoriginalTree,_lhsOtbAnnotatedTree,_lhsOtbUType,_lhsOuType)))
+sem_ScalarExpr_Extract :: Annotation ->
+                          ExtractField ->
+                          T_ScalarExpr  ->
+                          T_ScalarExpr 
+sem_ScalarExpr_Extract ann_ field_ e_  =
+    (\ _lhsIcat
+       _lhsIexpectedType
+       _lhsIlib ->
+         (let _lhsOannotatedTree :: ScalarExpr
+              _lhsOoriginalTree :: ScalarExpr
+              _lhsOntAnnotatedTree :: ScalarExpr
+              _lhsOntType :: ([(String,Type)])
+              _lhsOtbAnnotatedTree :: ScalarExpr
+              _lhsOtbUType :: (Maybe ([(String,Type)],[(String,Type)]))
+              _lhsOuType :: (Maybe Type)
+              _eOcat :: Catalog
+              _eOexpectedType :: (Maybe Type)
+              _eOlib :: LocalBindings
+              _eIannotatedTree :: ScalarExpr
+              _eIntAnnotatedTree :: ScalarExpr
+              _eIntType :: ([(String,Type)])
+              _eIoriginalTree :: ScalarExpr
+              _eItbAnnotatedTree :: ScalarExpr
+              _eItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
+              _eIuType :: (Maybe Type)
+              -- self rule
+              _annotatedTree =
+                  Extract ann_ field_ _eIannotatedTree
+              -- self rule
+              _originalTree =
+                  Extract ann_ field_ _eIoriginalTree
+              -- self rule
+              _lhsOannotatedTree =
+                  _annotatedTree
+              -- self rule
+              _lhsOoriginalTree =
+                  _originalTree
+              -- copy rule (up)
+              _lhsOntAnnotatedTree =
+                  _eIntAnnotatedTree
+              -- copy rule (up)
+              _lhsOntType =
+                  _eIntType
+              -- copy rule (up)
+              _lhsOtbAnnotatedTree =
+                  _eItbAnnotatedTree
+              -- copy rule (up)
+              _lhsOtbUType =
+                  _eItbUType
+              -- copy rule (up)
+              _lhsOuType =
+                  _eIuType
+              -- copy rule (down)
+              _eOcat =
+                  _lhsIcat
+              -- copy rule (down)
+              _eOexpectedType =
+                  _lhsIexpectedType
+              -- copy rule (down)
+              _eOlib =
+                  _lhsIlib
+              ( _eIannotatedTree,_eIntAnnotatedTree,_eIntType,_eIoriginalTree,_eItbAnnotatedTree,_eItbUType,_eIuType) =
+                  (e_ _eOcat _eOexpectedType _eOlib )
           in  ( _lhsOannotatedTree,_lhsOntAnnotatedTree,_lhsOntType,_lhsOoriginalTree,_lhsOtbAnnotatedTree,_lhsOtbUType,_lhsOuType)))
 sem_ScalarExpr_FloatLit :: Annotation ->
                            Double ->
