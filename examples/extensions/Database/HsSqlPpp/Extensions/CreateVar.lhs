@@ -48,7 +48,7 @@ database.
 >             -> let tablename = varname ++ "_table"
 >                    fnname = "get_" ++ varname
 >                    conname = varname ++ "_table_01_tuple"
->                    expr = printExpression
+>                    expr = printScalarExpr
 >                              [$sqlExpr| (select count(*) from $(tablename)) <= 1 |]
 >                in replaceSourcePos s [$sqlStmts|
 >

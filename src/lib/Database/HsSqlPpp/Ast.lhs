@@ -14,15 +14,15 @@
 >      -- * Main nodes
 >      StatementList
 >     ,Statement (..)
->     ,Expression (..)
->     ,SelectExpression (..)
+>     ,ScalarExpr (..)
+>     ,QueryExpr (..)
 >      -- * Components
 >      -- ** Selects
 >     ,SelectList (..)
 >     ,SelectItem (..)
 >     ,TableRef (..)
 >     ,TableAlias(..)
->     ,JoinExpression (..)
+>     ,JoinScalarExpr (..)
 >     ,JoinType (..)
 >     ,Natural (..)
 >     ,CombineType (..)
@@ -61,9 +61,9 @@
 >     ,SetValue(..)
 >     -- ,Name(..)
 >      -- ** typedefs
->     ,ExpressionListStatementListPairList
->     ,ExpressionListStatementListPair
->     ,ExpressionList
+>     ,ScalarExprListStatementListPairList
+>     ,ScalarExprListStatementListPair
+>     ,ScalarExprList
 >     ,MaybeSelectList
 >     --,StringList
 >     ,ParamDefList
@@ -73,20 +73,20 @@
 >     ,TypeNameList
 >     ,StringTypeNameListPair
 >     ,StringTypeNameListPairList
->     ,ExpressionStatementListPairList
->     ,CaseExpressionListExpressionPairList
->     ,MaybeExpression
->     ,MaybeBoolExpression
+>     ,ScalarExprStatementListPairList
+>     ,CaseScalarExprListScalarExprPairList
+>     ,MaybeScalarExpr
+>     ,MaybeBoolScalarExpr
 >     ,TableRefList
->     ,ExpressionListList
+>     ,ScalarExprListList
 >     ,SelectItemList
 >     ,OnExpr
 >     ,RowConstraintList
 >     ,VarDefList
->     ,ExpressionStatementListPair
->     ,CaseExpressionListExpressionPair
->     ,ExpressionDirectionPair
->     ,ExpressionDirectionPairList
+>     ,ScalarExprStatementListPair
+>     ,CaseScalarExprListScalarExprPair
+>     ,ScalarExprDirectionPair
+>     ,ScalarExprDirectionPairList
 >     ,AlterTableActionList
 >     ) where
 >

@@ -26,9 +26,9 @@ This is the public module for the type checking functionality.
 > module Database.HsSqlPpp.TypeChecker
 >     (
 >      -- * typechecking/ annotation functions
->      typeCheck
->     ,typeCheckPS
->     ,typeCheckExpression
+>      typeCheckStatements
+>     ,typeCheckParameterizedStatement
+>     ,typeCheckScalarExpr
 >      -- * Annotated tree utils
 >     ,getStatementAnnotations
 >     ) where

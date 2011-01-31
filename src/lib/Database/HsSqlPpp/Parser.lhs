@@ -4,11 +4,11 @@ Forward the public part of ParserInternal
 > -- | Functions to parse SQL.
 > module Database.HsSqlPpp.Parser (
 >              -- * Main
->               parseSql
->              ,parseSqlWithPosition
->              ,parseSqlFile
+>               parseStatements
+>              ,parseStatementsWithPosition
+>              ,parseStatementsFromFile
 >              -- * Testing
->              ,parseExpression
+>              ,parseScalarExpr
 >              ,parsePlpgsql
 >              -- * errors
 >              ,ParseErrorExtra(..)

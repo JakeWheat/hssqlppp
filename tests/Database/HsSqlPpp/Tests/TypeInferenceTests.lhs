@@ -20,7 +20,7 @@
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.PrettyPrinter
 
-> data Item = Expr Expression [Maybe Type]
+> data Item = Expr ScalarExpr [Maybe Type]
 >           | Group String [Item]
 
 > typeInferenceTests :: Test.Framework.Test
@@ -60,7 +60,7 @@
 > itemToTft :: Item -> Test.Framework.Test
 > itemToTft (Group s is) = testGroup s $ map itemToTft is
 
-> itemToTft (Expr e t) = testCase (printExpression e) $
->     let a = typeCheckExpression defaultTemplate1Catalog e
+> itemToTft (Expr e t) = testCase (printScalarExpr e) $
+>     let a = typeCheckScalarExpr defaultTemplate1Catalog e
 >         t1 = [infType el | el <- universeBi a]
 >     in assertEqual "" t t1

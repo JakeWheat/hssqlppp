@@ -23,7 +23,7 @@ SEM Statement
         loc.backTree = SelectStatement @ann @ex.annotatedTree
         loc.catUpdates = []
 
-SEM SelectExpression
+SEM QueryExpr
     | Values Select CombineSelect WithSelect
         loc.tpe : Et
         lhs.annotatedTree = setTypeAddErrors @loc.tpe @loc.backTree
@@ -93,7 +93,7 @@ an output column name.
 For now, just send the input columns in as identifiers
 -}
 
-SEM SelectExpression
+SEM QueryExpr
     | Select
          loc.newLib = case foldM (flip $ lbUpdate @lhs.cat) @lhs.lib @selTref.libUpdates of
                         Left x -> error $ "selectexpression-select-loc.newlib " ++ show x -- @lhs.cat
@@ -103,14 +103,14 @@ SEM SelectExpression
          selGroupBy.lib = @loc.newLib
          selOrderBy.lib = @loc.newLib
 
-ATTR SelectExpression [||libUpdates : {[LocalBindingsUpdate]}
+ATTR QueryExpr [||libUpdates : {[LocalBindingsUpdate]}
                          uType : {Maybe [(String,Type)]}]
 
 SEM Statement
     | SelectStatement
         loc.libUpdates = @ex.libUpdates
 
-SEM SelectExpression
+SEM QueryExpr
     | Values CombineSelect
         lhs.libUpdates = []
     | Select
@@ -119,7 +119,7 @@ SEM SelectExpression
         lhs.libUpdates = @ex.libUpdates
 
 
-SEM SelectExpression
+SEM QueryExpr
     | Values
         loc.tpe = typeCheckValuesExpr
                               @lhs.cat
@@ -154,7 +154,7 @@ SEM SelectExpression
         ex.cat = @withs.producedCat
         withs.catUpdates = []
 
-SEM SelectExpression
+SEM QueryExpr
     | Values CombineSelect WithSelect Select
         lhs.uType = etmt (@loc.tpe >>= unwrapSetOfComposite)
 

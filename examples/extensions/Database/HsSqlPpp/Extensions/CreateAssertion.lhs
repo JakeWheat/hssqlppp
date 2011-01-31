@@ -178,10 +178,10 @@ to make it work right.
 >    makeConstraintDdl :: ConstraintRecord -> String -> String -> (ConstraintRecord, [Statement])
 >    makeConstraintDdl cons name exprText =
 >      let expr = either (error . show) id
->                   $ parseExpression "" exprText
+>                   $ parseScalarExpr "" exprText
 >      in (newcons cons (tableNames expr) name
 >         ,reverse (makeCheckFn name expr : extras cons name expr))
->    extras :: ConstraintRecord -> String -> Expression -> [Statement]
+>    extras :: ConstraintRecord -> String -> ScalarExpr -> [Statement]
 >    extras cons name expr = flip concatMap (tableNames expr) $ \tn ->
 >                  let ec = existingConstraints tn cons
 >                  in if null ec
@@ -195,7 +195,7 @@ to make it work right.
 >
 > type ConstraintRecord = [(String,[String])] -- tablename, list of constraint names
 >
-> makeCheckFn :: String -> Expression -> Statement
+> makeCheckFn :: String -> ScalarExpr -> Statement
 > makeCheckFn name expr =
 >     let checkfn = "check_con_" ++ name
 >     in [$sqlStmt|

@@ -64,7 +64,7 @@ it and quits.
 > getTrefs :: Data a => a -> [String]
 > getTrefs ast = [getName tbl| Tref _ tbl _ <- universeBi ast]
 >
-> getName :: Expression -> String
+> getName :: ScalarExpr -> String
 > getName (Identifier _ i) = i
 > getName (FunCall _ "." [_,Identifier _ i]) = i
 > getName (FunCall _ "." [_,a]) = getName a

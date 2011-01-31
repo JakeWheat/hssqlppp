@@ -127,10 +127,10 @@ inpredicate
 
 > testStatementType :: String -> [CatalogUpdate] -> Maybe StatementType -> Test.Framework.Test
 > testStatementType src eu st = testCase ("typecheck " ++ src) $
->   let ast = case parseSql "" src of
->                               Left e -> error $ show e
->                               Right l -> l
->   in case typeCheckPS makeCat (head ast) of
+>   let ast = case parseStatements "" src of
+>                                         Left e -> error $ show e
+>                                         Right l -> l
+>   in case typeCheckParameterizedStatement makeCat (head ast) of
 >        Left e -> error $ show e
 >        Right aast -> --trace (ppShow aast) $
 >                      let is = getTopLevelInfo aast

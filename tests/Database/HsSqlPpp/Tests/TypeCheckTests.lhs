@@ -1128,10 +1128,10 @@ check errors: select into wrong number of vars, wrong types, and into
 
 > testExpressionType :: String -> Either [TypeError] Type -> Test.Framework.Test
 > testExpressionType src et = testCase ("typecheck " ++ src) $
->   let ast = case parseExpression "" src of
+>   let ast = case parseScalarExpr "" src of
 >                                      Left e -> error $ show e
 >                                      Right l -> l
->       aast = typeCheckExpression defaultTemplate1Catalog ast
+>       aast = typeCheckScalarExpr defaultTemplate1Catalog ast
 >       ty = atype $ getAnnotation aast
 >       er :: [TypeError]
 >       er = [x | x <- universeBi aast]
@@ -1141,10 +1141,10 @@ check errors: select into wrong number of vars, wrong types, and into
 >
 > testStatementType :: String -> Either [TypeError] [Maybe StatementType] -> Test.Framework.Test
 > testStatementType src sis = testCase ("typecheck " ++ src) $
->   let ast = case parseSql "" src of
+>   let ast = case parseStatements "" src of
 >                               Left e -> error $ show e
 >                               Right l -> l
->       aast = snd $ typeCheck defaultTemplate1Catalog ast
+>       aast = snd $ typeCheckStatements defaultTemplate1Catalog ast
 >       is = map (stType . getAnnotation) aast
 >       er :: [TypeError]
 >       er = [x | x <- universeBi aast]
@@ -1158,10 +1158,10 @@ check errors: select into wrong number of vars, wrong types, and into
 >                        -> Either [TypeError] [Maybe StatementType]
 >                        -> Test.Framework.Test
 > testCatUpStatementType src eu sis = testCase ("typecheck " ++ src) $
->   let ast = case parseSql "" src of
+>   let ast = case parseStatements "" src of
 >                               Left e -> error $ show e
 >                               Right l -> l
->       aast = snd $ typeCheck makeCat ast
+>       aast = snd $ typeCheckStatements makeCat ast
 >       is = map (stType . getAnnotation) aast
 >       er :: [TypeError]
 >       er = [x | x <- universeBi aast]
@@ -1176,10 +1176,10 @@ check errors: select into wrong number of vars, wrong types, and into
 >
 > testCat :: String -> [CatalogUpdate] -> Test.Framework.Test
 > testCat src eu = testCase ("check catalog: " ++ src) $
->   let ast = case parseSql "" src of
+>   let ast = case parseStatements "" src of
 >                               Left e -> error $ show e
 >                               Right l -> l
->       (ncat,aast) = typeCheck defaultTemplate1Catalog ast
+>       (ncat,aast) = typeCheckStatements defaultTemplate1Catalog ast
 >       er :: [TypeError]
 >       er = [x | x <- universeBi aast]
 >       neu = deconstructCatalog ncat \\ deconstructCatalog defaultTemplate1Catalog

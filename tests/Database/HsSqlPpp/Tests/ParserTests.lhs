@@ -23,7 +23,7 @@ There are no tests for invalid syntax at the moment.
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.PrettyPrinter
 >
-> data Item = Expr String Expression
+> data Item = Expr String ScalarExpr
 >           | Stmt String [Statement]
 >           | PgSqlStmt String [Statement]
 >           | Group String [Item]
@@ -1262,28 +1262,28 @@ quick sanity check
 
 shortcuts for constructing test data and asts
 
-> stringQ :: String -> Expression
+> stringQ :: String -> ScalarExpr
 > stringQ = StringLit ea
 >
 > selectFrom :: SelectItemList
 >            -> TableRef
->            -> SelectExpression
+>            -> QueryExpr
 > selectFrom selList frm = Select ea Dupes (SelectList ea selList [])
 >                            [frm] Nothing [] Nothing [] Nothing Nothing
 >
-> selectE :: SelectList -> SelectExpression
+> selectE :: SelectList -> QueryExpr
 > selectE selList = Select ea Dupes selList
 >                     [] Nothing [] Nothing [] Nothing Nothing
 >
 > selIL :: [String] -> [SelectItem]
 > selIL = map selI
-> selEL :: [Expression] -> [SelectItem]
+> selEL :: [ScalarExpr] -> [SelectItem]
 > selEL = map (SelExp ea)
 >
-> i :: String -> Expression
+> i :: String -> ScalarExpr
 > i = Identifier ea
 >
-> qi :: String -> String -> Expression
+> qi :: String -> String -> ScalarExpr
 > qi c n = QIdentifier ea (i c) n
 >
 > selI :: String -> SelectItem
@@ -1294,8 +1294,8 @@ shortcuts for constructing test data and asts
 >
 > selectFromWhere :: SelectItemList
 >                 -> TableRef
->                 -> Expression
->                 -> SelectExpression
+>                 -> ScalarExpr
+>                 -> QueryExpr
 > selectFromWhere selList frm whr =
 >     Select ea Dupes (SelectList ea selList [])
 >                [frm] (Just whr) [] Nothing [] Nothing Nothing
@@ -1311,20 +1311,20 @@ shortcuts for constructing test data and asts
 Unit test helpers
 
 > itemToTft :: Item -> Test.Framework.Test
-> itemToTft (Expr a b) = testParseExpression a b
+> itemToTft (Expr a b) = testParseScalarExpr a b
 > itemToTft (PgSqlStmt a b) = testParsePlpgsqlStatements a b
 > itemToTft (Stmt a b) = testParseStatements a b
 > itemToTft (Group s is) = testGroup s $ map itemToTft is
 >
-> testParseExpression :: String -> Expression -> Test.Framework.Test
-> testParseExpression src ast = parseUtil src ast
->                                  (parseExpression "") printExpression
+> testParseScalarExpr :: String -> ScalarExpr -> Test.Framework.Test
+> testParseScalarExpr src ast = parseUtil src ast
+>                                  (parseScalarExpr "") printScalarExpr
 >
 > testParseStatements :: String -> [Statement] -> Test.Framework.Test
-> testParseStatements src ast = parseUtil src ast (parseSql "") printSql
+> testParseStatements src ast = parseUtil src ast (parseStatements "") printStatements
 >
 > testParsePlpgsqlStatements :: String -> [Statement] -> Test.Framework.Test
-> testParsePlpgsqlStatements src ast = parseUtil src ast (parsePlpgsql "") printSql
+> testParsePlpgsqlStatements src ast = parseUtil src ast (parsePlpgsql "") printStatements
 >
 > parseUtil :: (Show t, Eq b, Show b, Data b) =>
 >              String

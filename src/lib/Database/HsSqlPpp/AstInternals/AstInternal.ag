@@ -49,14 +49,14 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
     --from the ag files:
     --ast nodes
     Statement (..)
-   ,SelectExpression (..)
+   ,QueryExpr (..)
    ,WithQueryList
    ,WithQuery(..)
    ,FnBody (..)
    --,SetClause (..)
    ,TableRef (..)
    ,TableAlias(..)
-   ,JoinExpression (..)
+   ,JoinScalarExpr (..)
    ,JoinType (..)
    ,SelectList (..)
    ,SelectItem (..)
@@ -81,7 +81,7 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,IfExists (..)
    ,Replace(..)
    ,RestartIdentity (..)
-   ,Expression (..)
+   ,ScalarExpr (..)
    ,FrameClause(..)
    ,InList (..)
    ,LiftFlavour(..)
@@ -89,9 +89,9 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,TriggerEvent(..)
    ,TriggerFire(..)
    ,StatementList
-   ,ExpressionListStatementListPairList
-   ,ExpressionListStatementListPair
-   ,ExpressionList
+   ,ScalarExprListStatementListPairList
+   ,ScalarExprListStatementListPair
+   ,ScalarExprList
    ,ParamDefList
    ,AttributeDefList
    ,ConstraintList
@@ -99,28 +99,28 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,TypeNameList
    ,StringTypeNameListPair
    ,StringTypeNameListPairList
-   ,ExpressionStatementListPairList
+   ,ScalarExprStatementListPairList
    --,SetClauseList
-   ,CaseExpressionListExpressionPairList
-   ,MaybeExpression
+   ,CaseScalarExprListScalarExprPairList
+   ,MaybeScalarExpr
    ,TableRefList
-   ,ExpressionListList
+   ,ScalarExprListList
    ,SelectItemList
    ,OnExpr
    ,RowConstraintList
    ,VarDefList
-   ,ExpressionStatementListPair
-   ,CaseExpressionListExpressionPair
-   ,ExpressionDirectionPair
-   ,ExpressionDirectionPairList
-   ,MaybeBoolExpression
+   ,ScalarExprStatementListPair
+   ,CaseScalarExprListScalarExprPair
+   ,ScalarExprDirectionPair
+   ,ScalarExprDirectionPairList
+   ,MaybeBoolScalarExpr
    ,MaybeSelectList
    ,SetValue(..)
    ,AlterTableActionList
    -- typechecking
-   ,typeCheck
-   ,typeCheckPS
-   ,typeCheckExpression
+   ,typeCheckStatements
+   ,typeCheckParameterizedStatement
+   ,typeCheckScalarExpr
 }
 
 {
@@ -158,28 +158,28 @@ DATA Statement
 
 --queries
 
-    | SelectStatement ann:Annotation ex:SelectExpression
+    | SelectStatement ann:Annotation ex:QueryExpr
 
 -- dml
 
     --table targetcolumns insertdata(values or select statement) returning
     | Insert ann:Annotation
-             table : Expression
+             table : ScalarExpr
              targetCols : {[String]}
-             insData : SelectExpression
+             insData : QueryExpr
              returning : MaybeSelectList
     --tablename setitems where returning
     | Update ann:Annotation
-             table : Expression
-             assigns : ExpressionList --SetClauseList
+             table : ScalarExpr
+             assigns : ScalarExprList --SetClauseList
              fromList : TableRefList
-             whr : MaybeBoolExpression
+             whr : MaybeBoolScalarExpr
              returning : MaybeSelectList
     --tablename, where, returning
     | Delete ann:Annotation
-             table : Expression
+             table : ScalarExpr
              using : TableRefList
-             whr : MaybeBoolExpression
+             whr : MaybeBoolScalarExpr
              returning : MaybeSelectList
     --tablename column names, from
     | Copy ann:Annotation
@@ -211,13 +211,13 @@ DATA Statement
                      cache:Integer
     | AlterSequence ann:Annotation
                     name:String
-                    ownedBy: Expression
+                    ownedBy: ScalarExpr
     | CreateTableAs ann:Annotation
                     name : String
-                    expr : SelectExpression
+                    expr : QueryExpr
     | CreateView ann:Annotation
                  name : String
-                 expr : SelectExpression
+                 expr : QueryExpr
     | CreateType ann:Annotation
                  name : String
                  atts : TypeAttributeDefList
@@ -235,7 +235,7 @@ DATA Statement
                    name : String
                    typ : TypeName
                    checkName: String
-                   check : MaybeBoolExpression
+                   check : MaybeBoolScalarExpr
     | CreateLanguage ann:Annotation
                      name:String
     | CreateTrigger ann:Annotation
@@ -245,7 +245,7 @@ DATA Statement
                     tbl : String
                     firing : TriggerFire
                     fnName : String
-                    fnArgs : ExpressionList
+                    fnArgs : ScalarExprList
     -- ifexists (name,argtypes)* cascadeorrestrict
     | DropFunction ann:Annotation
                    ifE : IfExists
@@ -258,59 +258,59 @@ DATA Statement
                     names : {[String]}
                     cascade : Cascade
     | Assignment ann:Annotation
-                 target : Expression
-                 value : Expression
+                 target : ScalarExpr
+                 value : ScalarExpr
     | Return ann:Annotation
-             value : MaybeExpression
+             value : MaybeScalarExpr
     | ReturnNext ann:Annotation
-                 expr : Expression
+                 expr : ScalarExpr
     | ReturnQuery ann:Annotation
-                  sel : SelectExpression
+                  sel : QueryExpr
     | Raise ann:Annotation
             level : RaiseType
             message : String
-            args : ExpressionList
+            args : ScalarExprList
     | NullStatement ann:Annotation
     | Perform ann:Annotation
-              expr : Expression
+              expr : ScalarExpr
     | Execute ann:Annotation
-              expr : Expression
+              expr : ScalarExpr
     | ExecuteInto ann:Annotation
-                  expr : Expression
+                  expr : ScalarExpr
                   targets : {[String]}
     | ForSelectStatement ann:Annotation
                          lb : {Maybe String}
-                         var : Expression
-                         sel : SelectExpression
+                         var : ScalarExpr
+                         sel : QueryExpr
                          sts : StatementList
     | ForIntegerStatement ann:Annotation
                           lb : {Maybe String}
-                          var : Expression
-                          from : Expression
-                          to : Expression
+                          var : ScalarExpr
+                          from : ScalarExpr
+                          to : ScalarExpr
                           sts : StatementList
     | LoopStatement ann:Annotation
                     lb : {Maybe String}
                     sts : StatementList
     | WhileStatement ann:Annotation
                      lb : {Maybe String}
-                     expr : Expression
+                     expr : ScalarExpr
                      sts : StatementList
     | ContinueStatement ann:Annotation lb:{Maybe String}
     | ExitStatement ann:Annotation lb:{Maybe String}
     --variable, list of when parts, else part
     | CaseStatementSimple ann:Annotation
-                    val : Expression
-                    cases : ExpressionListStatementListPairList
+                    val : ScalarExpr
+                    cases : ScalarExprListStatementListPairList
                     els : StatementList
     | CaseStatement ann:Annotation
-                    cases : ExpressionListStatementListPairList
+                    cases : ScalarExprListStatementListPairList
                     els : StatementList
     --list is
     --first if (condition, statements):elseifs(condition, statements)
     --last bit is else statements
     | If ann:Annotation
-         cases : ExpressionStatementListPairList
+         cases : ScalarExprStatementListPairList
          els : StatementList
     | Block ann:Annotation lb:{Maybe String} vars:VarDefList sts : StatementList
 
@@ -324,37 +324,37 @@ DATA Statement
 --Statement components
 
 -- maybe this should be called relation valued expression?
-DATA SelectExpression
+DATA QueryExpr
     | Select ann:Annotation
              selDistinct : Distinct
              selSelectList : SelectList
              selTref : TableRefList
-             selWhere : MaybeBoolExpression
-             selGroupBy : ExpressionList
-             selHaving : MaybeBoolExpression
-             selOrderBy : ExpressionDirectionPairList
-             selLimit : MaybeExpression
-             selOffset : MaybeExpression
+             selWhere : MaybeBoolScalarExpr
+             selGroupBy : ScalarExprList
+             selHaving : MaybeBoolScalarExpr
+             selOrderBy : ScalarExprDirectionPairList
+             selLimit : MaybeScalarExpr
+             selOffset : MaybeScalarExpr
     | CombineSelect ann:Annotation
                     ctype : CombineType
-                    sel1 : SelectExpression
-                    sel2 : SelectExpression
+                    sel1 : QueryExpr
+                    sel2 : QueryExpr
     | Values ann:Annotation
-             vll:ExpressionListList
+             vll:ScalarExprListList
     | WithSelect ann : Annotation
                  withs : WithQueryList
-                 ex : SelectExpression
+                 ex : QueryExpr
 
 TYPE WithQueryList = [WithQuery]
 DATA WithQuery | WithQuery ann : Annotation
                            name : String
-                           ex : SelectExpression
+                           ex : QueryExpr
 
 DATA FnBody | SqlFnBody ann:Annotation sts : StatementList
             | PlpgsqlFnBody ann:Annotation blk : Statement
 
 DATA TableRef | Tref ann:Annotation
-                     tbl:Expression
+                     tbl:ScalarExpr
                      alias : TableAlias
               | JoinedTref ann:Annotation
                            tbl : TableRef
@@ -364,10 +364,10 @@ DATA TableRef | Tref ann:Annotation
                            onExpr : OnExpr
                            alias : TableAlias
               | SubTref ann:Annotation
-                        sel : SelectExpression
+                        sel : QueryExpr
                         alias : TableAlias
               | TrefFun ann:Annotation
-                        fn:Expression
+                        fn:ScalarExpr
                         alias : TableAlias
 {
 data TableAlias = NoAlias
@@ -376,7 +376,7 @@ data TableAlias = NoAlias
                   deriving (Show,Eq,Typeable,Data)
 }
 
-DATA JoinExpression | JoinOn ann:Annotation expr:Expression
+DATA JoinScalarExpr | JoinOn ann:Annotation expr:ScalarExpr
                     | JoinUsing ann:Annotation x:{[String]}
 
 {
@@ -386,10 +386,10 @@ data JoinType = Inner | LeftOuter| RightOuter | FullOuter | Cross
 
 -- select columns, into columns
 
-DATA SelectList | SelectList ann:Annotation items:SelectItemList into:ExpressionList
+DATA SelectList | SelectList ann:Annotation items:SelectItemList into:ScalarExprList
 
-DATA SelectItem | SelExp ann:Annotation ex:Expression
-                | SelectItem ann:Annotation ex:Expression name:String
+DATA SelectItem | SelExp ann:Annotation ex:ScalarExpr
+                | SelectItem ann:Annotation ex:ScalarExpr name:String
 
 {
 data CopySource = CopyFilename String
@@ -401,14 +401,14 @@ data CopySource = CopyFilename String
 DATA AttributeDef | AttributeDef ann:Annotation
                                  name : String
                                  typ : TypeName
-                                 def: MaybeExpression
+                                 def: MaybeScalarExpr
                                  cons : RowConstraintList
 
 --Constraints which appear attached to an individual field
 
 DATA RowConstraint | NullConstraint ann:Annotation name:String
                    | NotNullConstraint ann:Annotation name:String
-                   | RowCheckConstraint ann:Annotation name:String expr:Expression
+                   | RowCheckConstraint ann:Annotation name:String expr:ScalarExpr
                    | RowUniqueConstraint ann:Annotation name:String
                    | RowPrimaryKeyConstraint ann:Annotation name:String
                    | RowReferenceConstraint ann:Annotation name:String
@@ -421,7 +421,7 @@ DATA RowConstraint | NullConstraint ann:Annotation name:String
 
 DATA Constraint | UniqueConstraint ann:Annotation name:String x:{[String]}
                 | PrimaryKeyConstraint ann:Annotation name:String x:{[String]}
-                | CheckConstraint ann:Annotation name:String expr:Expression
+                | CheckConstraint ann:Annotation name:String expr:ScalarExpr
                   -- sourcecols targettable targetcols ondelete onupdate
                 | ReferenceConstraint ann:Annotation
                                       name:String
@@ -437,7 +437,7 @@ DATA TypeAttributeDef | TypeAttDef ann:Annotation
 
 DATA AlterTableAction | AlterColumnDefault ann:Annotation
                                            nm : String
-                                           def : Expression
+                                           def : ScalarExpr
                       | AddConstraint ann: Annotation
                                       con: Constraint
 {
@@ -462,7 +462,7 @@ DATA ParamDef | ParamDef ann:Annotation name:String typ:TypeName
 DATA VarDef | VarDef ann:Annotation
                      name : String
                      typ : TypeName
-                     value : (Maybe Expression)
+                     value : (Maybe ScalarExpr)
             | ParamAlias ann:Annotation
                          name : String
                          i : Integer
@@ -519,7 +519,7 @@ data RestartIdentity = RestartIdentity | ContinueIdentity
 {-
 ================================================================================
 
-Expressions
+ScalarExprs
 
 Similarly to the statement type, all expressions are chucked into one
 even though there are many restrictions on which expressions can
@@ -527,7 +527,7 @@ appear in different places.  Maybe this should be called scalar
 expression?
 
 -}
-DATA Expression | IntegerLit ann:Annotation i:Integer
+DATA ScalarExpr | IntegerLit ann:Annotation i:Integer
                 | FloatLit ann:Annotation d:Double
                 | StringLit ann:Annotation
                             value : String
@@ -536,54 +536,54 @@ DATA Expression | IntegerLit ann:Annotation i:Integer
                 | PositionalArg ann:Annotation p:Integer
                 | Placeholder ann:Annotation -- represents a '?'
                 | Cast ann:Annotation
-                       expr:Expression
+                       expr:ScalarExpr
                        tn:TypeName
                 | Identifier ann:Annotation
                              i:String
                 | QIdentifier ann:Annotation
-                              qual:Expression
+                              qual:ScalarExpr
                               i:String
                 -- bit hacky, preserve parens when they contain just an identifier
                 -- or positional arg, so we can pretty print this since it is needed
                 -- in some places for the pg parser
                 {- | PIdentifier ann:Annotation
-                              ex:Expression-}
+                              ex:ScalarExpr-}
                 | Case ann:Annotation
-                       cases : CaseExpressionListExpressionPairList
-                       els : MaybeExpression
+                       cases : CaseScalarExprListScalarExprPairList
+                       els : MaybeScalarExpr
                 | CaseSimple ann:Annotation
-                             value : Expression
-                             cases : CaseExpressionListExpressionPairList
-                             els : MaybeExpression
+                             value : ScalarExpr
+                             cases : CaseScalarExprListScalarExprPairList
+                             els : MaybeScalarExpr
                 | Exists ann:Annotation
-                         sel : SelectExpression
+                         sel : QueryExpr
                 | FunCall ann:Annotation
                           funName:String
-                          args:ExpressionList
+                          args:ScalarExprList
                 | InPredicate ann:Annotation
-                              expr:Expression
+                              expr:ScalarExpr
                               i:Bool
                               list:InList
                 | WindowFn ann:Annotation
-                           fn : Expression
-                           partitionBy : ExpressionList
-                           orderBy : ExpressionList
+                           fn : ScalarExpr
+                           partitionBy : ScalarExprList
+                           orderBy : ScalarExprList
                            dir : Direction
                            frm : FrameClause
                 | ScalarSubQuery ann:Annotation
-                                 sel : SelectExpression
+                                 sel : QueryExpr
                 | LiftOperator ann:Annotation
                                oper:String
                                flav:LiftFlavour
-                               args:ExpressionList
+                               args:ScalarExprList
 {
 data LiftFlavour = LiftAny | LiftAll
                    deriving (Show,Eq,Typeable,Data)
 }
 
 --todo: use liftoperator to implement inlist?
-DATA InList | InList ann:Annotation exprs : ExpressionList
-            | InSelect ann:Annotation sel : SelectExpression
+DATA InList | InList ann:Annotation exprs : ScalarExprList
+            | InSelect ann:Annotation sel : QueryExpr
 
 {
 data FrameClause = FrameUnboundedPreceding
@@ -654,15 +654,15 @@ currently supported keyword operators.
 -- some list nodes, not sure if all of these are needed as separately
 -- named node types
 
-TYPE OnExpr = MAYBE JoinExpression
+TYPE OnExpr = MAYBE JoinScalarExpr
 TYPE MaybeSelectList = MAYBE SelectList
 
 TYPE TableRefList = [TableRef]
-TYPE MaybeExpression = MAYBE Expression
-TYPE MaybeBoolExpression = MAYBE Expression
+TYPE MaybeScalarExpr = MAYBE ScalarExpr
+TYPE MaybeBoolScalarExpr = MAYBE ScalarExpr
 
-TYPE ExpressionList = [Expression]
-TYPE ExpressionListList = [ExpressionList]
+TYPE ScalarExprList = [ScalarExpr]
+TYPE ScalarExprListList = [ScalarExprList]
 
 -- TYPE SetClauseList = [SetClause]
 TYPE AttributeDefList = [AttributeDef]
@@ -672,18 +672,18 @@ TYPE ParamDefList = [ParamDef]
 TYPE TypeNameList = [TypeName]
 TYPE StringTypeNameListPair = (String, TypeNameList)
 TYPE StringTypeNameListPairList = [StringTypeNameListPair]
-TYPE ExpressionListStatementListPair = (ExpressionList,StatementList)
-TYPE ExpressionListStatementListPairList = [ExpressionListStatementListPair]
-TYPE ExpressionStatementListPair = (Expression, StatementList)
-TYPE ExpressionStatementListPairList = [ExpressionStatementListPair]
+TYPE ScalarExprListStatementListPair = (ScalarExprList,StatementList)
+TYPE ScalarExprListStatementListPairList = [ScalarExprListStatementListPair]
+TYPE ScalarExprStatementListPair = (ScalarExpr, StatementList)
+TYPE ScalarExprStatementListPairList = [ScalarExprStatementListPair]
 TYPE VarDefList = [VarDef]
 TYPE SelectItemList = [SelectItem]
 TYPE RowConstraintList = [RowConstraint]
-TYPE CaseExpressionListExpressionPair = (ExpressionList,Expression)
-TYPE CaseExpressionListExpressionPairList = [CaseExpressionListExpressionPair]
+TYPE CaseScalarExprListScalarExprPair = (ScalarExprList,ScalarExpr)
+TYPE CaseScalarExprListScalarExprPairList = [CaseScalarExprListScalarExprPair]
 TYPE StatementList = [Statement]
-TYPE ExpressionDirectionPair = (Expression,Direction)
-TYPE ExpressionDirectionPairList = [ExpressionDirectionPair]
+TYPE ScalarExprDirectionPair = (ScalarExpr,Direction)
+TYPE ScalarExprDirectionPairList = [ScalarExprDirectionPair]
 TYPE AlterTableActionList = [AlterTableAction]
 -- Add a root data type so we can put initial values for inherited
 -- attributes in the section which defines and uses those attributes
@@ -695,8 +695,8 @@ DERIVING Root: Show
 -- use an expression root also to support type checking,
 -- etc., individual expressions
 
-DATA ExpressionRoot | ExpressionRoot expr:Expression
-DERIVING ExpressionRoot: Show
+DATA ScalarExprRoot | ScalarExprRoot expr:ScalarExpr
+DERIVING ScalarExprRoot: Show
 
 {-
 ================================================================================
@@ -706,25 +706,25 @@ DERIVING ExpressionRoot: Show
 attributes which every node has
 -}
 
-SET AllNodes = Statement SelectExpression FnBody TableRef
-               JoinExpression
+SET AllNodes = Statement QueryExpr FnBody TableRef
+               JoinScalarExpr
                SelectList SelectItem AttributeDef RowConstraint
                TypeAttributeDef ParamDef VarDef Constraint
                TypeName
-               Expression InList MaybeExpression MaybeBoolExpression
-               ExpressionList ExpressionListList
+               ScalarExpr InList MaybeScalarExpr MaybeBoolScalarExpr
+               ScalarExprList ScalarExprListList
                AttributeDefList ConstraintList TypeAttributeDefList
                ParamDefList TypeNameList StringTypeNameListPair
                StringTypeNameListPairList
-               StatementList ExpressionListStatementListPair
-               ExpressionListStatementListPairList ExpressionStatementListPair
-               ExpressionStatementListPairList VarDefList SelectItemList
-               RowConstraintList CaseExpressionListExpressionPair
-               CaseExpressionListExpressionPairList
+               StatementList ScalarExprListStatementListPair
+               ScalarExprListStatementListPairList ScalarExprStatementListPair
+               ScalarExprStatementListPairList VarDefList SelectItemList
+               RowConstraintList CaseScalarExprListScalarExprPair
+               CaseScalarExprListScalarExprPairList
                TableRefList TableRef OnExpr MaybeSelectList
                AlterTableAction
-               ExpressionDirectionPair
-               ExpressionDirectionPairList AlterTableActionList
+               ScalarExprDirectionPair
+               ScalarExprDirectionPairList AlterTableActionList
                WithQueryList WithQuery
 
 
@@ -772,8 +772,8 @@ typeCheckMany cat sts =
 -- | Takes an ast, checks against catalog passed, and adds
 --   annotations, including types, type errors, and statement info.
 --   Returns the updated catalog as well as the annotated ast.
-typeCheck :: Catalog -> StatementList -> (Catalog,StatementList)
-typeCheck cat sts =
+typeCheckStatements :: Catalog -> StatementList -> (Catalog,StatementList)
+typeCheckStatements cat sts =
     let t = sem_Root (Root (fixupImplicitJoins sts))
         ta = wrap_Root t Inh_Root {cat_Inh_Root = cat
                                   ,lib_Inh_Root = emptyBindings}
@@ -788,8 +788,8 @@ typeCheck cat sts =
 -- delete. For use in type checking embedded parameterized
 -- statements. Does all typechecking and annotation that the regular
 -- typecheck does.
-typeCheckPS :: Catalog -> Statement -> Either String Statement
-typeCheckPS cat st =
+typeCheckParameterizedStatement :: Catalog -> Statement -> Either String Statement
+typeCheckParameterizedStatement cat st =
     case st of
       SelectStatement _ _ -> tc
       Insert _ _ _ _ _ -> tc
@@ -809,14 +809,14 @@ typeCheckPS cat st =
 
 -- | Testing utility, mainly used to check an expression for type errors
 -- or to get its type.
-typeCheckExpression :: Catalog -> Expression -> Expression
-typeCheckExpression cat ex =
-    let t = sem_ExpressionRoot (ExpressionRoot (fixupImplicitJoins ex))
-        rt = (annotatedTree_Syn_ExpressionRoot
-              (wrap_ExpressionRoot t Inh_ExpressionRoot {cat_Inh_ExpressionRoot = cat
-                                                        ,lib_Inh_ExpressionRoot = emptyBindings}))
+typeCheckScalarExpr :: Catalog -> ScalarExpr -> ScalarExpr
+typeCheckScalarExpr cat ex =
+    let t = sem_ScalarExprRoot (ScalarExprRoot (fixupImplicitJoins ex))
+        rt = (annotatedTree_Syn_ScalarExprRoot
+              (wrap_ScalarExprRoot t Inh_ScalarExprRoot {cat_Inh_ScalarExprRoot = cat
+                                                        ,lib_Inh_ScalarExprRoot = emptyBindings}))
     in case rt of
-         ExpressionRoot e -> e
+         ScalarExprRoot e -> e
 
 {-
 bit of a hack, to avoid rewriting the tableref type checking to be

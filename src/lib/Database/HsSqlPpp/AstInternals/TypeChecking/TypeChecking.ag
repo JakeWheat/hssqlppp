@@ -72,7 +72,7 @@ annotatedTree is used to create a copy of the ast with the type,
 etc. annotations.
 
 -}
-ATTR AllNodes Root ExpressionRoot
+ATTR AllNodes Root ScalarExprRoot
   [ cat : Catalog
     lib : LocalBindings || annotatedTree : SELF
                                      -- workaround: avoid bogus cycle
@@ -84,7 +84,7 @@ ATTR AllNodes Root ExpressionRoot
 
 
 INCLUDE "TypeChecking/Misc.ag"
-INCLUDE "TypeChecking/Expressions.ag"
+INCLUDE "TypeChecking/ScalarExprs.ag"
 INCLUDE "TypeChecking/Statements.ag"
 
 

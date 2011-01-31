@@ -133,7 +133,7 @@ to deal with nulls/ maybe types?
 >             case x of
 >               SelectList _ _ _ -> SelectList ea (map (SelExp ea) attrs) []
 >               -- x1 -> x1
->         makeConstraint :: (String,[(String,[Expression])]) -> Maybe Constraint
+>         makeConstraint :: (String,[(String,[ScalarExpr])]) -> Maybe Constraint
 >         makeConstraint (tn, flds) =
 >           let newFields = case reverse flds of
 >                               (_, f): _ -> f
@@ -151,7 +151,7 @@ to deal with nulls/ maybe types?
 >              then Nothing
 >              else Just $ CheckConstraint ea (tn ++ "_fields")
 >                           [$sqlExpr| ($(nulls)) or ($(nots)) |]
->         makeView :: (String,[(String,[Expression])]) -> Statement
+>         makeView :: (String,[(String,[ScalarExpr])]) -> Statement
 >         makeView (tn, flds) =
 >           let allFields = nub $ concatMap snd flds
 >               allFirstFields = nub $ mapMaybe ((\f -> case f of
@@ -170,11 +170,11 @@ to deal with nulls/ maybe types?
 >         map makeView (getExtraFields subt))
 >     where
 >       idFromAttr = Identifier ea . attributeName
->       getExtraFields :: [(String,[String],[AttributeDef])] -> [(String,[(String,[Expression])])] -- table name, sourcetable,fieldlist
+>       getExtraFields :: [(String,[String],[AttributeDef])] -> [(String,[(String,[ScalarExpr])])] -- table name, sourcetable,fieldlist
 >       getExtraFields tinfo = let t1 = map gef tinfo
 >                              in map (\a@((tn,_):_) -> (tn, reverse a)) t1 --first reverse here
 >         where
->           gef :: (String,[String],[AttributeDef]) -> [(String,[Expression])]
+>           gef :: (String,[String],[AttributeDef]) -> [(String,[ScalarExpr])]
 >           gef (tn,subtns,attrs) =
 >             let subtnlist :: [(String,[String],[AttributeDef])]
 >                 subtnlist = mapMaybe lookupst subtns
@@ -188,13 +188,13 @@ each view in the order a) they appear in the file, and b) base classes
 first.
 
 >
-> makeNotNull :: Expression -> Expression
+> makeNotNull :: ScalarExpr -> ScalarExpr
 > makeNotNull x = [$sqlExpr| $(x) is not null |]
 >
-> makeNull :: Expression -> Expression
+> makeNull :: ScalarExpr -> ScalarExpr
 > makeNull x = [$sqlExpr| $(x) is null |]
 
-> andTogether :: [Expression] -> Expression
+> andTogether :: [ScalarExpr] -> ScalarExpr
 > andTogether = let t = [$sqlExpr| True |]
 >               in foldr (\a b ->
 >                          if b == t

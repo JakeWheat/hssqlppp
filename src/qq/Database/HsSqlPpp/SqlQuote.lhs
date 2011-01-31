@@ -67,7 +67,7 @@ public api: the quasiquote functions
 
 > -- | parse an Expression
 > sqlExpr :: QuasiQuoter
-> sqlExpr = makeQQ parseAntiExpression
+> sqlExpr = makeQQ parseAntiScalarExpr
 
 boilerplate utils to hook everything together
 
@@ -146,14 +146,14 @@ position from the matched statements.
 
 = individual antinode lookup functions
 
-> antiExpE :: Expression -> Maybe ExpQ
+> antiExpE :: ScalarExpr -> Maybe ExpQ
 > antiExpE v = fmap varE (antiExp v)
 >
-> antiExprP :: Expression -> Maybe PatQ
+> antiExprP :: ScalarExpr -> Maybe PatQ
 > antiExprP v = fmap varP $ antiExp v
 >
-> antiExp :: Expression -> Maybe Name
-> antiExp (AntiExpression v) = Just $ mkName v
+> antiExp :: ScalarExpr -> Maybe Name
+> antiExp (AntiScalarExpr v) = Just $ mkName v
 > antiExp _ = Nothing
 
 antistatements not working ...

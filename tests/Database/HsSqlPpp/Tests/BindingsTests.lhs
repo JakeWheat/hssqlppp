@@ -359,10 +359,10 @@ trigger old and new hack
 
 > testStatementType :: [CatalogUpdate] -> String -> Either [TypeError] [Maybe StatementType] -> Test.Framework.Test
 > testStatementType eu src sis = testCase ("typecheck " ++ src) $
->   let ast = case parseSql "" src of
+>   let ast = case parseStatements "" src of
 >                               Left e -> error $ show e
 >                               Right l -> l
->       aast = snd $ typeCheck makeCat ast
+>       aast = snd $ typeCheckStatements makeCat ast
 >       is = map (stType . getAnnotation) aast
 >       er :: [TypeError]
 >       er = [x | x <- universeBi aast]

@@ -7,18 +7,18 @@ right choice, but it seems to do the job pretty well at the moment.
 > -- | Functions to parse SQL.
 > module Database.HsSqlPpp.Parsing.ParserInternal
 >     (-- * Main
->      parseSql
->     ,parseSqlWithPosition
->     ,parseSqlFile
+>      parseStatements
+>     ,parseStatementsWithPosition
+>     ,parseStatementsFromFile
 >      -- * Testing
->     ,parseExpression
+>     ,parseScalarExpr
 >     ,parsePlpgsql
 >      -- * errors
 >     ,ParseErrorExtra(..)
 >      -- * quasiquotation support
 >     ,parseAntiSql
 >     ,parseAntiPlpgsql
->     ,parseAntiExpression
+>     ,parseAntiScalarExpr
 >      -- other helpers for internal use
 >     ,tableAttribute
 >     ,keyword
@@ -73,33 +73,33 @@ To support antiquotation, the following approach is used:
 * todo: add a flag so that if we are not parsing for the quasiquoter,
   any splice syntax is rejected as a parse error.
 
-> parseSql :: String -- ^ filename to use in errors
->          -> String -- ^ a string containing the sql to parse
->          -> Either ParseErrorExtra A.StatementList
-> parseSql f s =
+> parseStatements :: String -- ^ filename to use in errors
+>                 -> String -- ^ a string containing the sql to parse
+>                 -> Either ParseErrorExtra A.StatementList
+> parseStatements f s =
 >   deAS $ parseIt l sqlStatements f Nothing s startState
 >   where l = lexSqlText f s
 >
-> parseSqlWithPosition :: FilePath -- ^ filename to use in errors
->                      -> Int -- ^ adjust line number in errors by adding this
->                      -> Int -- ^ adjust column in errors by adding this
->                      -> String -- ^ a string containing the sql to parse
->                      -> Either ParseErrorExtra A.StatementList
-> parseSqlWithPosition f l c s = deAS $ parseAntiSql f l c s
+> parseStatementsWithPosition :: FilePath -- ^ filename to use in errors
+>                             -> Int -- ^ adjust line number in errors by adding this
+>                             -> Int -- ^ adjust column in errors by adding this
+>                             -> String -- ^ a string containing the sql to parse
+>                             -> Either ParseErrorExtra A.StatementList
+> parseStatementsWithPosition f l c s = deAS $ parseAntiSql f l c s
 >
-> parseSqlFile :: FilePath -- ^ file name of file containing sql
->              -> IO (Either ParseErrorExtra A.StatementList)
-> parseSqlFile fn = do
+> parseStatementsFromFile :: FilePath -- ^ file name of file containing sql
+>                         -> IO (Either ParseErrorExtra A.StatementList)
+> parseStatementsFromFile fn = do
 >   sc <- readFile fn
 >   x <- lexSqlFile fn
 >   return $ deAS $ parseIt x sqlStatements fn Nothing sc startState
 >
 > -- | Parse expression fragment, used for testing purposes
-> parseExpression :: String -- ^ filename for error messages
+> parseScalarExpr :: String -- ^ filename for error messages
 >                 -> String -- ^ sql string containing a single expression,
 >                           -- with no trailing ';'
->                 -> Either ParseErrorExtra A.Expression
-> parseExpression f s =
+>                 -> Either ParseErrorExtra A.ScalarExpr
+> parseScalarExpr f s =
 >   deAE $ parseIt l (expr <* eof) f Nothing s startState
 >   where l = lexSqlText f s
 >
@@ -139,12 +139,12 @@ To support antiquotation, the following approach is used:
 >     p = many plPgsqlStatement <* eof
 >     ps = Just (l,c)
 >
-> parseAntiExpression :: String
+> parseAntiScalarExpr :: String
 >                     -> Int
 >                     -> Int
 >                     -> String
->                     -> Either ParseErrorExtra Expression
-> parseAntiExpression f l c s =
+>                     -> Either ParseErrorExtra ScalarExpr
+> parseAntiScalarExpr f l c s =
 >   parseIt lx p f ps s startState
 >   where
 >     lx = lexSqlText f s
@@ -168,11 +168,11 @@ To support antiquotation, the following approach is used:
 >                                   Left er -> Left er
 >                                   Right t -> Right $ fixupTree t
 >
-> deAE :: Either ParseErrorExtra Expression
->      -> Either ParseErrorExtra A.Expression
+> deAE :: Either ParseErrorExtra ScalarExpr
+>      -> Either ParseErrorExtra A.ScalarExpr
 > deAE x = case x of
 >                 Left e -> Left e
->                 Right ex -> Right $ convertExpression ex
+>                 Right ex -> Right $ convertScalarExpr ex
 > deAS :: Either ParseErrorExtra [Statement]
 >      -> Either ParseErrorExtra [A.Statement]
 > deAS x = case x of
@@ -247,20 +247,20 @@ recurses to support parsing excepts, unions, etc.
 this recursion needs refactoring cos it's a mess
 
 > selectStatement :: SParser Statement
-> selectStatement = SelectStatement <$> pos <*> selectExpression
+> selectStatement = SelectStatement <$> pos <*> selectScalarExpr
 >
-> selectExpression :: SParser SelectExpression
-> selectExpression =
+> selectScalarExpr :: SParser QueryExpr
+> selectScalarExpr =
 >   with <|>
 >   buildExpressionParser combTable selFactor
 >   where
->         selFactor = try (parens selectExpression) <|> selQuerySpec <|> values
+>         selFactor = try (parens selectScalarExpr) <|> selQuerySpec <|> values
 >         with = WithSelect <$> (pos <* keyword "with")
 >                           <*> commaSep1 withQuery
->                           <*> selectExpression
+>                           <*> selectScalarExpr
 >         withQuery = WithQuery <$> pos
 >                               <*> (idString <* keyword "as")
->                               <*> parens selectExpression
+>                               <*> parens selectScalarExpr
 >         combTable = [map (\(c,p) -> Infix (CombineSelect
 >                                            <$> pos
 >                                            <*> (c <$ p)) AssocLeft)
@@ -322,7 +322,7 @@ then we combine by seeing if there is a join looking prefix
 >                   p2 <- pos
 >                   choice [
 >                          SubTref p2
->                          <$> parens selectExpression
+>                          <$> parens selectScalarExpr
 >                          <*> palias
 >                         ,TrefFun p2
 >                          <$> try (identifier >>= functionCallSuffix)
@@ -409,7 +409,7 @@ multiple rows to insert and insert from select statements
 >          <$> pos <* keyword "insert" <* keyword "into"
 >          <*> qName
 >          <*> option [] (try columnNameList)
->          <*> selectExpression
+>          <*> selectScalarExpr
 >          <*> tryOptionMaybe returning
 >
 > update :: SParser Statement
@@ -510,7 +510,7 @@ ddl
 >   keyword "table"
 >   tname <- idString
 >   choice [
->      CreateTableAs p tname <$> (keyword "as" *> selectExpression)
+>      CreateTableAs p tname <$> (keyword "as" *> selectScalarExpr)
 >     ,uncurry (CreateTable p tname) <$> readAttsAndCons]
 >   where
 >     --parse our unordered list of attribute defs or constraints, for
@@ -671,7 +671,7 @@ rather than just a string.
 >                              ,("immutable", Immutable)]
 >         readLang = keyword "language" *> matchAKeyword [("plpgsql", Plpgsql)
 >                                                        ,("sql",Sql)]
->         parseBody :: Language -> Expression -> MySourcePos
+>         parseBody :: Language -> ScalarExpr -> MySourcePos
 >                   -> Either String FnBody
 >         parseBody lang body (fileName,line,col) =
 >             case (parseIt
@@ -729,16 +729,16 @@ variable declarations in a plpgsql function
 > {-createView = CreateView
 >              <$> pos <* keyword "view"
 >              <*> idString
->              <*> (keyword "as" *> selectExpression)-}
+>              <*> (keyword "as" *> selectScalarExpr)-}
 > createView = CreateView
 >              <$> posAndIgnoreView
 >              <*> idString
->              <*> ignoreAsAndSelectExpression
+>              <*> ignoreAsAndQueryExpr
 >              where
 >                posAndIgnoreView =
 >                  pos <* keyword "view"
->                ignoreAsAndSelectExpression =
->                  keyword "as" *> selectExpression
+>                ignoreAsAndQueryExpr =
+>                  keyword "as" *> selectScalarExpr
 
 
 >
@@ -827,7 +827,7 @@ anti statement
 component parsers for sql statements
 ====================================
 
-> whereClause :: SParser Expression
+> whereClause :: SParser ScalarExpr
 > whereClause = keyword "where" *> expr
 
 selectlist and selectitem: the bit between select and from
@@ -962,7 +962,7 @@ plpgsql statements
 > returnSt = pos >>= \p -> keyword "return" >>
 >            choice [
 >             ReturnNext p <$> (keyword "next" *> expr)
->            ,ReturnQuery p <$> (keyword "query" *> selectExpression)
+>            ,ReturnQuery p <$> (keyword "query" *> selectScalarExpr)
 >            ,Return p <$> tryOptionMaybe expr]
 >
 > raise :: SParser Statement
@@ -982,7 +982,7 @@ plpgsql statements
 >                start <- qName
 >                keyword "in"
 >                choice [ForSelectStatement p l start
->                        <$> try selectExpression <*> theRest
+>                        <$> try selectScalarExpr <*> theRest
 >                       ,ForIntegerStatement p l start
 >                               <$> expr
 >                               <*> (symbol ".." *> expr)
@@ -1045,11 +1045,11 @@ know haskell, parsing theory or parsec ... robbed a parsing example
 from haskell-cafe and mainly just kept changing it until it seemed to
 work
 
-> expr :: SParser Expression
+> expr :: SParser ScalarExpr
 > expr = buildExpressionParser table factor
 >        <?> "expression"
 >
-> factor :: SParser Expression
+> factor :: SParser ScalarExpr
 > factor =
 
 First job is to take care of forms which start like a vanilla
@@ -1103,7 +1103,7 @@ try a few random things which can't start a different expression
 put the factors which start with keywords before the ones which start
 with a function, so we don't try an parse a keyword as a function name
 
->       ,caseExpression
+>       ,caseScalarExpr
 >       ,exists
 >       ,booleanLit
 >       ,nullLit
@@ -1125,7 +1125,7 @@ want to parse as an antiexpression rather than an antiidentifier
 >                     ,threadOptionalSuffix (functionCallSuffix i)
 >                                           windowFnSuffix]
 
->       ,antiExpression
+>       ,antiScalarExpr
 >       ,antiIdentifier1
 >       ,identifier
 >       ]
@@ -1152,7 +1152,7 @@ something like this?)
 The full list of operators from a standard template1 database should
 be used here.
 
-> table :: [[Operator [Token] ParseState Identity Expression]]
+> table :: [[Operator [Token] ParseState Identity ScalarExpr]]
 > table = [[{-binary "." AssocLeft-}]
 >          --[binary "::" (BinOpCall Cast) AssocLeft]
 >          --missing [] for array element select
@@ -1222,23 +1222,23 @@ factor parsers
 
 I think the lookahead is used in an attempt to help the error messages.
 
-> scalarSubQuery :: SParser Expression
+> scalarSubQuery :: SParser ScalarExpr
 > scalarSubQuery = try (symbol "(" *> lookAhead (keyword "select"
 >                                                <|> keyword "with")) >>
 >                  ScalarSubQuery
 >                  <$> pos
->                  <*> selectExpression <* symbol ")"
+>                  <*> selectScalarExpr <* symbol ")"
 
 in predicate - an identifier or row constructor followed by 'in'
 then a list of expressions or a subselect
 
-> inPredicateSuffix :: Expression -> SParser Expression
+> inPredicateSuffix :: ScalarExpr -> SParser ScalarExpr
 > inPredicateSuffix e =
 >   InPredicate
 >   <$> pos
 >   <*> return e
 >   <*> option True (False <$ keyword "not")
->   <*> (keyword "in" *> parens ((InSelect <$> pos <*> selectExpression)
+>   <*> (keyword "in" *> parens ((InSelect <$> pos <*> selectScalarExpr)
 >                                <|>
 >                                (InList <$> pos <*> commaSep1 expr)))
 
@@ -1253,7 +1253,7 @@ row ctor: one of
 * (expr) parses to just expr rather than row(expr)
 * and () is a syntax error.
 
-> rowCtor :: SParser Expression
+> rowCtor :: SParser ScalarExpr
 > rowCtor = FunCall
 >           <$> pos
 >           <*> return "!rowctor"
@@ -1261,10 +1261,10 @@ row ctor: one of
 >            keyword "row" *> parens (commaSep expr)
 >           ,parens $ commaSep2 expr]
 >
-> floatLit :: SParser Expression
+> floatLit :: SParser ScalarExpr
 > floatLit = FloatLit <$> pos <*> float
 >
-> integerLit :: SParser Expression
+> integerLit :: SParser ScalarExpr
 > integerLit = do
 >   p <- pos
 >   (IntegerLit p) <$> integer
@@ -1272,8 +1272,8 @@ row ctor: one of
  IntegerLit <$> pos <*> integer
 
 >
-> caseExpression :: SParser Expression
-> caseExpression = do
+> caseScalarExpr :: SParser ScalarExpr
+> caseScalarExpr = do
 >   p <- pos
 >   keyword "case"
 >   choice [
@@ -1288,24 +1288,24 @@ row ctor: one of
 >     whenParse = (,) <$> (keyword "when" *> commaSep1 expr)
 >                     <*> (keyword "then" *> expr)
 >
-> exists :: SParser Expression
-> exists = Exists <$> pos <* keyword "exists" <*> parens selectExpression
+> exists :: SParser ScalarExpr
+> exists = Exists <$> pos <* keyword "exists" <*> parens selectScalarExpr
 >
 
-> booleanLit :: SParser Expression
+> booleanLit :: SParser ScalarExpr
 > booleanLit = BooleanLit <$> pos <*> (True <$ keyword "true"
 >                                      <|> False <$ keyword "false")
 
 >
-> nullLit :: SParser Expression
+> nullLit :: SParser ScalarExpr
 > nullLit = NullLit <$> pos <* keyword "null"
 >
-> arrayLit :: SParser Expression
+> arrayLit :: SParser ScalarExpr
 > arrayLit = FunCall <$> pos <* keyword "array"
 >                    <*> return "!arrayctor"
 >                    <*> squares (commaSep expr)
 >
-> arraySubSuffix :: Expression -> SParser Expression
+> arraySubSuffix :: ScalarExpr -> SParser ScalarExpr
 > arraySubSuffix e = case e of
 >                      Identifier _ "array" -> fail "can't use array as \
 >                                                   \identifier name"
@@ -1313,7 +1313,7 @@ row ctor: one of
 >                                   <*> return "!arraysub"
 >                                   <*> ((e:) <$> squares (commaSep1 expr))
 >
-> windowFnSuffix :: Expression -> SParser Expression
+> windowFnSuffix :: ScalarExpr -> SParser ScalarExpr
 > windowFnSuffix e = WindowFn <$> pos <*> return e
 >                    <*> (keyword "over"
 >                         *> (symbol "(" *> option [] partitionBy))
@@ -1360,7 +1360,7 @@ row ctor: one of
 >                                          ,"row"])]
 >     ks = mapM keyword
 >
-> betweenSuffix :: Expression -> SParser Expression
+> betweenSuffix :: ScalarExpr -> SParser ScalarExpr
 > betweenSuffix a = do
 >   p <- pos
 >   keyword "between"
@@ -1392,7 +1392,7 @@ From postgresql src/backend/parser/gram.y
 TODO: copy this approach here.
 
 
-> functionCallSuffix :: Expression -> SParser Expression
+> functionCallSuffix :: ScalarExpr -> SParser ScalarExpr
 > functionCallSuffix (Identifier _ fnName) =
 >   pos >>= \p -> FunCall p fnName
 >                 <$> parens (optional (keyword "all"
@@ -1401,17 +1401,17 @@ TODO: copy this approach here.
 > functionCallSuffix s =
 >   fail $ "cannot make functioncall from " ++ show s
 >
-> castKeyword :: SParser Expression
+> castKeyword :: SParser ScalarExpr
 > castKeyword = Cast
 >               <$> pos <* keyword "cast" <* symbol "("
 >               <*> expr
 >               <*> (keyword "as" *> typeName <* symbol ")")
 >
-> castSuffix :: Expression -> SParser Expression
+> castSuffix :: ScalarExpr -> SParser ScalarExpr
 > castSuffix ex = pos >>= \p -> Cast p ex <$> (symbol "::" *> typeName)
 
 >
-> substring :: SParser Expression
+> substring :: SParser ScalarExpr
 > substring = do
 >             p <- pos
 >             keyword "substring"
@@ -1424,16 +1424,16 @@ TODO: copy this approach here.
 >             symbol ")"
 >             return $ FunCall p "!substring" [a,b,c]
 >
-> identifier :: SParser Expression
+> identifier :: SParser ScalarExpr
 > identifier = Identifier <$> pos <*> (idString <|> splice)
 >
-> qualIdSuffix :: Expression -> SParser Expression
+> qualIdSuffix :: ScalarExpr -> SParser ScalarExpr
 > qualIdSuffix ex = pos >>= \p -> QIdentifier p ex <$> (symbol "." *> idString)
 
-> antiIdentifier :: SParser Expression
+> antiIdentifier :: SParser ScalarExpr
 > antiIdentifier = Identifier <$> pos <*> spliceD
 
-> antiIdentifier1 :: SParser Expression
+> antiIdentifier1 :: SParser ScalarExpr
 > antiIdentifier1 = Identifier <$> pos <*> ssplice
 >                   where
 >                     ssplice = (\s -> "$i(" ++ s ++ ")") <$>
@@ -1444,7 +1444,7 @@ FunCall nodes. But we don't want to parse any expression when we are
 expecting a qualified name only, so create a specialized parser just
 for that
 
-> qName :: SParser Expression
+> qName :: SParser ScalarExpr
 > qName = do
 >   i <- identifier
 >   choice [do
@@ -1509,13 +1509,13 @@ identifier which happens to start with a complete keyword
 >                    PositionalArgTok n -> Just n
 >                    _ -> Nothing)
 
-> positionalArg :: SParser Expression
+> positionalArg :: SParser ScalarExpr
 > positionalArg = PositionalArg <$> pos <*> liftPositionalArgTok
 >
-> antiExpression :: SParser Expression
-> antiExpression = AntiExpression <$> splice
+> antiScalarExpr :: SParser ScalarExpr
+> antiScalarExpr = AntiScalarExpr <$> splice
 >
-> placeholder :: SParser Expression
+> placeholder :: SParser ScalarExpr
 > placeholder = (Placeholder <$> pos) <* symbol "?"
 >
 > float :: SParser Double
@@ -1529,7 +1529,7 @@ identifier which happens to start with a complete keyword
 >                            StringTok _ s -> Just s
 >                            _ -> Nothing)
 
-> stringLit :: SParser Expression
+> stringLit :: SParser ScalarExpr
 > stringLit = (StringLit <$> pos <*> liftStringTok)
 >             <|>
 >             (StringLit <$> pos <*> ssplice)
@@ -1543,7 +1543,7 @@ identifier which happens to start with a complete keyword
 >                            StringTok _ s -> Just s
 >                            _ -> Nothing)
 
-> extrStr :: Expression -> String
+> extrStr :: ScalarExpr -> String
 > extrStr (StringLit _ s) = s
 > extrStr x =
 >   error $ "internal error: extrStr not supported for this type " ++ show x

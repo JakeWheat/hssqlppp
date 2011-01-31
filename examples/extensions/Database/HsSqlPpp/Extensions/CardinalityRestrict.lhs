@@ -55,7 +55,7 @@ select restrict_cardinality('tablename', '>=5 && <= 10');
 >         s@[$sqlStmt|
 >           select restrict_cardinality($s(tablename), $(num)); |]
 >             -> let --i = [$sqlExpr| $(num) |]
->                    expr = printExpression
+>                    expr = printScalarExpr
 >                             [$sqlExpr| (select count(*) from $(tablename))
 >                                         <= $(num) |]
 >                    conname = tablename ++ "_card"

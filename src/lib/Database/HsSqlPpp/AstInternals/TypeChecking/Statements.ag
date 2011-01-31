@@ -116,11 +116,11 @@ SEM Statement
         lhs.catUpdates = []
         lhs.libUpdates = []
 
-SEM ExpressionListStatementListPair
+SEM ScalarExprListStatementListPair
     | Tuple
         x2.catUpdates = []
         x2.libUpdates = []
-SEM ExpressionStatementListPair
+SEM ScalarExprStatementListPair
     | Tuple
         x2.catUpdates = []
         x2.libUpdates = []

@@ -57,7 +57,7 @@ writeAntiNodes
 > |] ++ "\n"
 >
 > nodesToAntificate :: [String]
-> nodesToAntificate = ["Expression", "TriggerEvent", "Statement"]
+> nodesToAntificate = ["ScalarExpr", "TriggerEvent", "Statement"]
 >
 > makeAntiNodes :: IO String
 > makeAntiNodes = do
@@ -82,7 +82,7 @@ writeAntiNodes
 >                         ++ addAntis convs))
 >   where
 >     -- todo: match the exact uuagc generated names here
->     isGeneratedName n = '_' `elem` n || n `elem` ["Root", "ExpressionRoot", "ParamName"]
+>     isGeneratedName n = '_' `elem` n || n `elem` ["Root", "ScalarExprRoot", "ParamName"]
 >
 > pf :: String -> IO Module
 > pf f = do
@@ -341,14 +341,14 @@ nice function names to be exported to do anti->vanilla ast conversions
 >      (BDecls []),
 >    TypeSig
 >      nsrc
->      [Ident "convertExpression"]
->      (TyFun (TyCon (UnQual (Ident "Expression")))
->         (TyCon (Qual (ModuleName "A") (Ident "Expression")))),
+>      [Ident "convertScalarExpr"]
+>      (TyFun (TyCon (UnQual (Ident "ScalarExpr")))
+>         (TyCon (Qual (ModuleName "A") (Ident "ScalarExpr")))),
 >    PatBind
 >      nsrc
->      (PVar (Ident "convertExpression"))
+>      (PVar (Ident "convertScalarExpr"))
 >      Nothing
->      (UnGuardedRhs (Var (UnQual (Ident "expression"))))
+>      (UnGuardedRhs (Var (UnQual (Ident "scalarExpr"))))
 >      (BDecls [])]
 
 get the exports from astinternal, and keep the ones for types, and add
@@ -356,7 +356,7 @@ the publi conversion functions
 
 > exports :: (Data a) => a -> [ExportSpec]
 > exports ast = map (\l -> EVar (UnQual (Ident l)))
->                  ["convertStatements", "convertExpression", "attributeDef"] ++
+>                  ["convertStatements", "convertScalarExpr", "attributeDef"] ++
 >               [ex| ex@(EThingAll _) <- universeBi ast] ++
 >               [ex| ex@(EAbs _) <- universeBi ast]
 

@@ -7,7 +7,7 @@ type.
 -}
 
 --gather the backtree, type errors and types together and add annotations
-SEM Expression
+SEM ScalarExpr
     | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier
       QIdentifier
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
@@ -20,7 +20,7 @@ SEM Expression
                                                          ,Nothing]}) @loc.backTree
         loc.tpe : Et
 
-SEM Expression
+SEM ScalarExpr
     | IntegerLit StringLit FloatLit BooleanLit NullLit Identifier
       QIdentifier
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
@@ -28,7 +28,7 @@ SEM Expression
         loc.prototype : {Maybe FunctionPrototype}
         loc.prototype = Nothing
 
-SEM Expression
+SEM ScalarExpr
     | IntegerLit StringLit FloatLit BooleanLit NullLit
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
       PositionalArg Placeholder WindowFn
@@ -39,7 +39,7 @@ SEM Expression
                                  . \a -> a {fnProt = @loc.prototype}) @loc.backTree
         lhs.ntType = either (const []) id @loc.ntType
 
-{-SEM Expression
+{-SEM ScalarExpr
     | FunCall
         lhs.ntAnnotatedTree =
             let bt = trace ("check " ++ show @loc.backTree)
@@ -52,23 +52,23 @@ SEM Expression
                     . \a -> a {fnProt = @loc.prototype}) bt
         lhs.ntType = either (const []) id @loc.ntType
 
-ATTR ExpressionList [||ntAnnotatedTree : ExpressionList]
+ATTR ScalarExprList [||ntAnnotatedTree : ScalarExprList]
 
-SEM ExpressionList
+SEM ScalarExprList
     | Cons lhs.ntAnnotatedTree = @hd.ntAnnotatedTree : @tl.ntAnnotatedTree
            lhs.ntTypes = @hd.ntType : @tl.ntTypes
     | Nil lhs.ntAnnotatedTree = []
           lhs.ntTypes = [] -}
 
-ATTR Expression [||ntAnnotatedTree : Expression
+ATTR ScalarExpr [||ntAnnotatedTree : ScalarExpr
                    ntType : {[(String,Type)]}
                    uType : {Maybe Type}
-                   tbAnnotatedTree : Expression
+                   tbAnnotatedTree : ScalarExpr
                    tbUType : {Maybe ([(String,Type)],[(String,Type)])}]
 
-ATTR ExpressionList [||tbUTypes : {[Maybe ([(String,Type)],[(String,Type)])]}]
+ATTR ScalarExprList [||tbUTypes : {[Maybe ([(String,Type)],[(String,Type)])]}]
 
-SEM Expression
+SEM ScalarExpr
     | IntegerLit StringLit FloatLit BooleanLit NullLit
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
       PositionalArg Placeholder WindowFn FunCall
@@ -91,42 +91,42 @@ SEM Expression
     | Identifier QIdentifier
         loc.tbUType = catCompositeAttrsPair @lhs.cat relationComposites @i
 
-SEM ExpressionList
+SEM ScalarExprList
     | Cons lhs.tbUTypes = @hd.tbUType : @tl.tbUTypes
     | Nil lhs.tbUTypes = []
 
-ATTR Expression [expectedType : {Maybe Type}||]
+ATTR ScalarExpr [expectedType : {Maybe Type}||]
 
-ATTR ExpressionList [expectedTypes : {[Maybe Type]}||uType : {[Maybe Type]}]
+ATTR ScalarExprList [expectedTypes : {[Maybe Type]}||uType : {[Maybe Type]}]
 
 
-SEM Expression
+SEM ScalarExpr
     | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier QIdentifier
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
       PositionalArg Placeholder WindowFn
         lhs.uType = etmt @loc.tpe
 
-SEM ExpressionList
+SEM ScalarExprList
     | Cons lhs.uType = @hd.uType : @tl.uType
     | Nil lhs.uType = []
 
 
-ATTR ExpressionListList [||uType : {[[Maybe Type]]}]
+ATTR ScalarExprListList [||uType : {[[Maybe Type]]}]
 
-SEM ExpressionListList
+SEM ScalarExprListList
     | Cons lhs.uType = @hd.uType : @tl.uType
     | Nil lhs.uType = []
 
 
-ATTR MaybeExpression  [||uType : {Maybe Type}]
+ATTR MaybeScalarExpr  [||uType : {Maybe Type}]
 
-SEM MaybeExpression
+SEM MaybeScalarExpr
     | Just lhs.uType = @just.uType
     | Nothing lhs.uType = Nothing
 
 -- maybe bool expression: if present, then check its type is bool
 
-SEM MaybeBoolExpression
+SEM MaybeBoolScalarExpr
     | Just
         lhs.annotatedTree = let t = @just.uType
                             in if t `elem` [Nothing,Just typeBool]
@@ -138,15 +138,15 @@ SEM MaybeBoolExpression
 ATTR AllNodes [overrideLib : {Maybe LocalBindings}||]
 ATTR AllNodes [overrideLibs : {[Maybe LocalBindings]}||]
 
-SEM ExpressionRoot
-    | ExpressionRoot expr.overrideLib = Nothing
+SEM ScalarExprRoot
+    | ScalarExprRoot expr.overrideLib = Nothing
                      expr.overrideLibs = []
 
 SEM Root
     | Root statements.overrideLib = Nothing
            statements.overrideLibs = []
 
-SEM Expression
+SEM ScalarExpr
     | FunCall args.overrideLibs =
         case @funName of
           "." | [Identifier _ i,_] <- @args.annotatedTree
@@ -155,7 +155,7 @@ SEM Expression
                               lbUpdateDot @lhs.cat i @lhs.lib]
           _ -> []
 
-SEM ExpressionList
+SEM ScalarExprList
     | Cons hd.overrideLib = case @lhs.overrideLibs of
                                h : _ -> h
                                _ -> Nothing
@@ -169,7 +169,7 @@ SEM ExpressionList
 pretty straightforward
 -}
 
-SEM Expression
+SEM ScalarExpr
      | IntegerLit loc.tpe = Right typeInt
      | StringLit loc.tpe = Right UnknownType
      | FloatLit loc.tpe = Right typeNumeric
@@ -177,7 +177,7 @@ SEM Expression
      -- I think a null has the same type resolution as an unknown string lit
      | NullLit loc.tpe = Right UnknownType
 
-SEM Expression
+SEM ScalarExpr
     | IntegerLit
         loc.backTree = IntegerLit @ann @i
     | StringLit
@@ -197,14 +197,14 @@ SEM Expression
 all the work is done in the typename node
 -}
 
-SEM Expression
+SEM ScalarExpr
     | Cast loc.tpe = lmt @tn.namedType
            loc.backTree = Cast @ann @expr.annotatedTree @tn.annotatedTree
 
 {-
 == operators and functions
 -}
-SEM Expression
+SEM ScalarExpr
     | FunCall
         (loc.tpe
         ,loc.prototype) = either (\e -> (Left e, Nothing)) id $ do
@@ -237,7 +237,7 @@ pg allows the rhss to also be a subselect, this is a todo
 
 -}
 
-SEM Expression
+SEM ScalarExpr
     | LiftOperator
         loc.tpe = do
                   at <- mapM lmt @args.uType
@@ -268,28 +268,28 @@ as the value to check against, then we collect the then parts as above.
 
 -}
 
-ATTR CaseExpressionListExpressionPairList [||whenTypes : {[[Maybe Type]]}
+ATTR CaseScalarExprListScalarExprPairList [||whenTypes : {[[Maybe Type]]}
                                              thenTypes : {[Maybe Type]}]
-SEM CaseExpressionListExpressionPairList
+SEM CaseScalarExprListScalarExprPairList
   | Cons lhs.whenTypes = @hd.whenTypes : @tl.whenTypes
          lhs.thenTypes = @hd.thenType : @tl.thenTypes
   | Nil lhs.whenTypes = []
         lhs.thenTypes = []
 
-ATTR CaseExpressionListExpressionPair [||whenTypes : {[Maybe Type]}
+ATTR CaseScalarExprListScalarExprPair [||whenTypes : {[Maybe Type]}
                                          thenType : {Maybe Type}]
 
-SEM CaseExpressionListExpressionPair
+SEM CaseScalarExprListScalarExprPair
     | Tuple lhs.whenTypes = @x1.uType
             lhs.thenType = @x2.uType
 
 
-SEM Expression
+SEM ScalarExpr
     | Case CaseSimple
         loc.whenTypes = @cases.whenTypes
         loc.thenTypes = @cases.thenTypes ++ maybe [] ((:[]) . Just) @els.uType
 
-SEM Expression
+SEM ScalarExpr
     | Case
         loc.tpe = do
                   wt <- mapM lmt $ concat @loc.whenTypes
@@ -302,7 +302,7 @@ SEM Expression
         loc.backTree = Case @ann @cases.annotatedTree @els.annotatedTree
 
 
-SEM Expression
+SEM ScalarExpr
     | CaseSimple
         loc.tpe =
           do
@@ -342,7 +342,7 @@ attributes to get the node information to the regular ones.
 
 -}
 
-SEM Expression
+SEM ScalarExpr
     | Identifier
         loc.tpe = unwrapLookup <$> lbLookupID @lhs.lib [@i]
         loc.backTree = Identifier @ann @i
@@ -379,7 +379,7 @@ SEM Expression
                   else (\t -> [(@i, t)]) <$> unwrapLookup <$> lbLookupID @lhs.lib [q,@i]
 
 
-SEM Expression
+SEM ScalarExpr
   | FunCall
       loc.liftedColumnName =
           case @funName of
@@ -394,13 +394,13 @@ SEM Expression
       loc.liftedColumnName = let (FunCall _ fn _) = @fn.annotatedTree
                              in fn
 
-SEM Expression
+SEM ScalarExpr
   | BooleanLit Case Exists FloatLit IntegerLit LiftOperator
     NullLit PositionalArg Placeholder ScalarSubQuery StringLit
     CaseSimple InPredicate
       loc.liftedColumnName = ""
 
-SEM Expression
+SEM ScalarExpr
   | FunCall Cast CaseSimple InPredicate WindowFn
     BooleanLit Case Exists FloatLit IntegerLit LiftOperator
     NullLit PositionalArg Placeholder ScalarSubQuery StringLit
@@ -412,7 +412,7 @@ SEM Expression
                           ,t)]
 
 {-
-SEM Expression
+SEM ScalarExpr
   | FunCall
       loc.ntType : {E [(String,Type)]}
       loc.ntType =
@@ -427,19 +427,19 @@ SEM Expression
                _ -> t1
 -}
 
-SEM Expression
+SEM ScalarExpr
     | PositionalArg
         loc.tpe = unwrapLookup <$> lbLookupID @lhs.lib ['$':show @p]
         loc.backTree = PositionalArg @ann @p
 
 
-SEM Expression
+SEM ScalarExpr
     | Placeholder
         loc.tpe = Right UnknownType
         loc.backTree = Placeholder @ann
 
 -- exists: will work on any subselect so we don't need to do any checking
-SEM Expression
+SEM ScalarExpr
     | Exists
         loc.tpe = Right typeBool
         loc.backTree = Exists @ann @sel.annotatedTree
@@ -451,7 +451,7 @@ SEM Expression
 2 + cols -> row type
 -}
 
-SEM Expression
+SEM ScalarExpr
     | ScalarSubQuery
         loc.tpe =
             do
@@ -467,7 +467,7 @@ SEM Expression
 todo: make the ast and typechecking a special case of lifted operator
 -}
 
-SEM Expression
+SEM ScalarExpr
     | InPredicate
         loc.tpe = do
                   lt <- @list.listType
@@ -523,17 +523,17 @@ SEM AlterTableAction
     | AlterColumnDefault def.expectedType = Nothing
 
 
-SEM CaseExpressionListExpressionPair
+SEM CaseScalarExprListScalarExprPair
     | Tuple x1.expectedTypes = []
             x2.expectedType = Nothing
 
 SEM Constraint
     | CheckConstraint expr.expectedType = Nothing
 
-SEM ExpressionDirectionPair
+SEM ScalarExprDirectionPair
     | Tuple x1.expectedType = Nothing
 
-SEM ExpressionList
+SEM ScalarExprList
     | Cons hd.expectedType = case @lhs.expectedTypes of
                                (t:_) -> t
                                _ -> Nothing
@@ -541,13 +541,13 @@ SEM ExpressionList
                                (_:ts) -> ts
                                _ -> []
 
-SEM JoinExpression
+SEM JoinScalarExpr
     | JoinOn expr.expectedType = Just typeBool
 
-SEM MaybeBoolExpression
+SEM MaybeBoolScalarExpr
     | Just just.expectedType = Just typeBool
 
-SEM MaybeExpression
+SEM MaybeScalarExpr
     | Just just.expectedType = Nothing
 
 SEM RowConstraint
@@ -574,13 +574,13 @@ SEM TableRef
     | TrefFun fn.expectedType = Nothing
     | Tref tbl.expectedType = Nothing
 
-SEM ExpressionRoot
-    | ExpressionRoot expr.expectedType = Nothing
+SEM ScalarExprRoot
+    | ScalarExprRoot expr.expectedType = Nothing
 
-SEM ExpressionStatementListPair
+SEM ScalarExprStatementListPair
     | Tuple x1.expectedType = Nothing
 
-SEM Expression
+SEM ScalarExpr
     | FunCall
         args.expectedTypes = maybe [] id $
                              -- hack for anonymousrecordtypes
@@ -595,13 +595,13 @@ SEM Expression
         partitionBy.expectedTypes = []
         orderBy.expectedTypes = []
 
-SEM ExpressionListStatementListPair
+SEM ScalarExprListStatementListPair
     | Tuple x1.expectedTypes = []
 
 SEM InList
     | InList exprs.expectedTypes = []
 
-SEM SelectExpression
+SEM QueryExpr
     | Select selGroupBy.expectedTypes = []
 
 SEM Statement
@@ -611,18 +611,18 @@ SEM Statement
 
 -- inferred types in the select expresssion
 
-ATTR SelectExpression [expectedTypes: {[Maybe Type]}||]
+ATTR QueryExpr [expectedTypes: {[Maybe Type]}||]
 
-ATTR ExpressionListList [expectedTypes: {[Maybe Type]}||]
+ATTR ScalarExprListList [expectedTypes: {[Maybe Type]}||]
 
-SEM SelectExpression
+SEM QueryExpr
     | Values vll.expectedTypes = @lhs.expectedTypes
 
-SEM ExpressionListList
+SEM ScalarExprListList
     | Cons hd.expectedTypes = @lhs.expectedTypes
            tl.expectedTypes = @lhs.expectedTypes
 
-SEM Expression
+SEM ScalarExpr
     | Exists ScalarSubQuery sel.expectedTypes = []
 SEM InList
     | InSelect sel.expectedTypes = []

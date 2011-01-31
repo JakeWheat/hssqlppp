@@ -428,7 +428,7 @@ that bad?
 >                     select create_assertion('$(cn)','$(exs)');
 >                                 |]
 >       conname nm = "valid_" ++ nm
->       exprs t1 t2 = printExpression $ exprn t1 t2
+>       exprs t1 t2 = printScalarExpr $ exprn t1 t2
 >       exprn t1 t2 = let t1n = "table_" ++ t1
 >                         t2n = "table_" ++ t2
 >                     in [$sqlExpr|((select count(*) from $(t1n))

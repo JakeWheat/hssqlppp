@@ -11,10 +11,10 @@
 > {-# LANGUAGE PatternGuards #-}
 > module Database.HsSqlPpp.PrettyPrinter (
 >                       --convert a sql ast to text
->                       printSql
->                      ,printSqlAnn
+>                       printStatements
+>                      ,printStatementsAnn
 >                       --convert a single expression parse node to text
->                      ,printExpression
+>                      ,printScalarExpr
 >                      )
 >     where
 >
@@ -32,18 +32,18 @@
 Public functions
 
 > -- | convert an ast back to valid SQL source, it's also almost human readable.
-> printSql :: StatementList -> String
-> printSql = printSqlAnn (const "")
+> printStatements :: StatementList -> String
+> printStatements = printStatementsAnn (const "")
 >
 > -- | convert the ast back to valid source, and convert any annotations to
 > -- text using the function provided and interpolate the output of
 > -- this function(inside comments) with the SQL source.
-> printSqlAnn :: (Annotation -> String) -> StatementList -> String
-> printSqlAnn f ast = render $ vcat (map (convStatement f) ast) <> text "\n"
+> printStatementsAnn :: (Annotation -> String) -> StatementList -> String
+> printStatementsAnn f ast = render $ vcat (map (convStatement f) ast) <> text "\n"
 >
 > -- | Testing function, pretty print an expression
-> printExpression :: Expression -> String
-> printExpression = render . convExp
+> printScalarExpr :: ScalarExpr -> String
+> printScalarExpr = render . convExp
 
 -------------------------------------------------------------------------------
 
@@ -57,7 +57,7 @@ Conversion routines - convert Sql asts into Docs
 >
 > convStatement ca (SelectStatement ann s) =
 >   convPa ca ann <+>
->   convSelectExpression True True s <> statementEnd
+>   convQueryExpr True True s <> statementEnd
 >
 > --dml
 >
@@ -65,7 +65,7 @@ Conversion routines - convert Sql asts into Docs
 >   convPa pa ann <+>
 >   text "insert into" <+> convExp tb
 >   <+> ifNotEmpty (parens . hcatCsvMap text) atts
->   $+$ convSelectExpression True True idata
+>   $+$ convQueryExpr True True idata
 >   $+$ convReturning rt
 >   <> statementEnd
 >
@@ -153,7 +153,7 @@ Conversion routines - convert Sql asts into Docs
 >     convPa ca ann <+>
 >     text "create table"
 >     <+> text t <+> text "as"
->     $+$ convSelectExpression True True sel
+>     $+$ convQueryExpr True True sel
 >     <> statementEnd
 >
 > convStatement ca (CreateFunction ann name args retType rep lang body vol) =
@@ -205,7 +205,7 @@ Conversion routines - convert Sql asts into Docs
 > convStatement ca (CreateView ann name sel) =
 >     convPa ca ann <+>
 >     text "create view" <+> text name <+> text "as"
->     $+$ nest 2 (convSelectExpression True True sel) <> statementEnd
+>     $+$ nest 2 (convQueryExpr True True sel) <> statementEnd
 >
 > convStatement ca (CreateDomain ann name tp n ex) =
 >     convPa ca ann <+>
@@ -295,7 +295,7 @@ Conversion routines - convert Sql asts into Docs
 > convStatement ca (ReturnQuery ann sel) =
 >     convPa ca ann <+>
 >     text "return" <+> text "query"
->     <+> convSelectExpression True True sel <> statementEnd
+>     <+> convQueryExpr True True sel <> statementEnd
 >
 > convStatement ca (Raise ann rt st exps) =
 >     convPa ca ann <+>
@@ -312,7 +312,7 @@ Conversion routines - convert Sql asts into Docs
 >     convPa ca ann <+>
 >     convLabel lb <>
 >     text "for" <+> convExp i <+> text "in"
->     <+> convSelectExpression True True sel <+> text "loop"
+>     <+> convQueryExpr True True sel <+> text "loop"
 >     $+$ convNestedStatements ca stmts
 >     $+$ text "end loop" <> statementEnd
 >
@@ -426,8 +426,8 @@ Statement components
 
 > -- selects
 >
-> convSelectExpression :: Bool -> Bool -> SelectExpression -> Doc
-> convSelectExpression writeSelect _ (Select _ dis l tb wh grp hav
+> convQueryExpr :: Bool -> Bool -> QueryExpr -> Doc
+> convQueryExpr writeSelect _ (Select _ dis l tb wh grp hav
 >                                 order lim off) =
 >   text (if writeSelect then "select" else "")
 >   <+> (case dis of
@@ -446,24 +446,24 @@ Statement components
 >   <+> maybeConv (\lm -> text "limit" <+> convExp lm) lim
 >   <+> maybeConv (\offs -> text "offset" <+> convExp offs) off
 >
-> convSelectExpression writeSelect topLev (CombineSelect _ tp s1 s2) =
->   let p = convSelectExpression writeSelect False s1
+> convQueryExpr writeSelect topLev (CombineSelect _ tp s1 s2) =
+>   let p = convQueryExpr writeSelect False s1
 >           $+$ (case tp of
 >                        Except -> text "except"
 >                        Union -> text "union"
 >                        UnionAll -> text "union" <+> text "all"
 >                        Intersect -> text "intersect")
->           $+$ convSelectExpression True False s2
+>           $+$ convQueryExpr True False s2
 >   in if topLev then p else parens p
-> convSelectExpression _ _ (Values _ expss) =
+> convQueryExpr _ _ (Values _ expss) =
 >   text "values" $$ nest 2 (vcat $ csv $ map (parens . csvExp) expss)
-> convSelectExpression _ _ (WithSelect _ wqs ex) =
+> convQueryExpr _ _ (WithSelect _ wqs ex) =
 >   text "with" $$ nest 2 (vcat $ csv $ map pwq wqs)
->        $+$ convSelectExpression True False ex
+>        $+$ convQueryExpr True False ex
 >   where
 >     pwq (WithQuery _ nm ex1) =
 >       text nm <+> text "as"
->       <+> parens (convSelectExpression True False ex1)
+>       <+> parens (convQueryExpr True False ex1)
 >
 > convTref :: TableRef -> Doc
 > convTref (Tref _ f a) = convExp f <+> convTrefAlias a
@@ -480,15 +480,15 @@ Statement components
 >                           FullOuter -> "full outer")
 >         <+> text "join"
 >         <+> convTref t2
->         <+> maybeConv (nest 2 . convJoinExpression) ex
+>         <+> maybeConv (nest 2 . convJoinScalarExpr) ex
 >         <+> convTrefAlias a)
 >         where
->           convJoinExpression (JoinOn _ e) = text "on" <+> convExp e
->           convJoinExpression (JoinUsing _ ids) =
+>           convJoinScalarExpr (JoinOn _ e) = text "on" <+> convExp e
+>           convJoinScalarExpr (JoinUsing _ ids) =
 >               text "using" <+> parens (hcatCsvMap text ids)
 >
 > convTref (SubTref _ sub alias) =
->         parens (convSelectExpression True True sub)
+>         parens (convQueryExpr True True sub)
 >         <+> text "as" <+> convTrefAlias alias
 > convTref (TrefFun _ f@(FunCall _ _ _) a) = convExp f <+> convTrefAlias a
 > convTref (TrefFun _ x _) =
@@ -505,7 +505,7 @@ Statement components
 >                           Asc -> "asc"
 >                           Desc -> "desc"
 >
-> convWhere :: Maybe Expression -> Doc
+> convWhere :: Maybe ScalarExpr -> Doc
 > convWhere (Just ex) = text "where" <+> convExp ex
 > convWhere Nothing = empty
 >
@@ -571,7 +571,7 @@ Statement components
 >
 > -- expressions
 >
-> convExp :: Expression -> Doc
+> convExp :: ScalarExpr -> Doc
 > convExp (Identifier _ i) =
 >   if quotesNeeded
 >      then text $ "\"" ++ i ++ "\""
@@ -647,14 +647,14 @@ Statement components
 >   convExp att <+> (if not t then text "not" else empty) <+> text "in"
 >   <+> parens (case lst of
 >                        InList _ expr -> csvExp expr
->                        InSelect _ sel -> convSelectExpression True True sel)
+>                        InSelect _ sel -> convQueryExpr True True sel)
 > convExp (LiftOperator _ op flav args) =
 >   convExp (head args) <+> text op
 >   <+> text (case flav of
 >               LiftAny -> "any"
 >               LiftAll -> "all")
 >   <+> parens (convExp $ head $ tail args)
-> convExp (ScalarSubQuery _ s) = parens (convSelectExpression True True s)
+> convExp (ScalarSubQuery _ s) = parens (convQueryExpr True True s)
 > convExp (NullLit _) = text "null"
 > convExp (WindowFn _ fn part order asc frm) =
 >   convExp fn <+> text "over"
@@ -700,19 +700,19 @@ Statement components
 > convExp (PositionalArg _ a) = text "$" <> integer a
 > convExp (Placeholder _) = text "?"
 > convExp (Exists _ s) =
->   text "exists" <+> parens (convSelectExpression True True s)
+>   text "exists" <+> parens (convQueryExpr True True s)
 > convExp (Cast _ ex t) = text "cast" <> parens (convExp ex
 >                                              <+> text "as"
 >                                              <+> convTypeName t)
 
 
-> convExpSl :: Expression -> Doc
+> convExpSl :: ScalarExpr -> Doc
 > convExpSl (FunCall _ "." es) | [a@(Identifier _ _), b] <- es =
 >   parens (convExpSl a) <> text "." <> convExpSl b
 > convExpSl x = convExp x
 
 >
-> convSet :: Expression -> Doc
+> convSet :: ScalarExpr -> Doc
 > convSet (FunCall _ "=" [Identifier _ a, e]) =
 >   text a <+> text "=" <+> convExp e
 > convSet (FunCall _ "=" [a, b]) | (FunCall _ "!rowctor" is1) <- a
@@ -726,7 +726,7 @@ Statement components
 >
 > -- convert a list of expressions to horizontal csv
 >
-> csvExp :: [Expression] -> Doc
+> csvExp :: [ScalarExpr] -> Doc
 > csvExp = hcatCsvMap convExp
 >
 > maybeConv :: (t -> Doc) -> Maybe t -> Doc

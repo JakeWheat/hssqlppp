@@ -225,7 +225,7 @@ then relation, using the function name for the attribute name
 need to check to see what should happen with arrayof
 
 -}
-funIdens :: Catalog -> String -> Expression -> Maybe Type -> Either [TypeError] (String,[(String,Type)])
+funIdens :: Catalog -> String -> ScalarExpr -> Maybe Type -> Either [TypeError] (String,[(String,Type)])
 funIdens cat alias fnVal ft = do
    errorWhen (case fnVal of
                 FunCall _ _ _ -> False
