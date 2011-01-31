@@ -96,6 +96,12 @@ test some more really basic expressions
 >      ,e "interval '63' day (3)" (Interval ea "63" IntervalDay $ Just 3)
 >      ,e "a between 1 and 3"
 >         (FunCall ea "!between" [Identifier ea "a", IntegerLit ea 1, IntegerLit ea 3])
+>      ,e "a between 7 - 1 and 7 + 1"
+>         (FunCall ea "!between" [Identifier ea "a"
+>                                ,FunCall ea "-" [IntegerLit ea 7
+>                                                ,IntegerLit ea 1]
+>                                ,FunCall ea "+" [IntegerLit ea 7
+>                                                ,IntegerLit ea 1]])
 >      ,e "cast(a as text)"
 >         (Cast ea (Identifier ea "a") (SimpleTypeName ea "text"))
 >      ,e "@ a"

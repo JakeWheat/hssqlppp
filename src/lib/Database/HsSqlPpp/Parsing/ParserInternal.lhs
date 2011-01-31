@@ -1242,6 +1242,196 @@ be used here.
 >                       return (\l -> FunCall p1 "!not"
 >                                       [FunCall p2 "!not" [l]]))
 
+From postgresql src/backend/parser/gram.y
+
+~~~~~
+
+ * We have two expression types: a_expr is the unrestricted kind, and
+ * b_expr is a subset that must be used in some places to avoid shift/reduce
+ * conflicts.  For example, we can't do BETWEEN as "BETWEEN a_expr AND a_expr"
+ * because that use of AND conflicts with AND as a boolean operator.  So,
+ * b_expr is used in BETWEEN and we remove boolean keywords from b_expr.
+ *
+ * Note that '(' a_expr ')' is a b_expr, so an unrestricted expression can
+ * always be used by surrounding it with parens.
+
+~~~~~
+
+
+> b_expr :: SParser ScalarExpr
+> b_expr = buildExpressionParser b_table b_factor
+>        <?> "expression"
+>
+> b_factor :: SParser ScalarExpr
+> b_factor =
+
+First job is to take care of forms which start like a vanilla
+expression, and then add a suffix on
+
+>   fct >>= tryExprSuffix
+>   where
+>     tryExprSuffix e =
+>       option e (choice (map (\f -> f e)
+>                                  [inPredicateSuffix
+>                                  ,functionCallSuffix
+>                                  ,windowFnSuffix
+>                                  ,castSuffix
+>                                  ,betweenSuffix
+>                                  ,arraySubSuffix
+>                                  ,qualIdSuffix])
+>                 >>= tryExprSuffix)
+>     fct = choice [
+
+order these so the ones which can be valid prefixes of others appear
+further down the list (used to be a lot more important when there
+wasn't a separate lexer), probably want to refactor this to use the
+optionalsuffix parsers to improve speed.
+
+One little speed optimisation, to help with pretty printed code which
+can contain a lot of parens - check for nested ((
+This little addition speeds up ./ParseFile.lhs sqltestfiles/system.sql
+on my system from ~4 minutes to ~4 seconds (most of the 4s is probably
+compilation overhead).
+
+>        --try (lookAhead (symbol "(" >> symbol "(")) >> parens expr
+
+start with the factors which start with parens - eliminate scalar
+subqueries since they're easy to distinguish from the others then do in
+predicate before row constructor, since an in predicate can start with
+a row constructor looking thing, then finally vanilla parens
+
+>       --,
+>        scalarSubQuery
+>       ,try rowCtor
+>       ,parens expr
+
+try a few random things which can't start a different expression
+
+>       ,positionalArg
+>       ,placeholder
+>       ,stringLit
+>       ,floatLit
+>       ,integerLit
+
+put the factors which start with keywords before the ones which start
+with a function, so we don't try an parse a keyword as a function name
+
+>       ,caseScalarExpr
+>       ,exists
+>       ,booleanLit
+>       ,nullLit
+>       ,arrayLit
+>       ,castKeyword
+>       ,substring
+
+now do identifiers, functions, and window functions (each is a prefix
+to the next one)
+
+want to allow splices in e.g. function calls: $(fnname)(). To do this,
+don't want to parse anti expression above, but need to parse these
+following suffixes starting with a splice, but if there is no suffix,
+want to parse as an antiexpression rather than an antiidentifier
+
+>       ,try $ do
+>              i <- antiIdentifier
+>              choice [inPredicateSuffix i
+>                     ,threadOptionalSuffix (functionCallSuffix i)
+>                                           windowFnSuffix]
+
+>       ,antiScalarExpr
+>       ,antiIdentifier1
+>       ,try interval
+>       ,try typedStringLit
+>       ,identifier
+>       ]
+
+operator table
+--------------
+
+proper hacky, but sort of does the job
+the 'missing' notes refer to pg operators which aren't yet supported,
+or supported in a different way (e.g. cast uses the type name parser
+for one of it's argument, not the expression parser - I don't know if
+there is a better way of doing this but there usually is in parsec)
+
+pg's operator table is on this page:
+http://www.postgresql.org/docs/8.4/interactive/sql-syntax-lexical.html#SQL-SYNTAX-OPERATORS
+
+will probably need something more custom to handle full range of sql
+syntactical novelty, in particular the precedence rules mix these
+operators up with irregular syntax operators, you can create new
+operators during parsing, and some operators are prefix/postfix or
+binary depending on the types of their operands (how do you parse
+something like this?)
+
+The full list of operators from a standard template1 database should
+be used here.
+
+> b_table :: [[Operator [Token] ParseState Identity ScalarExpr]]
+> b_table = [[{-binary "." AssocLeft-}]
+>          --[binary "::" (BinOpCall Cast) AssocLeft]
+>          --missing [] for array element select
+>         ,[prefix "-" "u-"]
+>         ,[binary "^" AssocLeft]
+>         ,[binary "*" AssocLeft
+>          ,idHackBinary "*" AssocLeft
+>          ,binary "/" AssocLeft
+>          ,binary "%" AssocLeft]
+>         ,[binary "+" AssocLeft
+>          ,binary "-" AssocLeft]
+>          --should be is isnull and notnull
+>         ,[postfixks ["is", "not", "null"] "!isnotnull"
+>          ,postfixks ["is", "null"] "!isnull"]
+>          --other operators all added in this list according to the pg docs:
+>         ,[binary "<->" AssocNone
+>          ,binary "<=" AssocRight
+>          ,binary ">=" AssocRight
+>          ,binary "||" AssocLeft
+>          ,prefix "@" "@"
+>          ]
+>          --in should be here, but is treated as a factor instead
+>          --between
+>          --overlaps
+>         ,[binaryk "like" "!like" AssocNone
+>          ,binarycust (symbol "!=") "<>" AssocNone]
+>          --(also ilike similar)
+>         ,[binary "<" AssocNone
+>          ,binary ">" AssocNone]
+>         ,[binary "=" AssocRight
+>          ,binary "<>" AssocNone]
+>         ,[notNot
+>          ,prefixk "not" "!not"
+>          ]
+>         ,[binaryk "or" "!or" AssocLeft]]
+>     where
+>       binary s = binarycust (symbol s) s
+>       -- '*' is lexed as an id token rather than a symbol token, so
+>       -- work around here
+>       idHackBinary s = binarycust (keyword s) s
+>       binaryk = binarycust . keyword
+>       prefix = unaryCust Prefix . symbol
+>       prefixk = unaryCust Prefix . keyword
+>       postfixks = unaryCust Postfix . mapM_ keyword
+>       binarycust opParse t =
+>         Infix $ try $ do
+>              f <- FunCall <$> pos <*> (t <$ opParse)
+>              return (\l m -> f [l,m])
+>       unaryCust ctor opParse t =
+>         ctor $ try $ do
+>           f <- FunCall <$> pos <*> (t <$ opParse)
+>           return (\l -> f [l])
+>       -- hack - haven't worked out why parsec buildexpression parser won't
+>       -- parse something like "not not EXPR" without parens so hack here
+>       notNot =
+>         Prefix (try $ do
+>                       p1 <- pos
+>                       keyword "not"
+>                       p2 <- pos
+>                       keyword "not"
+>                       return (\l -> FunCall p1 "!not"
+>                                       [FunCall p2 "!not" [l]]))
+
+
 factor parsers
 --------------
 
@@ -1389,32 +1579,15 @@ row ctor: one of
 > betweenSuffix a = do
 >   p <- pos
 >   keyword "between"
->   b <- dodgyParseElement
+>   b <- b_expr --dodgyParseElement
 >   keyword "and"
->   c <- dodgyParseElement
+>   c <- b_expr -- dodgyParseElement
 >   return $ FunCall p "!between" [a,b,c]
 >              --can't use the full expression parser at this time
 >              --because of a conflict between the operator 'and' and
 >              --the 'and' part of a between
->   where
->     dodgyParseElement = factor
-
-From postgresql src/backend/parser/gram.y
-
-~~~~~
-
- * We have two expression types: a_expr is the unrestricted kind, and
- * b_expr is a subset that must be used in some places to avoid shift/reduce
- * conflicts.  For example, we can't do BETWEEN as "BETWEEN a_expr AND a_expr"
- * because that use of AND conflicts with AND as a boolean operator.  So,
- * b_expr is used in BETWEEN and we remove boolean keywords from b_expr.
- *
- * Note that '(' a_expr ')' is a b_expr, so an unrestricted expression can
- * always be used by surrounding it with parens.
-
-~~~~~
-
-TODO: copy this approach here.
+>   --where
+>   --  dodgyParseElement = factor
 
 
 > functionCallSuffix :: ScalarExpr -> SParser ScalarExpr
