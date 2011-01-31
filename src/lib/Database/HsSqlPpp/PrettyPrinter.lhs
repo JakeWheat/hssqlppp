@@ -706,6 +706,28 @@ Statement components
 >                                              <+> convTypeName t)
 > convExp (TypedStringLit a t s) =
 >   convTypeName t <+> convExp (StringLit a s)
+> convExp (Interval a v f p) =
+>   text "interval" <+> convExp (StringLit a v)
+>   <+> convIntervalField <+> convPrec
+>   where
+>     convIntervalField =
+>       text $ case f of
+>                     IntervalYear -> "year"
+>                     IntervalMonth -> "month"
+>                     IntervalDay -> "day"
+>                     IntervalHour -> "hour"
+>                     IntervalMinute -> "minute"
+>                     IntervalSecond -> "second"
+>                     IntervalYearToMonth -> "year to month"
+>                     IntervalDayToHour -> "day to hour"
+>                     IntervalDayToMinute -> "day to minute"
+>                     IntervalDayToSecond -> "day to second"
+>                     IntervalHourToMinute -> "hour to minute"
+>                     IntervalHourToSecond -> "hour to second"
+>                     IntervalMinuteToSecond -> "minute to second"
+>     convPrec = case p of
+>                  Nothing -> empty
+>                  Just i -> parens (int i)
 
 > convExpSl :: ScalarExpr -> Doc
 > convExpSl (FunCall _ "." es) | [a@(Identifier _ _), b] <- es =

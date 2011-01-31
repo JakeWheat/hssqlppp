@@ -33,6 +33,7 @@
 >     ,FrameClause(..)
 >     ,WithQueryList
 >     ,WithQuery(..)
+>     ,IntervalField(..)
 >      -- ** dml
 >     ,CopySource (..)
 >     ,RestartIdentity (..)

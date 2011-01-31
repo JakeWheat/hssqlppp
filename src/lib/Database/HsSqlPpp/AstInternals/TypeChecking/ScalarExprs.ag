@@ -11,7 +11,7 @@ SEM ScalarExpr
     | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier
       QIdentifier
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
-      PositionalArg Placeholder WindowFn TypedStringLit
+      PositionalArg Placeholder WindowFn TypedStringLit Interval
         lhs.annotatedTree = updateAnnotation
                               (setTypeAddErrorsA @loc.tpe
                                . \a -> a {fnProt = @loc.prototype
@@ -24,14 +24,14 @@ SEM ScalarExpr
     | IntegerLit StringLit FloatLit BooleanLit NullLit Identifier
       QIdentifier
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
-      PositionalArg Placeholder WindowFn TypedStringLit
+      PositionalArg Placeholder WindowFn TypedStringLit Interval
         loc.prototype : {Maybe FunctionPrototype}
         loc.prototype = Nothing
 
 SEM ScalarExpr
     | IntegerLit StringLit FloatLit BooleanLit NullLit
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
-      PositionalArg Placeholder WindowFn TypedStringLit
+      PositionalArg Placeholder WindowFn TypedStringLit Interval
       Identifier QIdentifier
       FunCall
         lhs.ntAnnotatedTree = updateAnnotation
@@ -72,7 +72,7 @@ SEM ScalarExpr
     | IntegerLit StringLit FloatLit BooleanLit NullLit
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
       PositionalArg Placeholder WindowFn FunCall
-      FunCall Identifier QIdentifier TypedStringLit
+      FunCall Identifier QIdentifier TypedStringLit Interval
         loc.tbUType : {E ([(String,Type)], [(String,Type)])}
         lhs.tbAnnotatedTree =
             updateAnnotation
@@ -82,7 +82,7 @@ SEM ScalarExpr
 
     | IntegerLit StringLit FloatLit BooleanLit NullLit
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
-      PositionalArg Placeholder WindowFn TypedStringLit
+      PositionalArg Placeholder WindowFn TypedStringLit Interval
         loc.tbUType = Left [InternalError "bad context for tbUType"]
     | FunCall
         loc.tbUType = case (@funName,@args.tbUTypes) of
@@ -103,7 +103,7 @@ ATTR ScalarExprList [expectedTypes : {[Maybe Type]}||uType : {[Maybe Type]}]
 SEM ScalarExpr
     | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier QIdentifier
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
-      PositionalArg Placeholder WindowFn TypedStringLit
+      PositionalArg Placeholder WindowFn TypedStringLit Interval
         lhs.uType = etmt @loc.tpe
 
 SEM ScalarExprList
@@ -188,6 +188,10 @@ SEM ScalarExpr
         loc.backTree = BooleanLit @ann @b
     | NullLit
         loc.backTree = NullLit @ann
+
+SEM ScalarExpr
+    | Interval loc.tpe = Right $ ScalarType "interval"
+               loc.backTree = Interval @ann @value @field @prec
 
 
 {-
@@ -403,13 +407,13 @@ SEM ScalarExpr
 SEM ScalarExpr
   | BooleanLit Case Exists FloatLit IntegerLit LiftOperator
     NullLit PositionalArg Placeholder ScalarSubQuery StringLit
-    CaseSimple InPredicate TypedStringLit
+    CaseSimple InPredicate TypedStringLit Interval
       loc.liftedColumnName = ""
 
 SEM ScalarExpr
   | FunCall Cast CaseSimple InPredicate WindowFn
     BooleanLit Case Exists FloatLit IntegerLit LiftOperator
-    NullLit PositionalArg Placeholder ScalarSubQuery StringLit TypedStringLit
+    NullLit PositionalArg Placeholder ScalarSubQuery StringLit TypedStringLit Interval
       loc.ntType = do
                    t <- @loc.tpe
                    return [(case @loc.liftedColumnName of

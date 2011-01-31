@@ -20,9 +20,10 @@ module Database.HsSqlPpp.AstInternals.AstAnti
         CombineType(..), Volatility(..), Language(..), TypeName(..),
         DropType(..), Cascade(..), Direction(..), Distinct(..),
         Natural(..), IfExists(..), Replace(..), RestartIdentity(..),
-        ScalarExpr(..), FrameClause(..), InList(..), LiftFlavour(..),
-        TriggerWhen(..), TriggerEvent(..), TriggerFire(..), SetValue(..),
-        WithQueryList, StatementList, ScalarExprListStatementListPairList,
+        ScalarExpr(..), IntervalField(..), FrameClause(..), InList(..),
+        LiftFlavour(..), TriggerWhen(..), TriggerEvent(..),
+        TriggerFire(..), SetValue(..), WithQueryList, StatementList,
+        ScalarExprListStatementListPairList,
         ScalarExprListStatementListPair, ScalarExprList, ParamDefList,
         AttributeDefList, ConstraintList, TypeAttributeDefList,
         TypeNameList, StringTypeNameListPair, StringTypeNameListPairList,
@@ -137,6 +138,21 @@ data LiftFlavour = LiftAny
                  | LiftAll
                  deriving (Show, Eq, Typeable, Data)
  
+data IntervalField = IntervalYear
+                   | IntervalMonth
+                   | IntervalDay
+                   | IntervalHour
+                   | IntervalMinute
+                   | IntervalSecond
+                   | IntervalYearToMonth
+                   | IntervalDayToHour
+                   | IntervalDayToMinute
+                   | IntervalDayToSecond
+                   | IntervalHourToMinute
+                   | IntervalHourToSecond
+                   | IntervalMinuteToSecond
+                   deriving (Show, Eq, Typeable, Data)
+ 
 data FrameClause = FrameUnboundedPreceding
                  | FrameUnboundedFull
                  | FrameRowsUnboundedPreceding
@@ -204,6 +220,7 @@ data ScalarExpr = BooleanLit (Annotation) (Bool)
                 | Identifier (Annotation) (String)
                 | InPredicate (Annotation) (ScalarExpr) (Bool) (InList)
                 | IntegerLit (Annotation) (Integer)
+                | Interval (Annotation) (String) (IntervalField) (Maybe Int)
                 | LiftOperator (Annotation) (String) (LiftFlavour) (ScalarExprList)
                 | NullLit (Annotation)
                 | Placeholder (Annotation)
@@ -503,6 +520,23 @@ liftFlavour x
         LiftAny -> A.LiftAny
         LiftAll -> A.LiftAll
  
+intervalField :: IntervalField -> A.IntervalField
+intervalField x
+  = case x of
+        IntervalYear -> A.IntervalYear
+        IntervalMonth -> A.IntervalMonth
+        IntervalDay -> A.IntervalDay
+        IntervalHour -> A.IntervalHour
+        IntervalMinute -> A.IntervalMinute
+        IntervalSecond -> A.IntervalSecond
+        IntervalYearToMonth -> A.IntervalYearToMonth
+        IntervalDayToHour -> A.IntervalDayToHour
+        IntervalDayToMinute -> A.IntervalDayToMinute
+        IntervalDayToSecond -> A.IntervalDayToSecond
+        IntervalHourToMinute -> A.IntervalHourToMinute
+        IntervalHourToSecond -> A.IntervalHourToSecond
+        IntervalMinuteToSecond -> A.IntervalMinuteToSecond
+ 
 frameClause :: FrameClause -> A.FrameClause
 frameClause x
   = case x of
@@ -613,6 +647,7 @@ scalarExpr x
         InPredicate a1 a2 a3 a4 -> A.InPredicate a1 (scalarExpr a2) a3
                                      (inList a4)
         IntegerLit a1 a2 -> A.IntegerLit a1 a2
+        Interval a1 a2 a3 a4 -> A.Interval a1 a2 (intervalField a3) a4
         LiftOperator a1 a2 a3 a4 -> A.LiftOperator a1 a2 (liftFlavour a3)
                                       (scalarExprList a4)
         NullLit a1 -> A.NullLit a1

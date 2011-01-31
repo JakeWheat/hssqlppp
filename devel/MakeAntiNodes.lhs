@@ -392,7 +392,9 @@ boring little functions
 > nsrc = SrcLoc "" 0 0
 >
 > lowerFirst :: String -> String
+> --lowerFirst "" = ""
 > lowerFirst s = toLower (head s):tail s
 >
 > upperFirst :: String -> String
+> --upperFirst "" = ""
 > upperFirst s = toUpper (head s):tail s

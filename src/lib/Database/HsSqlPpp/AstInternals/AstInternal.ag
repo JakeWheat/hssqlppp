@@ -82,6 +82,7 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,Replace(..)
    ,RestartIdentity (..)
    ,ScalarExpr (..)
+   ,IntervalField(..)
    ,FrameClause(..)
    ,InList (..)
    ,LiftFlavour(..)
@@ -535,6 +536,10 @@ DATA ScalarExpr | IntegerLit ann:Annotation i:Integer
                 | TypedStringLit ann:Annotation
                                  tn : TypeName
                                  value : String
+                | Interval ann:Annotation
+                           value : String
+                           field : IntervalField
+                           prec : {Maybe Int}
                 | NullLit ann:Annotation
                 | BooleanLit ann:Annotation b:Bool
                 | PositionalArg ann:Annotation p:Integer
@@ -583,6 +588,21 @@ DATA ScalarExpr | IntegerLit ann:Annotation i:Integer
 {
 data LiftFlavour = LiftAny | LiftAll
                    deriving (Show,Eq,Typeable,Data)
+
+data IntervalField = IntervalYear
+                   | IntervalMonth
+                   | IntervalDay
+                   | IntervalHour
+                   | IntervalMinute
+                   | IntervalSecond
+                   | IntervalYearToMonth
+                   | IntervalDayToHour
+                   | IntervalDayToMinute
+                   | IntervalDayToSecond
+                   | IntervalHourToMinute
+                   | IntervalHourToSecond
+                   | IntervalMinuteToSecond
+                     deriving (Show,Eq,Typeable,Data)
 }
 
 --todo: use liftoperator to implement inlist?

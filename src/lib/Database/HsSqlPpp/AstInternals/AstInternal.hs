@@ -39,6 +39,7 @@ module Database.HsSqlPpp.AstInternals.AstInternal(
    ,Replace(..)
    ,RestartIdentity (..)
    ,ScalarExpr (..)
+   ,IntervalField(..)
    ,FrameClause(..)
    ,InList (..)
    ,LiftFlavour(..)
@@ -175,6 +176,21 @@ data RestartIdentity = RestartIdentity | ContinueIdentity
 
 data LiftFlavour = LiftAny | LiftAll
                    deriving (Show,Eq,Typeable,Data)
+
+data IntervalField = IntervalYear
+                   | IntervalMonth
+                   | IntervalDay
+                   | IntervalHour
+                   | IntervalMinute
+                   | IntervalSecond
+                   | IntervalYearToMonth
+                   | IntervalDayToHour
+                   | IntervalDayToMinute
+                   | IntervalDayToSecond
+                   | IntervalHourToMinute
+                   | IntervalHourToSecond
+                   | IntervalMinuteToSecond
+                     deriving (Show,Eq,Typeable,Data)
 
 
 data FrameClause = FrameUnboundedPreceding
@@ -563,7 +579,7 @@ sem_AlterTableAction_AlterColumnDefault ann_ nm_ def_  =
               _defItbAnnotatedTree :: ScalarExpr
               _defItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _defIuType :: (Maybe Type)
-              -- "./TypeChecking/ScalarExprs.ag"(line 529, column 26)
+              -- "./TypeChecking/ScalarExprs.ag"(line 533, column 26)
               _defOexpectedType =
                   Nothing
               -- self rule
@@ -988,16 +1004,16 @@ sem_CaseScalarExprListScalarExprPair_Tuple x1_ x2_  =
               _x2ItbAnnotatedTree :: ScalarExpr
               _x2ItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _x2IuType :: (Maybe Type)
-              -- "./TypeChecking/ScalarExprs.ag"(line 289, column 13)
+              -- "./TypeChecking/ScalarExprs.ag"(line 293, column 13)
               _lhsOwhenTypes =
                   _x1IuType
-              -- "./TypeChecking/ScalarExprs.ag"(line 290, column 13)
+              -- "./TypeChecking/ScalarExprs.ag"(line 294, column 13)
               _lhsOthenType =
                   _x2IuType
-              -- "./TypeChecking/ScalarExprs.ag"(line 533, column 13)
+              -- "./TypeChecking/ScalarExprs.ag"(line 537, column 13)
               _x1OexpectedTypes =
                   []
-              -- "./TypeChecking/ScalarExprs.ag"(line 534, column 13)
+              -- "./TypeChecking/ScalarExprs.ag"(line 538, column 13)
               _x2OexpectedType =
                   Nothing
               -- self rule
@@ -1093,10 +1109,10 @@ sem_CaseScalarExprListScalarExprPairList_Cons hd_ tl_  =
               _tlIoriginalTree :: CaseScalarExprListScalarExprPairList
               _tlIthenTypes :: ([Maybe Type])
               _tlIwhenTypes :: ([[Maybe Type]])
-              -- "./TypeChecking/ScalarExprs.ag"(line 280, column 10)
+              -- "./TypeChecking/ScalarExprs.ag"(line 284, column 10)
               _lhsOwhenTypes =
                   _hdIwhenTypes : _tlIwhenTypes
-              -- "./TypeChecking/ScalarExprs.ag"(line 281, column 10)
+              -- "./TypeChecking/ScalarExprs.ag"(line 285, column 10)
               _lhsOthenTypes =
                   _hdIthenType : _tlIthenTypes
               -- self rule
@@ -1136,10 +1152,10 @@ sem_CaseScalarExprListScalarExprPairList_Nil  =
               _lhsOthenTypes :: ([Maybe Type])
               _lhsOannotatedTree :: CaseScalarExprListScalarExprPairList
               _lhsOoriginalTree :: CaseScalarExprListScalarExprPairList
-              -- "./TypeChecking/ScalarExprs.ag"(line 282, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 286, column 9)
               _lhsOwhenTypes =
                   []
-              -- "./TypeChecking/ScalarExprs.ag"(line 283, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 287, column 9)
               _lhsOthenTypes =
                   []
               -- self rule
@@ -1246,7 +1262,7 @@ sem_Constraint_CheckConstraint ann_ name_ expr_  =
               _exprItbAnnotatedTree :: ScalarExpr
               _exprItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _exprIuType :: (Maybe Type)
-              -- "./TypeChecking/ScalarExprs.ag"(line 537, column 23)
+              -- "./TypeChecking/ScalarExprs.ag"(line 541, column 23)
               _exprOexpectedType =
                   Nothing
               -- self rule
@@ -1635,10 +1651,10 @@ sem_InList_InList ann_ exprs_  =
               _exprsIoriginalTree :: ScalarExprList
               _exprsItbUTypes :: ([Maybe ([(String,Type)],[(String,Type)])])
               _exprsIuType :: ([Maybe Type])
-              -- "./TypeChecking/ScalarExprs.ag"(line 493, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 497, column 9)
               _lhsOlistType =
                   mapM lmt _exprsIuType >>= resolveResultSetType _lhsIcat
-              -- "./TypeChecking/ScalarExprs.ag"(line 608, column 14)
+              -- "./TypeChecking/ScalarExprs.ag"(line 612, column 14)
               _exprsOexpectedTypes =
                   []
               -- self rule
@@ -1678,7 +1694,7 @@ sem_InList_InSelect ann_ sel_  =
               _selIlibUpdates :: ([LocalBindingsUpdate])
               _selIoriginalTree :: QueryExpr
               _selIuType :: (Maybe [(String,Type)])
-              -- "./TypeChecking/ScalarExprs.ag"(line 495, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 499, column 9)
               _lhsOlistType =
                   do
                   st <- lmt (map snd <$> _selIuType)
@@ -1687,7 +1703,7 @@ sem_InList_InSelect ann_ sel_  =
                                        "got subquery with no columns? in inselect"]
                             1 -> Right $ head st
                             _ -> Right $ AnonymousRecordType st
-              -- "./TypeChecking/ScalarExprs.ag"(line 634, column 16)
+              -- "./TypeChecking/ScalarExprs.ag"(line 638, column 16)
               _selOexpectedTypes =
                   []
               -- self rule
@@ -1775,7 +1791,7 @@ sem_JoinExpr_JoinOn ann_ expr_  =
               _exprItbAnnotatedTree :: ScalarExpr
               _exprItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _exprIuType :: (Maybe Type)
-              -- "./TypeChecking/ScalarExprs.ag"(line 551, column 14)
+              -- "./TypeChecking/ScalarExprs.ag"(line 555, column 14)
               _exprOexpectedType =
                   Just typeBool
               -- self rule
@@ -1884,7 +1900,7 @@ sem_MaybeBoolExpr_Just just_  =
                   in if t `elem` [Nothing,Just typeBool]
                      then Just _justIannotatedTree
                      else Just $ addTypeErrors [ExpressionMustBeBool] _justIannotatedTree
-              -- "./TypeChecking/ScalarExprs.ag"(line 554, column 12)
+              -- "./TypeChecking/ScalarExprs.ag"(line 558, column 12)
               _justOexpectedType =
                   Just typeBool
               -- self rule
@@ -1987,7 +2003,7 @@ sem_MaybeScalarExpr_Just just_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 124, column 12)
               _lhsOuType =
                   _justIuType
-              -- "./TypeChecking/ScalarExprs.ag"(line 557, column 12)
+              -- "./TypeChecking/ScalarExprs.ag"(line 561, column 12)
               _justOexpectedType =
                   Nothing
               -- self rule
@@ -2723,7 +2739,7 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
               _selOffsetIannotatedTree :: MaybeScalarExpr
               _selOffsetIoriginalTree :: MaybeScalarExpr
               _selOffsetIuType :: (Maybe Type)
-              -- "./TypeChecking/ScalarExprs.ag"(line 611, column 14)
+              -- "./TypeChecking/ScalarExprs.ag"(line 615, column 14)
               _selGroupByOexpectedTypes =
                   []
               -- "./TypeChecking/QueryStatement.ag"(line 29, column 9)
@@ -2847,7 +2863,7 @@ sem_QueryExpr_Values ann_ vll_  =
               _vllIannotatedTree :: ScalarExprListList
               _vllIoriginalTree :: ScalarExprListList
               _vllIuType :: ([[Maybe Type]])
-              -- "./TypeChecking/ScalarExprs.ag"(line 625, column 14)
+              -- "./TypeChecking/ScalarExprs.ag"(line 629, column 14)
               _vllOexpectedTypes =
                   _lhsIexpectedTypes
               -- "./TypeChecking/QueryStatement.ag"(line 29, column 9)
@@ -3194,7 +3210,7 @@ sem_RowConstraint_RowCheckConstraint ann_ name_ expr_  =
               _exprItbAnnotatedTree :: ScalarExpr
               _exprItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _exprIuType :: (Maybe Type)
-              -- "./TypeChecking/ScalarExprs.ag"(line 560, column 26)
+              -- "./TypeChecking/ScalarExprs.ag"(line 564, column 26)
               _exprOexpectedType =
                   Nothing
               -- self rule
@@ -3536,6 +3552,20 @@ sem_RowConstraintList_Nil  =
             local ntType      : _
             local annotatedTree : _
             local originalTree : _
+      alternative Interval:
+         child ann            : {Annotation}
+         child value          : {String}
+         child field          : {IntervalField}
+         child prec           : {Maybe Int}
+         visit 0:
+            local prototype   : {Maybe FunctionPrototype}
+            local tbUType     : {E ([(String,Type)], [(String,Type)])}
+            local tpe         : {Et}
+            local backTree    : _
+            local liftedColumnName : _
+            local ntType      : _
+            local annotatedTree : _
+            local originalTree : _
       alternative LiftOperator:
          child ann            : {Annotation}
          child oper           : {String}
@@ -3662,6 +3692,7 @@ data ScalarExpr  = BooleanLit (Annotation) (Bool)
                  | Identifier (Annotation) (String) 
                  | InPredicate (Annotation) (ScalarExpr) (Bool) (InList) 
                  | IntegerLit (Annotation) (Integer) 
+                 | Interval (Annotation) (String) (IntervalField) (Maybe Int) 
                  | LiftOperator (Annotation) (String) (LiftFlavour) (ScalarExprList) 
                  | NullLit (Annotation) 
                  | Placeholder (Annotation) 
@@ -3695,6 +3726,8 @@ sem_ScalarExpr (InPredicate _ann _expr _i _list )  =
     (sem_ScalarExpr_InPredicate _ann (sem_ScalarExpr _expr ) _i (sem_InList _list ) )
 sem_ScalarExpr (IntegerLit _ann _i )  =
     (sem_ScalarExpr_IntegerLit _ann _i )
+sem_ScalarExpr (Interval _ann _value _field _prec )  =
+    (sem_ScalarExpr_Interval _ann _value _field _prec )
 sem_ScalarExpr (LiftOperator _ann _oper _flav _args )  =
     (sem_ScalarExpr_LiftOperator _ann _oper _flav (sem_ScalarExprList _args ) )
 sem_ScalarExpr (NullLit _ann )  =
@@ -3783,10 +3816,10 @@ sem_ScalarExpr_BooleanLit ann_ b_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 188, column 9)
               _backTree =
                   BooleanLit ann_ b_
-              -- "./TypeChecking/ScalarExprs.ag"(line 407, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 411, column 7)
               _liftedColumnName =
                   ""
-              -- "./TypeChecking/ScalarExprs.ag"(line 413, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 417, column 7)
               _ntType =
                   do
                   t <- _tpe
@@ -3866,13 +3899,13 @@ sem_ScalarExpr_Case ann_ cases_ els_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 107, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs.ag"(line 295, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 299, column 9)
               _whenTypes =
                   _casesIwhenTypes
-              -- "./TypeChecking/ScalarExprs.ag"(line 296, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 300, column 9)
               _thenTypes =
                   _casesIthenTypes ++ maybe [] ((:[]) . Just) _elsIuType
-              -- "./TypeChecking/ScalarExprs.ag"(line 300, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 304, column 9)
               _tpe =
                   do
                   wt <- mapM lmt $ concat _whenTypes
@@ -3880,13 +3913,13 @@ sem_ScalarExpr_Case ann_ cases_ els_  =
                       [WrongTypes typeBool wt]
                   tt <- mapM lmt _thenTypes
                   resolveResultSetType _lhsIcat tt
-              -- "./TypeChecking/ScalarExprs.ag"(line 308, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 312, column 9)
               _backTree =
                   Case ann_ _casesIannotatedTree _elsIannotatedTree
-              -- "./TypeChecking/ScalarExprs.ag"(line 407, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 411, column 7)
               _liftedColumnName =
                   ""
-              -- "./TypeChecking/ScalarExprs.ag"(line 413, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 417, column 7)
               _ntType =
                   do
                   t <- _tpe
@@ -3993,13 +4026,13 @@ sem_ScalarExpr_CaseSimple ann_ value_ cases_ els_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 107, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs.ag"(line 295, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 299, column 9)
               _whenTypes =
                   _casesIwhenTypes
-              -- "./TypeChecking/ScalarExprs.ag"(line 296, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 300, column 9)
               _thenTypes =
                   _casesIthenTypes ++ maybe [] ((:[]) . Just) _elsIuType
-              -- "./TypeChecking/ScalarExprs.ag"(line 313, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 317, column 9)
               _tpe =
                   do
                   wt <- mapM lmt $ concat _whenTypes
@@ -4007,16 +4040,16 @@ sem_ScalarExpr_CaseSimple ann_ value_ cases_ els_  =
                   _ <- resolveResultSetType _lhsIcat (vt : wt)
                   tt <- mapM lmt _thenTypes
                   resolveResultSetType _lhsIcat tt
-              -- "./TypeChecking/ScalarExprs.ag"(line 320, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 324, column 9)
               _backTree =
                   CaseSimple ann_
                              _valueIannotatedTree
                              _casesIannotatedTree
                              _elsIannotatedTree
-              -- "./TypeChecking/ScalarExprs.ag"(line 407, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 411, column 7)
               _liftedColumnName =
                   ""
-              -- "./TypeChecking/ScalarExprs.ag"(line 413, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 417, column 7)
               _ntType =
                   do
                   t <- _tpe
@@ -4127,18 +4160,18 @@ sem_ScalarExpr_Cast ann_ expr_ tn_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 107, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs.ag"(line 201, column 12)
+              -- "./TypeChecking/ScalarExprs.ag"(line 205, column 12)
               _tpe =
                   lmt _tnInamedType
-              -- "./TypeChecking/ScalarExprs.ag"(line 202, column 12)
+              -- "./TypeChecking/ScalarExprs.ag"(line 206, column 12)
               _backTree =
                   Cast ann_ _exprIannotatedTree _tnIannotatedTree
-              -- "./TypeChecking/ScalarExprs.ag"(line 396, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 400, column 7)
               _liftedColumnName =
                   case _tnIannotatedTree of
                     SimpleTypeName _ tn -> tn
                     _ -> ""
-              -- "./TypeChecking/ScalarExprs.ag"(line 413, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 417, column 7)
               _ntType =
                   do
                   t <- _tpe
@@ -4232,10 +4265,10 @@ sem_ScalarExpr_Exists ann_ sel_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 107, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs.ag"(line 407, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 411, column 7)
               _liftedColumnName =
                   ""
-              -- "./TypeChecking/ScalarExprs.ag"(line 413, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 417, column 7)
               _ntType =
                   do
                   t <- _tpe
@@ -4243,13 +4276,13 @@ sem_ScalarExpr_Exists ann_ sel_  =
                             "" -> "?column?"
                             n -> n
                          ,t)]
-              -- "./TypeChecking/ScalarExprs.ag"(line 450, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 454, column 9)
               _tpe =
                   Right typeBool
-              -- "./TypeChecking/ScalarExprs.ag"(line 451, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 455, column 9)
               _backTree =
                   Exists ann_ _selIannotatedTree
-              -- "./TypeChecking/ScalarExprs.ag"(line 632, column 29)
+              -- "./TypeChecking/ScalarExprs.ag"(line 636, column 29)
               _selOexpectedTypes =
                   []
               -- self rule
@@ -4326,10 +4359,10 @@ sem_ScalarExpr_FloatLit ann_ d_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 186, column 9)
               _backTree =
                   FloatLit ann_ d_
-              -- "./TypeChecking/ScalarExprs.ag"(line 407, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 411, column 7)
               _liftedColumnName =
                   ""
-              -- "./TypeChecking/ScalarExprs.ag"(line 413, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 417, column 7)
               _ntType =
                   do
                   t <- _tpe
@@ -4403,7 +4436,7 @@ sem_ScalarExpr_FunCall ann_ funName_ args_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 107, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs.ag"(line 215, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 219, column 9)
               __tup1 =
                   either (\e -> (Left e, Nothing)) id $ do
                   args <- mapM lmt _argsIuType
@@ -4412,22 +4445,22 @@ sem_ScalarExpr_FunCall ann_ funName_ args_  =
                                        args
                   let (_,_,r,_) = efp
                   return (Right r, Just efp)
-              -- "./TypeChecking/ScalarExprs.ag"(line 215, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 219, column 9)
               (_tpe,_) =
                   __tup1
-              -- "./TypeChecking/ScalarExprs.ag"(line 215, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 219, column 9)
               (_,_prototype) =
                   __tup1
-              -- "./TypeChecking/ScalarExprs.ag"(line 225, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 229, column 9)
               _backTree =
                   FunCall ann_ funName_ _argsIannotatedTree
-              -- "./TypeChecking/ScalarExprs.ag"(line 390, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 394, column 7)
               _liftedColumnName =
                   case funName_ of
                     "." -> getName _backTree
                     x | isOperatorName x -> "?column?"
                     _ -> funName_
-              -- "./TypeChecking/ScalarExprs.ag"(line 413, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 417, column 7)
               _ntType =
                   do
                   t <- _tpe
@@ -4435,7 +4468,7 @@ sem_ScalarExpr_FunCall ann_ funName_ args_  =
                             "" -> "?column?"
                             n -> n
                          ,t)]
-              -- "./TypeChecking/ScalarExprs.ag"(line 591, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 595, column 9)
               _argsOexpectedTypes =
                   maybe [] id $
                   case (funName_,_lhsIexpectedType) of
@@ -4512,13 +4545,13 @@ sem_ScalarExpr_Identifier ann_ i_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 107, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs.ag"(line 353, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 357, column 9)
               _tpe =
                   unwrapLookup <$> lbLookupID _lhsIlib [i_]
-              -- "./TypeChecking/ScalarExprs.ag"(line 354, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 358, column 9)
               _backTree =
                   Identifier ann_ i_
-              -- "./TypeChecking/ScalarExprs.ag"(line 357, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 361, column 9)
               _ntType =
                   if i_ == "*"
                   then unwrapStar <$> lbExpandStar _lhsIlib ""
@@ -4600,10 +4633,10 @@ sem_ScalarExpr_InPredicate ann_ expr_ i_ list_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 107, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs.ag"(line 407, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 411, column 7)
               _liftedColumnName =
                   ""
-              -- "./TypeChecking/ScalarExprs.ag"(line 413, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 417, column 7)
               _ntType =
                   do
                   t <- _tpe
@@ -4611,14 +4644,14 @@ sem_ScalarExpr_InPredicate ann_ expr_ i_ list_  =
                             "" -> "?column?"
                             n -> n
                          ,t)]
-              -- "./TypeChecking/ScalarExprs.ag"(line 478, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 482, column 9)
               _tpe =
                   do
                   lt <- _listIlistType
                   expt <- lmt _exprIuType
                   _ <- resolveResultSetType _lhsIcat [expt, lt]
                   return typeBool
-              -- "./TypeChecking/ScalarExprs.ag"(line 483, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 487, column 9)
               _backTree =
                   InPredicate ann_
                               _exprIannotatedTree
@@ -4709,10 +4742,10 @@ sem_ScalarExpr_IntegerLit ann_ i_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 182, column 9)
               _backTree =
                   IntegerLit ann_ i_
-              -- "./TypeChecking/ScalarExprs.ag"(line 407, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 411, column 7)
               _liftedColumnName =
                   ""
-              -- "./TypeChecking/ScalarExprs.ag"(line 413, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 417, column 7)
               _ntType =
                   do
                   t <- _tpe
@@ -4726,6 +4759,85 @@ sem_ScalarExpr_IntegerLit ann_ i_  =
               -- self rule
               _originalTree =
                   IntegerLit ann_ i_
+              -- self rule
+              _lhsOoriginalTree =
+                  _originalTree
+          in  ( _lhsOannotatedTree,_lhsOntAnnotatedTree,_lhsOntType,_lhsOoriginalTree,_lhsOtbAnnotatedTree,_lhsOtbUType,_lhsOuType)))
+sem_ScalarExpr_Interval :: Annotation ->
+                           String ->
+                           IntervalField ->
+                           (Maybe Int) ->
+                           T_ScalarExpr 
+sem_ScalarExpr_Interval ann_ value_ field_ prec_  =
+    (\ _lhsIcat
+       _lhsIexpectedType
+       _lhsIlib ->
+         (let _lhsOannotatedTree :: ScalarExpr
+              _prototype :: (Maybe FunctionPrototype)
+              _lhsOntAnnotatedTree :: ScalarExpr
+              _lhsOntType :: ([(String,Type)])
+              _lhsOtbAnnotatedTree :: ScalarExpr
+              _lhsOtbUType :: (Maybe ([(String,Type)],[(String,Type)]))
+              _tbUType :: (E ([(String,Type)], [(String,Type)]))
+              _lhsOuType :: (Maybe Type)
+              _tpe :: Et
+              _lhsOoriginalTree :: ScalarExpr
+              -- "./TypeChecking/ScalarExprs.ag"(line 15, column 9)
+              _lhsOannotatedTree =
+                  updateAnnotation
+                    (setTypeAddErrorsA _tpe
+                     . \a -> a {fnProt = _prototype
+                               ,infType = msum [_lhsIexpectedType
+                                               ,etmt _tpe
+                                               ,Nothing]}) _backTree
+              -- "./TypeChecking/ScalarExprs.ag"(line 29, column 9)
+              _prototype =
+                  Nothing
+              -- "./TypeChecking/ScalarExprs.ag"(line 37, column 9)
+              _lhsOntAnnotatedTree =
+                  updateAnnotation
+                     (setTypeAddErrorsA (either Left (Right . CompositeType) _ntType    )
+                     . \a -> a {fnProt = _prototype    }) _backTree
+              -- "./TypeChecking/ScalarExprs.ag"(line 40, column 9)
+              _lhsOntType =
+                  either (const []) id _ntType
+              -- "./TypeChecking/ScalarExprs.ag"(line 77, column 9)
+              _lhsOtbAnnotatedTree =
+                  updateAnnotation
+                                       (\a -> a {fnProt = _prototype
+                                                ,errs = errs a ++ tes _tbUType    }) _backTree
+              -- "./TypeChecking/ScalarExprs.ag"(line 81, column 9)
+              _lhsOtbUType =
+                  either (const Nothing) Just _tbUType
+              -- "./TypeChecking/ScalarExprs.ag"(line 86, column 9)
+              _tbUType =
+                  Left [InternalError "bad context for tbUType"]
+              -- "./TypeChecking/ScalarExprs.ag"(line 107, column 9)
+              _lhsOuType =
+                  etmt _tpe
+              -- "./TypeChecking/ScalarExprs.ag"(line 193, column 16)
+              _tpe =
+                  Right $ ScalarType "interval"
+              -- "./TypeChecking/ScalarExprs.ag"(line 194, column 16)
+              _backTree =
+                  Interval ann_ value_ field_ prec_
+              -- "./TypeChecking/ScalarExprs.ag"(line 411, column 7)
+              _liftedColumnName =
+                  ""
+              -- "./TypeChecking/ScalarExprs.ag"(line 417, column 7)
+              _ntType =
+                  do
+                  t <- _tpe
+                  return [(case _liftedColumnName     of
+                            "" -> "?column?"
+                            n -> n
+                         ,t)]
+              -- self rule
+              _annotatedTree =
+                  Interval ann_ value_ field_ prec_
+              -- self rule
+              _originalTree =
+                  Interval ann_ value_ field_ prec_
               -- self rule
               _lhsOoriginalTree =
                   _originalTree
@@ -4789,7 +4901,7 @@ sem_ScalarExpr_LiftOperator ann_ oper_ flav_ args_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 107, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs.ag"(line 248, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 252, column 9)
               _tpe =
                   do
                   at <- mapM lmt _argsIuType
@@ -4805,13 +4917,13 @@ sem_ScalarExpr_LiftOperator ann_ oper_ flav_ args_  =
                   errorWhen (resType /= typeBool)
                             [AnyAllError $ "operator must have bool return, got " ++ show resType]
                   return resType
-              -- "./TypeChecking/ScalarExprs.ag"(line 262, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 266, column 9)
               _backTree =
                   LiftOperator ann_ oper_ flav_ _argsIannotatedTree
-              -- "./TypeChecking/ScalarExprs.ag"(line 407, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 411, column 7)
               _liftedColumnName =
                   ""
-              -- "./TypeChecking/ScalarExprs.ag"(line 413, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 417, column 7)
               _ntType =
                   do
                   t <- _tpe
@@ -4819,7 +4931,7 @@ sem_ScalarExpr_LiftOperator ann_ oper_ flav_ args_  =
                             "" -> "?column?"
                             n -> n
                          ,t)]
-              -- "./TypeChecking/ScalarExprs.ag"(line 599, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 603, column 9)
               _argsOexpectedTypes =
                   []
               -- self rule
@@ -4895,10 +5007,10 @@ sem_ScalarExpr_NullLit ann_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 190, column 9)
               _backTree =
                   NullLit ann_
-              -- "./TypeChecking/ScalarExprs.ag"(line 407, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 411, column 7)
               _liftedColumnName =
                   ""
-              -- "./TypeChecking/ScalarExprs.ag"(line 413, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 417, column 7)
               _ntType =
                   do
                   t <- _tpe
@@ -4965,10 +5077,10 @@ sem_ScalarExpr_Placeholder ann_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 107, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs.ag"(line 407, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 411, column 7)
               _liftedColumnName =
                   ""
-              -- "./TypeChecking/ScalarExprs.ag"(line 413, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 417, column 7)
               _ntType =
                   do
                   t <- _tpe
@@ -4976,10 +5088,10 @@ sem_ScalarExpr_Placeholder ann_  =
                             "" -> "?column?"
                             n -> n
                          ,t)]
-              -- "./TypeChecking/ScalarExprs.ag"(line 444, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 448, column 9)
               _tpe =
                   Right UnknownType
-              -- "./TypeChecking/ScalarExprs.ag"(line 445, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 449, column 9)
               _backTree =
                   Placeholder ann_
               -- self rule
@@ -5042,10 +5154,10 @@ sem_ScalarExpr_PositionalArg ann_ p_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 107, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs.ag"(line 407, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 411, column 7)
               _liftedColumnName =
                   ""
-              -- "./TypeChecking/ScalarExprs.ag"(line 413, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 417, column 7)
               _ntType =
                   do
                   t <- _tpe
@@ -5053,10 +5165,10 @@ sem_ScalarExpr_PositionalArg ann_ p_  =
                             "" -> "?column?"
                             n -> n
                          ,t)]
-              -- "./TypeChecking/ScalarExprs.ag"(line 438, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 442, column 9)
               _tpe =
                   unwrapLookup <$> lbLookupID _lhsIlib ['$':show p_]
-              -- "./TypeChecking/ScalarExprs.ag"(line 439, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 443, column 9)
               _backTree =
                   PositionalArg ann_ p_
               -- self rule
@@ -5132,7 +5244,7 @@ sem_ScalarExpr_QIdentifier ann_ qual_ i_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 107, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs.ag"(line 362, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 366, column 9)
               _tpe =
                   let x = case _qid     of
                             Nothing -> byT
@@ -5142,18 +5254,18 @@ sem_ScalarExpr_QIdentifier ann_ qual_ i_  =
                     byT = do
                       (t::Type) <- lmt _qualIuType
                       unwrapLookup <$> lbLookupIDInType _lhsIcat _lhsIlib t i_
-              -- "./TypeChecking/ScalarExprs.ag"(line 371, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 375, column 9)
               _qid =
                   case _backTree     of
                      QIdentifier _ (Identifier _ q) _ -> Just q
                      _ -> Nothing
-              -- "./TypeChecking/ScalarExprs.ag"(line 374, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 378, column 9)
               _backTree =
                   QIdentifier ann_ _qAnnTreeNoUnrec     i_
-              -- "./TypeChecking/ScalarExprs.ag"(line 376, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 380, column 9)
               _qAnnTreeNoUnrec =
                   updateAnnotation (\a -> a {errs = []}) _qualIannotatedTree
-              -- "./TypeChecking/ScalarExprs.ag"(line 379, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 383, column 9)
               _ntType =
                   case _qid     of
                     Nothing -> undefined
@@ -5239,10 +5351,10 @@ sem_ScalarExpr_ScalarSubQuery ann_ sel_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 107, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs.ag"(line 407, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 411, column 7)
               _liftedColumnName =
                   ""
-              -- "./TypeChecking/ScalarExprs.ag"(line 413, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 417, column 7)
               _ntType =
                   do
                   t <- _tpe
@@ -5250,7 +5362,7 @@ sem_ScalarExpr_ScalarSubQuery ann_ sel_  =
                             "" -> "?column?"
                             n -> n
                          ,t)]
-              -- "./TypeChecking/ScalarExprs.ag"(line 462, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 466, column 9)
               _tpe =
                   do
                   selType <- lmt (map snd <$> _selIuType)
@@ -5258,10 +5370,10 @@ sem_ScalarExpr_ScalarSubQuery ann_ sel_  =
                     0 -> Left [InternalError "no columns in scalar subquery?"]
                     1 -> Right $ head selType
                     _ -> Right $ AnonymousRecordType selType
-              -- "./TypeChecking/ScalarExprs.ag"(line 470, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 474, column 9)
               _backTree =
                   ScalarSubQuery ann_ _selIannotatedTree
-              -- "./TypeChecking/ScalarExprs.ag"(line 632, column 29)
+              -- "./TypeChecking/ScalarExprs.ag"(line 636, column 29)
               _selOexpectedTypes =
                   []
               -- self rule
@@ -5338,10 +5450,10 @@ sem_ScalarExpr_StringLit ann_ value_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 184, column 9)
               _backTree =
                   StringLit ann_ value_
-              -- "./TypeChecking/ScalarExprs.ag"(line 407, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 411, column 7)
               _liftedColumnName =
                   ""
-              -- "./TypeChecking/ScalarExprs.ag"(line 413, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 417, column 7)
               _ntType =
                   do
                   t <- _tpe
@@ -5415,16 +5527,16 @@ sem_ScalarExpr_TypedStringLit ann_ tn_ value_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 107, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs.ag"(line 206, column 10)
+              -- "./TypeChecking/ScalarExprs.ag"(line 210, column 10)
               _tpe =
                   lmt _tnInamedType
-              -- "./TypeChecking/ScalarExprs.ag"(line 207, column 10)
+              -- "./TypeChecking/ScalarExprs.ag"(line 211, column 10)
               _backTree =
                   TypedStringLit ann_ _tnIannotatedTree value_
-              -- "./TypeChecking/ScalarExprs.ag"(line 407, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 411, column 7)
               _liftedColumnName =
                   ""
-              -- "./TypeChecking/ScalarExprs.ag"(line 413, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 417, column 7)
               _ntType =
                   do
                   t <- _tpe
@@ -5528,10 +5640,10 @@ sem_ScalarExpr_WindowFn ann_ fn_ partitionBy_ orderBy_ dir_ frm_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 107, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs.ag"(line 229, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 233, column 9)
               _tpe =
                   lmt _fnIuType
-              -- "./TypeChecking/ScalarExprs.ag"(line 230, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 234, column 9)
               _backTree =
                   WindowFn ann_
                            _fnIannotatedTree
@@ -5539,11 +5651,11 @@ sem_ScalarExpr_WindowFn ann_ fn_ partitionBy_ orderBy_ dir_ frm_  =
                            _orderByIannotatedTree
                            dir_
                            frm_
-              -- "./TypeChecking/ScalarExprs.ag"(line 400, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 404, column 7)
               _liftedColumnName =
                   let (FunCall _ fn _) = _fnIannotatedTree
                   in fn
-              -- "./TypeChecking/ScalarExprs.ag"(line 413, column 7)
+              -- "./TypeChecking/ScalarExprs.ag"(line 417, column 7)
               _ntType =
                   do
                   t <- _tpe
@@ -5551,10 +5663,10 @@ sem_ScalarExpr_WindowFn ann_ fn_ partitionBy_ orderBy_ dir_ frm_  =
                             "" -> "?column?"
                             n -> n
                          ,t)]
-              -- "./TypeChecking/ScalarExprs.ag"(line 601, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 605, column 9)
               _partitionByOexpectedTypes =
                   []
-              -- "./TypeChecking/ScalarExprs.ag"(line 602, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 606, column 9)
               _orderByOexpectedTypes =
                   []
               -- self rule
@@ -5648,7 +5760,7 @@ sem_ScalarExprDirectionPair_Tuple x1_ x2_  =
               _x1ItbAnnotatedTree :: ScalarExpr
               _x1ItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _x1IuType :: (Maybe Type)
-              -- "./TypeChecking/ScalarExprs.ag"(line 540, column 13)
+              -- "./TypeChecking/ScalarExprs.ag"(line 544, column 13)
               _x1OexpectedType =
                   Nothing
               -- self rule
@@ -5854,12 +5966,12 @@ sem_ScalarExprList_Cons hd_ tl_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 110, column 12)
               _lhsOuType =
                   _hdIuType : _tlIuType
-              -- "./TypeChecking/ScalarExprs.ag"(line 543, column 12)
+              -- "./TypeChecking/ScalarExprs.ag"(line 547, column 12)
               _hdOexpectedType =
                   case _lhsIexpectedTypes of
                     (t:_) -> t
                     _ -> Nothing
-              -- "./TypeChecking/ScalarExprs.ag"(line 546, column 12)
+              -- "./TypeChecking/ScalarExprs.ag"(line 550, column 12)
               _tlOexpectedTypes =
                   case _lhsIexpectedTypes of
                   (_:ts) -> ts
@@ -5990,10 +6102,10 @@ sem_ScalarExprListList_Cons hd_ tl_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 117, column 12)
               _lhsOuType =
                   _hdIuType : _tlIuType
-              -- "./TypeChecking/ScalarExprs.ag"(line 628, column 12)
+              -- "./TypeChecking/ScalarExprs.ag"(line 632, column 12)
               _hdOexpectedTypes =
                   _lhsIexpectedTypes
-              -- "./TypeChecking/ScalarExprs.ag"(line 629, column 12)
+              -- "./TypeChecking/ScalarExprs.ag"(line 633, column 12)
               _tlOexpectedTypes =
                   _lhsIexpectedTypes
               -- self rule
@@ -6108,7 +6220,7 @@ sem_ScalarExprListStatementListPair_Tuple x1_ x2_  =
               _x2IoriginalTree :: StatementList
               _x2IproducedCat :: Catalog
               _x2IproducedLib :: LocalBindings
-              -- "./TypeChecking/ScalarExprs.ag"(line 605, column 13)
+              -- "./TypeChecking/ScalarExprs.ag"(line 609, column 13)
               _x1OexpectedTypes =
                   []
               -- "./TypeChecking/Statements.ag"(line 121, column 9)
@@ -6303,7 +6415,7 @@ sem_ScalarExprRoot_ScalarExprRoot expr_  =
               _exprItbAnnotatedTree :: ScalarExpr
               _exprItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _exprIuType :: (Maybe Type)
-              -- "./TypeChecking/ScalarExprs.ag"(line 584, column 22)
+              -- "./TypeChecking/ScalarExprs.ag"(line 588, column 22)
               _exprOexpectedType =
                   Nothing
               -- self rule
@@ -6389,7 +6501,7 @@ sem_ScalarExprStatementListPair_Tuple x1_ x2_  =
               _x2IoriginalTree :: StatementList
               _x2IproducedCat :: Catalog
               _x2IproducedLib :: LocalBindings
-              -- "./TypeChecking/ScalarExprs.ag"(line 587, column 13)
+              -- "./TypeChecking/ScalarExprs.ag"(line 591, column 13)
               _x1OexpectedType =
                   Nothing
               -- "./TypeChecking/Statements.ag"(line 125, column 9)
@@ -6598,7 +6710,7 @@ sem_SelectItem_SelExp ann_ ex_  =
               _exItbAnnotatedTree :: ScalarExpr
               _exItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _exIuType :: (Maybe Type)
-              -- "./TypeChecking/ScalarExprs.ag"(line 567, column 25)
+              -- "./TypeChecking/ScalarExprs.ag"(line 571, column 25)
               _exOexpectedType =
                   Nothing
               -- "./TypeChecking/SelectLists.ag"(line 33, column 9)
@@ -6645,7 +6757,7 @@ sem_SelectItem_SelectItem ann_ ex_ name_  =
               _exItbAnnotatedTree :: ScalarExpr
               _exItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _exIuType :: (Maybe Type)
-              -- "./TypeChecking/ScalarExprs.ag"(line 567, column 25)
+              -- "./TypeChecking/ScalarExprs.ag"(line 571, column 25)
               _exOexpectedType =
                   Nothing
               -- "./TypeChecking/SelectLists.ag"(line 35, column 9)
@@ -6855,7 +6967,7 @@ sem_SelectList_SelectList ann_ items_ into_  =
               _intoIoriginalTree :: ScalarExprList
               _intoItbUTypes :: ([Maybe ([(String,Type)],[(String,Type)])])
               _intoIuType :: ([Maybe Type])
-              -- "./TypeChecking/ScalarExprs.ag"(line 563, column 18)
+              -- "./TypeChecking/ScalarExprs.ag"(line 567, column 18)
               _intoOexpectedTypes =
                   []
               -- "./TypeChecking/SelectLists.ag"(line 80, column 9)
@@ -7501,7 +7613,7 @@ sem_Statement_AlterSequence ann_ name_ ownedBy_  =
               _ownedByItbAnnotatedTree :: ScalarExpr
               _ownedByItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _ownedByIuType :: (Maybe Type)
-              -- "./TypeChecking/ScalarExprs.ag"(line 576, column 21)
+              -- "./TypeChecking/ScalarExprs.ag"(line 580, column 21)
               _ownedByOexpectedType =
                   Nothing
               -- "./TypeChecking/Statements.ag"(line 94, column 9)
@@ -7612,10 +7724,10 @@ sem_Statement_Assignment ann_ target_ value_  =
               _valueItbAnnotatedTree :: ScalarExpr
               _valueItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _valueIuType :: (Maybe Type)
-              -- "./TypeChecking/ScalarExprs.ag"(line 570, column 18)
+              -- "./TypeChecking/ScalarExprs.ag"(line 574, column 18)
               _valueOexpectedType =
                   Nothing
-              -- "./TypeChecking/ScalarExprs.ag"(line 577, column 18)
+              -- "./TypeChecking/ScalarExprs.ag"(line 581, column 18)
               _targetOexpectedType =
                   Nothing
               -- "./TypeChecking/Statements.ag"(line 82, column 9)
@@ -7851,7 +7963,7 @@ sem_Statement_CaseStatementSimple ann_ val_ cases_ els_  =
               _elsIoriginalTree :: StatementList
               _elsIproducedCat :: Catalog
               _elsIproducedLib :: LocalBindings
-              -- "./TypeChecking/ScalarExprs.ag"(line 571, column 27)
+              -- "./TypeChecking/ScalarExprs.ag"(line 575, column 27)
               _valOexpectedType =
                   Nothing
               -- "./TypeChecking/Statements.ag"(line 116, column 9)
@@ -8414,7 +8526,7 @@ sem_Statement_CreateTableAs ann_ name_ expr_  =
               _exprIlibUpdates :: ([LocalBindingsUpdate])
               _exprIoriginalTree :: QueryExpr
               _exprIuType :: (Maybe [(String,Type)])
-              -- "./TypeChecking/ScalarExprs.ag"(line 636, column 32)
+              -- "./TypeChecking/ScalarExprs.ag"(line 640, column 32)
               _exprOexpectedTypes =
                   []
               -- "./TypeChecking/Statements.ag"(line 82, column 9)
@@ -8491,7 +8603,7 @@ sem_Statement_CreateTrigger ann_ name_ wh_ events_ tbl_ firing_ fnName_ fnArgs_ 
               _fnArgsIoriginalTree :: ScalarExprList
               _fnArgsItbUTypes :: ([Maybe ([(String,Type)],[(String,Type)])])
               _fnArgsIuType :: ([Maybe Type])
-              -- "./TypeChecking/ScalarExprs.ag"(line 614, column 21)
+              -- "./TypeChecking/ScalarExprs.ag"(line 618, column 21)
               _fnArgsOexpectedTypes =
                   []
               -- "./TypeChecking/Statements.ag"(line 116, column 9)
@@ -8614,7 +8726,7 @@ sem_Statement_CreateView ann_ name_ expr_  =
               _exprIlibUpdates :: ([LocalBindingsUpdate])
               _exprIoriginalTree :: QueryExpr
               _exprIuType :: (Maybe [(String,Type)])
-              -- "./TypeChecking/ScalarExprs.ag"(line 636, column 32)
+              -- "./TypeChecking/ScalarExprs.ag"(line 640, column 32)
               _exprOexpectedTypes =
                   []
               -- "./TypeChecking/Statements.ag"(line 82, column 9)
@@ -8703,7 +8815,7 @@ sem_Statement_Delete ann_ table_ using_ whr_ returning_  =
               _returningIannotatedTree :: MaybeSelectList
               _returningIlistType :: ([(String,Type)])
               _returningIoriginalTree :: MaybeSelectList
-              -- "./TypeChecking/ScalarExprs.ag"(line 647, column 28)
+              -- "./TypeChecking/ScalarExprs.ag"(line 651, column 28)
               _tableOexpectedType =
                   Nothing
               -- "./TypeChecking/Statements.ag"(line 82, column 9)
@@ -8911,7 +9023,7 @@ sem_Statement_Execute ann_ expr_  =
               _exprItbAnnotatedTree :: ScalarExpr
               _exprItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _exprIuType :: (Maybe Type)
-              -- "./TypeChecking/ScalarExprs.ag"(line 573, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 577, column 9)
               _exprOexpectedType =
                   Nothing
               -- "./TypeChecking/Statements.ag"(line 116, column 9)
@@ -8963,7 +9075,7 @@ sem_Statement_ExecuteInto ann_ expr_ targets_  =
               _exprItbAnnotatedTree :: ScalarExpr
               _exprItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _exprIuType :: (Maybe Type)
-              -- "./TypeChecking/ScalarExprs.ag"(line 573, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 577, column 9)
               _exprOexpectedType =
                   Nothing
               -- "./TypeChecking/Statements.ag"(line 116, column 9)
@@ -9079,13 +9191,13 @@ sem_Statement_ForIntegerStatement ann_ lb_ var_ from_ to_ sts_  =
               _stsIoriginalTree :: StatementList
               _stsIproducedCat :: Catalog
               _stsIproducedLib :: LocalBindings
-              -- "./TypeChecking/ScalarExprs.ag"(line 574, column 27)
+              -- "./TypeChecking/ScalarExprs.ag"(line 578, column 27)
               _fromOexpectedType =
                   Nothing
-              -- "./TypeChecking/ScalarExprs.ag"(line 575, column 27)
+              -- "./TypeChecking/ScalarExprs.ag"(line 579, column 27)
               _toOexpectedType =
                   Nothing
-              -- "./TypeChecking/ScalarExprs.ag"(line 578, column 45)
+              -- "./TypeChecking/ScalarExprs.ag"(line 582, column 45)
               _varOexpectedType =
                   Nothing
               -- "./TypeChecking/Statements.ag"(line 82, column 9)
@@ -9226,10 +9338,10 @@ sem_Statement_ForQueryStatement ann_ lb_ var_ sel_ sts_  =
               _stsIoriginalTree :: StatementList
               _stsIproducedCat :: Catalog
               _stsIproducedLib :: LocalBindings
-              -- "./TypeChecking/ScalarExprs.ag"(line 578, column 45)
+              -- "./TypeChecking/ScalarExprs.ag"(line 582, column 45)
               _varOexpectedType =
                   Nothing
-              -- "./TypeChecking/ScalarExprs.ag"(line 638, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 642, column 9)
               _selOexpectedTypes =
                   []
               -- "./TypeChecking/Statements.ag"(line 82, column 9)
@@ -9411,7 +9523,7 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
               _returningIannotatedTree :: MaybeSelectList
               _returningIlistType :: ([(String,Type)])
               _returningIoriginalTree :: MaybeSelectList
-              -- "./TypeChecking/ScalarExprs.ag"(line 647, column 28)
+              -- "./TypeChecking/ScalarExprs.ag"(line 651, column 28)
               _tableOexpectedType =
                   Nothing
               -- "./TypeChecking/Statements.ag"(line 82, column 9)
@@ -9638,7 +9750,7 @@ sem_Statement_Perform ann_ expr_  =
               _exprItbAnnotatedTree :: ScalarExpr
               _exprItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _exprIuType :: (Maybe Type)
-              -- "./TypeChecking/ScalarExprs.ag"(line 573, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 577, column 9)
               _exprOexpectedType =
                   Nothing
               -- "./TypeChecking/Statements.ag"(line 116, column 9)
@@ -9689,7 +9801,7 @@ sem_Statement_QueryStatement ann_ ex_  =
               _exIlibUpdates :: ([LocalBindingsUpdate])
               _exIoriginalTree :: QueryExpr
               _exIuType :: (Maybe [(String,Type)])
-              -- "./TypeChecking/ScalarExprs.ag"(line 639, column 22)
+              -- "./TypeChecking/ScalarExprs.ag"(line 643, column 22)
               _exOexpectedTypes =
                   []
               -- "./TypeChecking/Statements.ag"(line 82, column 9)
@@ -9763,7 +9875,7 @@ sem_Statement_Raise ann_ level_ message_ args_  =
               _argsIoriginalTree :: ScalarExprList
               _argsItbUTypes :: ([Maybe ([(String,Type)],[(String,Type)])])
               _argsIuType :: ([Maybe Type])
-              -- "./TypeChecking/ScalarExprs.ag"(line 615, column 13)
+              -- "./TypeChecking/ScalarExprs.ag"(line 619, column 13)
               _argsOexpectedTypes =
                   []
               -- "./TypeChecking/Statements.ag"(line 116, column 9)
@@ -9878,7 +9990,7 @@ sem_Statement_ReturnNext ann_ expr_  =
               _exprItbAnnotatedTree :: ScalarExpr
               _exprItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _exprIuType :: (Maybe Type)
-              -- "./TypeChecking/ScalarExprs.ag"(line 573, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 577, column 9)
               _exprOexpectedType =
                   Nothing
               -- "./TypeChecking/Statements.ag"(line 116, column 9)
@@ -9926,7 +10038,7 @@ sem_Statement_ReturnQuery ann_ sel_  =
               _selIlibUpdates :: ([LocalBindingsUpdate])
               _selIoriginalTree :: QueryExpr
               _selIuType :: (Maybe [(String,Type)])
-              -- "./TypeChecking/ScalarExprs.ag"(line 638, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 642, column 9)
               _selOexpectedTypes =
                   []
               -- "./TypeChecking/Statements.ag"(line 116, column 9)
@@ -10071,10 +10183,10 @@ sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
               _returningIannotatedTree :: MaybeSelectList
               _returningIlistType :: ([(String,Type)])
               _returningIoriginalTree :: MaybeSelectList
-              -- "./TypeChecking/ScalarExprs.ag"(line 616, column 14)
+              -- "./TypeChecking/ScalarExprs.ag"(line 620, column 14)
               _assignsOexpectedTypes =
                   []
-              -- "./TypeChecking/ScalarExprs.ag"(line 647, column 28)
+              -- "./TypeChecking/ScalarExprs.ag"(line 651, column 28)
               _tableOexpectedType =
                   Nothing
               -- "./TypeChecking/Statements.ag"(line 82, column 9)
@@ -10198,7 +10310,7 @@ sem_Statement_WhileStatement ann_ lb_ expr_ sts_  =
               _stsIoriginalTree :: StatementList
               _stsIproducedCat :: Catalog
               _stsIproducedLib :: LocalBindings
-              -- "./TypeChecking/ScalarExprs.ag"(line 573, column 9)
+              -- "./TypeChecking/ScalarExprs.ag"(line 577, column 9)
               _exprOexpectedType =
                   Nothing
               -- "./TypeChecking/Statements.ag"(line 116, column 9)
@@ -10702,7 +10814,7 @@ sem_TableRef_FunTref ann_ fn_ alias_  =
               _fnItbAnnotatedTree :: ScalarExpr
               _fnItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _fnIuType :: (Maybe Type)
-              -- "./TypeChecking/ScalarExprs.ag"(line 580, column 15)
+              -- "./TypeChecking/ScalarExprs.ag"(line 584, column 15)
               _fnOexpectedType =
                   Nothing
               -- "./TypeChecking/TableRefs.ag"(line 91, column 9)
@@ -10871,7 +10983,7 @@ sem_TableRef_SubTref ann_ sel_ alias_  =
               _selIlibUpdates :: ([LocalBindingsUpdate])
               _selIoriginalTree :: QueryExpr
               _selIuType :: (Maybe [(String,Type)])
-              -- "./TypeChecking/ScalarExprs.ag"(line 641, column 15)
+              -- "./TypeChecking/ScalarExprs.ag"(line 645, column 15)
               _selOexpectedTypes =
                   []
               -- "./TypeChecking/TableRefs.ag"(line 91, column 9)
@@ -10930,7 +11042,7 @@ sem_TableRef_Tref ann_ tbl_ alias_  =
               _tblItbAnnotatedTree :: ScalarExpr
               _tblItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _tblIuType :: (Maybe Type)
-              -- "./TypeChecking/ScalarExprs.ag"(line 581, column 12)
+              -- "./TypeChecking/ScalarExprs.ag"(line 585, column 12)
               _tblOexpectedType =
                   Nothing
               -- "./TypeChecking/TableRefs.ag"(line 91, column 9)
@@ -11999,7 +12111,7 @@ sem_WithQuery_WithQuery ann_ name_ ex_  =
               _exIlibUpdates :: ([LocalBindingsUpdate])
               _exIoriginalTree :: QueryExpr
               _exIuType :: (Maybe [(String,Type)])
-              -- "./TypeChecking/ScalarExprs.ag"(line 643, column 17)
+              -- "./TypeChecking/ScalarExprs.ag"(line 647, column 17)
               _exOexpectedTypes =
                   []
               -- "./TypeChecking/QueryStatement.ag"(line 246, column 9)

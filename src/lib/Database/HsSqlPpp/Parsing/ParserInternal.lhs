@@ -1150,6 +1150,7 @@ want to parse as an antiexpression rather than an antiidentifier
 
 >       ,antiScalarExpr
 >       ,antiIdentifier1
+>       ,try interval
 >       ,try typedStringLit
 >       ,identifier
 >       ]
@@ -1439,6 +1440,28 @@ TODO: copy this approach here.
 >                  <$> pos
 >                  <*> typeName
 >                  <*> (extrStr <$> stringLit)
+
+> interval :: SParser ScalarExpr
+> interval = Interval
+>            <$> pos
+>            <*> (keyword "interval" *> (extrStr <$> stringLit))
+>            <*> intervalField
+>            <*> tryOptionMaybe (parens (fromInteger <$> integer))
+>   where
+>     intervalField =
+>         choice [IntervalYear <$ keyword "year"
+>                ,IntervalMonth <$ keyword "month"
+>                ,IntervalDay <$ keyword "day"
+>                ,IntervalHour <$ keyword "hour"
+>                ,IntervalMinute <$ keyword "minut"
+>                ,IntervalSecond <$ keyword "second"
+>                {-,IntervalYearToMonth <$ keyword "day"
+>                ,IntervalDayToHour <$ keyword "day"
+>                ,IntervalDayToMinute <$ keyword "day"
+>                ,IntervalDayToSecond <$ keyword "day"
+>                ,IntervalHourToMinute <$ keyword "day"
+>                ,IntervalHourToSecond <$ keyword "day"
+>                ,IntervalMinuteToSecond <$ keyword "day"-}]
 >
 > substring :: SParser ScalarExpr
 > substring = do
