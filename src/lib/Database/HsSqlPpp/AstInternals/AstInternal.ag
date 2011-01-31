@@ -532,6 +532,9 @@ DATA ScalarExpr | IntegerLit ann:Annotation i:Integer
                 | FloatLit ann:Annotation d:Double
                 | StringLit ann:Annotation
                             value : String
+                | TypedStringLit ann:Annotation
+                                 tn : TypeName
+                                 value : String
                 | NullLit ann:Annotation
                 | BooleanLit ann:Annotation b:Bool
                 | PositionalArg ann:Annotation p:Integer

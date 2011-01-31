@@ -91,6 +91,7 @@ test some more really basic expressions
 >      ,e "245::float(24)" (Cast ea (IntegerLit ea 245) (PrecTypeName ea "float" 24))
 >      ,e "245.1::numeric(5,3)" (Cast ea (FloatLit ea 245.1) (Prec2TypeName ea "numeric" 5 3))
 >      ,e "245::double precision" (Cast ea (IntegerLit ea 245) (SimpleTypeName ea "double precision"))
+>      ,e "date '1998-12-01'" (TypedStringLit ea (SimpleTypeName ea "date") "1998-12-01")
 >      ,e "a between 1 and 3"
 >         (FunCall ea "!between" [Identifier ea "a", IntegerLit ea 1, IntegerLit ea 3])
 >      ,e "cast(a as text)"

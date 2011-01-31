@@ -106,7 +106,7 @@ To support antiquotation, the following approach is used:
 >     pqe :: SParser QueryExpr
 >     pqe = do
 >           (QueryStatement _ q) <- selectStatement
->           optional (symbol ";")
+>           _ <- optional (symbol ";")
 >           eof
 >           return q
 
@@ -1150,6 +1150,7 @@ want to parse as an antiexpression rather than an antiidentifier
 
 >       ,antiScalarExpr
 >       ,antiIdentifier1
+>       ,try typedStringLit
 >       ,identifier
 >       ]
 
@@ -1433,6 +1434,11 @@ TODO: copy this approach here.
 > castSuffix :: ScalarExpr -> SParser ScalarExpr
 > castSuffix ex = pos >>= \p -> Cast p ex <$> (symbol "::" *> typeName)
 
+> typedStringLit :: SParser ScalarExpr
+> typedStringLit = TypedStringLit
+>                  <$> pos
+>                  <*> typeName
+>                  <*> (extrStr <$> stringLit)
 >
 > substring :: SParser ScalarExpr
 > substring = do
@@ -1693,12 +1699,12 @@ p1 = do
 like thread optional suffix, but we pass a list of suffixes in, not
 much of a shorthand
 
-> threadOptionalSuffixes :: ParsecT [tok] st Identity a
+> {- threadOptionalSuffixes :: ParsecT [tok] st Identity a
 >                        -> [a -> GenParser tok st a]
 >                        -> ParsecT [tok] st Identity a
 > threadOptionalSuffixes p1 p2s = do
 >   x <- p1
->   option x (try $ choice (map (\l -> l x) p2s))
+>   option x (try $ choice (map (\l -> l x) p2s))-}
 
 couldn't work how to to perms so just did this hack instead
 e.g.

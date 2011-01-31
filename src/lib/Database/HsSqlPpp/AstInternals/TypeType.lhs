@@ -51,7 +51,7 @@ out. If not, will have to add another type.
 > module Database.HsSqlPpp.AstInternals.TypeType where
 >
 > import Control.Monad.Trans.Error
-> import Control.Monad.Error
+> --import Control.Monad.Error
 >
 > import Data.Data
 > import Data.Generics.PlateData

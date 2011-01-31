@@ -4,7 +4,7 @@ add parsing the chaos files to the automated tests
 sql lexer for illuminate
 fold in changes from selects branch, start work on tpc-h parsing
 
-new todo for 0.4.0
+new todo for 0.3.0
 fix expression parsing
 support most postgresql syntax
 better approach wrt parse tree and ast

@@ -131,7 +131,7 @@ Future Plans
 Currently working on fixing the typechecker for queries to be
 production quality.
 
-Provisional for 0.4.0:
+Provisional for 0.3.0:
 
 * add support for parsing most postgresql syntax
 * add comprehensive set of splices for quasi-quoting

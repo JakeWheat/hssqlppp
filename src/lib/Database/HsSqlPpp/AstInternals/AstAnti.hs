@@ -211,6 +211,7 @@ data ScalarExpr = BooleanLit (Annotation) (Bool)
                 | QIdentifier (Annotation) (ScalarExpr) (String)
                 | ScalarSubQuery (Annotation) (QueryExpr)
                 | StringLit (Annotation) (String)
+                | TypedStringLit (Annotation) (TypeName) (String)
                 | WindowFn (Annotation) (ScalarExpr) (ScalarExprList)
                            (ScalarExprList) (Direction) (FrameClause)
                 | AntiScalarExpr String
@@ -620,6 +621,7 @@ scalarExpr x
         QIdentifier a1 a2 a3 -> A.QIdentifier a1 (scalarExpr a2) a3
         ScalarSubQuery a1 a2 -> A.ScalarSubQuery a1 (queryExpr a2)
         StringLit a1 a2 -> A.StringLit a1 a2
+        TypedStringLit a1 a2 a3 -> A.TypedStringLit a1 (typeName a2) a3
         WindowFn a1 a2 a3 a4 a5 a6 -> A.WindowFn a1 (scalarExpr a2)
                                         (scalarExprList a3)
                                         (scalarExprList a4)

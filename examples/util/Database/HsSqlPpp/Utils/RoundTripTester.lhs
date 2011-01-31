@@ -220,7 +220,7 @@ do website generation, without the pg roundtrips
 
 > parseFiles :: [String] -> IO [StatementList]
 > parseFiles fns = do
->   as <- mapM (\f -> fmap (parseSql f) $ readFile f) fns
+>   as <- mapM (\f -> fmap (parseStatements f) $ readFile f) fns
 >   return $ either (error . show) id $ sequence as
 
 > roundTripTest :: ([Statement] -> [Statement]) -> String -> [FilePath] -> IO RoundTripResults
@@ -232,11 +232,11 @@ do website generation, without the pg roundtrips
 >     -- get the ast and catalog of the sql to test with the catalog
 >     -- determined by the hssqlppp typechecker
 >     (origAst :: [Statement]) <- (astTransformer . concat) `fmap` liftIO (parseFiles fns)
->     let (origCat :: Catalog, origAast :: [Statement]) = typeCheck emptyCat origAst
+>     let (origCat :: Catalog, origAast :: [Statement]) = typeCheckStatements emptyCat origAst
 >     let origTypeErrors = getTypeErrors origAast
 >     -- load the test sql into postgresql using psql and get the
 >     -- new catalog from postgresql
->     _ <- liftIO $ loadSqlUsingPsql dbName $ printSql origAst
+>     _ <- liftIO $ loadSqlUsingPsql dbName $ printStatements origAst
 >     pgCat <- readCat dbName
 >     -- show the differences between the catalog as determined by the
 >     -- hssqlppp type checker and by loading into postgresql and reading
@@ -245,8 +245,8 @@ do website generation, without the pg roundtrips
 >     -- dump the database from postgresql, parse and run the dump sql through the
 >     -- hssqlppp type checker
 >     dumpSql <- liftIO $ pgDump dbName
->     dumpSqlAst <- etsr $ parseSql "" dumpSql
->     let (dumpCat,dumpAast) = typeCheck emptyCat dumpSqlAst
+>     dumpSqlAst <- etsr $ parseStatements "" dumpSql
+>     let (dumpCat,dumpAast) = typeCheckStatements emptyCat dumpSqlAst
 >     let dumpTypeErrors = getTypeErrors dumpAast
 >     let origDumpCatDiff = compareCatalogs emptyCat origCat dumpCat
 >

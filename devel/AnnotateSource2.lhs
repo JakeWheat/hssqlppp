@@ -88,7 +88,7 @@ then concat the lot together, and can then render with pandoc
 >   origAst <- readSourceFiles fs
 >   cat <- either (\l -> error $ show l) id <$> readCatalog dbName
 >   let transformedAst = maybe origAst (\t -> t origAst) astTransform
->       (_,transformedAast) = typeCheck cat transformedAst
+>       (_,transformedAast) = typeCheckStatements cat transformedAst
 >   let sps :: [Maybe (String,Int,Int)]
 >       sps = map (asrc . getAnnotation) transformedAst
 >   when (any (==Nothing) sps)
@@ -117,7 +117,7 @@ interspersed we want chunks of the original source
 >   where
 >     showEntry :: (Annotation -> String) -> (String, [Statement]) -> String
 >     showEntry a (s, sts) =
->         let sto = either (const []) id $ parseSql "" s -- bit crap, we could reuse the already parsed statements
+>         let sto = either (const []) id $ parseStatements "" s -- bit crap, we could reuse the already parsed statements
 >             s1 = resetAnnotations sto
 >             s2 = resetAnnotations sts
 >         in case () of
@@ -132,7 +132,7 @@ interspersed we want chunks of the original source
 >                | otherwise -> printStatement "UnusedSql" "replaced sql" "" s
 >                               ++ printStatement "GeneratedSql" "generated sql" "" (prSql a sts)
 >     prSql :: (Annotation -> String) -> [Statement] -> String
->     prSql a = concatMap (\st -> annStr a st ++ printSql [st])
+>     prSql a = concatMap (\st -> annStr a st ++ printStatements [st])
 >     annStr :: (Annotation -> String) -> Statement -> String
 >     annStr a st = case a (getAnnotation st) of
 >                      y | trim y == "" -> ""
@@ -173,7 +173,7 @@ interspersed we want chunks of the original source
 
 > readSourceFiles :: [String] -> IO [Statement]
 > readSourceFiles fns = wrapETs $
->   mapM (\f -> liftIO (parseSqlFile f) >>= tsl) fns >>=
+>   mapM (\f -> liftIO (parseStatementsFromFile f) >>= tsl) fns >>=
 >   concat |> return
 
 > {-getSp :: Statement -> Maybe (String,Int)

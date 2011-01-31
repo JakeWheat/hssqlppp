@@ -704,7 +704,8 @@ Statement components
 > convExp (Cast _ ex t) = text "cast" <> parens (convExp ex
 >                                              <+> text "as"
 >                                              <+> convTypeName t)
-
+> convExp (TypedStringLit a t s) =
+>   convTypeName t <+> convExp (StringLit a s)
 
 > convExpSl :: ScalarExpr -> Doc
 > convExpSl (FunCall _ "." es) | [a@(Identifier _ _), b] <- es =

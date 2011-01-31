@@ -1,6 +1,8 @@
 
 Command line access to a bunch of utility functions.
 
+ghc --make -threaded -XScopedTypeVariables -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -idevel:src/lib:src/qq:src/postgresql:examples/chaos:examples/extensions/:examples/util/:tests/ --make examples/util/HsSqlPppUtil.lhs
+
 run
 HsSqlPppUtil.lhs -?
 to get a list of commands and purpose and usage info

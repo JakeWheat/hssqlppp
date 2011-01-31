@@ -11,7 +11,7 @@ SEM ScalarExpr
     | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier
       QIdentifier
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
-      PositionalArg Placeholder WindowFn
+      PositionalArg Placeholder WindowFn TypedStringLit
         lhs.annotatedTree = updateAnnotation
                               (setTypeAddErrorsA @loc.tpe
                                . \a -> a {fnProt = @loc.prototype
@@ -24,14 +24,14 @@ SEM ScalarExpr
     | IntegerLit StringLit FloatLit BooleanLit NullLit Identifier
       QIdentifier
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
-      PositionalArg Placeholder WindowFn
+      PositionalArg Placeholder WindowFn TypedStringLit
         loc.prototype : {Maybe FunctionPrototype}
         loc.prototype = Nothing
 
 SEM ScalarExpr
     | IntegerLit StringLit FloatLit BooleanLit NullLit
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
-      PositionalArg Placeholder WindowFn
+      PositionalArg Placeholder WindowFn TypedStringLit
       Identifier QIdentifier
       FunCall
         lhs.ntAnnotatedTree = updateAnnotation
@@ -72,7 +72,7 @@ SEM ScalarExpr
     | IntegerLit StringLit FloatLit BooleanLit NullLit
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
       PositionalArg Placeholder WindowFn FunCall
-      FunCall Identifier QIdentifier
+      FunCall Identifier QIdentifier TypedStringLit
         loc.tbUType : {E ([(String,Type)], [(String,Type)])}
         lhs.tbAnnotatedTree =
             updateAnnotation
@@ -82,7 +82,7 @@ SEM ScalarExpr
 
     | IntegerLit StringLit FloatLit BooleanLit NullLit
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
-      PositionalArg Placeholder WindowFn
+      PositionalArg Placeholder WindowFn TypedStringLit
         loc.tbUType = Left [InternalError "bad context for tbUType"]
     | FunCall
         loc.tbUType = case (@funName,@args.tbUTypes) of
@@ -103,7 +103,7 @@ ATTR ScalarExprList [expectedTypes : {[Maybe Type]}||uType : {[Maybe Type]}]
 SEM ScalarExpr
     | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier QIdentifier
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
-      PositionalArg Placeholder WindowFn
+      PositionalArg Placeholder WindowFn TypedStringLit
         lhs.uType = etmt @loc.tpe
 
 SEM ScalarExprList
@@ -200,6 +200,12 @@ all the work is done in the typename node
 SEM ScalarExpr
     | Cast loc.tpe = lmt @tn.namedType
            loc.backTree = Cast @ann @expr.annotatedTree @tn.annotatedTree
+
+SEM ScalarExpr
+    | TypedStringLit
+         loc.tpe = lmt @tn.namedType
+         loc.backTree = TypedStringLit @ann @tn.annotatedTree @value
+
 
 {-
 == operators and functions
@@ -397,13 +403,13 @@ SEM ScalarExpr
 SEM ScalarExpr
   | BooleanLit Case Exists FloatLit IntegerLit LiftOperator
     NullLit PositionalArg Placeholder ScalarSubQuery StringLit
-    CaseSimple InPredicate
+    CaseSimple InPredicate TypedStringLit
       loc.liftedColumnName = ""
 
 SEM ScalarExpr
   | FunCall Cast CaseSimple InPredicate WindowFn
     BooleanLit Case Exists FloatLit IntegerLit LiftOperator
-    NullLit PositionalArg Placeholder ScalarSubQuery StringLit
+    NullLit PositionalArg Placeholder ScalarSubQuery StringLit TypedStringLit
       loc.ntType = do
                    t <- @loc.tpe
                    return [(case @loc.liftedColumnName of
