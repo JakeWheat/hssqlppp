@@ -1,0 +1,745 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >BoardWidget.sql transformed</title
+    ><link href="../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../index.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><div class='SqlPostgresql'><div class='UnusedSql'><pre class="sourceCode"><span class="Comment">-- replaced sql ------------------------</span>
+<span class="Comment">/*</span>
+<span class="Comment">================================================================================</span>
+
+<span class="Comment">= board widget</span>
+
+<span class="Comment">*/</span>
+<span class="Keyword">select</span> <span class="VarId">module</span><span class="Symbol">(</span><span class="Char">'Chaos.Client.BoardWidget'</span><span class="Symbol">);</span>
+<span class="Comment">/*</span>
+<span class="Comment">== cursor position + ops</span>
+
+<span class="Comment">The cursor is at position x,y</span>
+
+<span class="Comment">The server code has no concept of the cursor.</span>
+<span class="Comment">In the end, this has just made the code more complicated for no reason.</span>
+<span class="Comment">*/</span></pre></div></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">modules</span> <span class="Symbol">(</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'Chaos.Client.BoardWidget'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><div class='UnusedSql'><pre class="sourceCode"><span class="Comment">-- replaced sql ------------------------</span>
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">cursor_position</span> <span class="Symbol">(</span>
+  <span class="VarId">x</span> <span class="Type">int</span><span class="Symbol">,</span>
+  <span class="VarId">y</span> <span class="VarId">int</span>
+<span class="Symbol">);</span></pre></div></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*[CatCreateTable &quot;cursor_position&quot; [(&quot;x&quot;,ScalarType &quot;int4&quot;),(&quot;y&quot;,ScalarType &quot;int4&quot;)] [(&quot;tableoid&quot;,ScalarType &quot;oid&quot;),(&quot;cmax&quot;,ScalarType &quot;cid&quot;),(&quot;xmax&quot;,ScalarType &quot;xid&quot;),(&quot;cmin&quot;,ScalarType &quot;cid&quot;),(&quot;xmin&quot;,ScalarType &quot;xid&quot;),(&quot;ctid&quot;,ScalarType &quot;tid&quot;)]]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">cursor_position</span> <span class="Symbol">(</span>
+  <span class="VarId">x</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+  <span class="VarId">y</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="VarId">null</span>
+<span class="Symbol">);</span>
+
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'cursor_position'</span><span class="Symbol">,</span><span class="Char">'table'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.BoardWidget'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><div class='UnusedSql'><pre class="sourceCode"><span class="Comment">-- replaced sql ------------------------</span>
+<span class="Keyword">select</span> <span class="VarId">create_assertion</span><span class="Symbol">(</span><span class="Char">'cursor_position_coordinates_valid'</span><span class="Symbol">,</span>
+$$ <span class="Keyword">not</span> <span class="Keyword">exists</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">cursor_position</span>
+  <span class="Keyword">cross</span> <span class="Keyword">join</span> <span class="VarId">board_size</span>
+  <span class="Keyword">where</span> <span class="VarId">x</span> <span class="Symbol">&gt;=</span> <span class="VarId">width</span> <span class="Keyword">or</span> <span class="VarId">y</span> <span class="Symbol">&gt;=</span> <span class="VarId">height</span><span class="Symbol">)</span>$$<span class="Symbol">);</span></pre></div></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*[CatCreateFunction FunName &quot;check_con_cursor_position_coordinates_valid&quot; [] (ScalarType &quot;bool&quot;) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">check_con_cursor_position_coordinates_valid</span> <span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">bool</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="VarId">return</span> <span class="Symbol">(</span><span class="Keyword">not</span> <span class="Symbol">(</span><span class="Keyword">exists</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span>
+                         <span class="Keyword">from</span> <span class="Symbol">(</span><span class="VarId">cursor_position</span>
+                               <span class="Keyword">cross</span> <span class="Keyword">join</span> <span class="VarId">board_size</span><span class="Symbol">)</span>
+                         <span class="Keyword">where</span> <span class="Symbol">((</span><span class="VarId">x</span> <span class="Symbol">&gt;=</span> <span class="VarId">width</span><span class="Symbol">)</span> <span class="Keyword">or</span> <span class="Symbol">(</span><span class="VarId">y</span> <span class="Symbol">&gt;=</span> <span class="VarId">height</span><span class="Symbol">)))));</span>
+
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span>
+
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'check_con_cursor_position_coordinates_valid'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.BoardWidget'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span>
+
+<span class="Comment">/*[CatCreateFunction FunName &quot;cursor_position_constraint_trigger_operator&quot; [] (Pseudo Trigger) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">cursor_position_constraint_trigger_operator</span> <span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Keyword">trigger</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">if</span> <span class="Symbol">(</span><span class="Keyword">not</span> <span class="Symbol">(</span><span class="VarId">check_con_cursor_position_coordinates_valid</span><span class="Symbol">()))</span> <span class="VarId">then</span>
+       <span class="Keyword">raise</span> <span class="Keyword">exception</span> <span class="Char">'update violates database constraint cursor_position_coordinates_valid'</span><span class="Symbol">;</span>
+
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+
+  <span class="VarId">return</span> <span class="VarId">OLD</span><span class="Symbol">;</span>
+
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span>
+
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'cursor_position_constraint_trigger_operator'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.BoardWidget'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span>
+
+<span class="Keyword">create</span> <span class="Keyword">trigger</span> <span class="VarId">cursor_position_constraint_trigger</span> <span class="Keyword">after</span> <span class="Keyword">insert</span> <span class="Keyword">or</span> <span class="Keyword">update</span> <span class="Keyword">or</span> <span class="Keyword">delete</span> <span class="Keyword">on</span> <span class="VarId">cursor_position</span> <span class="Keyword">for</span> <span class="Keyword">statement</span> <span class="Keyword">execute</span> <span class="VarId">procedure</span> <span class="VarId">cursor_position_constraint_trigger_operator</span><span class="Symbol">();</span>
+
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'cursor_position_constraint_trigger'</span><span class="Symbol">,</span><span class="Char">'trigger'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.BoardWidget'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span>
+
+<span class="Comment">/*[CatCreateFunction FunName &quot;board_size_constraint_trigger_operator&quot; [] (Pseudo Trigger) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">or</span> <span class="Keyword">replace</span> <span class="Keyword">function</span> <span class="VarId">board_size_constraint_trigger_operator</span> <span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Keyword">trigger</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">if</span> <span class="Symbol">(</span><span class="Keyword">not</span> <span class="Symbol">(</span><span class="VarId">check_con_cursor_position_coordinates_valid</span><span class="Symbol">()))</span> <span class="VarId">then</span>
+       <span class="Keyword">raise</span> <span class="Keyword">exception</span> <span class="Char">'update violates database constraint cursor_position_coordinates_valid'</span><span class="Symbol">;</span>
+
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+
+  <span class="Keyword">if</span> <span class="Symbol">(</span><span class="Keyword">not</span> <span class="Symbol">(</span><span class="VarId">check_con_board_size_card</span><span class="Symbol">()))</span> <span class="VarId">then</span>
+       <span class="Keyword">raise</span> <span class="Keyword">exception</span> <span class="Char">'update violates database constraint board_size_card'</span><span class="Symbol">;</span>
+
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+
+  <span class="Keyword">if</span> <span class="Symbol">(</span><span class="Keyword">not</span> <span class="Symbol">(</span><span class="VarId">check_con_piece_coordinates_valid</span><span class="Symbol">()))</span> <span class="VarId">then</span>
+       <span class="Keyword">raise</span> <span class="Keyword">exception</span> <span class="Char">'update violates database constraint piece_coordinates_valid'</span><span class="Symbol">;</span>
+
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+
+  <span class="VarId">return</span> <span class="VarId">OLD</span><span class="Symbol">;</span>
+
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span>
+
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'board_size_constraint_trigger_operator'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.BoardWidget'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'cursor_position'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span></pre></div><div class='SqlPostgresql'><div class='UnusedSql'><pre class="sourceCode"><span class="Comment">-- replaced sql ------------------------</span>
+<span class="Keyword">select</span> <span class="VarId">restrict_cardinality</span><span class="Symbol">(</span><span class="Char">'cursor_position'</span><span class="Symbol">,</span> <span class="Char">'1'</span><span class="Symbol">);</span>
+
+<span class="Comment">/*</span>
+<span class="Comment">=== actions</span>
+<span class="Comment">cursor movement</span>
+<span class="Comment">*/</span></pre></div></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*[CatCreateFunction FunName &quot;check_con_cursor_position_card&quot; [] (ScalarType &quot;bool&quot;) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">check_con_cursor_position_card</span> <span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">bool</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="VarId">return</span> <span class="Symbol">((</span><span class="Keyword">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span>
+             <span class="Keyword">from</span> <span class="VarId">cursor_position</span><span class="Symbol">)</span> <span class="Symbol">&lt;=</span> <span class="Char">'1'</span><span class="Symbol">);</span>
+
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span>
+
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'check_con_cursor_position_card'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.BoardWidget'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span>
+
+<span class="Comment">/*[CatCreateFunction FunName &quot;cursor_position_constraint_trigger_operator&quot; [] (Pseudo Trigger) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">or</span> <span class="Keyword">replace</span> <span class="Keyword">function</span> <span class="VarId">cursor_position_constraint_trigger_operator</span> <span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Keyword">trigger</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">if</span> <span class="Symbol">(</span><span class="Keyword">not</span> <span class="Symbol">(</span><span class="VarId">check_con_cursor_position_card</span><span class="Symbol">()))</span> <span class="VarId">then</span>
+       <span class="Keyword">raise</span> <span class="Keyword">exception</span> <span class="Char">'update violates database constraint cursor_position_card'</span><span class="Symbol">;</span>
+
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+
+  <span class="Keyword">if</span> <span class="Symbol">(</span><span class="Keyword">not</span> <span class="Symbol">(</span><span class="VarId">check_con_cursor_position_coordinates_valid</span><span class="Symbol">()))</span> <span class="VarId">then</span>
+       <span class="Keyword">raise</span> <span class="Keyword">exception</span> <span class="Char">'update violates database constraint cursor_position_coordinates_valid'</span><span class="Symbol">;</span>
+
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+
+  <span class="VarId">return</span> <span class="VarId">OLD</span><span class="Symbol">;</span>
+
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span>
+
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'cursor_position_constraint_trigger_operator'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.BoardWidget'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateFunction FunName &quot;safe_move_cursor&quot; [ScalarType &quot;int4&quot;,ScalarType &quot;int4&quot;] (Pseudo Void) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">safe_move_cursor</span><span class="Symbol">(</span><span class="VarId">px</span> <span class="Type">int</span><span class="Symbol">,</span> <span class="VarId">py</span> <span class="Type">int</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">update</span> <span class="VarId">cursor_position</span>
+    <span class="Keyword">set</span> <span class="VarId">x</span> <span class="Symbol">=</span> <span class="VarId">least</span><span class="Symbol">(</span><span class="VarId">greatest</span><span class="Symbol">(</span><span class="VarId">x</span> <span class="Symbol">+</span> <span class="VarId">px</span><span class="Symbol">,</span> <span class="Number">0</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">width</span> <span class="Keyword">from</span> <span class="VarId">board_size</span><span class="Symbol">)</span> <span class="Symbol">-</span> <span class="Number">1</span><span class="Symbol">),</span>
+        <span class="VarId">y</span> <span class="Symbol">=</span> <span class="VarId">least</span><span class="Symbol">(</span><span class="VarId">greatest</span><span class="Symbol">(</span><span class="VarId">y</span> <span class="Symbol">+</span> <span class="VarId">py</span><span class="Symbol">,</span> <span class="Number">0</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">height</span> <span class="Keyword">from</span> <span class="VarId">board_size</span><span class="Symbol">)</span> <span class="Symbol">-</span> <span class="Number">1</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'safe_move_cursor'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.BoardWidget'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateFunction FunName &quot;action_move_cursor&quot; [ScalarType &quot;text&quot;] (Pseudo Void) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">action_move_cursor</span><span class="Symbol">(</span><span class="VarId">direction</span> <span class="Type">text</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">case</span> <span class="VarId">direction</span>
+  <span class="Keyword">when</span> <span class="Char">'up'</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">safe_move_cursor</span><span class="Symbol">(</span><span class="Number">0</span><span class="Symbol">,</span> <span class="Number">-1</span><span class="Symbol">);</span>
+  <span class="Keyword">when</span> <span class="Char">'down'</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">safe_move_cursor</span><span class="Symbol">(</span><span class="Number">0</span><span class="Symbol">,</span> <span class="Number">1</span><span class="Symbol">);</span>
+  <span class="Keyword">when</span> <span class="Char">'left'</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">safe_move_cursor</span><span class="Symbol">(</span><span class="Number">-1</span><span class="Symbol">,</span> <span class="Number">0</span><span class="Symbol">);</span>
+  <span class="Keyword">when</span> <span class="Char">'right'</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">safe_move_cursor</span><span class="Symbol">(</span><span class="Number">1</span><span class="Symbol">,</span> <span class="Number">0</span><span class="Symbol">);</span>
+  <span class="Keyword">when</span> <span class="Char">'up-left'</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">safe_move_cursor</span><span class="Symbol">(</span><span class="Number">-1</span><span class="Symbol">,</span> <span class="Number">-1</span><span class="Symbol">);</span>
+  <span class="Keyword">when</span> <span class="Char">'up-right'</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">safe_move_cursor</span><span class="Symbol">(</span><span class="Number">1</span><span class="Symbol">,</span> <span class="Number">-1</span><span class="Symbol">);</span>
+  <span class="Keyword">when</span> <span class="Char">'down-left'</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">safe_move_cursor</span><span class="Symbol">(</span><span class="Number">-1</span><span class="Symbol">,</span> <span class="Number">1</span><span class="Symbol">);</span>
+  <span class="Keyword">when</span> <span class="Char">'down-right'</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">safe_move_cursor</span><span class="Symbol">(</span><span class="Number">1</span><span class="Symbol">,</span> <span class="Number">1</span><span class="Symbol">);</span>
+  <span class="VarId">else</span>
+    <span class="Keyword">raise</span> <span class="VarId">exception</span>
+      <span class="Char">'asked to move cursor in direction % which isn''t valid'</span><span class="Symbol">,</span>
+      <span class="VarId">direction</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">case</span><span class="Symbol">;</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
+
+<span class="Comment">/*</span>
+<span class="Comment">=== internals</span>
+<span class="Comment">When next phase is called, moved the cursor to that wizard</span>
+<span class="Comment">*/</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'action_move_cursor'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.BoardWidget'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateFunction FunName &quot;action_move_cursor_to_current_wizard&quot; [] (Pseudo Void) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">action_move_cursor_to_current_wizard</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+ <span class="VarId">p</span> <span class="VarId">pos</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="Comment">--don't move cursor during autonomous phase</span>
+  <span class="Keyword">if</span> <span class="VarId">get_turn_phase</span><span class="Symbol">()</span> <span class="Symbol">!=</span> <span class="Char">'autonomous'</span> <span class="VarId">then</span>
+    <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">p</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span> <span class="Keyword">from</span> <span class="VarId">pieces</span>
+         <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">current_wizard_table</span>
+         <span class="Keyword">on</span> <span class="Symbol">(</span><span class="VarId">current_wizard</span> <span class="Symbol">=</span> <span class="VarId">allegiance</span><span class="Symbol">)</span>
+         <span class="Keyword">where</span> <span class="VarId">ptype</span> <span class="Symbol">=</span> <span class="Char">'wizard'</span><span class="Symbol">;</span>
+    <span class="Keyword">update</span> <span class="VarId">cursor_position</span> <span class="Keyword">set</span> <span class="Symbol">(</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="VarId">p</span><span class="Symbol">.</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">p</span><span class="Symbol">.</span><span class="VarId">y</span><span class="Symbol">);</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'action_move_cursor_to_current_wizard'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.BoardWidget'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateFunction FunName &quot;init_cursor_position&quot; [] (Pseudo Void) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">init_cursor_position</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">cursor_position</span> <span class="Symbol">(</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">)</span> <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Number">0</span><span class="Symbol">,</span><span class="Number">0</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
+
+<span class="Comment">/*</span>
+
+<span class="Comment">the plan is to have a board_sprites view for the board widget. This</span>
+<span class="Comment">contains all the sprites on the board (basically everything drawn on</span>
+<span class="Comment">the board: piece sprites, cursor, highlights, etc.)  all the board</span>
+<span class="Comment">needs is x,y,sprite and order. The order is used to make sure</span>
+<span class="Comment">overlapping sprites e.g. a piece, the cursor and a highlight, are</span>
+<span class="Comment">drawn in the right order</span>
+
+<span class="Comment">*/</span>
+
+
+<span class="Comment">/*</span>
+<span class="Comment">== piece sprites</span>
+<span class="Comment">Want to produce a list of x,y,sprite rows</span>
+<span class="Comment">for the pieces on top, the cursor,</span>
+<span class="Comment">and the highlights for the currently available actions</span>
+
+<span class="Comment">wizard sprites: look in the action history to find the most recent upgrade</span>
+<span class="Comment">*/</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'init_cursor_position'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.BoardWidget'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateView &quot;wizard_sprites&quot; [(&quot;wizard_name&quot;,ScalarType &quot;text&quot;)]]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">wizard_sprites</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="VarId">wizard_name</span><span class="Symbol">,</span><span class="VarId">sprite</span><span class="Symbol">,</span><span class="VarId">colour</span> <span class="VarId">from</span>
+  <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">row_number</span><span class="Symbol">()</span> <span class="Keyword">over</span><span class="Symbol">(</span><span class="Keyword">partition</span> <span class="Keyword">by</span> <span class="VarId">wizard_name</span> <span class="Keyword">order</span> <span class="Keyword">by</span> <span class="VarId">o</span> <span class="Keyword">desc</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">rn</span><span class="Symbol">,</span>
+    <span class="VarId">wizard_name</span><span class="Symbol">,</span>
+    <span class="Keyword">case</span> <span class="Keyword">when</span> <span class="VarId">shadow_form</span> <span class="Keyword">then</span> <span class="VarId">sprite</span> <span class="Symbol">||</span> <span class="Char">'_shadow'</span>
+         <span class="Keyword">else</span> <span class="VarId">sprite</span>
+    <span class="Keyword">end</span> <span class="Keyword">as</span> <span class="VarId">sprite</span><span class="Symbol">,</span> <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">colour</span> <span class="VarId">from</span>
+  <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">-1</span> <span class="Keyword">as</span> <span class="VarId">o</span><span class="Symbol">,</span> <span class="VarId">wizard_name</span><span class="Symbol">,</span> <span class="VarId">default_sprite</span> <span class="Keyword">as</span> <span class="VarId">sprite</span>
+      <span class="Keyword">from</span> <span class="VarId">wizard_display_info</span>
+    <span class="Keyword">union</span> <span class="VarId">all</span>
+    <span class="Keyword">select</span> <span class="VarId">id</span> <span class="Keyword">as</span> <span class="VarId">o</span><span class="Symbol">,</span> <span class="VarId">allegiance</span> <span class="Keyword">as</span> <span class="VarId">wizard_name</span><span class="Symbol">,</span>
+      <span class="Char">'wizard_'</span> <span class="Symbol">||</span> <span class="VarId">spell_name</span>
+      <span class="Keyword">from</span> <span class="VarId">action_history_mr</span>
+      <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">spells_mr</span>
+      <span class="Keyword">where</span> <span class="VarId">spell_name</span> <span class="Symbol">!=</span> <span class="Char">'shadow_form'</span>
+      <span class="Keyword">and</span> <span class="VarId">spell_category</span> <span class="Symbol">=</span> <span class="Char">'wizard'</span>
+      <span class="Keyword">and</span> <span class="VarId">history_name</span> <span class="Symbol">=</span> <span class="Char">'spell_succeeded'</span>
+      <span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">a</span>
+  <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">wizard_display_info</span> <span class="Keyword">as</span> <span class="VarId">w</span>
+  <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">wizards</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">w</span> <span class="Keyword">where</span> <span class="VarId">rn</span> <span class="Symbol">=</span> <span class="Number">1</span><span class="Symbol">;</span>
+
+<span class="Comment">/*</span>
+
+<span class="Comment">piece ptype-allegiance-tag is at x,y, allegiance colour is 'colour',</span>
+<span class="Comment">sprite is 'sprite', sprite priority is sp.</span>
+
+<span class="Comment">*/</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'wizard_sprites'</span><span class="Symbol">,</span><span class="Char">'view'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.BoardWidget'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateView &quot;piece_sprite&quot; [(&quot;x&quot;,ScalarType &quot;int4&quot;),(&quot;y&quot;,ScalarType &quot;int4&quot;),(&quot;ptype&quot;,ScalarType &quot;text&quot;),(&quot;tag&quot;,ScalarType &quot;int4&quot;),(&quot;allegiance&quot;,ScalarType &quot;text&quot;)]]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">piece_sprite</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span><span class="VarId">ptype</span><span class="Symbol">,</span>
+    <span class="Keyword">case</span> <span class="Keyword">when</span> <span class="VarId">ptype</span><span class="Symbol">=</span><span class="Char">'wizard'</span> <span class="Keyword">then</span> <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">sprite</span>
+         <span class="Keyword">when</span> <span class="VarId">allegiance</span><span class="Symbol">=</span><span class="Char">'dead'</span> <span class="Keyword">then</span> <span class="Char">'dead_'</span> <span class="Symbol">||</span> <span class="VarId">ptype</span>
+         <span class="Keyword">else</span> <span class="VarId">ptype</span>
+    <span class="Keyword">end</span> <span class="Keyword">as</span> <span class="VarId">sprite</span><span class="Symbol">,</span>
+    <span class="VarId">ac</span><span class="Symbol">.</span><span class="VarId">colour</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span><span class="VarId">allegiance</span>
+  <span class="Keyword">from</span> <span class="VarId">pieces</span> <span class="VarId">p</span>
+  <span class="Keyword">left</span> <span class="Keyword">outer</span> <span class="Keyword">join</span> <span class="VarId">wizard_sprites</span> <span class="VarId">w</span>
+    <span class="Keyword">on</span> <span class="Symbol">(</span><span class="VarId">allegiance</span> <span class="Symbol">=</span> <span class="VarId">wizard_name</span> <span class="Keyword">and</span> <span class="VarId">ptype</span><span class="Symbol">=</span><span class="Char">'wizard'</span><span class="Symbol">)</span>
+  <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">allegiance_colours</span> <span class="VarId">ac</span>
+    <span class="Keyword">using</span> <span class="Symbol">(</span><span class="VarId">allegiance</span><span class="Symbol">);</span>
+
+<span class="Comment">/*</span>
+<span class="Comment">== highlights</span>
+<span class="Comment">*/</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'piece_sprite'</span><span class="Symbol">,</span><span class="Char">'view'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.BoardWidget'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateView &quot;board_highlights&quot; [(&quot;sprite&quot;,ScalarType &quot;text&quot;)]]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">board_highlights</span> <span class="VarId">as</span>
+<span class="Comment">-- include the squares for the selected spell</span>
+<span class="Comment">-- when still in the choose phase, so the user can</span>
+<span class="Comment">--see what squares are valid for their chosen spell</span>
+<span class="Keyword">select</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span><span class="Char">'highlight_cast_target_spell'</span> <span class="Keyword">as</span> <span class="VarId">sprite</span>
+  <span class="Keyword">from</span> <span class="VarId">current_wizard_spell_squares</span>
+  <span class="Keyword">where</span> <span class="VarId">get_turn_phase</span><span class="Symbol">()</span> <span class="Symbol">=</span> <span class="Char">'choose'</span>
+<span class="Keyword">union</span> <span class="VarId">all</span>
+<span class="Keyword">select</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span><span class="Char">'highlight_'</span> <span class="Symbol">||</span> <span class="VarId">action</span> <span class="Keyword">as</span> <span class="VarId">sprite</span>
+  <span class="Keyword">from</span> <span class="VarId">valid_target_actions</span><span class="Symbol">;</span>
+
+<span class="Comment">/*</span>
+<span class="Comment">== animation</span>
+
+<span class="Comment">we save a starting tick against each piece. Not really sure what the</span>
+<span class="Comment">best way to do this, some options are:</span>
+
+<span class="Comment">these are updated in the action_key_pressed and client_ai_continue fns</span>
+
+<span class="Comment">*/</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'board_highlights'</span><span class="Symbol">,</span><span class="Char">'view'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.BoardWidget'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><div class='UnusedSql'><pre class="sourceCode"><span class="Comment">-- replaced sql ------------------------</span>
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">piece_starting_ticks</span> <span class="Symbol">(</span>
+  <span class="VarId">ptype</span> <span class="Type">text</span><span class="Symbol">,</span>
+  <span class="VarId">allegiance</span> <span class="Type">text</span><span class="Symbol">,</span>
+  <span class="VarId">tag</span> <span class="Type">int</span><span class="Symbol">,</span>
+  <span class="VarId">start_tick</span> <span class="Type">int</span><span class="Symbol">,</span>
+  <span class="Keyword">unique</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">),</span>
+  <span class="Keyword">foreign</span> <span class="Keyword">key</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">)</span> <span class="Keyword">references</span> <span class="VarId">pieces</span>
+<span class="Symbol">);</span></pre></div></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*[CatCreateTable &quot;piece_starting_ticks&quot; [(&quot;ptype&quot;,ScalarType &quot;text&quot;),(&quot;allegiance&quot;,ScalarType &quot;text&quot;),(&quot;tag&quot;,ScalarType &quot;int4&quot;),(&quot;start_tick&quot;,ScalarType &quot;int4&quot;)] [(&quot;tableoid&quot;,ScalarType &quot;oid&quot;),(&quot;cmax&quot;,ScalarType &quot;cid&quot;),(&quot;xmax&quot;,ScalarType &quot;xid&quot;),(&quot;cmin&quot;,ScalarType &quot;cid&quot;),(&quot;xmin&quot;,ScalarType &quot;xid&quot;),(&quot;ctid&quot;,ScalarType &quot;tid&quot;)]]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">piece_starting_ticks</span> <span class="Symbol">(</span>
+  <span class="VarId">ptype</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+  <span class="VarId">allegiance</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+  <span class="VarId">tag</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+  <span class="VarId">start_tick</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+  <span class="Keyword">unique</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">),</span>
+  <span class="Keyword">foreign</span> <span class="Keyword">key</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">)</span> <span class="Keyword">references</span> <span class="VarId">pieces</span> <span class="Keyword">on</span> <span class="Keyword">update</span> <span class="Keyword">cascade</span> <span class="Keyword">on</span> <span class="Keyword">delete</span> <span class="VarId">cascade</span>
+<span class="Symbol">);</span>
+
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'piece_starting_ticks'</span><span class="Symbol">,</span><span class="Char">'table'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.BoardWidget'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'piece_starting_ticks'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span></pre></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateFunction FunName &quot;update_missing_startticks&quot; [] (Pseudo Void) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">update_missing_startticks</span><span class="Symbol">()</span>
+  <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">piece_starting_ticks</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span><span class="VarId">start_tick</span><span class="Symbol">)</span>
+    <span class="Keyword">select</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span> <span class="VarId">random</span><span class="Symbol">()*</span><span class="Number">2500</span> <span class="Keyword">from</span> <span class="VarId">pieces</span>
+      <span class="Keyword">where</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">)</span> <span class="Keyword">not</span> <span class="VarId">in</span>
+        <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span>
+        <span class="Keyword">from</span> <span class="VarId">piece_starting_ticks</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
+
+<span class="Comment">/*</span>
+
+<span class="Comment">== board sprites</span>
+
+<span class="Comment">put the piece sprites, the highlight and the cursor</span>
+<span class="Comment">together to give the full list of sprites</span>
+
+<span class="Comment">split this up so the cursor movement isn't really laggy, just a hack -</span>
+<span class="Comment">needs some more thought.</span>
+
+<span class="Comment">*/</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'update_missing_startticks'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.BoardWidget'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">board_sprites1_view</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span><span class="VarId">sprite</span><span class="Symbol">,</span><span class="VarId">colour</span><span class="Symbol">,</span><span class="VarId">sp</span><span class="Symbol">,</span>
+    <span class="VarId">start_tick</span><span class="Symbol">,</span> <span class="VarId">animation_speed</span><span class="Symbol">,</span> <span class="VarId">selected</span> <span class="VarId">from</span>
+    <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span>
+      <span class="VarId">sprite</span><span class="Symbol">,</span><span class="VarId">colour</span><span class="Symbol">,</span><span class="VarId">sp</span><span class="Symbol">,</span><span class="Number">0</span> <span class="Keyword">as</span> <span class="VarId">start_tick</span><span class="Symbol">,</span>
+      <span class="Keyword">case</span> <span class="Keyword">when</span> <span class="Keyword">not</span> <span class="VarId">move_phase</span> <span class="VarId">is</span> <span class="Keyword">null</span> <span class="Keyword">then</span> <span class="VarId">true</span>
+        <span class="Keyword">else</span> <span class="VarId">false</span>
+      <span class="Keyword">end</span> <span class="Keyword">as</span> <span class="VarId">selected</span>
+      <span class="Keyword">from</span> <span class="VarId">piece_sprite</span>
+    <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">pieces_on_top</span>
+    <span class="Comment">--natural inner join piece_starting_ticks</span>
+    <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">sprites</span>
+    <span class="Keyword">natural</span> <span class="Keyword">left</span> <span class="Keyword">outer</span> <span class="Keyword">join</span> <span class="VarId">selected_piece</span>
+    <span class="Keyword">union</span> <span class="VarId">all</span>
+    <span class="Keyword">select</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span> <span class="Char">''</span><span class="Symbol">,</span> <span class="Char">''</span><span class="Symbol">,</span> <span class="Number">-1</span><span class="Symbol">,</span> <span class="VarId">sprite</span><span class="Symbol">,</span> <span class="Char">'white'</span><span class="Symbol">,</span> <span class="Number">5</span><span class="Symbol">,</span><span class="Number">0</span><span class="Symbol">,</span><span class="VarId">false</span>
+      <span class="Keyword">from</span> <span class="VarId">board_highlights</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">a</span>
+  <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">sprites</span>
+<span class="Keyword">union</span> <span class="VarId">all</span>
+<span class="Keyword">select</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span> <span class="Char">''</span><span class="Symbol">,</span> <span class="Char">''</span><span class="Symbol">,</span> <span class="Number">-1</span><span class="Symbol">,</span><span class="Char">'cursor'</span><span class="Symbol">,</span> <span class="Char">'white'</span><span class="Symbol">,</span> <span class="Number">6</span><span class="Symbol">,</span><span class="Number">0</span><span class="Symbol">,</span> <span class="VarId">animation_speed</span><span class="Symbol">,</span> <span class="VarId">false</span>
+  <span class="Keyword">from</span> <span class="VarId">cursor_position</span>
+  <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">sprites</span> <span class="Keyword">on</span> <span class="VarId">sprite</span><span class="Symbol">=</span><span class="Char">'cursor'</span>
+  <span class="Keyword">order</span> <span class="Keyword">by</span> <span class="VarId">sp</span><span class="Symbol">;</span>
+
+
+<span class="Comment">/*create table board_sprites1_cache as</span>
+<span class="Comment">  select * from board_sprites1_view;</span>
+<span class="Comment">select set_relvar_type('board_sprites1_cache', 'data');</span>
+
+<span class="Comment">create function update_board_sprites_cache() returns void as $$</span>
+<span class="Comment">begin</span>
+<span class="Comment">  --if get_running_effects() then</span>
+<span class="Comment">  --  return;</span>
+<span class="Comment">  --end if;</span>
+<span class="Comment">  --raise notice 'update bpc';</span>
+<span class="Comment">  delete from board_sprites1_cache;</span>
+<span class="Comment">  insert into board_sprites1_cache</span>
+<span class="Comment">    select * from board_sprites1_view;</span>
+<span class="Comment">end;</span>
+<span class="Comment">$$ language plpgsql volatile;</span>
+
+<span class="Comment">create view board_sprites as</span>
+<span class="Comment"> select * from board_sprites1_cache</span>
+<span class="Comment">union all</span>
+<span class="Comment">select x,y, '', '', -1,'cursor', 'white', 6,0, animation_speed, false</span>
+<span class="Comment">  from cursor_position</span>
+<span class="Comment">  inner join sprites on sprite='cursor';</span>
+<span class="Comment">*/</span>
+
+
+
+<span class="Comment">/*</span>
+<span class="Comment">== effects</span>
+
+<span class="Comment">two sorts of effects: beam and square</span>
+
+<span class="Comment">*/</span>
+<span class="Comment">/*</span>
+<span class="Comment">create table board_square_effects (</span>
+<span class="Comment">  id serial unique,</span>
+<span class="Comment">  subtype text,</span>
+<span class="Comment">  x1 int,</span>
+<span class="Comment">  y1 int,</span>
+<span class="Comment">  queuePos int</span>
+<span class="Comment">);</span>
+<span class="Comment">select set_relvar_type('board_square_effects', 'data');</span>
+
+<span class="Comment">create table board_beam_effects (</span>
+<span class="Comment">  id serial unique,</span>
+<span class="Comment">  subtype text,</span>
+<span class="Comment">  x1 int,</span>
+<span class="Comment">  y1 int,</span>
+<span class="Comment">  x2 int,</span>
+<span class="Comment">  y2 int,</span>
+<span class="Comment">  queuePos int</span>
+<span class="Comment">);</span>
+<span class="Comment">select set_relvar_type('board_beam_effects', 'data');</span>
+
+<span class="Comment">create table board_sound_effects (</span>
+<span class="Comment">  id serial unique,</span>
+<span class="Comment">  subtype text,</span>
+<span class="Comment">  sound_name text,</span>
+<span class="Comment">  queuePos int</span>
+<span class="Comment">);</span>
+<span class="Comment">select set_relvar_type('board_sound_effects', 'data');</span>
+
+<span class="Comment">create function get_running_effects() returns boolean as $$</span>
+<span class="Comment">begin</span>
+<span class="Comment">  return exists (select 1 from board_beam_effects)</span>
+<span class="Comment">      or exists (select 1 from board_square_effects)</span>
+<span class="Comment">      or exists (select 1 from board_sound_effects);</span>
+<span class="Comment">end;</span>
+<span class="Comment">$$ language plpgsql stable;</span>
+
+
+<span class="Comment">create table history_sounds (</span>
+<span class="Comment">  history_name text,</span>
+<span class="Comment">  sound_name text,</span>
+<span class="Comment">  unique (history_name,sound_name)</span>
+<span class="Comment">);</span>
+<span class="Comment">select set_relvar_type('history_sounds', 'readonly');</span>
+
+<span class="Comment">copy history_sounds (history_name,sound_name) from stdin;</span>
+<span class="Comment">walked	walk</span>
+<span class="Comment">fly	fly</span>
+<span class="Comment">attack	attack</span>
+<span class="Comment">ranged_attack	shoot</span>
+<span class="Comment">game_drawn	draw</span>
+<span class="Comment">game_won	win</span>
+<span class="Comment">spell_failed	fail</span>
+<span class="Comment">spell_succeeded	success</span>
+<span class="Comment">shrugged_off	shrugged_off</span>
+<span class="Comment">wizard_up	wizard_up</span>
+<span class="Comment">new_game	new_game</span>
+<span class="Comment">chinned	kill</span>
+<span class="Comment">attempt_target_spell	cast</span>
+<span class="Comment">\.</span>
+
+<span class="Comment">create table history_no_visuals (</span>
+<span class="Comment">  history_name text unique</span>
+<span class="Comment">);</span>
+<span class="Comment">select set_relvar_type('history_no_visuals', 'readonly');</span>
+
+<span class="Comment">copy history_no_visuals (history_name) from stdin;</span>
+<span class="Comment">wizard_up</span>
+<span class="Comment">new_turn</span>
+<span class="Comment">new_game</span>
+<span class="Comment">game_won</span>
+<span class="Comment">game_drawn</span>
+<span class="Comment">choose_spell</span>
+<span class="Comment">set_imaginary</span>
+<span class="Comment">set_real</span>
+<span class="Comment">\.</span>
+
+<span class="Comment">select create_var('last_history_effect_id', 'int');</span>
+<span class="Comment">select set_relvar_type('last_history_effect_id_table', 'data');</span>
+
+<span class="Comment">create function check_for_effects() returns void as $$</span>
+<span class="Comment">begin</span>
+<span class="Comment">  insert into board_square_effects (subtype, x1, y1, queuePos)</span>
+<span class="Comment">    select history_name,case when tx is null then x else tx end,</span>
+<span class="Comment">                        case when ty is null then y else ty end,id</span>
+<span class="Comment">    from action_history_mr</span>
+<span class="Comment">    where id &gt; get_last_history_effect_id()</span>
+<span class="Comment">         and x is not null and y is not null</span>
+<span class="Comment">         and history_name not in (select history_name from history_no_visuals);</span>
+<span class="Comment">  insert into board_beam_effects (subtype,x1,y1,x2,y2,queuePos)</span>
+<span class="Comment">    select history_name,x,y,tx,ty,id</span>
+<span class="Comment">    from action_history_mr</span>
+<span class="Comment">    where id &gt; get_last_history_effect_id()</span>
+<span class="Comment">         and x is not null and y is not null</span>
+<span class="Comment">         and tx is not null and ty is not null</span>
+<span class="Comment">         and history_name not in (select history_name from history_no_visuals);</span>
+<span class="Comment">  insert into board_sound_effects (subtype, sound_name,queuePos)</span>
+<span class="Comment">    select history_name,sound_name,id</span>
+<span class="Comment">    from action_history_mr</span>
+<span class="Comment">    natural inner join history_sounds</span>
+<span class="Comment">    left outer join wizards on allegiance = wizard_name</span>
+<span class="Comment">    where id &gt; get_last_history_effect_id()</span>
+<span class="Comment">--exclude turn sound for computer controlled wizards choose phase</span>
+<span class="Comment">      and not(history_name='wizard_up'</span>
+<span class="Comment">              and turn_phase='choose'</span>
+<span class="Comment">              and coalesce(computer_controlled,false))</span>
+<span class="Comment">;</span>
+<span class="Comment">  update last_history_effect_id_table set</span>
+<span class="Comment">    last_history_effect_id = (select max(id) from action_history_mr);</span>
+<span class="Comment">end;</span>
+<span class="Comment">$$ language plpgsql volatile;</span>
+<span class="Comment">*/</span>
+<span class="Comment">/*</span>
+
+<span class="Comment">call this function before reading the current effects table and it</span>
+<span class="Comment">will leave those tables the same if the current effects are still</span>
+<span class="Comment">playing, or it will clear the old effects and fill them with the next</span>
+<span class="Comment">set of effects.</span>
+
+<span class="Comment">call it after reading the current effects table to clear the current</span>
+<span class="Comment">row of sounds, that way the sounds will only be returned to the ui</span>
+<span class="Comment">once and thus will only be played once.</span>
+
+<span class="Comment">*/</span>
+
+<span class="Comment">/*create table current_effects (</span>
+<span class="Comment">  ticks int,</span>
+<span class="Comment">  queuePos int</span>
+<span class="Comment">);</span>
+<span class="Comment">select set_relvar_type('current_effects', 'data');</span>
+
+<span class="Comment">select restrict_cardinality('current_effects', 1);*/</span>
+
+<span class="Comment">/*create view current_board_sound_effects as</span>
+<span class="Comment">  select * from board_sound_effects</span>
+<span class="Comment">  natural inner join current_effects;</span>
+
+<span class="Comment">create view current_board_beam_effects as</span>
+<span class="Comment">  select * from board_beam_effects</span>
+<span class="Comment">  natural inner join current_effects;</span>
+
+<span class="Comment">create view current_board_square_effects as</span>
+<span class="Comment">  select * from board_square_effects</span>
+<span class="Comment">  natural inner join current_effects;</span>
+<span class="Comment">*/</span>
+<span class="Comment">/*create function action_reset_current_effects() returns void as $$</span>
+<span class="Comment">begin</span>
+<span class="Comment">    delete from board_sound_effects;</span>
+<span class="Comment">    delete from board_beam_effects;</span>
+<span class="Comment">    delete from board_square_effects;</span>
+<span class="Comment">    delete from current_effects;</span>
+<span class="Comment">end;</span>
+<span class="Comment">$$ language plpgsql volatile;*/</span>
+<span class="Comment">/*</span>
+<span class="Comment">create function action_update_effects_ticks(pticks int) returns void as $$</span>
+<span class="Comment">declare</span>
+<span class="Comment">  wasEffects boolean := false;</span>
+<span class="Comment">  nextQp int;</span>
+<span class="Comment">begin</span>
+<span class="Comment">  if exists(select 1 from current_effects) then</span>
+<span class="Comment">    wasEffects := true;</span>
+<span class="Comment">  end if;</span>
+<span class="Comment">  --always delete sound effects after the first time they are returned</span>
+<span class="Comment">  if exists(select 1 from current_board_sound_effects) then</span>
+<span class="Comment">    delete from board_sound_effects</span>
+<span class="Comment">      where queuePos = (select queuePos from current_effects);</span>
+<span class="Comment">  end if;</span>
+<span class="Comment">  --see if we need a new row of effects</span>
+<span class="Comment">  if not exists(select 1 from current_effects)</span>
+<span class="Comment">    or pticks &gt; (select ticks + 6 from current_effects) then</span>
+<span class="Comment">    delete from board_sound_effects</span>
+<span class="Comment">      where queuePos = (select queuePos from current_effects);</span>
+<span class="Comment">    delete from board_beam_effects</span>
+<span class="Comment">      where queuePos = (select queuePos from current_effects);</span>
+<span class="Comment">    delete from board_square_effects</span>
+<span class="Comment">      where queuePos = (select queuePos from current_effects);</span>
+<span class="Comment">    delete from current_effects;</span>
+<span class="Comment">    nextQp := (select min(queuePos) from</span>
+<span class="Comment">                 (select queuePos from board_sound_effects</span>
+<span class="Comment">                  union all</span>
+<span class="Comment">                  select queuePos from board_beam_effects</span>
+<span class="Comment">                  union all</span>
+<span class="Comment">                  select queuePos from board_square_effects) as a);</span>
+<span class="Comment">    if nextQp is not null and nextQp &lt;&gt; 0 then</span>
+<span class="Comment">      insert into current_effects (ticks, queuePos)</span>
+<span class="Comment">        values (pticks, nextQp);</span>
+<span class="Comment">    end if;</span>
+<span class="Comment">  end if;</span>
+<span class="Comment">  if not exists(select 1 from current_effects)</span>
+<span class="Comment">     and wasEffects then</span>
+<span class="Comment">    perform update_board_sprites_cache();</span>
+<span class="Comment">  end if;</span>
+<span class="Comment">end;</span>
+<span class="Comment">$$ language plpgsql volatile;</span>
+<span class="Comment">*/</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'board_sprites1_view'</span><span class="Symbol">,</span><span class="Char">'view'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.BoardWidget'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateFunction FunName &quot;action_client_ai_continue&quot; [] (Pseudo Void) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">action_client_ai_continue</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Comment">/*if get_running_effects() then</span>
+<span class="Comment">    return;</span>
+<span class="Comment">  end if;*/</span>
+
+  <span class="Keyword">perform</span> <span class="VarId">action_ai_continue</span><span class="Symbol">();</span>
+  <span class="Keyword">perform</span> <span class="VarId">update_missing_startticks</span><span class="Symbol">();</span>
+  <span class="Keyword">if</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">computer_controlled</span> <span class="Keyword">from</span> <span class="VarId">wizards</span>
+      <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">current_wizard_table</span> <span class="Keyword">on</span> <span class="VarId">wizard_name</span><span class="Symbol">=</span><span class="VarId">current_wizard</span><span class="Symbol">)</span>
+     <span class="Keyword">and</span> <span class="VarId">get_turn_phase</span><span class="Symbol">()</span> <span class="Symbol">=</span> <span class="Char">'choose'</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">action_client_ai_continue</span><span class="Symbol">();</span>
+  <span class="VarId">else</span>
+    <span class="Comment">--perform check_for_effects();</span>
+    <span class="Comment">--perform update_board_sprites_cache();</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="Keyword">if</span> <span class="Keyword">not</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">computer_controlled</span> <span class="Keyword">from</span> <span class="VarId">wizards</span>
+          <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">current_wizard_table</span>
+          <span class="Keyword">on</span> <span class="VarId">wizard_name</span><span class="Symbol">=</span><span class="VarId">current_wizard</span><span class="Symbol">)</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">action_move_cursor_to_current_wizard</span><span class="Symbol">();</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'action_client_ai_continue'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.BoardWidget'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateFunction FunName &quot;action_client_ai_continue_if&quot; [] (Pseudo Void) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">action_client_ai_continue_if</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">if</span> <span class="Keyword">exists</span><span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">valid_activate_actions</span>
+            <span class="Keyword">where</span> <span class="VarId">action</span><span class="Symbol">=</span><span class="Char">'ai_continue'</span><span class="Symbol">)</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">action_client_ai_continue</span><span class="Symbol">();</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
+
+<span class="Comment">/*</span>
+
+<span class="Comment">================================================================================</span>
+
+<span class="Comment">= info widget</span>
+
+<span class="Comment">create a few views to help with the stuff shown</span>
+<span class="Comment">in the info widget</span>
+
+<span class="Comment">*/</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'action_client_ai_continue_if'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.BoardWidget'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateView &quot;piece_details&quot; []]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">piece_details</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="VarId">pieces_mr</span>
+            <span class="Keyword">full</span> <span class="Keyword">outer</span> <span class="VarId">join</span>
+      <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Char">'wizard'</span><span class="Symbol">::</span><span class="Type">text</span> <span class="Keyword">as</span> <span class="VarId">wtype</span><span class="Symbol">,*</span> <span class="Keyword">from</span> <span class="VarId">wizards</span> <span class="Keyword">where</span> <span class="Keyword">not</span> <span class="VarId">expired</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">a</span>
+            <span class="Keyword">on</span> <span class="Symbol">(</span><span class="VarId">allegiance</span> <span class="Symbol">=</span> <span class="VarId">wizard_name</span> <span class="Keyword">and</span> <span class="VarId">ptype</span> <span class="Symbol">=</span> <span class="VarId">wtype</span><span class="Symbol">)</span>
+    <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">pieces_with_priorities</span>
+    <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">piece_sprite</span><span class="Symbol">;</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'piece_details'</span><span class="Symbol">,</span><span class="Char">'view'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.BoardWidget'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateView &quot;cursor_piece_details&quot; []]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">cursor_piece_details</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="VarId">piece_details</span>
+      <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">cursor_position</span><span class="Symbol">;</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'cursor_piece_details'</span><span class="Symbol">,</span><span class="Char">'view'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.BoardWidget'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">selected_piece_details</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="VarId">piece_details</span>
+      <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">selected_piece</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*[CatCreateView &quot;selected_piece_details&quot; []]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">selected_piece_details</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="Symbol">*</span>
+    <span class="Keyword">from</span> <span class="Symbol">((</span><span class="VarId">piece_details</span>
+           <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">selected_piece</span><span class="Symbol">)</span>
+          <span class="Keyword">natural</span> <span class="Keyword">full</span> <span class="Keyword">outer</span> <span class="Keyword">join</span> <span class="VarId">remaining_walk_table</span><span class="Symbol">);</span>
+
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'selected_piece_details'</span><span class="Symbol">,</span><span class="Char">'view'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.BoardWidget'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

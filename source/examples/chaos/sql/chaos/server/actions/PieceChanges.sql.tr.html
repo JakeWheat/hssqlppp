@@ -1,0 +1,315 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >PieceChanges.sql transformed</title
+    ><link href="../../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../../index.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><div class='SqlPostgresql'><div class='UnusedSql'><pre class="sourceCode"><span class="Comment">-- replaced sql ------------------------</span>
+<span class="Keyword">select</span> <span class="VarId">module</span><span class="Symbol">(</span><span class="Char">'Chaos.Server.Actions.PieceChanges'</span><span class="Symbol">);</span></pre></div></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+</pre></div></div><div class='SqlPostgresql'><div class='UnusedSql'><pre class="sourceCode"><span class="Comment">-- replaced sql ------------------------</span>
+<span class="Keyword">select</span> <span class="VarId">module</span><span class="Symbol">(</span><span class="Char">'Chaos.Server.Actions.PieceChanges'</span><span class="Symbol">);</span>
+
+<span class="Comment">/*</span>
+<span class="Comment">== helpers for piece creation and destruction</span>
+<span class="Comment">*/</span>
+
+<span class="Comment">/*</span>
+<span class="Comment">help to speed up start game - this allows us to select 19 non unique</span>
+<span class="Comment">random spells quicker than using order by random() limit 1 in a loop</span>
+<span class="Comment">*/</span>
+
+<span class="Comment">/*create table spell_indexes_no_dis_turm ( -- no disbelieve or turmoil</span>
+<span class="Comment">  row_number serial unique,</span>
+<span class="Comment">  spell_name text</span>
+<span class="Comment">);</span>
+<span class="Comment">select set_relvar_type('spell_indexes_no_dis_turm', 'stack');*/</span></pre></div></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">modules</span> <span class="Symbol">(</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'Chaos.Server.Actions.PieceChanges'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateComposite &quot;random_entry&quot; [(&quot;line&quot;,ScalarType &quot;int4&quot;),(&quot;num&quot;,ScalarType &quot;int4&quot;)]]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">type</span> <span class="VarId">random_entry</span> <span class="Keyword">as</span> <span class="Symbol">(</span>
+  <span class="VarId">line</span> <span class="Type">int</span><span class="Symbol">,</span>
+  <span class="VarId">num</span> <span class="VarId">int</span>
+<span class="Symbol">);</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'random_entry'</span><span class="Symbol">,</span><span class="Char">'type'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.Actions.PieceChanges'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateFunction FunName &quot;makenrandoms&quot; [ScalarType &quot;int4&quot;,ScalarType &quot;int4&quot;] (SetOfType (NamedCompositeType &quot;random_entry&quot;)) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">makeNRandoms</span><span class="Symbol">(</span><span class="VarId">n</span> <span class="Type">int</span><span class="Symbol">,</span> <span class="VarId">maxi</span> <span class="Type">int</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Keyword">setof</span> <span class="VarId">random_entry</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="VarId">return</span> <span class="VarId">query</span>
+    <span class="Keyword">select</span> <span class="VarId">generate_series</span><span class="Symbol">(</span><span class="Number">0</span><span class="Symbol">,</span> <span class="VarId">n</span> <span class="Symbol">-</span> <span class="Number">1</span><span class="Symbol">),</span>
+      <span class="Symbol">(</span><span class="VarId">random</span><span class="Symbol">()</span> <span class="Symbol">*</span> <span class="VarId">maxi</span> <span class="Symbol">+</span> <span class="Number">0.5</span><span class="Symbol">)::</span><span class="Type">int</span> <span class="Keyword">as</span> <span class="VarId">num</span><span class="Symbol">;</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
+
+
+<span class="Comment">/*insert into spell_indexes_no_dis_turm (spell_name)</span>
+<span class="Comment">  select spell_name from spells_mr</span>
+<span class="Comment">    where spell_name not in ('disbelieve', 'turmoil');*/</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'makeNRandoms'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.Actions.PieceChanges'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateFunction FunName &quot;create_object&quot; [ScalarType &quot;text&quot;,ScalarType &quot;text&quot;,ScalarType &quot;int4&quot;,ScalarType &quot;int4&quot;] (ScalarType &quot;int4&quot;) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">create_object</span><span class="Symbol">(</span><span class="VarId">vptype</span> <span class="Type">text</span><span class="Symbol">,</span> <span class="VarId">vallegiance</span> <span class="Type">text</span><span class="Symbol">,</span> <span class="VarId">x</span> <span class="Type">int</span><span class="Symbol">,</span> <span class="VarId">y</span> <span class="Type">int</span><span class="Symbol">)</span>
+  <span class="Keyword">returns</span> <span class="Type">int</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Comment">--assert ptype is an object ptype</span>
+  <span class="Keyword">if</span> <span class="Keyword">not</span> <span class="Keyword">exists</span><span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">object_piece_types</span> <span class="Keyword">where</span> <span class="VarId">ptype</span> <span class="Symbol">=</span> <span class="VarId">vptype</span><span class="Symbol">)</span> <span class="VarId">then</span>
+    <span class="Keyword">raise</span> <span class="Keyword">exception</span> <span class="Char">'called create object on % which is not an object'</span><span class="Symbol">,</span> <span class="VarId">vptype</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="VarId">return</span> <span class="VarId">create_piece_internal</span><span class="Symbol">(</span><span class="VarId">vptype</span><span class="Symbol">,</span> <span class="VarId">vallegiance</span><span class="Symbol">,</span> <span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">y</span><span class="Symbol">,</span> <span class="VarId">false</span><span class="Symbol">,</span> <span class="VarId">false</span><span class="Symbol">);</span>
+<span class="VarId">end</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'create_object'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.Actions.PieceChanges'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateFunction FunName &quot;create_monster&quot; [ScalarType &quot;text&quot;,ScalarType &quot;text&quot;,ScalarType &quot;int4&quot;,ScalarType &quot;int4&quot;,ScalarType &quot;bool&quot;,ScalarType &quot;bool&quot;] (Pseudo Void) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">create_monster</span><span class="Symbol">(</span><span class="VarId">vptype</span> <span class="Type">text</span><span class="Symbol">,</span> <span class="VarId">allegiance</span> <span class="Type">text</span><span class="Symbol">,</span> <span class="VarId">x</span> <span class="Type">int</span><span class="Symbol">,</span> <span class="VarId">y</span> <span class="Type">int</span><span class="Symbol">,</span>
+                               <span class="VarId">imaginary</span> <span class="VarId">boolean</span><span class="Symbol">,</span> <span class="VarId">undead</span> <span class="VarId">boolean</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">if</span> <span class="Keyword">not</span> <span class="Keyword">exists</span><span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">monster_prototypes</span> <span class="Keyword">where</span> <span class="VarId">ptype</span> <span class="Symbol">=</span> <span class="VarId">vptype</span><span class="Symbol">)</span> <span class="VarId">then</span>
+    <span class="Keyword">raise</span> <span class="Keyword">exception</span> <span class="Char">'called create monster on % which is not a monster'</span><span class="Symbol">,</span> <span class="VarId">vptype</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="Keyword">perform</span> <span class="VarId">create_piece_internal</span><span class="Symbol">(</span><span class="VarId">vptype</span><span class="Symbol">,</span> <span class="VarId">allegiance</span><span class="Symbol">,</span> <span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">y</span><span class="Symbol">,</span> <span class="VarId">imaginary</span><span class="Symbol">,</span> <span class="VarId">undead</span><span class="Symbol">);</span>
+<span class="VarId">end</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'create_monster'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.Actions.PieceChanges'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateFunction FunName &quot;create_corpse&quot; [ScalarType &quot;text&quot;,ScalarType &quot;int4&quot;,ScalarType &quot;int4&quot;,ScalarType &quot;bool&quot;] (Pseudo Void) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">create_corpse</span><span class="Symbol">(</span><span class="VarId">vptype</span> <span class="Type">text</span><span class="Symbol">,</span> <span class="VarId">px</span> <span class="Type">int</span><span class="Symbol">,</span> <span class="VarId">py</span> <span class="Type">int</span><span class="Symbol">,</span> <span class="VarId">imaginary</span> <span class="VarId">boolean</span><span class="Symbol">)</span>
+  <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">vtag</span> <span class="Type">int</span><span class="Symbol">;</span>
+  <span class="VarId">twiz</span> <span class="Type">text</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="Keyword">if</span> <span class="Keyword">not</span> <span class="Keyword">exists</span><span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="Keyword">from</span> <span class="VarId">monster_prototypes</span>
+                <span class="Keyword">where</span> <span class="VarId">ptype</span> <span class="Symbol">=</span> <span class="VarId">vptype</span><span class="Symbol">)</span> <span class="VarId">then</span>
+    <span class="Keyword">raise</span> <span class="Keyword">exception</span> <span class="Char">'called create corpse on % which is not a monster'</span><span class="Symbol">,</span> <span class="VarId">vptype</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="VarId">vtag</span> <span class="Symbol">:=</span> <span class="VarId">create_piece_internal</span><span class="Symbol">(</span><span class="VarId">vptype</span><span class="Symbol">,</span>
+                                <span class="Char">'Buddha'</span><span class="Symbol">,</span>
+                                <span class="VarId">px</span><span class="Symbol">,</span> <span class="VarId">py</span><span class="Symbol">,</span> <span class="VarId">imaginary</span><span class="Symbol">,</span> <span class="VarId">false</span><span class="Symbol">);</span>
+  <span class="Keyword">perform</span> <span class="VarId">kill_monster</span><span class="Symbol">((</span><span class="VarId">vptype</span><span class="Symbol">,</span> <span class="Char">'Buddha'</span><span class="Symbol">,</span> <span class="VarId">vtag</span><span class="Symbol">));</span>
+<span class="VarId">end</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
+
+<span class="Comment">-----------------------------------------------------</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'create_corpse'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.Actions.PieceChanges'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateFunction FunName &quot;get_next_tag&quot; [ScalarType &quot;text&quot;,ScalarType &quot;text&quot;] (ScalarType &quot;int4&quot;) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">get_next_tag</span><span class="Symbol">(</span><span class="VarId">pptype</span> <span class="Type">text</span><span class="Symbol">,</span> <span class="VarId">pallegiance</span> <span class="Type">text</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">int</span> <span class="Keyword">as</span> $$
+
+  <span class="Keyword">select</span> <span class="VarId">coalesce</span><span class="Symbol">(</span><span class="VarId">max</span><span class="Symbol">(</span><span class="VarId">tag</span><span class="Symbol">)</span> <span class="Symbol">+</span> <span class="Number">1</span><span class="Symbol">,</span> <span class="Number">0</span><span class="Symbol">)</span> <span class="Keyword">from</span> <span class="VarId">pieces</span>
+  <span class="Keyword">where</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="Symbol">(</span>$<span class="Number">1</span><span class="Symbol">,</span>$<span class="Number">2</span><span class="Symbol">);</span>
+
+$$ <span class="Keyword">language</span> <span class="VarId">sql</span> <span class="Keyword">stable</span><span class="Symbol">;</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'get_next_tag'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.Actions.PieceChanges'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateFunction FunName &quot;create_piece_internal&quot; [ScalarType &quot;text&quot;,ScalarType &quot;text&quot;,ScalarType &quot;int4&quot;,ScalarType &quot;int4&quot;,ScalarType &quot;bool&quot;,ScalarType &quot;bool&quot;] (ScalarType &quot;int4&quot;) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">create_piece_internal</span><span class="Symbol">(</span><span class="VarId">vptype</span> <span class="Type">text</span><span class="Symbol">,</span> <span class="VarId">vallegiance</span> <span class="Type">text</span><span class="Symbol">,</span>
+                                      <span class="VarId">vx</span> <span class="Type">int</span><span class="Symbol">,</span> <span class="VarId">vy</span> <span class="Type">int</span><span class="Symbol">,</span> <span class="VarId">vimaginary</span> <span class="VarId">boolean</span><span class="Symbol">,</span> <span class="VarId">vundead</span> <span class="VarId">boolean</span><span class="Symbol">)</span>
+                                      <span class="Keyword">returns</span> <span class="Type">int</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">vtag</span> <span class="Type">int</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">pieces</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span> <span class="VarId">allegiance</span><span class="Symbol">,</span> <span class="VarId">tag</span><span class="Symbol">,</span> <span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">y</span><span class="Symbol">)</span>
+    <span class="Keyword">select</span> <span class="VarId">vptype</span><span class="Symbol">,</span> <span class="VarId">vallegiance</span><span class="Symbol">,</span> <span class="VarId">get_next_tag</span><span class="Symbol">(</span><span class="VarId">vptype</span><span class="Symbol">,</span><span class="VarId">vallegiance</span><span class="Symbol">),</span> <span class="VarId">vx</span><span class="Symbol">,</span> <span class="VarId">vy</span>
+    <span class="Keyword">returning</span> <span class="VarId">tag</span> <span class="Keyword">into</span> <span class="VarId">vtag</span><span class="Symbol">;</span>
+
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">imaginary_pieces</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">)</span>
+    <span class="Keyword">select</span> <span class="VarId">vptype</span><span class="Symbol">,</span><span class="VarId">vallegiance</span><span class="Symbol">,</span><span class="VarId">vtag</span> <span class="Keyword">where</span> <span class="VarId">coalesce</span><span class="Symbol">(</span><span class="VarId">vimaginary</span><span class="Symbol">,</span><span class="VarId">false</span><span class="Symbol">);</span>
+  <span class="Keyword">if</span> <span class="VarId">vundead</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">make_piece_undead</span><span class="Symbol">(</span><span class="VarId">vptype</span><span class="Symbol">,</span> <span class="VarId">vallegiance</span><span class="Symbol">,</span> <span class="VarId">vtag</span><span class="Symbol">);</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="VarId">return</span> <span class="VarId">vtag</span><span class="Symbol">;</span>
+<span class="VarId">end</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'create_piece_internal'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.Actions.PieceChanges'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateFunction FunName &quot;make_piece_undead&quot; [ScalarType &quot;text&quot;,ScalarType &quot;text&quot;,ScalarType &quot;int4&quot;] (Pseudo Void) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">make_piece_undead</span><span class="Symbol">(</span><span class="VarId">vptype</span> <span class="Type">text</span><span class="Symbol">,</span> <span class="VarId">vallegiance</span> <span class="Type">text</span><span class="Symbol">,</span> <span class="VarId">vtag</span> <span class="Type">int</span><span class="Symbol">)</span>
+  <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">if</span> <span class="Keyword">not</span> <span class="Keyword">exists</span><span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">piece_prototypes_mr</span>
+                <span class="Keyword">where</span> <span class="VarId">ptype</span><span class="Symbol">=</span><span class="VarId">vptype</span> <span class="Keyword">and</span> <span class="VarId">undead</span><span class="Symbol">)</span>
+      <span class="Keyword">and</span> <span class="Keyword">not</span> <span class="Keyword">exists</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">crimes_against_nature</span>
+                      <span class="Keyword">where</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">)</span> <span class="Symbol">=</span>
+                        <span class="Symbol">(</span><span class="VarId">vptype</span><span class="Symbol">,</span><span class="VarId">vallegiance</span><span class="Symbol">,</span><span class="VarId">vtag</span><span class="Symbol">))</span> <span class="VarId">then</span>
+    <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">crimes_against_nature</span>
+      <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">)</span> <span class="VarId">values</span>
+      <span class="Symbol">(</span><span class="VarId">vptype</span><span class="Symbol">,</span><span class="VarId">vallegiance</span><span class="Symbol">,</span><span class="VarId">vtag</span><span class="Symbol">);</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
+
+<span class="Comment">----------------------------------------------</span>
+<span class="Comment">/*</span>
+<span class="Comment">new plan for piece killing and stuff</span>
+<span class="Comment">disintegrate: removes piece, no corpse even for non undead monster</span>
+<span class="Comment">kill piece: calls appropriate routine:</span>
+<span class="Comment">  kill monster: creates corpse if not undead else calls disintegrate</span>
+<span class="Comment">  kill object: calls disintegrate</span>
+<span class="Comment">  kill wizard: calls disintegrate on army and wizard, and other clean up</span>
+<span class="Comment">*/</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'make_piece_undead'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.Actions.PieceChanges'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateFunction FunName &quot;disintegrate&quot; [NamedCompositeType &quot;piece_key&quot;] (Pseudo Void) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">disintegrate</span><span class="Symbol">(</span><span class="VarId">pk</span> <span class="VarId">piece_key</span><span class="Symbol">)</span>
+  <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">pieces</span> <span class="Keyword">where</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span> <span class="VarId">allegiance</span><span class="Symbol">,</span> <span class="VarId">tag</span><span class="Symbol">)::</span><span class="VarId">piece_key</span> <span class="Symbol">=</span> <span class="VarId">pk</span><span class="Symbol">;</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'disintegrate'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.Actions.PieceChanges'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateFunction FunName &quot;kill_monster&quot; [NamedCompositeType &quot;piece_key&quot;] (Pseudo Void) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">kill_monster</span><span class="Symbol">(</span><span class="VarId">pk</span> <span class="VarId">piece_key</span><span class="Symbol">)</span>
+  <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Comment">--todo some asserts: monster, non undead</span>
+  <span class="Comment">--  undead cannot be dead - add constraint</span>
+  <span class="Comment">--  non monster cannot be dead: shouldn't be possible, check this</span>
+  <span class="Comment">--  after adding update rule to pieces_view</span>
+  <span class="Comment">--todo: generate update rules automatically for entities</span>
+  <span class="Comment">-- and use a single update here</span>
+  <span class="Comment">-- do the sub ones first since the pieces update changes the key</span>
+  <span class="Keyword">update</span> <span class="VarId">pieces</span> <span class="Keyword">set</span> <span class="VarId">allegiance</span> <span class="Symbol">=</span> <span class="Char">'dead'</span><span class="Symbol">,</span>
+                    <span class="VarId">tag</span> <span class="Symbol">=</span> <span class="VarId">get_next_tag</span><span class="Symbol">(</span><span class="VarId">pk</span><span class="Symbol">.</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="Char">'dead'</span><span class="Symbol">)</span>
+    <span class="Keyword">where</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span> <span class="VarId">allegiance</span><span class="Symbol">,</span> <span class="VarId">tag</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">pk</span><span class="Symbol">;</span>
+<span class="VarId">end</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'kill_monster'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.Actions.PieceChanges'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateFunction FunName &quot;disintegrate_wizards_army&quot; [ScalarType &quot;text&quot;] (Pseudo Void) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">disintegrate_wizards_army</span><span class="Symbol">(</span><span class="VarId">pwizard_name</span> <span class="Type">text</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">r</span> <span class="VarId">piece_key</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="Keyword">for</span> <span class="VarId">r</span> <span class="VarId">in</span> <span class="Keyword">select</span> <span class="VarId">ptype</span><span class="Symbol">,</span> <span class="VarId">allegiance</span><span class="Symbol">,</span> <span class="VarId">tag</span> <span class="Keyword">from</span> <span class="VarId">pieces</span>
+    <span class="Keyword">where</span> <span class="VarId">allegiance</span> <span class="Symbol">=</span> <span class="VarId">pwizard_name</span> <span class="VarId">loop</span>
+    <span class="Keyword">perform</span> <span class="VarId">disintegrate</span><span class="Symbol">(</span><span class="VarId">r</span><span class="Symbol">);</span>
+  <span class="Keyword">end</span> <span class="Keyword">loop</span><span class="Symbol">;</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'disintegrate_wizards_army'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.Actions.PieceChanges'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateFunction FunName &quot;kill_wizard&quot; [ScalarType &quot;text&quot;] (Pseudo Void) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">kill_wizard</span><span class="Symbol">(</span><span class="VarId">pwizard_name</span> <span class="Type">text</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+<span class="Comment">--if current wizard then next_wizard</span>
+  <span class="Keyword">if</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">current_wizard</span> <span class="Symbol">=</span> <span class="VarId">pwizard_name</span>
+        <span class="Keyword">from</span> <span class="VarId">current_wizard_table</span><span class="Symbol">)</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">action_next_phase</span><span class="Symbol">();</span>
+    <span class="Comment">--check if this is the last wizard, slightly hacky</span>
+    <span class="Comment">/*if (select current_wizard = pwizard_name</span>
+<span class="Comment">        from current_wizard_table) then</span>
+<span class="Comment">      perform game_completed();</span>
+<span class="Comment">      perform add_history_game_drawn();</span>
+<span class="Comment">      delete from current_wizard_table;</span>
+<span class="Comment">    end if;*/</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+ <span class="Comment">--this should all be handled with cascades...?</span>
+  <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">wizard_spell_choices_mr</span> <span class="Keyword">where</span> <span class="VarId">wizard_name</span> <span class="Symbol">=</span> <span class="VarId">pwizard_name</span><span class="Symbol">;</span>
+<span class="Comment">--wipe spell book</span>
+  <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">spell_books</span> <span class="Keyword">where</span> <span class="VarId">wizard_name</span> <span class="Symbol">=</span> <span class="VarId">pwizard_name</span><span class="Symbol">;</span>
+<span class="Comment">--kill army</span>
+  <span class="Keyword">perform</span> <span class="VarId">disintegrate_wizards_army</span><span class="Symbol">(</span><span class="VarId">pwizard_name</span><span class="Symbol">);</span>
+<span class="Comment">--set expired to true</span>
+  <span class="Keyword">update</span> <span class="VarId">wizards</span> <span class="Keyword">set</span> <span class="VarId">expired</span> <span class="Symbol">=</span> <span class="VarId">true</span>
+    <span class="Keyword">where</span> <span class="VarId">wizard_name</span> <span class="Symbol">=</span> <span class="VarId">pwizard_name</span><span class="Symbol">;</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'kill_wizard'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.Actions.PieceChanges'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateFunction FunName &quot;kill_piece&quot; [NamedCompositeType &quot;piece_key&quot;] (Pseudo Void) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">kill_piece</span><span class="Symbol">(</span><span class="VarId">pk</span> <span class="VarId">piece_key</span><span class="Symbol">)</span>
+  <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">if</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">coalesce</span><span class="Symbol">(</span><span class="VarId">undead</span><span class="Symbol">,</span><span class="VarId">false</span><span class="Symbol">)</span> <span class="Keyword">from</span> <span class="VarId">pieces_mr</span>
+        <span class="Keyword">where</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span> <span class="VarId">allegiance</span><span class="Symbol">,</span> <span class="VarId">tag</span><span class="Symbol">)::</span><span class="VarId">piece_key</span> <span class="Symbol">=</span> <span class="VarId">pk</span><span class="Symbol">)</span>
+    <span class="Keyword">or</span> <span class="Keyword">exists</span><span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">object_piece_types</span>
+                <span class="Keyword">where</span> <span class="VarId">ptype</span> <span class="Symbol">=</span> <span class="VarId">pk</span><span class="Symbol">.</span><span class="VarId">ptype</span><span class="Symbol">)</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">disintegrate</span><span class="Symbol">(</span><span class="VarId">pk</span><span class="Symbol">);</span>
+  <span class="Keyword">elseif</span> <span class="Keyword">exists</span><span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">monster_prototypes</span> <span class="Keyword">where</span> <span class="VarId">ptype</span> <span class="Symbol">=</span> <span class="VarId">pk</span><span class="Symbol">.</span><span class="VarId">ptype</span><span class="Symbol">)</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">kill_monster</span><span class="Symbol">(</span><span class="VarId">pk</span><span class="Symbol">);</span>
+  <span class="Keyword">elseif</span> <span class="VarId">pk</span><span class="Symbol">.</span><span class="VarId">ptype</span> <span class="Symbol">=</span> <span class="Char">'wizard'</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">kill_wizard</span><span class="Symbol">(</span><span class="VarId">pk</span><span class="Symbol">.</span><span class="VarId">allegiance</span><span class="Symbol">);</span>
+  <span class="VarId">else</span>
+    <span class="Keyword">raise</span> <span class="Keyword">exception</span> <span class="Char">'don''t know how to kill piece with ptype %'</span><span class="Symbol">,</span> <span class="VarId">pk</span><span class="Symbol">.</span><span class="VarId">ptype</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
+
+<span class="Comment">--- testing function</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'kill_piece'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.Actions.PieceChanges'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">kill_top_piece_at</span><span class="Symbol">(</span><span class="VarId">px</span> <span class="Type">int</span><span class="Symbol">,</span> <span class="VarId">py</span> <span class="Type">int</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">r</span> <span class="VarId">piece_key</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">r</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span>
+    <span class="Keyword">from</span> <span class="VarId">pieces_on_top</span> <span class="Keyword">where</span> <span class="Symbol">(</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="VarId">px</span><span class="Symbol">,</span><span class="VarId">py</span><span class="Symbol">);</span>
+  <span class="Keyword">perform</span> <span class="VarId">kill_piece</span><span class="Symbol">(</span><span class="VarId">r</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*[CatCreateFunction FunName &quot;kill_top_piece_at&quot; [ScalarType &quot;int4&quot;,ScalarType &quot;int4&quot;] (Pseudo Void) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">kill_top_piece_at</span> <span class="Symbol">(</span><span class="VarId">px</span> <span class="Type">int</span><span class="Symbol">,</span><span class="VarId">py</span> <span class="Type">int</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">r</span> <span class="VarId">piece_key</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="Keyword">select</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span> <span class="Keyword">into</span> <span class="VarId">r</span>
+    <span class="Keyword">from</span> <span class="VarId">pieces_on_top</span>
+    <span class="Keyword">where</span> <span class="Symbol">(</span><span class="Keyword">row</span><span class="Symbol">(</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="Keyword">row</span><span class="Symbol">(</span><span class="VarId">px</span><span class="Symbol">,</span><span class="VarId">py</span><span class="Symbol">));</span>
+
+  <span class="Keyword">perform</span> <span class="VarId">kill_piece</span><span class="Symbol">(</span><span class="VarId">r</span><span class="Symbol">);</span>
+
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
+
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'kill_top_piece_at'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.Actions.PieceChanges'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

@@ -1,0 +1,231 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >GlobalData.sql transformed</title
+    ><link href="../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../index.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><div class='SqlPostgresql'><div class='UnusedSql'><pre class="sourceCode"><span class="Comment">-- replaced sql ------------------------</span>
+<span class="Comment">/*</span>
+
+<span class="Comment">Visibility notes - find somewhere to put these</span>
+<span class="Comment">Players should not be able to see each others spells before the cast</span>
+<span class="Comment">phase. This is difficult when they are all on the same computer, but</span>
+<span class="Comment">should be easy when they are not.</span>
+
+<span class="Comment">Imaginary attribute should only be visible to owning player, same</span>
+<span class="Comment">notes as previous.</span>
+
+<span class="Comment">global data</span>
+<span class="Comment">===========</span>
+
+<span class="Comment">*/</span>
+<span class="Keyword">select</span> <span class="VarId">module</span><span class="Symbol">(</span><span class="Char">'Chaos.Server.GlobalData'</span><span class="Symbol">);</span>
+<span class="Comment">/*</span>
+
+<span class="Comment">board size</span>
+<span class="Comment">----------</span>
+
+<span class="Comment">changing the board size from the default has never been tested...</span>
+
+<span class="Comment">*/</span></pre></div></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">modules</span> <span class="Symbol">(</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'Chaos.Server.GlobalData'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><div class='UnusedSql'><pre class="sourceCode"><span class="Comment">-- replaced sql ------------------------</span>
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">board_size</span> <span class="Symbol">(</span>
+  <span class="VarId">width</span> <span class="Type">int</span><span class="Symbol">,</span>
+  <span class="VarId">height</span> <span class="Type">int</span><span class="Symbol">,</span>
+  <span class="Keyword">unique</span> <span class="Symbol">(</span><span class="VarId">width</span><span class="Symbol">,</span> <span class="VarId">height</span><span class="Symbol">)</span>
+<span class="Symbol">);</span></pre></div></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*[CatCreateTable &quot;board_size&quot; [(&quot;width&quot;,ScalarType &quot;int4&quot;),(&quot;height&quot;,ScalarType &quot;int4&quot;)] [(&quot;tableoid&quot;,ScalarType &quot;oid&quot;),(&quot;cmax&quot;,ScalarType &quot;cid&quot;),(&quot;xmax&quot;,ScalarType &quot;xid&quot;),(&quot;cmin&quot;,ScalarType &quot;cid&quot;),(&quot;xmin&quot;,ScalarType &quot;xid&quot;),(&quot;ctid&quot;,ScalarType &quot;tid&quot;)]]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">board_size</span> <span class="Symbol">(</span>
+  <span class="VarId">width</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+  <span class="VarId">height</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+  <span class="Keyword">unique</span> <span class="Symbol">(</span><span class="VarId">width</span><span class="Symbol">,</span><span class="VarId">height</span><span class="Symbol">)</span>
+<span class="Symbol">);</span>
+
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'board_size'</span><span class="Symbol">,</span><span class="Char">'table'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.GlobalData'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'board_size'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span></pre></div><div class='SqlPostgresql'><div class='UnusedSql'><pre class="sourceCode"><span class="Comment">-- replaced sql ------------------------</span>
+<span class="Keyword">select</span> <span class="VarId">restrict_cardinality</span><span class="Symbol">(</span><span class="Char">'board_size'</span><span class="Symbol">,</span> <span class="Number">1</span><span class="Symbol">);</span>
+
+
+<span class="Comment">--update operator out param: board_size</span></pre></div></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*[CatCreateFunction FunName &quot;check_con_board_size_card&quot; [] (ScalarType &quot;bool&quot;) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">check_con_board_size_card</span> <span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">bool</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="VarId">return</span> <span class="Symbol">((</span><span class="Keyword">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span>
+             <span class="Keyword">from</span> <span class="VarId">board_size</span><span class="Symbol">)</span> <span class="Symbol">&lt;=</span> <span class="Number">1</span><span class="Symbol">);</span>
+
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span>
+
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'check_con_board_size_card'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.GlobalData'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span>
+
+<span class="Comment">/*[CatCreateFunction FunName &quot;board_size_constraint_trigger_operator&quot; [] (Pseudo Trigger) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">board_size_constraint_trigger_operator</span> <span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Keyword">trigger</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">if</span> <span class="Symbol">(</span><span class="Keyword">not</span> <span class="Symbol">(</span><span class="VarId">check_con_board_size_card</span><span class="Symbol">()))</span> <span class="VarId">then</span>
+       <span class="Keyword">raise</span> <span class="Keyword">exception</span> <span class="Char">'update violates database constraint board_size_card'</span><span class="Symbol">;</span>
+
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+
+  <span class="VarId">return</span> <span class="VarId">OLD</span><span class="Symbol">;</span>
+
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span>
+
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'board_size_constraint_trigger_operator'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.GlobalData'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span>
+
+<span class="Keyword">create</span> <span class="Keyword">trigger</span> <span class="VarId">board_size_constraint_trigger</span> <span class="Keyword">after</span> <span class="Keyword">insert</span> <span class="Keyword">or</span> <span class="Keyword">update</span> <span class="Keyword">or</span> <span class="Keyword">delete</span> <span class="Keyword">on</span> <span class="VarId">board_size</span> <span class="Keyword">for</span> <span class="Keyword">statement</span> <span class="Keyword">execute</span> <span class="VarId">procedure</span> <span class="VarId">board_size_constraint_trigger_operator</span><span class="Symbol">();</span>
+
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'board_size_constraint_trigger'</span><span class="Symbol">,</span><span class="Char">'trigger'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.GlobalData'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateFunction FunName &quot;init_board_size&quot; [] (Pseudo Void) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">init_board_size</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Comment">-- default board size</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">board_size</span> <span class="Symbol">(</span><span class="VarId">width</span><span class="Symbol">,</span> <span class="VarId">height</span><span class="Symbol">)</span> <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Number">15</span><span class="Symbol">,</span> <span class="Number">10</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
+
+<span class="Comment">/*</span>
+
+<span class="Comment">law/ chaos rating</span>
+<span class="Comment">-----------------</span>
+
+<span class="Comment">The world has a law/ chaos rating which can be chaos-N, neutral or</span>
+<span class="Comment">law-N. It starts neutral. When the world is chaos, then chaos spells</span>
+<span class="Comment">become easier to cast, and law spells harder, and vice versa. It</span>
+<span class="Comment">becomes more chaos when chaos spells are cast, and more law when law</span>
+<span class="Comment">spells are cast.</span>
+
+<span class="Comment">*/</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'init_board_size'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.GlobalData'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateDomain (DomainType &quot;alignment&quot;) (ScalarType &quot;text&quot;)]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">domain</span> <span class="VarId">alignment</span> <span class="Keyword">as</span> <span class="Type">text</span> <span class="Keyword">check</span> <span class="Symbol">(</span><span class="VarId">value</span> <span class="VarId">in</span> <span class="Symbol">(</span><span class="Char">'law'</span><span class="Symbol">,</span> <span class="Char">'neutral'</span><span class="Symbol">,</span> <span class="Char">'chaos'</span><span class="Symbol">));</span>
+
+<span class="Comment">--if world alignment = 0, world is neutral, if -ve world is chaos by that amount</span>
+<span class="Comment">--if +ve world is law by that amount</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'alignment'</span><span class="Symbol">,</span><span class="Char">'domain'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.GlobalData'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><div class='UnusedSql'><pre class="sourceCode"><span class="Comment">-- replaced sql ------------------------</span>
+<span class="Keyword">select</span> <span class="VarId">create_var</span><span class="Symbol">(</span><span class="Char">'world_alignment'</span><span class="Symbol">,</span> <span class="Char">'int'</span><span class="Symbol">);</span></pre></div></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*[CatCreateTable &quot;world_alignment_table&quot; [(&quot;world_alignment&quot;,ScalarType &quot;int4&quot;)] [(&quot;tableoid&quot;,ScalarType &quot;oid&quot;),(&quot;cmax&quot;,ScalarType &quot;cid&quot;),(&quot;xmax&quot;,ScalarType &quot;xid&quot;),(&quot;cmin&quot;,ScalarType &quot;cid&quot;),(&quot;xmin&quot;,ScalarType &quot;xid&quot;),(&quot;ctid&quot;,ScalarType &quot;tid&quot;)]]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">world_alignment_table</span> <span class="Symbol">(</span>
+  <span class="VarId">world_alignment</span> <span class="Type">int</span> <span class="Keyword">primary</span> <span class="VarId">key</span>
+<span class="Symbol">);</span>
+
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'world_alignment_table'</span><span class="Symbol">,</span><span class="Char">'table'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.GlobalData'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span>
+
+<span class="Comment">/*[CatCreateFunction FunName &quot;get_world_alignment&quot; [] (ScalarType &quot;int4&quot;) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">get_world_alignment</span> <span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">int</span> <span class="Keyword">as</span> $$
+  <span class="Keyword">select</span> <span class="Symbol">*</span>
+    <span class="Keyword">from</span> <span class="VarId">world_alignment_table</span><span class="Symbol">;</span>
+
+$$ <span class="Keyword">language</span> <span class="VarId">sql</span> <span class="Keyword">stable</span><span class="Symbol">;</span>
+
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'get_world_alignment'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.GlobalData'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span>
+
+<span class="Comment">/*[CatCreateFunction FunName &quot;check_con_world_alignment_table_01_tuple&quot; [] (ScalarType &quot;bool&quot;) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">check_con_world_alignment_table_01_tuple</span> <span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">bool</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="VarId">return</span> <span class="Symbol">((</span><span class="Keyword">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span>
+             <span class="Keyword">from</span> <span class="VarId">world_alignment_table</span><span class="Symbol">)</span> <span class="Symbol">&lt;=</span> <span class="Number">1</span><span class="Symbol">);</span>
+
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span>
+
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'check_con_world_alignment_table_01_tuple'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.GlobalData'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span>
+
+<span class="Comment">/*[CatCreateFunction FunName &quot;world_alignment_table_constraint_trigger_operator&quot; [] (Pseudo Trigger) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">world_alignment_table_constraint_trigger_operator</span> <span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Keyword">trigger</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">if</span> <span class="Symbol">(</span><span class="Keyword">not</span> <span class="Symbol">(</span><span class="VarId">check_con_world_alignment_table_01_tuple</span><span class="Symbol">()))</span> <span class="VarId">then</span>
+       <span class="Keyword">raise</span> <span class="Keyword">exception</span> <span class="Char">'update violates database constraint world_alignment_table_01_tuple'</span><span class="Symbol">;</span>
+
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+
+  <span class="VarId">return</span> <span class="VarId">OLD</span><span class="Symbol">;</span>
+
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span>
+
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'world_alignment_table_constraint_trigger_operator'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.GlobalData'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span>
+
+<span class="Keyword">create</span> <span class="Keyword">trigger</span> <span class="VarId">world_alignment_table_constraint_trigger</span> <span class="Keyword">after</span> <span class="Keyword">insert</span> <span class="Keyword">or</span> <span class="Keyword">update</span> <span class="Keyword">or</span> <span class="Keyword">delete</span> <span class="Keyword">on</span> <span class="VarId">world_alignment_table</span> <span class="Keyword">for</span> <span class="Keyword">statement</span> <span class="Keyword">execute</span> <span class="VarId">procedure</span> <span class="VarId">world_alignment_table_constraint_trigger_operator</span><span class="Symbol">();</span>
+
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'world_alignment_table_constraint_trigger'</span><span class="Symbol">,</span><span class="Char">'trigger'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.GlobalData'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'world_alignment_table'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span></pre></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">init_world_alignment</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">world_alignment_table</span> <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Number">0</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*[CatCreateFunction FunName &quot;init_world_alignment&quot; [] (Pseudo Void) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">init_world_alignment</span> <span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">world_alignment_table</span>
+  <span class="VarId">values</span>
+    <span class="Symbol">(</span><span class="Number">0</span><span class="Symbol">)</span>
+  <span class="Symbol">;</span>
+
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
+
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'init_world_alignment'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Server.GlobalData'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>

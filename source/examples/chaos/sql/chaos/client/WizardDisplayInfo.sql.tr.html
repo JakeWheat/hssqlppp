@@ -1,0 +1,156 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >WizardDisplayInfo.sql transformed</title
+    ><link href="../../../../../../main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="../../../../../../index.html"
+      >HsSqlPpp-0.3.0</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><div class='SqlPostgresql'><div class='UnusedSql'><pre class="sourceCode"><span class="Comment">-- replaced sql ------------------------</span>
+<span class="Keyword">select</span> <span class="VarId">module</span><span class="Symbol">(</span><span class="Char">'Chaos.Client.WizardDisplayInfo'</span><span class="Symbol">);</span></pre></div></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">modules</span> <span class="Symbol">(</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'Chaos.Client.WizardDisplayInfo'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><div class='UnusedSql'><pre class="sourceCode"><span class="Comment">-- replaced sql ------------------------</span>
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">colours</span> <span class="Symbol">(</span>
+       <span class="VarId">name</span> <span class="Type">text</span> <span class="Keyword">primary</span> <span class="Keyword">key</span><span class="Symbol">,</span>
+       <span class="VarId">red</span> <span class="Type">int</span><span class="Symbol">,</span>
+       <span class="VarId">green</span> <span class="Type">int</span><span class="Symbol">,</span>
+       <span class="VarId">blue</span> <span class="VarId">int</span>
+<span class="Symbol">);</span></pre></div></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*[CatCreateTable &quot;colours&quot; [(&quot;name&quot;,ScalarType &quot;text&quot;),(&quot;red&quot;,ScalarType &quot;int4&quot;),(&quot;green&quot;,ScalarType &quot;int4&quot;),(&quot;blue&quot;,ScalarType &quot;int4&quot;)] [(&quot;tableoid&quot;,ScalarType &quot;oid&quot;),(&quot;cmax&quot;,ScalarType &quot;cid&quot;),(&quot;xmax&quot;,ScalarType &quot;xid&quot;),(&quot;cmin&quot;,ScalarType &quot;cid&quot;),(&quot;xmin&quot;,ScalarType &quot;xid&quot;),(&quot;ctid&quot;,ScalarType &quot;tid&quot;)]]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">colours</span> <span class="Symbol">(</span>
+  <span class="VarId">name</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="Keyword">null</span> <span class="Keyword">primary</span> <span class="Keyword">key</span><span class="Symbol">,</span>
+  <span class="VarId">red</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+  <span class="VarId">green</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+  <span class="VarId">blue</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="VarId">null</span>
+<span class="Symbol">);</span>
+
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'colours'</span><span class="Symbol">,</span><span class="Char">'table'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.WizardDisplayInfo'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'colours'</span><span class="Symbol">,</span> <span class="Char">'readonly'</span><span class="Symbol">);</span></pre></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">copy</span> <span class="VarId">colours</span> <span class="Symbol">(</span><span class="VarId">name</span><span class="Symbol">,</span><span class="VarId">red</span><span class="Symbol">,</span><span class="VarId">green</span><span class="Symbol">,</span><span class="VarId">blue</span><span class="Symbol">)</span> <span class="Keyword">from</span> <span class="Keyword">stdin</span><span class="Symbol">;</span></pre></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="VarId">grid</span>	<span class="Number">32767</span>	<span class="Number">32767</span>	<span class="Number">32767</span>
+<span class="VarId">background</span>	<span class="Number">0</span>	<span class="Number">0</span>	<span class="Number">32767</span>
+<span class="VarId">black</span>	<span class="Number">0</span>	<span class="Number">0</span>	<span class="Number">0</span>
+<span class="VarId">blue</span>	<span class="Number">0</span>	<span class="Number">0</span>	<span class="Number">65535</span>
+<span class="VarId">green</span>	<span class="Number">0</span>	<span class="Number">65535</span>	<span class="Number">0</span>
+<span class="VarId">red</span>	<span class="Number">65535</span>	<span class="Number">0</span>	<span class="Number">0</span>
+<span class="VarId">pink</span>	<span class="Number">65535</span>	<span class="Number">49407</span>	<span class="Number">49407</span>
+<span class="VarId">purple</span>	<span class="Number">65535</span>	<span class="Number">0</span>	<span class="Number">65535</span>
+<span class="VarId">cyan</span>	<span class="Number">0</span>	<span class="Number">65535</span>	<span class="Number">65535</span>
+<span class="VarId">yellow</span>	<span class="Number">65535</span>	<span class="Number">65535</span>	<span class="Number">0</span>
+<span class="VarId">orange</span>	<span class="Number">65535</span>	<span class="Number">41215</span>	<span class="Number">0</span>
+<span class="VarId">grey</span>	<span class="Number">32767</span>	<span class="Number">32767</span>	<span class="Number">32767</span>
+<span class="VarId">white</span>	<span class="Number">65535</span>	<span class="Number">65535</span>	<span class="Number">65535</span>
+\<span class="Symbol">.</span>
+
+<span class="Comment">/*</span>
+<span class="Comment">== wizard display info</span>
+
+<span class="Comment">This table associates a wizards name (= the allegiance) from the</span>
+<span class="Comment">server with a colour for the wizard and his army and a wizard sprite</span>
+<span class="Comment">for display purposes.</span>
+
+<span class="Comment">The sprite in this table is what the wizard uses if he doesn't have</span>
+<span class="Comment">any upgrades.</span>
+
+<span class="Comment">Wizard named 'name' started with sprite default_sprite, his army is</span>
+<span class="Comment">coloured 'colour'.</span>
+<span class="Comment">*/</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="VarId">grid</span>	<span class="Number">32767</span>	<span class="Number">32767</span>	<span class="Number">32767</span>
+<span class="VarId">background</span>	<span class="Number">0</span>	<span class="Number">0</span>	<span class="Number">32767</span>
+<span class="VarId">black</span>	<span class="Number">0</span>	<span class="Number">0</span>	<span class="Number">0</span>
+<span class="VarId">blue</span>	<span class="Number">0</span>	<span class="Number">0</span>	<span class="Number">65535</span>
+<span class="VarId">green</span>	<span class="Number">0</span>	<span class="Number">65535</span>	<span class="Number">0</span>
+<span class="VarId">red</span>	<span class="Number">65535</span>	<span class="Number">0</span>	<span class="Number">0</span>
+<span class="VarId">pink</span>	<span class="Number">65535</span>	<span class="Number">49407</span>	<span class="Number">49407</span>
+<span class="VarId">purple</span>	<span class="Number">65535</span>	<span class="Number">0</span>	<span class="Number">65535</span>
+<span class="VarId">cyan</span>	<span class="Number">0</span>	<span class="Number">65535</span>	<span class="Number">65535</span>
+<span class="VarId">yellow</span>	<span class="Number">65535</span>	<span class="Number">65535</span>	<span class="Number">0</span>
+<span class="VarId">orange</span>	<span class="Number">65535</span>	<span class="Number">41215</span>	<span class="Number">0</span>
+<span class="VarId">grey</span>	<span class="Number">32767</span>	<span class="Number">32767</span>	<span class="Number">32767</span>
+<span class="VarId">white</span>	<span class="Number">65535</span>	<span class="Number">65535</span>	<span class="Number">65535</span>
+\<span class="Symbol">.</span></pre></div></div><div class='SqlPostgresql'><div class='UnusedSql'><pre class="sourceCode"><span class="Comment">-- replaced sql ------------------------</span>
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">wizard_display_info</span> <span class="Symbol">(</span>
+  <span class="VarId">wizard_name</span> <span class="Type">text</span> <span class="Keyword">unique</span> <span class="Keyword">references</span> <span class="VarId">wizards</span><span class="Symbol">,</span>
+  <span class="VarId">default_sprite</span> <span class="Type">text</span> <span class="Keyword">unique</span> <span class="Keyword">references</span> <span class="VarId">sprites</span><span class="Symbol">,</span> <span class="Comment">-- and matches /wizard.* /</span>
+  <span class="VarId">colour</span> <span class="Type">text</span> <span class="VarId">unique</span>
+<span class="Symbol">);</span></pre></div></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*[CatCreateTable &quot;wizard_display_info&quot; [(&quot;wizard_name&quot;,ScalarType &quot;text&quot;),(&quot;default_sprite&quot;,ScalarType &quot;text&quot;),(&quot;colour&quot;,ScalarType &quot;text&quot;)] [(&quot;tableoid&quot;,ScalarType &quot;oid&quot;),(&quot;cmax&quot;,ScalarType &quot;cid&quot;),(&quot;xmax&quot;,ScalarType &quot;xid&quot;),(&quot;cmin&quot;,ScalarType &quot;cid&quot;),(&quot;xmin&quot;,ScalarType &quot;xid&quot;),(&quot;ctid&quot;,ScalarType &quot;tid&quot;)]]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">wizard_display_info</span> <span class="Symbol">(</span>
+  <span class="VarId">wizard_name</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="Keyword">null</span> <span class="Keyword">unique</span> <span class="Keyword">references</span> <span class="VarId">wizards</span> <span class="Keyword">on</span> <span class="Keyword">delete</span> <span class="Keyword">cascade</span> <span class="Keyword">on</span> <span class="Keyword">update</span> <span class="Keyword">cascade</span><span class="Symbol">,</span>
+  <span class="VarId">default_sprite</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="Keyword">null</span> <span class="Keyword">unique</span> <span class="Keyword">references</span> <span class="VarId">sprites</span> <span class="Keyword">on</span> <span class="Keyword">delete</span> <span class="Keyword">cascade</span> <span class="Keyword">on</span> <span class="Keyword">update</span> <span class="Keyword">cascade</span><span class="Symbol">,</span>
+  <span class="VarId">colour</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="Keyword">null</span> <span class="VarId">unique</span>
+<span class="Symbol">);</span>
+
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'wizard_display_info'</span><span class="Symbol">,</span><span class="Char">'table'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.WizardDisplayInfo'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'wizard_display_info'</span><span class="Symbol">,</span><span class="Char">'data'</span><span class="Symbol">);</span>
+
+<span class="Comment">/*create table init_wizard_display_info_argument (</span>
+<span class="Comment">  wizard_name text unique references wizards,</span>
+<span class="Comment">  sprite text unique references sprites, -- starts with wizard</span>
+<span class="Comment">  colour text unique --todo: make list of colours</span>
+<span class="Comment">);</span>
+<span class="Comment">select set_relvar_type('init_wizard_display_info_argument', 'stack');*/</span></pre></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateFunction FunName &quot;init_wizard_display_info&quot; [ArrayType (NamedCompositeType &quot;wizard_display_info&quot;)] (Pseudo Void) False]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">init_wizard_display_info</span><span class="Symbol">(</span><span class="VarId">a</span> <span class="VarId">wizard_display_info</span><span class="Symbol">[])</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+    <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">wizard_display_info</span> <span class="Symbol">(</span><span class="VarId">wizard_name</span><span class="Symbol">,</span> <span class="VarId">default_sprite</span><span class="Symbol">,</span>  <span class="VarId">colour</span><span class="Symbol">)</span>
+       <span class="Keyword">select</span> <span class="VarId">wizard_name</span><span class="Symbol">,</span><span class="VarId">default_sprite</span><span class="Symbol">,</span><span class="VarId">colour</span>
+       <span class="Keyword">from</span> <span class="VarId">unnest</span><span class="Symbol">(</span><span class="VarId">a</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
+
+<span class="Comment">/*</span>
+<span class="Comment">================================================================================</span>
+
+<span class="Comment">== action history with colours</span>
+
+<span class="Comment">create a view to supply grey as colour for corpses (corpses don't have</span>
+<span class="Comment">an allegiance)</span>
+
+<span class="Comment">*/</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'init_wizard_display_info'</span><span class="Symbol">,</span><span class="Char">'function'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.WizardDisplayInfo'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Comment">/*[CatCreateView &quot;allegiance_colours&quot; [(&quot;allegiance&quot;,ScalarType &quot;text&quot;),(&quot;colour&quot;,ScalarType &quot;text&quot;)]]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">allegiance_colours</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="VarId">wizard_name</span> <span class="Keyword">as</span> <span class="VarId">allegiance</span><span class="Symbol">,</span> <span class="VarId">colour</span> <span class="Keyword">from</span> <span class="VarId">wizard_display_info</span> <span class="Keyword">union</span> <span class="VarId">all</span>
+  <span class="Keyword">select</span> <span class="Char">'dead'</span> <span class="Keyword">as</span> <span class="VarId">allegiance</span><span class="Symbol">,</span> <span class="Char">'grey'</span> <span class="Keyword">as</span> <span class="VarId">colour</span><span class="Symbol">;</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'allegiance_colours'</span><span class="Symbol">,</span><span class="Char">'view'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.WizardDisplayInfo'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">action_history_colour_mr</span> <span class="VarId">as</span>
+<span class="Keyword">select</span> <span class="VarId">a</span><span class="Symbol">.*,</span> <span class="VarId">colour</span>
+  <span class="Keyword">from</span> <span class="VarId">action_history_mr</span> <span class="VarId">a</span></pre></div><div class='SqlPostgresql'><div class='GeneratedSql'><pre class="sourceCode"><span class="Comment">-- generated sql ------------------------</span>
+<span class="Comment">/*[CatCreateView &quot;action_history_colour_mr&quot; [(&quot;id&quot;,ScalarType &quot;int4&quot;),(&quot;history_name&quot;,DomainType &quot;history_name_enum&quot;),(&quot;allegiance&quot;,ScalarType &quot;text&quot;),(&quot;x&quot;,ScalarType &quot;int4&quot;),(&quot;y&quot;,ScalarType &quot;int4&quot;),(&quot;tx&quot;,ScalarType &quot;int4&quot;),(&quot;ty&quot;,ScalarType &quot;int4&quot;),(&quot;ptype&quot;,ScalarType &quot;text&quot;),(&quot;tag&quot;,ScalarType &quot;int4&quot;),(&quot;spell_name&quot;,ScalarType &quot;text&quot;),(&quot;num_wizards&quot;,ScalarType &quot;int4&quot;),(&quot;turn_number&quot;,ScalarType &quot;int4&quot;),(&quot;turn_phase&quot;,DomainType &quot;turn_phase_enum&quot;)]]*/</span>
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">action_history_colour_mr</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="VarId">a</span><span class="Symbol">.*,</span><span class="VarId">colour</span>
+    <span class="Keyword">from</span> <span class="Symbol">(</span><span class="VarId">action_history_mr</span> <span class="VarId">a</span>
+          <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">allegiance_colours</span><span class="Symbol">);</span>
+
+<span class="Comment">/*([],[])*/</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">all_module_objects</span> <span class="Symbol">(</span><span class="VarId">object_name</span><span class="Symbol">,</span><span class="VarId">object_type</span><span class="Symbol">,</span><span class="VarId">module_name</span><span class="Symbol">)</span>
+<span class="VarId">values</span>
+  <span class="Symbol">(</span><span class="Char">'action_history_colour_mr'</span><span class="Symbol">,</span><span class="Char">'view'</span><span class="Symbol">,</span><span class="Char">'Chaos.Client.WizardDisplayInfo'</span><span class="Symbol">)</span>
+<span class="Symbol">;</span></pre></div></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
+    ></body
+  ></html
+>
