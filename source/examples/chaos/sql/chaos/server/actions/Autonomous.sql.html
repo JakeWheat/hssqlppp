@@ -7,75 +7,75 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../../index.txt.html"
+    ><a href="../../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
      /><br
      /><br
-     /><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">select module('Chaos.Server.Actions.Autononmous');
+     /><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="VarId">module</span><span class="Symbol">(</span><span class="Char">'Chaos.Server.Actions.Autononmous'</span><span class="Symbol">);</span>
 
 </pre></div></div></div><p
     >/* == autonomous */</p
     ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-create view wizards_in_trees as
-select ptype,allegiance,tag from pieces
-  where ptype='wizard'
-    and (x,y) in (select x,y from pieces
-                  where ptype='magic_tree');
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">wizards_in_trees</span> <span class="VarId">as</span>
+<span class="Keyword">select</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span> <span class="Keyword">from</span> <span class="VarId">pieces</span>
+  <span class="Keyword">where</span> <span class="VarId">ptype</span><span class="Symbol">=</span><span class="Char">'wizard'</span>
+    <span class="Keyword">and</span> <span class="Symbol">(</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">)</span> <span class="VarId">in</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span> <span class="Keyword">from</span> <span class="VarId">pieces</span>
+                  <span class="Keyword">where</span> <span class="VarId">ptype</span><span class="Symbol">=</span><span class="Char">'magic_tree'</span><span class="Symbol">);</span>
 
-create function do_autonomous_phase() returns void as $$
-declare
-  r piece_key;
-  r1 piece_key;
-begin
-  --castles
-  for r in select ptype,allegiance,tag from pieces
-    where ptype in ('magic_castle', 'dark_citadel') loop
-    if check_random_success('disappear', 20) then
-      perform disintegrate(r);
-    end if;
-  end loop;
-  --magic trees
- for r in select ptype,allegiance,tag from wizards_in_trees loop
-    if check_random_success('bonus', 20) then
-      select into r1 ptype,allegiance,tag
-             from pieces
-             where ptype ='magic_tree'
-               and (x,y) = (select x,y from pieces
-                            where (ptype,allegiance,tag)::piece_key = r);
-      perform disintegrate(r1);
-      insert into spell_books (wizard_name, spell_name)
-      values (r.allegiance,
-       (select spell_name from spells_mr
-         where spell_name &lt;&gt; 'disbelieve'
-          order by random() limit 1));
-    end if;
-  end loop;
-  perform do_spreading();
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">do_autonomous_phase</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">r</span> <span class="VarId">piece_key</span><span class="Symbol">;</span>
+  <span class="VarId">r1</span> <span class="VarId">piece_key</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="Comment">--castles</span>
+  <span class="Keyword">for</span> <span class="VarId">r</span> <span class="VarId">in</span> <span class="Keyword">select</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span> <span class="Keyword">from</span> <span class="VarId">pieces</span>
+    <span class="Keyword">where</span> <span class="VarId">ptype</span> <span class="VarId">in</span> <span class="Symbol">(</span><span class="Char">'magic_castle'</span><span class="Symbol">,</span> <span class="Char">'dark_citadel'</span><span class="Symbol">)</span> <span class="VarId">loop</span>
+    <span class="Keyword">if</span> <span class="VarId">check_random_success</span><span class="Symbol">(</span><span class="Char">'disappear'</span><span class="Symbol">,</span> <span class="Number">20</span><span class="Symbol">)</span> <span class="VarId">then</span>
+      <span class="Keyword">perform</span> <span class="VarId">disintegrate</span><span class="Symbol">(</span><span class="VarId">r</span><span class="Symbol">);</span>
+    <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">loop</span><span class="Symbol">;</span>
+  <span class="Comment">--magic trees</span>
+ <span class="Keyword">for</span> <span class="VarId">r</span> <span class="VarId">in</span> <span class="Keyword">select</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span> <span class="Keyword">from</span> <span class="VarId">wizards_in_trees</span> <span class="VarId">loop</span>
+    <span class="Keyword">if</span> <span class="VarId">check_random_success</span><span class="Symbol">(</span><span class="Char">'bonus'</span><span class="Symbol">,</span> <span class="Number">20</span><span class="Symbol">)</span> <span class="VarId">then</span>
+      <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">r1</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span>
+             <span class="Keyword">from</span> <span class="VarId">pieces</span>
+             <span class="Keyword">where</span> <span class="VarId">ptype</span> <span class="Symbol">=</span><span class="Char">'magic_tree'</span>
+               <span class="Keyword">and</span> <span class="Symbol">(</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span> <span class="Keyword">from</span> <span class="VarId">pieces</span>
+                            <span class="Keyword">where</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">)::</span><span class="VarId">piece_key</span> <span class="Symbol">=</span> <span class="VarId">r</span><span class="Symbol">);</span>
+      <span class="Keyword">perform</span> <span class="VarId">disintegrate</span><span class="Symbol">(</span><span class="VarId">r1</span><span class="Symbol">);</span>
+      <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">spell_books</span> <span class="Symbol">(</span><span class="VarId">wizard_name</span><span class="Symbol">,</span> <span class="VarId">spell_name</span><span class="Symbol">)</span>
+      <span class="Keyword">values</span> <span class="Symbol">(</span><span class="VarId">r</span><span class="Symbol">.</span><span class="VarId">allegiance</span><span class="Symbol">,</span>
+       <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">spell_name</span> <span class="Keyword">from</span> <span class="VarId">spells_mr</span>
+         <span class="Keyword">where</span> <span class="VarId">spell_name</span> <span class="Symbol">&lt;&gt;</span> <span class="Char">'disbelieve'</span>
+          <span class="Keyword">order</span> <span class="Keyword">by</span> <span class="VarId">random</span><span class="Symbol">()</span> <span class="Keyword">limit</span> <span class="Number">1</span><span class="Symbol">));</span>
+    <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">loop</span><span class="Symbol">;</span>
+  <span class="Keyword">perform</span> <span class="VarId">do_spreading</span><span class="Symbol">();</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
 </pre></div></div></div><p
     >/* can't find this function in the postgresql docs...? */</p
     ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-create function array_contains(ar anyarray, e anyelement) returns boolean as $$
-declare
-  i int;
-begin
-  if ar = '{}' then
-    return false;
-  end if;
-  for i in (array_lower(ar,1))..(array_upper(ar,1)) loop
-    if ar[i] = e then
-      return true;
-    end if;
-  end loop;
-  return false;
-end;
-$$ language plpgsql immutable;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">array_contains</span><span class="Symbol">(</span><span class="VarId">ar</span> <span class="VarId">anyarray</span><span class="Symbol">,</span> <span class="VarId">e</span> <span class="VarId">anyelement</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="VarId">boolean</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">i</span> <span class="Type">int</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="Keyword">if</span> <span class="VarId">ar</span> <span class="Symbol">=</span> <span class="Char">'{}'</span> <span class="VarId">then</span>
+    <span class="VarId">return</span> <span class="VarId">false</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="Keyword">for</span> <span class="VarId">i</span> <span class="VarId">in</span> <span class="Symbol">(</span><span class="VarId">array_lower</span><span class="Symbol">(</span><span class="VarId">ar</span><span class="Symbol">,</span><span class="Number">1</span><span class="Symbol">))..(</span><span class="VarId">array_upper</span><span class="Symbol">(</span><span class="VarId">ar</span><span class="Symbol">,</span><span class="Number">1</span><span class="Symbol">))</span> <span class="VarId">loop</span>
+    <span class="Keyword">if</span> <span class="VarId">ar</span><span class="Symbol">[</span><span class="VarId">i</span><span class="Symbol">]</span> <span class="Symbol">=</span> <span class="VarId">e</span> <span class="VarId">then</span>
+      <span class="VarId">return</span> <span class="VarId">true</span><span class="Symbol">;</span>
+    <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">loop</span><span class="Symbol">;</span>
+  <span class="VarId">return</span> <span class="VarId">false</span><span class="Symbol">;</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">immutable</span><span class="Symbol">;</span>
 
 
 </pre></div></div></div><p
@@ -92,88 +92,88 @@ $$ language plpgsql immutable;
     >*/</p
     ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-create view spreadable_squares as
-  select x,y from generate_series(0, 14) as x
-    cross join generate_series(0, 9) as y
-  except
-  select x,y from pieces natural inner join object_piece_types;
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">spreadable_squares</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span> <span class="Keyword">from</span> <span class="VarId">generate_series</span><span class="Symbol">(</span><span class="Number">0</span><span class="Symbol">,</span> <span class="Number">14</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">x</span>
+    <span class="Keyword">cross</span> <span class="Keyword">join</span> <span class="VarId">generate_series</span><span class="Symbol">(</span><span class="Number">0</span><span class="Symbol">,</span> <span class="Number">9</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">y</span>
+  <span class="VarId">except</span>
+  <span class="Keyword">select</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span> <span class="Keyword">from</span> <span class="VarId">pieces</span> <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">object_piece_types</span><span class="Symbol">;</span>
 
-select create_var('disable_spreading', 'boolean');
-insert into disable_spreading_table values (false);
-select set_relvar_type('disable_spreading_table', 'data');
+<span class="Keyword">select</span> <span class="VarId">create_var</span><span class="Symbol">(</span><span class="Char">'disable_spreading'</span><span class="Symbol">,</span> <span class="Char">'boolean'</span><span class="Symbol">);</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">disable_spreading_table</span> <span class="Keyword">values</span> <span class="Symbol">(</span><span class="VarId">false</span><span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'disable_spreading_table'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span>
 
-create function do_spreading() returns void as $$
-declare
-  r piece_key;
-  r1 piece_key;
-  p pos;
-  sp record;
-  i int;
-  c int;
-  tg int;
-  killed_wizards text[] = '{}';
-begin
-  if get_disable_spreading() then
-    return;
-  end if;
-  for sp in select ptype,allegiance,tag,x,y from pieces
-           where ptype in ('gooey_blob', 'magic_fire') loop
-    --raise notice 'check % e %', sp.allegiance, killed_wizards;
-    if array_contains(killed_wizards, sp.allegiance) then
-      --raise notice 'skip piece %', sp.allegiance;
-      continue;
-    end if;
-    c := (random() * 100)::Int;
-    if c &lt; 10 then
-      --recede
-      perform add_history_recede(r);
-      perform disintegrate((sp.ptype,sp.allegiance,sp.tag));
-    elseif c &lt; 50 then
-      for i in 1..(case when c &lt; 30 then 1 else 2 end) loop
-        select into p tx,ty from (
-          select x, y from one_square_away((sp.x,sp.y))
-          natural inner join spreadable_squares s
-          except select x as tx,y as ty
-                   from pieces
-                   where allegiance=sp.allegiance) as a
-                     order by random() limit 1;
-        if p.x is null then continue; end if;
-        if exists(select 1 from pieces
-               where (x,y) = (p.x,p.y)
-                 and ptype = 'wizard') then
-          select into r1 ptype,allegiance,tag from pieces
-               where (x,y) = (p.x,p.y)
-                 and ptype = 'wizard';
-          if r1.allegiance = sp.allegiance then
-            raise exception 'spread tried to get friendly piece';
-          end if;
-          killed_wizards := array_append(killed_wizards, r1.allegiance);
-          --raise notice 'killed_wizards %', killed_wizards;
-          perform add_chinned_history(p.x,p.y);
-          perform kill_piece(r1);
-        end if;
-        --magic fire removes all pieces
-        for r1 in select ptype,allegiance,tag from pieces
-            where (x,y) = (p.x,p.y) loop
-          if r1.allegiance = sp.allegiance then
-            raise exception 'spread tried to get friendly piece';
-          end if;
-          perform disintegrate(r1);
-        end loop;
-        --raise notice 'spreading %', sp.allegiance;
-        tg := create_object(sp.ptype, sp.allegiance, p.x,p.y);
-        perform add_history_spread((sp.ptype,sp.allegiance,tg));
-      end loop;
-    end if;
-  end loop;
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">do_spreading</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">r</span> <span class="VarId">piece_key</span><span class="Symbol">;</span>
+  <span class="VarId">r1</span> <span class="VarId">piece_key</span><span class="Symbol">;</span>
+  <span class="VarId">p</span> <span class="VarId">pos</span><span class="Symbol">;</span>
+  <span class="VarId">sp</span> <span class="VarId">record</span><span class="Symbol">;</span>
+  <span class="VarId">i</span> <span class="Type">int</span><span class="Symbol">;</span>
+  <span class="VarId">c</span> <span class="Type">int</span><span class="Symbol">;</span>
+  <span class="VarId">tg</span> <span class="Type">int</span><span class="Symbol">;</span>
+  <span class="VarId">killed_wizards</span> <span class="Type">text</span><span class="Symbol">[]</span> <span class="Symbol">=</span> <span class="Char">'{}'</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="Keyword">if</span> <span class="VarId">get_disable_spreading</span><span class="Symbol">()</span> <span class="VarId">then</span>
+    <span class="VarId">return</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="Keyword">for</span> <span class="VarId">sp</span> <span class="VarId">in</span> <span class="Keyword">select</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span> <span class="Keyword">from</span> <span class="VarId">pieces</span>
+           <span class="Keyword">where</span> <span class="VarId">ptype</span> <span class="VarId">in</span> <span class="Symbol">(</span><span class="Char">'gooey_blob'</span><span class="Symbol">,</span> <span class="Char">'magic_fire'</span><span class="Symbol">)</span> <span class="VarId">loop</span>
+    <span class="Comment">--raise notice 'check % e %', sp.allegiance, killed_wizards;</span>
+    <span class="Keyword">if</span> <span class="VarId">array_contains</span><span class="Symbol">(</span><span class="VarId">killed_wizards</span><span class="Symbol">,</span> <span class="VarId">sp</span><span class="Symbol">.</span><span class="VarId">allegiance</span><span class="Symbol">)</span> <span class="VarId">then</span>
+      <span class="Comment">--raise notice 'skip piece %', sp.allegiance;</span>
+      <span class="Keyword">continue</span><span class="Symbol">;</span>
+    <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+    <span class="VarId">c</span> <span class="Symbol">:=</span> <span class="Symbol">(</span><span class="VarId">random</span><span class="Symbol">()</span> <span class="Symbol">*</span> <span class="Number">100</span><span class="Symbol">)::</span><span class="VarId">Int</span><span class="Symbol">;</span>
+    <span class="Keyword">if</span> <span class="VarId">c</span> <span class="Symbol">&lt;</span> <span class="Number">10</span> <span class="VarId">then</span>
+      <span class="Comment">--recede</span>
+      <span class="Keyword">perform</span> <span class="VarId">add_history_recede</span><span class="Symbol">(</span><span class="VarId">r</span><span class="Symbol">);</span>
+      <span class="Keyword">perform</span> <span class="VarId">disintegrate</span><span class="Symbol">((</span><span class="VarId">sp</span><span class="Symbol">.</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">sp</span><span class="Symbol">.</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">sp</span><span class="Symbol">.</span><span class="VarId">tag</span><span class="Symbol">));</span>
+    <span class="Keyword">elseif</span> <span class="VarId">c</span> <span class="Symbol">&lt;</span> <span class="Number">50</span> <span class="VarId">then</span>
+      <span class="Keyword">for</span> <span class="VarId">i</span> <span class="VarId">in</span> <span class="Number">1</span><span class="Symbol">..(</span><span class="Keyword">case</span> <span class="Keyword">when</span> <span class="VarId">c</span> <span class="Symbol">&lt;</span> <span class="Number">30</span> <span class="Keyword">then</span> <span class="Number">1</span> <span class="Keyword">else</span> <span class="Number">2</span> <span class="Keyword">end</span><span class="Symbol">)</span> <span class="VarId">loop</span>
+        <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">p</span> <span class="VarId">tx</span><span class="Symbol">,</span><span class="VarId">ty</span> <span class="Keyword">from</span> <span class="Symbol">(</span>
+          <span class="Keyword">select</span> <span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">y</span> <span class="Keyword">from</span> <span class="VarId">one_square_away</span><span class="Symbol">((</span><span class="VarId">sp</span><span class="Symbol">.</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">sp</span><span class="Symbol">.</span><span class="VarId">y</span><span class="Symbol">))</span>
+          <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">spreadable_squares</span> <span class="VarId">s</span>
+          <span class="VarId">except</span> <span class="Keyword">select</span> <span class="VarId">x</span> <span class="Keyword">as</span> <span class="VarId">tx</span><span class="Symbol">,</span><span class="VarId">y</span> <span class="Keyword">as</span> <span class="VarId">ty</span>
+                   <span class="Keyword">from</span> <span class="VarId">pieces</span>
+                   <span class="Keyword">where</span> <span class="VarId">allegiance</span><span class="Symbol">=</span><span class="VarId">sp</span><span class="Symbol">.</span><span class="VarId">allegiance</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">a</span>
+                     <span class="Keyword">order</span> <span class="Keyword">by</span> <span class="VarId">random</span><span class="Symbol">()</span> <span class="Keyword">limit</span> <span class="Number">1</span><span class="Symbol">;</span>
+        <span class="Keyword">if</span> <span class="VarId">p</span><span class="Symbol">.</span><span class="VarId">x</span> <span class="VarId">is</span> <span class="Keyword">null</span> <span class="Keyword">then</span> <span class="Keyword">continue</span><span class="Symbol">;</span> <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+        <span class="Keyword">if</span> <span class="Keyword">exists</span><span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">pieces</span>
+               <span class="Keyword">where</span> <span class="Symbol">(</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="VarId">p</span><span class="Symbol">.</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">p</span><span class="Symbol">.</span><span class="VarId">y</span><span class="Symbol">)</span>
+                 <span class="Keyword">and</span> <span class="VarId">ptype</span> <span class="Symbol">=</span> <span class="Char">'wizard'</span><span class="Symbol">)</span> <span class="VarId">then</span>
+          <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">r1</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span> <span class="Keyword">from</span> <span class="VarId">pieces</span>
+               <span class="Keyword">where</span> <span class="Symbol">(</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="VarId">p</span><span class="Symbol">.</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">p</span><span class="Symbol">.</span><span class="VarId">y</span><span class="Symbol">)</span>
+                 <span class="Keyword">and</span> <span class="VarId">ptype</span> <span class="Symbol">=</span> <span class="Char">'wizard'</span><span class="Symbol">;</span>
+          <span class="Keyword">if</span> <span class="VarId">r1</span><span class="Symbol">.</span><span class="VarId">allegiance</span> <span class="Symbol">=</span> <span class="VarId">sp</span><span class="Symbol">.</span><span class="VarId">allegiance</span> <span class="VarId">then</span>
+            <span class="Keyword">raise</span> <span class="Keyword">exception</span> <span class="Char">'spread tried to get friendly piece'</span><span class="Symbol">;</span>
+          <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+          <span class="VarId">killed_wizards</span> <span class="Symbol">:=</span> <span class="VarId">array_append</span><span class="Symbol">(</span><span class="VarId">killed_wizards</span><span class="Symbol">,</span> <span class="VarId">r1</span><span class="Symbol">.</span><span class="VarId">allegiance</span><span class="Symbol">);</span>
+          <span class="Comment">--raise notice 'killed_wizards %', killed_wizards;</span>
+          <span class="Keyword">perform</span> <span class="VarId">add_chinned_history</span><span class="Symbol">(</span><span class="VarId">p</span><span class="Symbol">.</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">p</span><span class="Symbol">.</span><span class="VarId">y</span><span class="Symbol">);</span>
+          <span class="Keyword">perform</span> <span class="VarId">kill_piece</span><span class="Symbol">(</span><span class="VarId">r1</span><span class="Symbol">);</span>
+        <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+        <span class="Comment">--magic fire removes all pieces</span>
+        <span class="Keyword">for</span> <span class="VarId">r1</span> <span class="VarId">in</span> <span class="Keyword">select</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span> <span class="Keyword">from</span> <span class="VarId">pieces</span>
+            <span class="Keyword">where</span> <span class="Symbol">(</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="VarId">p</span><span class="Symbol">.</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">p</span><span class="Symbol">.</span><span class="VarId">y</span><span class="Symbol">)</span> <span class="VarId">loop</span>
+          <span class="Keyword">if</span> <span class="VarId">r1</span><span class="Symbol">.</span><span class="VarId">allegiance</span> <span class="Symbol">=</span> <span class="VarId">sp</span><span class="Symbol">.</span><span class="VarId">allegiance</span> <span class="VarId">then</span>
+            <span class="Keyword">raise</span> <span class="Keyword">exception</span> <span class="Char">'spread tried to get friendly piece'</span><span class="Symbol">;</span>
+          <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+          <span class="Keyword">perform</span> <span class="VarId">disintegrate</span><span class="Symbol">(</span><span class="VarId">r1</span><span class="Symbol">);</span>
+        <span class="Keyword">end</span> <span class="Keyword">loop</span><span class="Symbol">;</span>
+        <span class="Comment">--raise notice 'spreading %', sp.allegiance;</span>
+        <span class="VarId">tg</span> <span class="Symbol">:=</span> <span class="VarId">create_object</span><span class="Symbol">(</span><span class="VarId">sp</span><span class="Symbol">.</span><span class="VarId">ptype</span><span class="Symbol">,</span> <span class="VarId">sp</span><span class="Symbol">.</span><span class="VarId">allegiance</span><span class="Symbol">,</span> <span class="VarId">p</span><span class="Symbol">.</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">p</span><span class="Symbol">.</span><span class="VarId">y</span><span class="Symbol">);</span>
+        <span class="Keyword">perform</span> <span class="VarId">add_history_spread</span><span class="Symbol">((</span><span class="VarId">sp</span><span class="Symbol">.</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">sp</span><span class="Symbol">.</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tg</span><span class="Symbol">));</span>
+      <span class="Keyword">end</span> <span class="Keyword">loop</span><span class="Symbol">;</span>
+    <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">loop</span><span class="Symbol">;</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
 </pre></div></div></div><br
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../index.txt.html"
+    ><a href="../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -21,69 +21,69 @@
     >*/</p
     ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-select module('Chaos.Server.NewGame');
+<span class="Keyword">select</span> <span class="VarId">module</span><span class="Symbol">(</span><span class="Char">'Chaos.Server.NewGame'</span><span class="Symbol">);</span>
 
-create table wizard_starting_positions (
-  wizard_count int,
-  place int,
-  x int,
-  y int,
-  unique (wizard_count, place),
-  unique (wizard_count,x,y)
-);
-select set_relvar_type('wizard_starting_positions', 'readonly');
-select create_assertion('wizard_starting_positions_place_valid',
-  'not exists(select 1 from wizard_starting_positions
-    where place &gt;= wizard_count)');
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">wizard_starting_positions</span> <span class="Symbol">(</span>
+  <span class="VarId">wizard_count</span> <span class="Type">int</span><span class="Symbol">,</span>
+  <span class="VarId">place</span> <span class="Type">int</span><span class="Symbol">,</span>
+  <span class="VarId">x</span> <span class="Type">int</span><span class="Symbol">,</span>
+  <span class="VarId">y</span> <span class="Type">int</span><span class="Symbol">,</span>
+  <span class="Keyword">unique</span> <span class="Symbol">(</span><span class="VarId">wizard_count</span><span class="Symbol">,</span> <span class="VarId">place</span><span class="Symbol">),</span>
+  <span class="Keyword">unique</span> <span class="Symbol">(</span><span class="VarId">wizard_count</span><span class="Symbol">,</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">)</span>
+<span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'wizard_starting_positions'</span><span class="Symbol">,</span> <span class="Char">'readonly'</span><span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">create_assertion</span><span class="Symbol">(</span><span class="Char">'wizard_starting_positions_place_valid'</span><span class="Symbol">,</span>
+  '<span class="Keyword">not</span> <span class="Keyword">exists</span><span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">wizard_starting_positions</span>
+    <span class="Keyword">where</span> <span class="VarId">place</span> <span class="Symbol">&gt;=</span> <span class="VarId">wizard_count</span><span class="Symbol">)</span>'<span class="Symbol">);</span>
 
-copy wizard_starting_positions (wizard_count, place, x, y) from stdin;
-2	0	1	4
-2	1	13	4
-3	0	7	1
-3	1	1	8
-3	2	13	8
-4	0	1	1
-4	1	13	1
-4	2	1	8
-4	3	13	8
-5	0	7	0
-5	1	0	3
-5	2	14	3
-5	3	3	9
-5	4	11	9
-6	0	7	0
-6	1	0	1
-6	2	14	1
-6	3	0	8
-6	4	14	8
-6	5	7	9
-7	0	7	0
-7	1	1	1
-7	2	13	1
-7	3	0	6
-7	4	14	6
-7	5	4	9
-7	6	10	9
-8	0	0	0
-8	1	7	0
-8	2	14	0
-8	3	0	4
-8	4	14	4
-8	5	0	9
-8	6	7	9
-8	7	14	9
-\.
+<span class="Keyword">copy</span> <span class="VarId">wizard_starting_positions</span> <span class="Symbol">(</span><span class="VarId">wizard_count</span><span class="Symbol">,</span> <span class="VarId">place</span><span class="Symbol">,</span> <span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">y</span><span class="Symbol">)</span> <span class="Keyword">from</span> <span class="Keyword">stdin</span><span class="Symbol">;</span>
+<span class="Number">2</span>	<span class="Number">0</span>	<span class="Number">1</span>	<span class="Number">4</span>
+<span class="Number">2</span>	<span class="Number">1</span>	<span class="Number">13</span>	<span class="Number">4</span>
+<span class="Number">3</span>	<span class="Number">0</span>	<span class="Number">7</span>	<span class="Number">1</span>
+<span class="Number">3</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="Number">8</span>
+<span class="Number">3</span>	<span class="Number">2</span>	<span class="Number">13</span>	<span class="Number">8</span>
+<span class="Number">4</span>	<span class="Number">0</span>	<span class="Number">1</span>	<span class="Number">1</span>
+<span class="Number">4</span>	<span class="Number">1</span>	<span class="Number">13</span>	<span class="Number">1</span>
+<span class="Number">4</span>	<span class="Number">2</span>	<span class="Number">1</span>	<span class="Number">8</span>
+<span class="Number">4</span>	<span class="Number">3</span>	<span class="Number">13</span>	<span class="Number">8</span>
+<span class="Number">5</span>	<span class="Number">0</span>	<span class="Number">7</span>	<span class="Number">0</span>
+<span class="Number">5</span>	<span class="Number">1</span>	<span class="Number">0</span>	<span class="Number">3</span>
+<span class="Number">5</span>	<span class="Number">2</span>	<span class="Number">14</span>	<span class="Number">3</span>
+<span class="Number">5</span>	<span class="Number">3</span>	<span class="Number">3</span>	<span class="Number">9</span>
+<span class="Number">5</span>	<span class="Number">4</span>	<span class="Number">11</span>	<span class="Number">9</span>
+<span class="Number">6</span>	<span class="Number">0</span>	<span class="Number">7</span>	<span class="Number">0</span>
+<span class="Number">6</span>	<span class="Number">1</span>	<span class="Number">0</span>	<span class="Number">1</span>
+<span class="Number">6</span>	<span class="Number">2</span>	<span class="Number">14</span>	<span class="Number">1</span>
+<span class="Number">6</span>	<span class="Number">3</span>	<span class="Number">0</span>	<span class="Number">8</span>
+<span class="Number">6</span>	<span class="Number">4</span>	<span class="Number">14</span>	<span class="Number">8</span>
+<span class="Number">6</span>	<span class="Number">5</span>	<span class="Number">7</span>	<span class="Number">9</span>
+<span class="Number">7</span>	<span class="Number">0</span>	<span class="Number">7</span>	<span class="Number">0</span>
+<span class="Number">7</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="Number">1</span>
+<span class="Number">7</span>	<span class="Number">2</span>	<span class="Number">13</span>	<span class="Number">1</span>
+<span class="Number">7</span>	<span class="Number">3</span>	<span class="Number">0</span>	<span class="Number">6</span>
+<span class="Number">7</span>	<span class="Number">4</span>	<span class="Number">14</span>	<span class="Number">6</span>
+<span class="Number">7</span>	<span class="Number">5</span>	<span class="Number">4</span>	<span class="Number">9</span>
+<span class="Number">7</span>	<span class="Number">6</span>	<span class="Number">10</span>	<span class="Number">9</span>
+<span class="Number">8</span>	<span class="Number">0</span>	<span class="Number">0</span>	<span class="Number">0</span>
+<span class="Number">8</span>	<span class="Number">1</span>	<span class="Number">7</span>	<span class="Number">0</span>
+<span class="Number">8</span>	<span class="Number">2</span>	<span class="Number">14</span>	<span class="Number">0</span>
+<span class="Number">8</span>	<span class="Number">3</span>	<span class="Number">0</span>	<span class="Number">4</span>
+<span class="Number">8</span>	<span class="Number">4</span>	<span class="Number">14</span>	<span class="Number">4</span>
+<span class="Number">8</span>	<span class="Number">5</span>	<span class="Number">0</span>	<span class="Number">9</span>
+<span class="Number">8</span>	<span class="Number">6</span>	<span class="Number">7</span>	<span class="Number">9</span>
+<span class="Number">8</span>	<span class="Number">7</span>	<span class="Number">14</span>	<span class="Number">9</span>
+\<span class="Symbol">.</span>
 
 </pre></div></div></div><p
     >/* == new game action */</p
     ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-create type new_game_t as (
-  place int,
-  wizard_name text,
-  computer_controlled boolean
-);
---select set_relvar_type('action_new_game_argument', 'stack');
+<span class="Keyword">create</span> <span class="Keyword">type</span> <span class="VarId">new_game_t</span> <span class="Keyword">as</span> <span class="Symbol">(</span>
+  <span class="VarId">place</span> <span class="Type">int</span><span class="Symbol">,</span>
+  <span class="VarId">wizard_name</span> <span class="Type">text</span><span class="Symbol">,</span>
+  <span class="VarId">computer_controlled</span> <span class="VarId">boolean</span>
+<span class="Symbol">);</span>
+<span class="Comment">--select set_relvar_type('action_new_game_argument', 'stack');</span>
 
 </pre></div></div></div><p
     >/<em
@@ -93,10 +93,10 @@ create type new_game_t as (
       >/</p
     ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-create view spell_indexes_no_dis_turm as
-  select row_number() over() as row_number,spell_name
-    from spells_mr
-    where spell_name not in ('disbelieve', 'turmoil');
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">spell_indexes_no_dis_turm</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="VarId">row_number</span><span class="Symbol">()</span> <span class="Keyword">over</span><span class="Symbol">()</span> <span class="Keyword">as</span> <span class="VarId">row_number</span><span class="Symbol">,</span><span class="VarId">spell_name</span>
+    <span class="Keyword">from</span> <span class="VarId">spells_mr</span>
+    <span class="Keyword">where</span> <span class="VarId">spell_name</span> <span class="Keyword">not</span> <span class="VarId">in</span> <span class="Symbol">(</span><span class="Char">'disbelieve'</span><span class="Symbol">,</span> <span class="Char">'turmoil'</span><span class="Symbol">);</span>
 
 </pre></div></div></div><p
     >/<em
@@ -113,106 +113,106 @@ create view spell_indexes_no_dis_turm as
     ><p
     >*/</p
     ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-create function action_new_game(ar new_game_t[]) returns void as $$
-declare
-  r record;
-  t int;
-begin
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">action_new_game</span><span class="Symbol">(</span><span class="VarId">ar</span> <span class="VarId">new_game_t</span><span class="Symbol">[])</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">r</span> <span class="VarId">record</span><span class="Symbol">;</span>
+  <span class="VarId">t</span> <span class="Type">int</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
 
-  update creating_new_game_table set creating_new_game = true;
-  --assert: all tables tagged data are in this delete list
-  --(only need base table of entities since these cascade)
-  -- tables are in order of dependencies so delete sequence works
+  <span class="Keyword">update</span> <span class="VarId">creating_new_game_table</span> <span class="Keyword">set</span> <span class="VarId">creating_new_game</span> <span class="Symbol">=</span> <span class="VarId">true</span><span class="Symbol">;</span>
+  <span class="Comment">--assert: all tables tagged data are in this delete list</span>
+  <span class="Comment">--(only need base table of entities since these cascade)</span>
+  <span class="Comment">-- tables are in order of dependencies so delete sequence works</span>
 
-  -- clear data tables
-  delete from action_history_mr;
-  perform setval('action_history_mr_id_seq', 1);
+  <span class="Comment">-- clear data tables</span>
+  <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">action_history_mr</span><span class="Symbol">;</span>
+  <span class="Keyword">perform</span> <span class="VarId">setval</span><span class="Symbol">(</span><span class="Char">'action_history_mr_id_seq'</span><span class="Symbol">,</span> <span class="Number">1</span><span class="Symbol">);</span>
 
-  --turn data
-  delete from game_completed_table;
-  delete from cast_alignment_table;
-  delete from remaining_walk_table;
-  delete from selected_piece;
-  delete from pieces_moved;
-  delete from spell_parts_to_cast_table;
-  delete from wizard_spell_choices_mr;
-  delete from current_wizard_table;
-  delete from turn_phase_table;
-  delete from cast_success_checked_table;
-  delete from turn_number_table;
-  --piece data
-  delete from spell_books;
-  delete from imaginary_pieces;
-  delete from pieces;
-  delete from wizards;
-  delete from board_size;
-  delete from world_alignment_table;
+  <span class="Comment">--turn data</span>
+  <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">game_completed_table</span><span class="Symbol">;</span>
+  <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">cast_alignment_table</span><span class="Symbol">;</span>
+  <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">remaining_walk_table</span><span class="Symbol">;</span>
+  <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">selected_piece</span><span class="Symbol">;</span>
+  <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">pieces_moved</span><span class="Symbol">;</span>
+  <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">spell_parts_to_cast_table</span><span class="Symbol">;</span>
+  <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">wizard_spell_choices_mr</span><span class="Symbol">;</span>
+  <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">current_wizard_table</span><span class="Symbol">;</span>
+  <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">turn_phase_table</span><span class="Symbol">;</span>
+  <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">cast_success_checked_table</span><span class="Symbol">;</span>
+  <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">turn_number_table</span><span class="Symbol">;</span>
+  <span class="Comment">--piece data</span>
+  <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">spell_books</span><span class="Symbol">;</span>
+  <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">imaginary_pieces</span><span class="Symbol">;</span>
+  <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">pieces</span><span class="Symbol">;</span>
+  <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">wizards</span><span class="Symbol">;</span>
+  <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">board_size</span><span class="Symbol">;</span>
+  <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">world_alignment_table</span><span class="Symbol">;</span>
 
-  if not exists(select 1 from disable_spreading_table) then
-    insert into disable_spreading_table values(false);
-  else
-    update disable_spreading_table
-       set disable_spreading = false;
-  end if;
+  <span class="Keyword">if</span> <span class="Keyword">not</span> <span class="Keyword">exists</span><span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">disable_spreading_table</span><span class="Symbol">)</span> <span class="VarId">then</span>
+    <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">disable_spreading_table</span> <span class="Keyword">values</span><span class="Symbol">(</span><span class="VarId">false</span><span class="Symbol">);</span>
+  <span class="VarId">else</span>
+    <span class="Keyword">update</span> <span class="VarId">disable_spreading_table</span>
+       <span class="Keyword">set</span> <span class="VarId">disable_spreading</span> <span class="Symbol">=</span> <span class="VarId">false</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
 
-  --reset the overrides when starting new game
-  delete from test_action_overrides;
+  <span class="Comment">--reset the overrides when starting new game</span>
+  <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">test_action_overrides</span><span class="Symbol">;</span>
 
-  --assert: call init_ for each data table, make sure order is good
+  <span class="Comment">--assert: call init_ for each data table, make sure order is good</span>
 
-  perform init_world_alignment();
-  perform init_board_size();
+  <span class="Keyword">perform</span> <span class="VarId">init_world_alignment</span><span class="Symbol">();</span>
+  <span class="Keyword">perform</span> <span class="VarId">init_board_size</span><span class="Symbol">();</span>
 
-  --create wizards
-  --  wizard table
-  insert into wizards (wizard_name, computer_controlled, original_place)
-    select wizard_name, computer_controlled, place
-      from unnest(ar);
-  --  pieces
-  t := array_length(ar,1); --(select count(*) from action_new_game_argument);
-  insert into pieces (ptype, allegiance, tag, x, y)
-    select 'wizard', wizard_name, 0, x,y
-      from unnest(ar)
-      natural inner join wizard_starting_positions
-       where wizard_count = t;
-  --  spell books
-  --init spell book
-  -- disbelieve plus 19 {random spells not disbelieve or turmoil}
-  insert into spell_books (wizard_name, spell_name)
-    select wizard_name, 'disbelieve'
-      from unnest(ar);
+  <span class="Comment">--create wizards</span>
+  <span class="Comment">--  wizard table</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">wizards</span> <span class="Symbol">(</span><span class="VarId">wizard_name</span><span class="Symbol">,</span> <span class="VarId">computer_controlled</span><span class="Symbol">,</span> <span class="VarId">original_place</span><span class="Symbol">)</span>
+    <span class="Keyword">select</span> <span class="VarId">wizard_name</span><span class="Symbol">,</span> <span class="VarId">computer_controlled</span><span class="Symbol">,</span> <span class="VarId">place</span>
+      <span class="Keyword">from</span> <span class="VarId">unnest</span><span class="Symbol">(</span><span class="VarId">ar</span><span class="Symbol">);</span>
+  <span class="Comment">--  pieces</span>
+  <span class="VarId">t</span> <span class="Symbol">:=</span> <span class="VarId">array_length</span><span class="Symbol">(</span><span class="VarId">ar</span><span class="Symbol">,</span><span class="Number">1</span><span class="Symbol">);</span> <span class="Comment">--(select count(*) from action_new_game_argument);</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">pieces</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span> <span class="VarId">allegiance</span><span class="Symbol">,</span> <span class="VarId">tag</span><span class="Symbol">,</span> <span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">y</span><span class="Symbol">)</span>
+    <span class="Keyword">select</span> <span class="Char">'wizard'</span><span class="Symbol">,</span> <span class="VarId">wizard_name</span><span class="Symbol">,</span> <span class="Number">0</span><span class="Symbol">,</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span>
+      <span class="Keyword">from</span> <span class="VarId">unnest</span><span class="Symbol">(</span><span class="VarId">ar</span><span class="Symbol">)</span>
+      <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">wizard_starting_positions</span>
+       <span class="Keyword">where</span> <span class="VarId">wizard_count</span> <span class="Symbol">=</span> <span class="VarId">t</span><span class="Symbol">;</span>
+  <span class="Comment">--  spell books</span>
+  <span class="Comment">--init spell book</span>
+  <span class="Comment">-- disbelieve plus 19 {random spells not disbelieve or turmoil}</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">spell_books</span> <span class="Symbol">(</span><span class="VarId">wizard_name</span><span class="Symbol">,</span> <span class="VarId">spell_name</span><span class="Symbol">)</span>
+    <span class="Keyword">select</span> <span class="VarId">wizard_name</span><span class="Symbol">,</span> <span class="Char">'disbelieve'</span>
+      <span class="Keyword">from</span> <span class="VarId">unnest</span><span class="Symbol">(</span><span class="VarId">ar</span><span class="Symbol">);</span>
 
-  insert into spell_books (wizard_name, spell_name)
-    select wizard_name,spell_name
-      from unnest(ar)
-      inner join (select line, spell_name
-                  from spell_indexes_no_dis_turm
-                  inner join makeNRandoms(t * 19, 53)
-                    on row_number = num) as a
-      on (line/19) = place;
-  --sanity check that bad boy
-  if exists(select 1 from (select wizard_name, count(spell_name)
-                           from spell_books group by wizard_name
-                          ) as a where count &lt;&gt; 20) then
-    raise exception 'miscount in initial spell books';
-  end if;
-  --turn stuff
-  perform init_turn_stuff();
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">spell_books</span> <span class="Symbol">(</span><span class="VarId">wizard_name</span><span class="Symbol">,</span> <span class="VarId">spell_name</span><span class="Symbol">)</span>
+    <span class="Keyword">select</span> <span class="VarId">wizard_name</span><span class="Symbol">,</span><span class="VarId">spell_name</span>
+      <span class="Keyword">from</span> <span class="VarId">unnest</span><span class="Symbol">(</span><span class="VarId">ar</span><span class="Symbol">)</span>
+      <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">line</span><span class="Symbol">,</span> <span class="VarId">spell_name</span>
+                  <span class="Keyword">from</span> <span class="VarId">spell_indexes_no_dis_turm</span>
+                  <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">makeNRandoms</span><span class="Symbol">(</span><span class="VarId">t</span> <span class="Symbol">*</span> <span class="Number">19</span><span class="Symbol">,</span> <span class="Number">53</span><span class="Symbol">)</span>
+                    <span class="Keyword">on</span> <span class="VarId">row_number</span> <span class="Symbol">=</span> <span class="VarId">num</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">a</span>
+      <span class="Keyword">on</span> <span class="Symbol">(</span><span class="VarId">line</span><span class="Symbol">/</span><span class="Number">19</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">place</span><span class="Symbol">;</span>
+  <span class="Comment">--sanity check that bad boy</span>
+  <span class="Keyword">if</span> <span class="Keyword">exists</span><span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">wizard_name</span><span class="Symbol">,</span> <span class="VarId">count</span><span class="Symbol">(</span><span class="VarId">spell_name</span><span class="Symbol">)</span>
+                           <span class="Keyword">from</span> <span class="VarId">spell_books</span> <span class="Keyword">group</span> <span class="Keyword">by</span> <span class="VarId">wizard_name</span>
+                          <span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">a</span> <span class="Keyword">where</span> <span class="VarId">count</span> <span class="Symbol">&lt;&gt;</span> <span class="Number">20</span><span class="Symbol">)</span> <span class="VarId">then</span>
+    <span class="Keyword">raise</span> <span class="Keyword">exception</span> <span class="Char">'miscount in initial spell books'</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="Comment">--turn stuff</span>
+  <span class="Keyword">perform</span> <span class="VarId">init_turn_stuff</span><span class="Symbol">();</span>
 
   </pre></div></div></div><p
     >/* data tables with no init because they are empty at start of game piece sub entities action_history and sub entities wizard spell choices, pieces to move, current moving piece */</p
     ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-  perform add_history_new_game();
+  <span class="Keyword">perform</span> <span class="VarId">add_history_new_game</span><span class="Symbol">();</span>
 
-  update creating_new_game_table set creating_new_game = false;
+  <span class="Keyword">update</span> <span class="VarId">creating_new_game_table</span> <span class="Keyword">set</span> <span class="VarId">creating_new_game</span> <span class="Symbol">=</span> <span class="VarId">false</span><span class="Symbol">;</span>
 
-end
-$$ language plpgsql volatile;
+<span class="VarId">end</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 </pre></div></div></div><br
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

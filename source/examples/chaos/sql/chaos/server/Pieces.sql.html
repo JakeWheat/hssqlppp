@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../index.txt.html"
+    ><a href="../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -29,15 +29,15 @@
       ><p
       >*/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-select module('Chaos.Server.Pieces');
+<span class="Keyword">select</span> <span class="VarId">module</span><span class="Symbol">(</span><span class="Char">'Chaos.Server.Pieces'</span><span class="Symbol">);</span>
 
---pieces are either a member of a particular wizard's army or
--- they are dead, in which case they are not a member of
--- any wizard's army
-create view allegiances as
-   select wizard_name as allegiance from wizards
-     where expired = false
-   union all select 'dead' as allegiance;
+<span class="Comment">--pieces are either a member of a particular wizard's army or</span>
+<span class="Comment">-- they are dead, in which case they are not a member of</span>
+<span class="Comment">-- any wizard's army</span>
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">allegiances</span> <span class="VarId">as</span>
+   <span class="Keyword">select</span> <span class="VarId">wizard_name</span> <span class="Keyword">as</span> <span class="VarId">allegiance</span> <span class="Keyword">from</span> <span class="VarId">wizards</span>
+     <span class="Keyword">where</span> <span class="VarId">expired</span> <span class="Symbol">=</span> <span class="VarId">false</span>
+   <span class="Keyword">union</span> <span class="Keyword">all</span> <span class="Keyword">select</span> <span class="Char">'dead'</span> <span class="Keyword">as</span> <span class="VarId">allegiance</span><span class="Symbol">;</span>
 
 </pre></div></div></div><p
       >/*</p
@@ -49,45 +49,45 @@ create view allegiances as
       >*/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-create table pieces (
-    ptype text references piece_prototypes_mr,
-    allegiance text, -- references allegiances where wizard is not dead
-                     -- needs extended constraint support to 'fk' to view
-    tag int,
---Piece is on the board at grid position 'x', 'y'.
-    x int,
-    y int,
-    primary key (ptype,allegiance,tag)
-);
-select set_relvar_type('pieces', 'data');
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">pieces</span> <span class="Symbol">(</span>
+    <span class="VarId">ptype</span> <span class="Type">text</span> <span class="Keyword">references</span> <span class="VarId">piece_prototypes_mr</span><span class="Symbol">,</span>
+    <span class="VarId">allegiance</span> <span class="Type">text</span><span class="Symbol">,</span> <span class="Comment">-- references allegiances where wizard is not dead</span>
+                     <span class="Comment">-- needs extended constraint support to 'fk' to view</span>
+    <span class="VarId">tag</span> <span class="Type">int</span><span class="Symbol">,</span>
+<span class="Comment">--Piece is on the board at grid position 'x', 'y'.</span>
+    <span class="VarId">x</span> <span class="Type">int</span><span class="Symbol">,</span>
+    <span class="VarId">y</span> <span class="Type">int</span><span class="Symbol">,</span>
+    <span class="Keyword">primary</span> <span class="Keyword">key</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">)</span>
+<span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'pieces'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span>
 
--- piece must be on the board
-select create_assertion('piece_coordinates_valid',
-  ' not exists(select 1 from pieces
-  cross join board_size
-  where x &gt;= width or y &gt;= height)');
+<span class="Comment">-- piece must be on the board</span>
+<span class="Keyword">select</span> <span class="VarId">create_assertion</span><span class="Symbol">(</span><span class="Char">'piece_coordinates_valid'</span><span class="Symbol">,</span>
+  ' <span class="Keyword">not</span> <span class="Keyword">exists</span><span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">pieces</span>
+  <span class="Keyword">cross</span> <span class="Keyword">join</span> <span class="VarId">board_size</span>
+  <span class="Keyword">where</span> <span class="VarId">x</span> <span class="Symbol">&gt;=</span> <span class="VarId">width</span> <span class="Keyword">or</span> <span class="VarId">y</span> <span class="Symbol">&gt;=</span> <span class="VarId">height</span><span class="Symbol">)</span>'<span class="Symbol">);</span>
 
---temporary constraint while 'fks' to non base relvars are buggy
--- this won't be needed once the extension is done and the reference is
--- added to the pieces table above
-select create_assertion('dead_wizard_army_empty',
-  $$ not exists(select 1 from pieces
-    inner join wizards
-    on (allegiance = wizard_name)
-    where expired = true)$$);
+<span class="Comment">--temporary constraint while 'fks' to non base relvars are buggy</span>
+<span class="Comment">-- this won't be needed once the extension is done and the reference is</span>
+<span class="Comment">-- added to the pieces table above</span>
+<span class="Keyword">select</span> <span class="VarId">create_assertion</span><span class="Symbol">(</span><span class="Char">'dead_wizard_army_empty'</span><span class="Symbol">,</span>
+  $$ <span class="Keyword">not</span> <span class="Keyword">exists</span><span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">pieces</span>
+    <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">wizards</span>
+    <span class="Keyword">on</span> <span class="Symbol">(</span><span class="VarId">allegiance</span> <span class="Symbol">=</span> <span class="VarId">wizard_name</span><span class="Symbol">)</span>
+    <span class="Keyword">where</span> <span class="VarId">expired</span> <span class="Symbol">=</span> <span class="VarId">true</span><span class="Symbol">)</span>$$<span class="Symbol">);</span>
 
--- these is used in functions for
--- parameters and local variables.
-create type piece_key as (
-    ptype text,
-    allegiance text,
-    tag int
-);
+<span class="Comment">-- these is used in functions for</span>
+<span class="Comment">-- parameters and local variables.</span>
+<span class="Keyword">create</span> <span class="Keyword">type</span> <span class="VarId">piece_key</span> <span class="Keyword">as</span> <span class="Symbol">(</span>
+    <span class="VarId">ptype</span> <span class="Type">text</span><span class="Symbol">,</span>
+    <span class="VarId">allegiance</span> <span class="Type">text</span><span class="Symbol">,</span>
+    <span class="VarId">tag</span> <span class="VarId">int</span>
+<span class="Symbol">);</span>
 
-create type pos as (
-  x int,
-  y int
-);
+<span class="Keyword">create</span> <span class="Keyword">type</span> <span class="VarId">pos</span> <span class="Keyword">as</span> <span class="Symbol">(</span>
+  <span class="VarId">x</span> <span class="Type">int</span><span class="Symbol">,</span>
+  <span class="VarId">y</span> <span class="VarId">int</span>
+<span class="Symbol">);</span>
 
 </pre></div></div></div><p
       >/*</p
@@ -96,23 +96,23 @@ create type pos as (
       ><p
       >*/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-create table imaginary_pieces (
-    ptype text, -- reference monster_prototypes (fk to view)
-    allegiance text,
-    tag int,
-    unique (ptype,allegiance,tag),
-    foreign key (ptype,allegiance,tag) references pieces
-);
-select set_relvar_type('imaginary_pieces', 'data');
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">imaginary_pieces</span> <span class="Symbol">(</span>
+    <span class="VarId">ptype</span> <span class="Type">text</span><span class="Symbol">,</span> <span class="Comment">-- reference monster_prototypes (fk to view)</span>
+    <span class="VarId">allegiance</span> <span class="Type">text</span><span class="Symbol">,</span>
+    <span class="VarId">tag</span> <span class="Type">int</span><span class="Symbol">,</span>
+    <span class="Keyword">unique</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">),</span>
+    <span class="Keyword">foreign</span> <span class="Keyword">key</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">)</span> <span class="Keyword">references</span> <span class="VarId">pieces</span>
+<span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'imaginary_pieces'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span>
 
-create table crimes_against_nature(
-    ptype text,  -- reference monster_prototypes (fk to view)
-    allegiance text,
-    tag int,
-    unique (ptype,allegiance,tag),
-    foreign key (ptype,allegiance,tag) references pieces
-);
-select set_relvar_type('crimes_against_nature', 'data');
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">crimes_against_nature</span><span class="Symbol">(</span>
+    <span class="VarId">ptype</span> <span class="Type">text</span><span class="Symbol">,</span>  <span class="Comment">-- reference monster_prototypes (fk to view)</span>
+    <span class="VarId">allegiance</span> <span class="Type">text</span><span class="Symbol">,</span>
+    <span class="VarId">tag</span> <span class="Type">int</span><span class="Symbol">,</span>
+    <span class="Keyword">unique</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">),</span>
+    <span class="Keyword">foreign</span> <span class="Keyword">key</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">)</span> <span class="Keyword">references</span> <span class="VarId">pieces</span>
+<span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'crimes_against_nature'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span>
 
 </pre></div></div></div><p
       >/*</p
@@ -123,50 +123,50 @@ select set_relvar_type('crimes_against_nature', 'data');
       ><p
       >*/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-create view wizard_upgrade_stats as
-select pp.ptype,
-       allegiance,
-       tag,
-       x,
-       y,
-       false as imaginary,
-       magic_wings as flying,
-       case when magic_wings then 6
-            when shadow_form then 3
-            else speed
-       end as speed,
-       case when shadow_form then agility + 2
-            else agility
-       end as agility,
-       undead,
-       ridable,
-       case when magic_bow then 'projectile'
-            else null
-       end as ranged_weapon_type,
-       case when magic_bow then 6
-            else null
-       end as range,
-       case when magic_bow then 6
-            else null
-       end as ranged_attack_strength,
-       case when magic_sword then attack_strength + 4
-            when magic_knife then attack_strength + 2
-            else attack_strength
-       end as attack_strength,
-       case when magic_armour and shadow_form then physical_defense + 6
-            when magic_shield and shadow_form then physical_defense + 4
-            when magic_armour then physical_defense + 4
-            when magic_shield then physical_defense + 2
-            when shadow_form then physical_defense + 2
-            else physical_defense
-       end as physical_defense,
-       magic_defense
-  from pieces p
-  inner join wizards
-    on allegiance = wizard_name
-  inner join piece_prototypes_mr pp
-    on pp.ptype='wizard'
-  where p.ptype = 'wizard';
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">wizard_upgrade_stats</span> <span class="VarId">as</span>
+<span class="Keyword">select</span> <span class="VarId">pp</span><span class="Symbol">.</span><span class="VarId">ptype</span><span class="Symbol">,</span>
+       <span class="VarId">allegiance</span><span class="Symbol">,</span>
+       <span class="VarId">tag</span><span class="Symbol">,</span>
+       <span class="VarId">x</span><span class="Symbol">,</span>
+       <span class="VarId">y</span><span class="Symbol">,</span>
+       <span class="VarId">false</span> <span class="Keyword">as</span> <span class="VarId">imaginary</span><span class="Symbol">,</span>
+       <span class="VarId">magic_wings</span> <span class="Keyword">as</span> <span class="VarId">flying</span><span class="Symbol">,</span>
+       <span class="Keyword">case</span> <span class="Keyword">when</span> <span class="VarId">magic_wings</span> <span class="Keyword">then</span> <span class="Number">6</span>
+            <span class="Keyword">when</span> <span class="VarId">shadow_form</span> <span class="Keyword">then</span> <span class="Number">3</span>
+            <span class="Keyword">else</span> <span class="VarId">speed</span>
+       <span class="Keyword">end</span> <span class="Keyword">as</span> <span class="VarId">speed</span><span class="Symbol">,</span>
+       <span class="Keyword">case</span> <span class="Keyword">when</span> <span class="VarId">shadow_form</span> <span class="Keyword">then</span> <span class="VarId">agility</span> <span class="Symbol">+</span> <span class="Number">2</span>
+            <span class="Keyword">else</span> <span class="VarId">agility</span>
+       <span class="Keyword">end</span> <span class="Keyword">as</span> <span class="VarId">agility</span><span class="Symbol">,</span>
+       <span class="VarId">undead</span><span class="Symbol">,</span>
+       <span class="VarId">ridable</span><span class="Symbol">,</span>
+       <span class="Keyword">case</span> <span class="Keyword">when</span> <span class="VarId">magic_bow</span> <span class="Keyword">then</span> <span class="Char">'projectile'</span>
+            <span class="Keyword">else</span> <span class="VarId">null</span>
+       <span class="Keyword">end</span> <span class="Keyword">as</span> <span class="VarId">ranged_weapon_type</span><span class="Symbol">,</span>
+       <span class="Keyword">case</span> <span class="Keyword">when</span> <span class="VarId">magic_bow</span> <span class="Keyword">then</span> <span class="Number">6</span>
+            <span class="Keyword">else</span> <span class="VarId">null</span>
+       <span class="Keyword">end</span> <span class="Keyword">as</span> <span class="Keyword">range</span><span class="Symbol">,</span>
+       <span class="Keyword">case</span> <span class="Keyword">when</span> <span class="VarId">magic_bow</span> <span class="Keyword">then</span> <span class="Number">6</span>
+            <span class="Keyword">else</span> <span class="VarId">null</span>
+       <span class="Keyword">end</span> <span class="Keyword">as</span> <span class="VarId">ranged_attack_strength</span><span class="Symbol">,</span>
+       <span class="Keyword">case</span> <span class="Keyword">when</span> <span class="VarId">magic_sword</span> <span class="Keyword">then</span> <span class="VarId">attack_strength</span> <span class="Symbol">+</span> <span class="Number">4</span>
+            <span class="Keyword">when</span> <span class="VarId">magic_knife</span> <span class="Keyword">then</span> <span class="VarId">attack_strength</span> <span class="Symbol">+</span> <span class="Number">2</span>
+            <span class="Keyword">else</span> <span class="VarId">attack_strength</span>
+       <span class="Keyword">end</span> <span class="Keyword">as</span> <span class="VarId">attack_strength</span><span class="Symbol">,</span>
+       <span class="Keyword">case</span> <span class="Keyword">when</span> <span class="VarId">magic_armour</span> <span class="Keyword">and</span> <span class="VarId">shadow_form</span> <span class="Keyword">then</span> <span class="VarId">physical_defense</span> <span class="Symbol">+</span> <span class="Number">6</span>
+            <span class="Keyword">when</span> <span class="VarId">magic_shield</span> <span class="Keyword">and</span> <span class="VarId">shadow_form</span> <span class="Keyword">then</span> <span class="VarId">physical_defense</span> <span class="Symbol">+</span> <span class="Number">4</span>
+            <span class="Keyword">when</span> <span class="VarId">magic_armour</span> <span class="Keyword">then</span> <span class="VarId">physical_defense</span> <span class="Symbol">+</span> <span class="Number">4</span>
+            <span class="Keyword">when</span> <span class="VarId">magic_shield</span> <span class="Keyword">then</span> <span class="VarId">physical_defense</span> <span class="Symbol">+</span> <span class="Number">2</span>
+            <span class="Keyword">when</span> <span class="VarId">shadow_form</span> <span class="Keyword">then</span> <span class="VarId">physical_defense</span> <span class="Symbol">+</span> <span class="Number">2</span>
+            <span class="Keyword">else</span> <span class="VarId">physical_defense</span>
+       <span class="Keyword">end</span> <span class="Keyword">as</span> <span class="VarId">physical_defense</span><span class="Symbol">,</span>
+       <span class="VarId">magic_defense</span>
+  <span class="Keyword">from</span> <span class="VarId">pieces</span> <span class="VarId">p</span>
+  <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">wizards</span>
+    <span class="Keyword">on</span> <span class="VarId">allegiance</span> <span class="Symbol">=</span> <span class="VarId">wizard_name</span>
+  <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">piece_prototypes_mr</span> <span class="VarId">pp</span>
+    <span class="Keyword">on</span> <span class="VarId">pp</span><span class="Symbol">.</span><span class="VarId">ptype</span><span class="Symbol">=</span><span class="Char">'wizard'</span>
+  <span class="Keyword">where</span> <span class="VarId">p</span><span class="Symbol">.</span><span class="VarId">ptype</span> <span class="Symbol">=</span> <span class="Char">'wizard'</span><span class="Symbol">;</span>
 
 </pre></div></div></div><p
       >/*</p
@@ -175,95 +175,95 @@ select pp.ptype,
       ><p
       >*/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-create view pieces_mr as
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">pieces_mr</span> <span class="VarId">as</span>
 
--- first we do all the non wizard pieces, we only need to adjust the
--- piece_prototype data by adding an imaginary attribute, and setting
--- the undead attribute also for raised monsters.
+<span class="Comment">-- first we do all the non wizard pieces, we only need to adjust the</span>
+<span class="Comment">-- piece_prototype data by adding an imaginary attribute, and setting</span>
+<span class="Comment">-- the undead attribute also for raised monsters.</span>
 
-select ptype,
-       allegiance,
-       tag,
-       x,
-       y,
-       coalesce(imaginary
-                -- this makes sure all the monster pieces have their
-                -- imaginary set to false if they aren't imaginary
-                -- and all non monster pieces have null for imaginary
-               ,case when not ridable is null
-                     then false
-                     else null
-                end) as imaginary,
-       flying,
-       speed,
-       agility,
-       coalesce(raised, undead) as undead,
-       ridable,
-       ranged_weapon_type,
-       range,
-       ranged_attack_strength,
-       attack_strength,
-       physical_defense,
-       magic_defense
-  from pieces
-  natural inner join piece_prototypes_mr
-  natural left outer join (select *,true as imaginary
-                           from imaginary_pieces) as a
-  natural left outer join (select *,true as raised
-                           from crimes_against_nature) as b
-  where ptype &lt;&gt; 'wizard'
-union all
--- then we add in the wizards, which need the more involved
--- calculations in the wizard_upgrade_stats table.
-select * from wizard_upgrade_stats;
+<span class="Keyword">select</span> <span class="VarId">ptype</span><span class="Symbol">,</span>
+       <span class="VarId">allegiance</span><span class="Symbol">,</span>
+       <span class="VarId">tag</span><span class="Symbol">,</span>
+       <span class="VarId">x</span><span class="Symbol">,</span>
+       <span class="VarId">y</span><span class="Symbol">,</span>
+       <span class="VarId">coalesce</span><span class="Symbol">(</span><span class="VarId">imaginary</span>
+                <span class="Comment">-- this makes sure all the monster pieces have their</span>
+                <span class="Comment">-- imaginary set to false if they aren't imaginary</span>
+                <span class="Comment">-- and all non monster pieces have null for imaginary</span>
+               <span class="Symbol">,</span><span class="Keyword">case</span> <span class="Keyword">when</span> <span class="Keyword">not</span> <span class="VarId">ridable</span> <span class="VarId">is</span> <span class="VarId">null</span>
+                     <span class="Keyword">then</span> <span class="VarId">false</span>
+                     <span class="Keyword">else</span> <span class="VarId">null</span>
+                <span class="Keyword">end</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">imaginary</span><span class="Symbol">,</span>
+       <span class="VarId">flying</span><span class="Symbol">,</span>
+       <span class="VarId">speed</span><span class="Symbol">,</span>
+       <span class="VarId">agility</span><span class="Symbol">,</span>
+       <span class="VarId">coalesce</span><span class="Symbol">(</span><span class="VarId">raised</span><span class="Symbol">,</span> <span class="VarId">undead</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">undead</span><span class="Symbol">,</span>
+       <span class="VarId">ridable</span><span class="Symbol">,</span>
+       <span class="VarId">ranged_weapon_type</span><span class="Symbol">,</span>
+       <span class="Keyword">range</span><span class="Symbol">,</span>
+       <span class="VarId">ranged_attack_strength</span><span class="Symbol">,</span>
+       <span class="VarId">attack_strength</span><span class="Symbol">,</span>
+       <span class="VarId">physical_defense</span><span class="Symbol">,</span>
+       <span class="VarId">magic_defense</span>
+  <span class="Keyword">from</span> <span class="VarId">pieces</span>
+  <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">piece_prototypes_mr</span>
+  <span class="Keyword">natural</span> <span class="Keyword">left</span> <span class="Keyword">outer</span> <span class="Keyword">join</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Symbol">*,</span><span class="VarId">true</span> <span class="Keyword">as</span> <span class="VarId">imaginary</span>
+                           <span class="Keyword">from</span> <span class="VarId">imaginary_pieces</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">a</span>
+  <span class="Keyword">natural</span> <span class="Keyword">left</span> <span class="Keyword">outer</span> <span class="Keyword">join</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Symbol">*,</span><span class="VarId">true</span> <span class="Keyword">as</span> <span class="VarId">raised</span>
+                           <span class="Keyword">from</span> <span class="VarId">crimes_against_nature</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">b</span>
+  <span class="Keyword">where</span> <span class="VarId">ptype</span> <span class="Symbol">&lt;&gt;</span> <span class="Char">'wizard'</span>
+<span class="Keyword">union</span> <span class="VarId">all</span>
+<span class="Comment">-- then we add in the wizards, which need the more involved</span>
+<span class="Comment">-- calculations in the wizard_upgrade_stats table.</span>
+<span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="VarId">wizard_upgrade_stats</span><span class="Symbol">;</span>
 
-create view creature_pieces as
-  select ptype,allegiance,tag,x,y,
-    flying,speed,agility
-    from pieces_mr
-  where flying is not null
-    and speed is not null
-    and agility is not null;
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">creature_pieces</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span>
+    <span class="VarId">flying</span><span class="Symbol">,</span><span class="VarId">speed</span><span class="Symbol">,</span><span class="VarId">agility</span>
+    <span class="Keyword">from</span> <span class="VarId">pieces_mr</span>
+  <span class="Keyword">where</span> <span class="VarId">flying</span> <span class="VarId">is</span> <span class="Keyword">not</span> <span class="VarId">null</span>
+    <span class="Keyword">and</span> <span class="VarId">speed</span> <span class="VarId">is</span> <span class="Keyword">not</span> <span class="VarId">null</span>
+    <span class="Keyword">and</span> <span class="VarId">agility</span> <span class="VarId">is</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">;</span>
 
-create view monster_pieces as
-  select ptype,allegiance,tag,x,y,
-    flying,speed,agility,
-    undead,ridable,imaginary
-  from pieces_mr
-  where flying is not null
-    and speed is not null
-    and agility is not null
-    and undead is not null
-    and ridable is not null;
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">monster_pieces</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span>
+    <span class="VarId">flying</span><span class="Symbol">,</span><span class="VarId">speed</span><span class="Symbol">,</span><span class="VarId">agility</span><span class="Symbol">,</span>
+    <span class="VarId">undead</span><span class="Symbol">,</span><span class="VarId">ridable</span><span class="Symbol">,</span><span class="VarId">imaginary</span>
+  <span class="Keyword">from</span> <span class="VarId">pieces_mr</span>
+  <span class="Keyword">where</span> <span class="VarId">flying</span> <span class="VarId">is</span> <span class="Keyword">not</span> <span class="VarId">null</span>
+    <span class="Keyword">and</span> <span class="VarId">speed</span> <span class="VarId">is</span> <span class="Keyword">not</span> <span class="VarId">null</span>
+    <span class="Keyword">and</span> <span class="VarId">agility</span> <span class="VarId">is</span> <span class="Keyword">not</span> <span class="VarId">null</span>
+    <span class="Keyword">and</span> <span class="VarId">undead</span> <span class="VarId">is</span> <span class="Keyword">not</span> <span class="VarId">null</span>
+    <span class="Keyword">and</span> <span class="VarId">ridable</span> <span class="VarId">is</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">;</span>
 
-create view dead_monster_pieces as
-  select * from monster_pieces
-    where allegiance = 'dead';
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">dead_monster_pieces</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="VarId">monster_pieces</span>
+    <span class="Keyword">where</span> <span class="VarId">allegiance</span> <span class="Symbol">=</span> <span class="Char">'dead'</span><span class="Symbol">;</span>
 
-create view attacking_pieces as
-  select ptype,allegiance,tag,x,y,
-    attack_strength
-  from pieces_mr
-  where attack_strength is not null
-    and allegiance &lt;&gt; 'dead';
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">attacking_pieces</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span>
+    <span class="VarId">attack_strength</span>
+  <span class="Keyword">from</span> <span class="VarId">pieces_mr</span>
+  <span class="Keyword">where</span> <span class="VarId">attack_strength</span> <span class="VarId">is</span> <span class="Keyword">not</span> <span class="VarId">null</span>
+    <span class="Keyword">and</span> <span class="VarId">allegiance</span> <span class="Symbol">&lt;&gt;</span> <span class="Char">'dead'</span><span class="Symbol">;</span>
 
-create view ranged_weapon_pieces as
-  select ptype,allegiance,tag,x,y,
-    ranged_weapon_type,range,ranged_attack_strength
-  from pieces_mr
-  where ranged_weapon_type is not null
-    and range is not null
-    and ranged_attack_strength is not null;
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">ranged_weapon_pieces</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span>
+    <span class="VarId">ranged_weapon_type</span><span class="Symbol">,</span><span class="Keyword">range</span><span class="Symbol">,</span><span class="VarId">ranged_attack_strength</span>
+  <span class="Keyword">from</span> <span class="VarId">pieces_mr</span>
+  <span class="Keyword">where</span> <span class="VarId">ranged_weapon_type</span> <span class="VarId">is</span> <span class="Keyword">not</span> <span class="VarId">null</span>
+    <span class="Keyword">and</span> <span class="Keyword">range</span> <span class="VarId">is</span> <span class="Keyword">not</span> <span class="VarId">null</span>
+    <span class="Keyword">and</span> <span class="VarId">ranged_attack_strength</span> <span class="VarId">is</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">;</span>
 
-create view attackable_pieces as
-  select ptype,allegiance,tag,x,y,physical_defense
-  from pieces_mr
-  where physical_defense is not null;
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">attackable_pieces</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span><span class="VarId">physical_defense</span>
+  <span class="Keyword">from</span> <span class="VarId">pieces_mr</span>
+  <span class="Keyword">where</span> <span class="VarId">physical_defense</span> <span class="VarId">is</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">;</span>
 
-create view magic_attackable_pieces as
-  select ptype,allegiance,tag,x,y,magic_defense
-  from pieces_mr
-  where magic_defense is not null;
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">magic_attackable_pieces</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span><span class="VarId">magic_defense</span>
+  <span class="Keyword">from</span> <span class="VarId">pieces_mr</span>
+  <span class="Keyword">where</span> <span class="VarId">magic_defense</span> <span class="VarId">is</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">;</span>
 
 
 </pre></div></div></div><p
@@ -286,7 +286,7 @@ create view magic_attackable_pieces as
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

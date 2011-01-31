@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../index.txt.html"
+    ><a href="../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -22,172 +22,172 @@
     ><p
     >*/</p
     ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-select module('Chaos.Server.TestBoards');
+<span class="Keyword">select</span> <span class="VarId">module</span><span class="Symbol">(</span><span class="Char">'Chaos.Server.TestBoards'</span><span class="Symbol">);</span>
 
---TODO: make this function dump the current game to unique file for backup
-create function action_setup_test_board(flavour text) returns void as $$
-declare
-  i int;
-  rec record;
-  vwidth int;
-  vname text;
-  vx int;
-  vy int;
-  vallegiance text;
-begin
-  --assert - new game just created
-  --         flavour is one of all_pieces, upgraded_wizards, overlapping
-  select into vwidth width from board_size;
+<span class="Comment">--</span><span class="Alert">TODO:</span><span class="Comment"> make this function dump the current game to unique file for backup</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">action_setup_test_board</span><span class="Symbol">(</span><span class="VarId">flavour</span> <span class="Type">text</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">i</span> <span class="Type">int</span><span class="Symbol">;</span>
+  <span class="VarId">rec</span> <span class="VarId">record</span><span class="Symbol">;</span>
+  <span class="VarId">vwidth</span> <span class="Type">int</span><span class="Symbol">;</span>
+  <span class="VarId">vname</span> <span class="Type">text</span><span class="Symbol">;</span>
+  <span class="VarId">vx</span> <span class="Type">int</span><span class="Symbol">;</span>
+  <span class="VarId">vy</span> <span class="Type">int</span><span class="Symbol">;</span>
+  <span class="VarId">vallegiance</span> <span class="Type">text</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="Comment">--assert - new game just created</span>
+  <span class="Comment">--         flavour is one of all_pieces, upgraded_wizards, overlapping</span>
+  <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">vwidth</span> <span class="VarId">width</span> <span class="Keyword">from</span> <span class="VarId">board_size</span><span class="Symbol">;</span>
 
-  if flavour = 'all_pieces' then
-    --create one of each monster
-    i:= 0;
-    for rec in select ptype from monster_prototypes loop
-      perform create_monster(rec.ptype, 'Buddha',
-                             i % vwidth, 1 + i / vwidth, false, false);
-      i := i + 1;
-    end loop;
-    --create one of each corpse
-    i := 0;
-    for rec in select ptype from monster_prototypes where undead = false loop
-      perform create_monster(rec.ptype, 'Buddha',
-                             i % vwidth, 5 + i / vwidth, false, false);
-      perform kill_top_piece_at(i % vwidth, 5 + i / vwidth);
-      i := i + 1;
-    end loop;
-    --create one of each (pieces - creatures)
-    i := 0;
-    for rec in select ptype from object_piece_types loop
-      perform create_object(rec.ptype, 'Kong Fuzi', i, 8);
-      i := i + 1;
-    end loop;
-  elseif flavour = 'upgraded_wizards' then
-    perform action_cast_wizard_spell(
-      (select wizard_name from wizards where original_place = 0),
-      'shadow_form');
-     --fix history
-    update action_history_mr
-      set spell_name = 'shadow_form',
-      allegiance='Buddha'
-      where spell_name is null;
-    perform action_cast_wizard_spell(
-      (select wizard_name from wizards where original_place = 1),
-      'magic_sword');
-    update action_history_mr
-      set spell_name = 'magic_sword',
-      allegiance = 'Kong Fuzi'
-      where spell_name is null;
-    perform action_cast_wizard_spell(
-      (select wizard_name from wizards where original_place = 2),
-      'magic_knife');
-    update action_history_mr
-      set spell_name = 'magic_knife',
-      allegiance = 'Laozi'
-      where spell_name is null;
-    perform action_cast_wizard_spell(
-      (select wizard_name from wizards where original_place = 3),
-      'magic_shield');
-    update action_history_mr
-      set spell_name = 'magic_shield',
-      allegiance='Moshe'
-      where spell_name is null;
-    perform action_cast_wizard_spell(
-      (select wizard_name from wizards where original_place = 4),
-      'magic_wings');
-    update action_history_mr
-      set spell_name = 'magic_wings',
-      allegiance='Muhammad'
-      where spell_name is null;
-    perform action_cast_wizard_spell(
-      (select wizard_name from wizards where original_place = 5),
-      'magic_armour');
-    update action_history_mr
-      set spell_name = 'magic_armour',
-      allegiance='Shiva'
-      where spell_name is null;
-    perform action_cast_wizard_spell(
-      (select wizard_name from wizards where original_place = 6),
-      'magic_bow');
-    update action_history_mr
-      set spell_name = 'magic_bow',
-      allegiance = 'Yeshua'
-      where spell_name is null;
-  elseif flavour = 'overlapping' then
-    --assert at least 5 wizards
-    --wizard, stiff
-    select into vx,vy x,y from pieces
-      inner join wizards
-        on allegiance = wizard_name
-      where ptype = 'wizard' and original_place = 0;
-    perform create_monster('goblin', 'Buddha', 1, 0, false, false);
-    perform kill_top_piece_at(1, 0);
-    --drop in an extra dead gobbo for testing raise dead
-    perform create_monster('goblin', 'Yeshua', vx, vy, false, false);
-    perform kill_top_piece_at(vx, vy);
---wizard, mountable
-    select into vx,vy,vallegiance x,y,allegiance
-      from pieces inner join wizards
-      on allegiance = wizard_name
-      where ptype = 'wizard' and original_place = 1;
-    perform create_monster('horse', vallegiance, vx, vy, false, false);
---wizard in magic tree, castle, citadel
-    select into vx,vy,vallegiance x,y,allegiance
-      from pieces inner join wizards
-      on allegiance = wizard_name
-      where ptype = 'wizard' and original_place = 2;
-    perform create_object('magic_tree', vallegiance, vx, vy);
-    select into vx,vy,vallegiance x,y,allegiance
-      from pieces inner join wizards
-      on allegiance = wizard_name
-      where ptype = 'wizard' and original_place = 3;
-    perform create_object('magic_castle', vallegiance, vx, vy);
-    select into vx,vy,vallegiance x,y,allegiance
-      from pieces inner join wizards
-      on allegiance = wizard_name
-      where ptype = 'wizard' and original_place = 4;
-    perform create_object('dark_citadel', vallegiance, vx, vy);
---monster, stiff
-    perform create_monster('goblin', 'Buddha', 3, 3, false, false);
-    perform kill_top_piece_at(3, 3);
-    perform create_monster('giant', 'Buddha', 3, 3, false, false);
---stiff, blob
-    perform create_monster('goblin', 'Buddha', 4, 3, false, false);
-    perform kill_top_piece_at(4, 3);
-    perform create_object('gooey_blob', 'Buddha', 4, 3);
---monster, blob
-    perform create_monster('goblin', 'Laozi', 5, 3, false, false);
-    perform create_object('gooey_blob', 'Buddha', 5, 3);
---stiff, monster, blob
-    perform create_monster('elf', 'Buddha', 6, 3, false, false);
-    perform kill_top_piece_at(6, 3);
-    perform create_monster('goblin', 'Laozi', 6, 3, false, false);
-    perform create_object('gooey_blob', 'Buddha', 6, 3);
-  else
-    raise exception
-    'argument must be one of all_pieces, upgraded_wizards, overlapping, got %',
-    flavour;
-  end if;
-end
-$$ language plpgsql volatile;
-
-
-create function disable_all_constraints() returns void as $$
-declare
-  tn text;
-begin
-  for tn in select object_name from all_module_objects
-              where object_type = 'table' loop
-    execute 'alter table ' || tn || ' disable trigger user';
-  end loop;
-end;
-$$ language plpgsql volatile;
+  <span class="Keyword">if</span> <span class="VarId">flavour</span> <span class="Symbol">=</span> <span class="Char">'all_pieces'</span> <span class="VarId">then</span>
+    <span class="Comment">--create one of each monster</span>
+    <span class="VarId">i</span><span class="Symbol">:=</span> <span class="Number">0</span><span class="Symbol">;</span>
+    <span class="Keyword">for</span> <span class="VarId">rec</span> <span class="VarId">in</span> <span class="Keyword">select</span> <span class="VarId">ptype</span> <span class="Keyword">from</span> <span class="VarId">monster_prototypes</span> <span class="VarId">loop</span>
+      <span class="Keyword">perform</span> <span class="VarId">create_monster</span><span class="Symbol">(</span><span class="VarId">rec</span><span class="Symbol">.</span><span class="VarId">ptype</span><span class="Symbol">,</span> <span class="Char">'Buddha'</span><span class="Symbol">,</span>
+                             <span class="VarId">i</span> <span class="Symbol">%</span> <span class="VarId">vwidth</span><span class="Symbol">,</span> <span class="Number">1</span> <span class="Symbol">+</span> <span class="VarId">i</span> <span class="Symbol">/</span> <span class="VarId">vwidth</span><span class="Symbol">,</span> <span class="VarId">false</span><span class="Symbol">,</span> <span class="VarId">false</span><span class="Symbol">);</span>
+      <span class="VarId">i</span> <span class="Symbol">:=</span> <span class="VarId">i</span> <span class="Symbol">+</span> <span class="Number">1</span><span class="Symbol">;</span>
+    <span class="Keyword">end</span> <span class="Keyword">loop</span><span class="Symbol">;</span>
+    <span class="Comment">--create one of each corpse</span>
+    <span class="VarId">i</span> <span class="Symbol">:=</span> <span class="Number">0</span><span class="Symbol">;</span>
+    <span class="Keyword">for</span> <span class="VarId">rec</span> <span class="VarId">in</span> <span class="Keyword">select</span> <span class="VarId">ptype</span> <span class="Keyword">from</span> <span class="VarId">monster_prototypes</span> <span class="Keyword">where</span> <span class="VarId">undead</span> <span class="Symbol">=</span> <span class="VarId">false</span> <span class="VarId">loop</span>
+      <span class="Keyword">perform</span> <span class="VarId">create_monster</span><span class="Symbol">(</span><span class="VarId">rec</span><span class="Symbol">.</span><span class="VarId">ptype</span><span class="Symbol">,</span> <span class="Char">'Buddha'</span><span class="Symbol">,</span>
+                             <span class="VarId">i</span> <span class="Symbol">%</span> <span class="VarId">vwidth</span><span class="Symbol">,</span> <span class="Number">5</span> <span class="Symbol">+</span> <span class="VarId">i</span> <span class="Symbol">/</span> <span class="VarId">vwidth</span><span class="Symbol">,</span> <span class="VarId">false</span><span class="Symbol">,</span> <span class="VarId">false</span><span class="Symbol">);</span>
+      <span class="Keyword">perform</span> <span class="VarId">kill_top_piece_at</span><span class="Symbol">(</span><span class="VarId">i</span> <span class="Symbol">%</span> <span class="VarId">vwidth</span><span class="Symbol">,</span> <span class="Number">5</span> <span class="Symbol">+</span> <span class="VarId">i</span> <span class="Symbol">/</span> <span class="VarId">vwidth</span><span class="Symbol">);</span>
+      <span class="VarId">i</span> <span class="Symbol">:=</span> <span class="VarId">i</span> <span class="Symbol">+</span> <span class="Number">1</span><span class="Symbol">;</span>
+    <span class="Keyword">end</span> <span class="Keyword">loop</span><span class="Symbol">;</span>
+    <span class="Comment">--create one of each (pieces - creatures)</span>
+    <span class="VarId">i</span> <span class="Symbol">:=</span> <span class="Number">0</span><span class="Symbol">;</span>
+    <span class="Keyword">for</span> <span class="VarId">rec</span> <span class="VarId">in</span> <span class="Keyword">select</span> <span class="VarId">ptype</span> <span class="Keyword">from</span> <span class="VarId">object_piece_types</span> <span class="VarId">loop</span>
+      <span class="Keyword">perform</span> <span class="VarId">create_object</span><span class="Symbol">(</span><span class="VarId">rec</span><span class="Symbol">.</span><span class="VarId">ptype</span><span class="Symbol">,</span> <span class="Char">'Kong Fuzi'</span><span class="Symbol">,</span> <span class="VarId">i</span><span class="Symbol">,</span> <span class="Number">8</span><span class="Symbol">);</span>
+      <span class="VarId">i</span> <span class="Symbol">:=</span> <span class="VarId">i</span> <span class="Symbol">+</span> <span class="Number">1</span><span class="Symbol">;</span>
+    <span class="Keyword">end</span> <span class="Keyword">loop</span><span class="Symbol">;</span>
+  <span class="Keyword">elseif</span> <span class="VarId">flavour</span> <span class="Symbol">=</span> <span class="Char">'upgraded_wizards'</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">action_cast_wizard_spell</span><span class="Symbol">(</span>
+      <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">wizard_name</span> <span class="Keyword">from</span> <span class="VarId">wizards</span> <span class="Keyword">where</span> <span class="VarId">original_place</span> <span class="Symbol">=</span> <span class="Number">0</span><span class="Symbol">),</span>
+      <span class="Char">'shadow_form'</span><span class="Symbol">);</span>
+     <span class="Comment">--fix history</span>
+    <span class="Keyword">update</span> <span class="VarId">action_history_mr</span>
+      <span class="Keyword">set</span> <span class="VarId">spell_name</span> <span class="Symbol">=</span> <span class="Char">'shadow_form'</span><span class="Symbol">,</span>
+      <span class="VarId">allegiance</span><span class="Symbol">=</span><span class="Char">'Buddha'</span>
+      <span class="Keyword">where</span> <span class="VarId">spell_name</span> <span class="VarId">is</span> <span class="Keyword">null</span><span class="Symbol">;</span>
+    <span class="Keyword">perform</span> <span class="VarId">action_cast_wizard_spell</span><span class="Symbol">(</span>
+      <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">wizard_name</span> <span class="Keyword">from</span> <span class="VarId">wizards</span> <span class="Keyword">where</span> <span class="VarId">original_place</span> <span class="Symbol">=</span> <span class="Number">1</span><span class="Symbol">),</span>
+      <span class="Char">'magic_sword'</span><span class="Symbol">);</span>
+    <span class="Keyword">update</span> <span class="VarId">action_history_mr</span>
+      <span class="Keyword">set</span> <span class="VarId">spell_name</span> <span class="Symbol">=</span> <span class="Char">'magic_sword'</span><span class="Symbol">,</span>
+      <span class="VarId">allegiance</span> <span class="Symbol">=</span> <span class="Char">'Kong Fuzi'</span>
+      <span class="Keyword">where</span> <span class="VarId">spell_name</span> <span class="VarId">is</span> <span class="Keyword">null</span><span class="Symbol">;</span>
+    <span class="Keyword">perform</span> <span class="VarId">action_cast_wizard_spell</span><span class="Symbol">(</span>
+      <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">wizard_name</span> <span class="Keyword">from</span> <span class="VarId">wizards</span> <span class="Keyword">where</span> <span class="VarId">original_place</span> <span class="Symbol">=</span> <span class="Number">2</span><span class="Symbol">),</span>
+      <span class="Char">'magic_knife'</span><span class="Symbol">);</span>
+    <span class="Keyword">update</span> <span class="VarId">action_history_mr</span>
+      <span class="Keyword">set</span> <span class="VarId">spell_name</span> <span class="Symbol">=</span> <span class="Char">'magic_knife'</span><span class="Symbol">,</span>
+      <span class="VarId">allegiance</span> <span class="Symbol">=</span> <span class="Char">'Laozi'</span>
+      <span class="Keyword">where</span> <span class="VarId">spell_name</span> <span class="VarId">is</span> <span class="Keyword">null</span><span class="Symbol">;</span>
+    <span class="Keyword">perform</span> <span class="VarId">action_cast_wizard_spell</span><span class="Symbol">(</span>
+      <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">wizard_name</span> <span class="Keyword">from</span> <span class="VarId">wizards</span> <span class="Keyword">where</span> <span class="VarId">original_place</span> <span class="Symbol">=</span> <span class="Number">3</span><span class="Symbol">),</span>
+      <span class="Char">'magic_shield'</span><span class="Symbol">);</span>
+    <span class="Keyword">update</span> <span class="VarId">action_history_mr</span>
+      <span class="Keyword">set</span> <span class="VarId">spell_name</span> <span class="Symbol">=</span> <span class="Char">'magic_shield'</span><span class="Symbol">,</span>
+      <span class="VarId">allegiance</span><span class="Symbol">=</span><span class="Char">'Moshe'</span>
+      <span class="Keyword">where</span> <span class="VarId">spell_name</span> <span class="VarId">is</span> <span class="Keyword">null</span><span class="Symbol">;</span>
+    <span class="Keyword">perform</span> <span class="VarId">action_cast_wizard_spell</span><span class="Symbol">(</span>
+      <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">wizard_name</span> <span class="Keyword">from</span> <span class="VarId">wizards</span> <span class="Keyword">where</span> <span class="VarId">original_place</span> <span class="Symbol">=</span> <span class="Number">4</span><span class="Symbol">),</span>
+      <span class="Char">'magic_wings'</span><span class="Symbol">);</span>
+    <span class="Keyword">update</span> <span class="VarId">action_history_mr</span>
+      <span class="Keyword">set</span> <span class="VarId">spell_name</span> <span class="Symbol">=</span> <span class="Char">'magic_wings'</span><span class="Symbol">,</span>
+      <span class="VarId">allegiance</span><span class="Symbol">=</span><span class="Char">'Muhammad'</span>
+      <span class="Keyword">where</span> <span class="VarId">spell_name</span> <span class="VarId">is</span> <span class="Keyword">null</span><span class="Symbol">;</span>
+    <span class="Keyword">perform</span> <span class="VarId">action_cast_wizard_spell</span><span class="Symbol">(</span>
+      <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">wizard_name</span> <span class="Keyword">from</span> <span class="VarId">wizards</span> <span class="Keyword">where</span> <span class="VarId">original_place</span> <span class="Symbol">=</span> <span class="Number">5</span><span class="Symbol">),</span>
+      <span class="Char">'magic_armour'</span><span class="Symbol">);</span>
+    <span class="Keyword">update</span> <span class="VarId">action_history_mr</span>
+      <span class="Keyword">set</span> <span class="VarId">spell_name</span> <span class="Symbol">=</span> <span class="Char">'magic_armour'</span><span class="Symbol">,</span>
+      <span class="VarId">allegiance</span><span class="Symbol">=</span><span class="Char">'Shiva'</span>
+      <span class="Keyword">where</span> <span class="VarId">spell_name</span> <span class="VarId">is</span> <span class="Keyword">null</span><span class="Symbol">;</span>
+    <span class="Keyword">perform</span> <span class="VarId">action_cast_wizard_spell</span><span class="Symbol">(</span>
+      <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">wizard_name</span> <span class="Keyword">from</span> <span class="VarId">wizards</span> <span class="Keyword">where</span> <span class="VarId">original_place</span> <span class="Symbol">=</span> <span class="Number">6</span><span class="Symbol">),</span>
+      <span class="Char">'magic_bow'</span><span class="Symbol">);</span>
+    <span class="Keyword">update</span> <span class="VarId">action_history_mr</span>
+      <span class="Keyword">set</span> <span class="VarId">spell_name</span> <span class="Symbol">=</span> <span class="Char">'magic_bow'</span><span class="Symbol">,</span>
+      <span class="VarId">allegiance</span> <span class="Symbol">=</span> <span class="Char">'Yeshua'</span>
+      <span class="Keyword">where</span> <span class="VarId">spell_name</span> <span class="VarId">is</span> <span class="Keyword">null</span><span class="Symbol">;</span>
+  <span class="Keyword">elseif</span> <span class="VarId">flavour</span> <span class="Symbol">=</span> <span class="Char">'overlapping'</span> <span class="VarId">then</span>
+    <span class="Comment">--assert at least 5 wizards</span>
+    <span class="Comment">--wizard, stiff</span>
+    <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">vx</span><span class="Symbol">,</span><span class="VarId">vy</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span> <span class="Keyword">from</span> <span class="VarId">pieces</span>
+      <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">wizards</span>
+        <span class="Keyword">on</span> <span class="VarId">allegiance</span> <span class="Symbol">=</span> <span class="VarId">wizard_name</span>
+      <span class="Keyword">where</span> <span class="VarId">ptype</span> <span class="Symbol">=</span> <span class="Char">'wizard'</span> <span class="Keyword">and</span> <span class="VarId">original_place</span> <span class="Symbol">=</span> <span class="Number">0</span><span class="Symbol">;</span>
+    <span class="Keyword">perform</span> <span class="VarId">create_monster</span><span class="Symbol">(</span><span class="Char">'goblin'</span><span class="Symbol">,</span> <span class="Char">'Buddha'</span><span class="Symbol">,</span> <span class="Number">1</span><span class="Symbol">,</span> <span class="Number">0</span><span class="Symbol">,</span> <span class="VarId">false</span><span class="Symbol">,</span> <span class="VarId">false</span><span class="Symbol">);</span>
+    <span class="Keyword">perform</span> <span class="VarId">kill_top_piece_at</span><span class="Symbol">(</span><span class="Number">1</span><span class="Symbol">,</span> <span class="Number">0</span><span class="Symbol">);</span>
+    <span class="Comment">--drop in an extra dead gobbo for testing raise dead</span>
+    <span class="Keyword">perform</span> <span class="VarId">create_monster</span><span class="Symbol">(</span><span class="Char">'goblin'</span><span class="Symbol">,</span> <span class="Char">'Yeshua'</span><span class="Symbol">,</span> <span class="VarId">vx</span><span class="Symbol">,</span> <span class="VarId">vy</span><span class="Symbol">,</span> <span class="VarId">false</span><span class="Symbol">,</span> <span class="VarId">false</span><span class="Symbol">);</span>
+    <span class="Keyword">perform</span> <span class="VarId">kill_top_piece_at</span><span class="Symbol">(</span><span class="VarId">vx</span><span class="Symbol">,</span> <span class="VarId">vy</span><span class="Symbol">);</span>
+<span class="Comment">--wizard, mountable</span>
+    <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">vx</span><span class="Symbol">,</span><span class="VarId">vy</span><span class="Symbol">,</span><span class="VarId">vallegiance</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span><span class="VarId">allegiance</span>
+      <span class="Keyword">from</span> <span class="VarId">pieces</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">wizards</span>
+      <span class="Keyword">on</span> <span class="VarId">allegiance</span> <span class="Symbol">=</span> <span class="VarId">wizard_name</span>
+      <span class="Keyword">where</span> <span class="VarId">ptype</span> <span class="Symbol">=</span> <span class="Char">'wizard'</span> <span class="Keyword">and</span> <span class="VarId">original_place</span> <span class="Symbol">=</span> <span class="Number">1</span><span class="Symbol">;</span>
+    <span class="Keyword">perform</span> <span class="VarId">create_monster</span><span class="Symbol">(</span><span class="Char">'horse'</span><span class="Symbol">,</span> <span class="VarId">vallegiance</span><span class="Symbol">,</span> <span class="VarId">vx</span><span class="Symbol">,</span> <span class="VarId">vy</span><span class="Symbol">,</span> <span class="VarId">false</span><span class="Symbol">,</span> <span class="VarId">false</span><span class="Symbol">);</span>
+<span class="Comment">--wizard in magic tree, castle, citadel</span>
+    <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">vx</span><span class="Symbol">,</span><span class="VarId">vy</span><span class="Symbol">,</span><span class="VarId">vallegiance</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span><span class="VarId">allegiance</span>
+      <span class="Keyword">from</span> <span class="VarId">pieces</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">wizards</span>
+      <span class="Keyword">on</span> <span class="VarId">allegiance</span> <span class="Symbol">=</span> <span class="VarId">wizard_name</span>
+      <span class="Keyword">where</span> <span class="VarId">ptype</span> <span class="Symbol">=</span> <span class="Char">'wizard'</span> <span class="Keyword">and</span> <span class="VarId">original_place</span> <span class="Symbol">=</span> <span class="Number">2</span><span class="Symbol">;</span>
+    <span class="Keyword">perform</span> <span class="VarId">create_object</span><span class="Symbol">(</span><span class="Char">'magic_tree'</span><span class="Symbol">,</span> <span class="VarId">vallegiance</span><span class="Symbol">,</span> <span class="VarId">vx</span><span class="Symbol">,</span> <span class="VarId">vy</span><span class="Symbol">);</span>
+    <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">vx</span><span class="Symbol">,</span><span class="VarId">vy</span><span class="Symbol">,</span><span class="VarId">vallegiance</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span><span class="VarId">allegiance</span>
+      <span class="Keyword">from</span> <span class="VarId">pieces</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">wizards</span>
+      <span class="Keyword">on</span> <span class="VarId">allegiance</span> <span class="Symbol">=</span> <span class="VarId">wizard_name</span>
+      <span class="Keyword">where</span> <span class="VarId">ptype</span> <span class="Symbol">=</span> <span class="Char">'wizard'</span> <span class="Keyword">and</span> <span class="VarId">original_place</span> <span class="Symbol">=</span> <span class="Number">3</span><span class="Symbol">;</span>
+    <span class="Keyword">perform</span> <span class="VarId">create_object</span><span class="Symbol">(</span><span class="Char">'magic_castle'</span><span class="Symbol">,</span> <span class="VarId">vallegiance</span><span class="Symbol">,</span> <span class="VarId">vx</span><span class="Symbol">,</span> <span class="VarId">vy</span><span class="Symbol">);</span>
+    <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">vx</span><span class="Symbol">,</span><span class="VarId">vy</span><span class="Symbol">,</span><span class="VarId">vallegiance</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span><span class="VarId">allegiance</span>
+      <span class="Keyword">from</span> <span class="VarId">pieces</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">wizards</span>
+      <span class="Keyword">on</span> <span class="VarId">allegiance</span> <span class="Symbol">=</span> <span class="VarId">wizard_name</span>
+      <span class="Keyword">where</span> <span class="VarId">ptype</span> <span class="Symbol">=</span> <span class="Char">'wizard'</span> <span class="Keyword">and</span> <span class="VarId">original_place</span> <span class="Symbol">=</span> <span class="Number">4</span><span class="Symbol">;</span>
+    <span class="Keyword">perform</span> <span class="VarId">create_object</span><span class="Symbol">(</span><span class="Char">'dark_citadel'</span><span class="Symbol">,</span> <span class="VarId">vallegiance</span><span class="Symbol">,</span> <span class="VarId">vx</span><span class="Symbol">,</span> <span class="VarId">vy</span><span class="Symbol">);</span>
+<span class="Comment">--monster, stiff</span>
+    <span class="Keyword">perform</span> <span class="VarId">create_monster</span><span class="Symbol">(</span><span class="Char">'goblin'</span><span class="Symbol">,</span> <span class="Char">'Buddha'</span><span class="Symbol">,</span> <span class="Number">3</span><span class="Symbol">,</span> <span class="Number">3</span><span class="Symbol">,</span> <span class="VarId">false</span><span class="Symbol">,</span> <span class="VarId">false</span><span class="Symbol">);</span>
+    <span class="Keyword">perform</span> <span class="VarId">kill_top_piece_at</span><span class="Symbol">(</span><span class="Number">3</span><span class="Symbol">,</span> <span class="Number">3</span><span class="Symbol">);</span>
+    <span class="Keyword">perform</span> <span class="VarId">create_monster</span><span class="Symbol">(</span><span class="Char">'giant'</span><span class="Symbol">,</span> <span class="Char">'Buddha'</span><span class="Symbol">,</span> <span class="Number">3</span><span class="Symbol">,</span> <span class="Number">3</span><span class="Symbol">,</span> <span class="VarId">false</span><span class="Symbol">,</span> <span class="VarId">false</span><span class="Symbol">);</span>
+<span class="Comment">--stiff, blob</span>
+    <span class="Keyword">perform</span> <span class="VarId">create_monster</span><span class="Symbol">(</span><span class="Char">'goblin'</span><span class="Symbol">,</span> <span class="Char">'Buddha'</span><span class="Symbol">,</span> <span class="Number">4</span><span class="Symbol">,</span> <span class="Number">3</span><span class="Symbol">,</span> <span class="VarId">false</span><span class="Symbol">,</span> <span class="VarId">false</span><span class="Symbol">);</span>
+    <span class="Keyword">perform</span> <span class="VarId">kill_top_piece_at</span><span class="Symbol">(</span><span class="Number">4</span><span class="Symbol">,</span> <span class="Number">3</span><span class="Symbol">);</span>
+    <span class="Keyword">perform</span> <span class="VarId">create_object</span><span class="Symbol">(</span><span class="Char">'gooey_blob'</span><span class="Symbol">,</span> <span class="Char">'Buddha'</span><span class="Symbol">,</span> <span class="Number">4</span><span class="Symbol">,</span> <span class="Number">3</span><span class="Symbol">);</span>
+<span class="Comment">--monster, blob</span>
+    <span class="Keyword">perform</span> <span class="VarId">create_monster</span><span class="Symbol">(</span><span class="Char">'goblin'</span><span class="Symbol">,</span> <span class="Char">'Laozi'</span><span class="Symbol">,</span> <span class="Number">5</span><span class="Symbol">,</span> <span class="Number">3</span><span class="Symbol">,</span> <span class="VarId">false</span><span class="Symbol">,</span> <span class="VarId">false</span><span class="Symbol">);</span>
+    <span class="Keyword">perform</span> <span class="VarId">create_object</span><span class="Symbol">(</span><span class="Char">'gooey_blob'</span><span class="Symbol">,</span> <span class="Char">'Buddha'</span><span class="Symbol">,</span> <span class="Number">5</span><span class="Symbol">,</span> <span class="Number">3</span><span class="Symbol">);</span>
+<span class="Comment">--stiff, monster, blob</span>
+    <span class="Keyword">perform</span> <span class="VarId">create_monster</span><span class="Symbol">(</span><span class="Char">'elf'</span><span class="Symbol">,</span> <span class="Char">'Buddha'</span><span class="Symbol">,</span> <span class="Number">6</span><span class="Symbol">,</span> <span class="Number">3</span><span class="Symbol">,</span> <span class="VarId">false</span><span class="Symbol">,</span> <span class="VarId">false</span><span class="Symbol">);</span>
+    <span class="Keyword">perform</span> <span class="VarId">kill_top_piece_at</span><span class="Symbol">(</span><span class="Number">6</span><span class="Symbol">,</span> <span class="Number">3</span><span class="Symbol">);</span>
+    <span class="Keyword">perform</span> <span class="VarId">create_monster</span><span class="Symbol">(</span><span class="Char">'goblin'</span><span class="Symbol">,</span> <span class="Char">'Laozi'</span><span class="Symbol">,</span> <span class="Number">6</span><span class="Symbol">,</span> <span class="Number">3</span><span class="Symbol">,</span> <span class="VarId">false</span><span class="Symbol">,</span> <span class="VarId">false</span><span class="Symbol">);</span>
+    <span class="Keyword">perform</span> <span class="VarId">create_object</span><span class="Symbol">(</span><span class="Char">'gooey_blob'</span><span class="Symbol">,</span> <span class="Char">'Buddha'</span><span class="Symbol">,</span> <span class="Number">6</span><span class="Symbol">,</span> <span class="Number">3</span><span class="Symbol">);</span>
+  <span class="VarId">else</span>
+    <span class="Keyword">raise</span> <span class="VarId">exception</span>
+    <span class="Char">'argument must be one of all_pieces, upgraded_wizards, overlapping, got %'</span><span class="Symbol">,</span>
+    <span class="VarId">flavour</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+<span class="VarId">end</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
 
-create function enable_all_constraints() returns void as $$
-declare
-  t text;
-  b bool;
-begin
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">disable_all_constraints</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">tn</span> <span class="Type">text</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="Keyword">for</span> <span class="VarId">tn</span> <span class="VarId">in</span> <span class="Keyword">select</span> <span class="VarId">object_name</span> <span class="Keyword">from</span> <span class="VarId">all_module_objects</span>
+              <span class="Keyword">where</span> <span class="VarId">object_type</span> <span class="Symbol">=</span> <span class="Char">'table'</span> <span class="VarId">loop</span>
+    <span class="Keyword">execute</span> <span class="Char">'alter table '</span> <span class="Symbol">||</span> <span class="VarId">tn</span> <span class="Symbol">||</span> <span class="Char">' disable trigger user'</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">loop</span><span class="Symbol">;</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
+
+
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">enable_all_constraints</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">t</span> <span class="Type">text</span><span class="Symbol">;</span>
+  <span class="VarId">b</span> <span class="Type">bool</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
   </pre></div></div></div><p
     >/<em
       >for t in select object_name from all_module_objects where object_name like 'check<em
@@ -195,205 +195,205 @@ begin
 	>%' and object_type = 'function' loop execute end loop;</em
       >/</p
     ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-  for t in select object_name from all_module_objects
-              where object_type = 'table' loop
-    execute 'alter table ' || t || ' enable trigger user';
-  end loop;
-end;
-$$ language plpgsql volatile;
+  <span class="Keyword">for</span> <span class="VarId">t</span> <span class="VarId">in</span> <span class="Keyword">select</span> <span class="VarId">object_name</span> <span class="Keyword">from</span> <span class="VarId">all_module_objects</span>
+              <span class="Keyword">where</span> <span class="VarId">object_type</span> <span class="Symbol">=</span> <span class="Char">'table'</span> <span class="VarId">loop</span>
+    <span class="Keyword">execute</span> <span class="Char">'alter table '</span> <span class="Symbol">||</span> <span class="VarId">t</span> <span class="Symbol">||</span> <span class="Char">' enable trigger user'</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">loop</span><span class="Symbol">;</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
 
-create function action_skip_to_phase(phase text) returns void as $$
-declare
-  p text;
-begin
-  if phase not in ('choose','cast','autonomous','move') then
-    raise exception 'phase must be one of choose, cast, autonomous,move; got %' ,phase;
-  end if;
-  loop
-    if get_turn_phase() != phase then
-      perform action_client_next_phase();
-    else
-      exit;
-    end if;
-  end loop;
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">action_skip_to_phase</span><span class="Symbol">(</span><span class="VarId">phase</span> <span class="Type">text</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">p</span> <span class="Type">text</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="Keyword">if</span> <span class="VarId">phase</span> <span class="Keyword">not</span> <span class="VarId">in</span> <span class="Symbol">(</span><span class="Char">'choose'</span><span class="Symbol">,</span><span class="Char">'cast'</span><span class="Symbol">,</span><span class="Char">'autonomous'</span><span class="Symbol">,</span><span class="Char">'move'</span><span class="Symbol">)</span> <span class="VarId">then</span>
+    <span class="Keyword">raise</span> <span class="Keyword">exception</span> <span class="Char">'phase must be one of choose, cast, autonomous,move; got %'</span> <span class="Symbol">,</span><span class="VarId">phase</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="VarId">loop</span>
+    <span class="Keyword">if</span> <span class="VarId">get_turn_phase</span><span class="Symbol">()</span> <span class="Symbol">!=</span> <span class="VarId">phase</span> <span class="VarId">then</span>
+      <span class="Keyword">perform</span> <span class="VarId">action_client_next_phase</span><span class="Symbol">();</span>
+    <span class="VarId">else</span>
+      <span class="VarId">exit</span><span class="Symbol">;</span>
+    <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">loop</span><span class="Symbol">;</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
-create table test_spell_books (
-  wizard_name text
- ,spell_name text
-);
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">test_spell_books</span> <span class="Symbol">(</span>
+  <span class="VarId">wizard_name</span> <span class="VarId">text</span>
+ <span class="Symbol">,</span><span class="VarId">spell_name</span> <span class="VarId">text</span>
+<span class="Symbol">);</span>
 
-copy test_spell_books(wizard_name,spell_name) from stdin;
-Buddha	disbelieve
-Kong Fuzi	disbelieve
-Laozi	disbelieve
-Moshe	disbelieve
-Muhammad	disbelieve
-Shiva	disbelieve
-Yeshua	disbelieve
-Zarathushthra	disbelieve
-Buddha	unicorn
-Buddha	lightning
-Buddha	ogre
-Buddha	vengeance
-Buddha	unicorn
-Buddha	ogre
-Buddha	raise_dead
-Buddha	giant
-Buddha	king_cobra
-Buddha	elf
-Buddha	giant_rat
-Buddha	harpy
-Buddha	magic_castle
-Buddha	large_chaos
-Buddha	orc
-Buddha	magic_wings
-Buddha	magic_shield
-Buddha	giant
-Buddha	gryphon
-Kong Fuzi	zombie
-Kong Fuzi	magic_bolt
-Kong Fuzi	dark_citadel
-Kong Fuzi	ogre
-Kong Fuzi	wall
-Kong Fuzi	unicorn
-Kong Fuzi	law
-Kong Fuzi	dark_citadel
-Kong Fuzi	lion
-Kong Fuzi	faun
-Kong Fuzi	decree
-Kong Fuzi	magic_wings
-Kong Fuzi	dark_citadel
-Kong Fuzi	magic_armour
-Kong Fuzi	hydra
-Kong Fuzi	vengeance
-Kong Fuzi	justice
-Kong Fuzi	eagle
-Kong Fuzi	ogre
-Laozi	magic_bow
-Laozi	lightning
-Laozi	shadow_form
-Laozi	orc
-Laozi	shadow_form
-Laozi	horse
-Laozi	ghost
-Laozi	magic_bow
-Laozi	zombie
-Laozi	pegasus
-Laozi	manticore
-Laozi	gryphon
-Laozi	pegasus
-Laozi	goblin
-Laozi	harpy
-Laozi	lightning
-Laozi	giant
-Laozi	law
-Laozi	manticore
-Moshe	giant
-Moshe	orc
-Moshe	shadow_wood
-Moshe	golden_dragon
-Moshe	hydra
-Moshe	shadow_wood
-Moshe	ogre
-Moshe	orc
-Moshe	raise_dead
-Moshe	chaos
-Moshe	shadow_form
-Moshe	lion
-Moshe	magic_wings
-Moshe	gorilla
-Moshe	gorilla
-Moshe	hydra
-Moshe	elf
-Moshe	magic_shield
-Moshe	magic_bolt
-Muhammad	magic_shield
-Muhammad	magic_shield
-Muhammad	gorilla
-Muhammad	green_dragon
-Muhammad	vengeance
-Muhammad	dark_citadel
-Muhammad	magic_armour
-Muhammad	gooey_blob
-Muhammad	lion
-Muhammad	magic_wood
-Muhammad	magic_armour
-Muhammad	giant_rat
-Muhammad	skeleton
-Muhammad	golden_dragon
-Muhammad	zombie
-Muhammad	decree
-Muhammad	magic_fire
-Muhammad	shadow_wood
-Muhammad	raise_dead
-Shiva	gryphon
-Shiva	magic_knife
-Shiva	spectre
-Shiva	chaos
-Shiva	eagle
-Shiva	magic_armour
-Shiva	justice
-Shiva	harpy
-Shiva	subversion
-Shiva	lightning
-Shiva	wall
-Shiva	justice
-Shiva	eagle
-Shiva	magic_castle
-Shiva	magic_wings
-Shiva	hydra
-Shiva	magic_armour
-Shiva	magic_wood
-Shiva	subversion
-Yeshua	pegasus
-Yeshua	ghost
-Yeshua	magic_bow
-Yeshua	law
-Yeshua	gryphon
-Yeshua	hydra
-Yeshua	large_law
-Yeshua	green_dragon
-Yeshua	large_chaos
-Yeshua	dark_power
-Yeshua	faun
-Yeshua	giant_rat
-Yeshua	harpy
-Yeshua	ogre
-Yeshua	decree
-Yeshua	large_law
-Yeshua	raise_dead
-Yeshua	magic_bow
-Yeshua	shadow_wood
-Zarathushthra	chaos
-Zarathushthra	king_cobra
-Zarathushthra	gorilla
-Zarathushthra	decree
-Zarathushthra	shadow_form
-Zarathushthra	horse
-Zarathushthra	magic_knife
-Zarathushthra	large_law
-Zarathushthra	orc
-Zarathushthra	elf
-Zarathushthra	chaos
-Zarathushthra	magic_knife
-Zarathushthra	skeleton
-Zarathushthra	law
-Zarathushthra	ghost
-Zarathushthra	elf
-Zarathushthra	magic_castle
-Zarathushthra	magic_armour
-Zarathushthra	magic_bow
-\.
+<span class="Keyword">copy</span> <span class="VarId">test_spell_books</span><span class="Symbol">(</span><span class="VarId">wizard_name</span><span class="Symbol">,</span><span class="VarId">spell_name</span><span class="Symbol">)</span> <span class="Keyword">from</span> <span class="Keyword">stdin</span><span class="Symbol">;</span>
+<span class="VarId">Buddha</span>	<span class="VarId">disbelieve</span>
+<span class="VarId">Kong</span> <span class="VarId">Fuzi</span>	<span class="VarId">disbelieve</span>
+<span class="VarId">Laozi</span>	<span class="VarId">disbelieve</span>
+<span class="VarId">Moshe</span>	<span class="VarId">disbelieve</span>
+<span class="VarId">Muhammad</span>	<span class="VarId">disbelieve</span>
+<span class="VarId">Shiva</span>	<span class="VarId">disbelieve</span>
+<span class="VarId">Yeshua</span>	<span class="VarId">disbelieve</span>
+<span class="VarId">Zarathushthra</span>	<span class="VarId">disbelieve</span>
+<span class="VarId">Buddha</span>	<span class="VarId">unicorn</span>
+<span class="VarId">Buddha</span>	<span class="VarId">lightning</span>
+<span class="VarId">Buddha</span>	<span class="VarId">ogre</span>
+<span class="VarId">Buddha</span>	<span class="VarId">vengeance</span>
+<span class="VarId">Buddha</span>	<span class="VarId">unicorn</span>
+<span class="VarId">Buddha</span>	<span class="VarId">ogre</span>
+<span class="VarId">Buddha</span>	<span class="VarId">raise_dead</span>
+<span class="VarId">Buddha</span>	<span class="VarId">giant</span>
+<span class="VarId">Buddha</span>	<span class="VarId">king_cobra</span>
+<span class="VarId">Buddha</span>	<span class="VarId">elf</span>
+<span class="VarId">Buddha</span>	<span class="VarId">giant_rat</span>
+<span class="VarId">Buddha</span>	<span class="VarId">harpy</span>
+<span class="VarId">Buddha</span>	<span class="VarId">magic_castle</span>
+<span class="VarId">Buddha</span>	<span class="VarId">large_chaos</span>
+<span class="VarId">Buddha</span>	<span class="VarId">orc</span>
+<span class="VarId">Buddha</span>	<span class="VarId">magic_wings</span>
+<span class="VarId">Buddha</span>	<span class="VarId">magic_shield</span>
+<span class="VarId">Buddha</span>	<span class="VarId">giant</span>
+<span class="VarId">Buddha</span>	<span class="VarId">gryphon</span>
+<span class="VarId">Kong</span> <span class="VarId">Fuzi</span>	<span class="VarId">zombie</span>
+<span class="VarId">Kong</span> <span class="VarId">Fuzi</span>	<span class="VarId">magic_bolt</span>
+<span class="VarId">Kong</span> <span class="VarId">Fuzi</span>	<span class="VarId">dark_citadel</span>
+<span class="VarId">Kong</span> <span class="VarId">Fuzi</span>	<span class="VarId">ogre</span>
+<span class="VarId">Kong</span> <span class="VarId">Fuzi</span>	<span class="VarId">wall</span>
+<span class="VarId">Kong</span> <span class="VarId">Fuzi</span>	<span class="VarId">unicorn</span>
+<span class="VarId">Kong</span> <span class="VarId">Fuzi</span>	<span class="VarId">law</span>
+<span class="VarId">Kong</span> <span class="VarId">Fuzi</span>	<span class="VarId">dark_citadel</span>
+<span class="VarId">Kong</span> <span class="VarId">Fuzi</span>	<span class="VarId">lion</span>
+<span class="VarId">Kong</span> <span class="VarId">Fuzi</span>	<span class="VarId">faun</span>
+<span class="VarId">Kong</span> <span class="VarId">Fuzi</span>	<span class="VarId">decree</span>
+<span class="VarId">Kong</span> <span class="VarId">Fuzi</span>	<span class="VarId">magic_wings</span>
+<span class="VarId">Kong</span> <span class="VarId">Fuzi</span>	<span class="VarId">dark_citadel</span>
+<span class="VarId">Kong</span> <span class="VarId">Fuzi</span>	<span class="VarId">magic_armour</span>
+<span class="VarId">Kong</span> <span class="VarId">Fuzi</span>	<span class="VarId">hydra</span>
+<span class="VarId">Kong</span> <span class="VarId">Fuzi</span>	<span class="VarId">vengeance</span>
+<span class="VarId">Kong</span> <span class="VarId">Fuzi</span>	<span class="VarId">justice</span>
+<span class="VarId">Kong</span> <span class="VarId">Fuzi</span>	<span class="VarId">eagle</span>
+<span class="VarId">Kong</span> <span class="VarId">Fuzi</span>	<span class="VarId">ogre</span>
+<span class="VarId">Laozi</span>	<span class="VarId">magic_bow</span>
+<span class="VarId">Laozi</span>	<span class="VarId">lightning</span>
+<span class="VarId">Laozi</span>	<span class="VarId">shadow_form</span>
+<span class="VarId">Laozi</span>	<span class="VarId">orc</span>
+<span class="VarId">Laozi</span>	<span class="VarId">shadow_form</span>
+<span class="VarId">Laozi</span>	<span class="VarId">horse</span>
+<span class="VarId">Laozi</span>	<span class="VarId">ghost</span>
+<span class="VarId">Laozi</span>	<span class="VarId">magic_bow</span>
+<span class="VarId">Laozi</span>	<span class="VarId">zombie</span>
+<span class="VarId">Laozi</span>	<span class="VarId">pegasus</span>
+<span class="VarId">Laozi</span>	<span class="VarId">manticore</span>
+<span class="VarId">Laozi</span>	<span class="VarId">gryphon</span>
+<span class="VarId">Laozi</span>	<span class="VarId">pegasus</span>
+<span class="VarId">Laozi</span>	<span class="VarId">goblin</span>
+<span class="VarId">Laozi</span>	<span class="VarId">harpy</span>
+<span class="VarId">Laozi</span>	<span class="VarId">lightning</span>
+<span class="VarId">Laozi</span>	<span class="VarId">giant</span>
+<span class="VarId">Laozi</span>	<span class="VarId">law</span>
+<span class="VarId">Laozi</span>	<span class="VarId">manticore</span>
+<span class="VarId">Moshe</span>	<span class="VarId">giant</span>
+<span class="VarId">Moshe</span>	<span class="VarId">orc</span>
+<span class="VarId">Moshe</span>	<span class="VarId">shadow_wood</span>
+<span class="VarId">Moshe</span>	<span class="VarId">golden_dragon</span>
+<span class="VarId">Moshe</span>	<span class="VarId">hydra</span>
+<span class="VarId">Moshe</span>	<span class="VarId">shadow_wood</span>
+<span class="VarId">Moshe</span>	<span class="VarId">ogre</span>
+<span class="VarId">Moshe</span>	<span class="VarId">orc</span>
+<span class="VarId">Moshe</span>	<span class="VarId">raise_dead</span>
+<span class="VarId">Moshe</span>	<span class="VarId">chaos</span>
+<span class="VarId">Moshe</span>	<span class="VarId">shadow_form</span>
+<span class="VarId">Moshe</span>	<span class="VarId">lion</span>
+<span class="VarId">Moshe</span>	<span class="VarId">magic_wings</span>
+<span class="VarId">Moshe</span>	<span class="VarId">gorilla</span>
+<span class="VarId">Moshe</span>	<span class="VarId">gorilla</span>
+<span class="VarId">Moshe</span>	<span class="VarId">hydra</span>
+<span class="VarId">Moshe</span>	<span class="VarId">elf</span>
+<span class="VarId">Moshe</span>	<span class="VarId">magic_shield</span>
+<span class="VarId">Moshe</span>	<span class="VarId">magic_bolt</span>
+<span class="VarId">Muhammad</span>	<span class="VarId">magic_shield</span>
+<span class="VarId">Muhammad</span>	<span class="VarId">magic_shield</span>
+<span class="VarId">Muhammad</span>	<span class="VarId">gorilla</span>
+<span class="VarId">Muhammad</span>	<span class="VarId">green_dragon</span>
+<span class="VarId">Muhammad</span>	<span class="VarId">vengeance</span>
+<span class="VarId">Muhammad</span>	<span class="VarId">dark_citadel</span>
+<span class="VarId">Muhammad</span>	<span class="VarId">magic_armour</span>
+<span class="VarId">Muhammad</span>	<span class="VarId">gooey_blob</span>
+<span class="VarId">Muhammad</span>	<span class="VarId">lion</span>
+<span class="VarId">Muhammad</span>	<span class="VarId">magic_wood</span>
+<span class="VarId">Muhammad</span>	<span class="VarId">magic_armour</span>
+<span class="VarId">Muhammad</span>	<span class="VarId">giant_rat</span>
+<span class="VarId">Muhammad</span>	<span class="VarId">skeleton</span>
+<span class="VarId">Muhammad</span>	<span class="VarId">golden_dragon</span>
+<span class="VarId">Muhammad</span>	<span class="VarId">zombie</span>
+<span class="VarId">Muhammad</span>	<span class="VarId">decree</span>
+<span class="VarId">Muhammad</span>	<span class="VarId">magic_fire</span>
+<span class="VarId">Muhammad</span>	<span class="VarId">shadow_wood</span>
+<span class="VarId">Muhammad</span>	<span class="VarId">raise_dead</span>
+<span class="VarId">Shiva</span>	<span class="VarId">gryphon</span>
+<span class="VarId">Shiva</span>	<span class="VarId">magic_knife</span>
+<span class="VarId">Shiva</span>	<span class="VarId">spectre</span>
+<span class="VarId">Shiva</span>	<span class="VarId">chaos</span>
+<span class="VarId">Shiva</span>	<span class="VarId">eagle</span>
+<span class="VarId">Shiva</span>	<span class="VarId">magic_armour</span>
+<span class="VarId">Shiva</span>	<span class="VarId">justice</span>
+<span class="VarId">Shiva</span>	<span class="VarId">harpy</span>
+<span class="VarId">Shiva</span>	<span class="VarId">subversion</span>
+<span class="VarId">Shiva</span>	<span class="VarId">lightning</span>
+<span class="VarId">Shiva</span>	<span class="VarId">wall</span>
+<span class="VarId">Shiva</span>	<span class="VarId">justice</span>
+<span class="VarId">Shiva</span>	<span class="VarId">eagle</span>
+<span class="VarId">Shiva</span>	<span class="VarId">magic_castle</span>
+<span class="VarId">Shiva</span>	<span class="VarId">magic_wings</span>
+<span class="VarId">Shiva</span>	<span class="VarId">hydra</span>
+<span class="VarId">Shiva</span>	<span class="VarId">magic_armour</span>
+<span class="VarId">Shiva</span>	<span class="VarId">magic_wood</span>
+<span class="VarId">Shiva</span>	<span class="VarId">subversion</span>
+<span class="VarId">Yeshua</span>	<span class="VarId">pegasus</span>
+<span class="VarId">Yeshua</span>	<span class="VarId">ghost</span>
+<span class="VarId">Yeshua</span>	<span class="VarId">magic_bow</span>
+<span class="VarId">Yeshua</span>	<span class="VarId">law</span>
+<span class="VarId">Yeshua</span>	<span class="VarId">gryphon</span>
+<span class="VarId">Yeshua</span>	<span class="VarId">hydra</span>
+<span class="VarId">Yeshua</span>	<span class="VarId">large_law</span>
+<span class="VarId">Yeshua</span>	<span class="VarId">green_dragon</span>
+<span class="VarId">Yeshua</span>	<span class="VarId">large_chaos</span>
+<span class="VarId">Yeshua</span>	<span class="VarId">dark_power</span>
+<span class="VarId">Yeshua</span>	<span class="VarId">faun</span>
+<span class="VarId">Yeshua</span>	<span class="VarId">giant_rat</span>
+<span class="VarId">Yeshua</span>	<span class="VarId">harpy</span>
+<span class="VarId">Yeshua</span>	<span class="VarId">ogre</span>
+<span class="VarId">Yeshua</span>	<span class="VarId">decree</span>
+<span class="VarId">Yeshua</span>	<span class="VarId">large_law</span>
+<span class="VarId">Yeshua</span>	<span class="VarId">raise_dead</span>
+<span class="VarId">Yeshua</span>	<span class="VarId">magic_bow</span>
+<span class="VarId">Yeshua</span>	<span class="VarId">shadow_wood</span>
+<span class="VarId">Zarathushthra</span>	<span class="VarId">chaos</span>
+<span class="VarId">Zarathushthra</span>	<span class="VarId">king_cobra</span>
+<span class="VarId">Zarathushthra</span>	<span class="VarId">gorilla</span>
+<span class="VarId">Zarathushthra</span>	<span class="VarId">decree</span>
+<span class="VarId">Zarathushthra</span>	<span class="VarId">shadow_form</span>
+<span class="VarId">Zarathushthra</span>	<span class="VarId">horse</span>
+<span class="VarId">Zarathushthra</span>	<span class="VarId">magic_knife</span>
+<span class="VarId">Zarathushthra</span>	<span class="VarId">large_law</span>
+<span class="VarId">Zarathushthra</span>	<span class="VarId">orc</span>
+<span class="VarId">Zarathushthra</span>	<span class="VarId">elf</span>
+<span class="VarId">Zarathushthra</span>	<span class="VarId">chaos</span>
+<span class="VarId">Zarathushthra</span>	<span class="VarId">magic_knife</span>
+<span class="VarId">Zarathushthra</span>	<span class="VarId">skeleton</span>
+<span class="VarId">Zarathushthra</span>	<span class="VarId">law</span>
+<span class="VarId">Zarathushthra</span>	<span class="VarId">ghost</span>
+<span class="VarId">Zarathushthra</span>	<span class="VarId">elf</span>
+<span class="VarId">Zarathushthra</span>	<span class="VarId">magic_castle</span>
+<span class="VarId">Zarathushthra</span>	<span class="VarId">magic_armour</span>
+<span class="VarId">Zarathushthra</span>	<span class="VarId">magic_bow</span>
+\<span class="Symbol">.</span>
 
 
 </pre></div></div></div><br
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../../index.txt.html"
+    ><a href="../../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -77,9 +77,9 @@
         <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">producedLib</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">newLib</span>
 
 <span class="ConId">SEM</span> <span class="ConId">Statement</span>
-    <span class="Symbol">|</span> <span class="ConId">SelectStatement</span> <span class="ConId">Insert</span> <span class="ConId">Update</span> <span class="ConId">Delete</span> <span class="ConId">CreateView</span> <span class="ConId">CreateDomain</span> <span class="ConId">CreateLanguage</span>
+    <span class="Symbol">|</span> <span class="ConId">QueryStatement</span> <span class="ConId">Insert</span> <span class="ConId">Update</span> <span class="ConId">Delete</span> <span class="ConId">CreateView</span> <span class="ConId">CreateDomain</span> <span class="ConId">CreateLanguage</span>
       <span class="ConId">CreateFunction</span> <span class="ConId">CreateType</span> <span class="ConId">CreateTable</span> <span class="ConId">CreateTableAs</span> <span class="ConId">Return</span> <span class="ConId">Assignment</span>
-      <span class="ConId">ForSelectStatement</span> <span class="ConId">ForIntegerStatement</span> <span class="ConId">DropFunction</span>
+      <span class="ConId">ForQueryStatement</span> <span class="ConId">ForIntegerStatement</span> <span class="ConId">DropFunction</span>
         <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">:</span> <span class="Symbol">{</span><span class="ConId">Either</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">]</span> <span class="ConId">Type</span><span class="Symbol">}</span>
         <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">statementType</span> <span class="Symbol">:</span> <span class="Symbol">{</span><span class="ConId">Maybe</span> <span class="ConId">StatementType</span><span class="Symbol">}</span>
         <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Symbol">=</span>
@@ -92,7 +92,7 @@
         <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">libUpdates</span> <span class="Symbol">=</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">libUpdates</span>
     <span class="Symbol">|</span> <span class="ConId">Insert</span> <span class="ConId">Update</span> <span class="ConId">Delete</span> <span class="ConId">CreateView</span> <span class="ConId">CreateDomain</span>
       <span class="ConId">CreateFunction</span> <span class="ConId">CreateType</span> <span class="ConId">CreateTable</span> <span class="ConId">CreateTableAs</span> <span class="ConId">Return</span>
-      <span class="ConId">Assignment</span> <span class="ConId">ForSelectStatement</span> <span class="ConId">ForIntegerStatement</span> <span class="ConId">Set</span> <span class="ConId">CreateLanguage</span>
+      <span class="ConId">Assignment</span> <span class="ConId">ForQueryStatement</span> <span class="ConId">ForIntegerStatement</span> <span class="ConId">Set</span> <span class="ConId">CreateLanguage</span>
       <span class="ConId">Notify</span> <span class="ConId">CreateSequence</span> <span class="ConId">AlterSequence</span> <span class="ConId">DropFunction</span> <span class="ConId">Block</span>
         <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">libUpdates</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
 
@@ -119,11 +119,11 @@
         <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">catUpdates</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
         <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">libUpdates</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
 
-<span class="ConId">SEM</span> <span class="ConId">ExpressionListStatementListPair</span>
+<span class="ConId">SEM</span> <span class="ConId">ScalarExprListStatementListPair</span>
     <span class="Symbol">|</span> <span class="ConId">Tuple</span>
         <span class="VarId">x2</span><span class="Symbol">.</span><span class="VarId">catUpdates</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
         <span class="VarId">x2</span><span class="Symbol">.</span><span class="VarId">libUpdates</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
-<span class="ConId">SEM</span> <span class="ConId">ExpressionStatementListPair</span>
+<span class="ConId">SEM</span> <span class="ConId">ScalarExprStatementListPair</span>
     <span class="Symbol">|</span> <span class="ConId">Tuple</span>
         <span class="VarId">x2</span><span class="Symbol">.</span><span class="VarId">catUpdates</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
         <span class="VarId">x2</span><span class="Symbol">.</span><span class="VarId">libUpdates</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
@@ -137,13 +137,13 @@
         <span class="VarId">els</span><span class="Symbol">.</span><span class="VarId">catUpdates</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
         <span class="VarId">els</span><span class="Symbol">.</span><span class="VarId">libUpdates</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
 <span class="ConId">SEM</span> <span class="ConId">Statement</span>
-    <span class="Symbol">|</span> <span class="ConId">ForIntegerStatement</span> <span class="ConId">ForSelectStatement</span> <span class="ConId">WhileStatement</span> <span class="ConId">LoopStatement</span>
+    <span class="Symbol">|</span> <span class="ConId">ForIntegerStatement</span> <span class="ConId">ForQueryStatement</span> <span class="ConId">WhileStatement</span> <span class="ConId">LoopStatement</span>
         <span class="VarId">sts</span><span class="Symbol">.</span><span class="VarId">catUpdates</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
         <span class="VarId">sts</span><span class="Symbol">.</span><span class="VarId">libUpdates</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
 
 
 
-<span class="ConId">INCLUDE</span> <span class="String">&quot;TypeChecking/SelectStatement.ag&quot;</span>
+<span class="ConId">INCLUDE</span> <span class="String">&quot;TypeChecking/QueryStatement.ag&quot;</span>
 <span class="ConId">INCLUDE</span> <span class="String">&quot;TypeChecking/Insert.ag&quot;</span>
 <span class="ConId">INCLUDE</span> <span class="String">&quot;TypeChecking/Update.ag&quot;</span>
 <span class="ConId">INCLUDE</span> <span class="String">&quot;TypeChecking/Delete.ag&quot;</span>
@@ -159,7 +159,7 @@
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../index.txt.html"
+    ><a href="../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -20,22 +20,22 @@
     ><p
     >*/</p
     ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-select module('Chaos.Server.Wizards');
+<span class="Keyword">select</span> <span class="VarId">module</span><span class="Symbol">(</span><span class="Char">'Chaos.Server.Wizards'</span><span class="Symbol">);</span>
 
-create table wizards (
-  wizard_name text primary key,
-  shadow_form boolean default false,
-  magic_sword boolean default false,
-  magic_knife boolean default false,
-  magic_shield boolean default false,
-  magic_wings boolean default false,
-  magic_armour boolean default false,
-  magic_bow boolean default false,
-  computer_controlled boolean,
-  original_place int, -- 0 &lt;= n &lt; num wizards
-  expired boolean default false
-);
-select set_relvar_type('wizards', 'data');
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">wizards</span> <span class="Symbol">(</span>
+  <span class="VarId">wizard_name</span> <span class="Type">text</span> <span class="Keyword">primary</span> <span class="Keyword">key</span><span class="Symbol">,</span>
+  <span class="VarId">shadow_form</span> <span class="VarId">boolean</span> <span class="Keyword">default</span> <span class="VarId">false</span><span class="Symbol">,</span>
+  <span class="VarId">magic_sword</span> <span class="VarId">boolean</span> <span class="Keyword">default</span> <span class="VarId">false</span><span class="Symbol">,</span>
+  <span class="VarId">magic_knife</span> <span class="VarId">boolean</span> <span class="Keyword">default</span> <span class="VarId">false</span><span class="Symbol">,</span>
+  <span class="VarId">magic_shield</span> <span class="VarId">boolean</span> <span class="Keyword">default</span> <span class="VarId">false</span><span class="Symbol">,</span>
+  <span class="VarId">magic_wings</span> <span class="VarId">boolean</span> <span class="Keyword">default</span> <span class="VarId">false</span><span class="Symbol">,</span>
+  <span class="VarId">magic_armour</span> <span class="VarId">boolean</span> <span class="Keyword">default</span> <span class="VarId">false</span><span class="Symbol">,</span>
+  <span class="VarId">magic_bow</span> <span class="VarId">boolean</span> <span class="Keyword">default</span> <span class="VarId">false</span><span class="Symbol">,</span>
+  <span class="VarId">computer_controlled</span> <span class="VarId">boolean</span><span class="Symbol">,</span>
+  <span class="VarId">original_place</span> <span class="Type">int</span><span class="Symbol">,</span> <span class="Comment">-- 0 &lt;= n &lt; num wizards</span>
+  <span class="VarId">expired</span> <span class="VarId">boolean</span> <span class="Keyword">default</span> <span class="VarId">false</span>
+<span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'wizards'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span>
 
 </pre></div></div></div><p
     >/*</p
@@ -55,21 +55,21 @@ select set_relvar_type('wizards', 'data');
     >/* == spell books Wizard 'wizard_name' is able to cast spell 'spell_name'. */</p
     ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-create table spell_books (
-  id serial unique,
-  wizard_name text references wizards,
-  spell_name text references spells_mr
-);
-select set_relvar_type('spell_books', 'data');
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">spell_books</span> <span class="Symbol">(</span>
+  <span class="VarId">id</span> <span class="Type">serial</span> <span class="Keyword">unique</span><span class="Symbol">,</span>
+  <span class="VarId">wizard_name</span> <span class="Type">text</span> <span class="Keyword">references</span> <span class="VarId">wizards</span><span class="Symbol">,</span>
+  <span class="VarId">spell_name</span> <span class="Type">text</span> <span class="Keyword">references</span> <span class="VarId">spells_mr</span>
+<span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'spell_books'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span>
 
-select create_assertion('no_spells_for_stiffs',
-  $$ not exists(select 1 from spell_books
-  natural inner join wizards where expired = true)$$);
+<span class="Keyword">select</span> <span class="VarId">create_assertion</span><span class="Symbol">(</span><span class="Char">'no_spells_for_stiffs'</span><span class="Symbol">,</span>
+  $$ <span class="Keyword">not</span> <span class="Keyword">exists</span><span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">spell_books</span>
+  <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">wizards</span> <span class="Keyword">where</span> <span class="VarId">expired</span> <span class="Symbol">=</span> <span class="VarId">true</span><span class="Symbol">)</span>$$<span class="Symbol">);</span>
 </pre></div></div></div><br
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

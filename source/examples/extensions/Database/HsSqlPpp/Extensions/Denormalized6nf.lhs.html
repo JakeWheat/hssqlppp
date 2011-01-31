@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../index.txt.html"
+    ><a href="../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -19,20 +19,20 @@
     >example idea:</p
     ><p
     >this is the basic table we want to produce</p
-    ><div class='sql'><pre class="sourceCode">create table piece_prototypes (
-  ptype text primary key,
-  flying boolean null,
-  speed int null,
-  agility int null,
-  undead boolean null,
-  ridable boolean null,
-  ranged_weapon_type text,
-  range int null,
-  ranged_attack_strength int null,
-  attack_strength int null,
-  physical_defense int null,
-  magic_defense int null
-);</pre></div><p
+    ><div class='sql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">piece_prototypes</span> <span class="Symbol">(</span>
+  <span class="VarId">ptype</span> <span class="Type">text</span> <span class="Keyword">primary</span> <span class="Keyword">key</span><span class="Symbol">,</span>
+  <span class="VarId">flying</span> <span class="VarId">boolean</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+  <span class="VarId">speed</span> <span class="Type">int</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+  <span class="VarId">agility</span> <span class="Type">int</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+  <span class="VarId">undead</span> <span class="VarId">boolean</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+  <span class="VarId">ridable</span> <span class="VarId">boolean</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+  <span class="VarId">ranged_weapon_type</span> <span class="Type">text</span><span class="Symbol">,</span>
+  <span class="Keyword">range</span> <span class="Type">int</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+  <span class="VarId">ranged_attack_strength</span> <span class="Type">int</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+  <span class="VarId">attack_strength</span> <span class="Type">int</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+  <span class="VarId">physical_defense</span> <span class="Type">int</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+  <span class="VarId">magic_defense</span> <span class="Type">int</span> <span class="VarId">null</span>
+<span class="Symbol">);</span></pre></div><p
     >these fields are group as follows</p
     ><pre
     ><code
@@ -136,7 +136,7 @@ monster
             <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
               <span class="ConId">SelectList</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">SelectList</span> <span class="VarId">ea</span> <span class="Symbol">(</span><span class="VarId">map</span> <span class="Symbol">(</span><span class="ConId">SelExp</span> <span class="VarId">ea</span><span class="Symbol">)</span> <span class="VarId">attrs</span><span class="Symbol">)</span> <span class="Symbol">[]</span>
               <span class="Comment">-- x1 -&gt; x1</span>
-        <span class="VarId">makeConstraint</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,[(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">Expression</span><span class="Symbol">])])</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">Constraint</span>
+        <span class="VarId">makeConstraint</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,[(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">ScalarExpr</span><span class="Symbol">])])</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">Constraint</span>
         <span class="VarId">makeConstraint</span> <span class="Symbol">(</span><span class="VarId">tn</span><span class="Symbol">,</span> <span class="VarId">flds</span><span class="Symbol">)</span> <span class="Symbol">=</span>
           <span class="Keyword">let</span> <span class="VarId">newFields</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">reverse</span> <span class="VarId">flds</span> <span class="Keyword">of</span>
                               <span class="Symbol">(</span><span class="VarId">_</span><span class="Symbol">,</span> <span class="VarId">f</span><span class="Symbol">):</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="VarId">f</span>
@@ -154,7 +154,7 @@ monster
              <span class="Keyword">then</span> <span class="ConId">Nothing</span>
              <span class="Keyword">else</span> <span class="ConId">Just</span> <span class="Symbol">$</span> <span class="ConId">CheckConstraint</span> <span class="VarId">ea</span> <span class="Symbol">(</span><span class="VarId">tn</span> <span class="Symbol">++</span> <span class="String">&quot;_fields&quot;</span><span class="Symbol">)</span>
                           <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="Symbol">($(</span><span class="VarId">nulls</span><span class="Symbol">))</span> <span class="VarId">or</span> <span class="Symbol">($(</span><span class="VarId">nots</span><span class="Symbol">))</span> <span class="Symbol">|]</span>
-        <span class="VarId">makeView</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,[(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">Expression</span><span class="Symbol">])])</span> <span class="Symbol">-&gt;</span> <span class="ConId">Statement</span>
+        <span class="VarId">makeView</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,[(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">ScalarExpr</span><span class="Symbol">])])</span> <span class="Symbol">-&gt;</span> <span class="ConId">Statement</span>
         <span class="VarId">makeView</span> <span class="Symbol">(</span><span class="VarId">tn</span><span class="Symbol">,</span> <span class="VarId">flds</span><span class="Symbol">)</span> <span class="Symbol">=</span>
           <span class="Keyword">let</span> <span class="VarId">allFields</span> <span class="Symbol">=</span> <span class="VarId">nub</span> <span class="Symbol">$</span> <span class="VarId">concatMap</span> <span class="VarId">snd</span> <span class="VarId">flds</span>
               <span class="VarId">allFirstFields</span> <span class="Symbol">=</span> <span class="VarId">nub</span> <span class="Symbol">$</span> <span class="VarId">mapMaybe</span> <span class="Symbol">((\</span><span class="VarId">f</span> <span class="Symbol">-&gt;</span> <span class="Keyword">case</span> <span class="VarId">f</span> <span class="Keyword">of</span>
@@ -173,11 +173,11 @@ monster
         <span class="VarId">map</span> <span class="VarId">makeView</span> <span class="Symbol">(</span><span class="VarId">getExtraFields</span> <span class="VarId">subt</span><span class="Symbol">))</span>
     <span class="Keyword">where</span>
       <span class="VarId">idFromAttr</span> <span class="Symbol">=</span> <span class="ConId">Identifier</span> <span class="VarId">ea</span> <span class="Symbol">.</span> <span class="VarId">attributeName</span>
-      <span class="VarId">getExtraFields</span> <span class="Symbol">::</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">String</span><span class="Symbol">],[</span><span class="ConId">AttributeDef</span><span class="Symbol">])]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,[(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">Expression</span><span class="Symbol">])])]</span> <span class="Comment">-- table name, sourcetable,fieldlist</span>
+      <span class="VarId">getExtraFields</span> <span class="Symbol">::</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">String</span><span class="Symbol">],[</span><span class="ConId">AttributeDef</span><span class="Symbol">])]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,[(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">ScalarExpr</span><span class="Symbol">])])]</span> <span class="Comment">-- table name, sourcetable,fieldlist</span>
       <span class="VarId">getExtraFields</span> <span class="VarId">tinfo</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="VarId">t1</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="VarId">gef</span> <span class="VarId">tinfo</span>
                              <span class="Keyword">in</span> <span class="VarId">map</span> <span class="Symbol">(\</span><span class="VarId">a</span><span class="Symbol">@((</span><span class="VarId">tn</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">):</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="VarId">tn</span><span class="Symbol">,</span> <span class="VarId">reverse</span> <span class="VarId">a</span><span class="Symbol">))</span> <span class="VarId">t1</span> <span class="Comment">--first reverse here</span>
         <span class="Keyword">where</span>
-          <span class="VarId">gef</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">String</span><span class="Symbol">],[</span><span class="ConId">AttributeDef</span><span class="Symbol">])</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">Expression</span><span class="Symbol">])]</span>
+          <span class="VarId">gef</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">String</span><span class="Symbol">],[</span><span class="ConId">AttributeDef</span><span class="Symbol">])</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">ScalarExpr</span><span class="Symbol">])]</span>
           <span class="VarId">gef</span> <span class="Symbol">(</span><span class="VarId">tn</span><span class="Symbol">,</span><span class="VarId">subtns</span><span class="Symbol">,</span><span class="VarId">attrs</span><span class="Symbol">)</span> <span class="Symbol">=</span>
             <span class="Keyword">let</span> <span class="VarId">subtnlist</span> <span class="Symbol">::</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">String</span><span class="Symbol">],[</span><span class="ConId">AttributeDef</span><span class="Symbol">])]</span>
                 <span class="VarId">subtnlist</span> <span class="Symbol">=</span> <span class="VarId">mapMaybe</span> <span class="VarId">lookupst</span> <span class="VarId">subtns</span>
@@ -186,11 +186,11 @@ monster
           <span class="VarId">lookupst</span> <span class="VarId">st</span> <span class="Symbol">=</span> <span class="VarId">find</span> <span class="Symbol">(\(</span><span class="VarId">tn</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="VarId">tn</span> <span class="Symbol">==</span> <span class="VarId">st</span><span class="Symbol">)</span> <span class="VarId">tinfo</span></pre></div></div></div><p
     >the two reverses seem to be what's needed to get the field lists for each view in the order a) they appear in the file, and b) base classes first.</p
     ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
-<span class="Function">makeNotNull</span> <span class="Symbol">::</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">Expression</span>
+<span class="Function">makeNotNull</span> <span class="Symbol">::</span> <span class="ConId">ScalarExpr</span> <span class="Symbol">-&gt;</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">makeNotNull</span> <span class="VarId">x</span> <span class="Symbol">=</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="Symbol">$(</span><span class="VarId">x</span><span class="Symbol">)</span> <span class="VarId">is</span> <span class="VarId">not</span> <span class="VarId">null</span> <span class="Symbol">|]</span>
 
-<span class="Function">makeNull</span> <span class="Symbol">::</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">Expression</span>
-<span class="Function">makeNull</span> <span class="VarId">x</span> <span class="Symbol">=</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="Symbol">$(</span><span class="VarId">x</span><span class="Symbol">)</span> <span class="VarId">is</span> <span class="VarId">null</span> <span class="Symbol">|]</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">andTogether</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Expression</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Expression</span>
+<span class="Function">makeNull</span> <span class="Symbol">::</span> <span class="ConId">ScalarExpr</span> <span class="Symbol">-&gt;</span> <span class="ConId">ScalarExpr</span>
+<span class="Function">makeNull</span> <span class="VarId">x</span> <span class="Symbol">=</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="Symbol">$(</span><span class="VarId">x</span><span class="Symbol">)</span> <span class="VarId">is</span> <span class="VarId">null</span> <span class="Symbol">|]</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">andTogether</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">ScalarExpr</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">andTogether</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="VarId">t</span> <span class="Symbol">=</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="ConId">True</span> <span class="Symbol">|]</span>
               <span class="Keyword">in</span> <span class="VarId">foldr</span> <span class="Symbol">(\</span><span class="VarId">a</span> <span class="VarId">b</span> <span class="Symbol">-&gt;</span>
                          <span class="Keyword">if</span> <span class="VarId">b</span> <span class="Symbol">==</span> <span class="VarId">t</span>
@@ -200,7 +200,7 @@ monster
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

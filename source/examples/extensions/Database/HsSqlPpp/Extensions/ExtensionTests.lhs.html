@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../index.txt.html"
+    ><a href="../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -93,13 +93,15 @@ create table readonly_table ...
   <span class="VarId">testCase</span> <span class="VarId">nm</span> <span class="Symbol">$</span> <span class="Keyword">do</span>
     <span class="Keyword">let</span> <span class="VarId">ts'</span> <span class="Symbol">=</span> <span class="VarId">resetAnnotations</span> <span class="VarId">ts</span>
         <span class="VarId">es'</span> <span class="Symbol">=</span> <span class="VarId">resetAnnotations</span> <span class="Symbol">$</span> <span class="VarId">tr</span> <span class="VarId">sast</span>
-    <span class="VarId">when</span> <span class="Symbol">(</span><span class="VarId">ts'</span> <span class="Symbol">/=</span> <span class="VarId">es'</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="VarId">putStrLn</span> <span class="Symbol">$</span> <span class="VarId">printSql</span> <span class="VarId">ts'</span> <span class="Symbol">++</span> <span class="String">&quot;\n----\n&quot;</span> <span class="Symbol">++</span> <span class="VarId">printSql</span> <span class="VarId">es'</span> <span class="Symbol">++</span> <span class="String">&quot;\n====\n&quot;</span>
+    <span class="VarId">when</span> <span class="Symbol">(</span><span class="VarId">ts'</span> <span class="Symbol">/=</span> <span class="VarId">es'</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="VarId">putStrLn</span> <span class="Symbol">$</span> <span class="VarId">printStatements</span> <span class="VarId">ts'</span>
+                        <span class="Symbol">++</span> <span class="String">&quot;\n----\n&quot;</span> <span class="Symbol">++</span> <span class="VarId">printStatements</span> <span class="VarId">es'</span>
+                        <span class="Symbol">++</span> <span class="String">&quot;\n====\n&quot;</span>
                         <span class="Comment">-- ++ ppExpr ts' ++ &quot;\n----\n&quot; ++ ppExpr es'</span>
     <span class="VarId">assertEqual</span> <span class="String">&quot;&quot;</span> <span class="VarId">ts'</span> <span class="VarId">es'</span></pre></div></div></div><br
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../index.txt.html"
+    ><a href="../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -28,11 +28,11 @@
 	><p
 	>*/</p
 	><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-select module('Chaos.Server.PiecePrototypes');
+<span class="Keyword">select</span> <span class="VarId">module</span><span class="Symbol">(</span><span class="Char">'Chaos.Server.PiecePrototypes'</span><span class="Symbol">);</span>
 
---creature ranged weapons can be either projectiles or fireballs
-create domain ranged_weapon_type as text
-  check (value in ('projectile', 'fire'));
+<span class="Comment">--creature ranged weapons can be either projectiles or fireballs</span>
+<span class="Keyword">create</span> <span class="Keyword">domain</span> <span class="VarId">ranged_weapon_type</span> <span class="Keyword">as</span> <span class="VarId">text</span>
+  <span class="Keyword">check</span> <span class="Symbol">(</span><span class="VarId">value</span> <span class="VarId">in</span> <span class="Symbol">(</span><span class="Char">'projectile'</span><span class="Symbol">,</span> <span class="Char">'fire'</span><span class="Symbol">));</span>
 
 </pre></div></div></div><p
 	>/*</p
@@ -44,59 +44,59 @@ create domain ranged_weapon_type as text
 	>*/</p
 	><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-select create6nf ($$
+<span class="Keyword">select</span> <span class="VarId">create6nf</span> <span class="Symbol">(</span>$$
 
-  piece_prototypes_mr (
-    ptype text primary key
-  );
+  <span class="VarId">piece_prototypes_mr</span> <span class="Symbol">(</span>
+    <span class="VarId">ptype</span> <span class="Type">text</span> <span class="Keyword">primary</span> <span class="VarId">key</span>
+  <span class="Symbol">);</span>
 
-  attacking_prototypes : piece_prototypes (
-     attack_strength int
-  );
+  <span class="VarId">attacking_prototypes</span> <span class="Symbol">:</span> <span class="VarId">piece_prototypes</span> <span class="Symbol">(</span>
+     <span class="VarId">attack_strength</span> <span class="VarId">int</span>
+  <span class="Symbol">);</span>
 
-  attackable_prototypes : piece_prototypes (
-    physical_defense int
-  );
+  <span class="VarId">attackable_prototypes</span> <span class="Symbol">:</span> <span class="VarId">piece_prototypes</span> <span class="Symbol">(</span>
+    <span class="VarId">physical_defense</span> <span class="VarId">int</span>
+  <span class="Symbol">);</span>
 
-  magic_attackable_prototypes : piece_prototypes (
-    magic_defense int
-  );
+  <span class="VarId">magic_attackable_prototypes</span> <span class="Symbol">:</span> <span class="VarId">piece_prototypes</span> <span class="Symbol">(</span>
+    <span class="VarId">magic_defense</span> <span class="VarId">int</span>
+  <span class="Symbol">);</span>
 
-  creature_prototypes : piece_prototypes_mr
-                       ,attacking_prototypes
-                       ,attackable_prototypes
-                       ,magic_attackable_prototypes (
-    flying boolean,
-    speed int,
-    agility int
-  );
+  <span class="VarId">creature_prototypes</span> <span class="Symbol">:</span> <span class="VarId">piece_prototypes_mr</span>
+                       <span class="Symbol">,</span><span class="VarId">attacking_prototypes</span>
+                       <span class="Symbol">,</span><span class="VarId">attackable_prototypes</span>
+                       <span class="Symbol">,</span><span class="VarId">magic_attackable_prototypes</span> <span class="Symbol">(</span>
+    <span class="VarId">flying</span> <span class="VarId">boolean</span><span class="Symbol">,</span>
+    <span class="VarId">speed</span> <span class="Type">int</span><span class="Symbol">,</span>
+    <span class="VarId">agility</span> <span class="VarId">int</span>
+  <span class="Symbol">);</span>
 
-  monster_prototypes : creature_prototypes (
-    undead boolean,
-    ridable boolean
-  );
+  <span class="VarId">monster_prototypes</span> <span class="Symbol">:</span> <span class="VarId">creature_prototypes</span> <span class="Symbol">(</span>
+    <span class="VarId">undead</span> <span class="VarId">boolean</span><span class="Symbol">,</span>
+    <span class="VarId">ridable</span> <span class="VarId">boolean</span>
+  <span class="Symbol">);</span>
 
-  range_attacking_prototypes : creature_prototypes (
-    ranged_weapon_type ranged_weapon_type,
-    range int,
-    ranged_attack_strength int
-  );
+  <span class="VarId">range_attacking_prototypes</span> <span class="Symbol">:</span> <span class="VarId">creature_prototypes</span> <span class="Symbol">(</span>
+    <span class="VarId">ranged_weapon_type</span> <span class="VarId">ranged_weapon_type</span><span class="Symbol">,</span>
+    <span class="Keyword">range</span> <span class="Type">int</span><span class="Symbol">,</span>
+    <span class="VarId">ranged_attack_strength</span> <span class="VarId">int</span>
+  <span class="Symbol">);</span>
 
-$$);
+$$<span class="Symbol">);</span>
 
-create view object_piece_types as
-  select ptype from piece_prototypes_mr where speed is null;
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">object_piece_types</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="VarId">ptype</span> <span class="Keyword">from</span> <span class="VarId">piece_prototypes_mr</span> <span class="Keyword">where</span> <span class="VarId">speed</span> <span class="VarId">is</span> <span class="Keyword">null</span><span class="Symbol">;</span>
 
-create view ridable_prototypes as
-  select ptype from piece_prototypes_mr
-    where ridable;
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">ridable_prototypes</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="VarId">ptype</span> <span class="Keyword">from</span> <span class="VarId">piece_prototypes_mr</span>
+    <span class="Keyword">where</span> <span class="VarId">ridable</span><span class="Symbol">;</span>
 
-create view enterable_piece_types as
-  select 'magic_tree'::text as ptype
-  union all
-  select 'magic_castle'
-  union all
-  select 'dark_citadel';
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">enterable_piece_types</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="Char">'magic_tree'</span><span class="Symbol">::</span><span class="Type">text</span> <span class="Keyword">as</span> <span class="VarId">ptype</span>
+  <span class="Keyword">union</span> <span class="VarId">all</span>
+  <span class="Keyword">select</span> <span class="Char">'magic_castle'</span>
+  <span class="Keyword">union</span> <span class="VarId">all</span>
+  <span class="Keyword">select</span> <span class="Char">'dark_citadel'</span><span class="Symbol">;</span>
 </pre></div></div></div><p
 	>/* data ----</p
 	><p
@@ -106,57 +106,57 @@ create view enterable_piece_types as
 	><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
 
-copy piece_prototypes_mr(ptype,flying,speed,agility,undead,ridable,
-ranged_weapon_type,ranged_attack_strength,range,attack_strength,
-physical_defense,magic_defense) from stdin;
-bat	t	5	4	f	f	\N	\N	\N	1	1	9
-bear	f	2	2	f	f	\N	\N	\N	6	7	6
-centaur	f	4	5	f	t	projectile	2	4	1	3	5
-crocodile	f	1	2	f	f	\N	\N	\N	5	6	2
-dark_citadel	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N
-dire_wolf	f	3	2	f	f	\N	\N	\N	3	2	7
-eagle	t	6	2	f	f	\N	\N	\N	3	3	8
-elf	f	1	7	f	f	projectile	2	6	1	2	5
-faun	f	1	8	f	f	\N	\N	\N	3	2	7
-ghost	t	2	6	t	f	\N	\N	\N	1	3	9
-giant	f	2	5	f	f	\N	\N	\N	9	7	6
-giant_rat	f	3	2	f	f	\N	\N	\N	1	1	8
-goblin	f	1	4	f	f	\N	\N	\N	2	4	4
-golden_dragon	t	3	5	f	f	fire	5	4	9	9	5
-gooey_blob	\N	\N	\N	\N	\N	\N	\N	\N	\N	1	\N
-gorilla	f	1	2	f	f	\N	\N	\N	6	5	4
-green_dragon	t	3	4	f	f	fire	4	6	5	8	4
-gryphon	t	5	6	f	t	\N	\N	\N	3	5	5
-harpy	t	5	5	f	f	\N	\N	\N	4	2	8
-horse	f	4	1	f	t	\N	\N	\N	1	3	8
-hydra	f	1	6	f	f	\N	\N	\N	7	8	4
-king_cobra	f	1	1	f	f	\N	\N	\N	4	1	6
-lion	f	4	3	f	f	\N	\N	\N	6	4	8
-magic_castle	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N
-magic_fire	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N
-magic_tree	\N	\N	\N	\N	\N	\N	\N	\N	\N	5	\N
-manticore	t	5	8	f	t	projectile	1	3	3	6	6
-ogre	f	1	6	f	f	\N	\N	\N	4	7	3
-orc	f	1	4	f	f	\N	\N	\N	2	1	4
-pegasus	t	5	7	f	t	\N	\N	\N	2	4	6
-red_dragon	t	3	5	f	f	fire	3	5	7	9	4
-shadow_tree	\N	\N	\N	\N	\N	\N	\N	\N	2	4	\N
-skeleton	f	1	4	t	f	\N	\N	\N	3	2	3
-spectre	f	1	4	t	f	\N	\N	\N	4	2	6
-unicorn	f	4	7	f	t	\N	\N	\N	5	4	9
-vampire	t	4	5	t	f	\N	\N	\N	6	8	6
-wall	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N	\N
-wizard	f	1	3	\N	\N	\N	\N	\N	3	3	5
-wraith	f	2	5	t	f	\N	\N	\N	5	5	4
-zombie	f	1	3	t	f	\N	\N	\N	1	1	2
-\.
+<span class="Keyword">copy</span> <span class="VarId">piece_prototypes_mr</span><span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">flying</span><span class="Symbol">,</span><span class="VarId">speed</span><span class="Symbol">,</span><span class="VarId">agility</span><span class="Symbol">,</span><span class="VarId">undead</span><span class="Symbol">,</span><span class="VarId">ridable</span><span class="Symbol">,</span>
+<span class="VarId">ranged_weapon_type</span><span class="Symbol">,</span><span class="VarId">ranged_attack_strength</span><span class="Symbol">,</span><span class="Keyword">range</span><span class="Symbol">,</span><span class="VarId">attack_strength</span><span class="Symbol">,</span>
+<span class="VarId">physical_defense</span><span class="Symbol">,</span><span class="VarId">magic_defense</span><span class="Symbol">)</span> <span class="Keyword">from</span> <span class="Keyword">stdin</span><span class="Symbol">;</span>
+<span class="VarId">bat</span>	<span class="VarId">t</span>	<span class="Number">5</span>	<span class="Number">4</span>	<span class="VarId">f</span>	<span class="VarId">f</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="Number">9</span>
+<span class="VarId">bear</span>	<span class="VarId">f</span>	<span class="Number">2</span>	<span class="Number">2</span>	<span class="VarId">f</span>	<span class="VarId">f</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">6</span>	<span class="Number">7</span>	<span class="Number">6</span>
+<span class="VarId">centaur</span>	<span class="VarId">f</span>	<span class="Number">4</span>	<span class="Number">5</span>	<span class="VarId">f</span>	<span class="VarId">t</span>	<span class="VarId">projectile</span>	<span class="Number">2</span>	<span class="Number">4</span>	<span class="Number">1</span>	<span class="Number">3</span>	<span class="Number">5</span>
+<span class="VarId">crocodile</span>	<span class="VarId">f</span>	<span class="Number">1</span>	<span class="Number">2</span>	<span class="VarId">f</span>	<span class="VarId">f</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">5</span>	<span class="Number">6</span>	<span class="Number">2</span>
+<span class="VarId">dark_citadel</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>
+<span class="VarId">dire_wolf</span>	<span class="VarId">f</span>	<span class="Number">3</span>	<span class="Number">2</span>	<span class="VarId">f</span>	<span class="VarId">f</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">3</span>	<span class="Number">2</span>	<span class="Number">7</span>
+<span class="VarId">eagle</span>	<span class="VarId">t</span>	<span class="Number">6</span>	<span class="Number">2</span>	<span class="VarId">f</span>	<span class="VarId">f</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">3</span>	<span class="Number">3</span>	<span class="Number">8</span>
+<span class="VarId">elf</span>	<span class="VarId">f</span>	<span class="Number">1</span>	<span class="Number">7</span>	<span class="VarId">f</span>	<span class="VarId">f</span>	<span class="VarId">projectile</span>	<span class="Number">2</span>	<span class="Number">6</span>	<span class="Number">1</span>	<span class="Number">2</span>	<span class="Number">5</span>
+<span class="VarId">faun</span>	<span class="VarId">f</span>	<span class="Number">1</span>	<span class="Number">8</span>	<span class="VarId">f</span>	<span class="VarId">f</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">3</span>	<span class="Number">2</span>	<span class="Number">7</span>
+<span class="VarId">ghost</span>	<span class="VarId">t</span>	<span class="Number">2</span>	<span class="Number">6</span>	<span class="VarId">t</span>	<span class="VarId">f</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">1</span>	<span class="Number">3</span>	<span class="Number">9</span>
+<span class="VarId">giant</span>	<span class="VarId">f</span>	<span class="Number">2</span>	<span class="Number">5</span>	<span class="VarId">f</span>	<span class="VarId">f</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">9</span>	<span class="Number">7</span>	<span class="Number">6</span>
+<span class="VarId">giant_rat</span>	<span class="VarId">f</span>	<span class="Number">3</span>	<span class="Number">2</span>	<span class="VarId">f</span>	<span class="VarId">f</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="Number">8</span>
+<span class="VarId">goblin</span>	<span class="VarId">f</span>	<span class="Number">1</span>	<span class="Number">4</span>	<span class="VarId">f</span>	<span class="VarId">f</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">2</span>	<span class="Number">4</span>	<span class="Number">4</span>
+<span class="VarId">golden_dragon</span>	<span class="VarId">t</span>	<span class="Number">3</span>	<span class="Number">5</span>	<span class="VarId">f</span>	<span class="VarId">f</span>	<span class="VarId">fire</span>	<span class="Number">5</span>	<span class="Number">4</span>	<span class="Number">9</span>	<span class="Number">9</span>	<span class="Number">5</span>
+<span class="VarId">gooey_blob</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">1</span>	\<span class="VarId">N</span>
+<span class="VarId">gorilla</span>	<span class="VarId">f</span>	<span class="Number">1</span>	<span class="Number">2</span>	<span class="VarId">f</span>	<span class="VarId">f</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">6</span>	<span class="Number">5</span>	<span class="Number">4</span>
+<span class="VarId">green_dragon</span>	<span class="VarId">t</span>	<span class="Number">3</span>	<span class="Number">4</span>	<span class="VarId">f</span>	<span class="VarId">f</span>	<span class="VarId">fire</span>	<span class="Number">4</span>	<span class="Number">6</span>	<span class="Number">5</span>	<span class="Number">8</span>	<span class="Number">4</span>
+<span class="VarId">gryphon</span>	<span class="VarId">t</span>	<span class="Number">5</span>	<span class="Number">6</span>	<span class="VarId">f</span>	<span class="VarId">t</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">3</span>	<span class="Number">5</span>	<span class="Number">5</span>
+<span class="VarId">harpy</span>	<span class="VarId">t</span>	<span class="Number">5</span>	<span class="Number">5</span>	<span class="VarId">f</span>	<span class="VarId">f</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">4</span>	<span class="Number">2</span>	<span class="Number">8</span>
+<span class="VarId">horse</span>	<span class="VarId">f</span>	<span class="Number">4</span>	<span class="Number">1</span>	<span class="VarId">f</span>	<span class="VarId">t</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">1</span>	<span class="Number">3</span>	<span class="Number">8</span>
+<span class="VarId">hydra</span>	<span class="VarId">f</span>	<span class="Number">1</span>	<span class="Number">6</span>	<span class="VarId">f</span>	<span class="VarId">f</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">7</span>	<span class="Number">8</span>	<span class="Number">4</span>
+<span class="VarId">king_cobra</span>	<span class="VarId">f</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">f</span>	<span class="VarId">f</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">4</span>	<span class="Number">1</span>	<span class="Number">6</span>
+<span class="VarId">lion</span>	<span class="VarId">f</span>	<span class="Number">4</span>	<span class="Number">3</span>	<span class="VarId">f</span>	<span class="VarId">f</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">6</span>	<span class="Number">4</span>	<span class="Number">8</span>
+<span class="VarId">magic_castle</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>
+<span class="VarId">magic_fire</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>
+<span class="VarId">magic_tree</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">5</span>	\<span class="VarId">N</span>
+<span class="VarId">manticore</span>	<span class="VarId">t</span>	<span class="Number">5</span>	<span class="Number">8</span>	<span class="VarId">f</span>	<span class="VarId">t</span>	<span class="VarId">projectile</span>	<span class="Number">1</span>	<span class="Number">3</span>	<span class="Number">3</span>	<span class="Number">6</span>	<span class="Number">6</span>
+<span class="VarId">ogre</span>	<span class="VarId">f</span>	<span class="Number">1</span>	<span class="Number">6</span>	<span class="VarId">f</span>	<span class="VarId">f</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">4</span>	<span class="Number">7</span>	<span class="Number">3</span>
+<span class="VarId">orc</span>	<span class="VarId">f</span>	<span class="Number">1</span>	<span class="Number">4</span>	<span class="VarId">f</span>	<span class="VarId">f</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">2</span>	<span class="Number">1</span>	<span class="Number">4</span>
+<span class="VarId">pegasus</span>	<span class="VarId">t</span>	<span class="Number">5</span>	<span class="Number">7</span>	<span class="VarId">f</span>	<span class="VarId">t</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">2</span>	<span class="Number">4</span>	<span class="Number">6</span>
+<span class="VarId">red_dragon</span>	<span class="VarId">t</span>	<span class="Number">3</span>	<span class="Number">5</span>	<span class="VarId">f</span>	<span class="VarId">f</span>	<span class="VarId">fire</span>	<span class="Number">3</span>	<span class="Number">5</span>	<span class="Number">7</span>	<span class="Number">9</span>	<span class="Number">4</span>
+<span class="VarId">shadow_tree</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">2</span>	<span class="Number">4</span>	\<span class="VarId">N</span>
+<span class="VarId">skeleton</span>	<span class="VarId">f</span>	<span class="Number">1</span>	<span class="Number">4</span>	<span class="VarId">t</span>	<span class="VarId">f</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">3</span>	<span class="Number">2</span>	<span class="Number">3</span>
+<span class="VarId">spectre</span>	<span class="VarId">f</span>	<span class="Number">1</span>	<span class="Number">4</span>	<span class="VarId">t</span>	<span class="VarId">f</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">4</span>	<span class="Number">2</span>	<span class="Number">6</span>
+<span class="VarId">unicorn</span>	<span class="VarId">f</span>	<span class="Number">4</span>	<span class="Number">7</span>	<span class="VarId">f</span>	<span class="VarId">t</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">5</span>	<span class="Number">4</span>	<span class="Number">9</span>
+<span class="VarId">vampire</span>	<span class="VarId">t</span>	<span class="Number">4</span>	<span class="Number">5</span>	<span class="VarId">t</span>	<span class="VarId">f</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">6</span>	<span class="Number">8</span>	<span class="Number">6</span>
+<span class="VarId">wall</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>
+<span class="VarId">wizard</span>	<span class="VarId">f</span>	<span class="Number">1</span>	<span class="Number">3</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">3</span>	<span class="Number">3</span>	<span class="Number">5</span>
+<span class="VarId">wraith</span>	<span class="VarId">f</span>	<span class="Number">2</span>	<span class="Number">5</span>	<span class="VarId">t</span>	<span class="VarId">f</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">5</span>	<span class="Number">5</span>	<span class="Number">4</span>
+<span class="VarId">zombie</span>	<span class="VarId">f</span>	<span class="Number">1</span>	<span class="Number">3</span>	<span class="VarId">t</span>	<span class="VarId">f</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="Number">2</span>
+\<span class="Symbol">.</span>
 </pre></div></div></div></div
       ></div
     ><br
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

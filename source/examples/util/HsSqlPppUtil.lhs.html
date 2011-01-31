@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../index.txt.html"
+    ><a href="../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -69,12 +69,12 @@
 	>example</h2
 	><p
 	>test2.sql:</p
-	><div class='SqlPostgresql'><pre class="sourceCode">create table s (
-       s_no int primary key,
-       sname text not null,
-       status int not null,
-       city text not null
-);</pre></div><div class='sh'><pre class="sourceCode">$ examples<span class="Symbol">/</span>util<span class="Symbol">/</span>HsSqlPppUtil lex test2<span class="Symbol">.</span>sql
+	><div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">s</span> <span class="Symbol">(</span>
+       <span class="VarId">s_no</span> <span class="Type">int</span> <span class="Keyword">primary</span> <span class="Keyword">key</span><span class="Symbol">,</span>
+       <span class="VarId">sname</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+       <span class="VarId">status</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+       <span class="VarId">city</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="VarId">null</span>
+<span class="Symbol">);</span></pre></div><div class='sh'><pre class="sourceCode">$ examples<span class="Symbol">/</span>util<span class="Symbol">/</span>HsSqlPppUtil lex test2<span class="Symbol">.</span>sql
 lexing test2<span class="Symbol">.</span>sql
 <span class="Symbol">(</span><span class="String">&quot;test2.sql&quot;</span> <span class="Symbol">(</span>line <span class="Number">1</span><span class="Symbol">,</span> column <span class="Number">1</span><span class="Symbol">),</span>IdStringTok <span class="String">&quot;create&quot;</span><span class="Symbol">)</span>
 <span class="Symbol">(</span><span class="String">&quot;test2.sql&quot;</span> <span class="Symbol">(</span>line <span class="Number">1</span><span class="Symbol">,</span> column <span class="Number">8</span><span class="Symbol">),</span>IdStringTok <span class="String">&quot;table&quot;</span><span class="Symbol">)</span>
@@ -123,12 +123,12 @@ lexing test2<span class="Symbol">.</span>sql
 	>examples</h2
 	><p
 	>test2.sql:</p
-	><div class='SqlPostgresql'><pre class="sourceCode">create table s (
-       s_no int primary key,
-       sname text not null,
-       status int not null,
-       city text not null
-);</pre></div><div class='haskell'><pre class="sourceCode"><span class="Symbol">$</span> <span class="ConId">HsSqlPppUtil</span> <span class="VarId">parse</span> <span class="VarId">test2</span><span class="Symbol">.</span><span class="VarId">sql</span>
+	><div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">s</span> <span class="Symbol">(</span>
+       <span class="VarId">s_no</span> <span class="Type">int</span> <span class="Keyword">primary</span> <span class="Keyword">key</span><span class="Symbol">,</span>
+       <span class="VarId">sname</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+       <span class="VarId">status</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+       <span class="VarId">city</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="VarId">null</span>
+<span class="Symbol">);</span></pre></div><div class='haskell'><pre class="sourceCode"><span class="Symbol">$</span> <span class="ConId">HsSqlPppUtil</span> <span class="VarId">parse</span> <span class="VarId">test2</span><span class="Symbol">.</span><span class="VarId">sql</span>
 <span class="Comment">-- ast of test2.sql</span>
 <span class="Symbol">[</span><span class="ConId">CreateTable</span> <span class="ConId">Ann</span> <span class="String">&quot;s&quot;</span>
    <span class="Symbol">[</span><span class="ConId">AttributeDef</span> <span class="ConId">Ann</span> <span class="String">&quot;s_no&quot;</span> <span class="Symbol">(</span><span class="ConId">SimpleTypeName</span> <span class="ConId">Ann</span> <span class="String">&quot;int&quot;</span><span class="Symbol">)</span> <span class="ConId">Nothing</span>
@@ -141,7 +141,7 @@ lexing test2<span class="Symbol">.</span>sql
       <span class="Symbol">[</span><span class="ConId">NotNullConstraint</span> <span class="ConId">Ann</span> <span class="String">&quot;&quot;</span><span class="Symbol">]]</span>
    <span class="Symbol">[]]</span></pre></div><p
 	>test3.sql:</p
-	><div class='SqlPostgresql'><pre class="sourceCode">select * from s natural inner join p natural inner join sp;</pre></div><div class='haskell'><pre class="sourceCode"><span class="Symbol">$</span> <span class="ConId">HsSqlPppUtil</span> <span class="VarId">parse</span> <span class="VarId">test3</span><span class="Symbol">.</span><span class="VarId">sql</span>
+	><div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="VarId">s</span> <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">p</span> <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">sp</span><span class="Symbol">;</span></pre></div><div class='haskell'><pre class="sourceCode"><span class="Symbol">$</span> <span class="ConId">HsSqlPppUtil</span> <span class="VarId">parse</span> <span class="VarId">test3</span><span class="Symbol">.</span><span class="VarId">sql</span>
 <span class="Comment">-- ast of test3.sql</span>
 <span class="Symbol">[</span><span class="ConId">SelectStatement</span> <span class="ConId">Ann</span>
    <span class="Symbol">(</span><span class="ConId">Select</span> <span class="ConId">Ann</span> <span class="ConId">Dupes</span>
@@ -164,7 +164,7 @@ lexing test2<span class="Symbol">.</span>sql
       <span class="ConId">Nothing</span>
       <span class="ConId">Nothing</span><span class="Symbol">)]</span></pre></div><p
 	>test3a.sql</p
-	><div class='SqlPostgresql'><pre class="sourceCode">select * from s natural inner join p natural inners join sp;</pre></div><div class='haskell'><pre class="sourceCode"><span class="Symbol">$</span> <span class="Symbol">./</span><span class="ConId">HsSqlPppUtil</span> <span class="VarId">parse</span> <span class="VarId">test3a</span><span class="Symbol">.</span><span class="VarId">sql</span>
+	><div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="VarId">s</span> <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">p</span> <span class="Keyword">natural</span> <span class="VarId">inners</span> <span class="Keyword">join</span> <span class="VarId">sp</span><span class="Symbol">;</span></pre></div><div class='haskell'><pre class="sourceCode"><span class="Symbol">$</span> <span class="Symbol">./</span><span class="ConId">HsSqlPppUtil</span> <span class="VarId">parse</span> <span class="VarId">test3a</span><span class="Symbol">.</span><span class="VarId">sql</span>
 <span class="Comment">-- ast of test3a.sql</span>
 <span class="String">&quot;test3a.sql&quot;</span> <span class="Symbol">(</span><span class="VarId">line</span> <span class="Number">1</span><span class="Symbol">,</span> <span class="VarId">column</span> <span class="Number">46</span><span class="Symbol">):</span>
 <span class="Function">unexpected</span> <span class="ConId">IdStringTok</span> <span class="String">&quot;inners&quot;</span>
@@ -244,31 +244,31 @@ lexing test2<span class="Symbol">.</span>sql
 	>example</h2
 	><p
 	>test4.sql:</p
-	><div class='SqlPostgresql'><pre class="sourceCode">create table s (
-       s_no int primary key,
-       sname text not null,
-       status int not null,
-       city text not null
-);
+	><div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">s</span> <span class="Symbol">(</span>
+       <span class="VarId">s_no</span> <span class="Type">int</span> <span class="Keyword">primary</span> <span class="Keyword">key</span><span class="Symbol">,</span>
+       <span class="VarId">sname</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+       <span class="VarId">status</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+       <span class="VarId">city</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="VarId">null</span>
+<span class="Symbol">);</span>
 
-create table p (
-       p_po int primary key,
-       pname text not null,
-       color text not null,
-       weight int not null,
-       city text not null
-);
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">p</span> <span class="Symbol">(</span>
+       <span class="VarId">p_po</span> <span class="Type">int</span> <span class="Keyword">primary</span> <span class="Keyword">key</span><span class="Symbol">,</span>
+       <span class="VarId">pname</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+       <span class="VarId">color</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+       <span class="VarId">weight</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+       <span class="VarId">city</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="VarId">null</span>
+<span class="Symbol">);</span>
 
-create table sp (
-       s_no int not null references s,
-       p_no int not null references p,
-       qty int not null,
-       primary key (s_no,p_no)
-);
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">sp</span> <span class="Symbol">(</span>
+       <span class="VarId">s_no</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="Keyword">null</span> <span class="Keyword">references</span> <span class="VarId">s</span><span class="Symbol">,</span>
+       <span class="VarId">p_no</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="Keyword">null</span> <span class="Keyword">references</span> <span class="VarId">p</span><span class="Symbol">,</span>
+       <span class="VarId">qty</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+       <span class="Keyword">primary</span> <span class="Keyword">key</span> <span class="Symbol">(</span><span class="VarId">s_no</span><span class="Symbol">,</span><span class="VarId">p_no</span><span class="Symbol">)</span>
+<span class="Symbol">);</span>
 
-select * from s inner join p inner join sp;
+<span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="VarId">s</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">p</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">sp</span><span class="Symbol">;</span>
 
-insert into s (s_no, sname, status, city) values (1, 'name', 'good', 'london');</pre></div><div class='haskell'><pre class="sourceCode"><span class="Symbol">$</span> <span class="ConId">HsSqlPppUtil</span> <span class="VarId">ppp</span> <span class="VarId">test4</span><span class="Symbol">.</span><span class="VarId">sql</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">s</span> <span class="Symbol">(</span><span class="VarId">s_no</span><span class="Symbol">,</span> <span class="VarId">sname</span><span class="Symbol">,</span> <span class="VarId">status</span><span class="Symbol">,</span> <span class="VarId">city</span><span class="Symbol">)</span> <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Number">1</span><span class="Symbol">,</span> <span class="Char">'name'</span><span class="Symbol">,</span> <span class="Char">'good'</span><span class="Symbol">,</span> <span class="Char">'london'</span><span class="Symbol">);</span></pre></div><div class='haskell'><pre class="sourceCode"><span class="Symbol">$</span> <span class="ConId">HsSqlPppUtil</span> <span class="VarId">ppp</span> <span class="VarId">test4</span><span class="Symbol">.</span><span class="VarId">sql</span>
 <span class="Comment">--ppp test4.sql</span>
 <span class="Function">create</span> <span class="VarId">table</span> <span class="VarId">s</span> <span class="Symbol">(</span>
   <span class="VarId">s_no</span> <span class="VarId">int</span> <span class="VarId">primary</span> <span class="VarId">key</span><span class="Symbol">,</span>
@@ -356,60 +356,60 @@ success</pre></div><div class='sourceCode'><div class='literate'><div class='has
 	>examples</h2
 	><p
 	>test4.sql:</p
-	><div class='SqlPostgresql'><pre class="sourceCode">create table s (
-       s_no int primary key,
-       sname text not null,
-       status int not null,
-       city text not null
-);
+	><div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">s</span> <span class="Symbol">(</span>
+       <span class="VarId">s_no</span> <span class="Type">int</span> <span class="Keyword">primary</span> <span class="Keyword">key</span><span class="Symbol">,</span>
+       <span class="VarId">sname</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+       <span class="VarId">status</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+       <span class="VarId">city</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="VarId">null</span>
+<span class="Symbol">);</span>
 
-create table p (
-       p_po int primary key,
-       pname text not null,
-       color text not null,
-       weight int not null,
-       city text not null
-);
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">p</span> <span class="Symbol">(</span>
+       <span class="VarId">p_po</span> <span class="Type">int</span> <span class="Keyword">primary</span> <span class="Keyword">key</span><span class="Symbol">,</span>
+       <span class="VarId">pname</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+       <span class="VarId">color</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+       <span class="VarId">weight</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+       <span class="VarId">city</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="VarId">null</span>
+<span class="Symbol">);</span>
 
-create table sp (
-       s_no int not null references s,
-       p_no int not null references p,
-       qty int not null,
-       primary key (s_no,p_no)
-);
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">sp</span> <span class="Symbol">(</span>
+       <span class="VarId">s_no</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="Keyword">null</span> <span class="Keyword">references</span> <span class="VarId">s</span><span class="Symbol">,</span>
+       <span class="VarId">p_no</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="Keyword">null</span> <span class="Keyword">references</span> <span class="VarId">p</span><span class="Symbol">,</span>
+       <span class="VarId">qty</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+       <span class="Keyword">primary</span> <span class="Keyword">key</span> <span class="Symbol">(</span><span class="VarId">s_no</span><span class="Symbol">,</span><span class="VarId">p_no</span><span class="Symbol">)</span>
+<span class="Symbol">);</span>
 
-select * from s inner join p inner join sp;
+<span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="VarId">s</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">p</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">sp</span><span class="Symbol">;</span>
 
-insert into s (s_no, sname, status, city) values (1, 'name', 'good', 'london');</pre></div><p
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">s</span> <span class="Symbol">(</span><span class="VarId">s_no</span><span class="Symbol">,</span> <span class="VarId">sname</span><span class="Symbol">,</span> <span class="VarId">status</span><span class="Symbol">,</span> <span class="VarId">city</span><span class="Symbol">)</span> <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Number">1</span><span class="Symbol">,</span> <span class="Char">'name'</span><span class="Symbol">,</span> <span class="Char">'good'</span><span class="Symbol">,</span> <span class="Char">'london'</span><span class="Symbol">);</span></pre></div><p
 	>(no output for success)</p
 	><div class='sh'><pre class="sourceCode">$ HsSqlPppUtil typecheck test4<span class="Symbol">.</span>sql
 $</pre></div><p
 	>test5.sql:</p
-	><div class='SqlPostgresql'><pre class="sourceCode">create table s (
-       s_no int primary key,
-       sname text not null,
-       status int not null,
-       city text not null
-);
+	><div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">s</span> <span class="Symbol">(</span>
+       <span class="VarId">s_no</span> <span class="Type">int</span> <span class="Keyword">primary</span> <span class="Keyword">key</span><span class="Symbol">,</span>
+       <span class="VarId">sname</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+       <span class="VarId">status</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+       <span class="VarId">city</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="VarId">null</span>
+<span class="Symbol">);</span>
 
-create table p (
-       p_po int primary key,
-       pname text not null,
-       color text not null,
-       weight int not null,
-       city text not null
-);
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">p</span> <span class="Symbol">(</span>
+       <span class="VarId">p_po</span> <span class="Type">int</span> <span class="Keyword">primary</span> <span class="Keyword">key</span><span class="Symbol">,</span>
+       <span class="VarId">pname</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+       <span class="VarId">color</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+       <span class="VarId">weight</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+       <span class="VarId">city</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="VarId">null</span>
+<span class="Symbol">);</span>
 
-create table sp (
-       s_no int not null references s,
-       p_no int not null references p,
-       qty int not null,
-       primary key (s_no,p_no)
-);
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">sp</span> <span class="Symbol">(</span>
+       <span class="VarId">s_no</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="Keyword">null</span> <span class="Keyword">references</span> <span class="VarId">s</span><span class="Symbol">,</span>
+       <span class="VarId">p_no</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="Keyword">null</span> <span class="Keyword">references</span> <span class="VarId">p</span><span class="Symbol">,</span>
+       <span class="VarId">qty</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+       <span class="Keyword">primary</span> <span class="Keyword">key</span> <span class="Symbol">(</span><span class="VarId">s_no</span><span class="Symbol">,</span><span class="VarId">p_no</span><span class="Symbol">)</span>
+<span class="Symbol">);</span>
 
-select * from s1 inner join p inner join sp;
+<span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="VarId">s1</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">p</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">sp</span><span class="Symbol">;</span>
 
-insert into s (s_no, sname, status, cityc) values (1, 'name', 'good', 'london');</pre></div><div class='haskell'><pre class="sourceCode"><span class="Symbol">$</span> <span class="ConId">HsSqlPppUtil</span> <span class="VarId">typecheck</span> <span class="VarId">test5</span><span class="Symbol">.</span><span class="VarId">sql</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">s</span> <span class="Symbol">(</span><span class="VarId">s_no</span><span class="Symbol">,</span> <span class="VarId">sname</span><span class="Symbol">,</span> <span class="VarId">status</span><span class="Symbol">,</span> <span class="VarId">cityc</span><span class="Symbol">)</span> <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Number">1</span><span class="Symbol">,</span> <span class="Char">'name'</span><span class="Symbol">,</span> <span class="Char">'good'</span><span class="Symbol">,</span> <span class="Char">'london'</span><span class="Symbol">);</span></pre></div><div class='haskell'><pre class="sourceCode"><span class="Symbol">$</span> <span class="ConId">HsSqlPppUtil</span> <span class="VarId">typecheck</span> <span class="VarId">test5</span><span class="Symbol">.</span><span class="VarId">sql</span>
 <span class="Function">test5</span><span class="Symbol">.</span><span class="VarId">sql</span><span class="Symbol">:</span><span class="Number">23</span><span class="Symbol">:</span><span class="Number">15</span><span class="Symbol">:</span>
 <span class="Symbol">[</span><span class="ConId">UnrecognisedRelation</span> <span class="String">&quot;s1&quot;</span><span class="Symbol">]</span>
 <span class="Function">test5</span><span class="Symbol">.</span><span class="VarId">sql</span><span class="Symbol">:</span><span class="Number">25</span><span class="Symbol">:</span><span class="Number">1</span><span class="Symbol">:</span>
@@ -470,16 +470,16 @@ TypeCheckFailed</pre></div><div class='sourceCode'><div class='literate'><div cl
 	>example</h2
 	><p
 	>test6.sql:</p
-	><div class='SqlPostgresql'><pre class="sourceCode">create table s (
-       s_no int primary key,
-       sname text not null,
-       status int not null,
-       city text not null
-);
+	><div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">s</span> <span class="Symbol">(</span>
+       <span class="VarId">s_no</span> <span class="Type">int</span> <span class="Keyword">primary</span> <span class="Keyword">key</span><span class="Symbol">,</span>
+       <span class="VarId">sname</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+       <span class="VarId">status</span> <span class="Type">int</span> <span class="Keyword">not</span> <span class="Keyword">null</span><span class="Symbol">,</span>
+       <span class="VarId">city</span> <span class="Type">text</span> <span class="Keyword">not</span> <span class="VarId">null</span>
+<span class="Symbol">);</span>
 
-select * from s;
+<span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="VarId">s</span><span class="Symbol">;</span>
 
-insert into s (s_no, sname, status, city) values (1, 'name', 'good', 'london');</pre></div><div class='haskell'><pre class="sourceCode"><span class="Symbol">$</span> <span class="ConId">HsSqlPppUtil</span> <span class="VarId">allannotations</span> <span class="VarId">test6</span><span class="Symbol">.</span><span class="VarId">sql</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">s</span> <span class="Symbol">(</span><span class="VarId">s_no</span><span class="Symbol">,</span> <span class="VarId">sname</span><span class="Symbol">,</span> <span class="VarId">status</span><span class="Symbol">,</span> <span class="VarId">city</span><span class="Symbol">)</span> <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Number">1</span><span class="Symbol">,</span> <span class="Char">'name'</span><span class="Symbol">,</span> <span class="Char">'good'</span><span class="Symbol">,</span> <span class="Char">'london'</span><span class="Symbol">);</span></pre></div><div class='haskell'><pre class="sourceCode"><span class="Symbol">$</span> <span class="ConId">HsSqlPppUtil</span> <span class="VarId">allannotations</span> <span class="VarId">test6</span><span class="Symbol">.</span><span class="VarId">sql</span>
 <span class="Symbol">[</span><span class="ConId">CreateTable</span>
    <span class="Symbol">(</span><span class="ConId">Annotation</span><span class="Symbol">{</span><span class="VarId">asrc</span> <span class="Symbol">=</span> <span class="ConId">Just</span> <span class="Symbol">(</span><span class="String">&quot;test6.sql&quot;</span><span class="Symbol">,</span> <span class="Number">1</span><span class="Symbol">,</span> <span class="Number">8</span><span class="Symbol">),</span>
                <span class="VarId">atype</span> <span class="Symbol">=</span> <span class="ConId">Just</span> <span class="Symbol">(</span><span class="ConId">Pseudo</span> <span class="ConId">Void</span><span class="Symbol">),</span> <span class="VarId">errs</span> <span class="Symbol">=</span> <span class="Symbol">[],</span> <span class="VarId">stType</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span><span class="Symbol">,</span>
@@ -741,7 +741,7 @@ insert into s (s_no, sname, status, city) values (1, 'name', 'good', 'london');<
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

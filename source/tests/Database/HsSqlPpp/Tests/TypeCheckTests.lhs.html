@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../index.txt.html"
+    ><a href="../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -1072,10 +1072,10 @@ check errors: select into wrong number of vars, wrong types, and into
    <span class="VarId">d</span> <span class="Symbol">=</span> <span class="ConId">Ddl</span></pre></div></div></div><hr
      /><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">testExpressionType</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">]</span> <span class="ConId">Type</span> <span class="Symbol">-&gt;</span> <span class="ConId">Test.Framework.Test</span>
 <span class="Function">testExpressionType</span> <span class="VarId">src</span> <span class="VarId">et</span> <span class="Symbol">=</span> <span class="VarId">testCase</span> <span class="Symbol">(</span><span class="String">&quot;typecheck &quot;</span> <span class="Symbol">++</span> <span class="VarId">src</span><span class="Symbol">)</span> <span class="Symbol">$</span>
-  <span class="Keyword">let</span> <span class="VarId">ast</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">parseExpression</span> <span class="String">&quot;&quot;</span> <span class="VarId">src</span> <span class="Keyword">of</span>
+  <span class="Keyword">let</span> <span class="VarId">ast</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">parseScalarExpr</span> <span class="String">&quot;&quot;</span> <span class="VarId">src</span> <span class="Keyword">of</span>
                                      <span class="ConId">Left</span> <span class="VarId">e</span> <span class="Symbol">-&gt;</span> <span class="VarId">error</span> <span class="Symbol">$</span> <span class="VarId">show</span> <span class="VarId">e</span>
                                      <span class="ConId">Right</span> <span class="VarId">l</span> <span class="Symbol">-&gt;</span> <span class="VarId">l</span>
-      <span class="VarId">aast</span> <span class="Symbol">=</span> <span class="VarId">typeCheckExpression</span> <span class="VarId">defaultTemplate1Catalog</span> <span class="VarId">ast</span>
+      <span class="VarId">aast</span> <span class="Symbol">=</span> <span class="VarId">typeCheckScalarExpr</span> <span class="VarId">defaultTemplate1Catalog</span> <span class="VarId">ast</span>
       <span class="VarId">ty</span> <span class="Symbol">=</span> <span class="VarId">atype</span> <span class="Symbol">$</span> <span class="VarId">getAnnotation</span> <span class="VarId">aast</span>
       <span class="VarId">er</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">]</span>
       <span class="VarId">er</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="VarId">x</span> <span class="Symbol">|</span> <span class="VarId">x</span> <span class="Symbol">&lt;-</span> <span class="VarId">universeBi</span> <span class="VarId">aast</span><span class="Symbol">]</span>
@@ -1085,10 +1085,10 @@ check errors: select into wrong number of vars, wrong types, and into
 
 <span class="Function">testStatementType</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">]</span> <span class="Symbol">[</span><span class="ConId">Maybe</span> <span class="ConId">StatementType</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Test.Framework.Test</span>
 <span class="Function">testStatementType</span> <span class="VarId">src</span> <span class="VarId">sis</span> <span class="Symbol">=</span> <span class="VarId">testCase</span> <span class="Symbol">(</span><span class="String">&quot;typecheck &quot;</span> <span class="Symbol">++</span> <span class="VarId">src</span><span class="Symbol">)</span> <span class="Symbol">$</span>
-  <span class="Keyword">let</span> <span class="VarId">ast</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">parseSql</span> <span class="String">&quot;&quot;</span> <span class="VarId">src</span> <span class="Keyword">of</span>
+  <span class="Keyword">let</span> <span class="VarId">ast</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">parseStatements</span> <span class="String">&quot;&quot;</span> <span class="VarId">src</span> <span class="Keyword">of</span>
                               <span class="ConId">Left</span> <span class="VarId">e</span> <span class="Symbol">-&gt;</span> <span class="VarId">error</span> <span class="Symbol">$</span> <span class="VarId">show</span> <span class="VarId">e</span>
                               <span class="ConId">Right</span> <span class="VarId">l</span> <span class="Symbol">-&gt;</span> <span class="VarId">l</span>
-      <span class="VarId">aast</span> <span class="Symbol">=</span> <span class="VarId">snd</span> <span class="Symbol">$</span> <span class="VarId">typeCheck</span> <span class="VarId">defaultTemplate1Catalog</span> <span class="VarId">ast</span>
+      <span class="VarId">aast</span> <span class="Symbol">=</span> <span class="VarId">snd</span> <span class="Symbol">$</span> <span class="VarId">typeCheckStatements</span> <span class="VarId">defaultTemplate1Catalog</span> <span class="VarId">ast</span>
       <span class="VarId">is</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="Symbol">(</span><span class="VarId">stType</span> <span class="Symbol">.</span> <span class="VarId">getAnnotation</span><span class="Symbol">)</span> <span class="VarId">aast</span>
       <span class="VarId">er</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">]</span>
       <span class="VarId">er</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="VarId">x</span> <span class="Symbol">|</span> <span class="VarId">x</span> <span class="Symbol">&lt;-</span> <span class="VarId">universeBi</span> <span class="VarId">aast</span><span class="Symbol">]</span>
@@ -1100,10 +1100,10 @@ check errors: select into wrong number of vars, wrong types, and into
                        <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">]</span> <span class="Symbol">[</span><span class="ConId">Maybe</span> <span class="ConId">StatementType</span><span class="Symbol">]</span>
                        <span class="Symbol">-&gt;</span> <span class="ConId">Test.Framework.Test</span>
 <span class="Function">testCatUpStatementType</span> <span class="VarId">src</span> <span class="VarId">eu</span> <span class="VarId">sis</span> <span class="Symbol">=</span> <span class="VarId">testCase</span> <span class="Symbol">(</span><span class="String">&quot;typecheck &quot;</span> <span class="Symbol">++</span> <span class="VarId">src</span><span class="Symbol">)</span> <span class="Symbol">$</span>
-  <span class="Keyword">let</span> <span class="VarId">ast</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">parseSql</span> <span class="String">&quot;&quot;</span> <span class="VarId">src</span> <span class="Keyword">of</span>
+  <span class="Keyword">let</span> <span class="VarId">ast</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">parseStatements</span> <span class="String">&quot;&quot;</span> <span class="VarId">src</span> <span class="Keyword">of</span>
                               <span class="ConId">Left</span> <span class="VarId">e</span> <span class="Symbol">-&gt;</span> <span class="VarId">error</span> <span class="Symbol">$</span> <span class="VarId">show</span> <span class="VarId">e</span>
                               <span class="ConId">Right</span> <span class="VarId">l</span> <span class="Symbol">-&gt;</span> <span class="VarId">l</span>
-      <span class="VarId">aast</span> <span class="Symbol">=</span> <span class="VarId">snd</span> <span class="Symbol">$</span> <span class="VarId">typeCheck</span> <span class="VarId">makeCat</span> <span class="VarId">ast</span>
+      <span class="VarId">aast</span> <span class="Symbol">=</span> <span class="VarId">snd</span> <span class="Symbol">$</span> <span class="VarId">typeCheckStatements</span> <span class="VarId">makeCat</span> <span class="VarId">ast</span>
       <span class="VarId">is</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="Symbol">(</span><span class="VarId">stType</span> <span class="Symbol">.</span> <span class="VarId">getAnnotation</span><span class="Symbol">)</span> <span class="VarId">aast</span>
       <span class="VarId">er</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">]</span>
       <span class="VarId">er</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="VarId">x</span> <span class="Symbol">|</span> <span class="VarId">x</span> <span class="Symbol">&lt;-</span> <span class="VarId">universeBi</span> <span class="VarId">aast</span><span class="Symbol">]</span>
@@ -1118,10 +1118,10 @@ check errors: select into wrong number of vars, wrong types, and into
 
 <span class="Function">testCat</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">CatalogUpdate</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Test.Framework.Test</span>
 <span class="Function">testCat</span> <span class="VarId">src</span> <span class="VarId">eu</span> <span class="Symbol">=</span> <span class="VarId">testCase</span> <span class="Symbol">(</span><span class="String">&quot;check catalog: &quot;</span> <span class="Symbol">++</span> <span class="VarId">src</span><span class="Symbol">)</span> <span class="Symbol">$</span>
-  <span class="Keyword">let</span> <span class="VarId">ast</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">parseSql</span> <span class="String">&quot;&quot;</span> <span class="VarId">src</span> <span class="Keyword">of</span>
+  <span class="Keyword">let</span> <span class="VarId">ast</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">parseStatements</span> <span class="String">&quot;&quot;</span> <span class="VarId">src</span> <span class="Keyword">of</span>
                               <span class="ConId">Left</span> <span class="VarId">e</span> <span class="Symbol">-&gt;</span> <span class="VarId">error</span> <span class="Symbol">$</span> <span class="VarId">show</span> <span class="VarId">e</span>
                               <span class="ConId">Right</span> <span class="VarId">l</span> <span class="Symbol">-&gt;</span> <span class="VarId">l</span>
-      <span class="Symbol">(</span><span class="VarId">ncat</span><span class="Symbol">,</span><span class="VarId">aast</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">typeCheck</span> <span class="VarId">defaultTemplate1Catalog</span> <span class="VarId">ast</span>
+      <span class="Symbol">(</span><span class="VarId">ncat</span><span class="Symbol">,</span><span class="VarId">aast</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">typeCheckStatements</span> <span class="VarId">defaultTemplate1Catalog</span> <span class="VarId">ast</span>
       <span class="VarId">er</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">]</span>
       <span class="VarId">er</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="VarId">x</span> <span class="Symbol">|</span> <span class="VarId">x</span> <span class="Symbol">&lt;-</span> <span class="VarId">universeBi</span> <span class="VarId">aast</span><span class="Symbol">]</span>
       <span class="VarId">neu</span> <span class="Symbol">=</span> <span class="VarId">deconstructCatalog</span> <span class="VarId">ncat</span> <span class="Symbol">\\</span> <span class="VarId">deconstructCatalog</span> <span class="VarId">defaultTemplate1Catalog</span>
@@ -1138,7 +1138,7 @@ check errors: select into wrong number of vars, wrong types, and into
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

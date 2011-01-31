@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../index.txt.html"
+    ><a href="../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -25,7 +25,7 @@
       ><p
       >*/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-select module('Chaos.Server.GlobalData');
+<span class="Keyword">select</span> <span class="VarId">module</span><span class="Symbol">(</span><span class="Char">'Chaos.Server.GlobalData'</span><span class="Symbol">);</span>
 </pre></div></div></div><p
       >/*</p
       ><div id="board-size"
@@ -36,22 +36,22 @@ select module('Chaos.Server.GlobalData');
 	><p
 	>*/</p
 	><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-create table board_size (
-  width int,
-  height int,
-  unique (width, height)
-);
-select set_relvar_type('board_size', 'data');
-select restrict_cardinality('board_size', 1);
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">board_size</span> <span class="Symbol">(</span>
+  <span class="VarId">width</span> <span class="Type">int</span><span class="Symbol">,</span>
+  <span class="VarId">height</span> <span class="Type">int</span><span class="Symbol">,</span>
+  <span class="Keyword">unique</span> <span class="Symbol">(</span><span class="VarId">width</span><span class="Symbol">,</span> <span class="VarId">height</span><span class="Symbol">)</span>
+<span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'board_size'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">restrict_cardinality</span><span class="Symbol">(</span><span class="Char">'board_size'</span><span class="Symbol">,</span> <span class="Number">1</span><span class="Symbol">);</span>
 
 
---update operator out param: board_size
-create function init_board_size() returns void as $$
-begin
-  -- default board size
-  insert into board_size (width, height) values (15, 10);
-end;
-$$ language plpgsql volatile;
+<span class="Comment">--update operator out param: board_size</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">init_board_size</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Comment">-- default board size</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">board_size</span> <span class="Symbol">(</span><span class="VarId">width</span><span class="Symbol">,</span> <span class="VarId">height</span><span class="Symbol">)</span> <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Number">15</span><span class="Symbol">,</span> <span class="Number">10</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
 </pre></div></div></div><p
 	>/*</p
@@ -65,25 +65,25 @@ $$ language plpgsql volatile;
 	>*/</p
 	><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-create domain alignment as text check (value in ('law', 'neutral', 'chaos'));
+<span class="Keyword">create</span> <span class="Keyword">domain</span> <span class="VarId">alignment</span> <span class="Keyword">as</span> <span class="Type">text</span> <span class="Keyword">check</span> <span class="Symbol">(</span><span class="VarId">value</span> <span class="VarId">in</span> <span class="Symbol">(</span><span class="Char">'law'</span><span class="Symbol">,</span> <span class="Char">'neutral'</span><span class="Symbol">,</span> <span class="Char">'chaos'</span><span class="Symbol">));</span>
 
---if world alignment = 0, world is neutral, if -ve world is chaos by that amount
---if +ve world is law by that amount
-select create_var('world_alignment', 'int');
-select set_relvar_type('world_alignment_table', 'data');
+<span class="Comment">--if world alignment = 0, world is neutral, if -ve world is chaos by that amount</span>
+<span class="Comment">--if +ve world is law by that amount</span>
+<span class="Keyword">select</span> <span class="VarId">create_var</span><span class="Symbol">(</span><span class="Char">'world_alignment'</span><span class="Symbol">,</span> <span class="Char">'int'</span><span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'world_alignment_table'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span>
 
-create function init_world_alignment() returns void as $$
-begin
-  insert into world_alignment_table values (0);
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">init_world_alignment</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">world_alignment_table</span> <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Number">0</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 </pre></div></div></div></div
       ></div
     ><br
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

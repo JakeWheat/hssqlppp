@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../../index.txt.html"
+    ><a href="../../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -22,334 +22,334 @@
       >TODO: create a detailed history that allows a game to be replayed then create a view to show the player visible log with some events removed and some combined. */</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-select module('Chaos.Server.Actions.History');
+<span class="Keyword">select</span> <span class="VarId">module</span><span class="Symbol">(</span><span class="Char">'Chaos.Server.Actions.History'</span><span class="Symbol">);</span>
 
-create domain history_name_enum as text
-       check (value in (
-                        'spell_succeeded'
-                       ,'spell_failed'
-                       ,'chinned'
-                       ,'shrugged_off'
-                       ,'walked'
-                       ,'fly'
-                       ,'attack'
-                       ,'ranged_attack'
-                       ,'set_imaginary'
-                       ,'set_real'
-                       ,'game_won'
-                       ,'game_drawn'
-                       ,'spell_skipped'
-                       ,'new_turn'
-                       ,'wizard_up'
-                       ,'choose_spell'
-                       ,'spread'
-                       ,'recede'
-                       ,'disappear'
-                       ,'new_game'
-                       ,'attempt_target_spell'
-                       ));
+<span class="Keyword">create</span> <span class="Keyword">domain</span> <span class="VarId">history_name_enum</span> <span class="Keyword">as</span> <span class="VarId">text</span>
+       <span class="Keyword">check</span> <span class="Symbol">(</span><span class="VarId">value</span> <span class="VarId">in</span> <span class="Symbol">(</span>
+                        <span class="Char">'spell_succeeded'</span>
+                       <span class="Symbol">,</span><span class="Char">'spell_failed'</span>
+                       <span class="Symbol">,</span><span class="Char">'chinned'</span>
+                       <span class="Symbol">,</span><span class="Char">'shrugged_off'</span>
+                       <span class="Symbol">,</span><span class="Char">'walked'</span>
+                       <span class="Symbol">,</span><span class="Char">'fly'</span>
+                       <span class="Symbol">,</span><span class="Char">'attack'</span>
+                       <span class="Symbol">,</span><span class="Char">'ranged_attack'</span>
+                       <span class="Symbol">,</span><span class="Char">'set_imaginary'</span>
+                       <span class="Symbol">,</span><span class="Char">'set_real'</span>
+                       <span class="Symbol">,</span><span class="Char">'game_won'</span>
+                       <span class="Symbol">,</span><span class="Char">'game_drawn'</span>
+                       <span class="Symbol">,</span><span class="Char">'spell_skipped'</span>
+                       <span class="Symbol">,</span><span class="Char">'new_turn'</span>
+                       <span class="Symbol">,</span><span class="Char">'wizard_up'</span>
+                       <span class="Symbol">,</span><span class="Char">'choose_spell'</span>
+                       <span class="Symbol">,</span><span class="Char">'spread'</span>
+                       <span class="Symbol">,</span><span class="Char">'recede'</span>
+                       <span class="Symbol">,</span><span class="Char">'disappear'</span>
+                       <span class="Symbol">,</span><span class="Char">'new_game'</span>
+                       <span class="Symbol">,</span><span class="Char">'attempt_target_spell'</span>
+                       <span class="Symbol">));</span>
 
-select create6nf ($$
+<span class="Keyword">select</span> <span class="VarId">create6nf</span> <span class="Symbol">(</span>$$
 
-  action_history_mr (
-    id serial unique,
-    history_name history_name_enum
-  );
+  <span class="VarId">action_history_mr</span> <span class="Symbol">(</span>
+    <span class="VarId">id</span> <span class="Type">serial</span> <span class="Keyword">unique</span><span class="Symbol">,</span>
+    <span class="VarId">history_name</span> <span class="VarId">history_name_enum</span>
+  <span class="Symbol">);</span>
 
-  action_history_allegiance : action_history_mr(
-    allegiance text
-  );
+  <span class="VarId">action_history_allegiance</span> <span class="Symbol">:</span> <span class="VarId">action_history_mr</span><span class="Symbol">(</span>
+    <span class="VarId">allegiance</span> <span class="VarId">text</span>
+  <span class="Symbol">);</span>
 
-  action_history_source : action_history_allegiance (
-    x int,
-    y int
-  );
+  <span class="VarId">action_history_source</span> <span class="Symbol">:</span> <span class="VarId">action_history_allegiance</span> <span class="Symbol">(</span>
+    <span class="VarId">x</span> <span class="Type">int</span><span class="Symbol">,</span>
+    <span class="VarId">y</span> <span class="VarId">int</span>
+  <span class="Symbol">);</span>
 
-  action_history_target : action_history_source (
-    tx int,
-    ty int
-  );
+  <span class="VarId">action_history_target</span> <span class="Symbol">:</span> <span class="VarId">action_history_source</span> <span class="Symbol">(</span>
+    <span class="VarId">tx</span> <span class="Type">int</span><span class="Symbol">,</span>
+    <span class="VarId">ty</span> <span class="VarId">int</span>
+  <span class="Symbol">);</span>
 
-  action_history_piece : action_history_allegiance (
-    ptype text,
-    tag int
-  );
+  <span class="VarId">action_history_piece</span> <span class="Symbol">:</span> <span class="VarId">action_history_allegiance</span> <span class="Symbol">(</span>
+    <span class="VarId">ptype</span> <span class="Type">text</span><span class="Symbol">,</span>
+    <span class="VarId">tag</span> <span class="VarId">int</span>
+  <span class="Symbol">);</span>
 
-  action_history_piece_source : action_history_piece, action_history_source;
+  <span class="VarId">action_history_piece_source</span> <span class="Symbol">:</span> <span class="VarId">action_history_piece</span><span class="Symbol">,</span> <span class="VarId">action_history_source</span><span class="Symbol">;</span>
 
-  action_history_piece_target : action_history_piece, action_history_target;
+  <span class="VarId">action_history_piece_target</span> <span class="Symbol">:</span> <span class="VarId">action_history_piece</span><span class="Symbol">,</span> <span class="VarId">action_history_target</span><span class="Symbol">;</span>
 
-  action_history_spell : action_history_allegiance (
-    spell_name text
-  );
+  <span class="VarId">action_history_spell</span> <span class="Symbol">:</span> <span class="VarId">action_history_allegiance</span> <span class="Symbol">(</span>
+    <span class="VarId">spell_name</span> <span class="VarId">text</span>
+  <span class="Symbol">);</span>
 
-  action_history_spell_source : action_history_spell, action_history_source;
+  <span class="VarId">action_history_spell_source</span> <span class="Symbol">:</span> <span class="VarId">action_history_spell</span><span class="Symbol">,</span> <span class="VarId">action_history_source</span><span class="Symbol">;</span>
 
-  action_history_spell_target : action_history_spell, action_history_target;
+  <span class="VarId">action_history_spell_target</span> <span class="Symbol">:</span> <span class="VarId">action_history_spell</span><span class="Symbol">,</span> <span class="VarId">action_history_target</span><span class="Symbol">;</span>
 
-  action_history_num_wiz : action_history_mr (
-    num_wizards int null
-  );
+  <span class="VarId">action_history_num_wiz</span> <span class="Symbol">:</span> <span class="VarId">action_history_mr</span> <span class="Symbol">(</span>
+    <span class="VarId">num_wizards</span> <span class="Type">int</span> <span class="VarId">null</span>
+  <span class="Symbol">);</span>
 
-  action_history_turn_num : action_history_mr (
-    turn_number int
-  );
+  <span class="VarId">action_history_turn_num</span> <span class="Symbol">:</span> <span class="VarId">action_history_mr</span> <span class="Symbol">(</span>
+    <span class="VarId">turn_number</span> <span class="VarId">int</span>
+  <span class="Symbol">);</span>
 
-  action_history_turn_phase : action_history_source (
-    turn_phase turn_phase_enum
-  );
+  <span class="VarId">action_history_turn_phase</span> <span class="Symbol">:</span> <span class="VarId">action_history_source</span> <span class="Symbol">(</span>
+    <span class="VarId">turn_phase</span> <span class="VarId">turn_phase_enum</span>
+  <span class="Symbol">);</span>
 
-$$);
+$$<span class="Symbol">);</span>
 
-select set_relvar_type('action_history_mr', 'data');
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'action_history_mr'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span>
 
---Turns
+<span class="Comment">--Turns</span>
 
-create function get_current_wizard_pos() returns pos as $$
-  select x,y from current_wizard_table
-    inner join pieces
-      on ptype = 'wizard' and allegiance = current_wizard
-$$ language sql stable;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">get_current_wizard_pos</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="VarId">pos</span> <span class="Keyword">as</span> $$
+  <span class="Keyword">select</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span> <span class="Keyword">from</span> <span class="VarId">current_wizard_table</span>
+    <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">pieces</span>
+      <span class="Keyword">on</span> <span class="VarId">ptype</span> <span class="Symbol">=</span> <span class="Char">'wizard'</span> <span class="Keyword">and</span> <span class="VarId">allegiance</span> <span class="Symbol">=</span> <span class="VarId">current_wizard</span>
+$$ <span class="Keyword">language</span> <span class="VarId">sql</span> <span class="Keyword">stable</span><span class="Symbol">;</span>
 
-create function add_history_new_turn() returns void as $$
-begin
-  insert into action_history_mr (history_name, turn_number)
-    values ('new_turn', get_turn_number());
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">add_history_new_turn</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">action_history_mr</span> <span class="Symbol">(</span><span class="VarId">history_name</span><span class="Symbol">,</span> <span class="VarId">turn_number</span><span class="Symbol">)</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Char">'new_turn'</span><span class="Symbol">,</span> <span class="VarId">get_turn_number</span><span class="Symbol">());</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
-create function add_history_wizard_up() returns void as $$
-declare
-  w pos;
-begin
-  w := get_current_wizard_pos();
-  insert into action_history_mr (history_name, allegiance, turn_phase, x, y)
-    values ('wizard_up', get_current_wizard(), get_turn_phase(), w.x, w.y);
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">add_history_wizard_up</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">w</span> <span class="VarId">pos</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="VarId">w</span> <span class="Symbol">:=</span> <span class="VarId">get_current_wizard_pos</span><span class="Symbol">();</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">action_history_mr</span> <span class="Symbol">(</span><span class="VarId">history_name</span><span class="Symbol">,</span> <span class="VarId">allegiance</span><span class="Symbol">,</span> <span class="VarId">turn_phase</span><span class="Symbol">,</span> <span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">y</span><span class="Symbol">)</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Char">'wizard_up'</span><span class="Symbol">,</span> <span class="VarId">get_current_wizard</span><span class="Symbol">(),</span> <span class="VarId">get_turn_phase</span><span class="Symbol">(),</span> <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">y</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
-create function add_history_new_game() returns void as $$
-begin
-  insert into action_history_mr (history_name, num_wizards)
-    values ('new_game', (select count(1) from wizards));
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">add_history_new_game</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">action_history_mr</span> <span class="Symbol">(</span><span class="VarId">history_name</span><span class="Symbol">,</span> <span class="VarId">num_wizards</span><span class="Symbol">)</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Char">'new_game'</span><span class="Symbol">,</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">count</span><span class="Symbol">(</span><span class="Number">1</span><span class="Symbol">)</span> <span class="Keyword">from</span> <span class="VarId">wizards</span><span class="Symbol">));</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
-create function add_history_game_won() returns void as $$
-declare
-  w pos;
-begin
-  w := get_current_wizard_pos();
-  insert into action_history_mr (history_name, allegiance, x, y)
-    values ('game_won', (select allegiance
-                         from pieces
-                         where ptype='wizard'),
-                         w.x, w.y);
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">add_history_game_won</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">w</span> <span class="VarId">pos</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="VarId">w</span> <span class="Symbol">:=</span> <span class="VarId">get_current_wizard_pos</span><span class="Symbol">();</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">action_history_mr</span> <span class="Symbol">(</span><span class="VarId">history_name</span><span class="Symbol">,</span> <span class="VarId">allegiance</span><span class="Symbol">,</span> <span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">y</span><span class="Symbol">)</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Char">'game_won'</span><span class="Symbol">,</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">allegiance</span>
+                         <span class="Keyword">from</span> <span class="VarId">pieces</span>
+                         <span class="Keyword">where</span> <span class="VarId">ptype</span><span class="Symbol">=</span><span class="Char">'wizard'</span><span class="Symbol">),</span>
+                         <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">y</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
-create function add_history_game_drawn() returns void as $$
-begin
-  insert into action_history_mr (history_name)
-    values ('game_drawn');
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">add_history_game_drawn</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">action_history_mr</span> <span class="Symbol">(</span><span class="VarId">history_name</span><span class="Symbol">)</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Char">'game_drawn'</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
---Choosing
+<span class="Comment">--Choosing</span>
 
-create function add_history_choose_spell() returns void as $$
-declare
-  w pos;
-begin
-  w := get_current_wizard_pos();
-  insert into action_history_mr (history_name, allegiance, spell_name,x,y)
-    values ('choose_spell', get_current_wizard(), get_current_wizard_spell(),
-            w.x,w.y);
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">add_history_choose_spell</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">w</span> <span class="VarId">pos</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="VarId">w</span> <span class="Symbol">:=</span> <span class="VarId">get_current_wizard_pos</span><span class="Symbol">();</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">action_history_mr</span> <span class="Symbol">(</span><span class="VarId">history_name</span><span class="Symbol">,</span> <span class="VarId">allegiance</span><span class="Symbol">,</span> <span class="VarId">spell_name</span><span class="Symbol">,</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">)</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Char">'choose_spell'</span><span class="Symbol">,</span> <span class="VarId">get_current_wizard</span><span class="Symbol">(),</span> <span class="VarId">get_current_wizard_spell</span><span class="Symbol">(),</span>
+            <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">y</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
-create function add_history_set_imaginary() returns void as $$
-begin
-  insert into action_history_mr (history_name, allegiance)
-    values ('set_imaginary', get_current_wizard());
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">add_history_set_imaginary</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">action_history_mr</span> <span class="Symbol">(</span><span class="VarId">history_name</span><span class="Symbol">,</span> <span class="VarId">allegiance</span><span class="Symbol">)</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Char">'set_imaginary'</span><span class="Symbol">,</span> <span class="VarId">get_current_wizard</span><span class="Symbol">());</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
-create function add_history_set_real() returns void as $$
-begin
-  insert into action_history_mr (history_name, allegiance)
-    values ('set_real', get_current_wizard());
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">add_history_set_real</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">action_history_mr</span> <span class="Symbol">(</span><span class="VarId">history_name</span><span class="Symbol">,</span> <span class="VarId">allegiance</span><span class="Symbol">)</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Char">'set_real'</span><span class="Symbol">,</span> <span class="VarId">get_current_wizard</span><span class="Symbol">());</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
---Casting
+<span class="Comment">--Casting</span>
 
-create function add_history_attempt_target_spell(px int, py int) returns void as $$
-declare
-  w pos;
-begin
-  select into w x,y from pieces
-    where allegiance=get_current_wizard()
-      and ptype = 'wizard';
-  insert into action_history_mr (history_name, allegiance, spell_name, x, y, tx, ty)
-    values ('attempt_target_spell', get_current_wizard(),
-            get_current_wizard_spell(), w.x, w.y, px, py);
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">add_history_attempt_target_spell</span><span class="Symbol">(</span><span class="VarId">px</span> <span class="Type">int</span><span class="Symbol">,</span> <span class="VarId">py</span> <span class="Type">int</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">w</span> <span class="VarId">pos</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">w</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span> <span class="Keyword">from</span> <span class="VarId">pieces</span>
+    <span class="Keyword">where</span> <span class="VarId">allegiance</span><span class="Symbol">=</span><span class="VarId">get_current_wizard</span><span class="Symbol">()</span>
+      <span class="Keyword">and</span> <span class="VarId">ptype</span> <span class="Symbol">=</span> <span class="Char">'wizard'</span><span class="Symbol">;</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">action_history_mr</span> <span class="Symbol">(</span><span class="VarId">history_name</span><span class="Symbol">,</span> <span class="VarId">allegiance</span><span class="Symbol">,</span> <span class="VarId">spell_name</span><span class="Symbol">,</span> <span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">y</span><span class="Symbol">,</span> <span class="VarId">tx</span><span class="Symbol">,</span> <span class="VarId">ty</span><span class="Symbol">)</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Char">'attempt_target_spell'</span><span class="Symbol">,</span> <span class="VarId">get_current_wizard</span><span class="Symbol">(),</span>
+            <span class="VarId">get_current_wizard_spell</span><span class="Symbol">(),</span> <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">y</span><span class="Symbol">,</span> <span class="VarId">px</span><span class="Symbol">,</span> <span class="VarId">py</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
-create function add_history_attempt_activate_spell() returns void as $$
-declare
-  w pos;
-begin
-  select into w x,y from pieces
-    where allegiance=get_current_wizard()
-      and ptype = 'wizard';
-  insert into action_history_mr (history_name, allegiance, spell_name, x, y)
-    values ('attempt_target_spell', get_current_wizard(),
-            get_current_wizard_spell(), w.x, w.y);
-end;
-$$ language plpgsql volatile;
-
-
-create function add_history_spell_succeeded() returns void as $$
-begin
-  insert into action_history_mr (history_name, allegiance, spell_name)
-    values ('spell_succeeded', get_current_wizard(), get_current_wizard_spell());
-end;
-$$ language plpgsql volatile;
-
-create function add_history_spell_failed() returns void as $$
-begin
-  insert into action_history_mr (history_name, allegiance, spell_name)
-    values ('spell_failed', get_current_wizard(), get_current_wizard_spell());
-end;
-$$ language plpgsql volatile;
-
-create function add_history_spell_skipped() returns void as $$
-begin
-  insert into action_history_mr (history_name, allegiance, spell_name)
-    values ('spell_skipped', get_current_wizard(), get_current_wizard_spell());
-end;
-$$ language plpgsql volatile;
-
---chinned and shrugged off
-
-create function add_history_chinned(k piece_key) returns void as $$
-declare
-  w pos;
-begin
-  select into w x,y from pieces where (ptype,allegiance,tag) = k;
-  insert into action_history_mr (history_name, ptype, allegiance,tag, x, y)
-    values ('chinned', k.ptype, k.allegiance, k.tag, w.x, w.y);
-
-end;
-$$ language plpgsql volatile;
-
-create function add_history_shrugged_off(k piece_key) returns void as $$
-declare
-  w pos;
-begin
-  select into w x,y from pieces where (ptype,allegiance,tag) = k;
-  insert into action_history_mr (history_name, ptype, allegiance,tag, x, y)
-    values ('shrugged_off', k.ptype, k.allegiance, k.tag,w.x, w.y);
-end;
-$$ language plpgsql volatile;
-
---Autonomous
-
-create function add_history_receive_spell(pwizard_name text, pspell_name text) returns void as $$
-declare
-  w pos;
-begin
-  select into w x,y from pieces
-    where allegiance=pwizard_name
-      and ptype = 'wizard';
-  insert into action_history_mr (history_name, allegiance, spell_name, x, y)
-    values ('choose_spell', pwizard_name, pspell_name, w.x, w.y);
-end;
-$$ language plpgsql volatile;
-
-create function add_history_spread(k piece_key) returns void as $$
-declare
-  w pos;
-begin
-  select into w x,y from pieces where (ptype,allegiance,tag) = k;
-  insert into action_history_mr (history_name, ptype,allegiance,tag, x, y)
-    values ('spread', k.ptype,k.allegiance,k.tag, w.x, w.y);
-end;
-$$ language plpgsql volatile;
-
-create function add_history_recede(k piece_key) returns void as $$
-declare
-  w pos;
-begin
-  select into w x,y from pieces where (ptype,allegiance,tag) = k;
-  insert into action_history_mr (history_name, ptype,allegiance,tag,x, y)
-    values ('recede', k.ptype,k.allegiance,k.tag, w.x, w.y);
-end;
-$$ language plpgsql volatile;
-
-create function add_history_disappear(k piece_key) returns void as $$
-declare
-  w pos;
-begin
-  select into w x,y from pieces where (ptype,allegiance,tag) = k;
-  insert into action_history_mr (history_name, ptype,allegiance,tag, x, y)
-    values ('disappear', k.ptype,k.allegiance,k.tag, w.x, w.y);
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">add_history_attempt_activate_spell</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">w</span> <span class="VarId">pos</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">w</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span> <span class="Keyword">from</span> <span class="VarId">pieces</span>
+    <span class="Keyword">where</span> <span class="VarId">allegiance</span><span class="Symbol">=</span><span class="VarId">get_current_wizard</span><span class="Symbol">()</span>
+      <span class="Keyword">and</span> <span class="VarId">ptype</span> <span class="Symbol">=</span> <span class="Char">'wizard'</span><span class="Symbol">;</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">action_history_mr</span> <span class="Symbol">(</span><span class="VarId">history_name</span><span class="Symbol">,</span> <span class="VarId">allegiance</span><span class="Symbol">,</span> <span class="VarId">spell_name</span><span class="Symbol">,</span> <span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">y</span><span class="Symbol">)</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Char">'attempt_target_spell'</span><span class="Symbol">,</span> <span class="VarId">get_current_wizard</span><span class="Symbol">(),</span>
+            <span class="VarId">get_current_wizard_spell</span><span class="Symbol">(),</span> <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">y</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
 
---Move
-create function add_history_walked(sx int, sy int) returns void as $$
-declare
-  w pos;
-  k piece_key;
-begin
-  select into k ptype,allegiance,tag from selected_piece;
-  select into w x,y from pieces where (ptype,allegiance,tag) = k;
-  insert into action_history_mr (history_name, ptype, allegiance,tag,x, y, tx, ty)
-    values ('walked', k.ptype, k.allegiance, k.tag, w.x,w.y, sx, sy);
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">add_history_spell_succeeded</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">action_history_mr</span> <span class="Symbol">(</span><span class="VarId">history_name</span><span class="Symbol">,</span> <span class="VarId">allegiance</span><span class="Symbol">,</span> <span class="VarId">spell_name</span><span class="Symbol">)</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Char">'spell_succeeded'</span><span class="Symbol">,</span> <span class="VarId">get_current_wizard</span><span class="Symbol">(),</span> <span class="VarId">get_current_wizard_spell</span><span class="Symbol">());</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
-create function add_history_fly(sx int, sy int) returns void as $$
-declare
-  w pos;
-  k piece_key;
-begin
-  select into k ptype,allegiance,tag from selected_piece;
-  select into w x,y from pieces where (ptype,allegiance,tag) = k;
-  insert into action_history_mr (history_name, ptype, allegiance,tag,x, y, tx, ty)
-    values ('fly', k.ptype, k.allegiance, k.tag, w.x,w.y, sx, sy);
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">add_history_spell_failed</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">action_history_mr</span> <span class="Symbol">(</span><span class="VarId">history_name</span><span class="Symbol">,</span> <span class="VarId">allegiance</span><span class="Symbol">,</span> <span class="VarId">spell_name</span><span class="Symbol">)</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Char">'spell_failed'</span><span class="Symbol">,</span> <span class="VarId">get_current_wizard</span><span class="Symbol">(),</span> <span class="VarId">get_current_wizard_spell</span><span class="Symbol">());</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
-create function add_history_attack(t piece_key) returns void as $$
-declare
-  sp record;
-  tp pos;
-begin
-  select into sp ptype,allegiance,tag,x,y from selected_piece
-    natural inner join pieces;
-  select into tp x,y from pieces where (ptype,allegiance,tag) = t;
-  insert into action_history_mr (history_name, ptype, allegiance,tag,x,y,tx,ty)
-    values ('attack', sp.ptype, sp.allegiance, sp.tag, sp.x,sp.y, tp.x,tp.y);
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">add_history_spell_skipped</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">action_history_mr</span> <span class="Symbol">(</span><span class="VarId">history_name</span><span class="Symbol">,</span> <span class="VarId">allegiance</span><span class="Symbol">,</span> <span class="VarId">spell_name</span><span class="Symbol">)</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Char">'spell_skipped'</span><span class="Symbol">,</span> <span class="VarId">get_current_wizard</span><span class="Symbol">(),</span> <span class="VarId">get_current_wizard_spell</span><span class="Symbol">());</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
-create function add_history_ranged_attack(t piece_key) returns void as $$
-declare
-  sp record;
-  tp pos;
-begin
-  select into sp ptype,allegiance,tag,x,y from selected_piece
-    natural inner join pieces;
-  select into tp x,y from pieces where (ptype,allegiance,tag) = t;
-  insert into action_history_mr (history_name, ptype, allegiance,tag,x,y,tx,ty)
-    values ('ranged_attack', sp.ptype, sp.allegiance, sp.tag, sp.x,sp.y, tp.x,tp.y);
-end;
-$$ language plpgsql volatile;
+<span class="Comment">--chinned and shrugged off</span>
+
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">add_history_chinned</span><span class="Symbol">(</span><span class="VarId">k</span> <span class="VarId">piece_key</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">w</span> <span class="VarId">pos</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">w</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span> <span class="Keyword">from</span> <span class="VarId">pieces</span> <span class="Keyword">where</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">k</span><span class="Symbol">;</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">action_history_mr</span> <span class="Symbol">(</span><span class="VarId">history_name</span><span class="Symbol">,</span> <span class="VarId">ptype</span><span class="Symbol">,</span> <span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span> <span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">y</span><span class="Symbol">)</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Char">'chinned'</span><span class="Symbol">,</span> <span class="VarId">k</span><span class="Symbol">.</span><span class="VarId">ptype</span><span class="Symbol">,</span> <span class="VarId">k</span><span class="Symbol">.</span><span class="VarId">allegiance</span><span class="Symbol">,</span> <span class="VarId">k</span><span class="Symbol">.</span><span class="VarId">tag</span><span class="Symbol">,</span> <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">y</span><span class="Symbol">);</span>
+
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
+
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">add_history_shrugged_off</span><span class="Symbol">(</span><span class="VarId">k</span> <span class="VarId">piece_key</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">w</span> <span class="VarId">pos</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">w</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span> <span class="Keyword">from</span> <span class="VarId">pieces</span> <span class="Keyword">where</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">k</span><span class="Symbol">;</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">action_history_mr</span> <span class="Symbol">(</span><span class="VarId">history_name</span><span class="Symbol">,</span> <span class="VarId">ptype</span><span class="Symbol">,</span> <span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span> <span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">y</span><span class="Symbol">)</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Char">'shrugged_off'</span><span class="Symbol">,</span> <span class="VarId">k</span><span class="Symbol">.</span><span class="VarId">ptype</span><span class="Symbol">,</span> <span class="VarId">k</span><span class="Symbol">.</span><span class="VarId">allegiance</span><span class="Symbol">,</span> <span class="VarId">k</span><span class="Symbol">.</span><span class="VarId">tag</span><span class="Symbol">,</span><span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">y</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
+
+<span class="Comment">--Autonomous</span>
+
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">add_history_receive_spell</span><span class="Symbol">(</span><span class="VarId">pwizard_name</span> <span class="Type">text</span><span class="Symbol">,</span> <span class="VarId">pspell_name</span> <span class="Type">text</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">w</span> <span class="VarId">pos</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">w</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span> <span class="Keyword">from</span> <span class="VarId">pieces</span>
+    <span class="Keyword">where</span> <span class="VarId">allegiance</span><span class="Symbol">=</span><span class="VarId">pwizard_name</span>
+      <span class="Keyword">and</span> <span class="VarId">ptype</span> <span class="Symbol">=</span> <span class="Char">'wizard'</span><span class="Symbol">;</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">action_history_mr</span> <span class="Symbol">(</span><span class="VarId">history_name</span><span class="Symbol">,</span> <span class="VarId">allegiance</span><span class="Symbol">,</span> <span class="VarId">spell_name</span><span class="Symbol">,</span> <span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">y</span><span class="Symbol">)</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Char">'choose_spell'</span><span class="Symbol">,</span> <span class="VarId">pwizard_name</span><span class="Symbol">,</span> <span class="VarId">pspell_name</span><span class="Symbol">,</span> <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">y</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
+
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">add_history_spread</span><span class="Symbol">(</span><span class="VarId">k</span> <span class="VarId">piece_key</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">w</span> <span class="VarId">pos</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">w</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span> <span class="Keyword">from</span> <span class="VarId">pieces</span> <span class="Keyword">where</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">k</span><span class="Symbol">;</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">action_history_mr</span> <span class="Symbol">(</span><span class="VarId">history_name</span><span class="Symbol">,</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span> <span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">y</span><span class="Symbol">)</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Char">'spread'</span><span class="Symbol">,</span> <span class="VarId">k</span><span class="Symbol">.</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">k</span><span class="Symbol">.</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">k</span><span class="Symbol">.</span><span class="VarId">tag</span><span class="Symbol">,</span> <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">y</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
+
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">add_history_recede</span><span class="Symbol">(</span><span class="VarId">k</span> <span class="VarId">piece_key</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">w</span> <span class="VarId">pos</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">w</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span> <span class="Keyword">from</span> <span class="VarId">pieces</span> <span class="Keyword">where</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">k</span><span class="Symbol">;</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">action_history_mr</span> <span class="Symbol">(</span><span class="VarId">history_name</span><span class="Symbol">,</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span><span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">y</span><span class="Symbol">)</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Char">'recede'</span><span class="Symbol">,</span> <span class="VarId">k</span><span class="Symbol">.</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">k</span><span class="Symbol">.</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">k</span><span class="Symbol">.</span><span class="VarId">tag</span><span class="Symbol">,</span> <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">y</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
+
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">add_history_disappear</span><span class="Symbol">(</span><span class="VarId">k</span> <span class="VarId">piece_key</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">w</span> <span class="VarId">pos</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">w</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span> <span class="Keyword">from</span> <span class="VarId">pieces</span> <span class="Keyword">where</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">k</span><span class="Symbol">;</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">action_history_mr</span> <span class="Symbol">(</span><span class="VarId">history_name</span><span class="Symbol">,</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span> <span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">y</span><span class="Symbol">)</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Char">'disappear'</span><span class="Symbol">,</span> <span class="VarId">k</span><span class="Symbol">.</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">k</span><span class="Symbol">.</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">k</span><span class="Symbol">.</span><span class="VarId">tag</span><span class="Symbol">,</span> <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">y</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
+
+
+<span class="Comment">--Move</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">add_history_walked</span><span class="Symbol">(</span><span class="VarId">sx</span> <span class="Type">int</span><span class="Symbol">,</span> <span class="VarId">sy</span> <span class="Type">int</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">w</span> <span class="VarId">pos</span><span class="Symbol">;</span>
+  <span class="VarId">k</span> <span class="VarId">piece_key</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">k</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span> <span class="Keyword">from</span> <span class="VarId">selected_piece</span><span class="Symbol">;</span>
+  <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">w</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span> <span class="Keyword">from</span> <span class="VarId">pieces</span> <span class="Keyword">where</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">k</span><span class="Symbol">;</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">action_history_mr</span> <span class="Symbol">(</span><span class="VarId">history_name</span><span class="Symbol">,</span> <span class="VarId">ptype</span><span class="Symbol">,</span> <span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span><span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">y</span><span class="Symbol">,</span> <span class="VarId">tx</span><span class="Symbol">,</span> <span class="VarId">ty</span><span class="Symbol">)</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Char">'walked'</span><span class="Symbol">,</span> <span class="VarId">k</span><span class="Symbol">.</span><span class="VarId">ptype</span><span class="Symbol">,</span> <span class="VarId">k</span><span class="Symbol">.</span><span class="VarId">allegiance</span><span class="Symbol">,</span> <span class="VarId">k</span><span class="Symbol">.</span><span class="VarId">tag</span><span class="Symbol">,</span> <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">y</span><span class="Symbol">,</span> <span class="VarId">sx</span><span class="Symbol">,</span> <span class="VarId">sy</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
+
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">add_history_fly</span><span class="Symbol">(</span><span class="VarId">sx</span> <span class="Type">int</span><span class="Symbol">,</span> <span class="VarId">sy</span> <span class="Type">int</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">w</span> <span class="VarId">pos</span><span class="Symbol">;</span>
+  <span class="VarId">k</span> <span class="VarId">piece_key</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">k</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span> <span class="Keyword">from</span> <span class="VarId">selected_piece</span><span class="Symbol">;</span>
+  <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">w</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span> <span class="Keyword">from</span> <span class="VarId">pieces</span> <span class="Keyword">where</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">k</span><span class="Symbol">;</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">action_history_mr</span> <span class="Symbol">(</span><span class="VarId">history_name</span><span class="Symbol">,</span> <span class="VarId">ptype</span><span class="Symbol">,</span> <span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span><span class="VarId">x</span><span class="Symbol">,</span> <span class="VarId">y</span><span class="Symbol">,</span> <span class="VarId">tx</span><span class="Symbol">,</span> <span class="VarId">ty</span><span class="Symbol">)</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Char">'fly'</span><span class="Symbol">,</span> <span class="VarId">k</span><span class="Symbol">.</span><span class="VarId">ptype</span><span class="Symbol">,</span> <span class="VarId">k</span><span class="Symbol">.</span><span class="VarId">allegiance</span><span class="Symbol">,</span> <span class="VarId">k</span><span class="Symbol">.</span><span class="VarId">tag</span><span class="Symbol">,</span> <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">y</span><span class="Symbol">,</span> <span class="VarId">sx</span><span class="Symbol">,</span> <span class="VarId">sy</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
+
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">add_history_attack</span><span class="Symbol">(</span><span class="VarId">t</span> <span class="VarId">piece_key</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">sp</span> <span class="VarId">record</span><span class="Symbol">;</span>
+  <span class="VarId">tp</span> <span class="VarId">pos</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">sp</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span> <span class="Keyword">from</span> <span class="VarId">selected_piece</span>
+    <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">pieces</span><span class="Symbol">;</span>
+  <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">tp</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span> <span class="Keyword">from</span> <span class="VarId">pieces</span> <span class="Keyword">where</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">t</span><span class="Symbol">;</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">action_history_mr</span> <span class="Symbol">(</span><span class="VarId">history_name</span><span class="Symbol">,</span> <span class="VarId">ptype</span><span class="Symbol">,</span> <span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span><span class="VarId">tx</span><span class="Symbol">,</span><span class="VarId">ty</span><span class="Symbol">)</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Char">'attack'</span><span class="Symbol">,</span> <span class="VarId">sp</span><span class="Symbol">.</span><span class="VarId">ptype</span><span class="Symbol">,</span> <span class="VarId">sp</span><span class="Symbol">.</span><span class="VarId">allegiance</span><span class="Symbol">,</span> <span class="VarId">sp</span><span class="Symbol">.</span><span class="VarId">tag</span><span class="Symbol">,</span> <span class="VarId">sp</span><span class="Symbol">.</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">sp</span><span class="Symbol">.</span><span class="VarId">y</span><span class="Symbol">,</span> <span class="VarId">tp</span><span class="Symbol">.</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">tp</span><span class="Symbol">.</span><span class="VarId">y</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
+
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">add_history_ranged_attack</span><span class="Symbol">(</span><span class="VarId">t</span> <span class="VarId">piece_key</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">sp</span> <span class="VarId">record</span><span class="Symbol">;</span>
+  <span class="VarId">tp</span> <span class="VarId">pos</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">sp</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span> <span class="Keyword">from</span> <span class="VarId">selected_piece</span>
+    <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">pieces</span><span class="Symbol">;</span>
+  <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">tp</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span> <span class="Keyword">from</span> <span class="VarId">pieces</span> <span class="Keyword">where</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">t</span><span class="Symbol">;</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">action_history_mr</span> <span class="Symbol">(</span><span class="VarId">history_name</span><span class="Symbol">,</span> <span class="VarId">ptype</span><span class="Symbol">,</span> <span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span><span class="VarId">tx</span><span class="Symbol">,</span><span class="VarId">ty</span><span class="Symbol">)</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Char">'ranged_attack'</span><span class="Symbol">,</span> <span class="VarId">sp</span><span class="Symbol">.</span><span class="VarId">ptype</span><span class="Symbol">,</span> <span class="VarId">sp</span><span class="Symbol">.</span><span class="VarId">allegiance</span><span class="Symbol">,</span> <span class="VarId">sp</span><span class="Symbol">.</span><span class="VarId">tag</span><span class="Symbol">,</span> <span class="VarId">sp</span><span class="Symbol">.</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">sp</span><span class="Symbol">.</span><span class="VarId">y</span><span class="Symbol">,</span> <span class="VarId">tp</span><span class="Symbol">.</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">tp</span><span class="Symbol">.</span><span class="VarId">y</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
 
 </pre></div></div></div><p
@@ -364,7 +364,7 @@ $$ language plpgsql volatile;
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../index.txt.html"
+    ><a href="../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -52,7 +52,7 @@
 <span class="Symbol">|]</span> <span class="Symbol">++</span> <span class="String">&quot;\n&quot;</span>
 
 <span class="Function">nodesToAntificate</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">String</span><span class="Symbol">]</span>
-<span class="Function">nodesToAntificate</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="String">&quot;Expression&quot;</span><span class="Symbol">,</span> <span class="String">&quot;TriggerEvent&quot;</span><span class="Symbol">,</span> <span class="String">&quot;Statement&quot;</span><span class="Symbol">]</span>
+<span class="Function">nodesToAntificate</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="String">&quot;ScalarExpr&quot;</span><span class="Symbol">,</span> <span class="String">&quot;TriggerEvent&quot;</span><span class="Symbol">,</span> <span class="String">&quot;Statement&quot;</span><span class="Symbol">]</span>
 
 <span class="Function">makeAntiNodes</span> <span class="Symbol">::</span> <span class="ConId">IO</span> <span class="ConId">String</span>
 <span class="Function">makeAntiNodes</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
@@ -77,7 +77,7 @@
                         <span class="Symbol">++</span> <span class="VarId">addAntis</span> <span class="VarId">convs</span><span class="Symbol">))</span>
   <span class="Keyword">where</span>
     <span class="Comment">-- todo: match the exact uuagc generated names here</span>
-    <span class="VarId">isGeneratedName</span> <span class="VarId">n</span> <span class="Symbol">=</span> <span class="Char">'_'</span> <span class="Symbol">`</span><span class="VarId">elem</span><span class="Symbol">`</span> <span class="VarId">n</span> <span class="Symbol">||</span> <span class="VarId">n</span> <span class="Symbol">`</span><span class="VarId">elem</span><span class="Symbol">`</span> <span class="Symbol">[</span><span class="String">&quot;Root&quot;</span><span class="Symbol">,</span> <span class="String">&quot;ExpressionRoot&quot;</span><span class="Symbol">,</span> <span class="String">&quot;ParamName&quot;</span><span class="Symbol">]</span>
+    <span class="VarId">isGeneratedName</span> <span class="VarId">n</span> <span class="Symbol">=</span> <span class="Char">'_'</span> <span class="Symbol">`</span><span class="VarId">elem</span><span class="Symbol">`</span> <span class="VarId">n</span> <span class="Symbol">||</span> <span class="VarId">n</span> <span class="Symbol">`</span><span class="VarId">elem</span><span class="Symbol">`</span> <span class="Symbol">[</span><span class="String">&quot;Root&quot;</span><span class="Symbol">,</span> <span class="String">&quot;ScalarExprRoot&quot;</span><span class="Symbol">,</span> <span class="String">&quot;ParamName&quot;</span><span class="Symbol">]</span>
 
 <span class="Function">pf</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="ConId">Module</span>
 <span class="Function">pf</span> <span class="VarId">f</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
@@ -322,19 +322,19 @@
      <span class="Symbol">(</span><span class="ConId">BDecls</span> <span class="Symbol">[]),</span>
    <span class="ConId">TypeSig</span>
      <span class="VarId">nsrc</span>
-     <span class="Symbol">[</span><span class="ConId">Ident</span> <span class="String">&quot;convertExpression&quot;</span><span class="Symbol">]</span>
-     <span class="Symbol">(</span><span class="ConId">TyFun</span> <span class="Symbol">(</span><span class="ConId">TyCon</span> <span class="Symbol">(</span><span class="ConId">UnQual</span> <span class="Symbol">(</span><span class="ConId">Ident</span> <span class="String">&quot;Expression&quot;</span><span class="Symbol">)))</span>
-        <span class="Symbol">(</span><span class="ConId">TyCon</span> <span class="Symbol">(</span><span class="ConId">Qual</span> <span class="Symbol">(</span><span class="ConId">ModuleName</span> <span class="String">&quot;A&quot;</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">Ident</span> <span class="String">&quot;Expression&quot;</span><span class="Symbol">)))),</span>
+     <span class="Symbol">[</span><span class="ConId">Ident</span> <span class="String">&quot;convertScalarExpr&quot;</span><span class="Symbol">]</span>
+     <span class="Symbol">(</span><span class="ConId">TyFun</span> <span class="Symbol">(</span><span class="ConId">TyCon</span> <span class="Symbol">(</span><span class="ConId">UnQual</span> <span class="Symbol">(</span><span class="ConId">Ident</span> <span class="String">&quot;ScalarExpr&quot;</span><span class="Symbol">)))</span>
+        <span class="Symbol">(</span><span class="ConId">TyCon</span> <span class="Symbol">(</span><span class="ConId">Qual</span> <span class="Symbol">(</span><span class="ConId">ModuleName</span> <span class="String">&quot;A&quot;</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">Ident</span> <span class="String">&quot;ScalarExpr&quot;</span><span class="Symbol">)))),</span>
    <span class="ConId">PatBind</span>
      <span class="VarId">nsrc</span>
-     <span class="Symbol">(</span><span class="ConId">PVar</span> <span class="Symbol">(</span><span class="ConId">Ident</span> <span class="String">&quot;convertExpression&quot;</span><span class="Symbol">))</span>
+     <span class="Symbol">(</span><span class="ConId">PVar</span> <span class="Symbol">(</span><span class="ConId">Ident</span> <span class="String">&quot;convertScalarExpr&quot;</span><span class="Symbol">))</span>
      <span class="ConId">Nothing</span>
-     <span class="Symbol">(</span><span class="ConId">UnGuardedRhs</span> <span class="Symbol">(</span><span class="ConId">Var</span> <span class="Symbol">(</span><span class="ConId">UnQual</span> <span class="Symbol">(</span><span class="ConId">Ident</span> <span class="String">&quot;expression&quot;</span><span class="Symbol">))))</span>
+     <span class="Symbol">(</span><span class="ConId">UnGuardedRhs</span> <span class="Symbol">(</span><span class="ConId">Var</span> <span class="Symbol">(</span><span class="ConId">UnQual</span> <span class="Symbol">(</span><span class="ConId">Ident</span> <span class="String">&quot;scalarExpr&quot;</span><span class="Symbol">))))</span>
      <span class="Symbol">(</span><span class="ConId">BDecls</span> <span class="Symbol">[])]</span></pre></div></div></div><p
       >get the exports from astinternal, and keep the ones for types, and add the publi conversion functions</p
       ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">exports</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Data</span> <span class="VarId">a</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">ExportSpec</span><span class="Symbol">]</span>
 <span class="Function">exports</span> <span class="VarId">ast</span> <span class="Symbol">=</span> <span class="VarId">map</span> <span class="Symbol">(\</span><span class="VarId">l</span> <span class="Symbol">-&gt;</span> <span class="ConId">EVar</span> <span class="Symbol">(</span><span class="ConId">UnQual</span> <span class="Symbol">(</span><span class="ConId">Ident</span> <span class="VarId">l</span><span class="Symbol">)))</span>
-                 <span class="Symbol">[</span><span class="String">&quot;convertStatements&quot;</span><span class="Symbol">,</span> <span class="String">&quot;convertExpression&quot;</span><span class="Symbol">,</span> <span class="String">&quot;attributeDef&quot;</span><span class="Symbol">]</span> <span class="Symbol">++</span>
+                 <span class="Symbol">[</span><span class="String">&quot;convertStatements&quot;</span><span class="Symbol">,</span> <span class="String">&quot;convertScalarExpr&quot;</span><span class="Symbol">,</span> <span class="String">&quot;attributeDef&quot;</span><span class="Symbol">,</span> <span class="String">&quot;queryExpr&quot;</span><span class="Symbol">]</span> <span class="Symbol">++</span>
               <span class="Symbol">[</span><span class="VarId">ex</span><span class="Symbol">|</span> <span class="VarId">ex</span><span class="Symbol">@(</span><span class="ConId">EThingAll</span> <span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">&lt;-</span> <span class="VarId">universeBi</span> <span class="VarId">ast</span><span class="Symbol">]</span> <span class="Symbol">++</span>
               <span class="Symbol">[</span><span class="VarId">ex</span><span class="Symbol">|</span> <span class="VarId">ex</span><span class="Symbol">@(</span><span class="ConId">EAbs</span> <span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">&lt;-</span> <span class="VarId">universeBi</span> <span class="VarId">ast</span><span class="Symbol">]</span></pre></div></div></div><p
       >take all the pieces and make a complete module to be pretty printed ready for compilation</p
@@ -374,7 +374,7 @@
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

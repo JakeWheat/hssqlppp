@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../../index.txt.html"
+    ><a href="../../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -96,7 +96,7 @@
 <span class="Comment">-- this is just to convert the new approach of using &quot;.&quot; as an operator</span>
 <span class="Comment">-- to construct names, with the old approach which stuck the whole lot</span>
 <span class="Comment">-- in a string</span>
-<span class="Function">getName</span> <span class="Symbol">::</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+<span class="Function">getName</span> <span class="Symbol">::</span> <span class="ConId">ScalarExpr</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
 <span class="Function">getName</span> <span class="Symbol">(</span><span class="ConId">Identifier</span> <span class="VarId">_</span> <span class="VarId">i</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">i</span>
 <span class="Function">getName</span> <span class="Symbol">(</span><span class="ConId">FunCall</span> <span class="VarId">_</span> <span class="String">&quot;.&quot;</span> <span class="Symbol">[</span><span class="ConId">Identifier</span> <span class="VarId">_</span> <span class="VarId">_</span><span class="Symbol">,</span><span class="ConId">Identifier</span> <span class="VarId">_</span> <span class="VarId">i</span><span class="Symbol">])</span> <span class="Symbol">=</span> <span class="VarId">i</span>
 <span class="Function">getName</span> <span class="Symbol">(</span><span class="ConId">FunCall</span> <span class="VarId">_</span> <span class="String">&quot;.&quot;</span> <span class="Symbol">[</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">a</span><span class="Symbol">])</span> <span class="Symbol">=</span> <span class="VarId">getName</span> <span class="VarId">a</span>
@@ -145,7 +145,7 @@
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

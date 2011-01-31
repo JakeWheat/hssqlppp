@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../index.txt.html"
+    ><a href="../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -18,7 +18,9 @@
     ><p
     >To compile and run, use something like:</p
     ><p
-    >ghc --make -threaded -XScopedTypeVariables -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -idevel:src/lib:src/qq:src/postgresql:examples/chaos:examples/extensions/:examples/util/:tests/ --make devel/DevelTool.lhs &amp;&amp; time</p
+    >ghc --make -threaded -XScopedTypeVariables -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -idevel:src/lib:src/qq:src/postgresql:examples/chaos:examples/extensions/:examples/util/:tests/ --make devel/DevelTool.lhs</p
+    ><p
+    >time devel/DevelTool makewebsite +RTS -N</p
     ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">module</span> <span class="ConId">MakeWebsite</span> <span class="Symbol">(</span><span class="VarId">makeWebsite</span><span class="Symbol">,</span> <span class="VarId">sourceLinks</span><span class="Symbol">)</span> <span class="Keyword">where</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">import</span> <span class="ConId">System.FilePath.Find</span>
 <span class="Keyword">import</span> <span class="ConId">System.FilePath</span>
 <span class="Keyword">import</span> <span class="ConId">Data.Char</span>
@@ -30,7 +32,8 @@
 <span class="Keyword">import</span> <span class="ConId">DoChaosSql</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">makeWebsite</span> <span class="Symbol">::</span> <span class="ConId">IO</span> <span class="Symbol">()</span>
 <span class="Function">makeWebsite</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
           <span class="VarId">f</span> <span class="Symbol">&lt;-</span> <span class="VarId">fileList</span>
-          <span class="VarId">docify</span> <span class="String">&quot;hssqlppp/&quot;</span> <span class="VarId">f</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">fileList</span> <span class="Symbol">::</span> <span class="ConId">IO</span> <span class="Symbol">[</span><span class="ConId">OutputFile</span><span class="Symbol">]</span>
+          <span class="VarId">docify</span> <span class="String">&quot;hssqlppp/&quot;</span> <span class="VarId">f</span>
+          <span class="VarId">renameFile</span> <span class="String">&quot;hssqlppp/index.txt.html&quot;</span> <span class="String">&quot;hssqlppp/index.html&quot;</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">fileList</span> <span class="Symbol">::</span> <span class="ConId">IO</span> <span class="Symbol">[</span><span class="ConId">OutputFile</span><span class="Symbol">]</span>
 <span class="Function">fileList</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
   <span class="VarId">doesDirectoryExist</span> <span class="String">&quot;hssqlppp&quot;</span> <span class="Symbol">&gt;&gt;=</span>
     <span class="VarId">flip</span> <span class="VarId">when</span> <span class="Symbol">(</span><span class="VarId">removeDirectoryRecursive</span> <span class="String">&quot;hssqlppp&quot;</span><span class="Symbol">)</span>
@@ -49,13 +52,13 @@
             <span class="Symbol">,</span><span class="ConId">OutputFile</span> <span class="Symbol">(</span><span class="ConId">Text</span> <span class="VarId">qq</span><span class="Symbol">)</span>
                         <span class="ConId">Txt</span> <span class="String">&quot;hssqlppp/QuasiQuoteTests.html&quot;</span>
                         <span class="String">&quot;HsSqlPpp quasiquotation examples&quot;</span><span class="Symbol">]</span>
-  <span class="Comment">{-trch1 &lt;- flip fmap getTransformedChaosSql</span>
-<span class="Comment">                $ map $ \(title, fn, txt) -&gt;</span>
-<span class="Comment">                          OutputFile (Text txt)</span>
-<span class="Comment">                                     Txt</span>
-<span class="Comment">                                     (&quot;hssqlppp/source&quot; &lt;/&gt; fn)</span>
-<span class="Comment">                                     title-}</span>
-  <span class="VarId">return</span> <span class="Symbol">$</span> <span class="VarId">tfp</span> <span class="Symbol">++</span> <span class="VarId">src</span> <span class="Symbol">++</span> <span class="Comment">{-trch1 ++ -}</span> <span class="VarId">wso</span> <span class="Symbol">++</span> <span class="VarId">ex</span> <span class="Symbol">++</span> <span class="VarId">devel</span> <span class="Symbol">++</span> <span class="VarId">tests</span>
+  <span class="VarId">trch1</span> <span class="Symbol">&lt;-</span> <span class="VarId">flip</span> <span class="VarId">fmap</span> <span class="VarId">getTransformedChaosSql</span>
+                <span class="Symbol">$</span> <span class="VarId">map</span> <span class="Symbol">$</span> <span class="Symbol">\(</span><span class="VarId">title</span><span class="Symbol">,</span> <span class="VarId">fn</span><span class="Symbol">,</span> <span class="VarId">txt</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span>
+                          <span class="ConId">OutputFile</span> <span class="Symbol">(</span><span class="ConId">Text</span> <span class="VarId">txt</span><span class="Symbol">)</span>
+                                     <span class="ConId">Txt</span>
+                                     <span class="Symbol">(</span><span class="String">&quot;hssqlppp/source&quot;</span> <span class="Symbol">&lt;/&gt;</span> <span class="VarId">fn</span><span class="Symbol">)</span>
+                                     <span class="VarId">title</span>
+  <span class="VarId">return</span> <span class="Symbol">$</span> <span class="VarId">tfp</span> <span class="Symbol">++</span> <span class="VarId">src</span> <span class="Symbol">++</span> <span class="VarId">trch1</span> <span class="Symbol">++</span> <span class="VarId">wso</span> <span class="Symbol">++</span> <span class="VarId">ex</span> <span class="Symbol">++</span> <span class="VarId">devel</span> <span class="Symbol">++</span> <span class="VarId">tests</span>
   <span class="Keyword">where</span>
     <span class="VarId">removeMatches</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">String</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">OutputFile</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">OutputFile</span><span class="Symbol">]</span>
     <span class="VarId">removeMatches</span> <span class="VarId">bads</span> <span class="Symbol">=</span>
@@ -115,7 +118,7 @@
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

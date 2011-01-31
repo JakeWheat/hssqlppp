@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../index.txt.html"
+    ><a href="../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -66,7 +66,7 @@
         <span class="VarId">s</span><span class="Symbol">@[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
           <span class="VarId">select</span> <span class="VarId">restrict_cardinality</span><span class="Symbol">($</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">tablename</span><span class="Symbol">),</span> <span class="Symbol">$(</span><span class="VarId">num</span><span class="Symbol">));</span> <span class="Symbol">|]</span>
             <span class="Symbol">-&gt;</span> <span class="Keyword">let</span> <span class="Comment">--i = [$sqlExpr| $(num) |]</span>
-                   <span class="VarId">expr</span> <span class="Symbol">=</span> <span class="VarId">printExpression</span>
+                   <span class="VarId">expr</span> <span class="Symbol">=</span> <span class="VarId">printScalarExpr</span>
                             <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="Symbol">(</span><span class="VarId">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="VarId">from</span> <span class="Symbol">$(</span><span class="VarId">tablename</span><span class="Symbol">))</span>
                                         <span class="Symbol">&lt;=</span> <span class="Symbol">$(</span><span class="VarId">num</span><span class="Symbol">)</span> <span class="Symbol">|]</span>
                    <span class="VarId">conname</span> <span class="Symbol">=</span> <span class="VarId">tablename</span> <span class="Symbol">++</span> <span class="String">&quot;_card&quot;</span>
@@ -80,7 +80,7 @@
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../index.txt.html"
+    ><a href="../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -20,18 +20,19 @@
 <span class="Comment">-- | Functions to parse SQL.</span>
 <span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.Parsing.ParserInternal</span>
     <span class="Symbol">(</span><span class="Comment">-- * Main</span>
-     <span class="VarId">parseSql</span>
-    <span class="Symbol">,</span><span class="VarId">parseSqlWithPosition</span>
-    <span class="Symbol">,</span><span class="VarId">parseSqlFile</span>
+     <span class="VarId">parseStatements</span>
+    <span class="Symbol">,</span><span class="VarId">parseStatementsWithPosition</span>
+    <span class="Symbol">,</span><span class="VarId">parseStatementsFromFile</span>
+    <span class="Symbol">,</span><span class="VarId">parseQueryExpr</span>
      <span class="Comment">-- * Testing</span>
-    <span class="Symbol">,</span><span class="VarId">parseExpression</span>
+    <span class="Symbol">,</span><span class="VarId">parseScalarExpr</span>
     <span class="Symbol">,</span><span class="VarId">parsePlpgsql</span>
      <span class="Comment">-- * errors</span>
     <span class="Symbol">,</span><span class="ConId">ParseErrorExtra</span><span class="Symbol">(..)</span>
      <span class="Comment">-- * quasiquotation support</span>
     <span class="Symbol">,</span><span class="VarId">parseAntiSql</span>
     <span class="Symbol">,</span><span class="VarId">parseAntiPlpgsql</span>
-    <span class="Symbol">,</span><span class="VarId">parseAntiExpression</span>
+    <span class="Symbol">,</span><span class="VarId">parseAntiScalarExpr</span>
      <span class="Comment">-- other helpers for internal use</span>
     <span class="Symbol">,</span><span class="VarId">tableAttribute</span>
     <span class="Symbol">,</span><span class="VarId">keyword</span>
@@ -54,7 +55,7 @@
 <span class="Keyword">import</span> <span class="ConId">Data.Char</span>
 
 <span class="Keyword">import</span> <span class="ConId">Data.Generics.PlateData</span>
-<span class="Keyword">import</span> <span class="ConId">Data.Generics</span> <span class="Keyword">hiding</span> <span class="Symbol">(</span><span class="ConId">Prefix</span><span class="Symbol">,</span><span class="ConId">Infix</span><span class="Symbol">)</span>
+<span class="Keyword">import</span> <span class="ConId">Data.Data</span> <span class="Keyword">hiding</span> <span class="Symbol">(</span><span class="ConId">Prefix</span><span class="Symbol">,</span><span class="ConId">Infix</span><span class="Symbol">)</span>
 
 <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Parsing.Lexer</span>
 <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Parsing.ParseErrors</span>
@@ -63,7 +64,8 @@
 <span class="Keyword">import</span> <span class="Keyword">qualified</span> <span class="ConId">Database.HsSqlPpp.Ast</span> <span class="Keyword">as</span> <span class="ConId">A</span>
 <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Annotation</span> <span class="Keyword">as</span> <span class="ConId">A</span>
 <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Utils.Utils</span>
-<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Catalog</span></pre></div></div></div><hr
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Catalog</span>
+<span class="Comment">--import Debug.Trace</span></pre></div></div></div><hr
      /><div id="top-level-parsing-functions"
     ><h1
       >Top level parsing functions</h1
@@ -81,33 +83,44 @@
 	><li
 	>todo: add a flag so that if we are not parsing for the quasiquoter, any splice syntax is rejected as a parse error.</li
 	></ul
-      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">parseSql</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Comment">-- ^ filename to use in errors</span>
-         <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Comment">-- ^ a string containing the sql to parse</span>
-         <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="ConId">ParseErrorExtra</span> <span class="ConId">A.StatementList</span>
-<span class="Function">parseSql</span> <span class="VarId">f</span> <span class="VarId">s</span> <span class="Symbol">=</span>
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">parseStatements</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Comment">-- ^ filename to use in errors</span>
+                <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Comment">-- ^ a string containing the sql to parse</span>
+                <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="ConId">ParseErrorExtra</span> <span class="ConId">A.StatementList</span>
+<span class="Function">parseStatements</span> <span class="VarId">f</span> <span class="VarId">s</span> <span class="Symbol">=</span>
   <span class="VarId">deAS</span> <span class="Symbol">$</span> <span class="VarId">parseIt</span> <span class="VarId">l</span> <span class="VarId">sqlStatements</span> <span class="VarId">f</span> <span class="ConId">Nothing</span> <span class="VarId">s</span> <span class="VarId">startState</span>
   <span class="Keyword">where</span> <span class="VarId">l</span> <span class="Symbol">=</span> <span class="VarId">lexSqlText</span> <span class="VarId">f</span> <span class="VarId">s</span>
 
-<span class="Function">parseSqlWithPosition</span> <span class="Symbol">::</span> <span class="ConId">FilePath</span> <span class="Comment">-- ^ filename to use in errors</span>
-                     <span class="Symbol">-&gt;</span> <span class="ConId">Int</span> <span class="Comment">-- ^ adjust line number in errors by adding this</span>
-                     <span class="Symbol">-&gt;</span> <span class="ConId">Int</span> <span class="Comment">-- ^ adjust column in errors by adding this</span>
-                     <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Comment">-- ^ a string containing the sql to parse</span>
-                     <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="ConId">ParseErrorExtra</span> <span class="ConId">A.StatementList</span>
-<span class="Function">parseSqlWithPosition</span> <span class="VarId">f</span> <span class="VarId">l</span> <span class="VarId">c</span> <span class="VarId">s</span> <span class="Symbol">=</span> <span class="VarId">deAS</span> <span class="Symbol">$</span> <span class="VarId">parseAntiSql</span> <span class="VarId">f</span> <span class="VarId">l</span> <span class="VarId">c</span> <span class="VarId">s</span>
+<span class="Function">parseStatementsWithPosition</span> <span class="Symbol">::</span> <span class="ConId">FilePath</span> <span class="Comment">-- ^ filename to use in errors</span>
+                            <span class="Symbol">-&gt;</span> <span class="ConId">Int</span> <span class="Comment">-- ^ adjust line number in errors by adding this</span>
+                            <span class="Symbol">-&gt;</span> <span class="ConId">Int</span> <span class="Comment">-- ^ adjust column in errors by adding this</span>
+                            <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Comment">-- ^ a string containing the sql to parse</span>
+                            <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="ConId">ParseErrorExtra</span> <span class="ConId">A.StatementList</span>
+<span class="Function">parseStatementsWithPosition</span> <span class="VarId">f</span> <span class="VarId">l</span> <span class="VarId">c</span> <span class="VarId">s</span> <span class="Symbol">=</span> <span class="VarId">deAS</span> <span class="Symbol">$</span> <span class="VarId">parseAntiSql</span> <span class="VarId">f</span> <span class="VarId">l</span> <span class="VarId">c</span> <span class="VarId">s</span>
 
-<span class="Function">parseSqlFile</span> <span class="Symbol">::</span> <span class="ConId">FilePath</span> <span class="Comment">-- ^ file name of file containing sql</span>
-             <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="Symbol">(</span><span class="ConId">Either</span> <span class="ConId">ParseErrorExtra</span> <span class="ConId">A.StatementList</span><span class="Symbol">)</span>
-<span class="Function">parseSqlFile</span> <span class="VarId">fn</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+<span class="Function">parseStatementsFromFile</span> <span class="Symbol">::</span> <span class="ConId">FilePath</span> <span class="Comment">-- ^ file name of file containing sql</span>
+                        <span class="Symbol">-&gt;</span> <span class="ConId">IO</span> <span class="Symbol">(</span><span class="ConId">Either</span> <span class="ConId">ParseErrorExtra</span> <span class="ConId">A.StatementList</span><span class="Symbol">)</span>
+<span class="Function">parseStatementsFromFile</span> <span class="VarId">fn</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
   <span class="VarId">sc</span> <span class="Symbol">&lt;-</span> <span class="VarId">readFile</span> <span class="VarId">fn</span>
   <span class="VarId">x</span> <span class="Symbol">&lt;-</span> <span class="VarId">lexSqlFile</span> <span class="VarId">fn</span>
   <span class="VarId">return</span> <span class="Symbol">$</span> <span class="VarId">deAS</span> <span class="Symbol">$</span> <span class="VarId">parseIt</span> <span class="VarId">x</span> <span class="VarId">sqlStatements</span> <span class="VarId">fn</span> <span class="ConId">Nothing</span> <span class="VarId">sc</span> <span class="VarId">startState</span>
-
-<span class="Comment">-- | Parse expression fragment, used for testing purposes</span>
-<span class="Function">parseExpression</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Comment">-- ^ filename for error messages</span>
+</pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">parseQueryExpr</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Comment">-- ^ filename to use in errors</span>
+               <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Comment">-- ^ a string containing the sql to parse</span>
+               <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="ConId">ParseErrorExtra</span> <span class="ConId">A.QueryExpr</span>
+<span class="Function">parseQueryExpr</span> <span class="VarId">f</span> <span class="VarId">s</span> <span class="Symbol">=</span>
+  <span class="VarId">deQE</span> <span class="Symbol">$</span> <span class="VarId">parseIt</span> <span class="VarId">l</span> <span class="VarId">pqe</span> <span class="VarId">f</span> <span class="ConId">Nothing</span> <span class="VarId">s</span> <span class="VarId">startState</span>
+  <span class="Keyword">where</span>
+    <span class="VarId">l</span> <span class="Symbol">=</span> <span class="VarId">lexSqlText</span> <span class="VarId">f</span> <span class="VarId">s</span>
+    <span class="VarId">pqe</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">QueryExpr</span>
+    <span class="VarId">pqe</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+          <span class="Symbol">(</span><span class="ConId">QueryStatement</span> <span class="VarId">_</span> <span class="VarId">q</span><span class="Symbol">)</span> <span class="Symbol">&lt;-</span> <span class="VarId">selectStatement</span>
+          <span class="VarId">optional</span> <span class="Symbol">(</span><span class="VarId">symbol</span> <span class="String">&quot;;&quot;</span><span class="Symbol">)</span>
+          <span class="VarId">eof</span>
+          <span class="VarId">return</span> <span class="VarId">q</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">-- | Parse expression fragment, used for testing purposes</span>
+<span class="Function">parseScalarExpr</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Comment">-- ^ filename for error messages</span>
                 <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Comment">-- ^ sql string containing a single expression,</span>
                           <span class="Comment">-- with no trailing ';'</span>
-                <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="ConId">ParseErrorExtra</span> <span class="ConId">A.Expression</span>
-<span class="Function">parseExpression</span> <span class="VarId">f</span> <span class="VarId">s</span> <span class="Symbol">=</span>
+                <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="ConId">ParseErrorExtra</span> <span class="ConId">A.ScalarExpr</span>
+<span class="Function">parseScalarExpr</span> <span class="VarId">f</span> <span class="VarId">s</span> <span class="Symbol">=</span>
   <span class="VarId">deAE</span> <span class="Symbol">$</span> <span class="VarId">parseIt</span> <span class="VarId">l</span> <span class="Symbol">(</span><span class="VarId">expr</span> <span class="Symbol">&lt;*</span> <span class="VarId">eof</span><span class="Symbol">)</span> <span class="VarId">f</span> <span class="ConId">Nothing</span> <span class="VarId">s</span> <span class="VarId">startState</span>
   <span class="Keyword">where</span> <span class="VarId">l</span> <span class="Symbol">=</span> <span class="VarId">lexSqlText</span> <span class="VarId">f</span> <span class="VarId">s</span>
 
@@ -147,12 +160,12 @@
     <span class="VarId">p</span> <span class="Symbol">=</span> <span class="VarId">many</span> <span class="VarId">plPgsqlStatement</span> <span class="Symbol">&lt;*</span> <span class="VarId">eof</span>
     <span class="VarId">ps</span> <span class="Symbol">=</span> <span class="ConId">Just</span> <span class="Symbol">(</span><span class="VarId">l</span><span class="Symbol">,</span><span class="VarId">c</span><span class="Symbol">)</span>
 
-<span class="Function">parseAntiExpression</span> <span class="Symbol">::</span> <span class="ConId">String</span>
+<span class="Function">parseAntiScalarExpr</span> <span class="Symbol">::</span> <span class="ConId">String</span>
                     <span class="Symbol">-&gt;</span> <span class="ConId">Int</span>
                     <span class="Symbol">-&gt;</span> <span class="ConId">Int</span>
                     <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
-                    <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="ConId">ParseErrorExtra</span> <span class="ConId">Expression</span>
-<span class="Function">parseAntiExpression</span> <span class="VarId">f</span> <span class="VarId">l</span> <span class="VarId">c</span> <span class="VarId">s</span> <span class="Symbol">=</span>
+                    <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="ConId">ParseErrorExtra</span> <span class="ConId">ScalarExpr</span>
+<span class="Function">parseAntiScalarExpr</span> <span class="VarId">f</span> <span class="VarId">l</span> <span class="VarId">c</span> <span class="VarId">s</span> <span class="Symbol">=</span>
   <span class="VarId">parseIt</span> <span class="VarId">lx</span> <span class="VarId">p</span> <span class="VarId">f</span> <span class="VarId">ps</span> <span class="VarId">s</span> <span class="VarId">startState</span>
   <span class="Keyword">where</span>
     <span class="VarId">lx</span> <span class="Symbol">=</span> <span class="VarId">lexSqlText</span> <span class="VarId">f</span> <span class="VarId">s</span>
@@ -176,16 +189,20 @@
                                   <span class="ConId">Left</span> <span class="VarId">er</span> <span class="Symbol">-&gt;</span> <span class="ConId">Left</span> <span class="VarId">er</span>
                                   <span class="ConId">Right</span> <span class="VarId">t</span> <span class="Symbol">-&gt;</span> <span class="ConId">Right</span> <span class="Symbol">$</span> <span class="VarId">fixupTree</span> <span class="VarId">t</span>
 
-<span class="Function">deAE</span> <span class="Symbol">::</span> <span class="ConId">Either</span> <span class="ConId">ParseErrorExtra</span> <span class="ConId">Expression</span>
-     <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="ConId">ParseErrorExtra</span> <span class="ConId">A.Expression</span>
+<span class="Function">deAE</span> <span class="Symbol">::</span> <span class="ConId">Either</span> <span class="ConId">ParseErrorExtra</span> <span class="ConId">ScalarExpr</span>
+     <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="ConId">ParseErrorExtra</span> <span class="ConId">A.ScalarExpr</span>
 <span class="Function">deAE</span> <span class="VarId">x</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
                 <span class="ConId">Left</span> <span class="VarId">e</span> <span class="Symbol">-&gt;</span> <span class="ConId">Left</span> <span class="VarId">e</span>
-                <span class="ConId">Right</span> <span class="VarId">ex</span> <span class="Symbol">-&gt;</span> <span class="ConId">Right</span> <span class="Symbol">$</span> <span class="VarId">convertExpression</span> <span class="VarId">ex</span>
+                <span class="ConId">Right</span> <span class="VarId">ex</span> <span class="Symbol">-&gt;</span> <span class="ConId">Right</span> <span class="Symbol">$</span> <span class="VarId">convertScalarExpr</span> <span class="VarId">ex</span>
 <span class="Function">deAS</span> <span class="Symbol">::</span> <span class="ConId">Either</span> <span class="ConId">ParseErrorExtra</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span>
      <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="ConId">ParseErrorExtra</span> <span class="Symbol">[</span><span class="ConId">A.Statement</span><span class="Symbol">]</span>
 <span class="Function">deAS</span> <span class="VarId">x</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
                 <span class="ConId">Left</span> <span class="VarId">e</span> <span class="Symbol">-&gt;</span> <span class="ConId">Left</span> <span class="VarId">e</span>
-                <span class="ConId">Right</span> <span class="VarId">ex</span> <span class="Symbol">-&gt;</span> <span class="ConId">Right</span> <span class="Symbol">$</span> <span class="VarId">convertStatements</span> <span class="VarId">ex</span></pre></div></div></div><hr
+                <span class="ConId">Right</span> <span class="VarId">ex</span> <span class="Symbol">-&gt;</span> <span class="ConId">Right</span> <span class="Symbol">$</span> <span class="VarId">convertStatements</span> <span class="VarId">ex</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">deQE</span> <span class="Symbol">::</span> <span class="ConId">Either</span> <span class="ConId">ParseErrorExtra</span> <span class="ConId">QueryExpr</span>
+     <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="ConId">ParseErrorExtra</span> <span class="ConId">A.QueryExpr</span>
+<span class="Function">deQE</span> <span class="VarId">x</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+                <span class="ConId">Left</span> <span class="VarId">e</span> <span class="Symbol">-&gt;</span> <span class="ConId">Left</span> <span class="VarId">e</span>
+                <span class="ConId">Right</span> <span class="VarId">ex</span> <span class="Symbol">-&gt;</span> <span class="ConId">Right</span> <span class="Symbol">$</span> <span class="VarId">queryExpr</span> <span class="VarId">ex</span></pre></div></div></div><hr
        /><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">type</span> <span class="ConId">SParser</span> <span class="Symbol">=</span>  <span class="ConId">GenParser</span> <span class="ConId">Token</span> <span class="ConId">ParseState</span></pre></div></div></div></div
     ><div id="parsing-top-level-statements"
     ><h1
@@ -243,20 +260,20 @@
 	><p
 	>recurses to support parsing excepts, unions, etc. this recursion needs refactoring cos it's a mess</p
 	><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">selectStatement</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Statement</span>
-<span class="Function">selectStatement</span> <span class="Symbol">=</span> <span class="ConId">SelectStatement</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">selectExpression</span>
+<span class="Function">selectStatement</span> <span class="Symbol">=</span> <span class="ConId">QueryStatement</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">selectScalarExpr</span>
 
-<span class="Function">selectExpression</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">SelectExpression</span>
-<span class="Function">selectExpression</span> <span class="Symbol">=</span>
+<span class="Function">selectScalarExpr</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">QueryExpr</span>
+<span class="Function">selectScalarExpr</span> <span class="Symbol">=</span>
   <span class="VarId">with</span> <span class="Symbol">&lt;|&gt;</span>
   <span class="VarId">buildExpressionParser</span> <span class="VarId">combTable</span> <span class="VarId">selFactor</span>
   <span class="Keyword">where</span>
-        <span class="VarId">selFactor</span> <span class="Symbol">=</span> <span class="VarId">try</span> <span class="Symbol">(</span><span class="VarId">parens</span> <span class="VarId">selectExpression</span><span class="Symbol">)</span> <span class="Symbol">&lt;|&gt;</span> <span class="VarId">selQuerySpec</span> <span class="Symbol">&lt;|&gt;</span> <span class="VarId">values</span>
+        <span class="VarId">selFactor</span> <span class="Symbol">=</span> <span class="VarId">try</span> <span class="Symbol">(</span><span class="VarId">parens</span> <span class="VarId">selectScalarExpr</span><span class="Symbol">)</span> <span class="Symbol">&lt;|&gt;</span> <span class="VarId">selQuerySpec</span> <span class="Symbol">&lt;|&gt;</span> <span class="VarId">values</span>
         <span class="VarId">with</span> <span class="Symbol">=</span> <span class="ConId">WithSelect</span> <span class="Symbol">&lt;$&gt;</span> <span class="Symbol">(</span><span class="VarId">pos</span> <span class="Symbol">&lt;*</span> <span class="VarId">keyword</span> <span class="String">&quot;with&quot;</span><span class="Symbol">)</span>
                           <span class="Symbol">&lt;*&gt;</span> <span class="VarId">commaSep1</span> <span class="VarId">withQuery</span>
-                          <span class="Symbol">&lt;*&gt;</span> <span class="VarId">selectExpression</span>
+                          <span class="Symbol">&lt;*&gt;</span> <span class="VarId">selectScalarExpr</span>
         <span class="VarId">withQuery</span> <span class="Symbol">=</span> <span class="ConId">WithQuery</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span>
                               <span class="Symbol">&lt;*&gt;</span> <span class="Symbol">(</span><span class="VarId">idString</span> <span class="Symbol">&lt;*</span> <span class="VarId">keyword</span> <span class="String">&quot;as&quot;</span><span class="Symbol">)</span>
-                              <span class="Symbol">&lt;*&gt;</span> <span class="VarId">parens</span> <span class="VarId">selectExpression</span>
+                              <span class="Symbol">&lt;*&gt;</span> <span class="VarId">parens</span> <span class="VarId">selectScalarExpr</span>
         <span class="VarId">combTable</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="VarId">map</span> <span class="Symbol">(\(</span><span class="VarId">c</span><span class="Symbol">,</span><span class="VarId">p</span><span class="Symbol">)</span> <span class="Symbol">-&gt;</span> <span class="ConId">Infix</span> <span class="Symbol">(</span><span class="ConId">CombineSelect</span>
                                            <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span>
                                            <span class="Symbol">&lt;*&gt;</span> <span class="Symbol">(</span><span class="VarId">c</span> <span class="Symbol">&lt;$</span> <span class="VarId">p</span><span class="Symbol">))</span> <span class="ConId">AssocLeft</span><span class="Symbol">)</span>
@@ -298,7 +315,7 @@
                 <span class="Keyword">do</span>
                   <span class="VarId">p2</span> <span class="Symbol">&lt;-</span> <span class="VarId">pos</span>
                   <span class="Symbol">(</span><span class="VarId">nat</span><span class="Symbol">,</span><span class="VarId">jt</span><span class="Symbol">)</span> <span class="Symbol">&lt;-</span> <span class="VarId">joinKw</span>
-                  <span class="ConId">JoinedTref</span> <span class="VarId">p2</span> <span class="VarId">tr1</span> <span class="VarId">nat</span> <span class="VarId">jt</span>
+                  <span class="ConId">JoinTref</span> <span class="VarId">p2</span> <span class="VarId">tr1</span> <span class="VarId">nat</span> <span class="VarId">jt</span>
                                    <span class="Symbol">&lt;$&gt;</span> <span class="VarId">trefTerm</span>
                                    <span class="Symbol">&lt;*&gt;</span> <span class="VarId">onExpr</span>
                                    <span class="Symbol">&lt;*&gt;</span> <span class="VarId">palias</span>
@@ -310,9 +327,9 @@
                   <span class="VarId">p2</span> <span class="Symbol">&lt;-</span> <span class="VarId">pos</span>
                   <span class="VarId">choice</span> <span class="Symbol">[</span>
                          <span class="ConId">SubTref</span> <span class="VarId">p2</span>
-                         <span class="Symbol">&lt;$&gt;</span> <span class="VarId">parens</span> <span class="VarId">selectExpression</span>
+                         <span class="Symbol">&lt;$&gt;</span> <span class="VarId">parens</span> <span class="VarId">selectScalarExpr</span>
                          <span class="Symbol">&lt;*&gt;</span> <span class="VarId">palias</span>
-                        <span class="Symbol">,</span><span class="ConId">TrefFun</span> <span class="VarId">p2</span>
+                        <span class="Symbol">,</span><span class="ConId">FunTref</span> <span class="VarId">p2</span>
                          <span class="Symbol">&lt;$&gt;</span> <span class="VarId">try</span> <span class="Symbol">(</span><span class="VarId">identifier</span> <span class="Symbol">&gt;&gt;=</span> <span class="VarId">functionCallSuffix</span><span class="Symbol">)</span>
                          <span class="Symbol">&lt;*&gt;</span> <span class="VarId">palias</span>
                         <span class="Symbol">,</span><span class="ConId">Tref</span> <span class="VarId">p2</span>
@@ -395,7 +412,7 @@
          <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*</span> <span class="VarId">keyword</span> <span class="String">&quot;insert&quot;</span> <span class="Symbol">&lt;*</span> <span class="VarId">keyword</span> <span class="String">&quot;into&quot;</span>
          <span class="Symbol">&lt;*&gt;</span> <span class="VarId">qName</span>
          <span class="Symbol">&lt;*&gt;</span> <span class="VarId">option</span> <span class="Symbol">[]</span> <span class="Symbol">(</span><span class="VarId">try</span> <span class="VarId">columnNameList</span><span class="Symbol">)</span>
-         <span class="Symbol">&lt;*&gt;</span> <span class="VarId">selectExpression</span>
+         <span class="Symbol">&lt;*&gt;</span> <span class="VarId">selectScalarExpr</span>
          <span class="Symbol">&lt;*&gt;</span> <span class="VarId">tryOptionMaybe</span> <span class="VarId">returning</span>
 
 <span class="Function">update</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Statement</span>
@@ -490,7 +507,7 @@
   <span class="VarId">keyword</span> <span class="String">&quot;table&quot;</span>
   <span class="VarId">tname</span> <span class="Symbol">&lt;-</span> <span class="VarId">idString</span>
   <span class="VarId">choice</span> <span class="Symbol">[</span>
-     <span class="ConId">CreateTableAs</span> <span class="VarId">p</span> <span class="VarId">tname</span> <span class="Symbol">&lt;$&gt;</span> <span class="Symbol">(</span><span class="VarId">keyword</span> <span class="String">&quot;as&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">selectExpression</span><span class="Symbol">)</span>
+     <span class="ConId">CreateTableAs</span> <span class="VarId">p</span> <span class="VarId">tname</span> <span class="Symbol">&lt;$&gt;</span> <span class="Symbol">(</span><span class="VarId">keyword</span> <span class="String">&quot;as&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">selectScalarExpr</span><span class="Symbol">)</span>
     <span class="Symbol">,</span><span class="VarId">uncurry</span> <span class="Symbol">(</span><span class="ConId">CreateTable</span> <span class="VarId">p</span> <span class="VarId">tname</span><span class="Symbol">)</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">readAttsAndCons</span><span class="Symbol">]</span>
   <span class="Keyword">where</span>
     <span class="Comment">--parse our unordered list of attribute defs or constraints, for</span>
@@ -644,7 +661,7 @@
                              <span class="Symbol">,(</span><span class="String">&quot;immutable&quot;</span><span class="Symbol">,</span> <span class="ConId">Immutable</span><span class="Symbol">)]</span>
         <span class="VarId">readLang</span> <span class="Symbol">=</span> <span class="VarId">keyword</span> <span class="String">&quot;language&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">matchAKeyword</span> <span class="Symbol">[(</span><span class="String">&quot;plpgsql&quot;</span><span class="Symbol">,</span> <span class="ConId">Plpgsql</span><span class="Symbol">)</span>
                                                        <span class="Symbol">,(</span><span class="String">&quot;sql&quot;</span><span class="Symbol">,</span><span class="ConId">Sql</span><span class="Symbol">)]</span>
-        <span class="VarId">parseBody</span> <span class="Symbol">::</span> <span class="ConId">Language</span> <span class="Symbol">-&gt;</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">MySourcePos</span>
+        <span class="VarId">parseBody</span> <span class="Symbol">::</span> <span class="ConId">Language</span> <span class="Symbol">-&gt;</span> <span class="ConId">ScalarExpr</span> <span class="Symbol">-&gt;</span> <span class="ConId">MySourcePos</span>
                   <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="ConId">String</span> <span class="ConId">FnBody</span>
         <span class="VarId">parseBody</span> <span class="VarId">lang</span> <span class="VarId">body</span> <span class="Symbol">(</span><span class="VarId">fileName</span><span class="Symbol">,</span><span class="VarId">line</span><span class="Symbol">,</span><span class="VarId">col</span><span class="Symbol">)</span> <span class="Symbol">=</span>
             <span class="Keyword">case</span> <span class="Symbol">(</span><span class="VarId">parseIt</span>
@@ -698,16 +715,16 @@
 <span class="Comment">{-createView = CreateView</span>
 <span class="Comment">             &lt;$&gt; pos &lt;* keyword &quot;view&quot;</span>
 <span class="Comment">             &lt;*&gt; idString</span>
-<span class="Comment">             &lt;*&gt; (keyword &quot;as&quot; *&gt; selectExpression)-}</span>
+<span class="Comment">             &lt;*&gt; (keyword &quot;as&quot; *&gt; selectScalarExpr)-}</span>
 <span class="Function">createView</span> <span class="Symbol">=</span> <span class="ConId">CreateView</span>
              <span class="Symbol">&lt;$&gt;</span> <span class="VarId">posAndIgnoreView</span>
              <span class="Symbol">&lt;*&gt;</span> <span class="VarId">idString</span>
-             <span class="Symbol">&lt;*&gt;</span> <span class="VarId">ignoreAsAndSelectExpression</span>
+             <span class="Symbol">&lt;*&gt;</span> <span class="VarId">ignoreAsAndQueryExpr</span>
              <span class="Keyword">where</span>
                <span class="VarId">posAndIgnoreView</span> <span class="Symbol">=</span>
                  <span class="VarId">pos</span> <span class="Symbol">&lt;*</span> <span class="VarId">keyword</span> <span class="String">&quot;view&quot;</span>
-               <span class="VarId">ignoreAsAndSelectExpression</span> <span class="Symbol">=</span>
-                 <span class="VarId">keyword</span> <span class="String">&quot;as&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">selectExpression</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
+               <span class="VarId">ignoreAsAndQueryExpr</span> <span class="Symbol">=</span>
+                 <span class="VarId">keyword</span> <span class="String">&quot;as&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">selectScalarExpr</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
 <span class="Function">createDomain</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Statement</span>
 <span class="Function">createDomain</span> <span class="Symbol">=</span> <span class="ConId">CreateDomain</span>
                <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*</span> <span class="VarId">keyword</span> <span class="String">&quot;domain&quot;</span>
@@ -790,7 +807,7 @@
     ><div id="component-parsers-for-sql-statements"
     ><h1
       >component parsers for sql statements</h1
-      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">whereClause</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">whereClause</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">whereClause</span> <span class="Symbol">=</span> <span class="VarId">keyword</span> <span class="String">&quot;where&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">expr</span></pre></div></div></div><p
       >selectlist and selectitem: the bit between select and from check for into either before the whole list of select columns or after the whole list</p
       ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">selectList</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">SelectList</span>
@@ -917,7 +934,7 @@
 <span class="Function">returnSt</span> <span class="Symbol">=</span> <span class="VarId">pos</span> <span class="Symbol">&gt;&gt;=</span> <span class="Symbol">\</span><span class="VarId">p</span> <span class="Symbol">-&gt;</span> <span class="VarId">keyword</span> <span class="String">&quot;return&quot;</span> <span class="Symbol">&gt;&gt;</span>
            <span class="VarId">choice</span> <span class="Symbol">[</span>
             <span class="ConId">ReturnNext</span> <span class="VarId">p</span> <span class="Symbol">&lt;$&gt;</span> <span class="Symbol">(</span><span class="VarId">keyword</span> <span class="String">&quot;next&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">expr</span><span class="Symbol">)</span>
-           <span class="Symbol">,</span><span class="ConId">ReturnQuery</span> <span class="VarId">p</span> <span class="Symbol">&lt;$&gt;</span> <span class="Symbol">(</span><span class="VarId">keyword</span> <span class="String">&quot;query&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">selectExpression</span><span class="Symbol">)</span>
+           <span class="Symbol">,</span><span class="ConId">ReturnQuery</span> <span class="VarId">p</span> <span class="Symbol">&lt;$&gt;</span> <span class="Symbol">(</span><span class="VarId">keyword</span> <span class="String">&quot;query&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">selectScalarExpr</span><span class="Symbol">)</span>
            <span class="Symbol">,</span><span class="ConId">Return</span> <span class="VarId">p</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">tryOptionMaybe</span> <span class="VarId">expr</span><span class="Symbol">]</span>
 
 <span class="Function">raise</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Statement</span>
@@ -936,8 +953,8 @@
                <span class="VarId">keyword</span> <span class="String">&quot;for&quot;</span>
                <span class="VarId">start</span> <span class="Symbol">&lt;-</span> <span class="VarId">qName</span>
                <span class="VarId">keyword</span> <span class="String">&quot;in&quot;</span>
-               <span class="VarId">choice</span> <span class="Symbol">[</span><span class="ConId">ForSelectStatement</span> <span class="VarId">p</span> <span class="VarId">l</span> <span class="VarId">start</span>
-                       <span class="Symbol">&lt;$&gt;</span> <span class="VarId">try</span> <span class="VarId">selectExpression</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">theRest</span>
+               <span class="VarId">choice</span> <span class="Symbol">[</span><span class="ConId">ForQueryStatement</span> <span class="VarId">p</span> <span class="VarId">l</span> <span class="VarId">start</span>
+                       <span class="Symbol">&lt;$&gt;</span> <span class="VarId">try</span> <span class="VarId">selectScalarExpr</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">theRest</span>
                       <span class="Symbol">,</span><span class="ConId">ForIntegerStatement</span> <span class="VarId">p</span> <span class="VarId">l</span> <span class="VarId">start</span>
                               <span class="Symbol">&lt;$&gt;</span> <span class="VarId">expr</span>
                               <span class="Symbol">&lt;*&gt;</span> <span class="Symbol">(</span><span class="VarId">symbol</span> <span class="String">&quot;..&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">expr</span><span class="Symbol">)</span>
@@ -993,19 +1010,25 @@
       >expressions</h1
       ><p
       >This is the bit that makes it the most obvious that I don't really know haskell, parsing theory or parsec ... robbed a parsing example from haskell-cafe and mainly just kept changing it until it seemed to work</p
-      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">expr</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">expr</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">expr</span> <span class="Symbol">=</span> <span class="VarId">buildExpressionParser</span> <span class="VarId">table</span> <span class="VarId">factor</span>
        <span class="Symbol">&lt;?&gt;</span> <span class="String">&quot;expression&quot;</span>
 
-<span class="Function">factor</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
+<span class="Function">factor</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">factor</span> <span class="Symbol">=</span></pre></div></div></div><p
       >First job is to take care of forms which start like a vanilla expression, and then add a suffix on</p
-      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">  <span class="VarId">threadOptionalSuffixes</span> <span class="VarId">fct</span> <span class="Symbol">[</span><span class="VarId">castSuffix</span>
-                             <span class="Symbol">,</span><span class="VarId">betweenSuffix</span>
-                             <span class="Symbol">,</span><span class="VarId">inPredicateSuffix</span>
-                             <span class="Symbol">,</span><span class="VarId">arraySubSuffix</span>
-                             <span class="Symbol">,</span><span class="VarId">qualIdSuffix</span><span class="Symbol">]</span>
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">  <span class="VarId">fct</span> <span class="Symbol">&gt;&gt;=</span> <span class="VarId">tryExprSuffix</span>
   <span class="Keyword">where</span>
+    <span class="VarId">tryExprSuffix</span> <span class="VarId">e</span> <span class="Symbol">=</span>
+      <span class="VarId">option</span> <span class="VarId">e</span> <span class="Symbol">(</span><span class="VarId">choice</span> <span class="Symbol">(</span><span class="VarId">map</span> <span class="Symbol">(\</span><span class="VarId">f</span> <span class="Symbol">-&gt;</span> <span class="VarId">f</span> <span class="VarId">e</span><span class="Symbol">)</span>
+                                 <span class="Symbol">[</span><span class="VarId">inPredicateSuffix</span>
+                                 <span class="Symbol">,</span><span class="VarId">functionCallSuffix</span>
+                                 <span class="Symbol">,</span><span class="VarId">windowFnSuffix</span>
+                                 <span class="Symbol">,</span><span class="VarId">castSuffix</span>
+                                 <span class="Symbol">,</span><span class="VarId">betweenSuffix</span>
+                                 <span class="Symbol">,</span><span class="VarId">arraySubSuffix</span>
+                                 <span class="Symbol">,</span><span class="VarId">qualIdSuffix</span><span class="Symbol">])</span>
+                <span class="Symbol">&gt;&gt;=</span> <span class="VarId">tryExprSuffix</span><span class="Symbol">)</span>
     <span class="VarId">fct</span> <span class="Symbol">=</span> <span class="VarId">choice</span> <span class="Symbol">[</span></pre></div></div></div><p
       >order these so the ones which can be valid prefixes of others appear further down the list (used to be a lot more important when there wasn't a separate lexer), probably want to refactor this to use the optionalsuffix parsers to improve speed.</p
       ><p
@@ -1014,7 +1037,7 @@
       >start with the factors which start with parens - eliminate scalar subqueries since they're easy to distinguish from the others then do in predicate before row constructor, since an in predicate can start with a row constructor looking thing, then finally vanilla parens</p
       ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">      <span class="Comment">--,</span>
        <span class="VarId">scalarSubQuery</span>
-      <span class="Symbol">,</span><span class="VarId">try</span> <span class="Symbol">$</span> <span class="VarId">threadOptionalSuffix</span> <span class="VarId">rowCtor</span> <span class="VarId">inPredicateSuffix</span>
+      <span class="Symbol">,</span><span class="VarId">try</span> <span class="VarId">rowCtor</span>
       <span class="Symbol">,</span><span class="VarId">parens</span> <span class="VarId">expr</span></pre></div></div></div><p
       >try a few random things which can't start a different expression</p
       ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">      <span class="Symbol">,</span><span class="VarId">positionalArg</span>
@@ -1023,7 +1046,7 @@
       <span class="Symbol">,</span><span class="VarId">floatLit</span>
       <span class="Symbol">,</span><span class="VarId">integerLit</span></pre></div></div></div><p
       >put the factors which start with keywords before the ones which start with a function, so we don't try an parse a keyword as a function name</p
-      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">      <span class="Symbol">,</span><span class="VarId">caseExpression</span>
+      ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">      <span class="Symbol">,</span><span class="VarId">caseScalarExpr</span>
       <span class="Symbol">,</span><span class="VarId">exists</span>
       <span class="Symbol">,</span><span class="VarId">booleanLit</span>
       <span class="Symbol">,</span><span class="VarId">nullLit</span>
@@ -1037,14 +1060,10 @@
              <span class="VarId">i</span> <span class="Symbol">&lt;-</span> <span class="VarId">antiIdentifier</span>
              <span class="VarId">choice</span> <span class="Symbol">[</span><span class="VarId">inPredicateSuffix</span> <span class="VarId">i</span>
                     <span class="Symbol">,</span><span class="VarId">threadOptionalSuffix</span> <span class="Symbol">(</span><span class="VarId">functionCallSuffix</span> <span class="VarId">i</span><span class="Symbol">)</span>
-                                          <span class="VarId">windowFnSuffix</span><span class="Symbol">]</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">      <span class="Symbol">,</span><span class="VarId">antiExpression</span>
+                                          <span class="VarId">windowFnSuffix</span><span class="Symbol">]</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">      <span class="Symbol">,</span><span class="VarId">antiScalarExpr</span>
       <span class="Symbol">,</span><span class="VarId">antiIdentifier1</span>
-      <span class="Comment">--,qName</span>
-      <span class="Symbol">,</span><span class="VarId">threadOptionalSuffixes</span> <span class="VarId">identifier</span>
-                              <span class="Symbol">[</span><span class="VarId">inPredicateSuffix</span>
-                              <span class="Symbol">,\</span><span class="VarId">l</span> <span class="Symbol">-&gt;</span> <span class="VarId">threadOptionalSuffix</span>
-                                       <span class="Symbol">(</span><span class="VarId">functionCallSuffix</span> <span class="VarId">l</span><span class="Symbol">)</span>
-                                       <span class="VarId">windowFnSuffix</span><span class="Symbol">]]</span></pre></div></div></div><div id="operator-table"
+      <span class="Symbol">,</span><span class="VarId">identifier</span>
+      <span class="Symbol">]</span></pre></div></div></div><div id="operator-table"
       ><h2
 	>operator table</h2
 	><p
@@ -1055,7 +1074,7 @@
 	>will probably need something more custom to handle full range of sql syntactical novelty, in particular the precedence rules mix these operators up with irregular syntax operators, you can create new operators during parsing, and some operators are prefix/postfix or binary depending on the types of their operands (how do you parse something like this?)</p
 	><p
 	>The full list of operators from a standard template1 database should be used here.</p
-	><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">table</span> <span class="Symbol">::</span> <span class="Symbol">[[</span><span class="ConId">Operator</span> <span class="Symbol">[</span><span class="ConId">Token</span><span class="Symbol">]</span> <span class="ConId">ParseState</span> <span class="ConId">Identity</span> <span class="ConId">Expression</span><span class="Symbol">]]</span>
+	><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">table</span> <span class="Symbol">::</span> <span class="Symbol">[[</span><span class="ConId">Operator</span> <span class="Symbol">[</span><span class="ConId">Token</span><span class="Symbol">]</span> <span class="ConId">ParseState</span> <span class="ConId">Identity</span> <span class="ConId">ScalarExpr</span><span class="Symbol">]]</span>
 <span class="Function">table</span> <span class="Symbol">=</span> <span class="Symbol">[[</span><span class="Comment">{-binary &quot;.&quot; AssocLeft-}</span><span class="Symbol">]</span>
          <span class="Comment">--[binary &quot;::&quot; (BinOpCall Cast) AssocLeft]</span>
          <span class="Comment">--missing [] for array element select</span>
@@ -1124,20 +1143,20 @@
 	>factor parsers</h2
 	><p
 	>I think the lookahead is used in an attempt to help the error messages.</p
-	><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">scalarSubQuery</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
+	><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">scalarSubQuery</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">scalarSubQuery</span> <span class="Symbol">=</span> <span class="VarId">try</span> <span class="Symbol">(</span><span class="VarId">symbol</span> <span class="String">&quot;(&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">lookAhead</span> <span class="Symbol">(</span><span class="VarId">keyword</span> <span class="String">&quot;select&quot;</span>
                                                <span class="Symbol">&lt;|&gt;</span> <span class="VarId">keyword</span> <span class="String">&quot;with&quot;</span><span class="Symbol">))</span> <span class="Symbol">&gt;&gt;</span>
                  <span class="ConId">ScalarSubQuery</span>
                  <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span>
-                 <span class="Symbol">&lt;*&gt;</span> <span class="VarId">selectExpression</span> <span class="Symbol">&lt;*</span> <span class="VarId">symbol</span> <span class="String">&quot;)&quot;</span></pre></div></div></div><p
+                 <span class="Symbol">&lt;*&gt;</span> <span class="VarId">selectScalarExpr</span> <span class="Symbol">&lt;*</span> <span class="VarId">symbol</span> <span class="String">&quot;)&quot;</span></pre></div></div></div><p
 	>in predicate - an identifier or row constructor followed by 'in' then a list of expressions or a subselect</p
-	><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">inPredicateSuffix</span> <span class="Symbol">::</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
+	><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">inPredicateSuffix</span> <span class="Symbol">::</span> <span class="ConId">ScalarExpr</span> <span class="Symbol">-&gt;</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">inPredicateSuffix</span> <span class="VarId">e</span> <span class="Symbol">=</span>
   <span class="ConId">InPredicate</span>
   <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span>
   <span class="Symbol">&lt;*&gt;</span> <span class="VarId">return</span> <span class="VarId">e</span>
   <span class="Symbol">&lt;*&gt;</span> <span class="VarId">option</span> <span class="ConId">True</span> <span class="Symbol">(</span><span class="ConId">False</span> <span class="Symbol">&lt;$</span> <span class="VarId">keyword</span> <span class="String">&quot;not&quot;</span><span class="Symbol">)</span>
-  <span class="Symbol">&lt;*&gt;</span> <span class="Symbol">(</span><span class="VarId">keyword</span> <span class="String">&quot;in&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">parens</span> <span class="Symbol">((</span><span class="ConId">InSelect</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">selectExpression</span><span class="Symbol">)</span>
+  <span class="Symbol">&lt;*&gt;</span> <span class="Symbol">(</span><span class="VarId">keyword</span> <span class="String">&quot;in&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">parens</span> <span class="Symbol">((</span><span class="ConId">InSelect</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">selectScalarExpr</span><span class="Symbol">)</span>
                                <span class="Symbol">&lt;|&gt;</span>
                                <span class="Symbol">(</span><span class="ConId">InList</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">commaSep1</span> <span class="VarId">expr</span><span class="Symbol">)))</span></pre></div></div></div><p
 	>row ctor: one of</p
@@ -1159,7 +1178,7 @@
 	    >and () is a syntax error.</p
 	    ></li
 	  ></ul
-	><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">rowCtor</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
+	><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">rowCtor</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">rowCtor</span> <span class="Symbol">=</span> <span class="ConId">FunCall</span>
           <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span>
           <span class="Symbol">&lt;*&gt;</span> <span class="VarId">return</span> <span class="String">&quot;!rowctor&quot;</span>
@@ -1167,17 +1186,17 @@
            <span class="VarId">keyword</span> <span class="String">&quot;row&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">parens</span> <span class="Symbol">(</span><span class="VarId">commaSep</span> <span class="VarId">expr</span><span class="Symbol">)</span>
           <span class="Symbol">,</span><span class="VarId">parens</span> <span class="Symbol">$</span> <span class="VarId">commaSep2</span> <span class="VarId">expr</span><span class="Symbol">]</span>
 
-<span class="Function">floatLit</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
+<span class="Function">floatLit</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">floatLit</span> <span class="Symbol">=</span> <span class="ConId">FloatLit</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">float</span>
 
-<span class="Function">integerLit</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
+<span class="Function">integerLit</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">integerLit</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
   <span class="VarId">p</span> <span class="Symbol">&lt;-</span> <span class="VarId">pos</span>
   <span class="Symbol">(</span><span class="ConId">IntegerLit</span> <span class="VarId">p</span><span class="Symbol">)</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">integer</span></pre></div></div></div><p
 	>IntegerLit &lt;$&gt; pos &lt;*&gt; integer</p
 	><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
-<span class="Function">caseExpression</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
-<span class="Function">caseExpression</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+<span class="Function">caseScalarExpr</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
+<span class="Function">caseScalarExpr</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
   <span class="VarId">p</span> <span class="Symbol">&lt;-</span> <span class="VarId">pos</span>
   <span class="VarId">keyword</span> <span class="String">&quot;case&quot;</span>
   <span class="VarId">choice</span> <span class="Symbol">[</span>
@@ -1192,20 +1211,20 @@
     <span class="VarId">whenParse</span> <span class="Symbol">=</span> <span class="Symbol">(,)</span> <span class="Symbol">&lt;$&gt;</span> <span class="Symbol">(</span><span class="VarId">keyword</span> <span class="String">&quot;when&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">commaSep1</span> <span class="VarId">expr</span><span class="Symbol">)</span>
                     <span class="Symbol">&lt;*&gt;</span> <span class="Symbol">(</span><span class="VarId">keyword</span> <span class="String">&quot;then&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">expr</span><span class="Symbol">)</span>
 
-<span class="Function">exists</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
-<span class="Function">exists</span> <span class="Symbol">=</span> <span class="ConId">Exists</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*</span> <span class="VarId">keyword</span> <span class="String">&quot;exists&quot;</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">parens</span> <span class="VarId">selectExpression</span>
-</pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">booleanLit</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
+<span class="Function">exists</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
+<span class="Function">exists</span> <span class="Symbol">=</span> <span class="ConId">Exists</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*</span> <span class="VarId">keyword</span> <span class="String">&quot;exists&quot;</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">parens</span> <span class="VarId">selectScalarExpr</span>
+</pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">booleanLit</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">booleanLit</span> <span class="Symbol">=</span> <span class="ConId">BooleanLit</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*&gt;</span> <span class="Symbol">(</span><span class="ConId">True</span> <span class="Symbol">&lt;$</span> <span class="VarId">keyword</span> <span class="String">&quot;true&quot;</span>
                                      <span class="Symbol">&lt;|&gt;</span> <span class="ConId">False</span> <span class="Symbol">&lt;$</span> <span class="VarId">keyword</span> <span class="String">&quot;false&quot;</span><span class="Symbol">)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
-<span class="Function">nullLit</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
+<span class="Function">nullLit</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">nullLit</span> <span class="Symbol">=</span> <span class="ConId">NullLit</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*</span> <span class="VarId">keyword</span> <span class="String">&quot;null&quot;</span>
 
-<span class="Function">arrayLit</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
+<span class="Function">arrayLit</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">arrayLit</span> <span class="Symbol">=</span> <span class="ConId">FunCall</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*</span> <span class="VarId">keyword</span> <span class="String">&quot;array&quot;</span>
                    <span class="Symbol">&lt;*&gt;</span> <span class="VarId">return</span> <span class="String">&quot;!arrayctor&quot;</span>
                    <span class="Symbol">&lt;*&gt;</span> <span class="VarId">squares</span> <span class="Symbol">(</span><span class="VarId">commaSep</span> <span class="VarId">expr</span><span class="Symbol">)</span>
 
-<span class="Function">arraySubSuffix</span> <span class="Symbol">::</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
+<span class="Function">arraySubSuffix</span> <span class="Symbol">::</span> <span class="ConId">ScalarExpr</span> <span class="Symbol">-&gt;</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">arraySubSuffix</span> <span class="VarId">e</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">e</span> <span class="Keyword">of</span>
                      <span class="ConId">Identifier</span> <span class="VarId">_</span> <span class="String">&quot;array&quot;</span> <span class="Symbol">-&gt;</span> <span class="VarId">fail</span> <span class="String">&quot;can't use array as \
                                                   \identifier name&quot;</span>
@@ -1213,7 +1232,7 @@
                                   <span class="Symbol">&lt;*&gt;</span> <span class="VarId">return</span> <span class="String">&quot;!arraysub&quot;</span>
                                   <span class="Symbol">&lt;*&gt;</span> <span class="Symbol">((</span><span class="VarId">e</span><span class="Symbol">:)</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">squares</span> <span class="Symbol">(</span><span class="VarId">commaSep1</span> <span class="VarId">expr</span><span class="Symbol">))</span>
 
-<span class="Function">windowFnSuffix</span> <span class="Symbol">::</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
+<span class="Function">windowFnSuffix</span> <span class="Symbol">::</span> <span class="ConId">ScalarExpr</span> <span class="Symbol">-&gt;</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">windowFnSuffix</span> <span class="VarId">e</span> <span class="Symbol">=</span> <span class="ConId">WindowFn</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">return</span> <span class="VarId">e</span>
                    <span class="Symbol">&lt;*&gt;</span> <span class="Symbol">(</span><span class="VarId">keyword</span> <span class="String">&quot;over&quot;</span>
                         <span class="Symbol">*&gt;</span> <span class="Symbol">(</span><span class="VarId">symbol</span> <span class="String">&quot;(&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">option</span> <span class="Symbol">[]</span> <span class="VarId">partitionBy</span><span class="Symbol">))</span>
@@ -1260,7 +1279,7 @@
                                          <span class="Symbol">,</span><span class="String">&quot;row&quot;</span><span class="Symbol">])]</span>
     <span class="VarId">ks</span> <span class="Symbol">=</span> <span class="VarId">mapM</span> <span class="VarId">keyword</span>
 
-<span class="Function">betweenSuffix</span> <span class="Symbol">::</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
+<span class="Function">betweenSuffix</span> <span class="Symbol">::</span> <span class="ConId">ScalarExpr</span> <span class="Symbol">-&gt;</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">betweenSuffix</span> <span class="VarId">a</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
   <span class="VarId">p</span> <span class="Symbol">&lt;-</span> <span class="VarId">pos</span>
   <span class="VarId">keyword</span> <span class="String">&quot;between&quot;</span>
@@ -1289,24 +1308,24 @@
 	  ></pre
 	><p
 	>TODO: copy this approach here.</p
-	><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">functionCallSuffix</span> <span class="Symbol">::</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
+	><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">functionCallSuffix</span> <span class="Symbol">::</span> <span class="ConId">ScalarExpr</span> <span class="Symbol">-&gt;</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">functionCallSuffix</span> <span class="Symbol">(</span><span class="ConId">Identifier</span> <span class="VarId">_</span> <span class="VarId">fnName</span><span class="Symbol">)</span> <span class="Symbol">=</span>
   <span class="VarId">pos</span> <span class="Symbol">&gt;&gt;=</span> <span class="Symbol">\</span><span class="VarId">p</span> <span class="Symbol">-&gt;</span> <span class="ConId">FunCall</span> <span class="VarId">p</span> <span class="VarId">fnName</span>
                 <span class="Symbol">&lt;$&gt;</span> <span class="VarId">parens</span> <span class="Symbol">(</span><span class="VarId">optional</span> <span class="Symbol">(</span><span class="VarId">keyword</span> <span class="String">&quot;all&quot;</span>
                                       <span class="Symbol">&lt;|&gt;</span> <span class="VarId">keyword</span> <span class="String">&quot;distinct&quot;</span><span class="Symbol">)</span>
                             <span class="Symbol">*&gt;</span> <span class="VarId">commaSep</span> <span class="VarId">expr</span><span class="Symbol">)</span>
 <span class="Function">functionCallSuffix</span> <span class="VarId">s</span> <span class="Symbol">=</span>
-  <span class="VarId">error</span> <span class="Symbol">$</span> <span class="String">&quot;internal error: cannot make functioncall from &quot;</span> <span class="Symbol">++</span> <span class="VarId">show</span> <span class="VarId">s</span>
+  <span class="VarId">fail</span> <span class="Symbol">$</span> <span class="String">&quot;cannot make functioncall from &quot;</span> <span class="Symbol">++</span> <span class="VarId">show</span> <span class="VarId">s</span>
 
-<span class="Function">castKeyword</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
+<span class="Function">castKeyword</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">castKeyword</span> <span class="Symbol">=</span> <span class="ConId">Cast</span>
               <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*</span> <span class="VarId">keyword</span> <span class="String">&quot;cast&quot;</span> <span class="Symbol">&lt;*</span> <span class="VarId">symbol</span> <span class="String">&quot;(&quot;</span>
               <span class="Symbol">&lt;*&gt;</span> <span class="VarId">expr</span>
               <span class="Symbol">&lt;*&gt;</span> <span class="Symbol">(</span><span class="VarId">keyword</span> <span class="String">&quot;as&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">typeName</span> <span class="Symbol">&lt;*</span> <span class="VarId">symbol</span> <span class="String">&quot;)&quot;</span><span class="Symbol">)</span>
 
-<span class="Function">castSuffix</span> <span class="Symbol">::</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
+<span class="Function">castSuffix</span> <span class="Symbol">::</span> <span class="ConId">ScalarExpr</span> <span class="Symbol">-&gt;</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">castSuffix</span> <span class="VarId">ex</span> <span class="Symbol">=</span> <span class="VarId">pos</span> <span class="Symbol">&gt;&gt;=</span> <span class="Symbol">\</span><span class="VarId">p</span> <span class="Symbol">-&gt;</span> <span class="ConId">Cast</span> <span class="VarId">p</span> <span class="VarId">ex</span> <span class="Symbol">&lt;$&gt;</span> <span class="Symbol">(</span><span class="VarId">symbol</span> <span class="String">&quot;::&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">typeName</span><span class="Symbol">)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
-<span class="Function">substring</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
+<span class="Function">substring</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">substring</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
             <span class="VarId">p</span> <span class="Symbol">&lt;-</span> <span class="VarId">pos</span>
             <span class="VarId">keyword</span> <span class="String">&quot;substring&quot;</span>
@@ -1319,18 +1338,18 @@
             <span class="VarId">symbol</span> <span class="String">&quot;)&quot;</span>
             <span class="VarId">return</span> <span class="Symbol">$</span> <span class="ConId">FunCall</span> <span class="VarId">p</span> <span class="String">&quot;!substring&quot;</span> <span class="Symbol">[</span><span class="VarId">a</span><span class="Symbol">,</span><span class="VarId">b</span><span class="Symbol">,</span><span class="VarId">c</span><span class="Symbol">]</span>
 
-<span class="Function">identifier</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
+<span class="Function">identifier</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">identifier</span> <span class="Symbol">=</span> <span class="ConId">Identifier</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*&gt;</span> <span class="Symbol">(</span><span class="VarId">idString</span> <span class="Symbol">&lt;|&gt;</span> <span class="VarId">splice</span><span class="Symbol">)</span>
 
-<span class="Function">qualIdSuffix</span> <span class="Symbol">::</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
-<span class="Function">qualIdSuffix</span> <span class="VarId">ex</span> <span class="Symbol">=</span> <span class="VarId">pos</span> <span class="Symbol">&gt;&gt;=</span> <span class="Symbol">\</span><span class="VarId">p</span> <span class="Symbol">-&gt;</span> <span class="ConId">QIdentifier</span> <span class="VarId">p</span> <span class="VarId">ex</span> <span class="Symbol">&lt;$&gt;</span> <span class="Symbol">(</span><span class="VarId">symbol</span> <span class="String">&quot;.&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">idString</span><span class="Symbol">)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">antiIdentifier</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
-<span class="Function">antiIdentifier</span> <span class="Symbol">=</span> <span class="ConId">Identifier</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">spliceD</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">antiIdentifier1</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
+<span class="Function">qualIdSuffix</span> <span class="Symbol">::</span> <span class="ConId">ScalarExpr</span> <span class="Symbol">-&gt;</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
+<span class="Function">qualIdSuffix</span> <span class="VarId">ex</span> <span class="Symbol">=</span> <span class="VarId">pos</span> <span class="Symbol">&gt;&gt;=</span> <span class="Symbol">\</span><span class="VarId">p</span> <span class="Symbol">-&gt;</span> <span class="ConId">QIdentifier</span> <span class="VarId">p</span> <span class="VarId">ex</span> <span class="Symbol">&lt;$&gt;</span> <span class="Symbol">(</span><span class="VarId">symbol</span> <span class="String">&quot;.&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">idString</span><span class="Symbol">)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">antiIdentifier</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
+<span class="Function">antiIdentifier</span> <span class="Symbol">=</span> <span class="ConId">Identifier</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">spliceD</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">antiIdentifier1</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">antiIdentifier1</span> <span class="Symbol">=</span> <span class="ConId">Identifier</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">ssplice</span>
                   <span class="Keyword">where</span>
                     <span class="VarId">ssplice</span> <span class="Symbol">=</span> <span class="Symbol">(\</span><span class="VarId">s</span> <span class="Symbol">-&gt;</span> <span class="String">&quot;$i(&quot;</span> <span class="Symbol">++</span> <span class="VarId">s</span> <span class="Symbol">++</span> <span class="String">&quot;)&quot;</span><span class="Symbol">)</span> <span class="Symbol">&lt;$&gt;</span>
                               <span class="Symbol">(</span><span class="VarId">symbol</span> <span class="String">&quot;$i(&quot;</span> <span class="Symbol">*&gt;</span> <span class="VarId">idString</span> <span class="Symbol">&lt;*</span> <span class="VarId">symbol</span> <span class="String">&quot;)&quot;</span><span class="Symbol">)</span></pre></div></div></div><p
 	>qualified names are parsed using &quot;.&quot; as an operator so they become FunCall nodes. But we don't want to parse any expression when we are expecting a qualified name only, so create a specialized parser just for that</p
-	><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">qName</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
+	><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">qName</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">qName</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
   <span class="VarId">i</span> <span class="Symbol">&lt;-</span> <span class="VarId">identifier</span>
   <span class="VarId">choice</span> <span class="Symbol">[</span><span class="Keyword">do</span>
@@ -1389,13 +1408,13 @@
 <span class="Function">liftPositionalArgTok</span> <span class="Symbol">=</span>
   <span class="VarId">mytoken</span> <span class="Symbol">(\</span><span class="VarId">tok</span> <span class="Symbol">-&gt;</span> <span class="Keyword">case</span> <span class="VarId">tok</span> <span class="Keyword">of</span>
                    <span class="ConId">PositionalArgTok</span> <span class="VarId">n</span> <span class="Symbol">-&gt;</span> <span class="ConId">Just</span> <span class="VarId">n</span>
-                   <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Nothing</span><span class="Symbol">)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">positionalArg</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
+                   <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Nothing</span><span class="Symbol">)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">positionalArg</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">positionalArg</span> <span class="Symbol">=</span> <span class="ConId">PositionalArg</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">liftPositionalArgTok</span>
 
-<span class="Function">antiExpression</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
-<span class="Function">antiExpression</span> <span class="Symbol">=</span> <span class="ConId">AntiExpression</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">splice</span>
+<span class="Function">antiScalarExpr</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
+<span class="Function">antiScalarExpr</span> <span class="Symbol">=</span> <span class="ConId">AntiScalarExpr</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">splice</span>
 
-<span class="Function">placeholder</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
+<span class="Function">placeholder</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">placeholder</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="ConId">Placeholder</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span><span class="Symbol">)</span> <span class="Symbol">&lt;*</span> <span class="VarId">symbol</span> <span class="String">&quot;?&quot;</span>
 
 <span class="Function">float</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Double</span>
@@ -1407,7 +1426,7 @@
 <span class="Function">liftStringTok</span> <span class="Symbol">=</span> <span class="VarId">mytoken</span> <span class="Symbol">(\</span><span class="VarId">tok</span> <span class="Symbol">-&gt;</span>
                   <span class="Keyword">case</span> <span class="VarId">tok</span> <span class="Keyword">of</span>
                            <span class="ConId">StringTok</span> <span class="VarId">_</span> <span class="VarId">s</span> <span class="Symbol">-&gt;</span> <span class="ConId">Just</span> <span class="VarId">s</span>
-                           <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Nothing</span><span class="Symbol">)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">stringLit</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">Expression</span>
+                           <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Nothing</span><span class="Symbol">)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">stringLit</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">ScalarExpr</span>
 <span class="Function">stringLit</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="ConId">StringLit</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">liftStringTok</span><span class="Symbol">)</span>
             <span class="Symbol">&lt;|&gt;</span>
             <span class="Symbol">(</span><span class="ConId">StringLit</span> <span class="Symbol">&lt;$&gt;</span> <span class="VarId">pos</span> <span class="Symbol">&lt;*&gt;</span> <span class="VarId">ssplice</span><span class="Symbol">)</span>
@@ -1419,7 +1438,7 @@
 <span class="Function">stringN</span> <span class="Symbol">=</span> <span class="VarId">mytoken</span> <span class="Symbol">(\</span><span class="VarId">tok</span> <span class="Symbol">-&gt;</span>
                   <span class="Keyword">case</span> <span class="VarId">tok</span> <span class="Keyword">of</span>
                            <span class="ConId">StringTok</span> <span class="VarId">_</span> <span class="VarId">s</span> <span class="Symbol">-&gt;</span> <span class="ConId">Just</span> <span class="VarId">s</span>
-                           <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Nothing</span><span class="Symbol">)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">extrStr</span> <span class="Symbol">::</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+                           <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">Nothing</span><span class="Symbol">)</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">extrStr</span> <span class="Symbol">::</span> <span class="ConId">ScalarExpr</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
 <span class="Function">extrStr</span> <span class="Symbol">(</span><span class="ConId">StringLit</span> <span class="VarId">_</span> <span class="VarId">s</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">s</span>
 <span class="Function">extrStr</span> <span class="VarId">x</span> <span class="Symbol">=</span>
   <span class="VarId">error</span> <span class="Symbol">$</span> <span class="String">&quot;internal error: extrStr not supported for this type &quot;</span> <span class="Symbol">++</span> <span class="VarId">show</span> <span class="VarId">x</span></pre></div></div></div><p
@@ -1561,7 +1580,7 @@
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

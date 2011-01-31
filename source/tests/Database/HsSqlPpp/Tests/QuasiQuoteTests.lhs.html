@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../index.txt.html"
+    ><a href="../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -29,7 +29,7 @@
 <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.PrettyPrinter</span>
 <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.SqlQuote</span>
 
-<span class="Keyword">data</span> <span class="ConId">Item</span> <span class="Symbol">=</span> <span class="ConId">Expr</span> <span class="ConId">Expression</span> <span class="ConId">Expression</span>
+<span class="Keyword">data</span> <span class="ConId">Item</span> <span class="Symbol">=</span> <span class="ConId">Expr</span> <span class="ConId">ScalarExpr</span> <span class="ConId">ScalarExpr</span>
           <span class="Symbol">|</span> <span class="ConId">Stmts</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span>
           <span class="Symbol">|</span> <span class="ConId">PgSqlStmts</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span>
           <span class="Symbol">|</span> <span class="ConId">Stmt</span> <span class="ConId">Statement</span> <span class="ConId">Statement</span>
@@ -166,11 +166,11 @@
     ><p
     >Unit test helpers</p
     ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">itemToTft</span> <span class="Symbol">::</span> <span class="ConId">Item</span> <span class="Symbol">-&gt;</span> <span class="ConId">Test.Framework.Test</span>
-<span class="Function">itemToTft</span> <span class="Symbol">(</span><span class="ConId">Expr</span> <span class="VarId">a</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">testCase</span> <span class="Symbol">(</span><span class="VarId">printExpression</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="VarId">stripEqual</span> <span class="VarId">a</span> <span class="VarId">b</span>
-<span class="Function">itemToTft</span> <span class="Symbol">(</span><span class="ConId">PgSqlStmt</span> <span class="VarId">a</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">testCase</span> <span class="Symbol">(</span><span class="VarId">printSql</span> <span class="Symbol">[</span><span class="VarId">b</span><span class="Symbol">])</span> <span class="Symbol">$</span> <span class="VarId">stripEqual</span> <span class="VarId">a</span> <span class="VarId">b</span>
-<span class="Function">itemToTft</span> <span class="Symbol">(</span><span class="ConId">Stmt</span> <span class="VarId">a</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">testCase</span> <span class="Symbol">(</span><span class="VarId">printSql</span> <span class="Symbol">[</span><span class="VarId">b</span><span class="Symbol">])</span> <span class="Symbol">$</span>  <span class="VarId">stripEqual</span> <span class="VarId">a</span> <span class="VarId">b</span>
-<span class="Function">itemToTft</span> <span class="Symbol">(</span><span class="ConId">PgSqlStmts</span> <span class="VarId">a</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">testCase</span> <span class="Symbol">(</span><span class="VarId">printSql</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="VarId">stripEqual</span> <span class="VarId">a</span> <span class="VarId">b</span>
-<span class="Function">itemToTft</span> <span class="Symbol">(</span><span class="ConId">Stmts</span> <span class="VarId">a</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">testCase</span> <span class="Symbol">(</span><span class="VarId">printSql</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="VarId">stripEqual</span> <span class="VarId">a</span> <span class="VarId">b</span>
+<span class="Function">itemToTft</span> <span class="Symbol">(</span><span class="ConId">Expr</span> <span class="VarId">a</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">testCase</span> <span class="Symbol">(</span><span class="VarId">printScalarExpr</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="VarId">stripEqual</span> <span class="VarId">a</span> <span class="VarId">b</span>
+<span class="Function">itemToTft</span> <span class="Symbol">(</span><span class="ConId">PgSqlStmt</span> <span class="VarId">a</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">testCase</span> <span class="Symbol">(</span><span class="VarId">printStatements</span> <span class="Symbol">[</span><span class="VarId">b</span><span class="Symbol">])</span> <span class="Symbol">$</span> <span class="VarId">stripEqual</span> <span class="VarId">a</span> <span class="VarId">b</span>
+<span class="Function">itemToTft</span> <span class="Symbol">(</span><span class="ConId">Stmt</span> <span class="VarId">a</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">testCase</span> <span class="Symbol">(</span><span class="VarId">printStatements</span> <span class="Symbol">[</span><span class="VarId">b</span><span class="Symbol">])</span> <span class="Symbol">$</span>  <span class="VarId">stripEqual</span> <span class="VarId">a</span> <span class="VarId">b</span>
+<span class="Function">itemToTft</span> <span class="Symbol">(</span><span class="ConId">PgSqlStmts</span> <span class="VarId">a</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">testCase</span> <span class="Symbol">(</span><span class="VarId">printStatements</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="VarId">stripEqual</span> <span class="VarId">a</span> <span class="VarId">b</span>
+<span class="Function">itemToTft</span> <span class="Symbol">(</span><span class="ConId">Stmts</span> <span class="VarId">a</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">testCase</span> <span class="Symbol">(</span><span class="VarId">printStatements</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="VarId">stripEqual</span> <span class="VarId">a</span> <span class="VarId">b</span>
 <span class="Function">itemToTft</span> <span class="Symbol">(</span><span class="ConId">Group</span> <span class="VarId">s</span> <span class="VarId">is</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">testGroup</span> <span class="VarId">s</span> <span class="Symbol">$</span> <span class="VarId">map</span> <span class="VarId">itemToTft</span> <span class="VarId">is</span>
 <span class="Function">stripEqual</span> <span class="Symbol">::</span> <span class="Symbol">(</span><span class="ConId">Data</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="ConId">Eq</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="ConId">Show</span> <span class="VarId">a</span><span class="Symbol">)</span> <span class="Symbol">=&gt;</span>
               <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="ConId">Assertion</span>
@@ -179,7 +179,7 @@
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

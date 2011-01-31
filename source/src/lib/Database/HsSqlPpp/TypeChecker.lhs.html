@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../index.txt.html"
+    ><a href="../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -40,9 +40,10 @@
 <span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.TypeChecker</span>
     <span class="Symbol">(</span>
      <span class="Comment">-- * typechecking/ annotation functions</span>
-     <span class="VarId">typeCheck</span>
-    <span class="Symbol">,</span><span class="VarId">typeCheckPS</span>
-    <span class="Symbol">,</span><span class="VarId">typeCheckExpression</span>
+     <span class="VarId">typeCheckStatements</span>
+    <span class="Symbol">,</span><span class="VarId">typeCheckParameterizedStatement</span>
+    <span class="Symbol">,</span><span class="VarId">typeCheckScalarExpr</span>
+    <span class="Symbol">,</span><span class="VarId">canonicaliseIdentifiers</span>
      <span class="Comment">-- * Annotated tree utils</span>
     <span class="Symbol">,</span><span class="VarId">getStatementAnnotations</span>
     <span class="Symbol">)</span> <span class="Keyword">where</span>
@@ -53,7 +54,7 @@
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

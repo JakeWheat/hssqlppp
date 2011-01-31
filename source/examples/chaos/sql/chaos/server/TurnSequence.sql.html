@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../index.txt.html"
+    ><a href="../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -31,25 +31,25 @@
       ><p
       >== ddl */</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-select module('Chaos.Server.TurnSequence');
+<span class="Keyword">select</span> <span class="VarId">module</span><span class="Symbol">(</span><span class="Char">'Chaos.Server.TurnSequence'</span><span class="Symbol">);</span>
 
 </pre></div></div></div><p
       >/* use this to simulate multiple updates: for a constraint which refers to multiple tables which get updated during an action_next_phase call, this will be set to true, false at all other times, so using this can defer constraint checking till the end of the action_next_phase call after all the relevant turn phase relvars have been updated. Don't forget to put in_next_phase_hack_table in the relvar list for the constraint.</p
       ><p
       >*/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-select create_var('in_next_phase_hack', 'boolean');
-insert into in_next_phase_hack_table values (false);
-select set_relvar_type('in_next_phase_hack_table', 'hack');
+<span class="Keyword">select</span> <span class="VarId">create_var</span><span class="Symbol">(</span><span class="Char">'in_next_phase_hack'</span><span class="Symbol">,</span> <span class="Char">'boolean'</span><span class="Symbol">);</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">in_next_phase_hack_table</span> <span class="Keyword">values</span> <span class="Symbol">(</span><span class="VarId">false</span><span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'in_next_phase_hack_table'</span><span class="Symbol">,</span> <span class="Char">'hack'</span><span class="Symbol">);</span>
 
-select create_var('creating_new_game', 'boolean');
-insert into creating_new_game_table values (true);
-select set_relvar_type('creating_new_game_table', 'hack');
+<span class="Keyword">select</span> <span class="VarId">create_var</span><span class="Symbol">(</span><span class="Char">'creating_new_game'</span><span class="Symbol">,</span> <span class="Char">'boolean'</span><span class="Symbol">);</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">creating_new_game_table</span> <span class="Keyword">values</span> <span class="Symbol">(</span><span class="VarId">true</span><span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'creating_new_game_table'</span><span class="Symbol">,</span> <span class="Char">'hack'</span><span class="Symbol">);</span>
 
---Turn number, starts at 0 goes up 1 each full turn, just used to provide
---info on how long the game has been going.
-select create_var('turn_number', 'int');
-select set_relvar_type('turn_number_table', 'data');
+<span class="Comment">--Turn number, starts at 0 goes up 1 each full turn, just used to provide</span>
+<span class="Comment">--info on how long the game has been going.</span>
+<span class="Keyword">select</span> <span class="VarId">create_var</span><span class="Symbol">(</span><span class="Char">'turn_number'</span><span class="Symbol">,</span> <span class="Char">'int'</span><span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'turn_number_table'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span>
 
 </pre></div></div></div><p
       >/<em
@@ -57,7 +57,7 @@ select set_relvar_type('turn_number_table', 'data');
 	>/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-select no_deletes_inserts_except_new_game('turn_number_table');
+<span class="Keyword">select</span> <span class="VarId">no_deletes_inserts_except_new_game</span><span class="Symbol">(</span><span class="Char">'turn_number_table'</span><span class="Symbol">);</span>
 
 </pre></div></div></div><p
       >/* turn phase must follow choose-cast-auto-move-choose-etc.</p
@@ -69,26 +69,26 @@ select no_deletes_inserts_except_new_game('turn_number_table');
       >*/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
--- todo: use lag or lead window fn or something - make it a lot
--- clearer?
+<span class="Comment">-- todo: use lag or lead window fn or something - make it a lot</span>
+<span class="Comment">-- clearer?</span>
 </pre></div></div></div><p
       >/<em
 	>create view next_wizard as select wizard_name, new_wizard_name from (select wizard_name as new_wizard_name, place from live_wizards) as a inner join (select wizard_name, (place + 1) % (select max(place) + 1 from live_wizards) as old_place from live_wizards) as b on (place = old_place);</em
 	>/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-create function next_wizard(text) returns text as $$
-  with
-    doubled as
-      (select wizard_name,original_place from wizards where not expired
-       union select wizard_name,original_place + 10 from wizards where not expired)
-   ,nexts as
-       (select wizard_name, lead(wizard_name)
-                            over(order by original_place) as n
-          from doubled)
-  select n from nexts where wizard_name = $1 limit 1;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">next_wizard</span><span class="Symbol">(</span><span class="Type">text</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">text</span> <span class="Keyword">as</span> $$
+  <span class="VarId">with</span>
+    <span class="VarId">doubled</span> <span class="VarId">as</span>
+      <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">wizard_name</span><span class="Symbol">,</span><span class="VarId">original_place</span> <span class="Keyword">from</span> <span class="VarId">wizards</span> <span class="Keyword">where</span> <span class="Keyword">not</span> <span class="VarId">expired</span>
+       <span class="Keyword">union</span> <span class="Keyword">select</span> <span class="VarId">wizard_name</span><span class="Symbol">,</span><span class="VarId">original_place</span> <span class="Symbol">+</span> <span class="Number">10</span> <span class="Keyword">from</span> <span class="VarId">wizards</span> <span class="Keyword">where</span> <span class="Keyword">not</span> <span class="VarId">expired</span><span class="Symbol">)</span>
+   <span class="Symbol">,</span><span class="VarId">nexts</span> <span class="VarId">as</span>
+       <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">wizard_name</span><span class="Symbol">,</span> <span class="VarId">lead</span><span class="Symbol">(</span><span class="VarId">wizard_name</span><span class="Symbol">)</span>
+                            <span class="Keyword">over</span><span class="Symbol">(</span><span class="Keyword">order</span> <span class="Keyword">by</span> <span class="VarId">original_place</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">n</span>
+          <span class="Keyword">from</span> <span class="VarId">doubled</span><span class="Symbol">)</span>
+  <span class="Keyword">select</span> <span class="VarId">n</span> <span class="Keyword">from</span> <span class="VarId">nexts</span> <span class="Keyword">where</span> <span class="VarId">wizard_name</span> <span class="Symbol">=</span> $<span class="Number">1</span> <span class="Keyword">limit</span> <span class="Number">1</span><span class="Symbol">;</span>
 
-$$ language sql stable;
+$$ <span class="Keyword">language</span> <span class="VarId">sql</span> <span class="Keyword">stable</span><span class="Symbol">;</span>
 
 </pre></div></div></div><p
       >/<em
@@ -96,21 +96,21 @@ $$ language sql stable;
 	>/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
---current wizard is the wizard who's turn it is to do stuff in current phase
-select create_var('current_wizard', 'text');
-select set_relvar_type('current_wizard_table', 'data');
+<span class="Comment">--current wizard is the wizard who's turn it is to do stuff in current phase</span>
+<span class="Keyword">select</span> <span class="VarId">create_var</span><span class="Symbol">(</span><span class="Char">'current_wizard'</span><span class="Symbol">,</span> <span class="Char">'text'</span><span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'current_wizard_table'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span>
 
-alter table current_wizard_table
-  add constraint current_wizard_fkey
-  foreign key (current_wizard) references wizards(wizard_name);
+<span class="Keyword">alter</span> <span class="Keyword">table</span> <span class="VarId">current_wizard_table</span>
+  <span class="Keyword">add</span> <span class="Keyword">constraint</span> <span class="VarId">current_wizard_fkey</span>
+  <span class="Keyword">foreign</span> <span class="Keyword">key</span> <span class="Symbol">(</span><span class="VarId">current_wizard</span><span class="Symbol">)</span> <span class="Keyword">references</span> <span class="VarId">wizards</span><span class="Symbol">(</span><span class="VarId">wizard_name</span><span class="Symbol">);</span>
 
--- could be no deletes, inserts - unless there is only one wizard left
--- (to allow draws)
---select no_deletes_inserts_except_new_game('current_wizard_table');
+<span class="Comment">-- could be no deletes, inserts - unless there is only one wizard left</span>
+<span class="Comment">-- (to allow draws)</span>
+<span class="Comment">--select no_deletes_inserts_except_new_game('current_wizard_table');</span>
 
-select create_assertion('current_wizard_must_be_alive',
-  $$(select not expired from current_wizard_table
-     inner join wizards on current_wizard = wizard_name)$$);
+<span class="Keyword">select</span> <span class="VarId">create_assertion</span><span class="Symbol">(</span><span class="Char">'current_wizard_must_be_alive'</span><span class="Symbol">,</span>
+  $$<span class="Symbol">(</span><span class="Keyword">select</span> <span class="Keyword">not</span> <span class="VarId">expired</span> <span class="Keyword">from</span> <span class="VarId">current_wizard_table</span>
+     <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">wizards</span> <span class="Keyword">on</span> <span class="VarId">current_wizard</span> <span class="Symbol">=</span> <span class="VarId">wizard_name</span><span class="Symbol">)</span>$$<span class="Symbol">);</span>
 
 </pre></div></div></div><p
       >/* wizard field in most tables and views is named wizard_name</p
@@ -120,49 +120,49 @@ select create_assertion('current_wizard_must_be_alive',
       >*/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-create view current_wizard as
-  select current_wizard as wizard_name from current_wizard_table;
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">current_wizard</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="VarId">current_wizard</span> <span class="Keyword">as</span> <span class="VarId">wizard_name</span> <span class="Keyword">from</span> <span class="VarId">current_wizard_table</span><span class="Symbol">;</span>
 
--- could this be used for allegiance as well? To go more tutorial d,
--- we want to try to only use natural joins in combination with
--- renaming attributes
+<span class="Comment">-- could this be used for allegiance as well? To go more tutorial d,</span>
+<span class="Comment">-- we want to try to only use natural joins in combination with</span>
+<span class="Comment">-- renaming attributes</span>
 
--- turn phases
+<span class="Comment">-- turn phases</span>
 
-create domain turn_phase_enum as text
-       check (value in ('choose', 'cast', 'autonomous', 'move'));
+<span class="Keyword">create</span> <span class="Keyword">domain</span> <span class="VarId">turn_phase_enum</span> <span class="Keyword">as</span> <span class="VarId">text</span>
+       <span class="Keyword">check</span> <span class="Symbol">(</span><span class="VarId">value</span> <span class="VarId">in</span> <span class="Symbol">(</span><span class="Char">'choose'</span><span class="Symbol">,</span> <span class="Char">'cast'</span><span class="Symbol">,</span> <span class="Char">'autonomous'</span><span class="Symbol">,</span> <span class="Char">'move'</span><span class="Symbol">));</span>
 
-create function next_turn_phase(text) returns text as $$
-  select case
-    when $1='choose' then 'cast'
-    when $1='cast' then 'autonomous'
-    when $1='autonomous' then 'move'
-    when $1='move' then 'choose'
-  end as result
-$$ language sql immutable;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">next_turn_phase</span><span class="Symbol">(</span><span class="Type">text</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">text</span> <span class="Keyword">as</span> $$
+  <span class="Keyword">select</span> <span class="VarId">case</span>
+    <span class="Keyword">when</span> $<span class="Number">1</span><span class="Symbol">=</span><span class="Char">'choose'</span> <span class="Keyword">then</span> <span class="Char">'cast'</span>
+    <span class="Keyword">when</span> $<span class="Number">1</span><span class="Symbol">=</span><span class="Char">'cast'</span> <span class="Keyword">then</span> <span class="Char">'autonomous'</span>
+    <span class="Keyword">when</span> $<span class="Number">1</span><span class="Symbol">=</span><span class="Char">'autonomous'</span> <span class="Keyword">then</span> <span class="Char">'move'</span>
+    <span class="Keyword">when</span> $<span class="Number">1</span><span class="Symbol">=</span><span class="Char">'move'</span> <span class="Keyword">then</span> <span class="Char">'choose'</span>
+  <span class="Keyword">end</span> <span class="Keyword">as</span> <span class="VarId">result</span>
+$$ <span class="Keyword">language</span> <span class="VarId">sql</span> <span class="Keyword">immutable</span><span class="Symbol">;</span>
 
-select create_var('turn_phase', 'turn_phase_enum');
-select set_relvar_type('turn_phase_table', 'data');
+<span class="Keyword">select</span> <span class="VarId">create_var</span><span class="Symbol">(</span><span class="Char">'turn_phase'</span><span class="Symbol">,</span> <span class="Char">'turn_phase_enum'</span><span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'turn_phase_table'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span>
 </pre></div></div></div><p
       >/<em
 	>select create_update_transition_tuple_constraint( 'turn_phase_table', 'turn_phase_change_valid', 'NEW.turn_phase = next_turn_phase(OLD.turn_phase)');</em
 	>/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-select no_deletes_inserts_except_new_game('turn_phase_table');
+<span class="Keyword">select</span> <span class="VarId">no_deletes_inserts_except_new_game</span><span class="Symbol">(</span><span class="Char">'turn_phase_table'</span><span class="Symbol">);</span>
 
--- not used anywhere atm??
-create type turn_pos as (
-    turn_number int,
-    turn_phase turn_phase_enum,
-    current_wizard text
-);
+<span class="Comment">-- not used anywhere atm??</span>
+<span class="Keyword">create</span> <span class="Keyword">type</span> <span class="VarId">turn_pos</span> <span class="Keyword">as</span> <span class="Symbol">(</span>
+    <span class="VarId">turn_number</span> <span class="Type">int</span><span class="Symbol">,</span>
+    <span class="VarId">turn_phase</span> <span class="VarId">turn_phase_enum</span><span class="Symbol">,</span>
+    <span class="VarId">current_wizard</span> <span class="VarId">text</span>
+<span class="Symbol">);</span>
 
-create function get_current_turn_pos() returns turn_pos as $$
-  select (turn_number, turn_phase, current_wizard)::turn_pos
-    from turn_number_table
-    cross join turn_phase_table
-    cross join current_wizard_table;
-$$ language sql stable;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">get_current_turn_pos</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="VarId">turn_pos</span> <span class="Keyword">as</span> $$
+  <span class="Keyword">select</span> <span class="Symbol">(</span><span class="VarId">turn_number</span><span class="Symbol">,</span> <span class="VarId">turn_phase</span><span class="Symbol">,</span> <span class="VarId">current_wizard</span><span class="Symbol">)::</span><span class="VarId">turn_pos</span>
+    <span class="Keyword">from</span> <span class="VarId">turn_number_table</span>
+    <span class="Keyword">cross</span> <span class="Keyword">join</span> <span class="VarId">turn_phase_table</span>
+    <span class="Keyword">cross</span> <span class="Keyword">join</span> <span class="VarId">current_wizard_table</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">sql</span> <span class="Keyword">stable</span><span class="Symbol">;</span>
 
 
 </pre></div></div></div><p
@@ -173,28 +173,28 @@ $$ language sql stable;
       >*/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-select create6nf ($$
+<span class="Keyword">select</span> <span class="VarId">create6nf</span> <span class="Symbol">(</span>$$
 
-  wizard_spell_choices_mr (
-    wizard_name text unique,
-    spell_name text
-  );
+  <span class="VarId">wizard_spell_choices_mr</span> <span class="Symbol">(</span>
+    <span class="VarId">wizard_name</span> <span class="Type">text</span> <span class="Keyword">unique</span><span class="Symbol">,</span>
+    <span class="VarId">spell_name</span> <span class="VarId">text</span>
+  <span class="Symbol">);</span>
 
-  wizard_spell_choices_imaginary : wizard_spell_choices_mr (
-    imaginary boolean null
-  );
+  <span class="VarId">wizard_spell_choices_imaginary</span> <span class="Symbol">:</span> <span class="VarId">wizard_spell_choices_mr</span> <span class="Symbol">(</span>
+    <span class="VarId">imaginary</span> <span class="VarId">boolean</span> <span class="VarId">null</span>
+  <span class="Symbol">);</span>
 
-$$);
+$$<span class="Symbol">);</span>
 
-select set_relvar_type('wizard_spell_choices_mr', 'data');
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'wizard_spell_choices_mr'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span>
 
-create view wizard_spell_choices as
-  select * from wizard_spell_choices_mr_base;
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">wizard_spell_choices</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="VarId">wizard_spell_choices_mr_base</span><span class="Symbol">;</span>
 
-select create_assertion('dead_wizard_no_spell',
-  $$ not exists(select 1 from wizard_spell_choices_mr
-    natural inner join wizards
-    where expired = true)$$);
+<span class="Keyword">select</span> <span class="VarId">create_assertion</span><span class="Symbol">(</span><span class="Char">'dead_wizard_no_spell'</span><span class="Symbol">,</span>
+  $$ <span class="Keyword">not</span> <span class="Keyword">exists</span><span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">wizard_spell_choices_mr</span>
+    <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">wizards</span>
+    <span class="Keyword">where</span> <span class="VarId">expired</span> <span class="Symbol">=</span> <span class="VarId">true</span><span class="Symbol">)</span>$$<span class="Symbol">);</span>
 
 </pre></div></div></div><p
       >/*</p
@@ -204,14 +204,14 @@ select create_assertion('dead_wizard_no_spell',
       >*/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
---shortcut for current wizard's spell
-create view current_wizard_spell as
-  select spell_name from wizard_spell_choices
-    natural inner join current_wizard;
+<span class="Comment">--shortcut for current wizard's spell</span>
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">current_wizard_spell</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="VarId">spell_name</span> <span class="Keyword">from</span> <span class="VarId">wizard_spell_choices</span>
+    <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">current_wizard</span><span class="Symbol">;</span>
 
-create function get_current_wizard_spell() returns text as $$
-  select spell_name from current_wizard_spell;
-$$ language sql stable;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">get_current_wizard_spell</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">text</span> <span class="Keyword">as</span> $$
+  <span class="Keyword">select</span> <span class="VarId">spell_name</span> <span class="Keyword">from</span> <span class="VarId">current_wizard_spell</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">sql</span> <span class="Keyword">stable</span><span class="Symbol">;</span>
 
 </pre></div></div></div><p
       >/*this really needs multiple updates</p
@@ -228,9 +228,9 @@ $$ language sql stable;
       ><p
       >*/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
---select create_var('spell_choice_hack', 'boolean');
---insert into spell_choice_hack_table values (false);
---select set_relvar_type('spell_choice_hack_table', 'hack');
+<span class="Comment">--select create_var('spell_choice_hack', 'boolean');</span>
+<span class="Comment">--insert into spell_choice_hack_table values (false);</span>
+<span class="Comment">--select set_relvar_type('spell_choice_hack_table', 'hack');</span>
 
 </pre></div></div></div><p
       >/<em
@@ -2140,23 +2140,23 @@ $$ language sql stable;
       >*/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-select create_var('spell_parts_to_cast', 'int');
-select set_relvar_type('spell_parts_to_cast_table', 'data');
+<span class="Keyword">select</span> <span class="VarId">create_var</span><span class="Symbol">(</span><span class="Char">'spell_parts_to_cast'</span><span class="Symbol">,</span> <span class="Char">'int'</span><span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'spell_parts_to_cast_table'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span>
 
-select create_assertion('parts_to_cast_only', $$
-  ((select turn_phase = 'cast' from turn_phase_table)
-  or not exists(select 1 from spell_parts_to_cast_table))$$);
+<span class="Keyword">select</span> <span class="VarId">create_assertion</span><span class="Symbol">(</span><span class="Char">'parts_to_cast_only'</span><span class="Symbol">,</span> $$
+  <span class="Symbol">((</span><span class="Keyword">select</span> <span class="VarId">turn_phase</span> <span class="Symbol">=</span> <span class="Char">'cast'</span> <span class="Keyword">from</span> <span class="VarId">turn_phase_table</span><span class="Symbol">)</span>
+  <span class="Keyword">or</span> <span class="Keyword">not</span> <span class="Keyword">exists</span><span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">spell_parts_to_cast_table</span><span class="Symbol">))</span>$$<span class="Symbol">);</span>
 
 </pre></div></div></div><p
       >/* If casting multipart spell, only check success on first part. Store whether current wizard's spell needs a success check here. make sure to reset it each next phase during cast phase */</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-select create_var('cast_success_checked', 'boolean');
-select set_relvar_type('cast_success_checked_table', 'data');
+<span class="Keyword">select</span> <span class="VarId">create_var</span><span class="Symbol">(</span><span class="Char">'cast_success_checked'</span><span class="Symbol">,</span> <span class="Char">'boolean'</span><span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'cast_success_checked_table'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span>
 
-select create_assertion('cast_checked_cast_only', $$
-  ((select turn_phase = 'cast' from turn_phase_table)
-  or not exists(select 1 from cast_success_checked_table))$$);
+<span class="Keyword">select</span> <span class="VarId">create_assertion</span><span class="Symbol">(</span><span class="Char">'cast_checked_cast_only'</span><span class="Symbol">,</span> $$
+  <span class="Symbol">((</span><span class="Keyword">select</span> <span class="VarId">turn_phase</span> <span class="Symbol">=</span> <span class="Char">'cast'</span> <span class="Keyword">from</span> <span class="VarId">turn_phase_table</span><span class="Symbol">)</span>
+  <span class="Keyword">or</span> <span class="Keyword">not</span> <span class="Keyword">exists</span><span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">cast_success_checked_table</span><span class="Symbol">))</span>$$<span class="Symbol">);</span>
 
 
 </pre></div></div></div><p
@@ -2176,31 +2176,31 @@ select create_assertion('cast_checked_cast_only', $$
       ><p
       >*/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-select create_var('cast_alignment', 'integer');
-select set_relvar_type('cast_alignment_table', 'data');
+<span class="Keyword">select</span> <span class="VarId">create_var</span><span class="Symbol">(</span><span class="Char">'cast_alignment'</span><span class="Symbol">,</span> <span class="Char">'integer'</span><span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'cast_alignment_table'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span>
 
-select create_assertion('cast_alignment_empty',
-  $$((get_turn_phase() = 'cast') or
-  not exists(select 1 from cast_alignment_table))$$);
+<span class="Keyword">select</span> <span class="VarId">create_assertion</span><span class="Symbol">(</span><span class="Char">'cast_alignment_empty'</span><span class="Symbol">,</span>
+  $$<span class="Symbol">((</span><span class="VarId">get_turn_phase</span><span class="Symbol">()</span> <span class="Symbol">=</span> <span class="Char">'cast'</span><span class="Symbol">)</span> <span class="VarId">or</span>
+  <span class="Keyword">not</span> <span class="Keyword">exists</span><span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">cast_alignment_table</span><span class="Symbol">))</span>$$<span class="Symbol">);</span>
 
-create function adjust_world_alignment() returns void as $$
-declare
-  abs_change float;
-begin
-  select into abs_change
-    least(abs(get_cast_alignment()) / 2, 2);
-  update world_alignment_table
-    set world_alignment = world_alignment
-      + trunc(abs_change) * sign(get_cast_alignment());
-  --get fractional part
-  if (random() &lt; abs_change - trunc(abs_change)) then
-    update world_alignment_table
-      set world_alignment = world_alignment +
-        sign(get_cast_alignment());
-  end if;
-  update cast_alignment_table set cast_alignment = 0;
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">adjust_world_alignment</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">abs_change</span> <span class="Type">float</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">abs_change</span>
+    <span class="VarId">least</span><span class="Symbol">(</span><span class="VarId">abs</span><span class="Symbol">(</span><span class="VarId">get_cast_alignment</span><span class="Symbol">())</span> <span class="Symbol">/</span> <span class="Number">2</span><span class="Symbol">,</span> <span class="Number">2</span><span class="Symbol">);</span>
+  <span class="Keyword">update</span> <span class="VarId">world_alignment_table</span>
+    <span class="Keyword">set</span> <span class="VarId">world_alignment</span> <span class="Symbol">=</span> <span class="VarId">world_alignment</span>
+      <span class="Symbol">+</span> <span class="VarId">trunc</span><span class="Symbol">(</span><span class="VarId">abs_change</span><span class="Symbol">)</span> <span class="Symbol">*</span> <span class="VarId">sign</span><span class="Symbol">(</span><span class="VarId">get_cast_alignment</span><span class="Symbol">());</span>
+  <span class="Comment">--get fractional part</span>
+  <span class="Keyword">if</span> <span class="Symbol">(</span><span class="VarId">random</span><span class="Symbol">()</span> <span class="Symbol">&lt;</span> <span class="VarId">abs_change</span> <span class="Symbol">-</span> <span class="VarId">trunc</span><span class="Symbol">(</span><span class="VarId">abs_change</span><span class="Symbol">))</span> <span class="VarId">then</span>
+    <span class="Keyword">update</span> <span class="VarId">world_alignment_table</span>
+      <span class="Keyword">set</span> <span class="VarId">world_alignment</span> <span class="Symbol">=</span> <span class="VarId">world_alignment</span> <span class="Symbol">+</span>
+        <span class="VarId">sign</span><span class="Symbol">(</span><span class="VarId">get_cast_alignment</span><span class="Symbol">());</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="Keyword">update</span> <span class="VarId">cast_alignment_table</span> <span class="Keyword">set</span> <span class="VarId">cast_alignment</span> <span class="Symbol">=</span> <span class="Number">0</span><span class="Symbol">;</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
 </pre></div></div></div><p
       >/*</p
@@ -2211,34 +2211,34 @@ $$ language plpgsql volatile;
       ><p
       >*/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-create table pieces_moved (
-    ptype text,
-    allegiance text references current_wizard_table(current_wizard),
-    tag int,
-    unique (ptype,allegiance,tag),
-    foreign key (ptype,allegiance,tag) references pieces
-);
-select set_relvar_type('pieces_moved', 'data');
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">pieces_moved</span> <span class="Symbol">(</span>
+    <span class="VarId">ptype</span> <span class="Type">text</span><span class="Symbol">,</span>
+    <span class="VarId">allegiance</span> <span class="Type">text</span> <span class="Keyword">references</span> <span class="VarId">current_wizard_table</span><span class="Symbol">(</span><span class="VarId">current_wizard</span><span class="Symbol">),</span>
+    <span class="VarId">tag</span> <span class="Type">int</span><span class="Symbol">,</span>
+    <span class="Keyword">unique</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">),</span>
+    <span class="Keyword">foreign</span> <span class="Keyword">key</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">)</span> <span class="Keyword">references</span> <span class="VarId">pieces</span>
+<span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'pieces_moved'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span>
 
-select create_assertion('pieces_moved_empty',
-  $$((select turn_phase = 'move' from turn_phase_table)
-     or not exists (select 1 from pieces_moved))$$);
+<span class="Keyword">select</span> <span class="VarId">create_assertion</span><span class="Symbol">(</span><span class="Char">'pieces_moved_empty'</span><span class="Symbol">,</span>
+  $$<span class="Symbol">((</span><span class="Keyword">select</span> <span class="VarId">turn_phase</span> <span class="Symbol">=</span> <span class="Char">'move'</span> <span class="Keyword">from</span> <span class="VarId">turn_phase_table</span><span class="Symbol">)</span>
+     <span class="Keyword">or</span> <span class="Keyword">not</span> <span class="Keyword">exists</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">pieces_moved</span><span class="Symbol">))</span>$$<span class="Symbol">);</span>
 
-create domain move_phase as text
-  check (value in ('motion', 'attack', 'ranged_attack'));
+<span class="Keyword">create</span> <span class="Keyword">domain</span> <span class="VarId">move_phase</span> <span class="Keyword">as</span> <span class="VarId">text</span>
+  <span class="Keyword">check</span> <span class="Symbol">(</span><span class="VarId">value</span> <span class="VarId">in</span> <span class="Symbol">(</span><span class="Char">'motion'</span><span class="Symbol">,</span> <span class="Char">'attack'</span><span class="Symbol">,</span> <span class="Char">'ranged_attack'</span><span class="Symbol">));</span>
 
-create table selected_piece (
-  ptype text,
-  allegiance text references current_wizard_table(current_wizard),
-  tag int,
-  move_phase move_phase,
-  engaged boolean,
-  unique (ptype,allegiance,tag),
-  foreign key (ptype,allegiance,tag) references pieces
-); -- 0 to 1 tuple when in move phase,
-select set_relvar_type('selected_piece', 'data');
--- piece key from current wizards army, empty otherwise
-select restrict_cardinality('selected_piece', 1);
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">selected_piece</span> <span class="Symbol">(</span>
+  <span class="VarId">ptype</span> <span class="Type">text</span><span class="Symbol">,</span>
+  <span class="VarId">allegiance</span> <span class="Type">text</span> <span class="Keyword">references</span> <span class="VarId">current_wizard_table</span><span class="Symbol">(</span><span class="VarId">current_wizard</span><span class="Symbol">),</span>
+  <span class="VarId">tag</span> <span class="Type">int</span><span class="Symbol">,</span>
+  <span class="VarId">move_phase</span> <span class="VarId">move_phase</span><span class="Symbol">,</span>
+  <span class="VarId">engaged</span> <span class="VarId">boolean</span><span class="Symbol">,</span>
+  <span class="Keyword">unique</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">),</span>
+  <span class="Keyword">foreign</span> <span class="Keyword">key</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">)</span> <span class="Keyword">references</span> <span class="VarId">pieces</span>
+<span class="Symbol">);</span> <span class="Comment">-- 0 to 1 tuple when in move phase,</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'selected_piece'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span>
+<span class="Comment">-- piece key from current wizards army, empty otherwise</span>
+<span class="Keyword">select</span> <span class="VarId">restrict_cardinality</span><span class="Symbol">(</span><span class="Char">'selected_piece'</span><span class="Symbol">,</span> <span class="Number">1</span><span class="Symbol">);</span>
 
 
 </pre></div></div></div><p
@@ -2250,11 +2250,11 @@ select restrict_cardinality('selected_piece', 1);
       ><p
       >*/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-select create_var('remaining_walk', 'int');
-select set_relvar_type('remaining_walk_table', 'data');
-select create_var('remaining_walk_hack', 'boolean');
-select set_relvar_type('remaining_walk_hack_table', 'hack');
-insert into remaining_walk_hack_table values (false);
+<span class="Keyword">select</span> <span class="VarId">create_var</span><span class="Symbol">(</span><span class="Char">'remaining_walk'</span><span class="Symbol">,</span> <span class="Char">'int'</span><span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'remaining_walk_table'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">create_var</span><span class="Symbol">(</span><span class="Char">'remaining_walk_hack'</span><span class="Symbol">,</span> <span class="Char">'boolean'</span><span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'remaining_walk_hack_table'</span><span class="Symbol">,</span> <span class="Char">'hack'</span><span class="Symbol">);</span>
+<span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">remaining_walk_hack_table</span> <span class="Keyword">values</span> <span class="Symbol">(</span><span class="VarId">false</span><span class="Symbol">);</span>
 
 </pre></div></div></div><p
       >/<em
@@ -2972,22 +2972,22 @@ insert into remaining_walk_hack_table values (false);
 	>/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
---this function is used to initialise the turn phase data.
-create function init_turn_stuff() returns void as $$
-begin
-  --this should catch attempts to start a game
-  --which has already been started
-  if exists(select 1 from turn_number_table) then
-    raise exception 'new game started when turn number table not empty';
-  end if;
-  insert into turn_number_table values (0);
-  insert into turn_phase_table
-    values ('choose');
-  insert into current_wizard_table
-    select wizard_name from wizards where not expired -- not sure why this is needed
-    order by original_place limit 1;
-end;
-$$ language plpgsql volatile;
+<span class="Comment">--this function is used to initialise the turn phase data.</span>
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">init_turn_stuff</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Comment">--this should catch attempts to start a game</span>
+  <span class="Comment">--which has already been started</span>
+  <span class="Keyword">if</span> <span class="Keyword">exists</span><span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">turn_number_table</span><span class="Symbol">)</span> <span class="VarId">then</span>
+    <span class="Keyword">raise</span> <span class="Keyword">exception</span> <span class="Char">'new game started when turn number table not empty'</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">turn_number_table</span> <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Number">0</span><span class="Symbol">);</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">turn_phase_table</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Char">'choose'</span><span class="Symbol">);</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">current_wizard_table</span>
+    <span class="Keyword">select</span> <span class="VarId">wizard_name</span> <span class="Keyword">from</span> <span class="VarId">wizards</span> <span class="Keyword">where</span> <span class="Keyword">not</span> <span class="VarId">expired</span> <span class="Comment">-- not sure why this is needed</span>
+    <span class="Keyword">order</span> <span class="Keyword">by</span> <span class="VarId">original_place</span> <span class="Keyword">limit</span> <span class="Number">1</span><span class="Symbol">;</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
 </pre></div></div></div><p
       >/*</p
@@ -2997,8 +2997,8 @@ $$ language plpgsql volatile;
       >*/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-select create_var('game_completed', 'boolean');
-select set_relvar_type('game_completed_table', 'data');
+<span class="Keyword">select</span> <span class="VarId">create_var</span><span class="Symbol">(</span><span class="Char">'game_completed'</span><span class="Symbol">,</span> <span class="Char">'boolean'</span><span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'game_completed_table'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span>
 </pre></div></div></div><p
       >/<em
 	>select create_assertion('game_completed_wizards', <br
@@ -3145,18 +3145,18 @@ select set_relvar_type('game_completed_table', 'data');
 	>/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-create function game_completed() returns void as $$
-begin
-  insert into game_completed_table
-    select true where not exists (select 1 from game_completed_table);
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">game_completed</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">game_completed_table</span>
+    <span class="Keyword">select</span> <span class="VarId">true</span> <span class="Keyword">where</span> <span class="Keyword">not</span> <span class="Keyword">exists</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">game_completed_table</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 </pre></div></div></div></div
     ><br
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

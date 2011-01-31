@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../index.txt.html"
+    ><a href="../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -16,7 +16,9 @@
      /><p
     >Small hack transform and load the chaos sql into the database.</p
     ><p
-    >ghc -XDeriveDataTypeable -isrc:devel:tests:examples/extensions:examples/dbload:examples/chaos -hide-package monads-fd --make examples/chaos/Chaos2010.lhs &amp;&amp; time examples/chaos/Chaos2010 sql &gt; chaos1.sql &amp;&amp; time examples/chaos/Chaos2010 clear &amp;&amp; time psql chaos -q --set ON_ERROR_STOP=on --file=chaos1.sql</p
+    >ghc --make -threaded -XScopedTypeVariables -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -idevel:src/lib:src/qq:src/postgresql:examples/chaos:examples/extensions/:examples/util/:tests/ --make examples/chaos/Chaos2010.lhs</p
+    ><p
+    >time examples/chaos/Chaos2010 sql &gt; chaos1.sql &amp;&amp; time examples/chaos/Chaos2010 clear &amp;&amp; time psql chaos -q --set ON_ERROR_STOP=on --file=chaos1.sql</p
     ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">import</span> <span class="ConId">System.Environment</span>
 <span class="Keyword">import</span> <span class="ConId">System.Console.CmdArgs</span>
 <span class="Keyword">import</span> <span class="ConId">System.IO</span>
@@ -113,7 +115,7 @@
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../../index.txt.html"
+    ><a href="../../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -80,7 +80,7 @@
 <span class="Comment">-- set the annotations, just need to pick up any type errors whilst</span>
 <span class="Comment">-- calculating the new bindings</span>
 <span class="ConId">SEM</span> <span class="ConId">TableRef</span>
-    <span class="Symbol">|</span> <span class="ConId">SubTref</span> <span class="ConId">Tref</span> <span class="ConId">TrefFun</span> <span class="ConId">JoinedTref</span>
+    <span class="Symbol">|</span> <span class="ConId">SubTref</span> <span class="ConId">Tref</span> <span class="ConId">FunTref</span> <span class="ConId">JoinTref</span>
         <span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Symbol">=</span> <span class="VarId">addTypeErrors</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">errs</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span>
 
 <span class="ConId">SEM</span> <span class="ConId">TableRefList</span>
@@ -131,7 +131,7 @@
                                    <span class="VarId">pr</span><span class="Symbol">]</span>
 
 
-    <span class="Symbol">|</span> <span class="ConId">TrefFun</span>
+    <span class="Symbol">|</span> <span class="ConId">FunTref</span>
 </pre></div></div></div><p
     >{-</p
     ><p
@@ -151,7 +151,7 @@
                                          <span class="Symbol">(</span><span class="VarId">snd</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">qfunIdens</span><span class="Symbol">)</span>
                                          <span class="Symbol">[]]</span>
         <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">qfunIdens</span> <span class="Symbol">=</span> <span class="VarId">fromRight</span> <span class="Symbol">(</span><span class="String">&quot;&quot;</span><span class="Symbol">,[])</span> <span class="Symbol">@</span><span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">eqfunIdens</span>
-    <span class="Symbol">|</span> <span class="ConId">JoinedTref</span>
+    <span class="Symbol">|</span> <span class="ConId">JoinTref</span>
 </pre></div></div></div><p
     >{- join - most of the hard work is done in local bindings -}</p
     ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
@@ -192,7 +192,7 @@
     ><p
     >-}</p
     ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
-<span class="Function">funIdens</span> <span class="Symbol">::</span> <span class="ConId">Catalog</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">Type</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">]</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)])</span>
+<span class="Function">funIdens</span> <span class="Symbol">::</span> <span class="ConId">Catalog</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">ScalarExpr</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">Type</span> <span class="Symbol">-&gt;</span> <span class="ConId">Either</span> <span class="Symbol">[</span><span class="ConId">TypeError</span><span class="Symbol">]</span> <span class="Symbol">(</span><span class="ConId">String</span><span class="Symbol">,[(</span><span class="ConId">String</span><span class="Symbol">,</span><span class="ConId">Type</span><span class="Symbol">)])</span>
 <span class="Function">funIdens</span> <span class="VarId">cat</span> <span class="VarId">alias</span> <span class="VarId">fnVal</span> <span class="VarId">ft</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
    <span class="VarId">errorWhen</span> <span class="Symbol">(</span><span class="Keyword">case</span> <span class="VarId">fnVal</span> <span class="Keyword">of</span>
                 <span class="ConId">FunCall</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">False</span>
@@ -226,10 +226,10 @@
         <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">SubTref</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">sel</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Symbol">@</span><span class="VarId">alias</span>
     <span class="Symbol">|</span> <span class="ConId">Tref</span>
         <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">Tref</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">tbl</span><span class="Symbol">.</span><span class="VarId">tbAnnotatedTree</span> <span class="Symbol">@</span><span class="VarId">alias</span>
-    <span class="Symbol">|</span> <span class="ConId">TrefFun</span>
-        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">TrefFun</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">fn</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Symbol">@</span><span class="VarId">alias</span>
-    <span class="Symbol">|</span> <span class="ConId">JoinedTref</span>
-        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">JoinedTref</span> <span class="Symbol">@</span><span class="VarId">ann</span>
+    <span class="Symbol">|</span> <span class="ConId">FunTref</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">FunTref</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">fn</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Symbol">@</span><span class="VarId">alias</span>
+    <span class="Symbol">|</span> <span class="ConId">JoinTref</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">JoinTref</span> <span class="Symbol">@</span><span class="VarId">ann</span>
                                   <span class="Symbol">@</span><span class="VarId">tbl</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
                                   <span class="Symbol">@</span><span class="VarId">nat</span>
                                   <span class="Symbol">@</span><span class="VarId">joinType</span>
@@ -240,7 +240,7 @@
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

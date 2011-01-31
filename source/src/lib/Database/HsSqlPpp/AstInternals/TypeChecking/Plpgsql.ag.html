@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../../index.txt.html"
+    ><a href="../../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -75,7 +75,7 @@
 
 
 <span class="ConId">SEM</span> <span class="ConId">Statement</span>
-    <span class="Symbol">|</span> <span class="ConId">ForSelectStatement</span>
+    <span class="Symbol">|</span> <span class="ConId">ForQueryStatement</span>
         <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">tpe</span> <span class="Symbol">=</span>
           <span class="Keyword">do</span>
           <span class="VarId">st</span> <span class="Symbol">&lt;-</span> <span class="VarId">lmt</span> <span class="Symbol">(</span><span class="ConId">CompositeType</span> <span class="Symbol">&lt;$&gt;</span> <span class="Symbol">@</span><span class="VarId">sel</span><span class="Symbol">.</span><span class="VarId">uType</span><span class="Symbol">)</span>
@@ -92,7 +92,7 @@
             <span class="VarId">st</span> <span class="Symbol">&lt;-</span> <span class="VarId">lmt</span> <span class="Symbol">(</span><span class="ConId">CompositeType</span> <span class="Symbol">&lt;$&gt;</span> <span class="Symbol">@</span><span class="VarId">sel</span><span class="Symbol">.</span><span class="VarId">uType</span><span class="Symbol">)</span>
             <span class="VarId">lbUpdate</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">cat</span> <span class="Symbol">(</span><span class="ConId">LBIds</span> <span class="String">&quot;for loop record type&quot;</span> <span class="ConId">Nothing</span> <span class="Symbol">[(</span><span class="VarId">getName</span> <span class="Symbol">@</span><span class="VarId">var</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span><span class="Symbol">,</span><span class="VarId">st</span><span class="Symbol">)])</span> <span class="Symbol">@</span><span class="VarId">lhs</span><span class="Symbol">.</span><span class="VarId">lib</span>
 
-        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">ForSelectStatement</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">lb</span> <span class="Symbol">@</span><span class="VarId">var</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Symbol">@</span><span class="VarId">sel</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Symbol">@</span><span class="VarId">sts</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
+        <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">backTree</span> <span class="Symbol">=</span> <span class="ConId">ForQueryStatement</span> <span class="Symbol">@</span><span class="VarId">ann</span> <span class="Symbol">@</span><span class="VarId">lb</span> <span class="Symbol">@</span><span class="VarId">var</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Symbol">@</span><span class="VarId">sel</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span> <span class="Symbol">@</span><span class="VarId">sts</span><span class="Symbol">.</span><span class="VarId">annotatedTree</span>
         <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">catUpdates</span> <span class="Symbol">=</span> <span class="Symbol">[]</span>
         <span class="VarId">loc</span><span class="Symbol">.</span><span class="VarId">statementType</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
 
@@ -100,7 +100,7 @@
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

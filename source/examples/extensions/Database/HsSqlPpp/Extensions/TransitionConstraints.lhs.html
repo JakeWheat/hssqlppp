@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../index.txt.html"
+    ><a href="../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -150,7 +150,7 @@
                     <span class="Keyword">then</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="VarId">null</span> <span class="Symbol">|]</span>
                     <span class="Keyword">else</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="ConId">OLD</span> <span class="Symbol">|]</span>
               <span class="VarId">expr</span> <span class="Symbol">=</span> <span class="VarId">either</span> <span class="Symbol">(</span><span class="VarId">error</span> <span class="Symbol">.</span> <span class="VarId">show</span><span class="Symbol">)</span> <span class="VarId">id</span>
-                            <span class="Symbol">$</span> <span class="VarId">parseExpression</span> <span class="String">&quot;&quot;</span> <span class="VarId">expressionText</span>
+                            <span class="Symbol">$</span> <span class="VarId">parseScalarExpr</span> <span class="String">&quot;&quot;</span> <span class="VarId">expressionText</span>
           <span class="Keyword">in</span> <span class="Symbol">[$</span><span class="VarId">sqlStmts</span><span class="Symbol">|</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode">
       <span class="VarId">create</span> <span class="VarId">function</span> <span class="Symbol">$(</span><span class="VarId">spliceFnName</span><span class="Symbol">)()</span> <span class="VarId">returns</span> <span class="VarId">trigger</span> <span class="Keyword">as</span> <span class="Symbol">$</span><span class="VarId">a</span><span class="Symbol">$</span>
       <span class="VarId">begin</span>
@@ -170,7 +170,7 @@
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

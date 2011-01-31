@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../index.txt.html"
+    ><a href="../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -361,7 +361,7 @@ add constraint z c a
                     <span class="VarId">select</span> <span class="VarId">create_assertion</span><span class="Symbol">(</span>'<span class="Symbol">$(</span><span class="VarId">cn</span><span class="Symbol">)</span><span class="Char">','</span><span class="Symbol">$(</span><span class="VarId">exs</span><span class="Symbol">)</span>'<span class="Symbol">);</span>
                                 <span class="Symbol">|]</span>
       <span class="VarId">conname</span> <span class="VarId">nm</span> <span class="Symbol">=</span> <span class="String">&quot;valid_&quot;</span> <span class="Symbol">++</span> <span class="VarId">nm</span>
-      <span class="VarId">exprs</span> <span class="VarId">t1</span> <span class="VarId">t2</span> <span class="Symbol">=</span> <span class="VarId">printExpression</span> <span class="Symbol">$</span> <span class="VarId">exprn</span> <span class="VarId">t1</span> <span class="VarId">t2</span>
+      <span class="VarId">exprs</span> <span class="VarId">t1</span> <span class="VarId">t2</span> <span class="Symbol">=</span> <span class="VarId">printScalarExpr</span> <span class="Symbol">$</span> <span class="VarId">exprn</span> <span class="VarId">t1</span> <span class="VarId">t2</span>
       <span class="VarId">exprn</span> <span class="VarId">t1</span> <span class="VarId">t2</span> <span class="Symbol">=</span> <span class="Keyword">let</span> <span class="VarId">t1n</span> <span class="Symbol">=</span> <span class="String">&quot;table_&quot;</span> <span class="Symbol">++</span> <span class="VarId">t1</span>
                         <span class="VarId">t2n</span> <span class="Symbol">=</span> <span class="String">&quot;table_&quot;</span> <span class="Symbol">++</span> <span class="VarId">t2</span>
                     <span class="Keyword">in</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|((</span><span class="VarId">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="VarId">from</span> <span class="Symbol">$(</span><span class="VarId">t1n</span><span class="Symbol">))</span>
@@ -424,7 +424,7 @@ add constraint z c a
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

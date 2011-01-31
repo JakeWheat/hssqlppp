@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../../index.txt.html"
+    ><a href="../../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -25,26 +25,26 @@
     >*/</p
     ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-select module('Chaos.Server.Actions.TestSupport');
+<span class="Keyword">select</span> <span class="VarId">module</span><span class="Symbol">(</span><span class="Char">'Chaos.Server.Actions.TestSupport'</span><span class="Symbol">);</span>
 
-create domain random_test text check (value in
-       ('disappear', 'spread', 'attack',
-        'ranged_attack', 'resist', 'cast',
-        'bonus','break_engaged'));
+<span class="Keyword">create</span> <span class="Keyword">domain</span> <span class="VarId">random_test</span> <span class="Type">text</span> <span class="Keyword">check</span> <span class="Symbol">(</span><span class="VarId">value</span> <span class="VarId">in</span>
+       <span class="Symbol">(</span><span class="Char">'disappear'</span><span class="Symbol">,</span> <span class="Char">'spread'</span><span class="Symbol">,</span> <span class="Char">'attack'</span><span class="Symbol">,</span>
+        <span class="Char">'ranged_attack'</span><span class="Symbol">,</span> <span class="Char">'resist'</span><span class="Symbol">,</span> <span class="Char">'cast'</span><span class="Symbol">,</span>
+        <span class="Char">'bonus'</span><span class="Symbol">,</span><span class="Char">'break_engaged'</span><span class="Symbol">));</span>
 
-create table test_action_overrides (
-  override random_test unique,
-  setting bool
-);
-select set_relvar_type('test_action_overrides', 'data');
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">test_action_overrides</span> <span class="Symbol">(</span>
+  <span class="VarId">override</span> <span class="VarId">random_test</span> <span class="Keyword">unique</span><span class="Symbol">,</span>
+  <span class="VarId">setting</span> <span class="VarId">bool</span>
+<span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'test_action_overrides'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span>
 
-create function action_rig_action_success(poverride random_test,
-       psetting boolean) returns void as $$
-begin
-  insert into test_action_overrides (override, setting)
-    values (poverride, psetting);
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">action_rig_action_success</span><span class="Symbol">(</span><span class="VarId">poverride</span> <span class="VarId">random_test</span><span class="Symbol">,</span>
+       <span class="VarId">psetting</span> <span class="VarId">boolean</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">test_action_overrides</span> <span class="Symbol">(</span><span class="VarId">override</span><span class="Symbol">,</span> <span class="VarId">setting</span><span class="Symbol">)</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="VarId">poverride</span><span class="Symbol">,</span> <span class="VarId">psetting</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
 </pre></div></div></div><p
     >/* random numbers</p
@@ -53,31 +53,31 @@ $$ language plpgsql volatile;
     ><p
     >*/</p
     ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-create function check_random_success(t random_test, successPercentage int)
-  returns boolean as $$
-declare
-  o boolean;
-begin
-  o := (select setting from test_action_overrides
-       where override = t);
-  if o is null then --normal random
-    return (random() * 100) &lt; successPercentage;
-  else --overriden
-    delete from test_action_overrides
-      where override = t;
-    return o;
-  end if;
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">check_random_success</span><span class="Symbol">(</span><span class="VarId">t</span> <span class="VarId">random_test</span><span class="Symbol">,</span> <span class="VarId">successPercentage</span> <span class="Type">int</span><span class="Symbol">)</span>
+  <span class="Keyword">returns</span> <span class="VarId">boolean</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="VarId">o</span> <span class="VarId">boolean</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="VarId">o</span> <span class="Symbol">:=</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">setting</span> <span class="Keyword">from</span> <span class="VarId">test_action_overrides</span>
+       <span class="Keyword">where</span> <span class="VarId">override</span> <span class="Symbol">=</span> <span class="VarId">t</span><span class="Symbol">);</span>
+  <span class="Keyword">if</span> <span class="VarId">o</span> <span class="VarId">is</span> <span class="Keyword">null</span> <span class="Keyword">then</span> <span class="Comment">--normal random</span>
+    <span class="VarId">return</span> <span class="Symbol">(</span><span class="VarId">random</span><span class="Symbol">()</span> <span class="Symbol">*</span> <span class="Number">100</span><span class="Symbol">)</span> <span class="Symbol">&lt;</span> <span class="VarId">successPercentage</span><span class="Symbol">;</span>
+  <span class="Keyword">else</span> <span class="Comment">--overriden</span>
+    <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">test_action_overrides</span>
+      <span class="Keyword">where</span> <span class="VarId">override</span> <span class="Symbol">=</span> <span class="VarId">t</span><span class="Symbol">;</span>
+    <span class="VarId">return</span> <span class="VarId">o</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
-create function limit_chance(integer) returns integer as $$
-  select greatest(10, least($1, 100));
-$$ language sql immutable;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">limit_chance</span><span class="Symbol">(</span><span class="VarId">integer</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="VarId">integer</span> <span class="Keyword">as</span> $$
+  <span class="Keyword">select</span> <span class="VarId">greatest</span><span class="Symbol">(</span><span class="Number">10</span><span class="Symbol">,</span> <span class="VarId">least</span><span class="Symbol">(</span>$<span class="Number">1</span><span class="Symbol">,</span> <span class="Number">100</span><span class="Symbol">));</span>
+$$ <span class="Keyword">language</span> <span class="VarId">sql</span> <span class="Keyword">immutable</span><span class="Symbol">;</span>
 </pre></div></div></div><br
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

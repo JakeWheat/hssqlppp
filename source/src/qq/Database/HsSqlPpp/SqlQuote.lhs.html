@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../index.txt.html"
+    ><a href="../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -75,7 +75,7 @@
 <span class="Function">pgsqlStmt</span> <span class="Symbol">::</span> <span class="ConId">QuasiQuoter</span>
 <span class="Function">pgsqlStmt</span> <span class="Symbol">=</span> <span class="VarId">makeQQ</span> <span class="VarId">parseOneAntiPlpgsql</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">-- | parse an Expression</span>
 <span class="Function">sqlExpr</span> <span class="Symbol">::</span> <span class="ConId">QuasiQuoter</span>
-<span class="Function">sqlExpr</span> <span class="Symbol">=</span> <span class="VarId">makeQQ</span> <span class="VarId">parseAntiExpression</span></pre></div></div></div><p
+<span class="Function">sqlExpr</span> <span class="Symbol">=</span> <span class="VarId">makeQQ</span> <span class="VarId">parseAntiScalarExpr</span></pre></div></div></div><p
     >boilerplate utils to hook everything together</p
     ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">type</span> <span class="ConId">Parser</span> <span class="VarId">e</span> <span class="VarId">a</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="ConId">String</span>
                    <span class="Symbol">-&gt;</span> <span class="ConId">Int</span>
@@ -132,14 +132,14 @@
     ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">annotToWildCard</span> <span class="Symbol">::</span> <span class="ConId">Annotation</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">PatQ</span>
 <span class="Function">annotToWildCard</span> <span class="VarId">_</span> <span class="Symbol">=</span> <span class="ConId">Just</span> <span class="Symbol">$</span> <span class="VarId">return</span> <span class="ConId">WildP</span></pre></div></div></div><p
     >= individual antinode lookup functions</p
-    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">antiExpE</span> <span class="Symbol">::</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">ExpQ</span>
+    ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">antiExpE</span> <span class="Symbol">::</span> <span class="ConId">ScalarExpr</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">ExpQ</span>
 <span class="Function">antiExpE</span> <span class="VarId">v</span> <span class="Symbol">=</span> <span class="VarId">fmap</span> <span class="VarId">varE</span> <span class="Symbol">(</span><span class="VarId">antiExp</span> <span class="VarId">v</span><span class="Symbol">)</span>
 
-<span class="Function">antiExprP</span> <span class="Symbol">::</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">PatQ</span>
+<span class="Function">antiExprP</span> <span class="Symbol">::</span> <span class="ConId">ScalarExpr</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">PatQ</span>
 <span class="Function">antiExprP</span> <span class="VarId">v</span> <span class="Symbol">=</span> <span class="VarId">fmap</span> <span class="VarId">varP</span> <span class="Symbol">$</span> <span class="VarId">antiExp</span> <span class="VarId">v</span>
 
-<span class="Function">antiExp</span> <span class="Symbol">::</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">Name</span>
-<span class="Function">antiExp</span> <span class="Symbol">(</span><span class="ConId">AntiExpression</span> <span class="VarId">v</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="ConId">Just</span> <span class="Symbol">$</span> <span class="VarId">mkName</span> <span class="VarId">v</span>
+<span class="Function">antiExp</span> <span class="Symbol">::</span> <span class="ConId">ScalarExpr</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">Name</span>
+<span class="Function">antiExp</span> <span class="Symbol">(</span><span class="ConId">AntiScalarExpr</span> <span class="VarId">v</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="ConId">Just</span> <span class="Symbol">$</span> <span class="VarId">mkName</span> <span class="VarId">v</span>
 <span class="Function">antiExp</span> <span class="VarId">_</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span></pre></div></div></div><p
     >antistatements not working ... trying to replace a single antistatement node with multiple statement nodes and my generics skills aren't up to the task.</p
     ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">antiStatementE</span> <span class="Symbol">::</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">ExpQ</span>
@@ -237,7 +237,7 @@ using wildcards is now working with the annotation approach above
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

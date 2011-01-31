@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../index.txt.html"
+    ><a href="../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -93,7 +93,7 @@
            <span class="VarId">select</span> <span class="VarId">create_client_action_wrapper</span><span class="Symbol">($</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">actname</span><span class="Symbol">)</span>
                                               <span class="Symbol">,$</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">actcall</span><span class="Symbol">));</span> <span class="Symbol">|]</span>
             <span class="Symbol">-&gt;</span> <span class="Keyword">let</span> <span class="VarId">actionname</span> <span class="Symbol">=</span> <span class="String">&quot;action_&quot;</span> <span class="Symbol">++</span> <span class="VarId">actname</span>
-                   <span class="VarId">expr</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">parseExpression</span> <span class="String">&quot;&quot;</span> <span class="Symbol">(</span><span class="String">&quot;action_&quot;</span> <span class="Symbol">++</span> <span class="VarId">actcall</span><span class="Symbol">)</span> <span class="Keyword">of</span>
+                   <span class="VarId">expr</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">parseScalarExpr</span> <span class="String">&quot;&quot;</span> <span class="Symbol">(</span><span class="String">&quot;action_&quot;</span> <span class="Symbol">++</span> <span class="VarId">actcall</span><span class="Symbol">)</span> <span class="Keyword">of</span>
                             <span class="ConId">Left</span> <span class="VarId">e</span> <span class="Symbol">-&gt;</span> <span class="VarId">error</span> <span class="Symbol">$</span> <span class="VarId">show</span> <span class="VarId">e</span>
                             <span class="ConId">Right</span> <span class="VarId">e1</span> <span class="Symbol">-&gt;</span> <span class="VarId">e1</span>
                <span class="Keyword">in</span> <span class="VarId">replaceSourcePos1</span> <span class="VarId">s</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
@@ -396,7 +396,7 @@
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../index.txt.html"
+    ><a href="../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -18,11 +18,12 @@
     ><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Comment">-- | Functions to parse SQL.</span>
 <span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.Parser</span> <span class="Symbol">(</span>
              <span class="Comment">-- * Main</span>
-              <span class="VarId">parseSql</span>
-             <span class="Symbol">,</span><span class="VarId">parseSqlWithPosition</span>
-             <span class="Symbol">,</span><span class="VarId">parseSqlFile</span>
+              <span class="VarId">parseStatements</span>
+             <span class="Symbol">,</span><span class="VarId">parseStatementsWithPosition</span>
+             <span class="Symbol">,</span><span class="VarId">parseStatementsFromFile</span>
+             <span class="Symbol">,</span><span class="VarId">parseQueryExpr</span>
              <span class="Comment">-- * Testing</span>
-             <span class="Symbol">,</span><span class="VarId">parseExpression</span>
+             <span class="Symbol">,</span><span class="VarId">parseScalarExpr</span>
              <span class="Symbol">,</span><span class="VarId">parsePlpgsql</span>
              <span class="Comment">-- * errors</span>
              <span class="Symbol">,</span><span class="ConId">ParseErrorExtra</span><span class="Symbol">(..)</span>
@@ -32,7 +33,7 @@
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

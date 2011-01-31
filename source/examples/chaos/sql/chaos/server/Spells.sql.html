@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../index.txt.html"
+    ><a href="../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -41,130 +41,130 @@
       ><p
       >=== ddl */</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-select module('Chaos.Server.Spells');
+<span class="Keyword">select</span> <span class="VarId">module</span><span class="Symbol">(</span><span class="Char">'Chaos.Server.Spells'</span><span class="Symbol">);</span>
 
--- this is the presentation catagories
-create domain spell_category as text
-       check (value in ('object', 'attacking',
-       'wizard', 'miscellaneous', 'monster'));
+<span class="Comment">-- this is the presentation catagories</span>
+<span class="Keyword">create</span> <span class="Keyword">domain</span> <span class="VarId">spell_category</span> <span class="Keyword">as</span> <span class="VarId">text</span>
+       <span class="Keyword">check</span> <span class="Symbol">(</span><span class="VarId">value</span> <span class="VarId">in</span> <span class="Symbol">(</span><span class="Char">'object'</span><span class="Symbol">,</span> <span class="Char">'attacking'</span><span class="Symbol">,</span>
+       <span class="Char">'wizard'</span><span class="Symbol">,</span> <span class="Char">'miscellaneous'</span><span class="Symbol">,</span> <span class="Char">'monster'</span><span class="Symbol">));</span>
 
---what kind of squares can spells be cast on?
+<span class="Comment">--what kind of squares can spells be cast on?</span>
 
-create domain spell_square_category as text
-  check (value in (
-    'empty',
-    'empty_or_corpse_only',
-    'attackable', --attackable - not in castle, incidental corpses allowed
-    'creature_on_top', --creature on top - no blob,
-                       --castle, wood, incidental corpses allowed
-    'monster_on_top',
-    'corpse_only',
-    'empty_and_not_adjacent_to_tree'
-));
+<span class="Keyword">create</span> <span class="Keyword">domain</span> <span class="VarId">spell_square_category</span> <span class="Keyword">as</span> <span class="VarId">text</span>
+  <span class="Keyword">check</span> <span class="Symbol">(</span><span class="VarId">value</span> <span class="VarId">in</span> <span class="Symbol">(</span>
+    <span class="Char">'empty'</span><span class="Symbol">,</span>
+    <span class="Char">'empty_or_corpse_only'</span><span class="Symbol">,</span>
+    <span class="Char">'attackable'</span><span class="Symbol">,</span> <span class="Comment">--attackable - not in castle, incidental corpses allowed</span>
+    <span class="Char">'creature_on_top'</span><span class="Symbol">,</span> <span class="Comment">--creature on top - no blob,</span>
+                       <span class="Comment">--castle, wood, incidental corpses allowed</span>
+    <span class="Char">'monster_on_top'</span><span class="Symbol">,</span>
+    <span class="Char">'corpse_only'</span><span class="Symbol">,</span>
+    <span class="Char">'empty_and_not_adjacent_to_tree'</span>
+<span class="Symbol">));</span>
 
-select create6nf ($$
+<span class="Keyword">select</span> <span class="VarId">create6nf</span> <span class="Symbol">(</span>$$
 
-  spells_mr (
-    spell_name text primary key,
-    base_chance int,
-    alignment int,
-    spell_category spell_category,
-    description text
-  );
+  <span class="VarId">spells_mr</span> <span class="Symbol">(</span>
+    <span class="VarId">spell_name</span> <span class="Type">text</span> <span class="Keyword">primary</span> <span class="Keyword">key</span><span class="Symbol">,</span>
+    <span class="VarId">base_chance</span> <span class="Type">int</span><span class="Symbol">,</span>
+    <span class="VarId">alignment</span> <span class="Type">int</span><span class="Symbol">,</span>
+    <span class="VarId">spell_category</span> <span class="VarId">spell_category</span><span class="Symbol">,</span>
+    <span class="VarId">description</span> <span class="VarId">text</span>
+  <span class="Symbol">);</span>
 
-  target_spells : spells_mr (
-    range int,
-    numb int,
-    valid_square_category spell_square_category
-  );
+  <span class="VarId">target_spells</span> <span class="Symbol">:</span> <span class="VarId">spells_mr</span> <span class="Symbol">(</span>
+    <span class="Keyword">range</span> <span class="Type">int</span><span class="Symbol">,</span>
+    <span class="VarId">numb</span> <span class="Type">int</span><span class="Symbol">,</span>
+    <span class="VarId">valid_square_category</span> <span class="VarId">spell_square_category</span>
+  <span class="Symbol">);</span>
 
-  summon_spells : target_spells (
-    ptype text
-  );
+  <span class="VarId">summon_spells</span> <span class="Symbol">:</span> <span class="VarId">target_spells</span> <span class="Symbol">(</span>
+    <span class="VarId">ptype</span> <span class="VarId">text</span>
+  <span class="Symbol">);</span>
 
-$$);
+$$<span class="Symbol">);</span>
 
-select set_relvar_type('spells_mr', 'readonly');
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'spells_mr'</span><span class="Symbol">,</span> <span class="Char">'readonly'</span><span class="Symbol">);</span>
 
-create view monster_spells as
-  select s.* from spells_mr s
-    inner join monster_prototypes m
-          on s.ptype=m.ptype;
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">monster_spells</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="VarId">s</span><span class="Symbol">.*</span> <span class="Keyword">from</span> <span class="VarId">spells_mr</span> <span class="VarId">s</span>
+    <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">monster_prototypes</span> <span class="VarId">m</span>
+          <span class="Keyword">on</span> <span class="VarId">s</span><span class="Symbol">.</span><span class="VarId">ptype</span><span class="Symbol">=</span><span class="VarId">m</span><span class="Symbol">.</span><span class="VarId">ptype</span><span class="Symbol">;</span>
 
-create view activate_spells as
-  select spell_name
-  from spells_mr
-  where range is null;
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">activate_spells</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="VarId">spell_name</span>
+  <span class="Keyword">from</span> <span class="VarId">spells_mr</span>
+  <span class="Keyword">where</span> <span class="Keyword">range</span> <span class="VarId">is</span> <span class="Keyword">null</span><span class="Symbol">;</span>
 
 </pre></div></div></div><p
       >/* data ----</p
       ><p
       >*/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-copy spells_mr (spell_name, base_chance, alignment, spell_category, description,
- range, numb, valid_square_category, ptype) from stdin;
-dark_citadel	50	-1	object	Gives wizard building to hide in.	8	1	empty	dark_citadel
-dark_power	50	-2	attacking	When cast on a wizard it kills all that wizards creations if successful. Allows 3 attacks on enemy creatures	20	3	creature_on_top	\N
-decree	90	1	attacking	When cast on a wizard it kills all that wizards creations if successful. Allows 1 attack on an enemy creature.	20	1	creature_on_top	\N
-disbelieve	100	0	miscellaneous	Allows illusion creatures to be destroyed. This spell has 100% casting chance, and is always available.	20	1	monster_on_top	\N
-eagle	70	1	monster	monster	1	1	empty_or_corpse_only	eagle
-elf	70	2	monster	monster	1	1	empty_or_corpse_only	elf
-chaos	80	-2	miscellaneous	Makes the world more chaos.	\N	\N	\N	\N
-faun	80	-1	monster	monster	1	1	empty_or_corpse_only	faun
-ghost	50	-1	monster	monster	1	1	empty_or_corpse_only	ghost
-giant	40	1	monster	monster	1	1	empty_or_corpse_only	giant
-giant_rat	100	0	monster	monster	1	1	empty_or_corpse_only	giant_rat
-goblin	100	-1	monster	monster	1	1	empty_or_corpse_only	goblin
-golden_dragon	10	2	monster	monster	1	1	empty_or_corpse_only	golden_dragon
-law	80	2	miscellaneous	Makes the world more law.	\N	\N	\N	\N
-gooey_blob	100	-1	object	Attacks enemy units it covers and randomly spreads across the map. Any unit covered up by a gooey blob will be able to carry on once it is uncovered (except wizards who are killed by gooey blobs).	6	1	empty_or_corpse_only	gooey_blob
-gorilla	70	0	monster	monster	1	1	empty_or_corpse_only	gorilla
-green_dragon	10	-1	monster	monster	1	1	empty_or_corpse_only	green_dragon
-gryphon	60	1	monster	monster	1	1	empty_or_corpse_only	gryphon
-harpy	60	-1	monster	monster	1	1	empty_or_corpse_only	harpy
-horse	90	1	monster	monster	1	1	empty_or_corpse_only	horse
-hydra	50	-1	monster	monster	1	1	empty_or_corpse_only	hydra
-justice	50	2	attacking	When cast on a wizard it kills all that wizards creations if successful. Allows 3 attacks.	20	3	creature_on_top	\N
-king_cobra	90	1	monster	monster	1	1	empty_or_corpse_only	king_cobra
-large_chaos	60	-4	miscellaneous	Makes the world more chaos.	\N	\N	\N	\N
-large_law	60	4	miscellaneous	Makes the world more law.	\N	\N	\N	\N
-lightning	100	0	attacking	Attacks creature it is cast at (more powerful than magic bolt)	4	1	attackable	\N
-lion	60	1	monster	monster	1	1	empty_or_corpse_only	lion
-magic_armour	50	1	wizard	Gives wizard increased protection from attack.	\N	\N	\N	\N
-magic_bolt	100	0	attacking	Attacks creature it is cast at.	6	1	attackable	\N
-magic_bow	50	1	wizard	Gives wizard ranged weapon including undead creatures.	\N	\N	\N	\N
-magic_castle	50	1	object	Gives wizard building to hide in.	8	1	empty	magic_castle
-magic_fire	80	-1	object	Attacks and kills enemy units it covers and randomly spreads across the map.	6	1	empty	magic_fire
-magic_knife	70	1	wizard	Gives wizard increase attack power including undead creatures.	\N	\N	\N	\N
-magic_shield	70	1	wizard	Gives wizard increased protection from attack.	\N	\N	\N	\N
-magic_sword	40	1	wizard	Gives wizard increase attack power including undead creatures.	\N	\N	\N	\N
-magic_wings	60	0	wizard	Gives wizard ability to fly.	\N	\N	\N	\N
-magic_wood	80	1	object	Summons up to eight magic trees near your wizard. If you put your wizard in a magic tree and leave him there, he gets a new spell after a few turns.	8	8	empty_and_not_adjacent_to_tree	magic_tree
-manticore	50	-1	monster	monster	1	1	empty_or_corpse_only	manticore
-ogre	70	-1	monster	monster	1	1	empty_or_corpse_only	ogre
-orc	100	-1	monster	monster	1	1	empty_or_corpse_only	orc
-pegasus	60	2	monster	monster	1	1	empty_or_corpse_only	pegasus
-raise_dead	60	-1	miscellaneous	Allows reanimation of dead bodies left on screen. Any creatures raised from the dead become undead creatures, able to attack other undeads.	4	1	corpse_only	\N
-red_dragon	10	-2	monster	monster	1	1	empty_or_corpse_only	red_dragon
-shadow_form	80	0	wizard	Gives wizard increased protection and allows movement of 3 spaces per turn. Disappears if wizard attacks anything.	\N	\N	\N	\N
-shadow_wood	50	-1	object	Allows you to place up to eight shadow trees near your wizard. No two trees can be adjacent, and line of sight is needed in placing. Shadow trees can attack anything in contact with them (except undead).	8	8	empty_and_not_adjacent_to_tree	shadow_tree
-skeleton	70	-1	monster	monster	1	1	empty_or_corpse_only	skeleton
-spectre	60	-1	monster	monster	1	1	empty_or_corpse_only	spectre
-subversion	100	0	miscellaneous	Realigns enemy creature to your side.	7	1	monster_on_top	\N
-turmoil	100	-2	miscellaneous	Randomly moves all objects onscreen to a different location. Only available from a magic tree.	\N	\N	\N	\N
-unicorn	70	2	monster	monster	1	1	empty_or_corpse_only	unicorn
-vampire	20	-2	monster	monster	1	1	empty_or_corpse_only	vampire
-vengeance	90	-1	attacking	When cast on a wizard it kills all that wizards creations if successful. Allows 1 attack on an enemy creature.	20	1	creature_on_top	\N
-wall	80	0	object	Allows four wall blocks to be built near the wizard, which blocks creatures paths, but can be flown over.	8	4	empty	wall
-wraith	50	-1	monster	monster	1	1	empty_or_corpse_only	wraith
-zombie	90	-1	monster	monster	1	1	empty_or_corpse_only	zombie
-\.
+<span class="Keyword">copy</span> <span class="VarId">spells_mr</span> <span class="Symbol">(</span><span class="VarId">spell_name</span><span class="Symbol">,</span> <span class="VarId">base_chance</span><span class="Symbol">,</span> <span class="VarId">alignment</span><span class="Symbol">,</span> <span class="VarId">spell_category</span><span class="Symbol">,</span> <span class="VarId">description</span><span class="Symbol">,</span>
+ <span class="Keyword">range</span><span class="Symbol">,</span> <span class="VarId">numb</span><span class="Symbol">,</span> <span class="VarId">valid_square_category</span><span class="Symbol">,</span> <span class="VarId">ptype</span><span class="Symbol">)</span> <span class="Keyword">from</span> <span class="Keyword">stdin</span><span class="Symbol">;</span>
+<span class="VarId">dark_citadel</span>	<span class="Number">50</span>	<span class="Number">-1</span>	<span class="VarId">object</span>	<span class="VarId">Gives</span> <span class="VarId">wizard</span> <span class="VarId">building</span> <span class="Keyword">to</span> <span class="VarId">hide</span> <span class="VarId">in</span><span class="Symbol">.</span>	<span class="Number">8</span>	<span class="Number">1</span>	<span class="VarId">empty</span>	<span class="VarId">dark_citadel</span>
+<span class="VarId">dark_power</span>	<span class="Number">50</span>	<span class="Number">-2</span>	<span class="VarId">attacking</span>	<span class="VarId">When</span> <span class="VarId">cast</span> <span class="Keyword">on</span> <span class="VarId">a</span> <span class="VarId">wizard</span> <span class="VarId">it</span> <span class="VarId">kills</span> <span class="Keyword">all</span> <span class="VarId">that</span> <span class="VarId">wizards</span> <span class="VarId">creations</span> <span class="Keyword">if</span> <span class="VarId">successful</span><span class="Symbol">.</span> <span class="VarId">Allows</span> <span class="Number">3</span> <span class="VarId">attacks</span> <span class="Keyword">on</span> <span class="VarId">enemy</span> <span class="VarId">creatures</span>	<span class="Number">20</span>	<span class="Number">3</span>	<span class="VarId">creature_on_top</span>	\<span class="VarId">N</span>
+<span class="VarId">decree</span>	<span class="Number">90</span>	<span class="Number">1</span>	<span class="VarId">attacking</span>	<span class="VarId">When</span> <span class="VarId">cast</span> <span class="Keyword">on</span> <span class="VarId">a</span> <span class="VarId">wizard</span> <span class="VarId">it</span> <span class="VarId">kills</span> <span class="Keyword">all</span> <span class="VarId">that</span> <span class="VarId">wizards</span> <span class="VarId">creations</span> <span class="Keyword">if</span> <span class="VarId">successful</span><span class="Symbol">.</span> <span class="VarId">Allows</span> <span class="Number">1</span> <span class="VarId">attack</span> <span class="Keyword">on</span> <span class="VarId">an</span> <span class="VarId">enemy</span> <span class="VarId">creature</span><span class="Symbol">.</span>	<span class="Number">20</span>	<span class="Number">1</span>	<span class="VarId">creature_on_top</span>	\<span class="VarId">N</span>
+<span class="VarId">disbelieve</span>	<span class="Number">100</span>	<span class="Number">0</span>	<span class="VarId">miscellaneous</span>	<span class="VarId">Allows</span> <span class="VarId">illusion</span> <span class="VarId">creatures</span> <span class="Keyword">to</span> <span class="VarId">be</span> <span class="VarId">destroyed</span><span class="Symbol">.</span> <span class="VarId">This</span> <span class="VarId">spell</span> <span class="VarId">has</span> <span class="Number">100</span><span class="Symbol">%</span> <span class="VarId">casting</span> <span class="VarId">chance</span><span class="Symbol">,</span> <span class="Keyword">and</span> <span class="VarId">is</span> <span class="VarId">always</span> <span class="VarId">available</span><span class="Symbol">.</span>	<span class="Number">20</span>	<span class="Number">1</span>	<span class="VarId">monster_on_top</span>	\<span class="VarId">N</span>
+<span class="VarId">eagle</span>	<span class="Number">70</span>	<span class="Number">1</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">eagle</span>
+<span class="VarId">elf</span>	<span class="Number">70</span>	<span class="Number">2</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">elf</span>
+<span class="VarId">chaos</span>	<span class="Number">80</span>	<span class="Number">-2</span>	<span class="VarId">miscellaneous</span>	<span class="VarId">Makes</span> <span class="VarId">the</span> <span class="VarId">world</span> <span class="VarId">more</span> <span class="VarId">chaos</span><span class="Symbol">.</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>
+<span class="VarId">faun</span>	<span class="Number">80</span>	<span class="Number">-1</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">faun</span>
+<span class="VarId">ghost</span>	<span class="Number">50</span>	<span class="Number">-1</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">ghost</span>
+<span class="VarId">giant</span>	<span class="Number">40</span>	<span class="Number">1</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">giant</span>
+<span class="VarId">giant_rat</span>	<span class="Number">100</span>	<span class="Number">0</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">giant_rat</span>
+<span class="VarId">goblin</span>	<span class="Number">100</span>	<span class="Number">-1</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">goblin</span>
+<span class="VarId">golden_dragon</span>	<span class="Number">10</span>	<span class="Number">2</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">golden_dragon</span>
+<span class="VarId">law</span>	<span class="Number">80</span>	<span class="Number">2</span>	<span class="VarId">miscellaneous</span>	<span class="VarId">Makes</span> <span class="VarId">the</span> <span class="VarId">world</span> <span class="VarId">more</span> <span class="VarId">law</span><span class="Symbol">.</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>
+<span class="VarId">gooey_blob</span>	<span class="Number">100</span>	<span class="Number">-1</span>	<span class="VarId">object</span>	<span class="VarId">Attacks</span> <span class="VarId">enemy</span> <span class="VarId">units</span> <span class="VarId">it</span> <span class="VarId">covers</span> <span class="Keyword">and</span> <span class="VarId">randomly</span> <span class="VarId">spreads</span> <span class="VarId">across</span> <span class="VarId">the</span> <span class="VarId">map</span><span class="Symbol">.</span> <span class="VarId">Any</span> <span class="VarId">unit</span> <span class="VarId">covered</span> <span class="VarId">up</span> <span class="Keyword">by</span> <span class="VarId">a</span> <span class="VarId">gooey</span> <span class="VarId">blob</span> <span class="VarId">will</span> <span class="VarId">be</span> <span class="VarId">able</span> <span class="Keyword">to</span> <span class="VarId">carry</span> <span class="Keyword">on</span> <span class="VarId">once</span> <span class="VarId">it</span> <span class="VarId">is</span> <span class="VarId">uncovered</span> <span class="Symbol">(</span><span class="VarId">except</span> <span class="VarId">wizards</span> <span class="VarId">who</span> <span class="VarId">are</span> <span class="VarId">killed</span> <span class="Keyword">by</span> <span class="VarId">gooey</span> <span class="VarId">blobs</span><span class="Symbol">).</span>	<span class="Number">6</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">gooey_blob</span>
+<span class="VarId">gorilla</span>	<span class="Number">70</span>	<span class="Number">0</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">gorilla</span>
+<span class="VarId">green_dragon</span>	<span class="Number">10</span>	<span class="Number">-1</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">green_dragon</span>
+<span class="VarId">gryphon</span>	<span class="Number">60</span>	<span class="Number">1</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">gryphon</span>
+<span class="VarId">harpy</span>	<span class="Number">60</span>	<span class="Number">-1</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">harpy</span>
+<span class="VarId">horse</span>	<span class="Number">90</span>	<span class="Number">1</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">horse</span>
+<span class="VarId">hydra</span>	<span class="Number">50</span>	<span class="Number">-1</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">hydra</span>
+<span class="VarId">justice</span>	<span class="Number">50</span>	<span class="Number">2</span>	<span class="VarId">attacking</span>	<span class="VarId">When</span> <span class="VarId">cast</span> <span class="Keyword">on</span> <span class="VarId">a</span> <span class="VarId">wizard</span> <span class="VarId">it</span> <span class="VarId">kills</span> <span class="Keyword">all</span> <span class="VarId">that</span> <span class="VarId">wizards</span> <span class="VarId">creations</span> <span class="Keyword">if</span> <span class="VarId">successful</span><span class="Symbol">.</span> <span class="VarId">Allows</span> <span class="Number">3</span> <span class="VarId">attacks</span><span class="Symbol">.</span>	<span class="Number">20</span>	<span class="Number">3</span>	<span class="VarId">creature_on_top</span>	\<span class="VarId">N</span>
+<span class="VarId">king_cobra</span>	<span class="Number">90</span>	<span class="Number">1</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">king_cobra</span>
+<span class="VarId">large_chaos</span>	<span class="Number">60</span>	<span class="Number">-4</span>	<span class="VarId">miscellaneous</span>	<span class="VarId">Makes</span> <span class="VarId">the</span> <span class="VarId">world</span> <span class="VarId">more</span> <span class="VarId">chaos</span><span class="Symbol">.</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>
+<span class="VarId">large_law</span>	<span class="Number">60</span>	<span class="Number">4</span>	<span class="VarId">miscellaneous</span>	<span class="VarId">Makes</span> <span class="VarId">the</span> <span class="VarId">world</span> <span class="VarId">more</span> <span class="VarId">law</span><span class="Symbol">.</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>
+<span class="VarId">lightning</span>	<span class="Number">100</span>	<span class="Number">0</span>	<span class="VarId">attacking</span>	<span class="VarId">Attacks</span> <span class="VarId">creature</span> <span class="VarId">it</span> <span class="VarId">is</span> <span class="VarId">cast</span> <span class="VarId">at</span> <span class="Symbol">(</span><span class="VarId">more</span> <span class="VarId">powerful</span> <span class="VarId">than</span> <span class="VarId">magic</span> <span class="VarId">bolt</span><span class="Symbol">)</span>	<span class="Number">4</span>	<span class="Number">1</span>	<span class="VarId">attackable</span>	\<span class="VarId">N</span>
+<span class="VarId">lion</span>	<span class="Number">60</span>	<span class="Number">1</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">lion</span>
+<span class="VarId">magic_armour</span>	<span class="Number">50</span>	<span class="Number">1</span>	<span class="VarId">wizard</span>	<span class="VarId">Gives</span> <span class="VarId">wizard</span> <span class="VarId">increased</span> <span class="VarId">protection</span> <span class="Keyword">from</span> <span class="VarId">attack</span><span class="Symbol">.</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>
+<span class="VarId">magic_bolt</span>	<span class="Number">100</span>	<span class="Number">0</span>	<span class="VarId">attacking</span>	<span class="VarId">Attacks</span> <span class="VarId">creature</span> <span class="VarId">it</span> <span class="VarId">is</span> <span class="VarId">cast</span> <span class="VarId">at</span><span class="Symbol">.</span>	<span class="Number">6</span>	<span class="Number">1</span>	<span class="VarId">attackable</span>	\<span class="VarId">N</span>
+<span class="VarId">magic_bow</span>	<span class="Number">50</span>	<span class="Number">1</span>	<span class="VarId">wizard</span>	<span class="VarId">Gives</span> <span class="VarId">wizard</span> <span class="VarId">ranged</span> <span class="VarId">weapon</span> <span class="VarId">including</span> <span class="VarId">undead</span> <span class="VarId">creatures</span><span class="Symbol">.</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>
+<span class="VarId">magic_castle</span>	<span class="Number">50</span>	<span class="Number">1</span>	<span class="VarId">object</span>	<span class="VarId">Gives</span> <span class="VarId">wizard</span> <span class="VarId">building</span> <span class="Keyword">to</span> <span class="VarId">hide</span> <span class="VarId">in</span><span class="Symbol">.</span>	<span class="Number">8</span>	<span class="Number">1</span>	<span class="VarId">empty</span>	<span class="VarId">magic_castle</span>
+<span class="VarId">magic_fire</span>	<span class="Number">80</span>	<span class="Number">-1</span>	<span class="VarId">object</span>	<span class="VarId">Attacks</span> <span class="Keyword">and</span> <span class="VarId">kills</span> <span class="VarId">enemy</span> <span class="VarId">units</span> <span class="VarId">it</span> <span class="VarId">covers</span> <span class="Keyword">and</span> <span class="VarId">randomly</span> <span class="VarId">spreads</span> <span class="VarId">across</span> <span class="VarId">the</span> <span class="VarId">map</span><span class="Symbol">.</span>	<span class="Number">6</span>	<span class="Number">1</span>	<span class="VarId">empty</span>	<span class="VarId">magic_fire</span>
+<span class="VarId">magic_knife</span>	<span class="Number">70</span>	<span class="Number">1</span>	<span class="VarId">wizard</span>	<span class="VarId">Gives</span> <span class="VarId">wizard</span> <span class="VarId">increase</span> <span class="VarId">attack</span> <span class="VarId">power</span> <span class="VarId">including</span> <span class="VarId">undead</span> <span class="VarId">creatures</span><span class="Symbol">.</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>
+<span class="VarId">magic_shield</span>	<span class="Number">70</span>	<span class="Number">1</span>	<span class="VarId">wizard</span>	<span class="VarId">Gives</span> <span class="VarId">wizard</span> <span class="VarId">increased</span> <span class="VarId">protection</span> <span class="Keyword">from</span> <span class="VarId">attack</span><span class="Symbol">.</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>
+<span class="VarId">magic_sword</span>	<span class="Number">40</span>	<span class="Number">1</span>	<span class="VarId">wizard</span>	<span class="VarId">Gives</span> <span class="VarId">wizard</span> <span class="VarId">increase</span> <span class="VarId">attack</span> <span class="VarId">power</span> <span class="VarId">including</span> <span class="VarId">undead</span> <span class="VarId">creatures</span><span class="Symbol">.</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>
+<span class="VarId">magic_wings</span>	<span class="Number">60</span>	<span class="Number">0</span>	<span class="VarId">wizard</span>	<span class="VarId">Gives</span> <span class="VarId">wizard</span> <span class="VarId">ability</span> <span class="Keyword">to</span> <span class="VarId">fly</span><span class="Symbol">.</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>
+<span class="VarId">magic_wood</span>	<span class="Number">80</span>	<span class="Number">1</span>	<span class="VarId">object</span>	<span class="VarId">Summons</span> <span class="VarId">up</span> <span class="Keyword">to</span> <span class="VarId">eight</span> <span class="VarId">magic</span> <span class="VarId">trees</span> <span class="VarId">near</span> <span class="VarId">your</span> <span class="VarId">wizard</span><span class="Symbol">.</span> <span class="VarId">If</span> <span class="VarId">you</span> <span class="VarId">put</span> <span class="VarId">your</span> <span class="VarId">wizard</span> <span class="VarId">in</span> <span class="VarId">a</span> <span class="VarId">magic</span> <span class="VarId">tree</span> <span class="Keyword">and</span> <span class="VarId">leave</span> <span class="VarId">him</span> <span class="VarId">there</span><span class="Symbol">,</span> <span class="VarId">he</span> <span class="VarId">gets</span> <span class="VarId">a</span> <span class="VarId">new</span> <span class="VarId">spell</span> <span class="Keyword">after</span> <span class="VarId">a</span> <span class="VarId">few</span> <span class="VarId">turns</span><span class="Symbol">.</span>	<span class="Number">8</span>	<span class="Number">8</span>	<span class="VarId">empty_and_not_adjacent_to_tree</span>	<span class="VarId">magic_tree</span>
+<span class="VarId">manticore</span>	<span class="Number">50</span>	<span class="Number">-1</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">manticore</span>
+<span class="VarId">ogre</span>	<span class="Number">70</span>	<span class="Number">-1</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">ogre</span>
+<span class="VarId">orc</span>	<span class="Number">100</span>	<span class="Number">-1</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">orc</span>
+<span class="VarId">pegasus</span>	<span class="Number">60</span>	<span class="Number">2</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">pegasus</span>
+<span class="VarId">raise_dead</span>	<span class="Number">60</span>	<span class="Number">-1</span>	<span class="VarId">miscellaneous</span>	<span class="VarId">Allows</span> <span class="VarId">reanimation</span> <span class="VarId">of</span> <span class="VarId">dead</span> <span class="VarId">bodies</span> <span class="Keyword">left</span> <span class="Keyword">on</span> <span class="VarId">screen</span><span class="Symbol">.</span> <span class="VarId">Any</span> <span class="VarId">creatures</span> <span class="VarId">raised</span> <span class="Keyword">from</span> <span class="VarId">the</span> <span class="VarId">dead</span> <span class="VarId">become</span> <span class="VarId">undead</span> <span class="VarId">creatures</span><span class="Symbol">,</span> <span class="VarId">able</span> <span class="Keyword">to</span> <span class="VarId">attack</span> <span class="VarId">other</span> <span class="VarId">undeads</span><span class="Symbol">.</span>	<span class="Number">4</span>	<span class="Number">1</span>	<span class="VarId">corpse_only</span>	\<span class="VarId">N</span>
+<span class="VarId">red_dragon</span>	<span class="Number">10</span>	<span class="Number">-2</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">red_dragon</span>
+<span class="VarId">shadow_form</span>	<span class="Number">80</span>	<span class="Number">0</span>	<span class="VarId">wizard</span>	<span class="VarId">Gives</span> <span class="VarId">wizard</span> <span class="VarId">increased</span> <span class="VarId">protection</span> <span class="Keyword">and</span> <span class="VarId">allows</span> <span class="VarId">movement</span> <span class="VarId">of</span> <span class="Number">3</span> <span class="VarId">spaces</span> <span class="VarId">per</span> <span class="VarId">turn</span><span class="Symbol">.</span> <span class="VarId">Disappears</span> <span class="Keyword">if</span> <span class="VarId">wizard</span> <span class="VarId">attacks</span> <span class="VarId">anything</span><span class="Symbol">.</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>
+<span class="VarId">shadow_wood</span>	<span class="Number">50</span>	<span class="Number">-1</span>	<span class="VarId">object</span>	<span class="VarId">Allows</span> <span class="VarId">you</span> <span class="Keyword">to</span> <span class="VarId">place</span> <span class="VarId">up</span> <span class="Keyword">to</span> <span class="VarId">eight</span> <span class="VarId">shadow</span> <span class="VarId">trees</span> <span class="VarId">near</span> <span class="VarId">your</span> <span class="VarId">wizard</span><span class="Symbol">.</span> <span class="VarId">No</span> <span class="VarId">two</span> <span class="VarId">trees</span> <span class="VarId">can</span> <span class="VarId">be</span> <span class="VarId">adjacent</span><span class="Symbol">,</span> <span class="Keyword">and</span> <span class="VarId">line</span> <span class="VarId">of</span> <span class="VarId">sight</span> <span class="VarId">is</span> <span class="VarId">needed</span> <span class="VarId">in</span> <span class="VarId">placing</span><span class="Symbol">.</span> <span class="VarId">Shadow</span> <span class="VarId">trees</span> <span class="VarId">can</span> <span class="VarId">attack</span> <span class="VarId">anything</span> <span class="VarId">in</span> <span class="VarId">contact</span> <span class="Keyword">with</span> <span class="VarId">them</span> <span class="Symbol">(</span><span class="VarId">except</span> <span class="VarId">undead</span><span class="Symbol">).</span>	<span class="Number">8</span>	<span class="Number">8</span>	<span class="VarId">empty_and_not_adjacent_to_tree</span>	<span class="VarId">shadow_tree</span>
+<span class="VarId">skeleton</span>	<span class="Number">70</span>	<span class="Number">-1</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">skeleton</span>
+<span class="VarId">spectre</span>	<span class="Number">60</span>	<span class="Number">-1</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">spectre</span>
+<span class="VarId">subversion</span>	<span class="Number">100</span>	<span class="Number">0</span>	<span class="VarId">miscellaneous</span>	<span class="VarId">Realigns</span> <span class="VarId">enemy</span> <span class="VarId">creature</span> <span class="Keyword">to</span> <span class="VarId">your</span> <span class="VarId">side</span><span class="Symbol">.</span>	<span class="Number">7</span>	<span class="Number">1</span>	<span class="VarId">monster_on_top</span>	\<span class="VarId">N</span>
+<span class="VarId">turmoil</span>	<span class="Number">100</span>	<span class="Number">-2</span>	<span class="VarId">miscellaneous</span>	<span class="VarId">Randomly</span> <span class="VarId">moves</span> <span class="Keyword">all</span> <span class="VarId">objects</span> <span class="VarId">onscreen</span> <span class="Keyword">to</span> <span class="VarId">a</span> <span class="VarId">different</span> <span class="VarId">location</span><span class="Symbol">.</span> <span class="VarId">Only</span> <span class="VarId">available</span> <span class="Keyword">from</span> <span class="VarId">a</span> <span class="VarId">magic</span> <span class="VarId">tree</span><span class="Symbol">.</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>	\<span class="VarId">N</span>
+<span class="VarId">unicorn</span>	<span class="Number">70</span>	<span class="Number">2</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">unicorn</span>
+<span class="VarId">vampire</span>	<span class="Number">20</span>	<span class="Number">-2</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">vampire</span>
+<span class="VarId">vengeance</span>	<span class="Number">90</span>	<span class="Number">-1</span>	<span class="VarId">attacking</span>	<span class="VarId">When</span> <span class="VarId">cast</span> <span class="Keyword">on</span> <span class="VarId">a</span> <span class="VarId">wizard</span> <span class="VarId">it</span> <span class="VarId">kills</span> <span class="Keyword">all</span> <span class="VarId">that</span> <span class="VarId">wizards</span> <span class="VarId">creations</span> <span class="Keyword">if</span> <span class="VarId">successful</span><span class="Symbol">.</span> <span class="VarId">Allows</span> <span class="Number">1</span> <span class="VarId">attack</span> <span class="Keyword">on</span> <span class="VarId">an</span> <span class="VarId">enemy</span> <span class="VarId">creature</span><span class="Symbol">.</span>	<span class="Number">20</span>	<span class="Number">1</span>	<span class="VarId">creature_on_top</span>	\<span class="VarId">N</span>
+<span class="VarId">wall</span>	<span class="Number">80</span>	<span class="Number">0</span>	<span class="VarId">object</span>	<span class="VarId">Allows</span> <span class="VarId">four</span> <span class="VarId">wall</span> <span class="VarId">blocks</span> <span class="Keyword">to</span> <span class="VarId">be</span> <span class="VarId">built</span> <span class="VarId">near</span> <span class="VarId">the</span> <span class="VarId">wizard</span><span class="Symbol">,</span> <span class="VarId">which</span> <span class="VarId">blocks</span> <span class="VarId">creatures</span> <span class="VarId">paths</span><span class="Symbol">,</span> <span class="VarId">but</span> <span class="VarId">can</span> <span class="VarId">be</span> <span class="VarId">flown</span> <span class="Keyword">over</span><span class="Symbol">.</span>	<span class="Number">8</span>	<span class="Number">4</span>	<span class="VarId">empty</span>	<span class="VarId">wall</span>
+<span class="VarId">wraith</span>	<span class="Number">50</span>	<span class="Number">-1</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">wraith</span>
+<span class="VarId">zombie</span>	<span class="Number">90</span>	<span class="Number">-1</span>	<span class="VarId">monster</span>	<span class="VarId">monster</span>	<span class="Number">1</span>	<span class="Number">1</span>	<span class="VarId">empty_or_corpse_only</span>	<span class="VarId">zombie</span>
+\<span class="Symbol">.</span>
 </pre></div></div></div></div
     ><br
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

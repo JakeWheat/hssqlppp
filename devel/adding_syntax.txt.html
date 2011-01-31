@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../index.txt.html"
+    ><a href="../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -29,20 +29,22 @@
       ><p
       >run devel/MakeAntiNodes.lhs which is a crazy-baroque system to support the quasi-quotation system. Not sure how to make this non-crazy</p
       ><p
+      >add code for parsing and pretty printing the new syntax</p
+      ><p
       >compile and run the tests to check that the new test now passes</p
       ></div
     ><div id="example"
     ><h1
       >Example</h1
       ><p
-      >The parser currently the precision of types, e.g.</p
-      ><div class='sql'><pre class="sourceCode">create table t {
-   col float(24);
-}</pre></div><p
+      >The parser currently supports the precision of flaoting point types, e.g.</p
+      ><div class='sql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">t</span> <span class="CBracket">{</span>
+   <span class="VarId">col</span> <span class="Type">float</span><span class="Symbol">(</span><span class="Number">24</span><span class="Symbol">);</span>
+<span class="CBracket">}</span></pre></div><p
       >We want it to also support two components, for numeric types:</p
-      ><div class='sql'><pre class="sourceCode">create table t {
-   col numeric(5,3);
-}</pre></div><div id="add-a-test"
+      ><div class='sql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">t</span> <span class="CBracket">{</span>
+   <span class="VarId">col</span> <span class="VarId">numeric</span><span class="Symbol">(</span><span class="Number">5</span><span class="Symbol">,</span><span class="Number">3</span><span class="Symbol">);</span>
+<span class="CBracket">}</span></pre></div><div id="add-a-test"
       ><h2
 	>Add a test</h2
 	><p
@@ -249,7 +251,7 @@ ERROR: src/lib/Database/HsSqlPpp/PrettyPrinter.lhs:(565,2)-(568,67): Non-exhaust
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../index.txt.html"
+    ><a href="../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -28,7 +28,7 @@
 <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.SqlTypes</span>
 <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.SqlQuote</span>
 <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Ast</span>
-<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.PrettyPrinter</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">data</span> <span class="ConId">Item</span> <span class="Symbol">=</span> <span class="ConId">Expr</span> <span class="ConId">Expression</span> <span class="Symbol">[</span><span class="ConId">Maybe</span> <span class="ConId">Type</span><span class="Symbol">]</span>
+<span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.PrettyPrinter</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Keyword">data</span> <span class="ConId">Item</span> <span class="Symbol">=</span> <span class="ConId">Expr</span> <span class="ConId">ScalarExpr</span> <span class="Symbol">[</span><span class="ConId">Maybe</span> <span class="ConId">Type</span><span class="Symbol">]</span>
           <span class="Symbol">|</span> <span class="ConId">Group</span> <span class="ConId">String</span> <span class="Symbol">[</span><span class="ConId">Item</span><span class="Symbol">]</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">typeInferenceTests</span> <span class="Symbol">::</span> <span class="ConId">Test.Framework.Test</span>
 <span class="Function">typeInferenceTests</span> <span class="Symbol">=</span> <span class="VarId">itemToTft</span> <span class="VarId">typeInferenceTestData</span>
 
@@ -62,14 +62,14 @@
   <span class="Symbol">]</span>
   <span class="Keyword">where</span>
     <span class="VarId">e</span> <span class="Symbol">=</span> <span class="ConId">Expr</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">itemToTft</span> <span class="Symbol">::</span> <span class="ConId">Item</span> <span class="Symbol">-&gt;</span> <span class="ConId">Test.Framework.Test</span>
-<span class="Function">itemToTft</span> <span class="Symbol">(</span><span class="ConId">Group</span> <span class="VarId">s</span> <span class="VarId">is</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">testGroup</span> <span class="VarId">s</span> <span class="Symbol">$</span> <span class="VarId">map</span> <span class="VarId">itemToTft</span> <span class="VarId">is</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">itemToTft</span> <span class="Symbol">(</span><span class="ConId">Expr</span> <span class="VarId">e</span> <span class="VarId">t</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">testCase</span> <span class="Symbol">(</span><span class="VarId">printExpression</span> <span class="VarId">e</span><span class="Symbol">)</span> <span class="Symbol">$</span>
-    <span class="Keyword">let</span> <span class="VarId">a</span> <span class="Symbol">=</span> <span class="VarId">typeCheckExpression</span> <span class="VarId">defaultTemplate1Catalog</span> <span class="VarId">e</span>
+<span class="Function">itemToTft</span> <span class="Symbol">(</span><span class="ConId">Group</span> <span class="VarId">s</span> <span class="VarId">is</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">testGroup</span> <span class="VarId">s</span> <span class="Symbol">$</span> <span class="VarId">map</span> <span class="VarId">itemToTft</span> <span class="VarId">is</span></pre></div></div></div><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">itemToTft</span> <span class="Symbol">(</span><span class="ConId">Expr</span> <span class="VarId">e</span> <span class="VarId">t</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">testCase</span> <span class="Symbol">(</span><span class="VarId">printScalarExpr</span> <span class="VarId">e</span><span class="Symbol">)</span> <span class="Symbol">$</span>
+    <span class="Keyword">let</span> <span class="VarId">a</span> <span class="Symbol">=</span> <span class="VarId">typeCheckScalarExpr</span> <span class="VarId">defaultTemplate1Catalog</span> <span class="VarId">e</span>
         <span class="VarId">t1</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="VarId">infType</span> <span class="VarId">el</span> <span class="Symbol">|</span> <span class="VarId">el</span> <span class="Symbol">&lt;-</span> <span class="VarId">universeBi</span> <span class="VarId">a</span><span class="Symbol">]</span>
     <span class="Keyword">in</span> <span class="VarId">assertEqual</span> <span class="String">&quot;&quot;</span> <span class="VarId">t</span> <span class="VarId">t1</span></pre></div></div></div><br
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

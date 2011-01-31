@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../index.txt.html"
+    ><a href="../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -136,10 +136,10 @@ inpredicate
     ><hr
      /><div class='sourceCode'><div class='literate'><div class='haskell'><pre class="sourceCode"><span class="Function">testStatementType</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">CatalogUpdate</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">Maybe</span> <span class="ConId">StatementType</span> <span class="Symbol">-&gt;</span> <span class="ConId">Test.Framework.Test</span>
 <span class="Function">testStatementType</span> <span class="VarId">src</span> <span class="VarId">eu</span> <span class="VarId">st</span> <span class="Symbol">=</span> <span class="VarId">testCase</span> <span class="Symbol">(</span><span class="String">&quot;typecheck &quot;</span> <span class="Symbol">++</span> <span class="VarId">src</span><span class="Symbol">)</span> <span class="Symbol">$</span>
-  <span class="Keyword">let</span> <span class="VarId">ast</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">parseSql</span> <span class="String">&quot;&quot;</span> <span class="VarId">src</span> <span class="Keyword">of</span>
-                              <span class="ConId">Left</span> <span class="VarId">e</span> <span class="Symbol">-&gt;</span> <span class="VarId">error</span> <span class="Symbol">$</span> <span class="VarId">show</span> <span class="VarId">e</span>
-                              <span class="ConId">Right</span> <span class="VarId">l</span> <span class="Symbol">-&gt;</span> <span class="VarId">l</span>
-  <span class="Keyword">in</span> <span class="Keyword">case</span> <span class="VarId">typeCheckPS</span> <span class="VarId">makeCat</span> <span class="Symbol">(</span><span class="VarId">head</span> <span class="VarId">ast</span><span class="Symbol">)</span> <span class="Keyword">of</span>
+  <span class="Keyword">let</span> <span class="VarId">ast</span> <span class="Symbol">=</span> <span class="Keyword">case</span> <span class="VarId">parseStatements</span> <span class="String">&quot;&quot;</span> <span class="VarId">src</span> <span class="Keyword">of</span>
+                                        <span class="ConId">Left</span> <span class="VarId">e</span> <span class="Symbol">-&gt;</span> <span class="VarId">error</span> <span class="Symbol">$</span> <span class="VarId">show</span> <span class="VarId">e</span>
+                                        <span class="ConId">Right</span> <span class="VarId">l</span> <span class="Symbol">-&gt;</span> <span class="VarId">l</span>
+  <span class="Keyword">in</span> <span class="Keyword">case</span> <span class="VarId">typeCheckParameterizedStatement</span> <span class="VarId">makeCat</span> <span class="Symbol">(</span><span class="VarId">head</span> <span class="VarId">ast</span><span class="Symbol">)</span> <span class="Keyword">of</span>
        <span class="ConId">Left</span> <span class="VarId">e</span> <span class="Symbol">-&gt;</span> <span class="VarId">error</span> <span class="Symbol">$</span> <span class="VarId">show</span> <span class="VarId">e</span>
        <span class="ConId">Right</span> <span class="VarId">aast</span> <span class="Symbol">-&gt;</span> <span class="Comment">--trace (ppShow aast) $</span>
                      <span class="Keyword">let</span> <span class="VarId">is</span> <span class="Symbol">=</span> <span class="VarId">getTopLevelInfo</span> <span class="VarId">aast</span>
@@ -162,7 +162,7 @@ inpredicate
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

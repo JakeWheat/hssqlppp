@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../index.txt.html"
+    ><a href="../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -146,10 +146,10 @@ constraint stuff...
    <span class="VarId">makeConstraintDdl</span> <span class="Symbol">::</span> <span class="ConId">ConstraintRecord</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="Symbol">(</span><span class="ConId">ConstraintRecord</span><span class="Symbol">,</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">])</span>
    <span class="VarId">makeConstraintDdl</span> <span class="VarId">cons</span> <span class="VarId">name</span> <span class="VarId">exprText</span> <span class="Symbol">=</span>
      <span class="Keyword">let</span> <span class="VarId">expr</span> <span class="Symbol">=</span> <span class="VarId">either</span> <span class="Symbol">(</span><span class="VarId">error</span> <span class="Symbol">.</span> <span class="VarId">show</span><span class="Symbol">)</span> <span class="VarId">id</span>
-                  <span class="Symbol">$</span> <span class="VarId">parseExpression</span> <span class="String">&quot;&quot;</span> <span class="VarId">exprText</span>
+                  <span class="Symbol">$</span> <span class="VarId">parseScalarExpr</span> <span class="String">&quot;&quot;</span> <span class="VarId">exprText</span>
      <span class="Keyword">in</span> <span class="Symbol">(</span><span class="VarId">newcons</span> <span class="VarId">cons</span> <span class="Symbol">(</span><span class="VarId">tableNames</span> <span class="VarId">expr</span><span class="Symbol">)</span> <span class="VarId">name</span>
         <span class="Symbol">,</span><span class="VarId">reverse</span> <span class="Symbol">(</span><span class="VarId">makeCheckFn</span> <span class="VarId">name</span> <span class="VarId">expr</span> <span class="Symbol">:</span> <span class="VarId">extras</span> <span class="VarId">cons</span> <span class="VarId">name</span> <span class="VarId">expr</span><span class="Symbol">))</span>
-   <span class="VarId">extras</span> <span class="Symbol">::</span> <span class="ConId">ConstraintRecord</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span>
+   <span class="VarId">extras</span> <span class="Symbol">::</span> <span class="ConId">ConstraintRecord</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">ScalarExpr</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">Statement</span><span class="Symbol">]</span>
    <span class="VarId">extras</span> <span class="VarId">cons</span> <span class="VarId">name</span> <span class="VarId">expr</span> <span class="Symbol">=</span> <span class="VarId">flip</span> <span class="VarId">concatMap</span> <span class="Symbol">(</span><span class="VarId">tableNames</span> <span class="VarId">expr</span><span class="Symbol">)</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">tn</span> <span class="Symbol">-&gt;</span>
                  <span class="Keyword">let</span> <span class="VarId">ec</span> <span class="Symbol">=</span> <span class="VarId">existingConstraints</span> <span class="VarId">tn</span> <span class="VarId">cons</span>
                  <span class="Keyword">in</span> <span class="Keyword">if</span> <span class="VarId">null</span> <span class="VarId">ec</span>
@@ -163,7 +163,7 @@ constraint stuff...
 
 <span class="Keyword">type</span> <span class="ConId">ConstraintRecord</span> <span class="Symbol">=</span> <span class="Symbol">[(</span><span class="ConId">String</span><span class="Symbol">,[</span><span class="ConId">String</span><span class="Symbol">])]</span> <span class="Comment">-- tablename, list of constraint names</span>
 
-<span class="Function">makeCheckFn</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">Statement</span>
+<span class="Function">makeCheckFn</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">ScalarExpr</span> <span class="Symbol">-&gt;</span> <span class="ConId">Statement</span>
 <span class="Function">makeCheckFn</span> <span class="VarId">name</span> <span class="VarId">expr</span> <span class="Symbol">=</span>
     <span class="Keyword">let</span> <span class="VarId">checkfn</span> <span class="Symbol">=</span> <span class="String">&quot;check_con_&quot;</span> <span class="Symbol">++</span> <span class="VarId">name</span>
     <span class="Keyword">in</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
@@ -220,7 +220,7 @@ constraint stuff...
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

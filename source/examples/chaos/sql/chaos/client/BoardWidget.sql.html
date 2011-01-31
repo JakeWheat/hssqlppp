@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../index.txt.html"
+    ><a href="../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -21,7 +21,7 @@
       ><p
       >*/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-select module('Chaos.Client.BoardWidget');
+<span class="Keyword">select</span> <span class="VarId">module</span><span class="Symbol">(</span><span class="Char">'Chaos.Client.BoardWidget'</span><span class="Symbol">);</span>
 </pre></div></div></div><p
       >/* == cursor position + ops</p
       ><p
@@ -29,80 +29,80 @@ select module('Chaos.Client.BoardWidget');
       ><p
       >The server code has no concept of the cursor. In the end, this has just made the code more complicated for no reason. */</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-create table cursor_position (
-  x int,
-  y int
-);
-select create_assertion('cursor_position_coordinates_valid',
-$$ not exists (select 1 from cursor_position
-  cross join board_size
-  where x &gt;= width or y &gt;= height)$$);
-select set_relvar_type('cursor_position', 'data');
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">cursor_position</span> <span class="Symbol">(</span>
+  <span class="VarId">x</span> <span class="Type">int</span><span class="Symbol">,</span>
+  <span class="VarId">y</span> <span class="VarId">int</span>
+<span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">create_assertion</span><span class="Symbol">(</span><span class="Char">'cursor_position_coordinates_valid'</span><span class="Symbol">,</span>
+$$ <span class="Keyword">not</span> <span class="Keyword">exists</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">cursor_position</span>
+  <span class="Keyword">cross</span> <span class="Keyword">join</span> <span class="VarId">board_size</span>
+  <span class="Keyword">where</span> <span class="VarId">x</span> <span class="Symbol">&gt;=</span> <span class="VarId">width</span> <span class="Keyword">or</span> <span class="VarId">y</span> <span class="Symbol">&gt;=</span> <span class="VarId">height</span><span class="Symbol">)</span>$$<span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'cursor_position'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span>
 
-select restrict_cardinality('cursor_position', '1');
+<span class="Keyword">select</span> <span class="VarId">restrict_cardinality</span><span class="Symbol">(</span><span class="Char">'cursor_position'</span><span class="Symbol">,</span> <span class="Char">'1'</span><span class="Symbol">);</span>
 
 </pre></div></div></div><p
       >/* === actions cursor movement */</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-create function safe_move_cursor(px int, py int) returns void as $$
-begin
-  update cursor_position
-    set x = least(greatest(x + px, 0), (select width from board_size) - 1),
-        y = least(greatest(y + py, 0), (select height from board_size) - 1);
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">safe_move_cursor</span><span class="Symbol">(</span><span class="VarId">px</span> <span class="Type">int</span><span class="Symbol">,</span> <span class="VarId">py</span> <span class="Type">int</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">update</span> <span class="VarId">cursor_position</span>
+    <span class="Keyword">set</span> <span class="VarId">x</span> <span class="Symbol">=</span> <span class="VarId">least</span><span class="Symbol">(</span><span class="VarId">greatest</span><span class="Symbol">(</span><span class="VarId">x</span> <span class="Symbol">+</span> <span class="VarId">px</span><span class="Symbol">,</span> <span class="Number">0</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">width</span> <span class="Keyword">from</span> <span class="VarId">board_size</span><span class="Symbol">)</span> <span class="Symbol">-</span> <span class="Number">1</span><span class="Symbol">),</span>
+        <span class="VarId">y</span> <span class="Symbol">=</span> <span class="VarId">least</span><span class="Symbol">(</span><span class="VarId">greatest</span><span class="Symbol">(</span><span class="VarId">y</span> <span class="Symbol">+</span> <span class="VarId">py</span><span class="Symbol">,</span> <span class="Number">0</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">height</span> <span class="Keyword">from</span> <span class="VarId">board_size</span><span class="Symbol">)</span> <span class="Symbol">-</span> <span class="Number">1</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
-create function action_move_cursor(direction text) returns void as $$
-begin
-  case direction
-  when 'up' then
-    perform safe_move_cursor(0, -1);
-  when 'down' then
-    perform safe_move_cursor(0, 1);
-  when 'left' then
-    perform safe_move_cursor(-1, 0);
-  when 'right' then
-    perform safe_move_cursor(1, 0);
-  when 'up-left' then
-    perform safe_move_cursor(-1, -1);
-  when 'up-right' then
-    perform safe_move_cursor(1, -1);
-  when 'down-left' then
-    perform safe_move_cursor(-1, 1);
-  when 'down-right' then
-    perform safe_move_cursor(1, 1);
-  else
-    raise exception
-      'asked to move cursor in direction % which isn''t valid',
-      direction;
-  end case;
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">action_move_cursor</span><span class="Symbol">(</span><span class="VarId">direction</span> <span class="Type">text</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">case</span> <span class="VarId">direction</span>
+  <span class="Keyword">when</span> <span class="Char">'up'</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">safe_move_cursor</span><span class="Symbol">(</span><span class="Number">0</span><span class="Symbol">,</span> <span class="Number">-1</span><span class="Symbol">);</span>
+  <span class="Keyword">when</span> <span class="Char">'down'</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">safe_move_cursor</span><span class="Symbol">(</span><span class="Number">0</span><span class="Symbol">,</span> <span class="Number">1</span><span class="Symbol">);</span>
+  <span class="Keyword">when</span> <span class="Char">'left'</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">safe_move_cursor</span><span class="Symbol">(</span><span class="Number">-1</span><span class="Symbol">,</span> <span class="Number">0</span><span class="Symbol">);</span>
+  <span class="Keyword">when</span> <span class="Char">'right'</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">safe_move_cursor</span><span class="Symbol">(</span><span class="Number">1</span><span class="Symbol">,</span> <span class="Number">0</span><span class="Symbol">);</span>
+  <span class="Keyword">when</span> <span class="Char">'up-left'</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">safe_move_cursor</span><span class="Symbol">(</span><span class="Number">-1</span><span class="Symbol">,</span> <span class="Number">-1</span><span class="Symbol">);</span>
+  <span class="Keyword">when</span> <span class="Char">'up-right'</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">safe_move_cursor</span><span class="Symbol">(</span><span class="Number">1</span><span class="Symbol">,</span> <span class="Number">-1</span><span class="Symbol">);</span>
+  <span class="Keyword">when</span> <span class="Char">'down-left'</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">safe_move_cursor</span><span class="Symbol">(</span><span class="Number">-1</span><span class="Symbol">,</span> <span class="Number">1</span><span class="Symbol">);</span>
+  <span class="Keyword">when</span> <span class="Char">'down-right'</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">safe_move_cursor</span><span class="Symbol">(</span><span class="Number">1</span><span class="Symbol">,</span> <span class="Number">1</span><span class="Symbol">);</span>
+  <span class="VarId">else</span>
+    <span class="Keyword">raise</span> <span class="VarId">exception</span>
+      <span class="Char">'asked to move cursor in direction % which isn''t valid'</span><span class="Symbol">,</span>
+      <span class="VarId">direction</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">case</span><span class="Symbol">;</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
 </pre></div></div></div><p
       >/* === internals When next phase is called, moved the cursor to that wizard */</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-create function action_move_cursor_to_current_wizard() returns void as $$
-declare
- p pos;
-begin
-  --don't move cursor during autonomous phase
-  if get_turn_phase() != 'autonomous' then
-    select into p x,y from pieces
-         inner join current_wizard_table
-         on (current_wizard = allegiance)
-         where ptype = 'wizard';
-    update cursor_position set (x,y) = (p.x,p.y);
-  end if;
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">action_move_cursor_to_current_wizard</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+ <span class="VarId">p</span> <span class="VarId">pos</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
+  <span class="Comment">--don't move cursor during autonomous phase</span>
+  <span class="Keyword">if</span> <span class="VarId">get_turn_phase</span><span class="Symbol">()</span> <span class="Symbol">!=</span> <span class="Char">'autonomous'</span> <span class="VarId">then</span>
+    <span class="Keyword">select</span> <span class="Keyword">into</span> <span class="VarId">p</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span> <span class="Keyword">from</span> <span class="VarId">pieces</span>
+         <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">current_wizard_table</span>
+         <span class="Keyword">on</span> <span class="Symbol">(</span><span class="VarId">current_wizard</span> <span class="Symbol">=</span> <span class="VarId">allegiance</span><span class="Symbol">)</span>
+         <span class="Keyword">where</span> <span class="VarId">ptype</span> <span class="Symbol">=</span> <span class="Char">'wizard'</span><span class="Symbol">;</span>
+    <span class="Keyword">update</span> <span class="VarId">cursor_position</span> <span class="Keyword">set</span> <span class="Symbol">(</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="VarId">p</span><span class="Symbol">.</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">p</span><span class="Symbol">.</span><span class="VarId">y</span><span class="Symbol">);</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
-create function init_cursor_position() returns void as $$
-begin
-  insert into cursor_position (x,y) values (0,0);
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">init_cursor_position</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">cursor_position</span> <span class="Symbol">(</span><span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">)</span> <span class="Keyword">values</span> <span class="Symbol">(</span><span class="Number">0</span><span class="Symbol">,</span><span class="Number">0</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
 </pre></div></div></div><p
       >/*</p
@@ -118,26 +118,26 @@ $$ language plpgsql volatile;
       ><p
       >wizard sprites: look in the action history to find the most recent upgrade */</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-create view wizard_sprites as
-  select wizard_name,sprite,colour from
-  (select row_number() over(partition by wizard_name order by o desc) as rn,
-    wizard_name,
-    case when shadow_form then sprite || '_shadow'
-         else sprite
-    end as sprite, w.colour from
-  (select -1 as o, wizard_name, default_sprite as sprite
-      from wizard_display_info
-    union all
-    select id as o, allegiance as wizard_name,
-      'wizard_' || spell_name
-      from action_history_mr
-      natural inner join spells_mr
-      where spell_name != 'shadow_form'
-      and spell_category = 'wizard'
-      and history_name = 'spell_succeeded'
-      ) as a
-  natural inner join wizard_display_info as w
-  natural inner join wizards) as w where rn = 1;
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">wizard_sprites</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="VarId">wizard_name</span><span class="Symbol">,</span><span class="VarId">sprite</span><span class="Symbol">,</span><span class="VarId">colour</span> <span class="VarId">from</span>
+  <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">row_number</span><span class="Symbol">()</span> <span class="Keyword">over</span><span class="Symbol">(</span><span class="Keyword">partition</span> <span class="Keyword">by</span> <span class="VarId">wizard_name</span> <span class="Keyword">order</span> <span class="Keyword">by</span> <span class="VarId">o</span> <span class="Keyword">desc</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">rn</span><span class="Symbol">,</span>
+    <span class="VarId">wizard_name</span><span class="Symbol">,</span>
+    <span class="Keyword">case</span> <span class="Keyword">when</span> <span class="VarId">shadow_form</span> <span class="Keyword">then</span> <span class="VarId">sprite</span> <span class="Symbol">||</span> <span class="Char">'_shadow'</span>
+         <span class="Keyword">else</span> <span class="VarId">sprite</span>
+    <span class="Keyword">end</span> <span class="Keyword">as</span> <span class="VarId">sprite</span><span class="Symbol">,</span> <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">colour</span> <span class="VarId">from</span>
+  <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">-1</span> <span class="Keyword">as</span> <span class="VarId">o</span><span class="Symbol">,</span> <span class="VarId">wizard_name</span><span class="Symbol">,</span> <span class="VarId">default_sprite</span> <span class="Keyword">as</span> <span class="VarId">sprite</span>
+      <span class="Keyword">from</span> <span class="VarId">wizard_display_info</span>
+    <span class="Keyword">union</span> <span class="VarId">all</span>
+    <span class="Keyword">select</span> <span class="VarId">id</span> <span class="Keyword">as</span> <span class="VarId">o</span><span class="Symbol">,</span> <span class="VarId">allegiance</span> <span class="Keyword">as</span> <span class="VarId">wizard_name</span><span class="Symbol">,</span>
+      <span class="Char">'wizard_'</span> <span class="Symbol">||</span> <span class="VarId">spell_name</span>
+      <span class="Keyword">from</span> <span class="VarId">action_history_mr</span>
+      <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">spells_mr</span>
+      <span class="Keyword">where</span> <span class="VarId">spell_name</span> <span class="Symbol">!=</span> <span class="Char">'shadow_form'</span>
+      <span class="Keyword">and</span> <span class="VarId">spell_category</span> <span class="Symbol">=</span> <span class="Char">'wizard'</span>
+      <span class="Keyword">and</span> <span class="VarId">history_name</span> <span class="Symbol">=</span> <span class="Char">'spell_succeeded'</span>
+      <span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">a</span>
+  <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">wizard_display_info</span> <span class="Keyword">as</span> <span class="VarId">w</span>
+  <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">wizards</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">w</span> <span class="Keyword">where</span> <span class="VarId">rn</span> <span class="Symbol">=</span> <span class="Number">1</span><span class="Symbol">;</span>
 
 </pre></div></div></div><p
       >/*</p
@@ -146,33 +146,33 @@ create view wizard_sprites as
       ><p
       >*/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-create view piece_sprite as
-  select x,y,ptype,
-    case when ptype='wizard' then w.sprite
-         when allegiance='dead' then 'dead_' || ptype
-         else ptype
-    end as sprite,
-    ac.colour,tag,allegiance
-  from pieces p
-  left outer join wizard_sprites w
-    on (allegiance = wizard_name and ptype='wizard')
-  inner join allegiance_colours ac
-    using (allegiance);
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">piece_sprite</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span><span class="VarId">ptype</span><span class="Symbol">,</span>
+    <span class="Keyword">case</span> <span class="Keyword">when</span> <span class="VarId">ptype</span><span class="Symbol">=</span><span class="Char">'wizard'</span> <span class="Keyword">then</span> <span class="VarId">w</span><span class="Symbol">.</span><span class="VarId">sprite</span>
+         <span class="Keyword">when</span> <span class="VarId">allegiance</span><span class="Symbol">=</span><span class="Char">'dead'</span> <span class="Keyword">then</span> <span class="Char">'dead_'</span> <span class="Symbol">||</span> <span class="VarId">ptype</span>
+         <span class="Keyword">else</span> <span class="VarId">ptype</span>
+    <span class="Keyword">end</span> <span class="Keyword">as</span> <span class="VarId">sprite</span><span class="Symbol">,</span>
+    <span class="VarId">ac</span><span class="Symbol">.</span><span class="VarId">colour</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span><span class="VarId">allegiance</span>
+  <span class="Keyword">from</span> <span class="VarId">pieces</span> <span class="VarId">p</span>
+  <span class="Keyword">left</span> <span class="Keyword">outer</span> <span class="Keyword">join</span> <span class="VarId">wizard_sprites</span> <span class="VarId">w</span>
+    <span class="Keyword">on</span> <span class="Symbol">(</span><span class="VarId">allegiance</span> <span class="Symbol">=</span> <span class="VarId">wizard_name</span> <span class="Keyword">and</span> <span class="VarId">ptype</span><span class="Symbol">=</span><span class="Char">'wizard'</span><span class="Symbol">)</span>
+  <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">allegiance_colours</span> <span class="VarId">ac</span>
+    <span class="Keyword">using</span> <span class="Symbol">(</span><span class="VarId">allegiance</span><span class="Symbol">);</span>
 
 </pre></div></div></div><p
       >/* == highlights */</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-create view board_highlights as
--- include the squares for the selected spell
--- when still in the choose phase, so the user can
---see what squares are valid for their chosen spell
-select x,y,'highlight_cast_target_spell' as sprite
-  from current_wizard_spell_squares
-  where get_turn_phase() = 'choose'
-union all
-select x,y,'highlight_' || action as sprite
-  from valid_target_actions;
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">board_highlights</span> <span class="VarId">as</span>
+<span class="Comment">-- include the squares for the selected spell</span>
+<span class="Comment">-- when still in the choose phase, so the user can</span>
+<span class="Comment">--see what squares are valid for their chosen spell</span>
+<span class="Keyword">select</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span><span class="Char">'highlight_cast_target_spell'</span> <span class="Keyword">as</span> <span class="VarId">sprite</span>
+  <span class="Keyword">from</span> <span class="VarId">current_wizard_spell_squares</span>
+  <span class="Keyword">where</span> <span class="VarId">get_turn_phase</span><span class="Symbol">()</span> <span class="Symbol">=</span> <span class="Char">'choose'</span>
+<span class="Keyword">union</span> <span class="VarId">all</span>
+<span class="Keyword">select</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span><span class="Char">'highlight_'</span> <span class="Symbol">||</span> <span class="VarId">action</span> <span class="Keyword">as</span> <span class="VarId">sprite</span>
+  <span class="Keyword">from</span> <span class="VarId">valid_target_actions</span><span class="Symbol">;</span>
 
 </pre></div></div></div><p
       >/* == animation</p
@@ -183,26 +183,26 @@ select x,y,'highlight_' || action as sprite
       ><p
       >*/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-create table piece_starting_ticks (
-  ptype text,
-  allegiance text,
-  tag int,
-  start_tick int,
-  unique (ptype,allegiance,tag),
-  foreign key (ptype,allegiance,tag) references pieces
-);
-select set_relvar_type('piece_starting_ticks', 'data');
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">piece_starting_ticks</span> <span class="Symbol">(</span>
+  <span class="VarId">ptype</span> <span class="Type">text</span><span class="Symbol">,</span>
+  <span class="VarId">allegiance</span> <span class="Type">text</span><span class="Symbol">,</span>
+  <span class="VarId">tag</span> <span class="Type">int</span><span class="Symbol">,</span>
+  <span class="VarId">start_tick</span> <span class="Type">int</span><span class="Symbol">,</span>
+  <span class="Keyword">unique</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">),</span>
+  <span class="Keyword">foreign</span> <span class="Keyword">key</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">)</span> <span class="Keyword">references</span> <span class="VarId">pieces</span>
+<span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'piece_starting_ticks'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">);</span>
 
-create function update_missing_startticks()
-  returns void as $$
-begin
-  insert into piece_starting_ticks (ptype,allegiance,tag,start_tick)
-    select ptype,allegiance,tag, random()*2500 from pieces
-      where (ptype,allegiance,tag) not in
-        (select ptype,allegiance,tag
-        from piece_starting_ticks);
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">update_missing_startticks</span><span class="Symbol">()</span>
+  <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">piece_starting_ticks</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span><span class="VarId">start_tick</span><span class="Symbol">)</span>
+    <span class="Keyword">select</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span> <span class="VarId">random</span><span class="Symbol">()*</span><span class="Number">2500</span> <span class="Keyword">from</span> <span class="VarId">pieces</span>
+      <span class="Keyword">where</span> <span class="Symbol">(</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">)</span> <span class="Keyword">not</span> <span class="VarId">in</span>
+        <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span>
+        <span class="Keyword">from</span> <span class="VarId">piece_starting_ticks</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
 </pre></div></div></div><p
       >/*</p
@@ -215,28 +215,28 @@ $$ language plpgsql volatile;
       ><p
       >*/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-create view board_sprites1_view as
-  select x,y,ptype,allegiance,tag,sprite,colour,sp,
-    start_tick, animation_speed, selected from
-    (select x,y,ptype,allegiance,tag,
-      sprite,colour,sp,0 as start_tick,
-      case when not move_phase is null then true
-        else false
-      end as selected
-      from piece_sprite
-    natural inner join pieces_on_top
-    --natural inner join piece_starting_ticks
-    natural inner join sprites
-    natural left outer join selected_piece
-    union all
-    select x,y, '', '', -1, sprite, 'white', 5,0,false
-      from board_highlights) as a
-  natural inner join sprites
-union all
-select x,y, '', '', -1,'cursor', 'white', 6,0, animation_speed, false
-  from cursor_position
-  inner join sprites on sprite='cursor'
-  order by sp;
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">board_sprites1_view</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span><span class="VarId">sprite</span><span class="Symbol">,</span><span class="VarId">colour</span><span class="Symbol">,</span><span class="VarId">sp</span><span class="Symbol">,</span>
+    <span class="VarId">start_tick</span><span class="Symbol">,</span> <span class="VarId">animation_speed</span><span class="Symbol">,</span> <span class="VarId">selected</span> <span class="VarId">from</span>
+    <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span><span class="VarId">ptype</span><span class="Symbol">,</span><span class="VarId">allegiance</span><span class="Symbol">,</span><span class="VarId">tag</span><span class="Symbol">,</span>
+      <span class="VarId">sprite</span><span class="Symbol">,</span><span class="VarId">colour</span><span class="Symbol">,</span><span class="VarId">sp</span><span class="Symbol">,</span><span class="Number">0</span> <span class="Keyword">as</span> <span class="VarId">start_tick</span><span class="Symbol">,</span>
+      <span class="Keyword">case</span> <span class="Keyword">when</span> <span class="Keyword">not</span> <span class="VarId">move_phase</span> <span class="VarId">is</span> <span class="Keyword">null</span> <span class="Keyword">then</span> <span class="VarId">true</span>
+        <span class="Keyword">else</span> <span class="VarId">false</span>
+      <span class="Keyword">end</span> <span class="Keyword">as</span> <span class="VarId">selected</span>
+      <span class="Keyword">from</span> <span class="VarId">piece_sprite</span>
+    <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">pieces_on_top</span>
+    <span class="Comment">--natural inner join piece_starting_ticks</span>
+    <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">sprites</span>
+    <span class="Keyword">natural</span> <span class="Keyword">left</span> <span class="Keyword">outer</span> <span class="Keyword">join</span> <span class="VarId">selected_piece</span>
+    <span class="Keyword">union</span> <span class="VarId">all</span>
+    <span class="Keyword">select</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span> <span class="Char">''</span><span class="Symbol">,</span> <span class="Char">''</span><span class="Symbol">,</span> <span class="Number">-1</span><span class="Symbol">,</span> <span class="VarId">sprite</span><span class="Symbol">,</span> <span class="Char">'white'</span><span class="Symbol">,</span> <span class="Number">5</span><span class="Symbol">,</span><span class="Number">0</span><span class="Symbol">,</span><span class="VarId">false</span>
+      <span class="Keyword">from</span> <span class="VarId">board_highlights</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">a</span>
+  <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">sprites</span>
+<span class="Keyword">union</span> <span class="VarId">all</span>
+<span class="Keyword">select</span> <span class="VarId">x</span><span class="Symbol">,</span><span class="VarId">y</span><span class="Symbol">,</span> <span class="Char">''</span><span class="Symbol">,</span> <span class="Char">''</span><span class="Symbol">,</span> <span class="Number">-1</span><span class="Symbol">,</span><span class="Char">'cursor'</span><span class="Symbol">,</span> <span class="Char">'white'</span><span class="Symbol">,</span> <span class="Number">6</span><span class="Symbol">,</span><span class="Number">0</span><span class="Symbol">,</span> <span class="VarId">animation_speed</span><span class="Symbol">,</span> <span class="VarId">false</span>
+  <span class="Keyword">from</span> <span class="VarId">cursor_position</span>
+  <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">sprites</span> <span class="Keyword">on</span> <span class="VarId">sprite</span><span class="Symbol">=</span><span class="Char">'cursor'</span>
+  <span class="Keyword">order</span> <span class="Keyword">by</span> <span class="VarId">sp</span><span class="Symbol">;</span>
 
 
 </pre></div></div></div><p
@@ -4998,40 +4998,40 @@ select x,y, '', '', -1,'cursor', 'white', 6,0, animation_speed, false
 	><br
 	 /> language plpgsql volatile; */</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-create function action_client_ai_continue() returns void as $$
-begin
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">action_client_ai_continue</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
   </pre></div></div></div><p
       >/<em
 	>if get_running_effects() then return; end if;</em
 	>/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-  perform action_ai_continue();
-  perform update_missing_startticks();
-  if (select computer_controlled from wizards
-      inner join current_wizard_table on wizard_name=current_wizard)
-     and get_turn_phase() = 'choose' then
-    perform action_client_ai_continue();
-  else
-    --perform check_for_effects();
-    --perform update_board_sprites_cache();
-  end if;
-  if not (select computer_controlled from wizards
-          inner join current_wizard_table
-          on wizard_name=current_wizard) then
-    perform action_move_cursor_to_current_wizard();
-  end if;
-end;
-$$ language plpgsql volatile;
+  <span class="Keyword">perform</span> <span class="VarId">action_ai_continue</span><span class="Symbol">();</span>
+  <span class="Keyword">perform</span> <span class="VarId">update_missing_startticks</span><span class="Symbol">();</span>
+  <span class="Keyword">if</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">computer_controlled</span> <span class="Keyword">from</span> <span class="VarId">wizards</span>
+      <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">current_wizard_table</span> <span class="Keyword">on</span> <span class="VarId">wizard_name</span><span class="Symbol">=</span><span class="VarId">current_wizard</span><span class="Symbol">)</span>
+     <span class="Keyword">and</span> <span class="VarId">get_turn_phase</span><span class="Symbol">()</span> <span class="Symbol">=</span> <span class="Char">'choose'</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">action_client_ai_continue</span><span class="Symbol">();</span>
+  <span class="VarId">else</span>
+    <span class="Comment">--perform check_for_effects();</span>
+    <span class="Comment">--perform update_board_sprites_cache();</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="Keyword">if</span> <span class="Keyword">not</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">computer_controlled</span> <span class="Keyword">from</span> <span class="VarId">wizards</span>
+          <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">current_wizard_table</span>
+          <span class="Keyword">on</span> <span class="VarId">wizard_name</span><span class="Symbol">=</span><span class="VarId">current_wizard</span><span class="Symbol">)</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">action_move_cursor_to_current_wizard</span><span class="Symbol">();</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
-create function action_client_ai_continue_if() returns void as $$
-begin
-  if exists(select 1 from valid_activate_actions
-            where action='ai_continue') then
-    perform action_client_ai_continue();
-  end if;
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">action_client_ai_continue_if</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">if</span> <span class="Keyword">exists</span><span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">valid_activate_actions</span>
+            <span class="Keyword">where</span> <span class="VarId">action</span><span class="Symbol">=</span><span class="Char">'ai_continue'</span><span class="Symbol">)</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">action_client_ai_continue</span><span class="Symbol">();</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
 </pre></div></div></div><p
       >/*</p
@@ -5045,28 +5045,28 @@ $$ language plpgsql volatile;
       >*/</p
       ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-create view piece_details as
-  select * from pieces_mr
-            full outer join
-      (select 'wizard'::text as wtype,* from wizards where not expired) as a
-            on (allegiance = wizard_name and ptype = wtype)
-    natural inner join pieces_with_priorities
-    natural inner join piece_sprite;
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">piece_details</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="VarId">pieces_mr</span>
+            <span class="Keyword">full</span> <span class="Keyword">outer</span> <span class="VarId">join</span>
+      <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Char">'wizard'</span><span class="Symbol">::</span><span class="Type">text</span> <span class="Keyword">as</span> <span class="VarId">wtype</span><span class="Symbol">,*</span> <span class="Keyword">from</span> <span class="VarId">wizards</span> <span class="Keyword">where</span> <span class="Keyword">not</span> <span class="VarId">expired</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">a</span>
+            <span class="Keyword">on</span> <span class="Symbol">(</span><span class="VarId">allegiance</span> <span class="Symbol">=</span> <span class="VarId">wizard_name</span> <span class="Keyword">and</span> <span class="VarId">ptype</span> <span class="Symbol">=</span> <span class="VarId">wtype</span><span class="Symbol">)</span>
+    <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">pieces_with_priorities</span>
+    <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">piece_sprite</span><span class="Symbol">;</span>
 
-create view cursor_piece_details as
-  select * from piece_details
-      natural inner join cursor_position;
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">cursor_piece_details</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="VarId">piece_details</span>
+      <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">cursor_position</span><span class="Symbol">;</span>
 
-create view selected_piece_details as
-  select * from piece_details
-      natural inner join selected_piece
-      natural full outer join remaining_walk_table;
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">selected_piece_details</span> <span class="VarId">as</span>
+  <span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="VarId">piece_details</span>
+      <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">selected_piece</span>
+      <span class="Keyword">natural</span> <span class="Keyword">full</span> <span class="Keyword">outer</span> <span class="Keyword">join</span> <span class="VarId">remaining_walk_table</span><span class="Symbol">;</span>
 </pre></div></div></div></div
     ><br
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

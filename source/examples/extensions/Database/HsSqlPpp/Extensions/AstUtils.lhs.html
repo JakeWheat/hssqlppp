@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../index.txt.html"
+    ><a href="../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -68,7 +68,7 @@
 <span class="Function">getTrefs</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="Symbol">[</span><span class="ConId">String</span><span class="Symbol">]</span>
 <span class="Function">getTrefs</span> <span class="VarId">ast</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="VarId">getName</span> <span class="VarId">tbl</span><span class="Symbol">|</span> <span class="ConId">Tref</span> <span class="VarId">_</span> <span class="VarId">tbl</span> <span class="VarId">_</span> <span class="Symbol">&lt;-</span> <span class="VarId">universeBi</span> <span class="VarId">ast</span><span class="Symbol">]</span>
 
-<span class="Function">getName</span> <span class="Symbol">::</span> <span class="ConId">Expression</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+<span class="Function">getName</span> <span class="Symbol">::</span> <span class="ConId">ScalarExpr</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
 <span class="Function">getName</span> <span class="Symbol">(</span><span class="ConId">Identifier</span> <span class="VarId">_</span> <span class="VarId">i</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">i</span>
 <span class="Function">getName</span> <span class="Symbol">(</span><span class="ConId">FunCall</span> <span class="VarId">_</span> <span class="String">&quot;.&quot;</span> <span class="Symbol">[</span><span class="VarId">_</span><span class="Symbol">,</span><span class="ConId">Identifier</span> <span class="VarId">_</span> <span class="VarId">i</span><span class="Symbol">])</span> <span class="Symbol">=</span> <span class="VarId">i</span>
 <span class="Function">getName</span> <span class="Symbol">(</span><span class="ConId">FunCall</span> <span class="VarId">_</span> <span class="String">&quot;.&quot;</span> <span class="Symbol">[</span><span class="VarId">_</span><span class="Symbol">,</span><span class="VarId">a</span><span class="Symbol">])</span> <span class="Symbol">=</span> <span class="VarId">getName</span> <span class="VarId">a</span>
@@ -99,7 +99,7 @@
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

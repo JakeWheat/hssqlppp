@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../index.txt.html"
+    ><a href="../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -26,23 +26,23 @@
 	><p
 	>*/</p
 	><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-select module('Chaos.Server.Metadata');
+<span class="Keyword">select</span> <span class="VarId">module</span><span class="Symbol">(</span><span class="Char">'Chaos.Server.Metadata'</span><span class="Symbol">);</span>
 
-create language plpgsql;
+<span class="Keyword">create</span> <span class="Keyword">language</span> <span class="VarId">plpgsql</span><span class="Symbol">;</span>
 
-create table base_relvar_metadata (
-  relvar_name text unique, -- references base_relvars, fk to view
-  type text check (type in('readonly', 'data','hack'))
-);
+<span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">base_relvar_metadata</span> <span class="Symbol">(</span>
+  <span class="VarId">relvar_name</span> <span class="Type">text</span> <span class="Keyword">unique</span><span class="Symbol">,</span> <span class="Comment">-- references base_relvars, fk to view</span>
+  <span class="Keyword">type</span> <span class="Type">text</span> <span class="Keyword">check</span> <span class="Symbol">(</span><span class="Keyword">type</span> <span class="VarId">in</span><span class="Symbol">(</span><span class="Char">'readonly'</span><span class="Symbol">,</span> <span class="Char">'data'</span><span class="Symbol">,</span><span class="Char">'hack'</span><span class="Symbol">))</span>
+<span class="Symbol">);</span>
 
-create function set_relvar_type(vname text, vtype text) returns void as $$
-begin
-  insert into base_relvar_metadata (relvar_name, type)
-    values (vname, vtype);
-end;
-$$ language plpgsql volatile;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="VarId">vname</span> <span class="Type">text</span><span class="Symbol">,</span> <span class="VarId">vtype</span> <span class="Type">text</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">begin</span>
+  <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">base_relvar_metadata</span> <span class="Symbol">(</span><span class="VarId">relvar_name</span><span class="Symbol">,</span> <span class="Keyword">type</span><span class="Symbol">)</span>
+    <span class="Keyword">values</span> <span class="Symbol">(</span><span class="VarId">vname</span><span class="Symbol">,</span> <span class="VarId">vtype</span><span class="Symbol">);</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
-select set_relvar_type('base_relvar_metadata', 'readonly');
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'base_relvar_metadata'</span><span class="Symbol">,</span> <span class="Char">'readonly'</span><span class="Symbol">);</span>
 
 </pre></div></div></div><p
 	>/*</p
@@ -1496,7 +1496,7 @@ end;
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

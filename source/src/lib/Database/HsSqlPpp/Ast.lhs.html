@@ -7,7 +7,7 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../index.txt.html"
+    ><a href="../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
@@ -20,7 +20,7 @@
 <span class="Comment">     the seemingly pointless type synonyms below, they are an</span>
 <span class="Comment">     artefact of using UUAGC. You can see labels for the fields by</span>
 <span class="Comment">     looking at the ag source here:</span>
-<span class="Comment">     &lt;http://jakewheat.github.com/hssqlppp/source/src/Database/HsSqlPpp/AstInternals/AstInternal.ag.html&gt;</span>
+<span class="Comment">     &lt;http://jakewheat.github.com/hssqlppp/source/src/lib/Database/HsSqlPpp/AstInternals/AstInternal.ag.html&gt;</span>
 <span class="Comment">     -}</span>
 
 <span class="Keyword">module</span> <span class="ConId">Database.HsSqlPpp.Ast</span>
@@ -28,15 +28,15 @@
      <span class="Comment">-- * Main nodes</span>
      <span class="ConId">StatementList</span>
     <span class="Symbol">,</span><span class="ConId">Statement</span> <span class="Symbol">(..)</span>
-    <span class="Symbol">,</span><span class="ConId">Expression</span> <span class="Symbol">(..)</span>
-    <span class="Symbol">,</span><span class="ConId">SelectExpression</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">ScalarExpr</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">QueryExpr</span> <span class="Symbol">(..)</span>
      <span class="Comment">-- * Components</span>
      <span class="Comment">-- ** Selects</span>
     <span class="Symbol">,</span><span class="ConId">SelectList</span> <span class="Symbol">(..)</span>
     <span class="Symbol">,</span><span class="ConId">SelectItem</span> <span class="Symbol">(..)</span>
     <span class="Symbol">,</span><span class="ConId">TableRef</span> <span class="Symbol">(..)</span>
     <span class="Symbol">,</span><span class="ConId">TableAlias</span><span class="Symbol">(..)</span>
-    <span class="Symbol">,</span><span class="ConId">JoinExpression</span> <span class="Symbol">(..)</span>
+    <span class="Symbol">,</span><span class="ConId">JoinExpr</span> <span class="Symbol">(..)</span>
     <span class="Symbol">,</span><span class="ConId">JoinType</span> <span class="Symbol">(..)</span>
     <span class="Symbol">,</span><span class="ConId">Natural</span> <span class="Symbol">(..)</span>
     <span class="Symbol">,</span><span class="ConId">CombineType</span> <span class="Symbol">(..)</span>
@@ -75,9 +75,9 @@
     <span class="Symbol">,</span><span class="ConId">SetValue</span><span class="Symbol">(..)</span>
     <span class="Comment">-- ,Name(..)</span>
      <span class="Comment">-- ** typedefs</span>
-    <span class="Symbol">,</span><span class="ConId">ExpressionListStatementListPairList</span>
-    <span class="Symbol">,</span><span class="ConId">ExpressionListStatementListPair</span>
-    <span class="Symbol">,</span><span class="ConId">ExpressionList</span>
+    <span class="Symbol">,</span><span class="ConId">ScalarExprListStatementListPairList</span>
+    <span class="Symbol">,</span><span class="ConId">ScalarExprListStatementListPair</span>
+    <span class="Symbol">,</span><span class="ConId">ScalarExprList</span>
     <span class="Symbol">,</span><span class="ConId">MaybeSelectList</span>
     <span class="Comment">--,StringList</span>
     <span class="Symbol">,</span><span class="ConId">ParamDefList</span>
@@ -87,20 +87,20 @@
     <span class="Symbol">,</span><span class="ConId">TypeNameList</span>
     <span class="Symbol">,</span><span class="ConId">StringTypeNameListPair</span>
     <span class="Symbol">,</span><span class="ConId">StringTypeNameListPairList</span>
-    <span class="Symbol">,</span><span class="ConId">ExpressionStatementListPairList</span>
-    <span class="Symbol">,</span><span class="ConId">CaseExpressionListExpressionPairList</span>
-    <span class="Symbol">,</span><span class="ConId">MaybeExpression</span>
-    <span class="Symbol">,</span><span class="ConId">MaybeBoolExpression</span>
+    <span class="Symbol">,</span><span class="ConId">ScalarExprStatementListPairList</span>
+    <span class="Symbol">,</span><span class="ConId">CaseScalarExprListScalarExprPairList</span>
+    <span class="Symbol">,</span><span class="ConId">MaybeScalarExpr</span>
+    <span class="Symbol">,</span><span class="ConId">MaybeBoolExpr</span>
     <span class="Symbol">,</span><span class="ConId">TableRefList</span>
-    <span class="Symbol">,</span><span class="ConId">ExpressionListList</span>
+    <span class="Symbol">,</span><span class="ConId">ScalarExprListList</span>
     <span class="Symbol">,</span><span class="ConId">SelectItemList</span>
     <span class="Symbol">,</span><span class="ConId">OnExpr</span>
     <span class="Symbol">,</span><span class="ConId">RowConstraintList</span>
     <span class="Symbol">,</span><span class="ConId">VarDefList</span>
-    <span class="Symbol">,</span><span class="ConId">ExpressionStatementListPair</span>
-    <span class="Symbol">,</span><span class="ConId">CaseExpressionListExpressionPair</span>
-    <span class="Symbol">,</span><span class="ConId">ExpressionDirectionPair</span>
-    <span class="Symbol">,</span><span class="ConId">ExpressionDirectionPairList</span>
+    <span class="Symbol">,</span><span class="ConId">ScalarExprStatementListPair</span>
+    <span class="Symbol">,</span><span class="ConId">CaseScalarExprListScalarExprPair</span>
+    <span class="Symbol">,</span><span class="ConId">ScalarExprDirectionPair</span>
+    <span class="Symbol">,</span><span class="ConId">ScalarExprDirectionPairList</span>
     <span class="Symbol">,</span><span class="ConId">AlterTableActionList</span>
     <span class="Symbol">)</span> <span class="Keyword">where</span>
 
@@ -109,7 +109,7 @@
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >

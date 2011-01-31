@@ -7,13 +7,13 @@
      /></head
   ><body
   ><div class="header"
-    ><a href="../../../../../../../index.txt.html"
+    ><a href="../../../../../../../index.html"
       >HsSqlPpp-0.3.0</a
       ></div
     ><br
      /><br
      /><br
-     /><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">select module('Chaos.Server.Actions.NextPhase');
+     /><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="VarId">module</span><span class="Symbol">(</span><span class="Char">'Chaos.Server.Actions.NextPhase'</span><span class="Symbol">);</span>
 
 </pre></div></div></div><p
     >/* == next phase</p
@@ -23,36 +23,36 @@
     >*/</p
     ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-select create_var('dont_nest_ai_next_phase', 'bool');
-select set_relvar_type('dont_nest_ai_next_phase_table', 'hack');
+<span class="Keyword">select</span> <span class="VarId">create_var</span><span class="Symbol">(</span><span class="Char">'dont_nest_ai_next_phase'</span><span class="Symbol">,</span> <span class="Char">'bool'</span><span class="Symbol">);</span>
+<span class="Keyword">select</span> <span class="VarId">set_relvar_type</span><span class="Symbol">(</span><span class="Char">'dont_nest_ai_next_phase_table'</span><span class="Symbol">,</span> <span class="Char">'hack'</span><span class="Symbol">);</span>
 
-create function action_next_phase() returns void as $$
-declare
-  --c int;
-  next_phase_again boolean := false;
-begin
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">action_next_phase</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
+<span class="VarId">declare</span>
+  <span class="Comment">--c int;</span>
+  <span class="VarId">next_phase_again</span> <span class="VarId">boolean</span> <span class="Symbol">:=</span> <span class="VarId">false</span><span class="Symbol">;</span>
+<span class="VarId">begin</span>
 </pre></div></div></div><p
     >/* === check for game completion */</p
     ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-  if (exists (select 1 from game_completed_table)) then
-    return;
-  end if;
-  --check for win or draw
-  case (select count(1) from wizards where not expired)
-    when 1 then --someone has won
-      perform game_completed();
-      update current_wizard_table set current_wizard =
-        (select wizard_name from wizards where not expired);
-      perform add_history_game_won();
-      return;
-    when 0 then --game is drawn
-      perform game_completed();
-      perform add_history_game_drawn();
-      delete from current_wizard_table;
-      return;
-    else
-      null;
-  end case;
+  <span class="Keyword">if</span> <span class="Symbol">(</span><span class="Keyword">exists</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">game_completed_table</span><span class="Symbol">))</span> <span class="VarId">then</span>
+    <span class="VarId">return</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="Comment">--check for win or draw</span>
+  <span class="Keyword">case</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">count</span><span class="Symbol">(</span><span class="Number">1</span><span class="Symbol">)</span> <span class="Keyword">from</span> <span class="VarId">wizards</span> <span class="Keyword">where</span> <span class="Keyword">not</span> <span class="VarId">expired</span><span class="Symbol">)</span>
+    <span class="Keyword">when</span> <span class="Number">1</span> <span class="Keyword">then</span> <span class="Comment">--someone has won</span>
+      <span class="Keyword">perform</span> <span class="VarId">game_completed</span><span class="Symbol">();</span>
+      <span class="Keyword">update</span> <span class="VarId">current_wizard_table</span> <span class="Keyword">set</span> <span class="VarId">current_wizard</span> <span class="Symbol">=</span>
+        <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">wizard_name</span> <span class="Keyword">from</span> <span class="VarId">wizards</span> <span class="Keyword">where</span> <span class="Keyword">not</span> <span class="VarId">expired</span><span class="Symbol">);</span>
+      <span class="Keyword">perform</span> <span class="VarId">add_history_game_won</span><span class="Symbol">();</span>
+      <span class="VarId">return</span><span class="Symbol">;</span>
+    <span class="Keyword">when</span> <span class="Number">0</span> <span class="Keyword">then</span> <span class="Comment">--game is drawn</span>
+      <span class="Keyword">perform</span> <span class="VarId">game_completed</span><span class="Symbol">();</span>
+      <span class="Keyword">perform</span> <span class="VarId">add_history_game_drawn</span><span class="Symbol">();</span>
+      <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">current_wizard_table</span><span class="Symbol">;</span>
+      <span class="VarId">return</span><span class="Symbol">;</span>
+    <span class="VarId">else</span>
+      <span class="Keyword">null</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">case</span><span class="Symbol">;</span>
 
 </pre></div></div></div><p
     >/* === current wizard clean up phase</p
@@ -63,23 +63,23 @@ begin
     ><p
     >*/</p
     ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-    -- if the current spell isn't completed, then skip it
-  if get_turn_phase() = 'cast'
-     and exists(select 1 from current_wizard_table
-                inner join wizard_spell_choices
-                  on (current_wizard = wizard_name)) then
-    perform skip_spell();
-    return;
-  end if;
+    <span class="Comment">-- if the current spell isn't completed, then skip it</span>
+  <span class="Keyword">if</span> <span class="VarId">get_turn_phase</span><span class="Symbol">()</span> <span class="Symbol">=</span> <span class="Char">'cast'</span>
+     <span class="Keyword">and</span> <span class="Keyword">exists</span><span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">current_wizard_table</span>
+                <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">wizard_spell_choices</span>
+                  <span class="Keyword">on</span> <span class="Symbol">(</span><span class="VarId">current_wizard</span> <span class="Symbol">=</span> <span class="VarId">wizard_name</span><span class="Symbol">))</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">skip_spell</span><span class="Symbol">();</span>
+    <span class="VarId">return</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
 
-  --multiple update hack to get round constraints
-  update in_next_phase_hack_table
-    set in_next_phase_hack = true;
+  <span class="Comment">--multiple update hack to get round constraints</span>
+  <span class="Keyword">update</span> <span class="VarId">in_next_phase_hack_table</span>
+    <span class="Keyword">set</span> <span class="VarId">in_next_phase_hack</span> <span class="Symbol">=</span> <span class="VarId">true</span><span class="Symbol">;</span>
 
-  --complete current phase:
-  if (select turn_phase = 'move' from turn_phase_table) then
-    delete from pieces_moved;
-  end if;
+  <span class="Comment">--complete current phase:</span>
+  <span class="Keyword">if</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">turn_phase</span> <span class="Symbol">=</span> <span class="Char">'move'</span> <span class="Keyword">from</span> <span class="VarId">turn_phase_table</span><span class="Symbol">)</span> <span class="VarId">then</span>
+    <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">pieces_moved</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
 
 </pre></div></div></div><p
     >/* === all wizards clean up phase</p
@@ -89,104 +89,104 @@ begin
     >*/</p
     ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
 
-  if is_last_wizard() then
-    case get_turn_phase()
-      when 'cast' then
-        --clear the cast alignment which is used to adjust the world
-        --alignment when a spell is cast
-        delete from cast_alignment_table;
-      when 'move' then
-        --if this is the end of the move phase then we're on the next turn
-        update turn_number_table
-          set turn_number = turn_number + 1;
-        perform add_history_new_turn();
-      else
-        null;
-    end case;
-    --move to the next turn phase
-    update turn_phase_table
-      set turn_phase = next_turn_phase(turn_phase);
+  <span class="Keyword">if</span> <span class="VarId">is_last_wizard</span><span class="Symbol">()</span> <span class="VarId">then</span>
+    <span class="Keyword">case</span> <span class="VarId">get_turn_phase</span><span class="Symbol">()</span>
+      <span class="Keyword">when</span> <span class="Char">'cast'</span> <span class="VarId">then</span>
+        <span class="Comment">--clear the cast alignment which is used to adjust the world</span>
+        <span class="Comment">--alignment when a spell is cast</span>
+        <span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">cast_alignment_table</span><span class="Symbol">;</span>
+      <span class="Keyword">when</span> <span class="Char">'move'</span> <span class="VarId">then</span>
+        <span class="Comment">--if this is the end of the move phase then we're on the next turn</span>
+        <span class="Keyword">update</span> <span class="VarId">turn_number_table</span>
+          <span class="Keyword">set</span> <span class="VarId">turn_number</span> <span class="Symbol">=</span> <span class="VarId">turn_number</span> <span class="Symbol">+</span> <span class="Number">1</span><span class="Symbol">;</span>
+        <span class="Keyword">perform</span> <span class="VarId">add_history_new_turn</span><span class="Symbol">();</span>
+      <span class="VarId">else</span>
+        <span class="Keyword">null</span><span class="Symbol">;</span>
+    <span class="Keyword">end</span> <span class="Keyword">case</span><span class="Symbol">;</span>
+    <span class="Comment">--move to the next turn phase</span>
+    <span class="Keyword">update</span> <span class="VarId">turn_phase_table</span>
+      <span class="Keyword">set</span> <span class="VarId">turn_phase</span> <span class="Symbol">=</span> <span class="VarId">next_turn_phase</span><span class="Symbol">(</span><span class="VarId">turn_phase</span><span class="Symbol">);</span>
 
-    if get_turn_phase() = 'autonomous' then
-      perform do_autonomous_phase();
-      update turn_phase_table
-        set turn_phase = next_turn_phase(turn_phase);
-    end if;
-  end if;
+    <span class="Keyword">if</span> <span class="VarId">get_turn_phase</span><span class="Symbol">()</span> <span class="Symbol">=</span> <span class="Char">'autonomous'</span> <span class="VarId">then</span>
+      <span class="Keyword">perform</span> <span class="VarId">do_autonomous_phase</span><span class="Symbol">();</span>
+      <span class="Keyword">update</span> <span class="VarId">turn_phase_table</span>
+        <span class="Keyword">set</span> <span class="VarId">turn_phase</span> <span class="Symbol">=</span> <span class="VarId">next_turn_phase</span><span class="Symbol">(</span><span class="VarId">turn_phase</span><span class="Symbol">);</span>
+    <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
 
 </pre></div></div></div><p
     >/* === init new current phase */</p
     ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-  -- move to the next wizard, this is the meat of this function
-  update current_wizard_table
-    set current_wizard = next_wizard(current_wizard);
+  <span class="Comment">-- move to the next wizard, this is the meat of this function</span>
+  <span class="Keyword">update</span> <span class="VarId">current_wizard_table</span>
+    <span class="Keyword">set</span> <span class="VarId">current_wizard</span> <span class="Symbol">=</span> <span class="VarId">next_wizard</span><span class="Symbol">(</span><span class="VarId">current_wizard</span><span class="Symbol">);</span>
 
-  --initialise the spell for this phase
-  if get_turn_phase() = 'cast' then
-    --setup the cast alignment table if this is the start of the cast
-    --phases
-    if is_first_wizard() then
-      insert into cast_alignment_table values(0);
-    end if;
-    if exists(select 1 from current_wizard_spell) then
-      insert into spell_parts_to_cast_table
-        select coalesce(numb, 0) from target_spells
-        natural inner join current_wizard_spell;
-      insert into cast_success_checked_table values (false);
-    else
-      --skip to the next phase automatically
-      next_phase_again := true;
-    end if;
+  <span class="Comment">--initialise the spell for this phase</span>
+  <span class="Keyword">if</span> <span class="VarId">get_turn_phase</span><span class="Symbol">()</span> <span class="Symbol">=</span> <span class="Char">'cast'</span> <span class="VarId">then</span>
+    <span class="Comment">--setup the cast alignment table if this is the start of the cast</span>
+    <span class="Comment">--phases</span>
+    <span class="Keyword">if</span> <span class="VarId">is_first_wizard</span><span class="Symbol">()</span> <span class="VarId">then</span>
+      <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">cast_alignment_table</span> <span class="Keyword">values</span><span class="Symbol">(</span><span class="Number">0</span><span class="Symbol">);</span>
+    <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+    <span class="Keyword">if</span> <span class="Keyword">exists</span><span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">current_wizard_spell</span><span class="Symbol">)</span> <span class="VarId">then</span>
+      <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">spell_parts_to_cast_table</span>
+        <span class="Keyword">select</span> <span class="VarId">coalesce</span><span class="Symbol">(</span><span class="VarId">numb</span><span class="Symbol">,</span> <span class="Number">0</span><span class="Symbol">)</span> <span class="Keyword">from</span> <span class="VarId">target_spells</span>
+        <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">current_wizard_spell</span><span class="Symbol">;</span>
+      <span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">cast_success_checked_table</span> <span class="Keyword">values</span> <span class="Symbol">(</span><span class="VarId">false</span><span class="Symbol">);</span>
+    <span class="VarId">else</span>
+      <span class="Comment">--skip to the next phase automatically</span>
+      <span class="VarId">next_phase_again</span> <span class="Symbol">:=</span> <span class="VarId">true</span><span class="Symbol">;</span>
+    <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
   </pre></div></div></div><p
     >/<em
       >elseif (select turn_phase = 'move' from turn_phase_table) then insert into pieces_to_move select ptype, allegiance, tag from moving_pieces inner join current_wizard_table on allegiance = current_wizard;</em
       >/</p
     ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-  end if;
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
 
-  --finished our updates for this next phase
-  update in_next_phase_hack_table
-    set in_next_phase_hack = false;
+  <span class="Comment">--finished our updates for this next phase</span>
+  <span class="Keyword">update</span> <span class="VarId">in_next_phase_hack_table</span>
+    <span class="Keyword">set</span> <span class="VarId">in_next_phase_hack</span> <span class="Symbol">=</span> <span class="VarId">false</span><span class="Symbol">;</span>
 
-  perform add_history_wizard_up();
+  <span class="Keyword">perform</span> <span class="VarId">add_history_wizard_up</span><span class="Symbol">();</span>
 </pre></div></div></div><p
     >/* === continue */</p
     ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-  --if there is nothing to do in the new current phase - continue to
-  --next phase automatically
-  if next_phase_again then
-    perform action_next_phase();
-  end if;
-end;
-$$ language plpgsql volatile;
+  <span class="Comment">--if there is nothing to do in the new current phase - continue to</span>
+  <span class="Comment">--next phase automatically</span>
+  <span class="Keyword">if</span> <span class="VarId">next_phase_again</span> <span class="VarId">then</span>
+    <span class="Keyword">perform</span> <span class="VarId">action_next_phase</span><span class="Symbol">();</span>
+  <span class="Keyword">end</span> <span class="Keyword">if</span><span class="Symbol">;</span>
+<span class="Keyword">end</span><span class="Symbol">;</span>
+$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span>
 
 </pre></div></div></div><p
     >/* === internals */</p
     ><div class='sourceCode'><div class='literate'><div class='sql'><pre class="sourceCode">
-create function is_last_wizard() returns boolean as $$
-  with
-            uw as (select wizard_name,original_place
-                   from wizards
-                   where not expired)
-  select original_place = (select max(original_place) from uw)
-            from current_wizard
-            natural inner join uw
-$$ language sql stable;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">is_last_wizard</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="VarId">boolean</span> <span class="Keyword">as</span> $$
+  <span class="VarId">with</span>
+            <span class="VarId">uw</span> <span class="Keyword">as</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">wizard_name</span><span class="Symbol">,</span><span class="VarId">original_place</span>
+                   <span class="Keyword">from</span> <span class="VarId">wizards</span>
+                   <span class="Keyword">where</span> <span class="Keyword">not</span> <span class="VarId">expired</span><span class="Symbol">)</span>
+  <span class="Keyword">select</span> <span class="VarId">original_place</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">max</span><span class="Symbol">(</span><span class="VarId">original_place</span><span class="Symbol">)</span> <span class="Keyword">from</span> <span class="VarId">uw</span><span class="Symbol">)</span>
+            <span class="Keyword">from</span> <span class="VarId">current_wizard</span>
+            <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">uw</span>
+$$ <span class="Keyword">language</span> <span class="VarId">sql</span> <span class="Keyword">stable</span><span class="Symbol">;</span>
 
-create function is_first_wizard() returns boolean as $$
-  with
-    uw as (select wizard_name,original_place
-                   from wizards
-                   where not expired)
-  select original_place = (select min(original_place) from uw)
-            from current_wizard
-            natural inner join uw
-$$ language sql stable;
+<span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">is_first_wizard</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="VarId">boolean</span> <span class="Keyword">as</span> $$
+  <span class="VarId">with</span>
+    <span class="VarId">uw</span> <span class="Keyword">as</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">wizard_name</span><span class="Symbol">,</span><span class="VarId">original_place</span>
+                   <span class="Keyword">from</span> <span class="VarId">wizards</span>
+                   <span class="Keyword">where</span> <span class="Keyword">not</span> <span class="VarId">expired</span><span class="Symbol">)</span>
+  <span class="Keyword">select</span> <span class="VarId">original_place</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">min</span><span class="Symbol">(</span><span class="VarId">original_place</span><span class="Symbol">)</span> <span class="Keyword">from</span> <span class="VarId">uw</span><span class="Symbol">)</span>
+            <span class="Keyword">from</span> <span class="VarId">current_wizard</span>
+            <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">uw</span>
+$$ <span class="Keyword">language</span> <span class="VarId">sql</span> <span class="Keyword">stable</span><span class="Symbol">;</span>
 </pre></div></div></div><br
      /><br
      /><br
      /><div class="footer"
-    >generated on 01/29/11 20:06:46, hssqlppp-0.3.0</div
+    >generated on 01/31/11 20:00:52, hssqlppp-0.3.0</div
     ></body
   ></html
 >
