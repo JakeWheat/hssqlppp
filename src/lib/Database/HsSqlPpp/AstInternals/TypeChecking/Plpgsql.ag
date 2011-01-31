@@ -60,7 +60,7 @@ SEM Statement
 
 
 SEM Statement
-    | ForSelectStatement
+    | ForQueryStatement
         loc.tpe =
           do
           st <- lmt (CompositeType <$> @sel.uType)
@@ -77,7 +77,7 @@ SEM Statement
             st <- lmt (CompositeType <$> @sel.uType)
             lbUpdate @lhs.cat (LBIds "for loop record type" Nothing [(getName @var.annotatedTree,st)]) @lhs.lib
 
-        loc.backTree = ForSelectStatement @ann @lb @var.annotatedTree @sel.annotatedTree @sts.annotatedTree
+        loc.backTree = ForQueryStatement @ann @lb @var.annotatedTree @sel.annotatedTree @sts.annotatedTree
         loc.catUpdates = []
         loc.statementType = Nothing
 

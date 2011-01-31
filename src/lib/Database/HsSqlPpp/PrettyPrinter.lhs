@@ -55,7 +55,7 @@ Conversion routines - convert Sql asts into Docs
 >
 > -- selects
 >
-> convStatement ca (SelectStatement ann s) =
+> convStatement ca (QueryStatement ann s) =
 >   convPa ca ann <+>
 >   convQueryExpr True True s <> statementEnd
 >
@@ -308,7 +308,7 @@ Conversion routines - convert Sql asts into Docs
 >     <> ifNotEmpty (\e -> comma <+> csvExp e) exps
 >     <> statementEnd
 >
-> convStatement ca (ForSelectStatement ann lb i sel stmts) =
+> convStatement ca (ForQueryStatement ann lb i sel stmts) =
 >     convPa ca ann <+>
 >     convLabel lb <>
 >     text "for" <+> convExp i <+> text "in"
@@ -467,7 +467,7 @@ Statement components
 >
 > convTref :: TableRef -> Doc
 > convTref (Tref _ f a) = convExp f <+> convTrefAlias a
-> convTref (JoinedTref _ t1 nat jt t2 ex a) =
+> convTref (JoinTref _ t1 nat jt t2 ex a) =
 >         parens (convTref t1
 >         $+$ (case nat of
 >                       Natural -> text "natural"
@@ -490,8 +490,8 @@ Statement components
 > convTref (SubTref _ sub alias) =
 >         parens (convQueryExpr True True sub)
 >         <+> text "as" <+> convTrefAlias alias
-> convTref (TrefFun _ f@(FunCall _ _ _) a) = convExp f <+> convTrefAlias a
-> convTref (TrefFun _ x _) =
+> convTref (FunTref _ f@(FunCall _ _ _) a) = convExp f <+> convTrefAlias a
+> convTref (FunTref _ x _) =
 >       error $ "internal error: node not supported in function tref: "
 >             ++ show x
 >

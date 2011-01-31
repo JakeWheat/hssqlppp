@@ -87,7 +87,7 @@ ATTR TableRef TableRefList [|| libUpdates: {[LocalBindingsUpdate]}]
 -- set the annotations, just need to pick up any type errors whilst
 -- calculating the new bindings
 SEM TableRef
-    | SubTref Tref TrefFun JoinedTref
+    | SubTref Tref FunTref JoinTref
         lhs.annotatedTree = addTypeErrors @loc.errs @loc.backTree
 
 SEM TableRefList
@@ -154,7 +154,7 @@ tref - just a name of a table or view, just need to retrieve the fields from the
                                    pr]
 
 
-    | TrefFun
+    | FunTref
 {-
 
 we rely on the funIdens function below to get the correlation name an
@@ -173,7 +173,7 @@ column names and types - see that function for how this works
                                          (snd @loc.qfunIdens)
                                          []]
         loc.qfunIdens = fromRight ("",[]) @loc.eqfunIdens
-    | JoinedTref
+    | JoinTref
 {-
 join - most of the hard work is done in local bindings
 -}
@@ -259,10 +259,10 @@ SEM TableRef
         loc.backTree = SubTref @ann @sel.annotatedTree @alias
     | Tref
         loc.backTree = Tref @ann @tbl.tbAnnotatedTree @alias
-    | TrefFun
-        loc.backTree = TrefFun @ann @fn.annotatedTree @alias
-    | JoinedTref
-        loc.backTree = JoinedTref @ann
+    | FunTref
+        loc.backTree = FunTref @ann @fn.annotatedTree @alias
+    | JoinTref
+        loc.backTree = JoinTref @ann
                                   @tbl.annotatedTree
                                   @nat
                                   @joinType

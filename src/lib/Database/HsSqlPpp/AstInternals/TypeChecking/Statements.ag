@@ -74,9 +74,9 @@ SEM StatementList
         lhs.producedLib = @loc.newLib
 
 SEM Statement
-    | SelectStatement Insert Update Delete CreateView CreateDomain CreateLanguage
+    | QueryStatement Insert Update Delete CreateView CreateDomain CreateLanguage
       CreateFunction CreateType CreateTable CreateTableAs Return Assignment
-      ForSelectStatement ForIntegerStatement DropFunction
+      ForQueryStatement ForIntegerStatement DropFunction
         loc.tpe : {Either [TypeError] Type}
         loc.statementType : {Maybe StatementType}
         lhs.annotatedTree =
@@ -89,7 +89,7 @@ SEM Statement
         lhs.libUpdates = @loc.libUpdates
     | Insert Update Delete CreateView CreateDomain
       CreateFunction CreateType CreateTable CreateTableAs Return
-      Assignment ForSelectStatement ForIntegerStatement Set CreateLanguage
+      Assignment ForQueryStatement ForIntegerStatement Set CreateLanguage
       Notify CreateSequence AlterSequence DropFunction Block
         loc.libUpdates = []
 
@@ -134,13 +134,13 @@ SEM Statement
         els.catUpdates = []
         els.libUpdates = []
 SEM Statement
-    | ForIntegerStatement ForSelectStatement WhileStatement LoopStatement
+    | ForIntegerStatement ForQueryStatement WhileStatement LoopStatement
         sts.catUpdates = []
         sts.libUpdates = []
 
 
 
-INCLUDE "TypeChecking/SelectStatement.ag"
+INCLUDE "TypeChecking/QueryStatement.ag"
 INCLUDE "TypeChecking/Insert.ag"
 INCLUDE "TypeChecking/Update.ag"
 INCLUDE "TypeChecking/Delete.ag"

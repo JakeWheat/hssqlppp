@@ -1,5 +1,5 @@
 Name:                hssqlppp
-Version:             0.3.0-pre
+Version:             0.3.0
 Synopsis:            SQL parser, quasiquoter, and type checker
 License:             BSD3
 License-file:        LICENSE
@@ -7,10 +7,10 @@ Author:              Jake Wheat
 Maintainer:          jakewheatmail@gmail.com
 Build-Type:          Simple
 Cabal-Version:       >=1.6
-copyright:           Copyright 2009, 2010 Jake Wheat
+copyright:           Copyright 2009-2011 Jake Wheat
 stability:           pre-alpha
 homepage:            http://jakewheat.github.com/hssqlppp/
-bug-reports:         mailto:jakewheatmail@gmail.com
+bug-reports:         https://github.com/JakeWheat/hssqlppp/issues
 category:            Database
 Description:
     SQL parser, quasiquoter, and type checker, targets PostgreSQL SQL

@@ -11,10 +11,10 @@
   
 {-# LANGUAGE DeriveDataTypeable #-}
 module Database.HsSqlPpp.AstInternals.AstAnti
-       (convertStatements, convertScalarExpr, attributeDef, Statement(..),
-        QueryExpr(..), WithQuery(..), FnBody(..), TableRef(..),
-        TableAlias(..), JoinScalarExpr(..), JoinType(..), SelectList(..),
-        SelectItem(..), CopySource(..), AttributeDef(..),
+       (convertStatements, convertScalarExpr, attributeDef, queryExpr,
+        Statement(..), QueryExpr(..), WithQuery(..), FnBody(..),
+        TableRef(..), TableAlias(..), JoinExpr(..), JoinType(..),
+        SelectList(..), SelectItem(..), CopySource(..), AttributeDef(..),
         RowConstraint(..), AlterTableAction(..), Constraint(..),
         TypeAttributeDef(..), ParamDef(..), VarDef(..), RaiseType(..),
         CombineType(..), Volatility(..), Language(..), TypeName(..),
@@ -31,7 +31,7 @@ module Database.HsSqlPpp.AstInternals.AstAnti
         TableRefList, ScalarExprListList, SelectItemList, OnExpr,
         RowConstraintList, VarDefList, ScalarExprStatementListPair,
         CaseScalarExprListScalarExprPair, ScalarExprDirectionPair,
-        ScalarExprDirectionPairList, MaybeBoolScalarExpr, MaybeSelectList,
+        ScalarExprDirectionPairList, MaybeBoolExpr, MaybeSelectList,
         AlterTableActionList)
        where
 import Data.Generics
@@ -166,9 +166,9 @@ data InList = InList (Annotation) (ScalarExprList)
             | InSelect (Annotation) (QueryExpr)
             deriving (Data, Eq, Show, Typeable)
  
-data JoinScalarExpr = JoinOn (Annotation) (ScalarExpr)
-                    | JoinUsing (Annotation) ([String])
-                    deriving (Data, Eq, Show, Typeable)
+data JoinExpr = JoinOn (Annotation) (ScalarExpr)
+              | JoinUsing (Annotation) ([String])
+              deriving (Data, Eq, Show, Typeable)
  
 data ParamDef = ParamDef (Annotation) (String) (TypeName)
               | ParamDefTp (Annotation) (TypeName)
@@ -177,7 +177,7 @@ data ParamDef = ParamDef (Annotation) (String) (TypeName)
 data QueryExpr = CombineSelect (Annotation) (CombineType)
                                (QueryExpr) (QueryExpr)
                | Select (Annotation) (Distinct) (SelectList) (TableRefList)
-                        (MaybeBoolScalarExpr) (ScalarExprList) (MaybeBoolScalarExpr)
+                        (MaybeBoolExpr) (ScalarExprList) (MaybeBoolExpr)
                         (ScalarExprDirectionPairList) (MaybeScalarExpr) (MaybeScalarExpr)
                | Values (Annotation) (ScalarExprListList)
                | WithSelect (Annotation) (WithQueryList) (QueryExpr)
@@ -236,7 +236,7 @@ data Statement = AlterSequence (Annotation) (String) (ScalarExpr)
                | Copy (Annotation) (String) ([String]) (CopySource)
                | CopyData (Annotation) (String)
                | CreateDomain (Annotation) (String) (TypeName) (String)
-                              (MaybeBoolScalarExpr)
+                              (MaybeBoolExpr)
                | CreateFunction (Annotation) (String) (ParamDefList) (TypeName)
                                 (Replace) (Language) (FnBody) (Volatility)
                | CreateLanguage (Annotation) (String)
@@ -249,8 +249,8 @@ data Statement = AlterSequence (Annotation) (String) (ScalarExpr)
                                ([TriggerEvent]) (String) (TriggerFire) (String) (ScalarExprList)
                | CreateType (Annotation) (String) (TypeAttributeDefList)
                | CreateView (Annotation) (String) (QueryExpr)
-               | Delete (Annotation) (ScalarExpr) (TableRefList)
-                        (MaybeBoolScalarExpr) (MaybeSelectList)
+               | Delete (Annotation) (ScalarExpr) (TableRefList) (MaybeBoolExpr)
+                        (MaybeSelectList)
                | DropFunction (Annotation) (IfExists) (StringTypeNameListPairList)
                               (Cascade)
                | DropSomething (Annotation) (DropType) (IfExists) ([String])
@@ -260,8 +260,8 @@ data Statement = AlterSequence (Annotation) (String) (ScalarExpr)
                | ExitStatement (Annotation) (Maybe String)
                | ForIntegerStatement (Annotation) (Maybe String) (ScalarExpr)
                                      (ScalarExpr) (ScalarExpr) (StatementList)
-               | ForSelectStatement (Annotation) (Maybe String) (ScalarExpr)
-                                    (QueryExpr) (StatementList)
+               | ForQueryStatement (Annotation) (Maybe String) (ScalarExpr)
+                                   (QueryExpr) (StatementList)
                | If (Annotation) (ScalarExprStatementListPairList) (StatementList)
                | Insert (Annotation) (ScalarExpr) ([String]) (QueryExpr)
                         (MaybeSelectList)
@@ -269,25 +269,25 @@ data Statement = AlterSequence (Annotation) (String) (ScalarExpr)
                | Notify (Annotation) (String)
                | NullStatement (Annotation)
                | Perform (Annotation) (ScalarExpr)
+               | QueryStatement (Annotation) (QueryExpr)
                | Raise (Annotation) (RaiseType) (String) (ScalarExprList)
                | Return (Annotation) (MaybeScalarExpr)
                | ReturnNext (Annotation) (ScalarExpr)
                | ReturnQuery (Annotation) (QueryExpr)
-               | SelectStatement (Annotation) (QueryExpr)
                | Set (Annotation) (String) ([SetValue])
                | Truncate (Annotation) ([String]) (RestartIdentity) (Cascade)
                | Update (Annotation) (ScalarExpr) (ScalarExprList) (TableRefList)
-                        (MaybeBoolScalarExpr) (MaybeSelectList)
+                        (MaybeBoolExpr) (MaybeSelectList)
                | WhileStatement (Annotation) (Maybe String) (ScalarExpr)
                                 (StatementList)
                | AntiStatement String
                deriving (Data, Eq, Show, Typeable)
  
-data TableRef = JoinedTref (Annotation) (TableRef) (Natural)
-                           (JoinType) (TableRef) (OnExpr) (TableAlias)
+data TableRef = FunTref (Annotation) (ScalarExpr) (TableAlias)
+              | JoinTref (Annotation) (TableRef) (Natural) (JoinType) (TableRef)
+                         (OnExpr) (TableAlias)
               | SubTref (Annotation) (QueryExpr) (TableAlias)
               | Tref (Annotation) (ScalarExpr) (TableAlias)
-              | TrefFun (Annotation) (ScalarExpr) (TableAlias)
               deriving (Data, Eq, Show, Typeable)
  
 data TypeAttributeDef = TypeAttDef (Annotation) (String) (TypeName)
@@ -320,13 +320,13 @@ type CaseScalarExprListScalarExprPairList =
  
 type ConstraintList = [(Constraint)]
  
-type MaybeBoolScalarExpr = (Maybe (ScalarExpr))
+type MaybeBoolExpr = (Maybe (ScalarExpr))
  
 type MaybeScalarExpr = (Maybe (ScalarExpr))
  
 type MaybeSelectList = (Maybe (SelectList))
  
-type OnExpr = (Maybe (JoinScalarExpr))
+type OnExpr = (Maybe (JoinExpr))
  
 type ParamDefList = [(ParamDef)]
  
@@ -550,8 +550,8 @@ inList x
         InList a1 a2 -> A.InList a1 (scalarExprList a2)
         InSelect a1 a2 -> A.InSelect a1 (queryExpr a2)
  
-joinScalarExpr :: JoinScalarExpr -> A.JoinScalarExpr
-joinScalarExpr x
+joinExpr :: JoinExpr -> A.JoinExpr
+joinExpr x
   = case x of
         JoinOn a1 a2 -> A.JoinOn a1 (scalarExpr a2)
         JoinUsing a1 a2 -> A.JoinUsing a1 a2
@@ -571,9 +571,9 @@ queryExpr x
         Select a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 -> A.Select a1 (distinct a2)
                                                    (selectList a3)
                                                    (tableRefList a4)
-                                                   (maybeBoolScalarExpr a5)
+                                                   (maybeBoolExpr a5)
                                                    (scalarExprList a6)
-                                                   (maybeBoolScalarExpr a7)
+                                                   (maybeBoolExpr a7)
                                                    (scalarExprDirectionPairList a8)
                                                    (maybeScalarExpr a9)
                                                    (maybeScalarExpr a10)
@@ -660,7 +660,7 @@ statement x
         CopyData a1 a2 -> A.CopyData a1 a2
         CreateDomain a1 a2 a3 a4 a5 -> A.CreateDomain a1 a2 (typeName a3)
                                          a4
-                                         (maybeBoolScalarExpr a5)
+                                         (maybeBoolExpr a5)
         CreateFunction a1 a2 a3 a4 a5 a6 a7 a8 -> A.CreateFunction a1 a2
                                                     (paramDefList a3)
                                                     (typeName a4)
@@ -688,7 +688,7 @@ statement x
         CreateView a1 a2 a3 -> A.CreateView a1 a2 (queryExpr a3)
         Delete a1 a2 a3 a4 a5 -> A.Delete a1 (scalarExpr a2)
                                    (tableRefList a3)
-                                   (maybeBoolScalarExpr a4)
+                                   (maybeBoolExpr a4)
                                    (maybeSelectList a5)
         DropFunction a1 a2 a3 a4 -> A.DropFunction a1 (ifExists a2)
                                       (stringTypeNameListPairList a3)
@@ -706,10 +706,10 @@ statement x
                                                    (scalarExpr a4)
                                                    (scalarExpr a5)
                                                    (statementList a6)
-        ForSelectStatement a1 a2 a3 a4 a5 -> A.ForSelectStatement a1 a2
-                                               (scalarExpr a3)
-                                               (queryExpr a4)
-                                               (statementList a5)
+        ForQueryStatement a1 a2 a3 a4 a5 -> A.ForQueryStatement a1 a2
+                                              (scalarExpr a3)
+                                              (queryExpr a4)
+                                              (statementList a5)
         If a1 a2 a3 -> A.If a1 (scalarExprStatementListPairList a2)
                          (statementList a3)
         Insert a1 a2 a3 a4 a5 -> A.Insert a1 (scalarExpr a2) a3
@@ -719,19 +719,19 @@ statement x
         Notify a1 a2 -> A.Notify a1 a2
         NullStatement a1 -> A.NullStatement a1
         Perform a1 a2 -> A.Perform a1 (scalarExpr a2)
+        QueryStatement a1 a2 -> A.QueryStatement a1 (queryExpr a2)
         Raise a1 a2 a3 a4 -> A.Raise a1 (raiseType a2) a3
                                (scalarExprList a4)
         Return a1 a2 -> A.Return a1 (maybeScalarExpr a2)
         ReturnNext a1 a2 -> A.ReturnNext a1 (scalarExpr a2)
         ReturnQuery a1 a2 -> A.ReturnQuery a1 (queryExpr a2)
-        SelectStatement a1 a2 -> A.SelectStatement a1 (queryExpr a2)
         Set a1 a2 a3 -> A.Set a1 a2 (fmap setValue a3)
         Truncate a1 a2 a3 a4 -> A.Truncate a1 a2 (restartIdentity a3)
                                   (cascade a4)
         Update a1 a2 a3 a4 a5 a6 -> A.Update a1 (scalarExpr a2)
                                       (scalarExprList a3)
                                       (tableRefList a4)
-                                      (maybeBoolScalarExpr a5)
+                                      (maybeBoolExpr a5)
                                       (maybeSelectList a6)
         WhileStatement a1 a2 a3 a4 -> A.WhileStatement a1 a2
                                         (scalarExpr a3)
@@ -741,15 +741,15 @@ statement x
 tableRef :: TableRef -> A.TableRef
 tableRef x
   = case x of
-        JoinedTref a1 a2 a3 a4 a5 a6 a7 -> A.JoinedTref a1 (tableRef a2)
-                                             (natural a3)
-                                             (joinType a4)
-                                             (tableRef a5)
-                                             (onExpr a6)
-                                             (tableAlias a7)
+        FunTref a1 a2 a3 -> A.FunTref a1 (scalarExpr a2) (tableAlias a3)
+        JoinTref a1 a2 a3 a4 a5 a6 a7 -> A.JoinTref a1 (tableRef a2)
+                                           (natural a3)
+                                           (joinType a4)
+                                           (tableRef a5)
+                                           (onExpr a6)
+                                           (tableAlias a7)
         SubTref a1 a2 a3 -> A.SubTref a1 (queryExpr a2) (tableAlias a3)
         Tref a1 a2 a3 -> A.Tref a1 (scalarExpr a2) (tableAlias a3)
-        TrefFun a1 a2 a3 -> A.TrefFun a1 (scalarExpr a2) (tableAlias a3)
  
 typeAttributeDef :: TypeAttributeDef -> A.TypeAttributeDef
 typeAttributeDef x
@@ -800,8 +800,8 @@ caseScalarExprListScalarExprPairList
 constraintList :: ConstraintList -> A.ConstraintList
 constraintList = fmap constraint
  
-maybeBoolScalarExpr :: MaybeBoolScalarExpr -> A.MaybeBoolScalarExpr
-maybeBoolScalarExpr = fmap scalarExpr
+maybeBoolExpr :: MaybeBoolExpr -> A.MaybeBoolExpr
+maybeBoolExpr = fmap scalarExpr
  
 maybeScalarExpr :: MaybeScalarExpr -> A.MaybeScalarExpr
 maybeScalarExpr = fmap scalarExpr
@@ -810,7 +810,7 @@ maybeSelectList :: MaybeSelectList -> A.MaybeSelectList
 maybeSelectList = fmap selectList
  
 onExpr :: OnExpr -> A.OnExpr
-onExpr = fmap joinScalarExpr
+onExpr = fmap joinExpr
  
 paramDefList :: ParamDefList -> A.ParamDefList
 paramDefList = fmap paramDef

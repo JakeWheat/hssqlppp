@@ -10,6 +10,7 @@ right choice, but it seems to do the job pretty well at the moment.
 >      parseStatements
 >     ,parseStatementsWithPosition
 >     ,parseStatementsFromFile
+>     ,parseQueryExpr
 >      -- * Testing
 >     ,parseScalarExpr
 >     ,parsePlpgsql
@@ -94,6 +95,21 @@ To support antiquotation, the following approach is used:
 >   x <- lexSqlFile fn
 >   return $ deAS $ parseIt x sqlStatements fn Nothing sc startState
 >
+
+> parseQueryExpr :: String -- ^ filename to use in errors
+>                -> String -- ^ a string containing the sql to parse
+>                -> Either ParseErrorExtra A.QueryExpr
+> parseQueryExpr f s =
+>   deQE $ parseIt l pqe f Nothing s startState
+>   where
+>     l = lexSqlText f s
+>     pqe :: SParser QueryExpr
+>     pqe = do
+>           (QueryStatement _ q) <- selectStatement
+>           optional (symbol ";")
+>           eof
+>           return q
+
 > -- | Parse expression fragment, used for testing purposes
 > parseScalarExpr :: String -- ^ filename for error messages
 >                 -> String -- ^ sql string containing a single expression,
@@ -179,6 +195,13 @@ To support antiquotation, the following approach is used:
 >                 Left e -> Left e
 >                 Right ex -> Right $ convertStatements ex
 
+> deQE :: Either ParseErrorExtra QueryExpr
+>      -> Either ParseErrorExtra A.QueryExpr
+> deQE x = case x of
+>                 Left e -> Left e
+>                 Right ex -> Right $ queryExpr ex
+
+
 --------------------------------------------------------------------------------
 
 > type SParser =  GenParser Token ParseState
@@ -247,7 +270,7 @@ recurses to support parsing excepts, unions, etc.
 this recursion needs refactoring cos it's a mess
 
 > selectStatement :: SParser Statement
-> selectStatement = SelectStatement <$> pos <*> selectScalarExpr
+> selectStatement = QueryStatement <$> pos <*> selectScalarExpr
 >
 > selectScalarExpr :: SParser QueryExpr
 > selectScalarExpr =
@@ -310,7 +333,7 @@ then we combine by seeing if there is a join looking prefix
 >                 do
 >                   p2 <- pos
 >                   (nat,jt) <- joinKw
->                   JoinedTref p2 tr1 nat jt
+>                   JoinTref p2 tr1 nat jt
 >                                    <$> trefTerm
 >                                    <*> onExpr
 >                                    <*> palias
@@ -324,7 +347,7 @@ then we combine by seeing if there is a join looking prefix
 >                          SubTref p2
 >                          <$> parens selectScalarExpr
 >                          <*> palias
->                         ,TrefFun p2
+>                         ,FunTref p2
 >                          <$> try (identifier >>= functionCallSuffix)
 >                          <*> palias
 >                         ,Tref p2
@@ -981,7 +1004,7 @@ plpgsql statements
 >                keyword "for"
 >                start <- qName
 >                keyword "in"
->                choice [ForSelectStatement p l start
+>                choice [ForQueryStatement p l start
 >                        <$> try selectScalarExpr <*> theRest
 >                       ,ForIntegerStatement p l start
 >                               <$> expr

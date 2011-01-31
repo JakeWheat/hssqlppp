@@ -356,7 +356,7 @@ the publi conversion functions
 
 > exports :: (Data a) => a -> [ExportSpec]
 > exports ast = map (\l -> EVar (UnQual (Ident l)))
->                  ["convertStatements", "convertScalarExpr", "attributeDef"] ++
+>                  ["convertStatements", "convertScalarExpr", "attributeDef", "queryExpr"] ++
 >               [ex| ex@(EThingAll _) <- universeBi ast] ++
 >               [ex| ex@(EAbs _) <- universeBi ast]
 

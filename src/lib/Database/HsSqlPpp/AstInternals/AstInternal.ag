@@ -56,7 +56,7 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    --,SetClause (..)
    ,TableRef (..)
    ,TableAlias(..)
-   ,JoinScalarExpr (..)
+   ,JoinExpr (..)
    ,JoinType (..)
    ,SelectList (..)
    ,SelectItem (..)
@@ -113,7 +113,7 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,CaseScalarExprListScalarExprPair
    ,ScalarExprDirectionPair
    ,ScalarExprDirectionPairList
-   ,MaybeBoolScalarExpr
+   ,MaybeBoolExpr
    ,MaybeSelectList
    ,SetValue(..)
    ,AlterTableActionList
@@ -121,6 +121,7 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,typeCheckStatements
    ,typeCheckParameterizedStatement
    ,typeCheckScalarExpr
+   ,canonicaliseIdentifiers
 }
 
 {
@@ -158,7 +159,7 @@ DATA Statement
 
 --queries
 
-    | SelectStatement ann:Annotation ex:QueryExpr
+    | QueryStatement ann:Annotation ex:QueryExpr
 
 -- dml
 
@@ -173,13 +174,13 @@ DATA Statement
              table : ScalarExpr
              assigns : ScalarExprList --SetClauseList
              fromList : TableRefList
-             whr : MaybeBoolScalarExpr
+             whr : MaybeBoolExpr
              returning : MaybeSelectList
     --tablename, where, returning
     | Delete ann:Annotation
              table : ScalarExpr
              using : TableRefList
-             whr : MaybeBoolScalarExpr
+             whr : MaybeBoolExpr
              returning : MaybeSelectList
     --tablename column names, from
     | Copy ann:Annotation
@@ -235,7 +236,7 @@ DATA Statement
                    name : String
                    typ : TypeName
                    checkName: String
-                   check : MaybeBoolScalarExpr
+                   check : MaybeBoolExpr
     | CreateLanguage ann:Annotation
                      name:String
     | CreateTrigger ann:Annotation
@@ -278,11 +279,11 @@ DATA Statement
     | ExecuteInto ann:Annotation
                   expr : ScalarExpr
                   targets : {[String]}
-    | ForSelectStatement ann:Annotation
-                         lb : {Maybe String}
-                         var : ScalarExpr
-                         sel : QueryExpr
-                         sts : StatementList
+    | ForQueryStatement ann:Annotation
+                        lb : {Maybe String}
+                        var : ScalarExpr
+                        sel : QueryExpr
+                        sts : StatementList
     | ForIntegerStatement ann:Annotation
                           lb : {Maybe String}
                           var : ScalarExpr
@@ -329,9 +330,9 @@ DATA QueryExpr
              selDistinct : Distinct
              selSelectList : SelectList
              selTref : TableRefList
-             selWhere : MaybeBoolScalarExpr
+             selWhere : MaybeBoolExpr
              selGroupBy : ScalarExprList
-             selHaving : MaybeBoolScalarExpr
+             selHaving : MaybeBoolExpr
              selOrderBy : ScalarExprDirectionPairList
              selLimit : MaybeScalarExpr
              selOffset : MaybeScalarExpr
@@ -356,17 +357,17 @@ DATA FnBody | SqlFnBody ann:Annotation sts : StatementList
 DATA TableRef | Tref ann:Annotation
                      tbl:ScalarExpr
                      alias : TableAlias
-              | JoinedTref ann:Annotation
-                           tbl : TableRef
-                           nat : Natural
-                           joinType : JoinType
-                           tbl1 : TableRef
-                           onExpr : OnExpr
-                           alias : TableAlias
+              | JoinTref ann:Annotation
+                         tbl : TableRef
+                         nat : Natural
+                         joinType : JoinType
+                         tbl1 : TableRef
+                         onExpr : OnExpr
+                         alias : TableAlias
               | SubTref ann:Annotation
                         sel : QueryExpr
                         alias : TableAlias
-              | TrefFun ann:Annotation
+              | FunTref ann:Annotation
                         fn:ScalarExpr
                         alias : TableAlias
 {
@@ -376,8 +377,8 @@ data TableAlias = NoAlias
                   deriving (Show,Eq,Typeable,Data)
 }
 
-DATA JoinScalarExpr | JoinOn ann:Annotation expr:ScalarExpr
-                    | JoinUsing ann:Annotation x:{[String]}
+DATA JoinExpr | JoinOn ann:Annotation expr:ScalarExpr
+              | JoinUsing ann:Annotation x:{[String]}
 
 {
 data JoinType = Inner | LeftOuter| RightOuter | FullOuter | Cross
@@ -654,12 +655,12 @@ currently supported keyword operators.
 -- some list nodes, not sure if all of these are needed as separately
 -- named node types
 
-TYPE OnExpr = MAYBE JoinScalarExpr
+TYPE OnExpr = MAYBE JoinExpr
 TYPE MaybeSelectList = MAYBE SelectList
 
 TYPE TableRefList = [TableRef]
 TYPE MaybeScalarExpr = MAYBE ScalarExpr
-TYPE MaybeBoolScalarExpr = MAYBE ScalarExpr
+TYPE MaybeBoolExpr = MAYBE ScalarExpr
 
 TYPE ScalarExprList = [ScalarExpr]
 TYPE ScalarExprListList = [ScalarExprList]
@@ -707,11 +708,11 @@ attributes which every node has
 -}
 
 SET AllNodes = Statement QueryExpr FnBody TableRef
-               JoinScalarExpr
+               JoinExpr
                SelectList SelectItem AttributeDef RowConstraint
                TypeAttributeDef ParamDef VarDef Constraint
                TypeName
-               ScalarExpr InList MaybeScalarExpr MaybeBoolScalarExpr
+               ScalarExpr InList MaybeScalarExpr MaybeBoolExpr
                ScalarExprList ScalarExprListList
                AttributeDefList ConstraintList TypeAttributeDefList
                ParamDefList TypeNameList StringTypeNameListPair
@@ -791,7 +792,7 @@ typeCheckStatements cat sts =
 typeCheckParameterizedStatement :: Catalog -> Statement -> Either String Statement
 typeCheckParameterizedStatement cat st =
     case st of
-      SelectStatement _ _ -> tc
+      QueryStatement _ _ -> tc
       Insert _ _ _ _ _ -> tc
       Update _ _ _ _ _ _ -> tc
       Delete _ _ _ _ _ -> tc
@@ -833,11 +834,17 @@ fixupImplicitJoins =
                   -> Select an dis sl [convTrefs trs] whr grp hav od lim off
               x1 -> x1
     where
-      convTrefs (tr:tr1:trs) = JoinedTref emptyAnnotation tr Unnatural Cross (convTrefs (tr1:trs)) Nothing NoAlias
+      convTrefs (tr:tr1:trs) = JoinTref emptyAnnotation tr Unnatural Cross (convTrefs (tr1:trs)) Nothing NoAlias
       convTrefs (tr:[]) = tr
       convTrefs _ = error "failed doing implicit join fixup hack"
 
+canonicaliseIdentifiers :: Catalog -> [QueryExpr] -> [QueryExpr]
+canonicaliseIdentifiers _cat _sts = undefined
+
+
 }
+
+--INCLUDE "TypeChecking/CanonicaliseIdentifiers.ag"
 
 {-
 

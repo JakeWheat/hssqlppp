@@ -126,7 +126,7 @@ SEM MaybeScalarExpr
 
 -- maybe bool expression: if present, then check its type is bool
 
-SEM MaybeBoolScalarExpr
+SEM MaybeBoolExpr
     | Just
         lhs.annotatedTree = let t = @just.uType
                             in if t `elem` [Nothing,Just typeBool]
@@ -541,10 +541,10 @@ SEM ScalarExprList
                                (_:ts) -> ts
                                _ -> []
 
-SEM JoinScalarExpr
+SEM JoinExpr
     | JoinOn expr.expectedType = Just typeBool
 
-SEM MaybeBoolScalarExpr
+SEM MaybeBoolExpr
     | Just just.expectedType = Just typeBool
 
 SEM MaybeScalarExpr
@@ -569,9 +569,9 @@ SEM Statement
                           to.expectedType = Nothing
     | AlterSequence ownedBy.expectedType = Nothing
     | Assignment target.expectedType = Nothing
-    | ForIntegerStatement ForSelectStatement var.expectedType = Nothing
+    | ForIntegerStatement ForQueryStatement var.expectedType = Nothing
 SEM TableRef
-    | TrefFun fn.expectedType = Nothing
+    | FunTref fn.expectedType = Nothing
     | Tref tbl.expectedType = Nothing
 
 SEM ScalarExprRoot
@@ -628,9 +628,9 @@ SEM InList
     | InSelect sel.expectedTypes = []
 SEM Statement
     | CreateTableAs CreateView expr.expectedTypes = []
-    | ForSelectStatement ReturnQuery
+    | ForQueryStatement ReturnQuery
         sel.expectedTypes = []
-    | SelectStatement ex.expectedTypes = []
+    | QueryStatement ex.expectedTypes = []
 SEM TableRef
     | SubTref sel.expectedTypes = []
 SEM WithQuery

@@ -22,7 +22,7 @@
 >     ,SelectItem (..)
 >     ,TableRef (..)
 >     ,TableAlias(..)
->     ,JoinScalarExpr (..)
+>     ,JoinExpr (..)
 >     ,JoinType (..)
 >     ,Natural (..)
 >     ,CombineType (..)
@@ -76,7 +76,7 @@
 >     ,ScalarExprStatementListPairList
 >     ,CaseScalarExprListScalarExprPairList
 >     ,MaybeScalarExpr
->     ,MaybeBoolScalarExpr
+>     ,MaybeBoolExpr
 >     ,TableRefList
 >     ,ScalarExprListList
 >     ,SelectItemList

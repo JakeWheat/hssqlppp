@@ -13,7 +13,7 @@ module Database.HsSqlPpp.AstInternals.AstInternal(
    --,SetClause (..)
    ,TableRef (..)
    ,TableAlias(..)
-   ,JoinScalarExpr (..)
+   ,JoinExpr (..)
    ,JoinType (..)
    ,SelectList (..)
    ,SelectItem (..)
@@ -70,7 +70,7 @@ module Database.HsSqlPpp.AstInternals.AstInternal(
    ,CaseScalarExprListScalarExprPair
    ,ScalarExprDirectionPair
    ,ScalarExprDirectionPairList
-   ,MaybeBoolScalarExpr
+   ,MaybeBoolExpr
    ,MaybeSelectList
    ,SetValue(..)
    ,AlterTableActionList
@@ -78,6 +78,7 @@ module Database.HsSqlPpp.AstInternals.AstInternal(
    ,typeCheckStatements
    ,typeCheckParameterizedStatement
    ,typeCheckScalarExpr
+   ,canonicaliseIdentifiers
 ) where
 
 import Data.Maybe
@@ -220,7 +221,7 @@ typeCheckStatements cat sts =
 typeCheckParameterizedStatement :: Catalog -> Statement -> Either String Statement
 typeCheckParameterizedStatement cat st =
     case st of
-      SelectStatement _ _ -> tc
+      QueryStatement _ _ -> tc
       Insert _ _ _ _ _ -> tc
       Update _ _ _ _ _ _ -> tc
       Delete _ _ _ _ _ -> tc
@@ -262,9 +263,13 @@ fixupImplicitJoins =
                   -> Select an dis sl [convTrefs trs] whr grp hav od lim off
               x1 -> x1
     where
-      convTrefs (tr:tr1:trs) = JoinedTref emptyAnnotation tr Unnatural Cross (convTrefs (tr1:trs)) Nothing NoAlias
+      convTrefs (tr:tr1:trs) = JoinTref emptyAnnotation tr Unnatural Cross (convTrefs (tr1:trs)) Nothing NoAlias
       convTrefs (tr:[]) = tr
       convTrefs _ = error "failed doing implicit join fixup hack"
+
+canonicaliseIdentifiers :: Catalog -> [QueryExpr] -> [QueryExpr]
+canonicaliseIdentifiers _cat _sts = undefined
+
 
 
 
@@ -1706,7 +1711,7 @@ sem_InList_InSelect ann_ sel_  =
               ( _selIannotatedTree,_selIlibUpdates,_selIoriginalTree,_selIuType) =
                   (sel_ _selOcat _selOexpectedTypes _selOlib )
           in  ( _lhsOannotatedTree,_lhsOlistType,_lhsOoriginalTree)))
--- JoinScalarExpr ----------------------------------------------
+-- JoinExpr ----------------------------------------------------
 {-
    visit 0:
       inherited attributes:
@@ -1729,38 +1734,38 @@ sem_InList_InSelect ann_ sel_  =
             local annotatedTree : _
             local originalTree : _
 -}
-data JoinScalarExpr  = JoinOn (Annotation) (ScalarExpr) 
-                     | JoinUsing (Annotation) ([String]) 
-                     deriving ( Data,Eq,Show,Typeable)
+data JoinExpr  = JoinOn (Annotation) (ScalarExpr) 
+               | JoinUsing (Annotation) ([String]) 
+               deriving ( Data,Eq,Show,Typeable)
 -- cata
-sem_JoinScalarExpr :: JoinScalarExpr  ->
-                      T_JoinScalarExpr 
-sem_JoinScalarExpr (JoinOn _ann _expr )  =
-    (sem_JoinScalarExpr_JoinOn _ann (sem_ScalarExpr _expr ) )
-sem_JoinScalarExpr (JoinUsing _ann _x )  =
-    (sem_JoinScalarExpr_JoinUsing _ann _x )
+sem_JoinExpr :: JoinExpr  ->
+                T_JoinExpr 
+sem_JoinExpr (JoinOn _ann _expr )  =
+    (sem_JoinExpr_JoinOn _ann (sem_ScalarExpr _expr ) )
+sem_JoinExpr (JoinUsing _ann _x )  =
+    (sem_JoinExpr_JoinUsing _ann _x )
 -- semantic domain
-type T_JoinScalarExpr  = Catalog ->
-                         LocalBindings ->
-                         ( JoinScalarExpr,JoinScalarExpr)
-data Inh_JoinScalarExpr  = Inh_JoinScalarExpr {cat_Inh_JoinScalarExpr :: Catalog,lib_Inh_JoinScalarExpr :: LocalBindings}
-data Syn_JoinScalarExpr  = Syn_JoinScalarExpr {annotatedTree_Syn_JoinScalarExpr :: JoinScalarExpr,originalTree_Syn_JoinScalarExpr :: JoinScalarExpr}
-wrap_JoinScalarExpr :: T_JoinScalarExpr  ->
-                       Inh_JoinScalarExpr  ->
-                       Syn_JoinScalarExpr 
-wrap_JoinScalarExpr sem (Inh_JoinScalarExpr _lhsIcat _lhsIlib )  =
+type T_JoinExpr  = Catalog ->
+                   LocalBindings ->
+                   ( JoinExpr,JoinExpr)
+data Inh_JoinExpr  = Inh_JoinExpr {cat_Inh_JoinExpr :: Catalog,lib_Inh_JoinExpr :: LocalBindings}
+data Syn_JoinExpr  = Syn_JoinExpr {annotatedTree_Syn_JoinExpr :: JoinExpr,originalTree_Syn_JoinExpr :: JoinExpr}
+wrap_JoinExpr :: T_JoinExpr  ->
+                 Inh_JoinExpr  ->
+                 Syn_JoinExpr 
+wrap_JoinExpr sem (Inh_JoinExpr _lhsIcat _lhsIlib )  =
     (let ( _lhsOannotatedTree,_lhsOoriginalTree) =
              (sem _lhsIcat _lhsIlib )
-     in  (Syn_JoinScalarExpr _lhsOannotatedTree _lhsOoriginalTree ))
-sem_JoinScalarExpr_JoinOn :: Annotation ->
-                             T_ScalarExpr  ->
-                             T_JoinScalarExpr 
-sem_JoinScalarExpr_JoinOn ann_ expr_  =
+     in  (Syn_JoinExpr _lhsOannotatedTree _lhsOoriginalTree ))
+sem_JoinExpr_JoinOn :: Annotation ->
+                       T_ScalarExpr  ->
+                       T_JoinExpr 
+sem_JoinExpr_JoinOn ann_ expr_  =
     (\ _lhsIcat
        _lhsIlib ->
          (let _exprOexpectedType :: (Maybe Type)
-              _lhsOannotatedTree :: JoinScalarExpr
-              _lhsOoriginalTree :: JoinScalarExpr
+              _lhsOannotatedTree :: JoinExpr
+              _lhsOoriginalTree :: JoinExpr
               _exprOcat :: Catalog
               _exprOlib :: LocalBindings
               _exprIannotatedTree :: ScalarExpr
@@ -1794,14 +1799,14 @@ sem_JoinScalarExpr_JoinOn ann_ expr_  =
               ( _exprIannotatedTree,_exprIntAnnotatedTree,_exprIntType,_exprIoriginalTree,_exprItbAnnotatedTree,_exprItbUType,_exprIuType) =
                   (expr_ _exprOcat _exprOexpectedType _exprOlib )
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
-sem_JoinScalarExpr_JoinUsing :: Annotation ->
-                                ([String]) ->
-                                T_JoinScalarExpr 
-sem_JoinScalarExpr_JoinUsing ann_ x_  =
+sem_JoinExpr_JoinUsing :: Annotation ->
+                          ([String]) ->
+                          T_JoinExpr 
+sem_JoinExpr_JoinUsing ann_ x_  =
     (\ _lhsIcat
        _lhsIlib ->
-         (let _lhsOannotatedTree :: JoinScalarExpr
-              _lhsOoriginalTree :: JoinScalarExpr
+         (let _lhsOannotatedTree :: JoinExpr
+              _lhsOoriginalTree :: JoinExpr
               -- self rule
               _annotatedTree =
                   JoinUsing ann_ x_
@@ -1815,7 +1820,7 @@ sem_JoinScalarExpr_JoinUsing ann_ x_  =
               _lhsOoriginalTree =
                   _originalTree
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
--- MaybeBoolScalarExpr -----------------------------------------
+-- MaybeBoolExpr -----------------------------------------------
 {-
    visit 0:
       inherited attributes:
@@ -1835,35 +1840,35 @@ sem_JoinScalarExpr_JoinUsing ann_ x_  =
             local annotatedTree : _
             local originalTree : _
 -}
-type MaybeBoolScalarExpr  = (Maybe (ScalarExpr))
+type MaybeBoolExpr  = (Maybe (ScalarExpr))
 -- cata
-sem_MaybeBoolScalarExpr :: MaybeBoolScalarExpr  ->
-                           T_MaybeBoolScalarExpr 
-sem_MaybeBoolScalarExpr (Prelude.Just x )  =
-    (sem_MaybeBoolScalarExpr_Just (sem_ScalarExpr x ) )
-sem_MaybeBoolScalarExpr Prelude.Nothing  =
-    sem_MaybeBoolScalarExpr_Nothing
+sem_MaybeBoolExpr :: MaybeBoolExpr  ->
+                     T_MaybeBoolExpr 
+sem_MaybeBoolExpr (Prelude.Just x )  =
+    (sem_MaybeBoolExpr_Just (sem_ScalarExpr x ) )
+sem_MaybeBoolExpr Prelude.Nothing  =
+    sem_MaybeBoolExpr_Nothing
 -- semantic domain
-type T_MaybeBoolScalarExpr  = Catalog ->
-                              LocalBindings ->
-                              ( MaybeBoolScalarExpr,MaybeBoolScalarExpr)
-data Inh_MaybeBoolScalarExpr  = Inh_MaybeBoolScalarExpr {cat_Inh_MaybeBoolScalarExpr :: Catalog,lib_Inh_MaybeBoolScalarExpr :: LocalBindings}
-data Syn_MaybeBoolScalarExpr  = Syn_MaybeBoolScalarExpr {annotatedTree_Syn_MaybeBoolScalarExpr :: MaybeBoolScalarExpr,originalTree_Syn_MaybeBoolScalarExpr :: MaybeBoolScalarExpr}
-wrap_MaybeBoolScalarExpr :: T_MaybeBoolScalarExpr  ->
-                            Inh_MaybeBoolScalarExpr  ->
-                            Syn_MaybeBoolScalarExpr 
-wrap_MaybeBoolScalarExpr sem (Inh_MaybeBoolScalarExpr _lhsIcat _lhsIlib )  =
+type T_MaybeBoolExpr  = Catalog ->
+                        LocalBindings ->
+                        ( MaybeBoolExpr,MaybeBoolExpr)
+data Inh_MaybeBoolExpr  = Inh_MaybeBoolExpr {cat_Inh_MaybeBoolExpr :: Catalog,lib_Inh_MaybeBoolExpr :: LocalBindings}
+data Syn_MaybeBoolExpr  = Syn_MaybeBoolExpr {annotatedTree_Syn_MaybeBoolExpr :: MaybeBoolExpr,originalTree_Syn_MaybeBoolExpr :: MaybeBoolExpr}
+wrap_MaybeBoolExpr :: T_MaybeBoolExpr  ->
+                      Inh_MaybeBoolExpr  ->
+                      Syn_MaybeBoolExpr 
+wrap_MaybeBoolExpr sem (Inh_MaybeBoolExpr _lhsIcat _lhsIlib )  =
     (let ( _lhsOannotatedTree,_lhsOoriginalTree) =
              (sem _lhsIcat _lhsIlib )
-     in  (Syn_MaybeBoolScalarExpr _lhsOannotatedTree _lhsOoriginalTree ))
-sem_MaybeBoolScalarExpr_Just :: T_ScalarExpr  ->
-                                T_MaybeBoolScalarExpr 
-sem_MaybeBoolScalarExpr_Just just_  =
+     in  (Syn_MaybeBoolExpr _lhsOannotatedTree _lhsOoriginalTree ))
+sem_MaybeBoolExpr_Just :: T_ScalarExpr  ->
+                          T_MaybeBoolExpr 
+sem_MaybeBoolExpr_Just just_  =
     (\ _lhsIcat
        _lhsIlib ->
-         (let _lhsOannotatedTree :: MaybeBoolScalarExpr
+         (let _lhsOannotatedTree :: MaybeBoolExpr
               _justOexpectedType :: (Maybe Type)
-              _lhsOoriginalTree :: MaybeBoolScalarExpr
+              _lhsOoriginalTree :: MaybeBoolExpr
               _justOcat :: Catalog
               _justOlib :: LocalBindings
               _justIannotatedTree :: ScalarExpr
@@ -1900,12 +1905,12 @@ sem_MaybeBoolScalarExpr_Just just_  =
               ( _justIannotatedTree,_justIntAnnotatedTree,_justIntType,_justIoriginalTree,_justItbAnnotatedTree,_justItbUType,_justIuType) =
                   (just_ _justOcat _justOexpectedType _justOlib )
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
-sem_MaybeBoolScalarExpr_Nothing :: T_MaybeBoolScalarExpr 
-sem_MaybeBoolScalarExpr_Nothing  =
+sem_MaybeBoolExpr_Nothing :: T_MaybeBoolExpr 
+sem_MaybeBoolExpr_Nothing  =
     (\ _lhsIcat
        _lhsIlib ->
-         (let _lhsOannotatedTree :: MaybeBoolScalarExpr
-              _lhsOoriginalTree :: MaybeBoolScalarExpr
+         (let _lhsOannotatedTree :: MaybeBoolExpr
+              _lhsOoriginalTree :: MaybeBoolExpr
               -- self rule
               _annotatedTree =
                   Nothing
@@ -2143,7 +2148,7 @@ sem_MaybeSelectList_Nothing  =
          originalTree         : SELF 
    alternatives:
       alternative Just:
-         child just           : JoinScalarExpr 
+         child just           : JoinExpr 
          visit 0:
             local annotatedTree : _
             local originalTree : _
@@ -2152,12 +2157,12 @@ sem_MaybeSelectList_Nothing  =
             local annotatedTree : _
             local originalTree : _
 -}
-type OnExpr  = (Maybe (JoinScalarExpr))
+type OnExpr  = (Maybe (JoinExpr))
 -- cata
 sem_OnExpr :: OnExpr  ->
               T_OnExpr 
 sem_OnExpr (Prelude.Just x )  =
-    (sem_OnExpr_Just (sem_JoinScalarExpr x ) )
+    (sem_OnExpr_Just (sem_JoinExpr x ) )
 sem_OnExpr Prelude.Nothing  =
     sem_OnExpr_Nothing
 -- semantic domain
@@ -2173,7 +2178,7 @@ wrap_OnExpr sem (Inh_OnExpr _lhsIcat _lhsIlib )  =
     (let ( _lhsOannotatedTree,_lhsOoriginalTree) =
              (sem _lhsIcat _lhsIlib )
      in  (Syn_OnExpr _lhsOannotatedTree _lhsOoriginalTree ))
-sem_OnExpr_Just :: T_JoinScalarExpr  ->
+sem_OnExpr_Just :: T_JoinExpr  ->
                    T_OnExpr 
 sem_OnExpr_Just just_  =
     (\ _lhsIcat
@@ -2182,8 +2187,8 @@ sem_OnExpr_Just just_  =
               _lhsOoriginalTree :: OnExpr
               _justOcat :: Catalog
               _justOlib :: LocalBindings
-              _justIannotatedTree :: JoinScalarExpr
-              _justIoriginalTree :: JoinScalarExpr
+              _justIannotatedTree :: JoinExpr
+              _justIoriginalTree :: JoinExpr
               -- self rule
               _annotatedTree =
                   Just _justIannotatedTree
@@ -2518,9 +2523,9 @@ sem_ParamDefList_Nil  =
          child selDistinct    : {Distinct}
          child selSelectList  : SelectList 
          child selTref        : TableRefList 
-         child selWhere       : MaybeBoolScalarExpr 
+         child selWhere       : MaybeBoolExpr 
          child selGroupBy     : ScalarExprList 
-         child selHaving      : MaybeBoolScalarExpr 
+         child selHaving      : MaybeBoolExpr 
          child selOrderBy     : ScalarExprDirectionPairList 
          child selLimit       : MaybeScalarExpr 
          child selOffset      : MaybeScalarExpr 
@@ -2549,7 +2554,7 @@ sem_ParamDefList_Nil  =
             local originalTree : _
 -}
 data QueryExpr  = CombineSelect (Annotation) (CombineType) (QueryExpr) (QueryExpr) 
-                | Select (Annotation) (Distinct) (SelectList) (TableRefList) (MaybeBoolScalarExpr) (ScalarExprList) (MaybeBoolScalarExpr) (ScalarExprDirectionPairList) (MaybeScalarExpr) (MaybeScalarExpr) 
+                | Select (Annotation) (Distinct) (SelectList) (TableRefList) (MaybeBoolExpr) (ScalarExprList) (MaybeBoolExpr) (ScalarExprDirectionPairList) (MaybeScalarExpr) (MaybeScalarExpr) 
                 | Values (Annotation) (ScalarExprListList) 
                 | WithSelect (Annotation) (WithQueryList) (QueryExpr) 
                 deriving ( Data,Eq,Show,Typeable)
@@ -2559,7 +2564,7 @@ sem_QueryExpr :: QueryExpr  ->
 sem_QueryExpr (CombineSelect _ann _ctype _sel1 _sel2 )  =
     (sem_QueryExpr_CombineSelect _ann _ctype (sem_QueryExpr _sel1 ) (sem_QueryExpr _sel2 ) )
 sem_QueryExpr (Select _ann _selDistinct _selSelectList _selTref _selWhere _selGroupBy _selHaving _selOrderBy _selLimit _selOffset )  =
-    (sem_QueryExpr_Select _ann _selDistinct (sem_SelectList _selSelectList ) (sem_TableRefList _selTref ) (sem_MaybeBoolScalarExpr _selWhere ) (sem_ScalarExprList _selGroupBy ) (sem_MaybeBoolScalarExpr _selHaving ) (sem_ScalarExprDirectionPairList _selOrderBy ) (sem_MaybeScalarExpr _selLimit ) (sem_MaybeScalarExpr _selOffset ) )
+    (sem_QueryExpr_Select _ann _selDistinct (sem_SelectList _selSelectList ) (sem_TableRefList _selTref ) (sem_MaybeBoolExpr _selWhere ) (sem_ScalarExprList _selGroupBy ) (sem_MaybeBoolExpr _selHaving ) (sem_ScalarExprDirectionPairList _selOrderBy ) (sem_MaybeScalarExpr _selLimit ) (sem_MaybeScalarExpr _selOffset ) )
 sem_QueryExpr (Values _ann _vll )  =
     (sem_QueryExpr_Values _ann (sem_ScalarExprListList _vll ) )
 sem_QueryExpr (WithSelect _ann _withs _ex )  =
@@ -2606,24 +2611,24 @@ sem_QueryExpr_CombineSelect ann_ ctype_ sel1_ sel2_  =
               _sel2IlibUpdates :: ([LocalBindingsUpdate])
               _sel2IoriginalTree :: QueryExpr
               _sel2IuType :: (Maybe [(String,Type)])
-              -- "./TypeChecking/SelectStatement.ag"(line 29, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 29, column 9)
               _lhsOannotatedTree =
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/SelectStatement.ag"(line 115, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 115, column 9)
               _lhsOlibUpdates =
                   []
-              -- "./TypeChecking/SelectStatement.ag"(line 142, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 142, column 9)
               _tpe =
                   do
                   sel1t <- lmt ((SetOfType . CompositeType) <$> _sel1IuType)
                   sel2t <- lmt ((SetOfType . CompositeType) <$> _sel2IuType)
                   typeCheckCombineSelect _lhsIcat sel1t sel2t
-              -- "./TypeChecking/SelectStatement.ag"(line 148, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 148, column 9)
               _backTree =
                   CombineSelect ann_ ctype_
                                 _sel1IannotatedTree
                                 _sel2IannotatedTree
-              -- "./TypeChecking/SelectStatement.ag"(line 159, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 159, column 9)
               _lhsOuType =
                   etmt (_tpe     >>= unwrapSetOfComposite)
               -- self rule
@@ -2662,9 +2667,9 @@ sem_QueryExpr_Select :: Annotation ->
                         Distinct ->
                         T_SelectList  ->
                         T_TableRefList  ->
-                        T_MaybeBoolScalarExpr  ->
+                        T_MaybeBoolExpr  ->
                         T_ScalarExprList  ->
-                        T_MaybeBoolScalarExpr  ->
+                        T_MaybeBoolExpr  ->
                         T_ScalarExprDirectionPairList  ->
                         T_MaybeScalarExpr  ->
                         T_MaybeScalarExpr  ->
@@ -2702,14 +2707,14 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
               _selTrefIannotatedTree :: TableRefList
               _selTrefIlibUpdates :: ([LocalBindingsUpdate])
               _selTrefIoriginalTree :: TableRefList
-              _selWhereIannotatedTree :: MaybeBoolScalarExpr
-              _selWhereIoriginalTree :: MaybeBoolScalarExpr
+              _selWhereIannotatedTree :: MaybeBoolExpr
+              _selWhereIoriginalTree :: MaybeBoolExpr
               _selGroupByIannotatedTree :: ScalarExprList
               _selGroupByIoriginalTree :: ScalarExprList
               _selGroupByItbUTypes :: ([Maybe ([(String,Type)],[(String,Type)])])
               _selGroupByIuType :: ([Maybe Type])
-              _selHavingIannotatedTree :: MaybeBoolScalarExpr
-              _selHavingIoriginalTree :: MaybeBoolScalarExpr
+              _selHavingIannotatedTree :: MaybeBoolExpr
+              _selHavingIoriginalTree :: MaybeBoolExpr
               _selOrderByIannotatedTree :: ScalarExprDirectionPairList
               _selOrderByIoriginalTree :: ScalarExprDirectionPairList
               _selLimitIannotatedTree :: MaybeScalarExpr
@@ -2721,33 +2726,33 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
               -- "./TypeChecking/ScalarExprs.ag"(line 605, column 14)
               _selGroupByOexpectedTypes =
                   []
-              -- "./TypeChecking/SelectStatement.ag"(line 29, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 29, column 9)
               _lhsOannotatedTree =
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/SelectStatement.ag"(line 98, column 10)
+              -- "./TypeChecking/QueryStatement.ag"(line 98, column 10)
               _newLib =
                   case foldM (flip $ lbUpdate _lhsIcat) _lhsIlib _selTrefIlibUpdates of
                     Left x -> error $ "selectexpression-select-loc.newlib " ++ show x
                     Right e -> e
-              -- "./TypeChecking/SelectStatement.ag"(line 101, column 10)
+              -- "./TypeChecking/QueryStatement.ag"(line 101, column 10)
               _selSelectListOlib =
                   _newLib
-              -- "./TypeChecking/SelectStatement.ag"(line 102, column 10)
+              -- "./TypeChecking/QueryStatement.ag"(line 102, column 10)
               _selWhereOlib =
                   _newLib
-              -- "./TypeChecking/SelectStatement.ag"(line 103, column 10)
+              -- "./TypeChecking/QueryStatement.ag"(line 103, column 10)
               _selGroupByOlib =
                   _newLib
-              -- "./TypeChecking/SelectStatement.ag"(line 104, column 10)
+              -- "./TypeChecking/QueryStatement.ag"(line 104, column 10)
               _selOrderByOlib =
                   _newLib
-              -- "./TypeChecking/SelectStatement.ag"(line 117, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   _selSelectListIlibUpdates
-              -- "./TypeChecking/SelectStatement.ag"(line 129, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 129, column 9)
               _tpe =
                   Right $ SetOfType $ CompositeType _selSelectListIlistType
-              -- "./TypeChecking/SelectStatement.ag"(line 131, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 131, column 9)
               _backTree =
                   Select ann_
                          selDistinct_
@@ -2759,7 +2764,7 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
                          _selOrderByIannotatedTree
                          _selLimitIannotatedTree
                          _selOffsetIannotatedTree
-              -- "./TypeChecking/SelectStatement.ag"(line 159, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 159, column 9)
               _lhsOuType =
                   etmt (_tpe     >>= unwrapSetOfComposite)
               -- self rule
@@ -2845,21 +2850,21 @@ sem_QueryExpr_Values ann_ vll_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 619, column 14)
               _vllOexpectedTypes =
                   _lhsIexpectedTypes
-              -- "./TypeChecking/SelectStatement.ag"(line 29, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 29, column 9)
               _lhsOannotatedTree =
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/SelectStatement.ag"(line 115, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 115, column 9)
               _lhsOlibUpdates =
                   []
-              -- "./TypeChecking/SelectStatement.ag"(line 124, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 124, column 9)
               _tpe =
                   typeCheckValuesExpr
                               _lhsIcat
                               _vllIuType
-              -- "./TypeChecking/SelectStatement.ag"(line 127, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 127, column 9)
               _backTree =
                   Values ann_ _vllIannotatedTree
-              -- "./TypeChecking/SelectStatement.ag"(line 159, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 159, column 9)
               _lhsOuType =
                   etmt (_tpe     >>= unwrapSetOfComposite)
               -- self rule
@@ -2906,25 +2911,25 @@ sem_QueryExpr_WithSelect ann_ withs_ ex_  =
               _exIlibUpdates :: ([LocalBindingsUpdate])
               _exIoriginalTree :: QueryExpr
               _exIuType :: (Maybe [(String,Type)])
-              -- "./TypeChecking/SelectStatement.ag"(line 29, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 29, column 9)
               _lhsOannotatedTree =
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/SelectStatement.ag"(line 119, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 119, column 9)
               _lhsOlibUpdates =
                   _exIlibUpdates
-              -- "./TypeChecking/SelectStatement.ag"(line 152, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 152, column 9)
               _tpe =
                   lmt ((SetOfType . CompositeType) <$> _exIuType)
-              -- "./TypeChecking/SelectStatement.ag"(line 153, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 153, column 9)
               _backTree =
                   WithSelect ann_ _withsIannotatedTree _exIannotatedTree
-              -- "./TypeChecking/SelectStatement.ag"(line 154, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 154, column 9)
               _exOcat =
                   _withsIproducedCat
-              -- "./TypeChecking/SelectStatement.ag"(line 155, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 155, column 9)
               _withsOcatUpdates =
                   []
-              -- "./TypeChecking/SelectStatement.ag"(line 159, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 159, column 9)
               _lhsOuType =
                   etmt (_tpe     >>= unwrapSetOfComposite)
               -- self rule
@@ -6897,7 +6902,7 @@ sem_SelectList_SelectList ann_ items_ into_  =
          child name           : {String}
          child typ            : TypeName 
          child checkName      : {String}
-         child check          : MaybeBoolScalarExpr 
+         child check          : MaybeBoolExpr 
          visit 0:
             local libUpdates  : _
             local tpe         : {Either [TypeError] Type}
@@ -7014,7 +7019,7 @@ sem_SelectList_SelectList ann_ items_ into_  =
          child ann            : {Annotation}
          child table          : ScalarExpr 
          child using          : TableRefList 
-         child whr            : MaybeBoolScalarExpr 
+         child whr            : MaybeBoolExpr 
          child returning      : MaybeSelectList 
          visit 0:
             local libUpdates  : _
@@ -7082,7 +7087,7 @@ sem_SelectList_SelectList ann_ items_ into_  =
             local statementType : {Maybe StatementType}
             local annotatedTree : _
             local originalTree : _
-      alternative ForSelectStatement:
+      alternative ForQueryStatement:
          child ann            : {Annotation}
          child lb             : {Maybe String}
          child var            : ScalarExpr 
@@ -7143,6 +7148,17 @@ sem_SelectList_SelectList ann_ items_ into_  =
          visit 0:
             local annotatedTree : _
             local originalTree : _
+      alternative QueryStatement:
+         child ann            : {Annotation}
+         child ex             : QueryExpr 
+         visit 0:
+            local tpe         : {Either [TypeError] Type}
+            local statementType : {Maybe StatementType}
+            local backTree    : _
+            local catUpdates  : {[CatalogUpdate]}
+            local libUpdates  : _
+            local annotatedTree : _
+            local originalTree : _
       alternative Raise:
          child ann            : {Annotation}
          child level          : {RaiseType}
@@ -7174,17 +7190,6 @@ sem_SelectList_SelectList ann_ items_ into_  =
          visit 0:
             local annotatedTree : _
             local originalTree : _
-      alternative SelectStatement:
-         child ann            : {Annotation}
-         child ex             : QueryExpr 
-         visit 0:
-            local tpe         : {Either [TypeError] Type}
-            local statementType : {Maybe StatementType}
-            local backTree    : _
-            local catUpdates  : {[CatalogUpdate]}
-            local libUpdates  : _
-            local annotatedTree : _
-            local originalTree : _
       alternative Set:
          child ann            : {Annotation}
          child name           : {String}
@@ -7206,7 +7211,7 @@ sem_SelectList_SelectList ann_ items_ into_  =
          child table          : ScalarExpr 
          child assigns        : ScalarExprList 
          child fromList       : TableRefList 
-         child whr            : MaybeBoolScalarExpr 
+         child whr            : MaybeBoolExpr 
          child returning      : MaybeSelectList 
          visit 0:
             local libUpdates  : _
@@ -7235,7 +7240,7 @@ data Statement  = AlterSequence (Annotation) (String) (ScalarExpr)
                 | ContinueStatement (Annotation) (Maybe String) 
                 | Copy (Annotation) (String) ([String]) (CopySource) 
                 | CopyData (Annotation) (String) 
-                | CreateDomain (Annotation) (String) (TypeName) (String) (MaybeBoolScalarExpr) 
+                | CreateDomain (Annotation) (String) (TypeName) (String) (MaybeBoolExpr) 
                 | CreateFunction (Annotation) (String) (ParamDefList) (TypeName) (Replace) (Language) (FnBody) (Volatility) 
                 | CreateLanguage (Annotation) (String) 
                 | CreateSequence (Annotation) (String) (Integer) (Integer) (Integer) (Integer) (Integer) 
@@ -7244,28 +7249,28 @@ data Statement  = AlterSequence (Annotation) (String) (ScalarExpr)
                 | CreateTrigger (Annotation) (String) (TriggerWhen) ([TriggerEvent]) (String) (TriggerFire) (String) (ScalarExprList) 
                 | CreateType (Annotation) (String) (TypeAttributeDefList) 
                 | CreateView (Annotation) (String) (QueryExpr) 
-                | Delete (Annotation) (ScalarExpr) (TableRefList) (MaybeBoolScalarExpr) (MaybeSelectList) 
+                | Delete (Annotation) (ScalarExpr) (TableRefList) (MaybeBoolExpr) (MaybeSelectList) 
                 | DropFunction (Annotation) (IfExists) (StringTypeNameListPairList) (Cascade) 
                 | DropSomething (Annotation) (DropType) (IfExists) ([String]) (Cascade) 
                 | Execute (Annotation) (ScalarExpr) 
                 | ExecuteInto (Annotation) (ScalarExpr) ([String]) 
                 | ExitStatement (Annotation) (Maybe String) 
                 | ForIntegerStatement (Annotation) (Maybe String) (ScalarExpr) (ScalarExpr) (ScalarExpr) (StatementList) 
-                | ForSelectStatement (Annotation) (Maybe String) (ScalarExpr) (QueryExpr) (StatementList) 
+                | ForQueryStatement (Annotation) (Maybe String) (ScalarExpr) (QueryExpr) (StatementList) 
                 | If (Annotation) (ScalarExprStatementListPairList) (StatementList) 
                 | Insert (Annotation) (ScalarExpr) ([String]) (QueryExpr) (MaybeSelectList) 
                 | LoopStatement (Annotation) (Maybe String) (StatementList) 
                 | Notify (Annotation) (String) 
                 | NullStatement (Annotation) 
                 | Perform (Annotation) (ScalarExpr) 
+                | QueryStatement (Annotation) (QueryExpr) 
                 | Raise (Annotation) (RaiseType) (String) (ScalarExprList) 
                 | Return (Annotation) (MaybeScalarExpr) 
                 | ReturnNext (Annotation) (ScalarExpr) 
                 | ReturnQuery (Annotation) (QueryExpr) 
-                | SelectStatement (Annotation) (QueryExpr) 
                 | Set (Annotation) (String) ([SetValue]) 
                 | Truncate (Annotation) ([String]) (RestartIdentity) (Cascade) 
-                | Update (Annotation) (ScalarExpr) (ScalarExprList) (TableRefList) (MaybeBoolScalarExpr) (MaybeSelectList) 
+                | Update (Annotation) (ScalarExpr) (ScalarExprList) (TableRefList) (MaybeBoolExpr) (MaybeSelectList) 
                 | WhileStatement (Annotation) (Maybe String) (ScalarExpr) (StatementList) 
                 deriving ( Data,Eq,Show,Typeable)
 -- cata
@@ -7290,7 +7295,7 @@ sem_Statement (Copy _ann _table _targetCols _source )  =
 sem_Statement (CopyData _ann _insData )  =
     (sem_Statement_CopyData _ann _insData )
 sem_Statement (CreateDomain _ann _name _typ _checkName _check )  =
-    (sem_Statement_CreateDomain _ann _name (sem_TypeName _typ ) _checkName (sem_MaybeBoolScalarExpr _check ) )
+    (sem_Statement_CreateDomain _ann _name (sem_TypeName _typ ) _checkName (sem_MaybeBoolExpr _check ) )
 sem_Statement (CreateFunction _ann _name _params _rettype _rep _lang _body _vol )  =
     (sem_Statement_CreateFunction _ann _name (sem_ParamDefList _params ) (sem_TypeName _rettype ) _rep _lang (sem_FnBody _body ) _vol )
 sem_Statement (CreateLanguage _ann _name )  =
@@ -7308,7 +7313,7 @@ sem_Statement (CreateType _ann _name _atts )  =
 sem_Statement (CreateView _ann _name _expr )  =
     (sem_Statement_CreateView _ann _name (sem_QueryExpr _expr ) )
 sem_Statement (Delete _ann _table _using _whr _returning )  =
-    (sem_Statement_Delete _ann (sem_ScalarExpr _table ) (sem_TableRefList _using ) (sem_MaybeBoolScalarExpr _whr ) (sem_MaybeSelectList _returning ) )
+    (sem_Statement_Delete _ann (sem_ScalarExpr _table ) (sem_TableRefList _using ) (sem_MaybeBoolExpr _whr ) (sem_MaybeSelectList _returning ) )
 sem_Statement (DropFunction _ann _ifE _sigs _cascade )  =
     (sem_Statement_DropFunction _ann _ifE (sem_StringTypeNameListPairList _sigs ) _cascade )
 sem_Statement (DropSomething _ann _dropType _ifE _names _cascade )  =
@@ -7321,8 +7326,8 @@ sem_Statement (ExitStatement _ann _lb )  =
     (sem_Statement_ExitStatement _ann _lb )
 sem_Statement (ForIntegerStatement _ann _lb _var _from _to _sts )  =
     (sem_Statement_ForIntegerStatement _ann _lb (sem_ScalarExpr _var ) (sem_ScalarExpr _from ) (sem_ScalarExpr _to ) (sem_StatementList _sts ) )
-sem_Statement (ForSelectStatement _ann _lb _var _sel _sts )  =
-    (sem_Statement_ForSelectStatement _ann _lb (sem_ScalarExpr _var ) (sem_QueryExpr _sel ) (sem_StatementList _sts ) )
+sem_Statement (ForQueryStatement _ann _lb _var _sel _sts )  =
+    (sem_Statement_ForQueryStatement _ann _lb (sem_ScalarExpr _var ) (sem_QueryExpr _sel ) (sem_StatementList _sts ) )
 sem_Statement (If _ann _cases _els )  =
     (sem_Statement_If _ann (sem_ScalarExprStatementListPairList _cases ) (sem_StatementList _els ) )
 sem_Statement (Insert _ann _table _targetCols _insData _returning )  =
@@ -7335,6 +7340,8 @@ sem_Statement (NullStatement _ann )  =
     (sem_Statement_NullStatement _ann )
 sem_Statement (Perform _ann _expr )  =
     (sem_Statement_Perform _ann (sem_ScalarExpr _expr ) )
+sem_Statement (QueryStatement _ann _ex )  =
+    (sem_Statement_QueryStatement _ann (sem_QueryExpr _ex ) )
 sem_Statement (Raise _ann _level _message _args )  =
     (sem_Statement_Raise _ann _level _message (sem_ScalarExprList _args ) )
 sem_Statement (Return _ann _value )  =
@@ -7343,14 +7350,12 @@ sem_Statement (ReturnNext _ann _expr )  =
     (sem_Statement_ReturnNext _ann (sem_ScalarExpr _expr ) )
 sem_Statement (ReturnQuery _ann _sel )  =
     (sem_Statement_ReturnQuery _ann (sem_QueryExpr _sel ) )
-sem_Statement (SelectStatement _ann _ex )  =
-    (sem_Statement_SelectStatement _ann (sem_QueryExpr _ex ) )
 sem_Statement (Set _ann _name _values )  =
     (sem_Statement_Set _ann _name _values )
 sem_Statement (Truncate _ann _tables _restartIdentity _cascade )  =
     (sem_Statement_Truncate _ann _tables _restartIdentity _cascade )
 sem_Statement (Update _ann _table _assigns _fromList _whr _returning )  =
-    (sem_Statement_Update _ann (sem_ScalarExpr _table ) (sem_ScalarExprList _assigns ) (sem_TableRefList _fromList ) (sem_MaybeBoolScalarExpr _whr ) (sem_MaybeSelectList _returning ) )
+    (sem_Statement_Update _ann (sem_ScalarExpr _table ) (sem_ScalarExprList _assigns ) (sem_TableRefList _fromList ) (sem_MaybeBoolExpr _whr ) (sem_MaybeSelectList _returning ) )
 sem_Statement (WhileStatement _ann _lb _expr _sts )  =
     (sem_Statement_WhileStatement _ann _lb (sem_ScalarExpr _expr ) (sem_StatementList _sts ) )
 -- semantic domain
@@ -7887,7 +7892,7 @@ sem_Statement_CreateDomain :: Annotation ->
                               String ->
                               T_TypeName  ->
                               String ->
-                              T_MaybeBoolScalarExpr  ->
+                              T_MaybeBoolExpr  ->
                               T_Statement 
 sem_Statement_CreateDomain ann_ name_ typ_ checkName_ check_  =
     (\ _lhsIcat
@@ -7907,8 +7912,8 @@ sem_Statement_CreateDomain ann_ name_ typ_ checkName_ check_  =
               _typIannotatedTree :: TypeName
               _typInamedType :: (Maybe Type)
               _typIoriginalTree :: TypeName
-              _checkIannotatedTree :: MaybeBoolScalarExpr
-              _checkIoriginalTree :: MaybeBoolScalarExpr
+              _checkIannotatedTree :: MaybeBoolExpr
+              _checkIoriginalTree :: MaybeBoolExpr
               -- "./TypeChecking/Statements.ag"(line 82, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
@@ -8553,7 +8558,7 @@ sem_Statement_CreateView ann_ name_ expr_  =
 sem_Statement_Delete :: Annotation ->
                         T_ScalarExpr  ->
                         T_TableRefList  ->
-                        T_MaybeBoolScalarExpr  ->
+                        T_MaybeBoolExpr  ->
                         T_MaybeSelectList  ->
                         T_Statement 
 sem_Statement_Delete ann_ table_ using_ whr_ returning_  =
@@ -8586,8 +8591,8 @@ sem_Statement_Delete ann_ table_ using_ whr_ returning_  =
               _usingIannotatedTree :: TableRefList
               _usingIlibUpdates :: ([LocalBindingsUpdate])
               _usingIoriginalTree :: TableRefList
-              _whrIannotatedTree :: MaybeBoolScalarExpr
-              _whrIoriginalTree :: MaybeBoolScalarExpr
+              _whrIannotatedTree :: MaybeBoolExpr
+              _whrIoriginalTree :: MaybeBoolExpr
               _returningIannotatedTree :: MaybeSelectList
               _returningIlistType :: ([(String,Type)])
               _returningIoriginalTree :: MaybeSelectList
@@ -8973,7 +8978,7 @@ sem_Statement_ForIntegerStatement ann_ lb_ var_ from_ to_ sts_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 569, column 27)
               _toOexpectedType =
                   Nothing
-              -- "./TypeChecking/ScalarExprs.ag"(line 572, column 46)
+              -- "./TypeChecking/ScalarExprs.ag"(line 572, column 45)
               _varOexpectedType =
                   Nothing
               -- "./TypeChecking/Statements.ag"(line 82, column 9)
@@ -9072,13 +9077,13 @@ sem_Statement_ForIntegerStatement ann_ lb_ var_ from_ to_ sts_  =
               ( _stsIannotatedTree,_stsIoriginalTree,_stsIproducedCat,_stsIproducedLib) =
                   (sts_ _stsOcat _stsOcatUpdates _stsOlib _stsOlibUpdates )
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOlibUpdates,_lhsOoriginalTree)))
-sem_Statement_ForSelectStatement :: Annotation ->
-                                    (Maybe String) ->
-                                    T_ScalarExpr  ->
-                                    T_QueryExpr  ->
-                                    T_StatementList  ->
-                                    T_Statement 
-sem_Statement_ForSelectStatement ann_ lb_ var_ sel_ sts_  =
+sem_Statement_ForQueryStatement :: Annotation ->
+                                   (Maybe String) ->
+                                   T_ScalarExpr  ->
+                                   T_QueryExpr  ->
+                                   T_StatementList  ->
+                                   T_Statement 
+sem_Statement_ForQueryStatement ann_ lb_ var_ sel_ sts_  =
     (\ _lhsIcat
        _lhsIinProducedCat
        _lhsIlib ->
@@ -9114,7 +9119,7 @@ sem_Statement_ForSelectStatement ann_ lb_ var_ sel_ sts_  =
               _stsIoriginalTree :: StatementList
               _stsIproducedCat :: Catalog
               _stsIproducedLib :: LocalBindings
-              -- "./TypeChecking/ScalarExprs.ag"(line 572, column 46)
+              -- "./TypeChecking/ScalarExprs.ag"(line 572, column 45)
               _varOexpectedType =
                   Nothing
               -- "./TypeChecking/ScalarExprs.ag"(line 632, column 9)
@@ -9156,7 +9161,7 @@ sem_Statement_ForSelectStatement ann_ lb_ var_ sel_ sts_  =
                   lbUpdate _lhsIcat (LBIds "for loop record type" Nothing [(getName _varIannotatedTree,st)]) _lhsIlib
               -- "./TypeChecking/Plpgsql.ag"(line 80, column 9)
               _backTree =
-                  ForSelectStatement ann_ lb_ _varIannotatedTree _selIannotatedTree _stsIannotatedTree
+                  ForQueryStatement ann_ lb_ _varIannotatedTree _selIannotatedTree _stsIannotatedTree
               -- "./TypeChecking/Plpgsql.ag"(line 81, column 9)
               _catUpdates =
                   []
@@ -9165,10 +9170,10 @@ sem_Statement_ForSelectStatement ann_ lb_ var_ sel_ sts_  =
                   Nothing
               -- self rule
               _annotatedTree =
-                  ForSelectStatement ann_ lb_ _varIannotatedTree _selIannotatedTree _stsIannotatedTree
+                  ForQueryStatement ann_ lb_ _varIannotatedTree _selIannotatedTree _stsIannotatedTree
               -- self rule
               _originalTree =
-                  ForSelectStatement ann_ lb_ _varIoriginalTree _selIoriginalTree _stsIoriginalTree
+                  ForQueryStatement ann_ lb_ _varIoriginalTree _selIoriginalTree _stsIoriginalTree
               -- self rule
               _lhsOoriginalTree =
                   _originalTree
@@ -9556,6 +9561,81 @@ sem_Statement_Perform ann_ expr_  =
               ( _exprIannotatedTree,_exprIntAnnotatedTree,_exprIntType,_exprIoriginalTree,_exprItbAnnotatedTree,_exprItbUType,_exprIuType) =
                   (expr_ _exprOcat _exprOexpectedType _exprOlib )
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOlibUpdates,_lhsOoriginalTree)))
+sem_Statement_QueryStatement :: Annotation ->
+                                T_QueryExpr  ->
+                                T_Statement 
+sem_Statement_QueryStatement ann_ ex_  =
+    (\ _lhsIcat
+       _lhsIinProducedCat
+       _lhsIlib ->
+         (let _exOexpectedTypes :: ([Maybe Type])
+              _lhsOannotatedTree :: Statement
+              _lhsOcatUpdates :: ([CatalogUpdate])
+              _lhsOlibUpdates :: ([LocalBindingsUpdate])
+              _tpe :: (Either [TypeError] Type)
+              _statementType :: (Maybe StatementType)
+              _catUpdates :: ([CatalogUpdate])
+              _lhsOoriginalTree :: Statement
+              _exOcat :: Catalog
+              _exOlib :: LocalBindings
+              _exIannotatedTree :: QueryExpr
+              _exIlibUpdates :: ([LocalBindingsUpdate])
+              _exIoriginalTree :: QueryExpr
+              _exIuType :: (Maybe [(String,Type)])
+              -- "./TypeChecking/ScalarExprs.ag"(line 633, column 22)
+              _exOexpectedTypes =
+                  []
+              -- "./TypeChecking/Statements.ag"(line 82, column 9)
+              _lhsOannotatedTree =
+                  updateAnnotation
+                      (\a -> a {stType = _statementType
+                               ,catUpd = _catUpdates    }) $
+                  setTypeAddErrors _tpe     _backTree
+              -- "./TypeChecking/Statements.ag"(line 88, column 9)
+              _lhsOcatUpdates =
+                  _catUpdates
+              -- "./TypeChecking/Statements.ag"(line 89, column 9)
+              _lhsOlibUpdates =
+                  _libUpdates
+              -- "./TypeChecking/QueryStatement.ag"(line 14, column 9)
+              _tpe =
+                  Right $ Pseudo Void
+              -- "./TypeChecking/QueryStatement.ag"(line 15, column 9)
+              _statementType =
+                  do
+                  pt <- sequence $ getPlaceholderTypes _exIannotatedTree
+                  st <- _exIuType
+                  return (pt
+                         ,case st of
+                            [(_,(Pseudo Void))] -> []
+                            t -> t)
+              -- "./TypeChecking/QueryStatement.ag"(line 23, column 9)
+              _backTree =
+                  QueryStatement ann_ _exIannotatedTree
+              -- "./TypeChecking/QueryStatement.ag"(line 24, column 9)
+              _catUpdates =
+                  []
+              -- "./TypeChecking/QueryStatement.ag"(line 111, column 9)
+              _libUpdates =
+                  _exIlibUpdates
+              -- self rule
+              _annotatedTree =
+                  QueryStatement ann_ _exIannotatedTree
+              -- self rule
+              _originalTree =
+                  QueryStatement ann_ _exIoriginalTree
+              -- self rule
+              _lhsOoriginalTree =
+                  _originalTree
+              -- copy rule (down)
+              _exOcat =
+                  _lhsIcat
+              -- copy rule (down)
+              _exOlib =
+                  _lhsIlib
+              ( _exIannotatedTree,_exIlibUpdates,_exIoriginalTree,_exIuType) =
+                  (ex_ _exOcat _exOexpectedTypes _exOlib )
+          in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOlibUpdates,_lhsOoriginalTree)))
 sem_Statement_Raise :: Annotation ->
                        RaiseType ->
                        String ->
@@ -9769,81 +9849,6 @@ sem_Statement_ReturnQuery ann_ sel_  =
               ( _selIannotatedTree,_selIlibUpdates,_selIoriginalTree,_selIuType) =
                   (sel_ _selOcat _selOexpectedTypes _selOlib )
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOlibUpdates,_lhsOoriginalTree)))
-sem_Statement_SelectStatement :: Annotation ->
-                                 T_QueryExpr  ->
-                                 T_Statement 
-sem_Statement_SelectStatement ann_ ex_  =
-    (\ _lhsIcat
-       _lhsIinProducedCat
-       _lhsIlib ->
-         (let _exOexpectedTypes :: ([Maybe Type])
-              _lhsOannotatedTree :: Statement
-              _lhsOcatUpdates :: ([CatalogUpdate])
-              _lhsOlibUpdates :: ([LocalBindingsUpdate])
-              _tpe :: (Either [TypeError] Type)
-              _statementType :: (Maybe StatementType)
-              _catUpdates :: ([CatalogUpdate])
-              _lhsOoriginalTree :: Statement
-              _exOcat :: Catalog
-              _exOlib :: LocalBindings
-              _exIannotatedTree :: QueryExpr
-              _exIlibUpdates :: ([LocalBindingsUpdate])
-              _exIoriginalTree :: QueryExpr
-              _exIuType :: (Maybe [(String,Type)])
-              -- "./TypeChecking/ScalarExprs.ag"(line 633, column 23)
-              _exOexpectedTypes =
-                  []
-              -- "./TypeChecking/Statements.ag"(line 82, column 9)
-              _lhsOannotatedTree =
-                  updateAnnotation
-                      (\a -> a {stType = _statementType
-                               ,catUpd = _catUpdates    }) $
-                  setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/Statements.ag"(line 88, column 9)
-              _lhsOcatUpdates =
-                  _catUpdates
-              -- "./TypeChecking/Statements.ag"(line 89, column 9)
-              _lhsOlibUpdates =
-                  _libUpdates
-              -- "./TypeChecking/SelectStatement.ag"(line 14, column 9)
-              _tpe =
-                  Right $ Pseudo Void
-              -- "./TypeChecking/SelectStatement.ag"(line 15, column 9)
-              _statementType =
-                  do
-                  pt <- sequence $ getPlaceholderTypes _exIannotatedTree
-                  st <- _exIuType
-                  return (pt
-                         ,case st of
-                            [(_,(Pseudo Void))] -> []
-                            t -> t)
-              -- "./TypeChecking/SelectStatement.ag"(line 23, column 9)
-              _backTree =
-                  SelectStatement ann_ _exIannotatedTree
-              -- "./TypeChecking/SelectStatement.ag"(line 24, column 9)
-              _catUpdates =
-                  []
-              -- "./TypeChecking/SelectStatement.ag"(line 111, column 9)
-              _libUpdates =
-                  _exIlibUpdates
-              -- self rule
-              _annotatedTree =
-                  SelectStatement ann_ _exIannotatedTree
-              -- self rule
-              _originalTree =
-                  SelectStatement ann_ _exIoriginalTree
-              -- self rule
-              _lhsOoriginalTree =
-                  _originalTree
-              -- copy rule (down)
-              _exOcat =
-                  _lhsIcat
-              -- copy rule (down)
-              _exOlib =
-                  _lhsIlib
-              ( _exIannotatedTree,_exIlibUpdates,_exIoriginalTree,_exIuType) =
-                  (ex_ _exOcat _exOexpectedTypes _exOlib )
-          in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOlibUpdates,_lhsOoriginalTree)))
 sem_Statement_Set :: Annotation ->
                      String ->
                      ([SetValue]) ->
@@ -9914,7 +9919,7 @@ sem_Statement_Update :: Annotation ->
                         T_ScalarExpr  ->
                         T_ScalarExprList  ->
                         T_TableRefList  ->
-                        T_MaybeBoolScalarExpr  ->
+                        T_MaybeBoolExpr  ->
                         T_MaybeSelectList  ->
                         T_Statement 
 sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
@@ -9954,8 +9959,8 @@ sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
               _fromListIannotatedTree :: TableRefList
               _fromListIlibUpdates :: ([LocalBindingsUpdate])
               _fromListIoriginalTree :: TableRefList
-              _whrIannotatedTree :: MaybeBoolScalarExpr
-              _whrIoriginalTree :: MaybeBoolScalarExpr
+              _whrIannotatedTree :: MaybeBoolExpr
+              _whrIoriginalTree :: MaybeBoolExpr
               _returningIannotatedTree :: MaybeSelectList
               _returningIlistType :: ([(String,Type)])
               _returningIoriginalTree :: MaybeSelectList
@@ -10493,7 +10498,18 @@ sem_StringTypeNameListPairList_Nil  =
          libUpdates           : [LocalBindingsUpdate]
          originalTree         : SELF 
    alternatives:
-      alternative JoinedTref:
+      alternative FunTref:
+         child ann            : {Annotation}
+         child fn             : ScalarExpr 
+         child alias          : {TableAlias}
+         visit 0:
+            local errs        : _
+            local eqfunIdens  : {Either [TypeError] (String,[(String,Type)])}
+            local qfunIdens   : _
+            local backTree    : _
+            local annotatedTree : _
+            local originalTree : _
+      alternative JoinTref:
          child ann            : {Annotation}
          child tbl            : TableRef 
          child nat            : {Natural}
@@ -10528,34 +10544,23 @@ sem_StringTypeNameListPairList_Nil  =
             local backTree    : _
             local annotatedTree : _
             local originalTree : _
-      alternative TrefFun:
-         child ann            : {Annotation}
-         child fn             : ScalarExpr 
-         child alias          : {TableAlias}
-         visit 0:
-            local errs        : _
-            local eqfunIdens  : {Either [TypeError] (String,[(String,Type)])}
-            local qfunIdens   : _
-            local backTree    : _
-            local annotatedTree : _
-            local originalTree : _
 -}
-data TableRef  = JoinedTref (Annotation) (TableRef) (Natural) (JoinType) (TableRef) (OnExpr) (TableAlias) 
+data TableRef  = FunTref (Annotation) (ScalarExpr) (TableAlias) 
+               | JoinTref (Annotation) (TableRef) (Natural) (JoinType) (TableRef) (OnExpr) (TableAlias) 
                | SubTref (Annotation) (QueryExpr) (TableAlias) 
                | Tref (Annotation) (ScalarExpr) (TableAlias) 
-               | TrefFun (Annotation) (ScalarExpr) (TableAlias) 
                deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_TableRef :: TableRef  ->
                 T_TableRef 
-sem_TableRef (JoinedTref _ann _tbl _nat _joinType _tbl1 _onExpr _alias )  =
-    (sem_TableRef_JoinedTref _ann (sem_TableRef _tbl ) _nat _joinType (sem_TableRef _tbl1 ) (sem_OnExpr _onExpr ) _alias )
+sem_TableRef (FunTref _ann _fn _alias )  =
+    (sem_TableRef_FunTref _ann (sem_ScalarExpr _fn ) _alias )
+sem_TableRef (JoinTref _ann _tbl _nat _joinType _tbl1 _onExpr _alias )  =
+    (sem_TableRef_JoinTref _ann (sem_TableRef _tbl ) _nat _joinType (sem_TableRef _tbl1 ) (sem_OnExpr _onExpr ) _alias )
 sem_TableRef (SubTref _ann _sel _alias )  =
     (sem_TableRef_SubTref _ann (sem_QueryExpr _sel ) _alias )
 sem_TableRef (Tref _ann _tbl _alias )  =
     (sem_TableRef_Tref _ann (sem_ScalarExpr _tbl ) _alias )
-sem_TableRef (TrefFun _ann _fn _alias )  =
-    (sem_TableRef_TrefFun _ann (sem_ScalarExpr _fn ) _alias )
 -- semantic domain
 type T_TableRef  = Catalog ->
                    LocalBindings ->
@@ -10569,15 +10574,80 @@ wrap_TableRef sem (Inh_TableRef _lhsIcat _lhsIlib )  =
     (let ( _lhsOannotatedTree,_lhsOlibUpdates,_lhsOoriginalTree) =
              (sem _lhsIcat _lhsIlib )
      in  (Syn_TableRef _lhsOannotatedTree _lhsOlibUpdates _lhsOoriginalTree ))
-sem_TableRef_JoinedTref :: Annotation ->
-                           T_TableRef  ->
-                           Natural ->
-                           JoinType ->
-                           T_TableRef  ->
-                           T_OnExpr  ->
-                           TableAlias ->
-                           T_TableRef 
-sem_TableRef_JoinedTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
+sem_TableRef_FunTref :: Annotation ->
+                        T_ScalarExpr  ->
+                        TableAlias ->
+                        T_TableRef 
+sem_TableRef_FunTref ann_ fn_ alias_  =
+    (\ _lhsIcat
+       _lhsIlib ->
+         (let _fnOexpectedType :: (Maybe Type)
+              _lhsOannotatedTree :: TableRef
+              _eqfunIdens :: (Either [TypeError] (String,[(String,Type)]))
+              _lhsOlibUpdates :: ([LocalBindingsUpdate])
+              _lhsOoriginalTree :: TableRef
+              _fnOcat :: Catalog
+              _fnOlib :: LocalBindings
+              _fnIannotatedTree :: ScalarExpr
+              _fnIntAnnotatedTree :: ScalarExpr
+              _fnIntType :: ([(String,Type)])
+              _fnIoriginalTree :: ScalarExpr
+              _fnItbAnnotatedTree :: ScalarExpr
+              _fnItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
+              _fnIuType :: (Maybe Type)
+              -- "./TypeChecking/ScalarExprs.ag"(line 574, column 15)
+              _fnOexpectedType =
+                  Nothing
+              -- "./TypeChecking/TableRefs.ag"(line 91, column 9)
+              _lhsOannotatedTree =
+                  addTypeErrors _errs     _backTree
+              -- "./TypeChecking/TableRefs.ag"(line 164, column 9)
+              _errs =
+                  case _eqfunIdens of
+                    Left e -> e
+                    Right _ -> []
+              -- "./TypeChecking/TableRefs.ag"(line 170, column 9)
+              _eqfunIdens =
+                  funIdens _lhsIcat (getAlias "" alias_) _fnIannotatedTree _fnIuType
+              -- "./TypeChecking/TableRefs.ag"(line 171, column 9)
+              _lhsOlibUpdates =
+                  [LBTref "fn"
+                                  (fst _qfunIdens    )
+                                  (snd _qfunIdens    )
+                                  []]
+              -- "./TypeChecking/TableRefs.ag"(line 175, column 9)
+              _qfunIdens =
+                  fromRight ("",[]) _eqfunIdens
+              -- "./TypeChecking/TableRefs.ag"(line 263, column 9)
+              _backTree =
+                  FunTref ann_ _fnIannotatedTree alias_
+              -- self rule
+              _annotatedTree =
+                  FunTref ann_ _fnIannotatedTree alias_
+              -- self rule
+              _originalTree =
+                  FunTref ann_ _fnIoriginalTree alias_
+              -- self rule
+              _lhsOoriginalTree =
+                  _originalTree
+              -- copy rule (down)
+              _fnOcat =
+                  _lhsIcat
+              -- copy rule (down)
+              _fnOlib =
+                  _lhsIlib
+              ( _fnIannotatedTree,_fnIntAnnotatedTree,_fnIntType,_fnIoriginalTree,_fnItbAnnotatedTree,_fnItbUType,_fnIuType) =
+                  (fn_ _fnOcat _fnOexpectedType _fnOlib )
+          in  ( _lhsOannotatedTree,_lhsOlibUpdates,_lhsOoriginalTree)))
+sem_TableRef_JoinTref :: Annotation ->
+                         T_TableRef  ->
+                         Natural ->
+                         JoinType ->
+                         T_TableRef  ->
+                         T_OnExpr  ->
+                         TableAlias ->
+                         T_TableRef 
+sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
     (\ _lhsIcat
        _lhsIlib ->
          (let _lhsOannotatedTree :: TableRef
@@ -10638,7 +10708,7 @@ sem_TableRef_JoinedTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
                   fromRight _lhsIlib _newLib
               -- "./TypeChecking/TableRefs.ag"(line 265, column 9)
               _backTree =
-                  JoinedTref ann_
+                  JoinTref ann_
                              _tblIannotatedTree
                              nat_
                              joinType_
@@ -10647,10 +10717,10 @@ sem_TableRef_JoinedTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
                              alias_
               -- self rule
               _annotatedTree =
-                  JoinedTref ann_ _tblIannotatedTree nat_ joinType_ _tbl1IannotatedTree _onExprIannotatedTree alias_
+                  JoinTref ann_ _tblIannotatedTree nat_ joinType_ _tbl1IannotatedTree _onExprIannotatedTree alias_
               -- self rule
               _originalTree =
-                  JoinedTref ann_ _tblIoriginalTree nat_ joinType_ _tbl1IoriginalTree _onExprIoriginalTree alias_
+                  JoinTref ann_ _tblIoriginalTree nat_ joinType_ _tbl1IoriginalTree _onExprIoriginalTree alias_
               -- self rule
               _lhsOoriginalTree =
                   _originalTree
@@ -10791,71 +10861,6 @@ sem_TableRef_Tref ann_ tbl_ alias_  =
                   _lhsIlib
               ( _tblIannotatedTree,_tblIntAnnotatedTree,_tblIntType,_tblIoriginalTree,_tblItbAnnotatedTree,_tblItbUType,_tblIuType) =
                   (tbl_ _tblOcat _tblOexpectedType _tblOlib )
-          in  ( _lhsOannotatedTree,_lhsOlibUpdates,_lhsOoriginalTree)))
-sem_TableRef_TrefFun :: Annotation ->
-                        T_ScalarExpr  ->
-                        TableAlias ->
-                        T_TableRef 
-sem_TableRef_TrefFun ann_ fn_ alias_  =
-    (\ _lhsIcat
-       _lhsIlib ->
-         (let _fnOexpectedType :: (Maybe Type)
-              _lhsOannotatedTree :: TableRef
-              _eqfunIdens :: (Either [TypeError] (String,[(String,Type)]))
-              _lhsOlibUpdates :: ([LocalBindingsUpdate])
-              _lhsOoriginalTree :: TableRef
-              _fnOcat :: Catalog
-              _fnOlib :: LocalBindings
-              _fnIannotatedTree :: ScalarExpr
-              _fnIntAnnotatedTree :: ScalarExpr
-              _fnIntType :: ([(String,Type)])
-              _fnIoriginalTree :: ScalarExpr
-              _fnItbAnnotatedTree :: ScalarExpr
-              _fnItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
-              _fnIuType :: (Maybe Type)
-              -- "./TypeChecking/ScalarExprs.ag"(line 574, column 15)
-              _fnOexpectedType =
-                  Nothing
-              -- "./TypeChecking/TableRefs.ag"(line 91, column 9)
-              _lhsOannotatedTree =
-                  addTypeErrors _errs     _backTree
-              -- "./TypeChecking/TableRefs.ag"(line 164, column 9)
-              _errs =
-                  case _eqfunIdens of
-                    Left e -> e
-                    Right _ -> []
-              -- "./TypeChecking/TableRefs.ag"(line 170, column 9)
-              _eqfunIdens =
-                  funIdens _lhsIcat (getAlias "" alias_) _fnIannotatedTree _fnIuType
-              -- "./TypeChecking/TableRefs.ag"(line 171, column 9)
-              _lhsOlibUpdates =
-                  [LBTref "fn"
-                                  (fst _qfunIdens    )
-                                  (snd _qfunIdens    )
-                                  []]
-              -- "./TypeChecking/TableRefs.ag"(line 175, column 9)
-              _qfunIdens =
-                  fromRight ("",[]) _eqfunIdens
-              -- "./TypeChecking/TableRefs.ag"(line 263, column 9)
-              _backTree =
-                  TrefFun ann_ _fnIannotatedTree alias_
-              -- self rule
-              _annotatedTree =
-                  TrefFun ann_ _fnIannotatedTree alias_
-              -- self rule
-              _originalTree =
-                  TrefFun ann_ _fnIoriginalTree alias_
-              -- self rule
-              _lhsOoriginalTree =
-                  _originalTree
-              -- copy rule (down)
-              _fnOcat =
-                  _lhsIcat
-              -- copy rule (down)
-              _fnOlib =
-                  _lhsIlib
-              ( _fnIannotatedTree,_fnIntAnnotatedTree,_fnIntType,_fnIoriginalTree,_fnItbAnnotatedTree,_fnItbUType,_fnIuType) =
-                  (fn_ _fnOcat _fnOexpectedType _fnOlib )
           in  ( _lhsOannotatedTree,_lhsOlibUpdates,_lhsOoriginalTree)))
 -- TableRefList ------------------------------------------------
 {-
@@ -11890,19 +11895,19 @@ sem_WithQuery_WithQuery ann_ name_ ex_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 637, column 17)
               _exOexpectedTypes =
                   []
-              -- "./TypeChecking/SelectStatement.ag"(line 246, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 246, column 9)
               _tpe =
                   Right $ Pseudo Void
-              -- "./TypeChecking/SelectStatement.ag"(line 247, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 247, column 9)
               _backTree =
                   WithQuery ann_ name_ _exIannotatedTree
-              -- "./TypeChecking/SelectStatement.ag"(line 248, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 248, column 9)
               _attrs =
                   maybe [] id $ _exIuType
-              -- "./TypeChecking/SelectStatement.ag"(line 249, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 249, column 9)
               _catUpdates =
                   [CatCreateView name_ _attrs    ]
-              -- "./TypeChecking/SelectStatement.ag"(line 250, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 250, column 9)
               _statementType =
                   Nothing
               -- self rule
@@ -11995,19 +12000,19 @@ sem_WithQueryList_Cons hd_ tl_  =
               _tlIannotatedTree :: WithQueryList
               _tlIoriginalTree :: WithQueryList
               _tlIproducedCat :: Catalog
-              -- "./TypeChecking/SelectStatement.ag"(line 230, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 230, column 9)
               _newCat =
                   fromRight _lhsIcat $ updateCatalog _lhsIcat _lhsIcatUpdates
-              -- "./TypeChecking/SelectStatement.ag"(line 232, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 232, column 9)
               _hdOcat =
                   _newCat
-              -- "./TypeChecking/SelectStatement.ag"(line 233, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 233, column 9)
               _tlOcat =
                   _newCat
-              -- "./TypeChecking/SelectStatement.ag"(line 237, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 237, column 9)
               _lhsOproducedCat =
                   _tlIproducedCat
-              -- "./TypeChecking/SelectStatement.ag"(line 240, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 240, column 9)
               _tlOcatUpdates =
                   _hdIcatUpdates
               -- self rule
@@ -12041,10 +12046,10 @@ sem_WithQueryList_Nil  =
          (let _lhsOproducedCat :: Catalog
               _lhsOannotatedTree :: WithQueryList
               _lhsOoriginalTree :: WithQueryList
-              -- "./TypeChecking/SelectStatement.ag"(line 230, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 230, column 9)
               _newCat =
                   fromRight _lhsIcat $ updateCatalog _lhsIcat _lhsIcatUpdates
-              -- "./TypeChecking/SelectStatement.ag"(line 242, column 9)
+              -- "./TypeChecking/QueryStatement.ag"(line 242, column 9)
               _lhsOproducedCat =
                   _newCat
               -- self rule
