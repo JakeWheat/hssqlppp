@@ -114,6 +114,8 @@ test some more really basic expressions
 >          FunCall ea "-" [IntegerLit ea 5,IntegerLit ea 3]])
 >      ,e "a like b"
 >         (FunCall ea "!like" [Identifier ea "a", Identifier ea "b"])
+>      ,e "a not like b"
+>         (FunCall ea "!notlike" [Identifier ea "a", Identifier ea "b"])
 >      ]
 >    ,Group "function calls" [
 >       e "fn()" (FunCall ea "fn" [])

@@ -640,6 +640,7 @@ Statement components
 >                          "!isnull" -> "is null"
 >                          "!isnotnull" -> "is not null"
 >                          "!like" -> "like"
+>                          "!notlike" -> "not like"
 >                          x -> x
 >
 > convExp (BooleanLit _ b) = bool b

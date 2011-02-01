@@ -1204,6 +1204,7 @@ be used here.
 >          --between
 >          --overlaps
 >         ,[binaryk "like" "!like" AssocNone
+>          ,binaryks ["not","like"] "!notlike" AssocNone
 >          ,binarycust (symbol "!=") "<>" AssocNone]
 >          --(also ilike similar)
 >         ,[binary "<" AssocNone
@@ -1221,6 +1222,7 @@ be used here.
 >       -- work around here
 >       idHackBinary s = binarycust (keyword s) s
 >       binaryk = binarycust . keyword
+>       binaryks = binarycust . mapM_ keyword
 >       prefix = unaryCust Prefix . symbol
 >       prefixk = unaryCust Prefix . keyword
 >       postfixks = unaryCust Postfix . mapM_ keyword
@@ -1295,6 +1297,7 @@ to take the other table and just filter out the and part.
 >          --between
 >          --overlaps
 >         ,[binaryk "like" "!like" AssocNone
+>          ,binaryks ["not","like"] "!notlike" AssocNone
 >          ,binarycust (symbol "!=") "<>" AssocNone]
 >          --(also ilike similar)
 >         ,[binary "<" AssocNone
@@ -1311,6 +1314,7 @@ to take the other table and just filter out the and part.
 >       -- work around here
 >       idHackBinary s = binarycust (keyword s) s
 >       binaryk = binarycust . keyword
+>       binaryks = binarycust . mapM_ keyword
 >       prefix = unaryCust Prefix . symbol
 >       prefixk = unaryCust Prefix . keyword
 >       postfixks = unaryCust Postfix . mapM_ keyword
@@ -1350,7 +1354,7 @@ in predicate - an identifier or row constructor followed by 'in'
 then a list of expressions or a subselect
 
 > inPredicateSuffix :: ScalarExpr -> SParser ScalarExpr
-> inPredicateSuffix e =
+> inPredicateSuffix e = try $
 >   InPredicate
 >   <$> pos
 >   <*> return e
