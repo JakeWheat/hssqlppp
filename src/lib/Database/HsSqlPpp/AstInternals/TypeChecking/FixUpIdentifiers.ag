@@ -142,8 +142,9 @@ SEM SelectList
 getTableFields :: Catalog -> ScalarExpr -> (String,[String])
 getTableFields c e =
   let tn = getName e
-      (Right attrs) = catCompositePublicAttrs c relationComposites tn
-  in (tn, map fst attrs)
+  in case catCompositePublicAttrs c relationComposites tn of
+       (Right attrs) -> (tn, map fst attrs)
+       (Left _) -> (tn,[])
 
 
 }
@@ -171,9 +172,15 @@ ATTR SelectItem [
 SEM SelectItem
     | SelExp lhs.seIdTree
         = case @ex.fixedUpIdentifiersTree of
-            x@(Identifier a "*") -> makeSelExps @ann a a $ expandStar @lhs.idenv Nothing
+            x@(Identifier a "*") -> let s = expandStar @lhs.idenv Nothing
+                                    in if null s
+                                       then [SelExp @ann @ex.fixedUpIdentifiersTree]
+                                       else makeSelExps @ann a a s
             x@(QIdentifier a0 (Identifier a1 q) "*") ->
-               makeSelExps @ann a0 a1 $ expandStar @lhs.idenv $ Just q
+               let s = expandStar @lhs.idenv $ Just q
+               in if null s
+                  then [SelExp @ann @ex.fixedUpIdentifiersTree]
+                  else makeSelExps @ann a0 a1 s
             x -> [SelExp @ann @ex.newFixedUpIdentifiersTree]
 
     | SelectItem lhs.seIdTree

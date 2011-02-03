@@ -837,7 +837,7 @@ typeCheckMany cat sts =
 --   Returns the updated catalog as well as the annotated ast.
 typeCheckStatements :: Catalog -> StatementList -> (Catalog,StatementList)
 typeCheckStatements cat sts =
-    let t = sem_Root (Root sts)
+    let t = sem_Root (Root $ fixUpIdentifiers cat sts)
         ta = wrap_Root t Inh_Root {cat_Inh_Root = cat
                                   ,lib_Inh_Root = emptyBindings}
         tl = annotatedTree_Syn_Root ta
@@ -860,7 +860,7 @@ typeCheckParameterizedStatement cat st =
       Delete _ _ _ _ _ -> tc
       _ -> Left "requires select, update, insert or delete statement"
     where
-      tc = let t = sem_Root (Root [st])
+      tc = let t = sem_Root (Root $ fixUpIdentifiers cat [st])
                ta = wrap_Root t Inh_Root {cat_Inh_Root = cat
                                          ,lib_Inh_Root = emptyBindings}
                tl = annotatedTree_Syn_Root ta

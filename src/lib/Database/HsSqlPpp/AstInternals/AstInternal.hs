@@ -255,7 +255,7 @@ typeCheckMany cat sts =
 --   Returns the updated catalog as well as the annotated ast.
 typeCheckStatements :: Catalog -> StatementList -> (Catalog,StatementList)
 typeCheckStatements cat sts =
-    let t = sem_Root (Root sts)
+    let t = sem_Root (Root $ fixUpIdentifiers cat sts)
         ta = wrap_Root t Inh_Root {cat_Inh_Root = cat
                                   ,lib_Inh_Root = emptyBindings}
         tl = annotatedTree_Syn_Root ta
@@ -278,7 +278,7 @@ typeCheckParameterizedStatement cat st =
       Delete _ _ _ _ _ -> tc
       _ -> Left "requires select, update, insert or delete statement"
     where
-      tc = let t = sem_Root (Root [st])
+      tc = let t = sem_Root (Root $ fixUpIdentifiers cat [st])
                ta = wrap_Root t Inh_Root {cat_Inh_Root = cat
                                          ,lib_Inh_Root = emptyBindings}
                tl = annotatedTree_Syn_Root ta
@@ -548,8 +548,9 @@ expandStar (IDEnv es) (Just t) =
 getTableFields :: Catalog -> ScalarExpr -> (String,[String])
 getTableFields c e =
   let tn = getName e
-      (Right attrs) = catCompositePublicAttrs c relationComposites tn
-  in (tn, map fst attrs)
+  in case catCompositePublicAttrs c relationComposites tn of
+       (Right attrs) -> (tn, map fst attrs)
+       (Left _) -> (tn,[])
 
 
 
@@ -3588,7 +3589,7 @@ sem_QueryExpr_CombineSelect ann_ ctype_ sel1_ sel2_  =
               -- "./TypeChecking/QueryStatement.ag"(line 159, column 9)
               _lhsOuType =
                   etmt (_tpe     >>= unwrapSetOfComposite)
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 210, column 21)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 217, column 21)
               _lhsOcidenv =
                   _sel1Icidenv
               -- self rule
@@ -3775,10 +3776,10 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
               -- "./TypeChecking/QueryStatement.ag"(line 159, column 9)
               _lhsOuType =
                   etmt (_tpe     >>= unwrapSetOfComposite)
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 209, column 14)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 216, column 14)
               _lhsOcidenv =
                   _selSelectListIcidenv
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 239, column 14)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 246, column 14)
               _selSelectListOidenv =
                   _selTrefIcidenv
               -- self rule
@@ -3921,7 +3922,7 @@ sem_QueryExpr_Values ann_ vll_  =
               -- "./TypeChecking/QueryStatement.ag"(line 159, column 9)
               _lhsOuType =
                   etmt (_tpe     >>= unwrapSetOfComposite)
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 211, column 14)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 218, column 14)
               _lhsOcidenv =
                   unimplementedIDEnv
               -- self rule
@@ -4015,7 +4016,7 @@ sem_QueryExpr_WithSelect ann_ withs_ ex_  =
               -- "./TypeChecking/QueryStatement.ag"(line 159, column 9)
               _lhsOuType =
                   etmt (_tpe     >>= unwrapSetOfComposite)
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 212, column 18)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 219, column 18)
               _lhsOcidenv =
                   _exIcidenv
               -- self rule
@@ -6137,7 +6138,7 @@ sem_ScalarExpr_Identifier ann_ i_  =
                   if i_ == "*"
                   then unwrapStar <$> lbExpandStar _lhsIlib ""
                   else (\t -> [(i_, t)]) <$> unwrapLookup <$> lbLookupID _lhsIlib [i_]
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 153, column 9)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 154, column 9)
               _lhsOnewFixedUpIdentifiersTree =
                   case qualifyID _lhsIidenv i_ of
                     Nothing -> Identifier ann_ i_
@@ -6997,7 +6998,7 @@ sem_ScalarExpr_QIdentifier ann_ qual_ i_  =
                         if i_ == "*"
                         then unwrapStar <$> lbExpandStar _lhsIlib q
                         else (\t -> [(i_, t)]) <$> unwrapLookup <$> lbLookupID _lhsIlib [q,i_]
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 159, column 9)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 160, column 9)
               _lhsOnewFixedUpIdentifiersTree =
                   QIdentifier ann_ _qualIfixedUpIdentifiersTree i_
               -- self rule
@@ -8917,12 +8918,18 @@ sem_SelectItem_SelExp ann_ ex_  =
               -- "./TypeChecking/SelectLists.ag"(line 61, column 9)
               _lhsOitemType =
                   unwrapSetofs _exIntType
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 172, column 14)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 173, column 14)
               _lhsOseIdTree =
                   case _exIfixedUpIdentifiersTree of
-                    x@(Identifier a "*") -> makeSelExps ann_ a a $ expandStar _lhsIidenv Nothing
+                    x@(Identifier a "*") -> let s = expandStar _lhsIidenv Nothing
+                                            in if null s
+                                               then [SelExp ann_ _exIfixedUpIdentifiersTree]
+                                               else makeSelExps ann_ a a s
                     x@(QIdentifier a0 (Identifier a1 q) "*") ->
-                       makeSelExps ann_ a0 a1 $ expandStar _lhsIidenv $ Just q
+                       let s = expandStar _lhsIidenv $ Just q
+                       in if null s
+                          then [SelExp ann_ _exIfixedUpIdentifiersTree]
+                          else makeSelExps ann_ a0 a1 s
                     x -> [SelExp ann_ _exInewFixedUpIdentifiersTree]
               -- self rule
               _fixedUpIdentifiersTree =
@@ -8995,7 +9002,7 @@ sem_SelectItem_SelectItem ann_ ex_ name_  =
                   case _exIntType of
                     [(_,t)] -> [(name_, unwrapSetof t)]
                     _ -> []
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 179, column 18)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 186, column 18)
               _lhsOseIdTree =
                   [SelectItem ann_ _exInewFixedUpIdentifiersTree name_]
               -- self rule
@@ -9112,7 +9119,7 @@ sem_SelectItemList_Cons hd_ tl_  =
               -- "./TypeChecking/SelectLists.ag"(line 43, column 12)
               _lhsOlistType =
                   _hdIitemType ++ _tlIlistType
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 163, column 12)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 164, column 12)
               _lhsOfixedUpIdentifiersTree =
                   _hdIseIdTree ++ _tlIfixedUpIdentifiersTree
               -- self rule
@@ -9172,7 +9179,7 @@ sem_SelectItemList_Nil  =
               -- "./TypeChecking/SelectLists.ag"(line 44, column 11)
               _lhsOlistType =
                   []
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 164, column 11)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 165, column 11)
               _lhsOfixedUpIdentifiersTree =
                   []
               -- self rule
@@ -14797,7 +14804,7 @@ sem_TableRefList_Cons hd_ tl_  =
               -- "./TypeChecking/TableRefs.ag"(line 97, column 9)
               _lhsOlibUpdates =
                   _hdIlibUpdates
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 205, column 12)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 212, column 12)
               _lhsOcidenv =
                   joinIDEnvs _hdIcidenv _tlIcidenv
               -- self rule
@@ -14861,7 +14868,7 @@ sem_TableRefList_Nil  =
               -- "./TypeChecking/TableRefs.ag"(line 95, column 9)
               _lhsOlibUpdates =
                   []
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 206, column 11)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 213, column 11)
               _lhsOcidenv =
                   emptyIDEnv
               -- self rule
