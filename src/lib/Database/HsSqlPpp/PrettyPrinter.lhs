@@ -13,6 +13,7 @@
 >                       --convert a sql ast to text
 >                       printStatements
 >                      ,printStatementsAnn
+>                      ,printQueryExpr
 >                       --convert a single expression parse node to text
 >                      ,printScalarExpr
 >                      )
@@ -41,6 +42,10 @@ Public functions
 > printStatementsAnn :: (Annotation -> String) -> StatementList -> String
 > printStatementsAnn f ast = render $ vcat (map (convStatement f) ast) <> text "\n"
 >
+
+> printQueryExpr :: QueryExpr -> String
+> printQueryExpr ast = render (convQueryExpr True True ast <> statementEnd)
+
 > -- | Testing function, pretty print an expression
 > printScalarExpr :: ScalarExpr -> String
 > printScalarExpr = render . convExp

@@ -1,0 +1,290 @@
+{-
+
+This code resolves and disambiguates the identifiers (and a few other
+bits and pieces).
+e.g. select a,b from t -> select t.a, t.b from t;
+
+Apart from adding range qualifiers to all identifiers in select lists,
+it also:
+
+
+adds range qualifiers to identifiers in: where, group by, having,
+  order by
+checks the range qualifiers in correlated subqueries
+expands * at top level in select lists
+adds explicit column names in select lists (select x as x...)
+adds explicit table alias to all trefs, subqueries
+makes sure every table alias is unique across the entire query.
+
+provides type errors:
+unrecognised id
+unrecognised qualifier
+ambiguous reference
+
+saves the original bits and pieces to provide better error messages
+
+
+If e.g. order by 3,1 like syntax is needed, then this can be fixed up
+here also.
+
+We need the the sources of identifiers from the catalog: tables,
+views, functions.
+
+Identifiers are qualified straightforwardly in:
+
+select lists
+wheres
+group bys
+havings
+order bys
+
+All of the above use the same environment which comes out of the top
+level trefs in a statement.
+
+Identifiers in on expressions in joins need to be fixed up also, they
+use an environment which is local to that join.
+
+Identifiers in a using join aren't changed, since they refer to either
+table.
+
+How exactly is the environment updated?
+
+Vanilla tref, subtref and trefun all set the exact environment.
+
+For joins: the two environments are combined (this goes into the
+onexpr). If there is a table name alias, then the aliases are
+replaced. If there are column aliases as well, then the whole lot gets
+replaced with these.
+
+===================================================
+
+= environment: data type, read api, update api
+
+-}
+
+{
+
+data IDEnv = IDEnv [(String, [String])]
+
+emptyIDEnv = IDEnv []
+
+qualifyID :: IDEnv -> String -> Maybe (String,String)
+qualifyID (IDEnv env) i =
+  q env i
+  where
+    q [] i = Nothing
+    q ((t,cs):es) i =
+       if i `elem` cs
+       then Just (t,i)
+       else q es i
+
+makeIDEnv :: String -- range qualifier
+          -> [String] -- attribute names
+          -> IDEnv
+makeIDEnv t c = IDEnv [(t,c)]
+
+unimplementedIDEnv :: IDEnv
+unimplementedIDEnv = IDEnv []
+
+joinIDEnvs :: IDEnv -> IDEnv -> IDEnv
+joinIDEnvs (IDEnv a) (IDEnv b) = IDEnv $ a ++ b
+
+{-
+emptyIDEnv :: IDEnv
+emptyIDEnv = undefined
+
+unimplementedIDEnv :: IDEnv
+unimplementedIDEnv = undefined
+
+
+joinIDEnvs :: IDEnv -> IDEnv -> IDEnv
+joinIDEnvs = undefined
+
+aliasIDEnvRangeName :: IDEnv -> String -> IDEnv
+aliasIDEnvRangeName = undefined
+
+-}
+expandStar :: IDEnv -> Maybe String --qualifier
+           -> [(String,String)]
+expandStar (IDEnv es) Nothing =
+  flip concatMap es $ \(t,cs) -> map (t,) cs
+expandStar (IDEnv es) (Just t) =
+  maybe [(t,"*")] (map (t,)) $ lookup t es
+
+
+}
+
+{-
+
+= Creating environments
+
+environments are created in trefs, and also select lists (to support
+subtref).
+
+-}
+
+
+ATTR TableRef SelectList
+         [
+         |
+         | cidenv : IDEnv
+         ]
+
+SEM TableRef
+    | Tref loc.fields = getTableFields @lhs.cat @tbl.originalTree
+           lhs.cidenv = uncurry makeIDEnv $ @loc.fields
+    | JoinTref SubTref FunTref lhs.cidenv = unimplementedIDEnv
+
+SEM SelectList
+    | SelectList lhs.cidenv = unimplementedIDEnv
+
+{
+getTableFields :: Catalog -> ScalarExpr -> (String,[String])
+getTableFields c e =
+  let tn = getName e
+      (Right attrs) = catCompositePublicAttrs c relationComposites tn
+  in (tn, map fst attrs)
+
+
+}
+
+SEM ScalarExpr
+    | Identifier
+        lhs.newFixedUpIdentifiersTree =
+            case qualifyID @lhs.idenv @i of
+              Nothing -> Identifier @ann @i
+              Just (t,i) -> QIdentifier @ann (Identifier @ann t) i
+
+SEM SelectItemList
+    | Cons lhs.fixedUpIdentifiersTree = @hd.seIdTree ++ @tl.fixedUpIdentifiersTree
+    | Nil lhs.fixedUpIdentifiersTree = []
+
+ATTR SelectItem [
+                |
+                | seIdTree : {[SelectItem]}
+                ]
+
+SEM SelectItem
+    | SelExp lhs.seIdTree
+        = case @ex.fixedUpIdentifiersTree of
+            x@(Identifier a "*") -> makeSelExps @ann a a $ expandStar @lhs.idenv Nothing
+            x@(QIdentifier a0 (Identifier a1 q) "*") ->
+               makeSelExps @ann a0 a1 $ expandStar @lhs.idenv $ Just q
+            x -> [SelExp @ann @ex.newFixedUpIdentifiersTree]
+
+    | SelectItem lhs.seIdTree
+        = [SelectItem @ann @ex.newFixedUpIdentifiersTree @name]
+
+{
+makeSelExps :: Annotation -> Annotation -> Annotation -> [(String,String)] -> [SelectItem]
+makeSelExps sea a0 a1 is =
+  flip map is $ \(q,c) -> SelExp sea $ QIdentifier a0 (Identifier a1 q) c
+}
+
+{-
+
+= Passing environments around
+
+Passing up:
+* through nested trefs
+* from trefs to selects
+* from select lists -> select -> wrapping subtref
+-}
+
+ATTR TableRefList QueryExpr
+         [
+         |
+         | cidenv : IDEnv
+         ]
+
+SEM TableRefList
+    | Cons lhs.cidenv = joinIDEnvs @hd.cidenv @tl.cidenv
+    | Nil lhs.cidenv = emptyIDEnv
+
+SEM QueryExpr
+    | Select lhs.cidenv = @selSelectList.cidenv
+    | CombineSelect lhs.cidenv = @sel1.cidenv
+    | Values lhs.cidenv = unimplementedIDEnv
+    | WithSelect lhs.cidenv = @ex.cidenv
+
+
+{-
+
+== Passing down
+
+* from jointref to onexpr
+* from select to (select list, where, group by, having, order by
+* through scalar expression trees
+
+-}
+
+ATTR Root AllNodes ScalarExprRoot
+         [ idenv : IDEnv
+         |
+         |
+         ]
+
+{-SEM TableRef
+    | JoinTref onExpr.idenv = unimplementedIDEnv
+-}
+
+-- this is where the environment from the top level tref in a query
+-- expression is sent back down into the select list, where, etc.
+
+SEM QueryExpr
+    | Select selSelectList.idenv = @selTref.cidenv
+             --selWhere.idenv = @selTref.cidenv
+             --selGroupBy.idenv = @selTref.cidenv
+             --selHaving.idenv = @selTref.cidenv
+             --selOrderBy.idenv = @selTref.cidenv
+
+{-
+
+= Accessing environments
+
+IDEnv is used to fix up identifiers in scalar expressions.
+
+For adding qualifiers, all the identifiers in a scalar expression are
+updated the same.
+
+The roots are:
+Select.selSelectList -> SelectItemList -> (SelEx,SelectItem).ex
+Select.selWhere MaybeBoolExpression
+Select.selGroupBy -> ExpressionList
+Select.selHaving -> MaybeBoolExpression
+Select.setOrdereBy -> ExpressionDirectionPairList
+JoinedTref.onExpr
+
+-}
+
+{
+
+
+
+}
+{-
+
+don't want to fiddle with all the identifiers in an ast, only those in
+the correct positions. So fixedUpIdentifiersTree defaults to not
+changing anything, and in the places it should switch to adjusting the
+identifiers, newFixedUpIdentifiersTree is used instead
+
+-}
+ATTR Root AllNodes [
+                   |
+                   | fixedUpIdentifiersTree : SELF
+                     newFixedUpIdentifiersTree : SELF -- this is used to adjust identifiers by qualifying them where neccessary
+                   ]
+
+{
+fixUpIdentifiers :: Catalog -> [Statement] -> [Statement]
+fixUpIdentifiers cat sts =
+    let t = sem_Root (Root sts)
+        ta = wrap_Root t Inh_Root {cat_Inh_Root = cat
+                                  ,lib_Inh_Root = emptyBindings
+                                  ,idenv_Inh_Root = emptyIDEnv}
+        tl = fixedUpIdentifiersTree_Syn_Root ta
+    in case tl of
+         Root r -> r
+
+}

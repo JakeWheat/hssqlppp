@@ -123,7 +123,7 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,typeCheckStatements
    ,typeCheckParameterizedStatement
    ,typeCheckScalarExpr
-   ,canonicaliseIdentifiers
+   ,fixUpIdentifiers
 }
 
 {
@@ -326,6 +326,16 @@ DATA Statement
 
 --Statement components
 
+{
+
+-- used for possibly dot qualified identifiers in e.g. table name
+-- references
+-- todo: start using this everywhere, lots of places which
+-- use scalarexpr or string should be using this
+data DQIdentifier = DQIdentifier Annotation [String]
+                    deriving (Eq,Show,Data,Typeable)
+}
+
 -- maybe this should be called relation valued expression?
 DATA QueryExpr
     | Select ann:Annotation
@@ -518,6 +528,7 @@ data Replace = Replace | NoReplace
 
 data RestartIdentity = RestartIdentity | ContinueIdentity
                        deriving (Show,Eq,Typeable,Data)
+
 }
 {-
 ================================================================================
@@ -583,7 +594,7 @@ DATA ScalarExpr | IntegerLit ann:Annotation i:Integer
                            orderBy : ScalarExprList
                            dir : Direction
                            frm : FrameClause
-                | ScalarSubQuery ann:Annotation
+                | ScalarSubQuery ann:Annotation -- scalar meaning scalar context not scalar valued...
                                  sel : QueryExpr
                 | LiftOperator ann:Annotation
                                oper:String
@@ -826,7 +837,7 @@ typeCheckMany cat sts =
 --   Returns the updated catalog as well as the annotated ast.
 typeCheckStatements :: Catalog -> StatementList -> (Catalog,StatementList)
 typeCheckStatements cat sts =
-    let t = sem_Root (Root (fixupImplicitJoins sts))
+    let t = sem_Root (Root sts)
         ta = wrap_Root t Inh_Root {cat_Inh_Root = cat
                                   ,lib_Inh_Root = emptyBindings}
         tl = annotatedTree_Syn_Root ta
@@ -849,7 +860,7 @@ typeCheckParameterizedStatement cat st =
       Delete _ _ _ _ _ -> tc
       _ -> Left "requires select, update, insert or delete statement"
     where
-      tc = let t = sem_Root (Root (fixupImplicitJoins [st]))
+      tc = let t = sem_Root (Root [st])
                ta = wrap_Root t Inh_Root {cat_Inh_Root = cat
                                          ,lib_Inh_Root = emptyBindings}
                tl = annotatedTree_Syn_Root ta
@@ -863,39 +874,16 @@ typeCheckParameterizedStatement cat st =
 -- or to get its type.
 typeCheckScalarExpr :: Catalog -> ScalarExpr -> ScalarExpr
 typeCheckScalarExpr cat ex =
-    let t = sem_ScalarExprRoot (ScalarExprRoot (fixupImplicitJoins ex))
+    let t = sem_ScalarExprRoot (ScalarExprRoot ex)
         rt = (annotatedTree_Syn_ScalarExprRoot
               (wrap_ScalarExprRoot t Inh_ScalarExprRoot {cat_Inh_ScalarExprRoot = cat
                                                         ,lib_Inh_ScalarExprRoot = emptyBindings}))
     in case rt of
          ScalarExprRoot e -> e
 
-{-
-bit of a hack, to avoid rewriting the tableref type checking to be
-able to do implicit joins, we just convert them in to the equivalent
-explicit join
--}
-
-fixupImplicitJoins :: Data a => a -> a
-fixupImplicitJoins =
-    transformBi $ \x ->
-            case x of
-              -- alter asts to change implicit joins into explicit joins
-              Select an dis sl trs@(_:_:_) whr grp hav od lim off
-                  -> Select an dis sl [convTrefs trs] whr grp hav od lim off
-              x1 -> x1
-    where
-      convTrefs (tr:tr1:trs) = JoinTref emptyAnnotation tr Unnatural Cross (convTrefs (tr1:trs)) Nothing NoAlias
-      convTrefs (tr:[]) = tr
-      convTrefs _ = error "failed doing implicit join fixup hack"
-
-canonicaliseIdentifiers :: Catalog -> [QueryExpr] -> [QueryExpr]
-canonicaliseIdentifiers _cat _sts = undefined
-
-
 }
 
---INCLUDE "TypeChecking/CanonicaliseIdentifiers.ag"
+INCLUDE "TypeChecking/FixUpIdentifiers.ag"
 
 {-
 

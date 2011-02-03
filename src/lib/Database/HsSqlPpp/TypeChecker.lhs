@@ -29,7 +29,7 @@ This is the public module for the type checking functionality.
 >      typeCheckStatements
 >     ,typeCheckParameterizedStatement
 >     ,typeCheckScalarExpr
->     ,canonicaliseIdentifiers
+>     ,fixUpIdentifiers
 >      -- * Annotated tree utils
 >     ,getStatementAnnotations
 >     ) where

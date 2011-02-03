@@ -37,6 +37,10 @@ Flag quasiquotes
   Description:       Compile quasiquote support
   Default:           False
 
+Flag library
+  Description:       Build the library
+  Default:          True
+
 
 Library
   Build-Depends:     base >= 4 && < 5,
@@ -97,6 +101,10 @@ Library
 
   ghc-options:       -pgmPcpphs -optP--cpp
 
+  if flag(library)
+    Buildable:       True
+  else
+    Buildable:       False
 
   extensions:        DeriveDataTypeable,
                      RankNTypes,
@@ -118,6 +126,7 @@ Executable Tests
                      syb >= 0.1.0.2 && < 0.2,
                      uniplate >= 1.6 && < 1.7,
                      transformers >= 0.2.2.0 && < 0.3,
+                     template-haskell >= 2.4.0.0 && < 2.5,
                      test-framework >= 0.3.3 && < 0.4,
                      haskell-src-exts >= 1.10 && < 1.11,
                      test-framework-hunit >= 0.2.6 && < 0.3,
