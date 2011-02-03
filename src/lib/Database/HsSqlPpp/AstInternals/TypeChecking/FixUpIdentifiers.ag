@@ -155,6 +155,10 @@ SEM ScalarExpr
               Nothing -> Identifier @ann @i
               Just (t,i) -> QIdentifier @ann (Identifier @ann t) i
 
+    | QIdentifier
+        lhs.newFixedUpIdentifiersTree =
+          QIdentifier @ann @qual.fixedUpIdentifiersTree @i
+
 SEM SelectItemList
     | Cons lhs.fixedUpIdentifiersTree = @hd.seIdTree ++ @tl.fixedUpIdentifiersTree
     | Nil lhs.fixedUpIdentifiersTree = []

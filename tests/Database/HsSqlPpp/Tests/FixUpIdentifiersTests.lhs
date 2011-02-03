@@ -32,6 +32,7 @@
 >     ,Item db1 "select * from t,u;" "select t.a,t.b,u.c,u.d from t,u;"
 >     ,Item db1 "select t.* from t,u;" "select t.a, t.b from t,u;"
 >     ,Item db1 "select u.* from t,u;" "select u.c,u.d from t,u;"
+>     ,Item db1 "select v from v;" "select v.v from v;"
 >     ]
 >   ]
 
@@ -42,7 +43,9 @@ qualifier and column name the same
 > db1 = [CatCreateTable "t" [("a",typeInt)
 >                           ,("b", typeInt)] []
 >       ,CatCreateTable "u" [("c",typeInt)
->                           ,("d", typeInt)] []]
+>                           ,("d", typeInt)] []
+>       ,CatCreateTable "v" [("v",typeInt)] []]
+
 
 ------------------------
 
@@ -57,10 +60,13 @@ qualifier and column name the same
 >                               Right l -> resetAnnotations l
 >       cAst = fixUpIdentifiers makeCat ast
 >       c2Ast = fixUpIdentifiers makeCat cAst
->   putStrLn $ printStatements cAst ++ "\n" ++ printStatements c2Ast
+>   --putStrLn $ printStatements cAst ++ "\n" ++ printStatements c2Ast
 >   when (eAst /= cAst) $ do
 >     putStrLn $ "\nExpected:\n\n" ++ printStatements eAst
 >     putStrLn $ "\nGot:\n\n" ++ printStatements cAst ++ "\n\n"
+>   when (cAst /= c2Ast) $ do
+>     putStrLn $ "\nREDO, Expected:\n\n" ++ printStatements cAst
+>     putStrLn $ "\nGot:\n\n" ++ printStatements c2Ast ++ "\n\n"
 >   assertEqual "" eAst cAst
 >   assertEqual "redo" cAst c2Ast
 >   where
