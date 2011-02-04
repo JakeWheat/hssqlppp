@@ -499,7 +499,7 @@ data ParamName = NamedParam Int String
 
 
 data IDEnv = IDEnv [(String, [String])]
-
+             deriving Show
 emptyIDEnv :: IDEnv
 emptyIDEnv = IDEnv []
 
@@ -3476,6 +3476,7 @@ sem_ParamDefList_Nil  =
             local newLib      : _
             local tpe         : {Et}
             local backTree    : _
+            local includeCorrelations : _
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
             local newFixedUpIdentifiersTree : _
@@ -3795,19 +3796,22 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
               -- "./TypeChecking/FixUpIdentifiers.ag"(line 245, column 14)
               _lhsOcidenv =
                   _selSelectListIcidenv
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 275, column 14)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 277, column 14)
+              _includeCorrelations =
+                  joinIDEnvs _lhsIidenv _selTrefIcidenv
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 278, column 14)
               _selSelectListOidenv =
                   _selTrefIcidenv
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 276, column 14)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 279, column 14)
               _selWhereOidenv =
-                  _selTrefIcidenv
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 277, column 14)
+                  _includeCorrelations
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 280, column 14)
               _selGroupByOidenv =
                   _selTrefIcidenv
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 278, column 14)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 281, column 14)
               _selHavingOidenv =
-                  _selTrefIcidenv
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 279, column 14)
+                  _includeCorrelations
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 282, column 14)
               _selOrderByOidenv =
                   _selTrefIcidenv
               -- self rule

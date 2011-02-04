@@ -66,7 +66,7 @@ replaced with these.
 {
 
 data IDEnv = IDEnv [(String, [String])]
-
+             deriving Show
 emptyIDEnv :: IDEnv
 emptyIDEnv = IDEnv []
 
@@ -272,10 +272,14 @@ ATTR Root AllNodes ScalarExprRoot
 -- expression is sent back down into the select list, where, etc.
 
 SEM QueryExpr
-    | Select selSelectList.idenv = @selTref.cidenv
-             selWhere.idenv = @selTref.cidenv
+    | Select -- source the ids from the tref and the surrounding env
+             -- this is to support correlated subqueries
+             -- can only access correlated ids in where or having
+             loc.includeCorrelations = joinIDEnvs @lhs.idenv @selTref.cidenv
+             selSelectList.idenv = @selTref.cidenv
+             selWhere.idenv = @loc.includeCorrelations
              selGroupBy.idenv = @selTref.cidenv
-             selHaving.idenv = @selTref.cidenv
+             selHaving.idenv = @loc.includeCorrelations
              selOrderBy.idenv = @selTref.cidenv
 
 {-
