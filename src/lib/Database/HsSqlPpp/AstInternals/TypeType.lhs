@@ -143,7 +143,7 @@ Introduce some aliases to protect client code if/when the ast
 canonical names are changed:
 
 > typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4,
->   typeFloat8,typeVarChar,typeChar,typeBool :: Type
+>   typeFloat8,typeVarChar,typeChar,typeBool,typeDate :: Type
 > typeSmallInt = ScalarType "int2"
 > typeBigInt = ScalarType "int8"
 > typeInt = ScalarType "int4"
@@ -153,7 +153,10 @@ canonical names are changed:
 > typeVarChar = ScalarType "varchar"
 > typeChar = ScalarType "char"
 > typeBool = ScalarType "bool"
+> typeDate = ScalarType "date"
 
+this converts the name of a type to its canonical name:
+try to follow the names that pg uses in a dump
 this converts the name of a type to its canonical name:
 try to follow the names that pg uses in a dump
 

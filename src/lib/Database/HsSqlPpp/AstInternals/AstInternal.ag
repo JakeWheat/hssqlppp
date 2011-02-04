@@ -839,7 +839,8 @@ typeCheckStatements :: Catalog -> StatementList -> (Catalog,StatementList)
 typeCheckStatements cat sts =
     let t = sem_Root (Root $ fixUpIdentifiers cat sts)
         ta = wrap_Root t Inh_Root {cat_Inh_Root = cat
-                                  ,lib_Inh_Root = emptyBindings}
+                                  ,lib_Inh_Root = emptyBindings
+                                  ,idenv_Inh_Root = emptyIDEnv}
         tl = annotatedTree_Syn_Root ta
         cat1 = producedCat_Syn_Root ta
     in case tl of
@@ -862,7 +863,8 @@ typeCheckParameterizedStatement cat st =
     where
       tc = let t = sem_Root (Root $ fixUpIdentifiers cat [st])
                ta = wrap_Root t Inh_Root {cat_Inh_Root = cat
-                                         ,lib_Inh_Root = emptyBindings}
+                                         ,lib_Inh_Root = emptyBindings
+                                         ,idenv_Inh_Root = emptyIDEnv}
                tl = annotatedTree_Syn_Root ta
                --cat1 = producedCat_Syn_Root ta
            in case tl of
@@ -877,7 +879,8 @@ typeCheckScalarExpr cat ex =
     let t = sem_ScalarExprRoot (ScalarExprRoot ex)
         rt = (annotatedTree_Syn_ScalarExprRoot
               (wrap_ScalarExprRoot t Inh_ScalarExprRoot {cat_Inh_ScalarExprRoot = cat
-                                                        ,lib_Inh_ScalarExprRoot = emptyBindings}))
+                                                        ,lib_Inh_ScalarExprRoot = emptyBindings
+                                                        ,idenv_Inh_ScalarExprRoot = emptyIDEnv}))
     in case rt of
          ScalarExprRoot e -> e
 

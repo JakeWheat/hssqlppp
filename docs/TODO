@@ -1,7 +1,7 @@
 immediate todo:
 rearrange all files under src/, redo the index.txts
 add parsing the chaos files to the automated tests
-sql lexer for illuminate
+sql lexer for illuminate 1/2 done for now
 fold in changes from selects branch, start work on tpc-h parsing
 
 new todo for 0.3.0

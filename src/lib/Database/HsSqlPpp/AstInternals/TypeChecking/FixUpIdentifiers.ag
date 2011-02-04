@@ -10,7 +10,6 @@ it also:
 
 adds range qualifiers to identifiers in: where, group by, having,
   order by
-checks the range qualifiers in correlated subqueries
 expands * at top level in select lists
 adds explicit column names in select lists (select x as x...)
 adds explicit table alias to all trefs, subqueries
@@ -23,6 +22,8 @@ ambiguous reference
 
 saves the original bits and pieces to provide better error messages
 
+[error checking not currently implemented, saving original bits not
+currently implemented]
 
 If e.g. order by 3,1 like syntax is needed, then this can be fixed up
 here also.
@@ -66,6 +67,7 @@ replaced with these.
 
 data IDEnv = IDEnv [(String, [String])]
 
+emptyIDEnv :: IDEnv
 emptyIDEnv = IDEnv []
 
 qualifyID :: IDEnv -> String -> Maybe (String,String)
@@ -192,6 +194,33 @@ makeSelExps sea a0 a1 is =
   flip map is $ \(q,c) -> SelExp sea $ QIdentifier a0 (Identifier a1 q) c
 }
 
+SEM QueryExpr
+    | Select
+        lhs.fixedUpIdentifiersTree =
+          Select @ann
+                 @selDistinct
+                 @selSelectList.fixedUpIdentifiersTree
+                 @selTref.fixedUpIdentifiersTree
+                 @selWhere.newFixedUpIdentifiersTree
+                 @selGroupBy.newFixedUpIdentifiersTree
+                 @selHaving.newFixedUpIdentifiersTree
+                 @selOrderBy.newFixedUpIdentifiersTree
+                 @selLimit.fixedUpIdentifiersTree
+                 @selOffset.fixedUpIdentifiersTree
+
+{-
+some rules for order by:
+
+can reference the same columns going into the select list in
+expressions
+can reference an output column by a single number
+can reference an output column by its alias (overrides same named
+column into select list)
+
+this needs fixing
+
+-}
+
 {-
 
 = Passing environments around
@@ -244,10 +273,10 @@ ATTR Root AllNodes ScalarExprRoot
 
 SEM QueryExpr
     | Select selSelectList.idenv = @selTref.cidenv
-             --selWhere.idenv = @selTref.cidenv
-             --selGroupBy.idenv = @selTref.cidenv
-             --selHaving.idenv = @selTref.cidenv
-             --selOrderBy.idenv = @selTref.cidenv
+             selWhere.idenv = @selTref.cidenv
+             selGroupBy.idenv = @selTref.cidenv
+             selHaving.idenv = @selTref.cidenv
+             selOrderBy.idenv = @selTref.cidenv
 
 {-
 
