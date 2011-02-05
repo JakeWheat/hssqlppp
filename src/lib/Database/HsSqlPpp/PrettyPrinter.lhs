@@ -68,7 +68,7 @@ Conversion routines - convert Sql asts into Docs
 >
 > convStatement pa (Insert ann tb atts idata rt) =
 >   convPa pa ann <+>
->   text "insert into" <+> convExp tb
+>   text "insert into" <+> convDqi tb
 >   <+> ifNotEmpty (parens . hcatCsvMap text) atts
 >   $+$ convQueryExpr True True idata
 >   $+$ convReturning rt
@@ -527,6 +527,8 @@ Statement components
 >                                  Cascade -> "cascade"
 >                                  Restrict -> "restrict"
 >
+> convDqi :: DQIdentifier -> Doc
+> convDqi (DQIdentifier _ is) = hcat $ punctuate (text ".") $ map text is
 > -- ddl
 >
 > convCon :: Constraint -> Doc

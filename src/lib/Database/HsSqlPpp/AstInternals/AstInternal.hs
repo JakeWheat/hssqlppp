@@ -39,6 +39,7 @@ module Database.HsSqlPpp.AstInternals.AstInternal(
    ,Replace(..)
    ,RestartIdentity (..)
    ,ScalarExpr (..)
+   ,DQIdentifier(..)
    ,IntervalField(..)
    ,ExtractField(..)
    ,FrameClause(..)
@@ -109,8 +110,6 @@ import Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
 -- references
 -- todo: start using this everywhere, lots of places which
 -- use scalarexpr or string should be using this
-data DQIdentifier = DQIdentifier Annotation [String]
-                    deriving (Eq,Show,Data,Typeable)
 
 
 data TableAlias = NoAlias
@@ -341,6 +340,11 @@ getName (FunCall _ "." [Identifier _ _,Identifier _ i]) = i
 getName (FunCall _ "." [_,a]) = getName a
 getName x = error $ "internal error getName called on: " ++ show x
 
+getTName :: DQIdentifier -> String
+getTName (DQIdentifier _ x@(_:_)) = last x
+getTName x = error $ "internal error getName called on: " ++ show x
+
+
 unwrapLookup :: (String,[String],Type) -> Type
 unwrapLookup (_,_,t) = t
 
@@ -507,11 +511,11 @@ qualifyID :: IDEnv -> String -> Maybe (String,String)
 qualifyID (IDEnv env) i =
   q env i
   where
-    q [] i = Nothing
-    q ((t,cs):es) i =
-       if i `elem` cs
-       then Just (t,i)
-       else q es i
+    q [] _ = Nothing
+    q ((t,cs):es) i' =
+       if i' `elem` cs
+       then Just (t,i')
+       else q es i'
 
 makeIDEnv :: String -- range qualifier
           -> [String] -- attribute names
@@ -1959,6 +1963,104 @@ sem_ConstraintList_Nil  =
               _lhsOoriginalTree =
                   _originalTree
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOnewFixedUpIdentifiersTree,_lhsOoriginalTree)))
+-- DQIdentifier ------------------------------------------------
+{-
+   visit 0:
+      inherited attributes:
+         cat                  : Catalog
+         idenv                : IDEnv
+         lib                  : LocalBindings
+      synthesized attributes:
+         annotatedTree        : SELF 
+         fixedUpIdentifiersTree : SELF 
+         newFixedUpIdentifiersTree : SELF 
+         originalTree         : SELF 
+         tbAnnotatedTree      : DQIdentifier 
+         tbUType              : Maybe ([(String,Type)],[(String,Type)])
+   alternatives:
+      alternative DQIdentifier:
+         child ann            : {Annotation}
+         child is             : {[String]}
+         visit 0:
+            local tbUType     : _
+            local backTree    : _
+            local annotatedTree : _
+            local fixedUpIdentifiersTree : _
+            local newFixedUpIdentifiersTree : _
+            local originalTree : _
+-}
+data DQIdentifier  = DQIdentifier (Annotation) ([String]) 
+                   deriving ( Data,Eq,Show,Typeable)
+-- cata
+sem_DQIdentifier :: DQIdentifier  ->
+                    T_DQIdentifier 
+sem_DQIdentifier (DQIdentifier _ann _is )  =
+    (sem_DQIdentifier_DQIdentifier _ann _is )
+-- semantic domain
+type T_DQIdentifier  = Catalog ->
+                       IDEnv ->
+                       LocalBindings ->
+                       ( DQIdentifier,DQIdentifier,DQIdentifier,DQIdentifier,DQIdentifier,(Maybe ([(String,Type)],[(String,Type)])))
+data Inh_DQIdentifier  = Inh_DQIdentifier {cat_Inh_DQIdentifier :: Catalog,idenv_Inh_DQIdentifier :: IDEnv,lib_Inh_DQIdentifier :: LocalBindings}
+data Syn_DQIdentifier  = Syn_DQIdentifier {annotatedTree_Syn_DQIdentifier :: DQIdentifier,fixedUpIdentifiersTree_Syn_DQIdentifier :: DQIdentifier,newFixedUpIdentifiersTree_Syn_DQIdentifier :: DQIdentifier,originalTree_Syn_DQIdentifier :: DQIdentifier,tbAnnotatedTree_Syn_DQIdentifier :: DQIdentifier,tbUType_Syn_DQIdentifier :: Maybe ([(String,Type)],[(String,Type)])}
+wrap_DQIdentifier :: T_DQIdentifier  ->
+                     Inh_DQIdentifier  ->
+                     Syn_DQIdentifier 
+wrap_DQIdentifier sem (Inh_DQIdentifier _lhsIcat _lhsIidenv _lhsIlib )  =
+    (let ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOnewFixedUpIdentifiersTree,_lhsOoriginalTree,_lhsOtbAnnotatedTree,_lhsOtbUType) =
+             (sem _lhsIcat _lhsIidenv _lhsIlib )
+     in  (Syn_DQIdentifier _lhsOannotatedTree _lhsOfixedUpIdentifiersTree _lhsOnewFixedUpIdentifiersTree _lhsOoriginalTree _lhsOtbAnnotatedTree _lhsOtbUType ))
+sem_DQIdentifier_DQIdentifier :: Annotation ->
+                                 ([String]) ->
+                                 T_DQIdentifier 
+sem_DQIdentifier_DQIdentifier ann_ is_  =
+    (\ _lhsIcat
+       _lhsIidenv
+       _lhsIlib ->
+         (let _lhsOtbUType :: (Maybe ([(String,Type)],[(String,Type)]))
+              _lhsOtbAnnotatedTree :: DQIdentifier
+              _lhsOannotatedTree :: DQIdentifier
+              _lhsOfixedUpIdentifiersTree :: DQIdentifier
+              _lhsOnewFixedUpIdentifiersTree :: DQIdentifier
+              _lhsOoriginalTree :: DQIdentifier
+              -- "./TypeChecking/Misc.ag"(line 53, column 9)
+              _tbUType =
+                  catCompositeAttrsPair _lhsIcat relationComposites (last is_)
+              -- "./TypeChecking/Misc.ag"(line 54, column 9)
+              _lhsOtbUType =
+                  either (const Nothing) Just _tbUType
+              -- "./TypeChecking/Misc.ag"(line 55, column 9)
+              _lhsOtbAnnotatedTree =
+                  updateAnnotation
+                    (\a -> a {errs = errs a ++ tes _tbUType    }) _backTree
+              -- "./TypeChecking/Misc.ag"(line 58, column 9)
+              _backTree =
+                  DQIdentifier ann_ is_
+              -- self rule
+              _annotatedTree =
+                  DQIdentifier ann_ is_
+              -- self rule
+              _fixedUpIdentifiersTree =
+                  DQIdentifier ann_ is_
+              -- self rule
+              _newFixedUpIdentifiersTree =
+                  DQIdentifier ann_ is_
+              -- self rule
+              _originalTree =
+                  DQIdentifier ann_ is_
+              -- self rule
+              _lhsOannotatedTree =
+                  _annotatedTree
+              -- self rule
+              _lhsOfixedUpIdentifiersTree =
+                  _fixedUpIdentifiersTree
+              -- self rule
+              _lhsOnewFixedUpIdentifiersTree =
+                  _newFixedUpIdentifiersTree
+              -- self rule
+              _lhsOoriginalTree =
+                  _originalTree
+          in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOnewFixedUpIdentifiersTree,_lhsOoriginalTree,_lhsOtbAnnotatedTree,_lhsOtbUType)))
 -- FnBody ------------------------------------------------------
 {-
    visit 0:
@@ -3796,22 +3898,22 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
               -- "./TypeChecking/FixUpIdentifiers.ag"(line 245, column 14)
               _lhsOcidenv =
                   _selSelectListIcidenv
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 277, column 14)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 278, column 14)
               _includeCorrelations =
                   joinIDEnvs _lhsIidenv _selTrefIcidenv
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 278, column 14)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 279, column 14)
               _selSelectListOidenv =
                   _selTrefIcidenv
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 279, column 14)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 280, column 14)
               _selWhereOidenv =
                   _includeCorrelations
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 280, column 14)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 281, column 14)
               _selGroupByOidenv =
                   _selTrefIcidenv
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 281, column 14)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 282, column 14)
               _selHavingOidenv =
                   _includeCorrelations
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 282, column 14)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 283, column 14)
               _selOrderByOidenv =
                   _selTrefIcidenv
               -- self rule
@@ -8938,16 +9040,16 @@ sem_SelectItem_SelExp ann_ ex_  =
               -- "./TypeChecking/FixUpIdentifiers.ag"(line 175, column 14)
               _lhsOseIdTree =
                   case _exIfixedUpIdentifiersTree of
-                    x@(Identifier a "*") -> let s = expandStar _lhsIidenv Nothing
+                    Identifier a "*" -> let s = expandStar _lhsIidenv Nothing
                                             in if null s
                                                then [SelExp ann_ _exIfixedUpIdentifiersTree]
                                                else makeSelExps ann_ a a s
-                    x@(QIdentifier a0 (Identifier a1 q) "*") ->
+                    QIdentifier a0 (Identifier a1 q) "*" ->
                        let s = expandStar _lhsIidenv $ Just q
                        in if null s
                           then [SelExp ann_ _exIfixedUpIdentifiersTree]
                           else makeSelExps ann_ a0 a1 s
-                    x -> [SelExp ann_ _exInewFixedUpIdentifiersTree]
+                    _ -> [SelExp ann_ _exInewFixedUpIdentifiersTree]
               -- self rule
               _fixedUpIdentifiersTree =
                   SelExp ann_ _exIfixedUpIdentifiersTree
@@ -9744,7 +9846,7 @@ sem_SelectList_SelectList ann_ items_ into_  =
             local originalTree : _
       alternative Insert:
          child ann            : {Annotation}
-         child table          : ScalarExpr 
+         child table          : DQIdentifier 
          child targetCols     : {[String]}
          child insData        : QueryExpr 
          child returning      : MaybeSelectList 
@@ -9920,7 +10022,7 @@ data Statement  = AlterSequence (Annotation) (String) (ScalarExpr)
                 | ForIntegerStatement (Annotation) (Maybe String) (ScalarExpr) (ScalarExpr) (ScalarExpr) (StatementList) 
                 | ForQueryStatement (Annotation) (Maybe String) (ScalarExpr) (QueryExpr) (StatementList) 
                 | If (Annotation) (ScalarExprStatementListPairList) (StatementList) 
-                | Insert (Annotation) (ScalarExpr) ([String]) (QueryExpr) (MaybeSelectList) 
+                | Insert (Annotation) (DQIdentifier) ([String]) (QueryExpr) (MaybeSelectList) 
                 | LoopStatement (Annotation) (Maybe String) (StatementList) 
                 | Notify (Annotation) (String) 
                 | NullStatement (Annotation) 
@@ -9993,7 +10095,7 @@ sem_Statement (ForQueryStatement _ann _lb _var _sel _sts )  =
 sem_Statement (If _ann _cases _els )  =
     (sem_Statement_If _ann (sem_ScalarExprStatementListPairList _cases ) (sem_StatementList _els ) )
 sem_Statement (Insert _ann _table _targetCols _insData _returning )  =
-    (sem_Statement_Insert _ann (sem_ScalarExpr _table ) _targetCols (sem_QueryExpr _insData ) (sem_MaybeSelectList _returning ) )
+    (sem_Statement_Insert _ann (sem_DQIdentifier _table ) _targetCols (sem_QueryExpr _insData ) (sem_MaybeSelectList _returning ) )
 sem_Statement (LoopStatement _ann _lb _sts )  =
     (sem_Statement_LoopStatement _ann _lb (sem_StatementList _sts ) )
 sem_Statement (Notify _ann _name )  =
@@ -11679,7 +11781,7 @@ sem_Statement_Delete ann_ table_ using_ whr_ returning_  =
               _returningIlistType :: ([(String,Type)])
               _returningInewFixedUpIdentifiersTree :: MaybeSelectList
               _returningIoriginalTree :: MaybeSelectList
-              -- "./TypeChecking/ScalarExprs.ag"(line 651, column 28)
+              -- "./TypeChecking/ScalarExprs.ag"(line 651, column 21)
               _tableOexpectedType =
                   Nothing
               -- "./TypeChecking/Statements.ag"(line 82, column 9)
@@ -12243,8 +12345,8 @@ sem_Statement_ForIntegerStatement ann_ lb_ var_ from_ to_ sts_  =
               -- "./TypeChecking/Plpgsql.ag"(line 52, column 9)
               _backTree =
                   let i = if _implicitVar
-                          then let (Identifier a i) = _varIannotatedTree
-                               in Identifier a { errs = []} i
+                          then let (Identifier a i') = _varIannotatedTree
+                               in Identifier a { errs = []} i'
                           else _varIannotatedTree
                   in ForIntegerStatement ann_ lb_ i _fromIannotatedTree _toIannotatedTree _stsIannotatedTree
               -- "./TypeChecking/Plpgsql.ag"(line 58, column 9)
@@ -12565,7 +12667,7 @@ sem_Statement_If ann_ cases_ els_  =
                   (els_ _elsOcat _elsOcatUpdates _elsOidenv _elsOlib _elsOlibUpdates )
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOnewFixedUpIdentifiersTree,_lhsOoriginalTree)))
 sem_Statement_Insert :: Annotation ->
-                        T_ScalarExpr  ->
+                        T_DQIdentifier  ->
                         ([String]) ->
                         T_QueryExpr  ->
                         T_MaybeSelectList  ->
@@ -12575,8 +12677,7 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
        _lhsIidenv
        _lhsIinProducedCat
        _lhsIlib ->
-         (let _tableOexpectedType :: (Maybe Type)
-              _lhsOannotatedTree :: Statement
+         (let _lhsOannotatedTree :: Statement
               _lhsOcatUpdates :: ([CatalogUpdate])
               _lhsOlibUpdates :: ([LocalBindingsUpdate])
               _tpe :: (Either [TypeError] Type)
@@ -12596,15 +12697,12 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
               _insDataOlib :: LocalBindings
               _returningOcat :: Catalog
               _returningOidenv :: IDEnv
-              _tableIannotatedTree :: ScalarExpr
-              _tableIfixedUpIdentifiersTree :: ScalarExpr
-              _tableInewFixedUpIdentifiersTree :: ScalarExpr
-              _tableIntAnnotatedTree :: ScalarExpr
-              _tableIntType :: ([(String,Type)])
-              _tableIoriginalTree :: ScalarExpr
-              _tableItbAnnotatedTree :: ScalarExpr
+              _tableIannotatedTree :: DQIdentifier
+              _tableIfixedUpIdentifiersTree :: DQIdentifier
+              _tableInewFixedUpIdentifiersTree :: DQIdentifier
+              _tableIoriginalTree :: DQIdentifier
+              _tableItbAnnotatedTree :: DQIdentifier
               _tableItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
-              _tableIuType :: (Maybe Type)
               _insDataIannotatedTree :: QueryExpr
               _insDataIcidenv :: IDEnv
               _insDataIfixedUpIdentifiersTree :: QueryExpr
@@ -12617,9 +12715,6 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
               _returningIlistType :: ([(String,Type)])
               _returningInewFixedUpIdentifiersTree :: MaybeSelectList
               _returningIoriginalTree :: MaybeSelectList
-              -- "./TypeChecking/ScalarExprs.ag"(line 651, column 28)
-              _tableOexpectedType =
-                  Nothing
               -- "./TypeChecking/Statements.ag"(line 82, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
@@ -12676,7 +12771,7 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
               _returningOlib =
                   either (const _lhsIlib) id $ do
                     atts <- lmt (allAtts <$> _tableItbUType)
-                    lbUpdate _lhsIcat (LBIds "insert target table" (Just $ getName _tableIannotatedTree) atts) _lhsIlib
+                    lbUpdate _lhsIcat (LBIds "insert target table" (Just $ getTName _tableIannotatedTree) atts) _lhsIlib
               -- self rule
               _annotatedTree =
                   Insert ann_ _tableIannotatedTree targetCols_ _insDataIannotatedTree _returningIannotatedTree
@@ -12722,8 +12817,8 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
               -- copy rule (down)
               _returningOidenv =
                   _lhsIidenv
-              ( _tableIannotatedTree,_tableIfixedUpIdentifiersTree,_tableInewFixedUpIdentifiersTree,_tableIntAnnotatedTree,_tableIntType,_tableIoriginalTree,_tableItbAnnotatedTree,_tableItbUType,_tableIuType) =
-                  (table_ _tableOcat _tableOexpectedType _tableOidenv _tableOlib )
+              ( _tableIannotatedTree,_tableIfixedUpIdentifiersTree,_tableInewFixedUpIdentifiersTree,_tableIoriginalTree,_tableItbAnnotatedTree,_tableItbUType) =
+                  (table_ _tableOcat _tableOidenv _tableOlib )
               ( _insDataIannotatedTree,_insDataIcidenv,_insDataIfixedUpIdentifiersTree,_insDataIlibUpdates,_insDataInewFixedUpIdentifiersTree,_insDataIoriginalTree,_insDataIuType) =
                   (insData_ _insDataOcat _insDataOexpectedTypes _insDataOidenv _insDataOlib )
               ( _returningIannotatedTree,_returningIfixedUpIdentifiersTree,_returningIlistType,_returningInewFixedUpIdentifiersTree,_returningIoriginalTree) =
@@ -13529,7 +13624,7 @@ sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
               -- "./TypeChecking/ScalarExprs.ag"(line 620, column 14)
               _assignsOexpectedTypes =
                   []
-              -- "./TypeChecking/ScalarExprs.ag"(line 651, column 28)
+              -- "./TypeChecking/ScalarExprs.ag"(line 651, column 21)
               _tableOexpectedType =
                   Nothing
               -- "./TypeChecking/Statements.ag"(line 82, column 9)

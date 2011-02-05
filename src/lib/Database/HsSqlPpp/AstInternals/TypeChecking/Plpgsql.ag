@@ -51,8 +51,8 @@ SEM Statement
 
         loc.backTree =
             let i = if @loc.implicitVar
-                    then let (Identifier a i) = @var.annotatedTree
-                         in Identifier a { errs = []} i
+                    then let (Identifier a i') = @var.annotatedTree
+                         in Identifier a { errs = []} i'
                     else @var.annotatedTree
             in ForIntegerStatement @ann @lb i @from.annotatedTree @to.annotatedTree @sts.annotatedTree
         loc.catUpdates = []

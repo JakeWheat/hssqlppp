@@ -639,7 +639,7 @@ dml statements
 >         \(columna,columnb)\n\
 >         \values (1,2);\n"
 >        [Insert ea
->         (i "testtable")
+>         (dqi "testtable")
 >         ["columna", "columnb"]
 >         (Values ea [[IntegerLit ea 1, IntegerLit ea 2]])
 >         Nothing]
@@ -655,7 +655,7 @@ that should be in the select section?
 >         \(columna,columnb)\n\
 >         \values (1,2), (3,4);\n"
 >       [Insert ea
->         (i "testtable")
+>         (dqi "testtable")
 >         ["columna", "columnb"]
 >         (Values ea [[IntegerLit ea 1, IntegerLit ea 2]
 >                 ,[IntegerLit ea 3, IntegerLit ea 4]])
@@ -665,7 +665,7 @@ insert from select
 
 >      ,s "insert into a\n\
 >          \    select b from c;"
->       [Insert ea (i "a") []
+>       [Insert ea (dqi "a") []
 >        (selectFrom [selI "b"] (Tref ea (i "c") NoAlias))
 >        Nothing]
 >
@@ -673,7 +673,7 @@ insert from select
 >         \(columna,columnb)\n\
 >         \values (1,2) returning id;\n"
 >       [Insert ea
->         (i "testtable")
+>         (dqi "testtable")
 >         ["columna", "columnb"]
 >         (Values ea [[IntegerLit ea 1, IntegerLit ea 2]])
 >         (Just $ sl [selI "id"])]
@@ -1294,6 +1294,10 @@ shortcuts for constructing test data and asts
 >
 > i :: String -> ScalarExpr
 > i = Identifier ea
+
+> dqi :: String -> DQIdentifier
+> dqi ii = DQIdentifier ea [ii]
+
 >
 > qi :: String -> String -> ScalarExpr
 > qi c n = QIdentifier ea (i c) n

@@ -45,4 +45,4 @@ SEM Statement
         returning.lib =
             either (const @lhs.lib) id $ do
               atts <- lmt (allAtts <$> @table.tbUType)
-              lbUpdate @lhs.cat (LBIds "insert target table" (Just $ getName @table.annotatedTree) atts) @lhs.lib
+              lbUpdate @lhs.cat (LBIds "insert target table" (Just $ getTName @table.annotatedTree) atts) @lhs.lib

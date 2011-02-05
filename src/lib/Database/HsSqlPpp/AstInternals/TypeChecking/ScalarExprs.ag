@@ -648,4 +648,4 @@ SEM WithQuery
 
 
 SEM Statement
-    | Insert Update Delete table.expectedType = Nothing
+    | Update Delete table.expectedType = Nothing

@@ -20,10 +20,10 @@ module Database.HsSqlPpp.AstInternals.AstAnti
         CombineType(..), Volatility(..), Language(..), TypeName(..),
         DropType(..), Cascade(..), Direction(..), Distinct(..),
         Natural(..), IfExists(..), Replace(..), RestartIdentity(..),
-        ScalarExpr(..), IntervalField(..), ExtractField(..),
-        FrameClause(..), InList(..), LiftFlavour(..), TriggerWhen(..),
-        TriggerEvent(..), TriggerFire(..), SetValue(..), WithQueryList,
-        StatementList, ScalarExprListStatementListPairList,
+        ScalarExpr(..), DQIdentifier(..), IntervalField(..),
+        ExtractField(..), FrameClause(..), InList(..), LiftFlavour(..),
+        TriggerWhen(..), TriggerEvent(..), TriggerFire(..), SetValue(..),
+        WithQueryList, StatementList, ScalarExprListStatementListPairList,
         ScalarExprListStatementListPair, ScalarExprList, ParamDefList,
         AttributeDefList, ConstraintList, TypeAttributeDefList,
         TypeNameList, StringTypeNameListPair, StringTypeNameListPairList,
@@ -197,6 +197,9 @@ data Constraint = CheckConstraint (Annotation) (String)
                 | UniqueConstraint (Annotation) (String) ([String])
                 deriving (Data, Eq, Show, Typeable)
  
+data DQIdentifier = DQIdentifier (Annotation) ([String])
+                  deriving (Data, Eq, Show, Typeable)
+ 
 data FnBody = PlpgsqlFnBody (Annotation) (Statement)
             | SqlFnBody (Annotation) (StatementList)
             deriving (Data, Eq, Show, Typeable)
@@ -305,7 +308,7 @@ data Statement = AlterSequence (Annotation) (String) (ScalarExpr)
                | ForQueryStatement (Annotation) (Maybe String) (ScalarExpr)
                                    (QueryExpr) (StatementList)
                | If (Annotation) (ScalarExprStatementListPairList) (StatementList)
-               | Insert (Annotation) (ScalarExpr) ([String]) (QueryExpr)
+               | Insert (Annotation) (DQIdentifier) ([String]) (QueryExpr)
                         (MaybeSelectList)
                | LoopStatement (Annotation) (Maybe String) (StatementList)
                | Notify (Annotation) (String)
@@ -622,6 +625,11 @@ constraint x
                                                       (cascade a7)
         UniqueConstraint a1 a2 a3 -> A.UniqueConstraint a1 a2 a3
  
+dQIdentifier :: DQIdentifier -> A.DQIdentifier
+dQIdentifier x
+  = case x of
+        DQIdentifier a1 a2 -> A.DQIdentifier a1 a2
+ 
 fnBody :: FnBody -> A.FnBody
 fnBody x
   = case x of
@@ -799,7 +807,7 @@ statement x
                                               (statementList a5)
         If a1 a2 a3 -> A.If a1 (scalarExprStatementListPairList a2)
                          (statementList a3)
-        Insert a1 a2 a3 a4 a5 -> A.Insert a1 (scalarExpr a2) a3
+        Insert a1 a2 a3 a4 a5 -> A.Insert a1 (dQIdentifier a2) a3
                                    (queryExpr a4)
                                    (maybeSelectList a5)
         LoopStatement a1 a2 a3 -> A.LoopStatement a1 a2 (statementList a3)

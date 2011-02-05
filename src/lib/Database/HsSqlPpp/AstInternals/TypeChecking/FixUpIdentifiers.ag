@@ -74,11 +74,11 @@ qualifyID :: IDEnv -> String -> Maybe (String,String)
 qualifyID (IDEnv env) i =
   q env i
   where
-    q [] i = Nothing
-    q ((t,cs):es) i =
-       if i `elem` cs
-       then Just (t,i)
-       else q es i
+    q [] _ = Nothing
+    q ((t,cs):es) i' =
+       if i' `elem` cs
+       then Just (t,i')
+       else q es i'
 
 makeIDEnv :: String -- range qualifier
           -> [String] -- attribute names
@@ -174,16 +174,16 @@ ATTR SelectItem [
 SEM SelectItem
     | SelExp lhs.seIdTree
         = case @ex.fixedUpIdentifiersTree of
-            x@(Identifier a "*") -> let s = expandStar @lhs.idenv Nothing
+            Identifier a "*" -> let s = expandStar @lhs.idenv Nothing
                                     in if null s
                                        then [SelExp @ann @ex.fixedUpIdentifiersTree]
                                        else makeSelExps @ann a a s
-            x@(QIdentifier a0 (Identifier a1 q) "*") ->
+            QIdentifier a0 (Identifier a1 q) "*" ->
                let s = expandStar @lhs.idenv $ Just q
                in if null s
                   then [SelExp @ann @ex.fixedUpIdentifiersTree]
                   else makeSelExps @ann a0 a1 s
-            x -> [SelExp @ann @ex.newFixedUpIdentifiersTree]
+            _ -> [SelExp @ann @ex.newFixedUpIdentifiersTree]
 
     | SelectItem lhs.seIdTree
         = [SelectItem @ann @ex.newFixedUpIdentifiersTree @name]

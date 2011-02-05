@@ -430,7 +430,7 @@ multiple rows to insert and insert from select statements
 > insert :: SParser Statement
 > insert = Insert
 >          <$> pos <* keyword "insert" <* keyword "into"
->          <*> qName
+>          <*> dqi
 >          <*> option [] (try columnNameList)
 >          <*> selectScalarExpr
 >          <*> tryOptionMaybe returning
@@ -1618,6 +1618,25 @@ for that
 >            i1 <- idString
 >            return $ QIdentifier p i i1 --FunCall p "." [i,i1]
 >          ,return i]
+
+> dqi :: SParser DQIdentifier
+> dqi = do
+>   p <- pos
+>   i <- idString
+>   choice [do
+>           is <- suffix
+>           return $ DQIdentifier p (i:is)
+>          ,return $ DQIdentifier p [i]
+>          ]
+>   where
+>     suffix = do
+>         symbol "."
+>         i1 <- idString
+>         choice [do
+>                 is <- suffix
+>                 return (i1:is)
+>                ,return [i1]
+>                ]
 
 
 --------------------------------------------------------------------------------

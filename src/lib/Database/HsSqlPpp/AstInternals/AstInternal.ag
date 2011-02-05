@@ -82,6 +82,7 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,Replace(..)
    ,RestartIdentity (..)
    ,ScalarExpr (..)
+   ,DQIdentifier(..)
    ,IntervalField(..)
    ,ExtractField(..)
    ,FrameClause(..)
@@ -167,7 +168,7 @@ DATA Statement
 
     --table targetcolumns insertdata(values or select statement) returning
     | Insert ann:Annotation
-             table : ScalarExpr
+             table : DQIdentifier
              targetCols : {[String]}
              insData : QueryExpr
              returning : MaybeSelectList
@@ -332,9 +333,11 @@ DATA Statement
 -- references
 -- todo: start using this everywhere, lots of places which
 -- use scalarexpr or string should be using this
-data DQIdentifier = DQIdentifier Annotation [String]
-                    deriving (Eq,Show,Data,Typeable)
 }
+
+DATA DQIdentifier | DQIdentifier ann:Annotation is:{[String]}
+
+
 
 -- maybe this should be called relation valued expression?
 DATA QueryExpr
@@ -788,7 +791,7 @@ SET AllNodes = Statement QueryExpr FnBody TableRef
                AlterTableAction
                ScalarExprDirectionPair
                ScalarExprDirectionPairList AlterTableActionList
-               WithQueryList WithQuery
+               WithQueryList WithQuery DQIdentifier
 
 
 DERIVING AllNodes: Show,Eq,Typeable,Data

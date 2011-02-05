@@ -65,10 +65,12 @@ writeAntiNodes
 >   --ast1 <- pf "Database/HsSqlPpp/AstInternals/AstAnti.hs"
 >   --trace (ppExpr ast) $ return ()
 >   -- get the interesting declarations out
->   let ndecls = [(n,d) | d@(DataDecl _ _ _ (Ident n) _ _ _) <- universeBi ast,
->                not (isGeneratedName n)]
->               ++ [(n,d) | d@(TypeDecl _ (Ident n) _ _) <- universeBi ast,
->                   not (isGeneratedName n)]
+>   let ndecls = [(n,d) | d@(DataDecl _ _ _ (Ident n) _ _ _) <- universeBi ast
+>                ,not $ isGeneratedName n
+>                ,not $ isAuxiliary n]
+>               ++ [(n,d) | d@(TypeDecl _ (Ident n) _ _) <- universeBi ast
+>                  ,not $ isGeneratedName n
+>                  ,not $ isAuxiliary n]
 >   --mapM_ putStrLn $ map fst ndecls
 >   let decls = map snd ndecls
 >   -- create the conversion functions
@@ -83,6 +85,8 @@ writeAntiNodes
 >   where
 >     -- todo: match the exact uuagc generated names here
 >     isGeneratedName n = '_' `elem` n || n `elem` ["Root", "ScalarExprRoot", "ParamName"]
+>     -- auxiliary types used in type checking but not part of public ast
+>     isAuxiliary n = n `elem` ["IDEnv"]
 >
 > pf :: String -> IO Module
 > pf f = do
@@ -93,7 +97,7 @@ writeAntiNodes
 >   where
 >     pm = defaultParseMode {
 >            parseFilename = f
->          ,extensions = [PatternGuards,ScopedTypeVariables]}
+>          ,extensions = [PatternGuards,ScopedTypeVariables,TupleSections]}
 
 node conversions
 ----------------
@@ -352,7 +356,7 @@ nice function names to be exported to do anti->vanilla ast conversions
 >      (BDecls [])]
 
 get the exports from astinternal, and keep the ones for types, and add
-the publi conversion functions
+the public conversion functions
 
 > exports :: (Data a) => a -> [ExportSpec]
 > exports ast = map (\l -> EVar (UnQual (Ident l)))
