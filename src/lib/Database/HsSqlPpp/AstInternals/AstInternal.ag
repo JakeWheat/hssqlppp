@@ -215,7 +215,7 @@ DATA Statement
                      cache:Integer
     | AlterSequence ann:Annotation
                     name:String
-                    ownedBy: ScalarExpr
+                    ownedBy: DQIdentifier
     | CreateTableAs ann:Annotation
                     name : String
                     expr : QueryExpr
@@ -370,7 +370,7 @@ DATA FnBody | SqlFnBody ann:Annotation sts : StatementList
             | PlpgsqlFnBody ann:Annotation blk : Statement
 
 DATA TableRef | Tref ann:Annotation
-                     tbl:ScalarExpr
+                     tbl:DQIdentifier
                      alias : TableAlias
               | JoinTref ann:Annotation
                          tbl : TableRef

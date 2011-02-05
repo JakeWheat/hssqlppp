@@ -146,7 +146,7 @@ tref - just a name of a table or view, just need to retrieve the fields from the
 -}
         loc.errs = []
         lhs.libUpdates = maybe [] id $ do
-                         let n = getName @tbl.annotatedTree
+                         let n = getTName @tbl.annotatedTree
                          (pu,pr) <- @tbl.tbUType
                          return [LBTref ("tref: " ++ n)
                                    (getAlias n @alias)

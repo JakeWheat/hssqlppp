@@ -2,7 +2,7 @@ Make the website,
 
 To compile and run, use something like:
 
-ghc --make -threaded -XScopedTypeVariables -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -idevel:src/lib:src/qq:src/postgresql:examples/chaos:examples/extensions/:examples/util/:tests/ --make devel/DevelTool.lhs
+ghc --make -threaded -XScopedTypeVariables -XDeriveDataTypeable -XTupleSections -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -idevel:src/lib:src/qq:src/postgresql:examples/chaos:examples/extensions/:examples/util/:tests/ --make devel/DevelTool.lhs
 
 time devel/DevelTool makewebsite +RTS -N
 

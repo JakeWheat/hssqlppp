@@ -398,9 +398,9 @@ then we combine by seeing if there is a join looking prefix
 >                    ,"using"
 >                    ,"from"]
 >         nkwidn = do
->                  i <- qName
+>                  i <- dqi
 >                  case i of
->                    Identifier _ n | n `elem` badNames
+>                    DQIdentifier _ [n] | n `elem` badNames
 >                        -> fail "not keyword"
 >                    _ -> return i
 >         nkwid = try $ do
@@ -660,7 +660,7 @@ ddl
 >                               <*> (keyword "sequence" *> idString)
 >                               <*> (keyword "owned"
 >                                    *> keyword "by"
->                                    *> qName)
+>                                    *> dqi)
 
 create function, support sql functions and plpgsql functions. Parses
 the body in both cases and provides a statement list for the body

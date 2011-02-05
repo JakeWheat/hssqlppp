@@ -152,7 +152,7 @@ Conversion routines - convert Sql asts into Docs
 > convStatement ca (AlterSequence ann nm o) =
 >     convPa ca ann <+>
 >     text "alter sequence" <+> text nm
->     <+> text "owned by" <+> convExp o <> statementEnd
+>     <+> text "owned by" <+> convDqi o <> statementEnd
 >
 > convStatement ca (CreateTableAs ann t sel) =
 >     convPa ca ann <+>
@@ -471,7 +471,7 @@ Statement components
 >       <+> parens (convQueryExpr True False ex1)
 >
 > convTref :: TableRef -> Doc
-> convTref (Tref _ f a) = convExp f <+> convTrefAlias a
+> convTref (Tref _ f a) = convDqi f <+> convTrefAlias a
 > convTref (JoinTref _ t1 nat jt t2 ex a) =
 >         parens (convTref t1
 >         $+$ (case nat of

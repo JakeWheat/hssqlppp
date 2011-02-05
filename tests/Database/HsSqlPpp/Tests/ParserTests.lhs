@@ -210,14 +210,14 @@ and dollar quoting, including nesting.
 >      ,e "'spl$$it'" (stringQ "spl$$it")
 >      ]
 >    ,Group "bracketed things" [
->       e "(p).x" (qi "p" "x")
+>       e "(p).x" (eqi "p" "x")
 >      ,e "(select f(((a).x, y)::z))"
 >         (ScalarSubQuery ea
 >          (selectE (sl
 >                    [SelExp ea
 >                     (FunCall ea "f" [Cast ea
 >                                      (FunCall ea "!rowctor"
->                                       [qi "a" "x"
+>                                       [eqi "a" "x"
 >                                       ,Identifier ea "y"])
 >                                      (SimpleTypeName ea "z")])])))
 >      ]
@@ -328,9 +328,9 @@ select statements
 >          [Identifier ea "a", Identifier ea "b"]) "b"]
 >        (Tref ea (i "tbl") NoAlias)]
 >      ,s "select a.* from tbl a;"
->       [QueryStatement ea $ selectFrom (selEL [qi "a" "*"]) (Tref ea (i "tbl") (TableAlias "a"))]
+>       [QueryStatement ea $ selectFrom (selEL [eqi "a" "*"]) (Tref ea (i "tbl") (TableAlias "a"))]
 >      ,s "select a.* from tbl a(b,c);"
->       [QueryStatement ea $ selectFrom (selEL [qi "a" "*"]) (Tref ea (i "tbl") (FullAlias "a" ["b","c"]))]
+>       [QueryStatement ea $ selectFrom (selEL [eqi "a" "*"]) (Tref ea (i "tbl") (FullAlias "a" ["b","c"]))]
 
 >      ,s "select * from t1 a, t2 b;"
 >             [QueryStatement ea
@@ -344,13 +344,13 @@ select statements
 >        (selIL ["a"])
 >        (JoinTref ea (Tref ea (i "b") NoAlias) Unnatural Inner (Tref ea (i "c") NoAlias)
 >           (Just (JoinOn ea
->            (FunCall ea "=" [qi "b" "a", qi "c" "a"]))) NoAlias)]
+>            (FunCall ea "=" [eqi "b" "a", eqi "c" "a"]))) NoAlias)]
 >      ,s "select a from b inner join c as d on b.a=d.a;"
 >       [QueryStatement ea $ selectFrom
 >        (selIL ["a"])
 >        (JoinTref ea (Tref ea (i "b") NoAlias) Unnatural Inner (Tref ea (i "c") (TableAlias "d"))
 >           (Just (JoinOn ea
->            (FunCall ea "=" [qi "b" "a", qi "d" "a"]))) NoAlias)]
+>            (FunCall ea "=" [eqi "b" "a", eqi "d" "a"]))) NoAlias)]
 >      ,s "select a from b inner join c using(d,e);"
 >       [QueryStatement ea $ selectFrom
 >        (selIL ["a"])
@@ -606,12 +606,12 @@ select statements
 >      ]
 >    ,Group "some mis stuff" [
 >       s "select (p).x, (p).y from pos;"
->         [QueryStatement ea $ selectFrom (selEL [qi "p" "x"
->                                                 ,qi "p" "y"])
+>         [QueryStatement ea $ selectFrom (selEL [eqi "p" "x"
+>                                                ,eqi "p" "y"])
 >                                          (Tref ea (i "pos") NoAlias)]
 >      ,s "select ($1).x, ($1).y from pos;"
 >         [QueryStatement ea $ selectFrom (selEL [QIdentifier ea (PositionalArg ea 1) "x"
->                                                 ,QIdentifier ea (PositionalArg ea 1) "y"])
+>                                                ,QIdentifier ea (PositionalArg ea 1) "y"])
 >                                          (Tref ea (i "pos") NoAlias)]
 >      ,s "select row_number() over(), x from tb;"
 >       [QueryStatement ea $ selectFrom
@@ -705,7 +705,7 @@ insert from select
 >        []
 >        Nothing (Just (SelectList ea
 >                       [SelExp ea (Identifier ea "tag")]
->                       [qi "r" "tag"]))]
+>                       [eqi "r" "tag"]))]
 >      ,s "update tb\n\
 >         \  set (x,y) = (1,2);"
 >       [Update ea (dqi "tb") [FunCall ea "="
@@ -1149,9 +1149,9 @@ quick sanity check
 
 >     ,Group "simple plpgsql statements" [
 >       f "success := true;"
->       [Assignment ea (i "success") (BooleanLit ea True)]
+>       [Assignment ea (ei "success") (BooleanLit ea True)]
 >      ,f "success = true;"
->       [Assignment ea (i "success") (BooleanLit ea True)]
+>       [Assignment ea (ei "success") (BooleanLit ea True)]
 >      ,f "return true;"
 >       [Return ea $ Just (BooleanLit ea True)]
 >      ,f "return;"
@@ -1168,13 +1168,13 @@ quick sanity check
 >       [Perform ea $ FunCall ea "test" [Identifier ea "a", Identifier ea "b"]]
 >      ,f "perform test(r.relvar_name || '_and_stuff');"
 >       [Perform ea $ FunCall ea "test" [
->                     FunCall ea "||" [qi "r" "relvar_name"
+>                     FunCall ea "||" [eqi "r" "relvar_name"
 >                                     ,stringQ "_and_stuff"]]]
 >      ,f "select into a,b c,d from e;"
->       [QueryStatement ea $ Select ea Dupes (SelectList ea [selI "c", selI "d"] [i "a", i "b"])
+>       [QueryStatement ea $ Select ea Dupes (SelectList ea [selI "c", selI "d"] [ei "a", ei "b"])
 >                   [Tref ea (i "e") NoAlias] Nothing [] Nothing [] Nothing Nothing]
 >      ,f "select c,d into a,b from e;"
->       [QueryStatement ea $ Select ea Dupes (SelectList ea [selI "c", selI "d"] [i "a", i "b"])
+>       [QueryStatement ea $ Select ea Dupes (SelectList ea [selI "c", selI "d"] [ei "a", ei "b"])
 >                   [Tref ea (i "e") NoAlias] Nothing [] Nothing [] Nothing Nothing]
 >
 >      ,f "execute s;"
@@ -1189,27 +1189,27 @@ quick sanity check
 >       f "for r in select a from tbl loop\n\
 >         \null;\n\
 >         \end loop;"
->       [ForQueryStatement ea Nothing (i "r") (selectFrom  [selI "a"] (Tref ea (i "tbl") NoAlias))
+>       [ForQueryStatement ea Nothing (ei "r") (selectFrom  [selI "a"] (Tref ea (i "tbl") NoAlias))
 >        [NullStatement ea]]
 >      ,f "for r in select a from tbl where true loop\n\
 >         \null;\n\
 >         \end loop;"
->       [ForQueryStatement ea Nothing (i "r")
+>       [ForQueryStatement ea Nothing (ei "r")
 >        (selectFromWhere [selI "a"] (Tref ea (i "tbl") NoAlias) (BooleanLit ea True))
 >        [NullStatement ea]]
 >      ,f "for r in 1 .. 10 loop\n\
 >         \null;\n\
 >         \end loop;"
->       [ForIntegerStatement ea Nothing (i "r")
+>       [ForIntegerStatement ea Nothing (ei "r")
 >        (IntegerLit ea 1) (IntegerLit ea 10)
 >        [NullStatement ea]]
 >
 >      ,f "if a=b then\n\
 >         \  update c set d = e;\n\
 >         \end if;"
->       [If ea [(FunCall ea "=" [Identifier ea "a", Identifier ea "b"]
->               ,[Update ea (dqi "c") [FunCall ea "=" [Identifier ea "d"
->                                                   ,Identifier ea "e"]] [] Nothing Nothing])]
+>       [If ea [(FunCall ea "=" [ei "a", ei "b"]
+>               ,[Update ea (dqi "c") [FunCall ea "=" [ei "d"
+>                                                     ,ei "e"]] [] Nothing Nothing])]
 >        []]
 >      ,f "if true then\n\
 >         \  null;\n\
@@ -1292,15 +1292,20 @@ shortcuts for constructing test data and asts
 > selEL :: [ScalarExpr] -> [SelectItem]
 > selEL = map (SelExp ea)
 >
-> i :: String -> ScalarExpr
-> i = Identifier ea
+> i :: String -> DQIdentifier
+> i = DQIdentifier ea . (:[])
 
 > dqi :: String -> DQIdentifier
 > dqi ii = DQIdentifier ea [ii]
 
+> eqi :: String -> String -> ScalarExpr
+> eqi c n = QIdentifier ea (Identifier ea c) n
+
+> ei :: String -> ScalarExpr
+> ei = Identifier ea
 >
-> qi :: String -> String -> ScalarExpr
-> qi c n = QIdentifier ea (i c) n
+> qi :: String -> String -> DQIdentifier
+> qi c n = DQIdentifier ea [c,n]
 >
 > selI :: String -> SelectItem
 > selI = SelExp ea . Identifier ea

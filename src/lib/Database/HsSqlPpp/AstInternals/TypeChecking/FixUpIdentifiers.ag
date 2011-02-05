@@ -141,9 +141,9 @@ SEM SelectList
     | SelectList lhs.cidenv = unimplementedIDEnv
 
 {
-getTableFields :: Catalog -> ScalarExpr -> (String,[String])
+getTableFields :: Catalog -> DQIdentifier -> (String,[String])
 getTableFields c e =
-  let tn = getName e
+  let tn = getTName e
   in case catCompositePublicAttrs c relationComposites tn of
        (Right attrs) -> (tn, map fst attrs)
        (Left _) -> (tn,[])

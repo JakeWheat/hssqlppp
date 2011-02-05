@@ -269,7 +269,7 @@ data SelectList = SelectList (Annotation) (SelectItemList)
                              (ScalarExprList)
                 deriving (Data, Eq, Show, Typeable)
  
-data Statement = AlterSequence (Annotation) (String) (ScalarExpr)
+data Statement = AlterSequence (Annotation) (String) (DQIdentifier)
                | AlterTable (Annotation) (String) (AlterTableActionList)
                | Assignment (Annotation) (ScalarExpr) (ScalarExpr)
                | Block (Annotation) (Maybe String) (VarDefList) (StatementList)
@@ -332,7 +332,7 @@ data TableRef = FunTref (Annotation) (ScalarExpr) (TableAlias)
               | JoinTref (Annotation) (TableRef) (Natural) (JoinType) (TableRef)
                          (OnExpr) (TableAlias)
               | SubTref (Annotation) (QueryExpr) (TableAlias)
-              | Tref (Annotation) (ScalarExpr) (TableAlias)
+              | Tref (Annotation) (DQIdentifier) (TableAlias)
               deriving (Data, Eq, Show, Typeable)
  
 data TypeAttributeDef = TypeAttDef (Annotation) (String) (TypeName)
@@ -737,7 +737,7 @@ selectList x
 statement :: Statement -> A.Statement
 statement x
   = case x of
-        AlterSequence a1 a2 a3 -> A.AlterSequence a1 a2 (scalarExpr a3)
+        AlterSequence a1 a2 a3 -> A.AlterSequence a1 a2 (dQIdentifier a3)
         AlterTable a1 a2 a3 -> A.AlterTable a1 a2 (alterTableActionList a3)
         Assignment a1 a2 a3 -> A.Assignment a1 (scalarExpr a2)
                                  (scalarExpr a3)
@@ -844,7 +844,7 @@ tableRef x
                                            (onExpr a6)
                                            (tableAlias a7)
         SubTref a1 a2 a3 -> A.SubTref a1 (queryExpr a2) (tableAlias a3)
-        Tref a1 a2 a3 -> A.Tref a1 (scalarExpr a2) (tableAlias a3)
+        Tref a1 a2 a3 -> A.Tref a1 (dQIdentifier a2) (tableAlias a3)
  
 typeAttributeDef :: TypeAttributeDef -> A.TypeAttributeDef
 typeAttributeDef x
