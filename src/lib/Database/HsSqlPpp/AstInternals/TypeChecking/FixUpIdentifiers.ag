@@ -141,7 +141,7 @@ SEM SelectList
     | SelectList lhs.cidenv = unimplementedIDEnv
 
 {
-getTableFields :: Catalog -> DQIdentifier -> (String,[String])
+getTableFields :: Catalog -> SQIdentifier -> (String,[String])
 getTableFields c e =
   let tn = getTName e
   in case catCompositePublicAttrs c relationComposites tn of

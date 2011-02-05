@@ -1292,11 +1292,11 @@ shortcuts for constructing test data and asts
 > selEL :: [ScalarExpr] -> [SelectItem]
 > selEL = map (SelExp ea)
 >
-> i :: String -> DQIdentifier
-> i = DQIdentifier ea . (:[])
+> i :: String -> SQIdentifier
+> i = SQIdentifier ea . (:[])
 
-> dqi :: String -> DQIdentifier
-> dqi ii = DQIdentifier ea [ii]
+> dqi :: String -> SQIdentifier
+> dqi ii = SQIdentifier ea [ii]
 
 > eqi :: String -> String -> ScalarExpr
 > eqi c n = QIdentifier ea (Identifier ea c) n
@@ -1304,8 +1304,8 @@ shortcuts for constructing test data and asts
 > ei :: String -> ScalarExpr
 > ei = Identifier ea
 >
-> qi :: String -> String -> DQIdentifier
-> qi c n = DQIdentifier ea [c,n]
+> qi :: String -> String -> SQIdentifier
+> qi c n = SQIdentifier ea [c,n]
 >
 > selI :: String -> SelectItem
 > selI = SelExp ea . Identifier ea

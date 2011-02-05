@@ -527,8 +527,8 @@ Statement components
 >                                  Cascade -> "cascade"
 >                                  Restrict -> "restrict"
 >
-> convDqi :: DQIdentifier -> Doc
-> convDqi (DQIdentifier _ is) = hcat $ punctuate (text ".") $ map text is
+> convDqi :: SQIdentifier -> Doc
+> convDqi (SQIdentifier _ is) = hcat $ punctuate (text ".") $ map text is
 > -- ddl
 >
 > convCon :: Constraint -> Doc

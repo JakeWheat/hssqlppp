@@ -44,18 +44,18 @@ SEM TypeName
 
 -}
 
-ATTR DQIdentifier [||tbUType : {Maybe ([(String,Type)],[(String,Type)])}
-                     tbAnnotatedTree : DQIdentifier
+ATTR SQIdentifier [||tbUType : {Maybe ([(String,Type)],[(String,Type)])}
+                     tbAnnotatedTree : SQIdentifier
                   ]
 
-SEM DQIdentifier
-    | DQIdentifier
+SEM SQIdentifier
+    | SQIdentifier
         loc.tbUType = catCompositeAttrsPair @lhs.cat relationComposites (last @is)
         lhs.tbUType = either (const Nothing) Just @loc.tbUType
         lhs.tbAnnotatedTree =
               updateAnnotation
                 (\a -> a {errs = errs a ++ tes @loc.tbUType}) @loc.backTree
-        loc.backTree = DQIdentifier @ann @is
+        loc.backTree = SQIdentifier @ann @is
 
 
 
@@ -98,8 +98,8 @@ getName (FunCall _ "." [Identifier _ _,Identifier _ i]) = i
 getName (FunCall _ "." [_,a]) = getName a
 getName x = error $ "internal error getName called on: " ++ show x
 
-getTName :: DQIdentifier -> String
-getTName (DQIdentifier _ x@(_:_)) = last x
+getTName :: SQIdentifier -> String
+getTName (SQIdentifier _ x@(_:_)) = last x
 getTName x = error $ "internal error getName called on: " ++ show x
 
 

@@ -20,7 +20,7 @@ module Database.HsSqlPpp.AstInternals.AstAnti
         CombineType(..), Volatility(..), Language(..), TypeName(..),
         DropType(..), Cascade(..), Direction(..), Distinct(..),
         Natural(..), IfExists(..), Replace(..), RestartIdentity(..),
-        ScalarExpr(..), DQIdentifier(..), IntervalField(..),
+        ScalarExpr(..), SQIdentifier(..), IntervalField(..),
         ExtractField(..), FrameClause(..), InList(..), LiftFlavour(..),
         TriggerWhen(..), TriggerEvent(..), TriggerFire(..), SetValue(..),
         WithQueryList, StatementList, ScalarExprListStatementListPairList,
@@ -197,9 +197,6 @@ data Constraint = CheckConstraint (Annotation) (String)
                 | UniqueConstraint (Annotation) (String) ([String])
                 deriving (Data, Eq, Show, Typeable)
  
-data DQIdentifier = DQIdentifier (Annotation) ([String])
-                  deriving (Data, Eq, Show, Typeable)
- 
 data FnBody = PlpgsqlFnBody (Annotation) (Statement)
             | SqlFnBody (Annotation) (StatementList)
             deriving (Data, Eq, Show, Typeable)
@@ -233,6 +230,9 @@ data RowConstraint = NotNullConstraint (Annotation) (String)
                                             (Maybe String) (Cascade) (Cascade)
                    | RowUniqueConstraint (Annotation) (String)
                    deriving (Data, Eq, Show, Typeable)
+ 
+data SQIdentifier = SQIdentifier (Annotation) ([String])
+                  deriving (Data, Eq, Show, Typeable)
  
 data ScalarExpr = BooleanLit (Annotation) (Bool)
                 | Case (Annotation) (CaseScalarExprListScalarExprPairList)
@@ -269,7 +269,7 @@ data SelectList = SelectList (Annotation) (SelectItemList)
                              (ScalarExprList)
                 deriving (Data, Eq, Show, Typeable)
  
-data Statement = AlterSequence (Annotation) (String) (DQIdentifier)
+data Statement = AlterSequence (Annotation) (String) (SQIdentifier)
                | AlterTable (Annotation) (String) (AlterTableActionList)
                | Assignment (Annotation) (ScalarExpr) (ScalarExpr)
                | Block (Annotation) (Maybe String) (VarDefList) (StatementList)
@@ -294,7 +294,7 @@ data Statement = AlterSequence (Annotation) (String) (DQIdentifier)
                                ([TriggerEvent]) (String) (TriggerFire) (String) (ScalarExprList)
                | CreateType (Annotation) (String) (TypeAttributeDefList)
                | CreateView (Annotation) (String) (QueryExpr)
-               | Delete (Annotation) (DQIdentifier) (TableRefList) (MaybeBoolExpr)
+               | Delete (Annotation) (SQIdentifier) (TableRefList) (MaybeBoolExpr)
                         (MaybeSelectList)
                | DropFunction (Annotation) (IfExists) (StringTypeNameListPairList)
                               (Cascade)
@@ -308,7 +308,7 @@ data Statement = AlterSequence (Annotation) (String) (DQIdentifier)
                | ForQueryStatement (Annotation) (Maybe String) (ScalarExpr)
                                    (QueryExpr) (StatementList)
                | If (Annotation) (ScalarExprStatementListPairList) (StatementList)
-               | Insert (Annotation) (DQIdentifier) ([String]) (QueryExpr)
+               | Insert (Annotation) (SQIdentifier) ([String]) (QueryExpr)
                         (MaybeSelectList)
                | LoopStatement (Annotation) (Maybe String) (StatementList)
                | Notify (Annotation) (String)
@@ -321,7 +321,7 @@ data Statement = AlterSequence (Annotation) (String) (DQIdentifier)
                | ReturnQuery (Annotation) (QueryExpr)
                | Set (Annotation) (String) ([SetValue])
                | Truncate (Annotation) ([String]) (RestartIdentity) (Cascade)
-               | Update (Annotation) (DQIdentifier) (ScalarExprList)
+               | Update (Annotation) (SQIdentifier) (ScalarExprList)
                         (TableRefList) (MaybeBoolExpr) (MaybeSelectList)
                | WhileStatement (Annotation) (Maybe String) (ScalarExpr)
                                 (StatementList)
@@ -332,7 +332,7 @@ data TableRef = FunTref (Annotation) (ScalarExpr) (TableAlias)
               | JoinTref (Annotation) (TableRef) (Natural) (JoinType) (TableRef)
                          (OnExpr) (TableAlias)
               | SubTref (Annotation) (QueryExpr) (TableAlias)
-              | Tref (Annotation) (DQIdentifier) (TableAlias)
+              | Tref (Annotation) (SQIdentifier) (TableAlias)
               deriving (Data, Eq, Show, Typeable)
  
 data TypeAttributeDef = TypeAttDef (Annotation) (String) (TypeName)
@@ -625,11 +625,6 @@ constraint x
                                                       (cascade a7)
         UniqueConstraint a1 a2 a3 -> A.UniqueConstraint a1 a2 a3
  
-dQIdentifier :: DQIdentifier -> A.DQIdentifier
-dQIdentifier x
-  = case x of
-        DQIdentifier a1 a2 -> A.DQIdentifier a1 a2
- 
 fnBody :: FnBody -> A.FnBody
 fnBody x
   = case x of
@@ -686,6 +681,11 @@ rowConstraint x
                   (cascade a6)
         RowUniqueConstraint a1 a2 -> A.RowUniqueConstraint a1 a2
  
+sQIdentifier :: SQIdentifier -> A.SQIdentifier
+sQIdentifier x
+  = case x of
+        SQIdentifier a1 a2 -> A.SQIdentifier a1 a2
+ 
 scalarExpr :: ScalarExpr -> A.ScalarExpr
 scalarExpr x
   = case x of
@@ -737,7 +737,7 @@ selectList x
 statement :: Statement -> A.Statement
 statement x
   = case x of
-        AlterSequence a1 a2 a3 -> A.AlterSequence a1 a2 (dQIdentifier a3)
+        AlterSequence a1 a2 a3 -> A.AlterSequence a1 a2 (sQIdentifier a3)
         AlterTable a1 a2 a3 -> A.AlterTable a1 a2 (alterTableActionList a3)
         Assignment a1 a2 a3 -> A.Assignment a1 (scalarExpr a2)
                                  (scalarExpr a3)
@@ -781,7 +781,7 @@ statement x
                                                    (scalarExprList a8)
         CreateType a1 a2 a3 -> A.CreateType a1 a2 (typeAttributeDefList a3)
         CreateView a1 a2 a3 -> A.CreateView a1 a2 (queryExpr a3)
-        Delete a1 a2 a3 a4 a5 -> A.Delete a1 (dQIdentifier a2)
+        Delete a1 a2 a3 a4 a5 -> A.Delete a1 (sQIdentifier a2)
                                    (tableRefList a3)
                                    (maybeBoolExpr a4)
                                    (maybeSelectList a5)
@@ -807,7 +807,7 @@ statement x
                                               (statementList a5)
         If a1 a2 a3 -> A.If a1 (scalarExprStatementListPairList a2)
                          (statementList a3)
-        Insert a1 a2 a3 a4 a5 -> A.Insert a1 (dQIdentifier a2) a3
+        Insert a1 a2 a3 a4 a5 -> A.Insert a1 (sQIdentifier a2) a3
                                    (queryExpr a4)
                                    (maybeSelectList a5)
         LoopStatement a1 a2 a3 -> A.LoopStatement a1 a2 (statementList a3)
@@ -823,7 +823,7 @@ statement x
         Set a1 a2 a3 -> A.Set a1 a2 (fmap setValue a3)
         Truncate a1 a2 a3 a4 -> A.Truncate a1 a2 (restartIdentity a3)
                                   (cascade a4)
-        Update a1 a2 a3 a4 a5 a6 -> A.Update a1 (dQIdentifier a2)
+        Update a1 a2 a3 a4 a5 a6 -> A.Update a1 (sQIdentifier a2)
                                       (scalarExprList a3)
                                       (tableRefList a4)
                                       (maybeBoolExpr a5)
@@ -844,7 +844,7 @@ tableRef x
                                            (onExpr a6)
                                            (tableAlias a7)
         SubTref a1 a2 a3 -> A.SubTref a1 (queryExpr a2) (tableAlias a3)
-        Tref a1 a2 a3 -> A.Tref a1 (dQIdentifier a2) (tableAlias a3)
+        Tref a1 a2 a3 -> A.Tref a1 (sQIdentifier a2) (tableAlias a3)
  
 typeAttributeDef :: TypeAttributeDef -> A.TypeAttributeDef
 typeAttributeDef x

@@ -82,7 +82,7 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,Replace(..)
    ,RestartIdentity (..)
    ,ScalarExpr (..)
-   ,DQIdentifier(..)
+   ,SQIdentifier(..)
    ,IntervalField(..)
    ,ExtractField(..)
    ,FrameClause(..)
@@ -168,20 +168,20 @@ DATA Statement
 
     --table targetcolumns insertdata(values or select statement) returning
     | Insert ann:Annotation
-             table : DQIdentifier
+             table : SQIdentifier
              targetCols : {[String]}
              insData : QueryExpr
              returning : MaybeSelectList
     --tablename setitems where returning
     | Update ann:Annotation
-             table : DQIdentifier
+             table : SQIdentifier
              assigns : ScalarExprList --SetClauseList
              fromList : TableRefList
              whr : MaybeBoolExpr
              returning : MaybeSelectList
     --tablename, where, returning
     | Delete ann:Annotation
-             table : DQIdentifier
+             table : SQIdentifier
              using : TableRefList
              whr : MaybeBoolExpr
              returning : MaybeSelectList
@@ -215,7 +215,7 @@ DATA Statement
                      cache:Integer
     | AlterSequence ann:Annotation
                     name:String
-                    ownedBy: DQIdentifier
+                    ownedBy: SQIdentifier
     | CreateTableAs ann:Annotation
                     name : String
                     expr : QueryExpr
@@ -329,13 +329,12 @@ DATA Statement
 
 {
 
--- used for possibly dot qualified identifiers in e.g. table name
--- references
--- todo: start using this everywhere, lots of places which
--- use scalarexpr or string should be using this
+
+-- used for schema qualified identifiers
+-- should be used in more places in the ast
 }
 
-DATA DQIdentifier | DQIdentifier ann:Annotation is:{[String]}
+DATA SQIdentifier | SQIdentifier ann:Annotation is:{[String]}
 
 
 
@@ -370,7 +369,7 @@ DATA FnBody | SqlFnBody ann:Annotation sts : StatementList
             | PlpgsqlFnBody ann:Annotation blk : Statement
 
 DATA TableRef | Tref ann:Annotation
-                     tbl:DQIdentifier
+                     tbl:SQIdentifier
                      alias : TableAlias
               | JoinTref ann:Annotation
                          tbl : TableRef
@@ -791,7 +790,7 @@ SET AllNodes = Statement QueryExpr FnBody TableRef
                AlterTableAction
                ScalarExprDirectionPair
                ScalarExprDirectionPairList AlterTableActionList
-               WithQueryList WithQuery DQIdentifier
+               WithQueryList WithQuery SQIdentifier
 
 
 DERIVING AllNodes: Show,Eq,Typeable,Data

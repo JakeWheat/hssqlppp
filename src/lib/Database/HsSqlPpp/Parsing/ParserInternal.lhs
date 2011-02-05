@@ -400,7 +400,7 @@ then we combine by seeing if there is a join looking prefix
 >         nkwidn = do
 >                  i <- dqi
 >                  case i of
->                    DQIdentifier _ [n] | n `elem` badNames
+>                    SQIdentifier _ [n] | n `elem` badNames
 >                        -> fail "not keyword"
 >                    _ -> return i
 >         nkwid = try $ do
@@ -1619,14 +1619,14 @@ for that
 >            return $ QIdentifier p i i1 --FunCall p "." [i,i1]
 >          ,return i]
 
-> dqi :: SParser DQIdentifier
+> dqi :: SParser SQIdentifier
 > dqi = do
 >   p <- pos
 >   i <- idString
 >   choice [do
 >           is <- suffix
->           return $ DQIdentifier p (i:is)
->          ,return $ DQIdentifier p [i]
+>           return $ SQIdentifier p (i:is)
+>          ,return $ SQIdentifier p [i]
 >          ]
 >   where
 >     suffix = do
