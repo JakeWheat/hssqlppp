@@ -174,14 +174,14 @@ DATA Statement
              returning : MaybeSelectList
     --tablename setitems where returning
     | Update ann:Annotation
-             table : ScalarExpr
+             table : DQIdentifier
              assigns : ScalarExprList --SetClauseList
              fromList : TableRefList
              whr : MaybeBoolExpr
              returning : MaybeSelectList
     --tablename, where, returning
     | Delete ann:Annotation
-             table : ScalarExpr
+             table : DQIdentifier
              using : TableRefList
              whr : MaybeBoolExpr
              returning : MaybeSelectList

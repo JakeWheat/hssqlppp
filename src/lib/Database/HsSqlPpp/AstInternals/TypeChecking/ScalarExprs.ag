@@ -645,7 +645,3 @@ SEM TableRef
     | SubTref sel.expectedTypes = []
 SEM WithQuery
     | WithQuery ex.expectedTypes = []
-
-
-SEM Statement
-    | Update Delete table.expectedType = Nothing

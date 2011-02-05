@@ -438,7 +438,7 @@ multiple rows to insert and insert from select statements
 > update :: SParser Statement
 > update = Update
 >          <$> pos <* keyword "update"
->          <*> qName
+>          <*> dqi
 >          <*> (keyword "set" *> commaSep1 setClause)
 >          <*> option [] (keyword "from" *> commaSep1 tableRef)
 >          <*> tryOptionMaybe whereClause
@@ -462,7 +462,7 @@ multiple rows to insert and insert from select statements
 > delete :: SParser Statement
 > delete = Delete
 >          <$> pos <* keyword "delete" <* keyword "from"
->          <*> qName
+>          <*> dqi
 >          <*> option [] (keyword "using" *> commaSep1 tableRef)
 >          <*> tryOptionMaybe whereClause
 >          <*> tryOptionMaybe returning

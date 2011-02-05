@@ -682,12 +682,12 @@ insert from select
 >     ,Group "update" [
 >       s "update tb\n\
 >         \  set x = 1, y = 2;"
->       [Update ea (i "tb") [FunCall ea "=" [Identifier ea "x", IntegerLit ea 1]
+>       [Update ea (dqi "tb") [FunCall ea "=" [Identifier ea "x", IntegerLit ea 1]
 >                       ,FunCall ea "=" [Identifier ea "y", IntegerLit ea 2]]
 >        [] Nothing Nothing]
 >      ,s "update tb\n\
 >         \  set x = 1, y = 2 where z = true;"
->       [Update ea (i "tb") [FunCall ea "=" [Identifier ea "x", IntegerLit ea 1]
+>       [Update ea (dqi "tb") [FunCall ea "=" [Identifier ea "x", IntegerLit ea 1]
 >                       ,FunCall ea "=" [Identifier ea "y", IntegerLit ea 2]]
 >        []
 >        (Just $ FunCall ea "="
@@ -695,12 +695,12 @@ insert from select
 >        Nothing]
 >      ,s "update tb\n\
 >         \  set x = 1, y = 2 returning id;"
->       [Update ea (i "tb") [FunCall ea "=" [Identifier ea "x", IntegerLit ea 1]
+>       [Update ea (dqi "tb") [FunCall ea "=" [Identifier ea "x", IntegerLit ea 1]
 >                       ,FunCall ea "=" [Identifier ea "y", IntegerLit ea 2]]
 >        [] Nothing (Just $ sl [selI "id"])]
 >      ,s "update pieces\n\
 >         \set a=b returning tag into r.tag;"
->       [Update ea (i "pieces") [FunCall ea "=" [Identifier ea "a"
+>       [Update ea (dqi "pieces") [FunCall ea "=" [Identifier ea "a"
 >                                           ,Identifier ea "b"]]
 >        []
 >        Nothing (Just (SelectList ea
@@ -708,7 +708,7 @@ insert from select
 >                       [qi "r" "tag"]))]
 >      ,s "update tb\n\
 >         \  set (x,y) = (1,2);"
->       [Update ea (i "tb") [FunCall ea "="
+>       [Update ea (dqi "tb") [FunCall ea "="
 >                        [FunCall ea "!rowctor" [Identifier ea "x"
 >                                               ,Identifier ea "y"]
 >                        ,FunCall ea "!rowctor" [IntegerLit ea 1
@@ -723,11 +723,11 @@ FunCall ea "=" [FunCall ea "!rowctor" [Identifier ea "x",Identifier ea "y"],FunC
 >
 >     ,Group "delete" [
 >       s "delete from tbl1 where x = true;"
->       [Delete ea (i "tbl1") [] (Just $ FunCall ea "="
+>       [Delete ea (dqi "tbl1") [] (Just $ FunCall ea "="
 >                                [Identifier ea "x", BooleanLit ea True])
 >        Nothing]
 >      ,s "delete from tbl1 where x = true returning id;"
->       [Delete ea (i "tbl1") [] (Just $ FunCall ea "="
+>       [Delete ea (dqi "tbl1") [] (Just $ FunCall ea "="
 >                                [Identifier ea "x", BooleanLit ea True])
 >        (Just $ sl [selI "id"])]
 >      ]
@@ -1208,7 +1208,7 @@ quick sanity check
 >         \  update c set d = e;\n\
 >         \end if;"
 >       [If ea [(FunCall ea "=" [Identifier ea "a", Identifier ea "b"]
->               ,[Update ea (i "c") [FunCall ea "=" [Identifier ea "d"
+>               ,[Update ea (dqi "c") [FunCall ea "=" [Identifier ea "d"
 >                                                   ,Identifier ea "e"]] [] Nothing Nothing])]
 >        []]
 >      ,f "if true then\n\

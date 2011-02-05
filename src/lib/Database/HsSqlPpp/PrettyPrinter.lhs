@@ -76,7 +76,7 @@ Conversion routines - convert Sql asts into Docs
 >
 > convStatement ca (Update ann tb scs fr wh rt) =
 >    convPa ca ann <+>
->    text "update" <+> convExp tb <+> text "set"
+>    text "update" <+> convDqi tb <+> text "set"
 >    <+> hcatCsvMap convSet scs
 >    <+> ifNotEmpty (\_ -> text "from" <+> hcatCsvMap convTref fr) fr
 >    <+> convWhere wh
@@ -84,7 +84,7 @@ Conversion routines - convert Sql asts into Docs
 >
 > convStatement ca (Delete ann tbl us wh rt) =
 >    convPa ca ann <+>
->    text "delete from" <+> convExp tbl
+>    text "delete from" <+> convDqi tbl
 >    <+> ifNotEmpty (\_ -> text "using" <+> hcatCsvMap convTref us) us
 >    <+> convWhere wh
 >    $+$ convReturning rt
