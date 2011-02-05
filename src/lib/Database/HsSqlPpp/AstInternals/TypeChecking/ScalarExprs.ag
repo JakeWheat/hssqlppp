@@ -63,12 +63,12 @@ SEM ScalarExprList
 ATTR ScalarExpr [||ntAnnotatedTree : ScalarExpr
                    ntType : {[(String,Type)]}
                    uType : {Maybe Type}
-                   tbAnnotatedTree : ScalarExpr
-                   tbUType : {Maybe ([(String,Type)],[(String,Type)])}]
+                   {-tbAnnotatedTree : ScalarExpr
+                   tbUType : {Maybe ([(String,Type)],[(String,Type)])} -} ]
 
-ATTR ScalarExprList [||tbUTypes : {[Maybe ([(String,Type)],[(String,Type)])]}]
+--ATTR ScalarExprList [||tbUTypes : {[Maybe ([(String,Type)],[(String,Type)])]}]
 
-SEM ScalarExpr
+{-SEM ScalarExpr
     | IntegerLit StringLit FloatLit BooleanLit NullLit
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
       PositionalArg Placeholder WindowFn FunCall
@@ -93,7 +93,7 @@ SEM ScalarExpr
 
 SEM ScalarExprList
     | Cons lhs.tbUTypes = @hd.tbUType : @tl.tbUTypes
-    | Nil lhs.tbUTypes = []
+    | Nil lhs.tbUTypes = [] -}
 
 ATTR ScalarExpr [expectedType : {Maybe Type}||]
 
