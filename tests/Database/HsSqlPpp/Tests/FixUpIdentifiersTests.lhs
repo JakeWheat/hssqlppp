@@ -31,33 +31,60 @@ cd /home/jake/wd/hssqlppp/trunk/src/lib/Database/HsSqlPpp/AstInternals && uuagc 
 > fixUpIdentifiersTestsData :: Item
 > fixUpIdentifiersTestsData = Group "cantests"
 >   [Group "select lists"
->     [Item db1 "select a,b from t;" "select t.a, t.b from t;"
->     ,Item db1 "select * from t;" "select t.a, t.b from t;"
->     ,Item db1 "select a,c from t,u;" "select t.a, u.c from t,u;"
->     ,Item db1 "select * from t,u;" "select t.a,t.b,u.c,u.d from t,u;"
->     ,Item db1 "select t.* from t,u;" "select t.a, t.b from t,u;"
->     ,Item db1 "select u.* from t,u;" "select u.c,u.d from t,u;"
->     ,Item db1 "select v from v;" "select v.v from v;"
->     ,Item db1 "select count(*) from t;" "select count(*) from t;"
+>     [Item db1 "select a,b from t;" "select t.a as a, t.b as b from t;"
+>     ,Item db1 "select * from t;" "select t.a as a, t.b as b from t;"
+>     ,Item db1 "select * from (select a from t) t;"
+>               "select t.a as a from (select t.a as a from t) t;"
+>     ,Item db1 "select * from generate_series(1,5);"
+>               "select generate_series.generate_series as generate_series from generate_series(1,5);"
+>     ,Item db1 "select a,c from t,u;" "select t.a as a, u.c as c from t,u;"
+>     ,Item db1 "select * from t,u;"
+>               "select t.a as a,t.b as b,u.c as c,u.d as d from t,u;"
+>     ,Item db1 "select t.* from t,u;" "select t.a as a, t.b as b from t,u;"
+>     ,Item db1 "select u.* from t,u;" "select u.c as c,u.d as d from t,u;"
+>     ,Item db1 "select t.*,u.*,* from t,u;"
+>               "select t.a as a, t.b as b,\n\
+>               \       u.c as c, u.d as d,\n\
+>               \       t.a as a, t.b as b, u.c as c, u.d as d\n\
+>               \  from t,u;"
+>     ,Item db1 "select v from v;" "select v.v as v from v;"
+>     ,Item db1 "select count(*) from t;" "select count(*) as count from t;"
+>     ]
+>   ,Group "trefs"
+>     [Item db1 "select * from generate_series(1,5) g;"
+>               "select g.generate_series as generate_series from generate_series(1,5) g;"
+>     ,Item db1 "select a from t as x;"
+>               "select x.a as a from t as x;"
+>     ,Item db1 "select * from t as x(f,g);"
+>               "select x.f as f ,x.g as g from t as x(f,g);"
 >     ]
 >   ,Group "where"
->     [Item db1 "select a,b from t where a > b;" "select t.a, t.b from t where t.a > t.b;"
->     ,Item db1 "select a,c from t,u where b = d;" "select t.a,u.c from t,u where t.b = u.d;"
+>     [Item db1 "select a,b from t where a > b;"
+>               "select t.a as a, t.b as b from t where t.a > t.b;"
+>     ,Item db1 "select a,c from t,u where b = d;"
+>               "select t.a as a,u.c as c from t,u where t.b = u.d;"
 >     ]
 >   ,Group "groupby"
->     [Item db1 "select a,sum(b) from t group by a;" "select t.a,sum(t.b) from t group by t.a;"
+>     [Item db1 "select a,sum(b) from t group by a;"
+>               "select t.a as a,sum(t.b) as sum from t group by t.a;"
 >     ]
 >   ,Group "having"
->     [Item db1 "select a,sum(b) from t group by a having a > b;" "select t.a,sum(t.b) from t group by t.a having t.a > t.b;"
+>     [Item db1 "select a,sum(b) from t group by a having a > b;"
+>               "select t.a as a,sum(t.b) as sum from t group by t.a having t.a > t.b;"
 >     ]
 >   ,Group "orderby"
->     [Item db1 "select a from t order by b;" "select t.a from t order by t.b;"
+>     [Item db1 "select a from t order by b;"
+>               "select t.a as a from t order by t.b;"
 >     ]
 >   ,Group "correlated subquery"
 >     [Item db1 "select a,b from t where (select min(c) from u where b=d);"
->        "select t.a,t.b from t where (select min(u.c) from u where t.b=u.d);"
+>        "select t.a as a,t.b as b from t where (select min(u.c) as min from u where t.b=u.d);"
 >     ]
->   ,Group "tpch"
+>   ,Group "select lists"
+>     [Item db1 "select a,b,f(a),a::int,a+b,row_number() over (order by a), a as c from t;"
+>               "select t.a as a,t.b as b,f(t.a) as f,t.a::int as \"int\",t.a+t.b as \"?column?\",row_number() over (order by t.a) as row_number, t.a as c from t;"
+>     ]
+>   {-,Group "tpch"
 >     $ zipWith (\q q1 -> Item tpchCatalog q q1) (map snd tpchQueries)
 >         [[$here|
 \begin{code}
@@ -88,14 +115,14 @@ order by
 \begin{code}
 
 select
-        supplier.s_acctbal,
-        supplier.s_name,
-        nation.n_name,
-        part.p_partkey,
-        part.p_mfgr,
-        supplier.s_address,
-        supplier.s_phone,
-        supplier.s_comment
+        supplier.s_acctbal as s_acctbal,
+        supplier.s_name as s_name,
+        nation.n_name as n_name,
+        part.p_partkey as p_partkey,
+        part.p_mfgr as p_mfgr,
+        supplier.s_address as s_address,
+        supplier.s_phone as s_phone,
+        supplier.s_comment as s_comment
 from
         part,
         supplier,
@@ -112,7 +139,7 @@ where
         and region.r_name = 'EUROPE'
         and partsupp.ps_supplycost = (
                 select
-                        min(partsupp.ps_supplycost)
+                        min(partsupp.ps_supplycost) as min
                 from
                         partsupp,
                         supplier,
@@ -134,7 +161,7 @@ order by
 --go
 \end{code}
 >                                     |]
->     ]
+>     ]-}
 >   ]
 
 qualifier and column name the same
