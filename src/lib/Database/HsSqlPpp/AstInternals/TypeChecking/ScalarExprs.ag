@@ -4,6 +4,9 @@
 This file contains the type checking code for the expression ast data
 type.
 
+
+
+
 -}
 
 --gather the backtree, type errors and types together and add annotations
@@ -28,77 +31,7 @@ SEM ScalarExpr
         loc.prototype : {Maybe FunctionPrototype}
         loc.prototype = Nothing
 
-SEM ScalarExpr
-    | IntegerLit StringLit FloatLit BooleanLit NullLit
-      Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
-      PositionalArg Placeholder WindowFn TypedStringLit Interval
-      Identifier QIdentifier
-      FunCall
-        lhs.ntAnnotatedTree = updateAnnotation
-                                 (setTypeAddErrorsA (either Left (Right . CompositeType) @loc.ntType)
-                                 . \a -> a {fnProt = @loc.prototype}) @loc.backTree
-        lhs.ntType = either (const []) id @loc.ntType
-
-{-SEM ScalarExpr
-    | FunCall
-        lhs.ntAnnotatedTree =
-            let bt = trace ("check " ++ show @loc.backTree)
-                     $ case @loc.backTree of
-                       FunCall a "." args@[Identifier _ _, Identifier _ _] -> let x = FunCall a "." @args.ntAnnotatedTree
-                                                              in trace ("use: " ++ show x) x
-                       _ -> trace "same same" @loc.backTree
-            in updateAnnotation
-                   (setTypeAddErrorsA (either Left (Right . CompositeType) @loc.ntType)
-                    . \a -> a {fnProt = @loc.prototype}) bt
-        lhs.ntType = either (const []) id @loc.ntType
-
-ATTR ScalarExprList [||ntAnnotatedTree : ScalarExprList]
-
-SEM ScalarExprList
-    | Cons lhs.ntAnnotatedTree = @hd.ntAnnotatedTree : @tl.ntAnnotatedTree
-           lhs.ntTypes = @hd.ntType : @tl.ntTypes
-    | Nil lhs.ntAnnotatedTree = []
-          lhs.ntTypes = [] -}
-
-ATTR ScalarExpr [||ntAnnotatedTree : ScalarExpr
-                   ntType : {[(String,Type)]}
-                   uType : {Maybe Type}
-                   {-tbAnnotatedTree : ScalarExpr
-                   tbUType : {Maybe ([(String,Type)],[(String,Type)])} -} ]
-
---ATTR ScalarExprList [||tbUTypes : {[Maybe ([(String,Type)],[(String,Type)])]}]
-
-{-SEM ScalarExpr
-    | IntegerLit StringLit FloatLit BooleanLit NullLit
-      Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
-      PositionalArg Placeholder WindowFn FunCall
-      FunCall Identifier QIdentifier TypedStringLit Interval
-        loc.tbUType : {E ([(String,Type)], [(String,Type)])}
-        lhs.tbAnnotatedTree =
-            updateAnnotation
-                                 (\a -> a {fnProt = @loc.prototype
-                                          ,errs = errs a ++ tes @loc.tbUType}) @loc.backTree
-        lhs.tbUType = either (const Nothing) Just @loc.tbUType
-
-    | IntegerLit StringLit FloatLit BooleanLit NullLit
-      Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
-      PositionalArg Placeholder WindowFn TypedStringLit Interval
-        loc.tbUType = Left [InternalError "bad context for tbUType"]
-    | FunCall
-        loc.tbUType = case (@funName,@args.tbUTypes) of
-                       (".", [_,Just t]) -> Right t
-                       _ -> Left [InternalError "bad context for tbUType"]
-    | Identifier QIdentifier
-        loc.tbUType = catCompositeAttrsPair @lhs.cat relationComposites @i
-
-SEM ScalarExprList
-    | Cons lhs.tbUTypes = @hd.tbUType : @tl.tbUTypes
-    | Nil lhs.tbUTypes = [] -}
-
-ATTR ScalarExpr [expectedType : {Maybe Type}||]
-
-ATTR ScalarExprList [expectedTypes : {[Maybe Type]}||uType : {[Maybe Type]}]
-
+ATTR ScalarExpr [|| uType : {Maybe Type}]
 
 SEM ScalarExpr
     | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier QIdentifier
@@ -132,36 +65,6 @@ SEM MaybeBoolExpr
                             in if t `elem` [Nothing,Just typeBool]
                                then Just @just.annotatedTree
                                else Just $ addTypeErrors [ExpressionMustBeBool] @just.annotatedTree
-
--- life is too short
-{-
-ATTR AllNodes [overrideLib : {Maybe LocalBindings}||]
-ATTR AllNodes [overrideLibs : {[Maybe LocalBindings]}||]
-
-SEM ScalarExprRoot
-    | ScalarExprRoot expr.overrideLib = Nothing
-                     expr.overrideLibs = []
-
-SEM Root
-    | Root statements.overrideLib = Nothing
-           statements.overrideLibs = []
-
-SEM ScalarExpr
-    | FunCall args.overrideLibs =
-        case @funName of
-          "." | [Identifier _ i,_] <- @args.annotatedTree
-                  -> [Nothing
-                     ,either (const Nothing) Just $
-                              lbUpdateDot @lhs.cat i @lhs.lib]
-          _ -> []
-
-SEM ScalarExprList
-    | Cons hd.overrideLib = case @lhs.overrideLibs of
-                               h : _ -> h
-                               _ -> Nothing
-           tl.overrideLibs = case @lhs.overrideLibs of
-                               _ : t -> t
-                               _ -> [] -}
 
 {-
 == literals
@@ -332,36 +235,10 @@ pull id types out of cat for identifiers
 
 -}
 
-
-{-
-
-Star expansion handling.
-
-In a few places - mainly the top level of a select list - if the
-identifier is a star or qualified star we want to expand the star. The
-cleanest way of doing this is to expand the stars in the ast to the
-expansions, but we need to do this at the last minute during the ag
-process since e.g. we might need the view information from the
-immediately previous statement. I don't know how to alter the ag
-process so that we can update a subtree and collect attributes from
-that which would be a clean way of doing it.
-
-So - use a bodge. When we want to get the identifier type, and star
-expansion is possible, use a different pair of tpe and backtree
-attributes to get the node information to the regular ones.
-
--}
-
 SEM ScalarExpr
     | Identifier
         loc.tpe = unwrapLookup <$> lbLookupID @lhs.lib [@i]
         loc.backTree = Identifier @ann @i
-
-        loc.ntType : {E [(String,Type)]}
-        loc.ntType =
-            if @i == "*"
-            then unwrapStar <$> lbExpandStar @lhs.lib ""
-            else (\t -> [(@i, t)]) <$> unwrapLookup <$> lbLookupID @lhs.lib [@i]
    | QIdentifier
         loc.tpe = case @loc.qid of
                             Nothing -> byT
@@ -377,16 +254,6 @@ SEM ScalarExpr
         loc.backTree = QIdentifier @ann @loc.qAnnTreeNoUnrec @i
 
         loc.qAnnTreeNoUnrec = updateAnnotation (\a -> a {errs = []}) @qual.annotatedTree
-
-        loc.ntType : {E [(String,Type)]}
-        loc.ntType =
-            case @loc.qid of
-              Nothing -> undefined
-              Just q ->
-                  if @i == "*"
-                  then unwrapStar <$> lbExpandStar @lhs.lib q
-                  else (\t -> [(@i, t)]) <$> unwrapLookup <$> lbLookupID @lhs.lib [q,@i]
-
 
 SEM ScalarExpr
   | FunCall
@@ -408,33 +275,6 @@ SEM ScalarExpr
     NullLit PositionalArg Placeholder ScalarSubQuery StringLit
     CaseSimple InPredicate TypedStringLit Interval
       loc.liftedColumnName = ""
-
-SEM ScalarExpr
-  | FunCall Cast CaseSimple InPredicate WindowFn
-    BooleanLit Case Exists FloatLit IntegerLit LiftOperator
-    NullLit PositionalArg Placeholder ScalarSubQuery StringLit TypedStringLit Interval
-      loc.ntType = do
-                   t <- @loc.tpe
-                   return [(case @loc.liftedColumnName of
-                             "" -> "?column?"
-                             n -> n
-                          ,t)]
-
-{-
-SEM ScalarExpr
-  | FunCall
-      loc.ntType : {E [(String,Type)]}
-      loc.ntType =
-          let t1 = do
-                   t <- @loc.tpe
-                   return [(case @loc.liftedColumnName of
-                             "" -> "?column?"
-                             n -> n
-                           ,t)]
-          in case (@loc.backTree, @args.ntTypes) of
-               (FunCall a "." [Identifier _ _, Identifier _ "*"],[_,t]) -> Right t
-               _ -> t1
--}
 
 SEM ScalarExpr
     | PositionalArg
@@ -527,6 +367,10 @@ parameterized statement.
 
 
 -- some of this could be filled in quite easily
+
+ATTR ScalarExpr [expectedType : {Maybe Type}||]
+
+ATTR ScalarExprList [expectedTypes : {[Maybe Type]}||uType : {[Maybe Type]}]
 
 SEM AlterTableAction
     | AlterColumnDefault def.expectedType = Nothing

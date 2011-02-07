@@ -350,7 +350,8 @@ data VarDef = ParamAlias (Annotation) (String) (Integer)
             | VarDef (Annotation) (String) (TypeName) (Maybe ScalarExpr)
             deriving (Data, Eq, Show, Typeable)
  
-data WithQuery = WithQuery (Annotation) (String) (QueryExpr)
+data WithQuery = WithQuery (Annotation) (String) (Maybe [String])
+                           (QueryExpr)
                deriving (Data, Eq, Show, Typeable)
  
 type AlterTableActionList = [(AlterTableAction)]
@@ -871,7 +872,7 @@ varDef x
 withQuery :: WithQuery -> A.WithQuery
 withQuery x
   = case x of
-        WithQuery a1 a2 a3 -> A.WithQuery a1 a2 (queryExpr a3)
+        WithQuery a1 a2 a3 a4 -> A.WithQuery a1 a2 a3 (queryExpr a4)
  
 alterTableActionList ::
                      AlterTableActionList -> A.AlterTableActionList

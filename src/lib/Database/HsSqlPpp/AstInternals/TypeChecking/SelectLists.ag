@@ -11,16 +11,16 @@ TODO: stop wrapping string,type lists in unnamedcompositetypes, pointless
 -- this is in the wrong file
 --ATTR SelectExpression [||libUpdates : {[LocalBindingsUpdate]}]
 
-ATTR MaybeSelectList [||listType : {[(String,Type)]}]
+ATTR MaybeSelectList [||listType : {[(String,Maybe Type)]}]
 
-ATTR SelectItemList SelectList [||listType : {[(String,Type)]}]
+ATTR SelectItemList SelectList [||listType : {[(String,Maybe Type)]}]
 
 {
 {-data SiType = SiType (String,Maybe Type)
             | SiStarType [(String,Maybe Type)]-}
 }
 
-ATTR SelectItem [||itemType : {[(String,Type)]}]
+ATTR SelectItem [||itemType : {(String,Maybe Type)}]
 
 ATTR SelectList [||libUpdates : {[LocalBindingsUpdate]}]
 
@@ -29,8 +29,7 @@ ATTR SelectList [||libUpdates : {[LocalBindingsUpdate]}]
 
 SEM SelectItem
     | SelExp
-        -- allow star expansions for unaliased elements
-        loc.annotatedTree = SelExp @ann @ex.ntAnnotatedTree
+        loc.annotatedTree = SelExp @ann @ex.annotatedTree
     | SelectItem
         loc.annotatedTree = SelectItem @ann @ex.annotatedTree @name
 
@@ -40,7 +39,7 @@ SEM MaybeSelectList
     | Nothing lhs.listType = []
 
 SEM SelectItemList
-    | Cons lhs.listType = @hd.itemType ++ @tl.listType
+    | Cons lhs.listType = @hd.itemType : @tl.listType
     | Nil lhs.listType = []
 
 
@@ -58,11 +57,9 @@ so the type of that column is the type wrapped with setof
 -}
 SEM SelectItem
     | SelExp
-        lhs.itemType = unwrapSetofs @ex.ntType
+        lhs.itemType = ("", Nothing)
     | SelectItem
-        lhs.itemType = case @ex.ntType of
-                         [(_,t)] -> [(@name, unwrapSetof t)]
-                         _ -> [] --error?
+        lhs.itemType = (@name, unwrapSetof `fmap` @ex.uType)
 
 {
 unwrapSetofs :: [(String,Type)] -> [(String,Type)]
@@ -85,7 +82,7 @@ SEM SelectList
           returnWhen (@into.originalTree == []) ([],[]) $ do
           -- special case when the intoTypes is a single composite type: missing
           it <- lmt intoTypes
-          let ft = @items.listType
+          let ft = fromMaybe [] $ liftList @items.listType
           return (it,ft)
           where
             intoTypes :: Maybe [(String,Type)]

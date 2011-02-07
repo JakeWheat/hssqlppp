@@ -8,7 +8,7 @@ cd /home/jake/wd/hssqlppp/trunk/src/lib/Database/HsSqlPpp/AstInternals && uuagc 
 > import Test.HUnit
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
-> import Data.Generics.Uniplate.Data
+> --import Data.Generics.Uniplate.Data
 > import Control.Monad
 
 > import Database.HsSqlPpp.Parser
@@ -17,8 +17,8 @@ cd /home/jake/wd/hssqlppp/trunk/src/lib/Database/HsSqlPpp/AstInternals && uuagc 
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.SqlTypes
-> import Database.HsSqlPpp.Utils.PPExpr
-> import Database.HsSqlPpp.Tests.TestUtils
+> --import Database.HsSqlPpp.Utils.PPExpr
+> --import Database.HsSqlPpp.Tests.TestUtils
 > import Database.HsSqlPpp.PrettyPrinter
 > import Database.HsSqlPpp.Tests.TpchData
 > import Database.HsSqlPpp.Utils.Here
@@ -33,58 +33,82 @@ cd /home/jake/wd/hssqlppp/trunk/src/lib/Database/HsSqlPpp/AstInternals && uuagc 
 > fixUpIdentifiersTestsData :: Item
 > fixUpIdentifiersTestsData = Group "cantests"
 >   [Group "select lists"
->     [Item db1 "select a,b from t;" "select t.a as a, t.b as b from t;"
->     ,Item db1 "select * from t;" "select t.a as a, t.b as b from t;"
+>     [Item db1 "select a,b from t;" "select t.a as a, t.b as b from t as t(a,b);"
+>     ,Item db1 "select * from t;" "select t.a as a, t.b as b from t as t(a,b);"
 >     ,Item db1 "select * from (select a from t) t;"
->               "select t.a as a from (select t.a as a from t) t;"
+>               "select t.a as a from (select t.a as a from t as t(a,b)) as t(a);"
 >     ,Item db1 "select * from generate_series(1,5);"
->               "select generate_series.generate_series as generate_series from generate_series(1,5);"
->     ,Item db1 "select a,c from t,u;" "select t.a as a, u.c as c from t,u;"
+>               "select generate_series.generate_series as generate_series\n\
+>               \from generate_series(1,5) as generate_series(generate_series);"
+>     ,Item db1 "select a,c from t,u;"
+>               "select t.a as a, u.c as c from t as t(a,b),u as u(c,d);"
 >     ,Item db1 "select * from t,u;"
->               "select t.a as a,t.b as b,u.c as c,u.d as d from t,u;"
->     ,Item db1 "select t.* from t,u;" "select t.a as a, t.b as b from t,u;"
->     ,Item db1 "select u.* from t,u;" "select u.c as c,u.d as d from t,u;"
+>               "select t.a as a,t.b as b,u.c as c,u.d as d \n\
+>               \from t as t(a,b),u as u(c,d);"
+>     ,Item db1 "select t.* from t,u;"
+>               "select t.a as a, t.b as b from t as t(a,b),u as u(c,d);"
+>     ,Item db1 "select u.* from t,u;"
+>               "select u.c as c,u.d as d from t as t(a,b),u as u(c,d);"
 >     ,Item db1 "select t.*,u.*,* from t,u;"
 >               "select t.a as a, t.b as b,\n\
 >               \       u.c as c, u.d as d,\n\
 >               \       t.a as a, t.b as b, u.c as c, u.d as d\n\
->               \  from t,u;"
->     ,Item db1 "select v from v;" "select v.v as v from v;"
->     ,Item db1 "select count(*) from t;" "select count(*) as count from t;"
+>               \  from t as t(a,b),u as u(c,d);"
+>     ,Item db1 "select v from v;" "select v.v as v from v as v(v);"
+>     ,Item db1 "select count(*) from t;"
+>               "select count(*) as count from t as t(a,b);"
 >     ]
 >   ,Group "trefs"
 >     [Item db1 "select * from generate_series(1,5) g;"
->               "select g.generate_series as generate_series from generate_series(1,5) g;"
+>               "select g.generate_series as generate_series\n\
+>               \from generate_series(1,5) as g(generate_series);"
 >     ,Item db1 "select a from t as x;"
->               "select x.a as a from t as x;"
+>               "select x.a as a from t as x(a,b);"
 >     ,Item db1 "select * from t as x(f,g);"
 >               "select x.f as f ,x.g as g from t as x(f,g);"
 >     ]
 >   ,Group "where"
 >     [Item db1 "select a,b from t where a > b;"
->               "select t.a as a, t.b as b from t where t.a > t.b;"
+>               "select t.a as a, t.b as b from t as t(a,b) where t.a > t.b;"
 >     ,Item db1 "select a,c from t,u where b = d;"
->               "select t.a as a,u.c as c from t,u where t.b = u.d;"
+>               "select t.a as a,u.c as c\n\
+>               \  from t as t(a,b),u as u(c,d)\n\
+>               \  where t.b = u.d;"
 >     ]
 >   ,Group "groupby"
 >     [Item db1 "select a,sum(b) from t group by a;"
->               "select t.a as a,sum(t.b) as sum from t group by t.a;"
+>               "select t.a as a,sum(t.b) as sum\n\
+>               \from t as t(a,b) group by t.a;"
 >     ]
 >   ,Group "having"
 >     [Item db1 "select a,sum(b) from t group by a having a > b;"
->               "select t.a as a,sum(t.b) as sum from t group by t.a having t.a > t.b;"
+>               "select t.a as a,sum(t.b) as sum from t as t(a,b)\n\
+>               \group by t.a having t.a > t.b;"
 >     ]
 >   ,Group "orderby"
 >     [Item db1 "select a from t order by b;"
->               "select t.a as a from t order by t.b;"
+>               "select t.a as a from t as t(a,b) order by t.b;"
 >     ]
->   ,Group "correlated subquery"
+>   ,Group "ctes"
+>     [Item db1   "with a as (select 1 as a, 2 as b),\n\
+>                 \     b as (select * from t)\n\
+>                 \select * from a\n\
+>                 \union select * from b;"
+>
+>                 "with a(a,b) as (select 1 as a, 2 as b),\n\
+>                 \     b(a,b) as (select t.a as a, t.b as b from t as t(a,b))\n\
+>                 \select a.a as a, a.b as b from a as a(a,b)\n\
+>                 \union select b.a as a, b.b as b from b as b(a,b);"
+
+>     ]
+>   ,Group "correlated subqueries"
 >     [Item db1 "select a,b from t where (select min(c) from u where b=d);"
->        "select t.a as a,t.b as b from t where (select min(u.c) as min from u where t.b=u.d);"
+>        "select t.a as a,t.b as b from t as t(a,b)\n\
+>        \where (select min(u.c) as min from u as u(c,d) where t.b=u.d);"
 >     ]
 >   ,Group "select lists"
 >     [Item db1 "select a,b,f(a),a::int,a+b,row_number() over (order by a), a as c from t;"
->               "select t.a as a,t.b as b,f(t.a) as f,t.a::int as \"int\",t.a+t.b as \"?column?\",row_number() over (order by t.a) as row_number, t.a as c from t;"
+>               "select t.a as a,t.b as b,f(t.a) as f,t.a::int as \"int\",t.a+t.b as \"?column?\",row_number() over (order by t.a) as row_number, t.a as c from t as t(a,b);"
 >     ]
 >   ,Group "tpch"
 >     $ zipWith (\q q1 -> MSItem tpchCatalog q q1) (map snd tpchQueries)

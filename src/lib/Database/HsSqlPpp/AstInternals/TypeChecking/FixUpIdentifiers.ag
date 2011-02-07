@@ -151,14 +151,14 @@ SEM SelectItem
         = case @ex.fixedUpIdentifiersTree of
             Identifier a "*" -> let s = expandStar @lhs.idenv Nothing
                                     in if null s
-                                       then [addAlias $ SelExp @ann @ex.fixedUpIdentifiersTree]
+                                       then [addSIAlias $ SelExp @ann @ex.fixedUpIdentifiersTree]
                                        else makeSelExps @ann a a s
             QIdentifier a0 (Identifier a1 q) "*" ->
                let s = expandStar @lhs.idenv $ Just q
                in if null s
-                  then [addAlias $ SelExp @ann @ex.fixedUpIdentifiersTree]
+                  then [addSIAlias $ SelExp @ann @ex.fixedUpIdentifiersTree]
                   else makeSelExps @ann a0 a1 s
-            _ -> [addAlias $ SelExp @ann @ex.fixedUpIdentifiersTree]
+            _ -> [addSIAlias $ SelExp @ann @ex.fixedUpIdentifiersTree]
 
     | SelectItem lhs.seIdTree
         = [SelectItem @ann @ex.fixedUpIdentifiersTree @name]
@@ -167,11 +167,11 @@ SEM SelectItem
 
 makeSelExps :: Annotation -> Annotation -> Annotation -> [(String,String)] -> [SelectItem]
 makeSelExps sea a0 a1 is =
-  flip map is $ \(q,c) -> addAlias $ SelExp sea $ QIdentifier a0 (Identifier a1 q) c
+  flip map is $ \(q,c) -> addSIAlias $ SelExp sea $ QIdentifier a0 (Identifier a1 q) c
 
-addAlias :: SelectItem -> SelectItem
-addAlias s@(SelectItem _ _ _) = s
-addAlias (SelExp ann ex) = SelectItem ann ex $ getColName ex
+addSIAlias :: SelectItem -> SelectItem
+addSIAlias s@(SelectItem _ _ _) = s
+addSIAlias (SelExp ann ex) = SelectItem ann ex $ getColName ex
   where
     getColName (Identifier _ i) = i
     getColName (QIdentifier _ _ i) = i
@@ -219,7 +219,7 @@ Passing up:
 * from select lists -> select -> wrapping subtref
 -}
 
-ATTR QueryExpr
+ATTR QueryExpr --  WithQuery WithQueryList
          [
          |
          | cidenv : IDEnv
@@ -230,6 +230,18 @@ SEM QueryExpr
     | CombineSelect lhs.cidenv = @sel1.cidenv
     | Values lhs.cidenv = unimplementedIDEnv
     | WithSelect lhs.cidenv = @ex.cidenv
+
+{-SEM QueryExpr
+    | WithSelect ex.idenv = showIt "****withsidenv****" @withs.cidenv
+
+SEM WithQueryList
+    | Cons lhs.cidenv = joinIDEnvs @hd.cidenv @tl.cidenv
+    | Nil lhs.cidenv = emptyIDEnv
+
+SEM WithQuery
+    | WithQuery lhs.cidenv = let IDEnv x = @ex.cidenv
+                             in IDEnv $ flip map x $ \(_,cs) -> (@name,cs)
+-}
 
 
 {-
@@ -295,7 +307,7 @@ changing anything, and in the places it should switch to adjusting the
 identifiers, newFixedUpIdentifiersTree is used instead
 
 -}
-ATTR Root AllNodes [
+ATTR Root ScalarExprRoot AllNodes [
                    |
                    | fixedUpIdentifiersTree : SELF
                      --newFixedUpIdentifiersTree : SELF -- this is used to adjust identifiers by qualifying them where neccessary
@@ -312,12 +324,23 @@ fixUpIdentifiers cat sts =
     in case tl of
          Root r -> r
 
+fixUpIdentifiersSE :: Catalog -> ScalarExpr -> ScalarExpr
+fixUpIdentifiersSE cat sts =
+    let t = sem_ScalarExprRoot (ScalarExprRoot sts)
+        ta = wrap_ScalarExprRoot t Inh_ScalarExprRoot {cat_Inh_ScalarExprRoot = cat
+                                  ,lib_Inh_ScalarExprRoot = emptyBindings
+                                  ,idenv_Inh_ScalarExprRoot = emptyIDEnv}
+        tl = fixedUpIdentifiersTree_Syn_ScalarExprRoot ta
+    in case tl of
+         ScalarExprRoot r -> r
+
 }
+
 
 {-
 ===============================================
 
-tref ids
+tref ids and aliases
 
 -}
 
@@ -328,25 +351,55 @@ SEM TableRefList
     | Nil lhs.trefIDs = []
 
 SEM TableRef
-    | Tref lhs.trefIDs =
+    | Tref (lhs.trefIDs,lhs.fixedUpIdentifiersTree) =
         let tn = getTName @tbl.fixedUpIdentifiersTree
             ids = case catCompositePublicAttrs @lhs.cat relationComposites tn of
                     Right attrs -> [(tn, map fst attrs)]
                     Left _ -> [(tn,[])]
-        in doAlias @alias ids
-    | SubTref lhs.trefIDs =
-        let IDEnv x = @sel.cidenv
-        in trace ("seltref: " ++ show x) $ doAlias @alias x
-    | FunTref lhs.trefIDs =
-        let (FunCall _ f _) = @fn.fixedUpIdentifiersTree
-        in doAlias @alias [(f,[f])] -- needs fixing for table returning functions
-    | JoinTref lhs.trefIDs =
-        -- temp - needs fixing for natural joins
-        doAlias @alias $ @tbl.trefIDs ++ @tbl1.trefIDs
+            (trs,al) = doAlias @alias ids
+        in (trs,Tref @ann @tbl.fixedUpIdentifiersTree al)
 
+    | SubTref (lhs.trefIDs,lhs.fixedUpIdentifiersTree) =
+        let IDEnv x = @sel.cidenv
+            (trs,al) = doAlias @alias x
+        in (trs, SubTref @ann @sel.fixedUpIdentifiersTree al)
+
+    | FunTref (lhs.trefIDs,lhs.fixedUpIdentifiersTree) =
+        let (FunCall _ f _) = @fn.fixedUpIdentifiersTree
+            (trs,al) = doAlias @alias [(f,[f])] -- needs fixing for table returning functions
+        in (trs,FunTref @ann @fn.fixedUpIdentifiersTree al)
+
+    | JoinTref (lhs.trefIDs,lhs.fixedUpIdentifiersTree) =
+        -- temp - needs fixing for natural joins
+        let (trs,al) = doAlias @alias $ @tbl.trefIDs ++ @tbl1.trefIDs
+        in (trs, JoinTref @ann @tbl.fixedUpIdentifiersTree
+                          @nat @joinType @tbl1.fixedUpIdentifiersTree
+                          @onExpr.fixedUpIdentifiersTree al)
+{-
+| Tref ann:Annotation
+                     tbl:SQIdentifier
+                     alias : TableAlias
+              | JoinTref ann:Annotation
+                         tbl : TableRef
+                         nat : Natural
+                         joinType : JoinType
+                         tbl1 : TableRef
+                         onExpr : OnExpr
+                         alias : TableAlias
+              | SubTref ann:Annotation
+                        sel : QueryExpr
+                        alias : TableAlias
+              | FunTref ann:Annotation
+                        fn:ScalarExpr
+                        alias : TableAlias
+-}
 {
-doAlias :: TableAlias -> [(String,[String])] -> [(String,[String])]
-doAlias NoAlias cs = cs
-doAlias (TableAlias a) cs = [(a, concatMap snd cs)]
-doAlias (FullAlias a cs) _ = [(a,cs)]
+doAlias :: TableAlias -> [(String,[String])] -> ([(String,[String])],TableAlias)
+doAlias NoAlias [] = ([],NoAlias)
+doAlias NoAlias cs@((t,_):ts) = if all (==t) $ map fst ts
+                                then (cs,FullAlias t $ concatMap snd cs)
+                                else (cs,NoAlias)
+doAlias (TableAlias a) cs = let cs' = concatMap snd cs
+                            in ([(a, cs')], FullAlias a cs')
+doAlias f@(FullAlias a cs) _ = ([(a,cs)], f)
 }

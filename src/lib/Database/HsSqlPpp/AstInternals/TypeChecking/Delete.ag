@@ -14,7 +14,8 @@ SEM Statement
         loc.statementType =
             do
             pt <- sequence $ getPlaceholderTypes @whr.annotatedTree
-            return (pt,@returning.listType)
+            lt <- liftList @returning.listType
+            return (pt,lt)
         loc.backTree = Delete @ann @table.tbAnnotatedTree @using.annotatedTree @whr.annotatedTree @returning.annotatedTree
         loc.catUpdates = []
 

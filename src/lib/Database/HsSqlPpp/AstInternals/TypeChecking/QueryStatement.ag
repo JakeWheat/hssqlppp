@@ -127,7 +127,7 @@ SEM QueryExpr
         loc.backTree = Values @ann @vll.annotatedTree
     | Select
         loc.tpe =
-            Right $ SetOfType $ CompositeType @selSelectList.listType
+            Right $ SetOfType $ CompositeType $ fromMaybe [] $ liftList  @selSelectList.listType
         loc.backTree = Select @ann
                               @selDistinct
                               @selSelectList.annotatedTree
@@ -244,7 +244,7 @@ SEM WithQueryList
 SEM WithQuery
     | WithQuery
         loc.tpe = Right $ Pseudo Void
-        loc.backTree = WithQuery @ann @name @ex.annotatedTree
+        loc.backTree = WithQuery @ann @name @colAliases @ex.annotatedTree
         loc.attrs = maybe [] id $ @ex.uType --TODO: error ignored
         loc.catUpdates = [CatCreateView @name @loc.attrs]
         loc.statementType = Nothing

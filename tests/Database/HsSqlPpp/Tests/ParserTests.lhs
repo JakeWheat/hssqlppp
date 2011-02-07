@@ -313,9 +313,9 @@ select statements
 >               select * from b; |]
 >          [QueryStatement ea
 >           (WithSelect ea
->            [WithQuery ea "a" (selectE $ SelectList ea
+>            [WithQuery ea "a" Nothing (selectE $ SelectList ea
 >                                [SelectItem ea (IntegerLit ea 1) "a1"] [])
->            ,WithQuery ea "b" (selectFrom (selIL ["*"]) (Tref ea (i "a") NoAlias))]
+>            ,WithQuery ea "b" Nothing (selectFrom (selIL ["*"]) (Tref ea (i "a") NoAlias))]
 >            (selectFrom (selIL ["*"]) (Tref ea (i "b") NoAlias)))]
 >      ,s [$here|
 >          with a as (select 1 as a1),
@@ -324,9 +324,9 @@ select statements
 >               union select * from b; |]
 >          [QueryStatement ea
 >           (WithSelect ea
->            [WithQuery ea "a" (selectE $ SelectList ea
+>            [WithQuery ea "a" Nothing (selectE $ SelectList ea
 >                                [SelectItem ea (IntegerLit ea 1) "a1"] [])
->            ,WithQuery ea "b" (selectFrom (selIL ["*"]) (Tref ea (i "a") NoAlias))]
+>            ,WithQuery ea "b" Nothing (selectFrom (selIL ["*"]) (Tref ea (i "a") NoAlias))]
 >            (CombineSelect ea Union
 >              (selectFrom (selIL ["*"]) (Tref ea (i "a") NoAlias))
 >              (selectFrom (selIL ["*"]) (Tref ea (i "b") NoAlias))))]

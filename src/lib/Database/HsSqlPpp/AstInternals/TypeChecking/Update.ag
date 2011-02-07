@@ -19,7 +19,7 @@ SEM Statement
               do
               pt <- sequence $ getPlaceholderTypes @assigns.annotatedTree
                                ++ getPlaceholderTypes @whr.annotatedTree
-              return (pt,@returning.listType)
+              return (pt,fromMaybe [] $ liftList @returning.listType)
 
         loc.backTree = Update @ann
                               @table.tbAnnotatedTree

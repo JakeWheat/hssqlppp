@@ -4,21 +4,10 @@
 >     (tpchQueries
 >     ,tpchCatalog) where
 >
-> import Test.HUnit
-> import Test.Framework
-> import Test.Framework.Providers.HUnit
-> import Data.Generics.Uniplate.Data
-> import Control.Monad
 
 > import Database.HsSqlPpp.Utils.Here
-> import Database.HsSqlPpp.Parser
-> import Database.HsSqlPpp.TypeChecker
-> import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.SqlTypes
-> import Database.HsSqlPpp.Utils.PPExpr
-> import Database.HsSqlPpp.Tests.TestUtils
-> import Database.HsSqlPpp.PrettyPrinter
 
 > tpchQueries :: [(String,String)]
 > tpchQueries =

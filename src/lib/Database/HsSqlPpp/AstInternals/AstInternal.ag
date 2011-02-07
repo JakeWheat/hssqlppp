@@ -339,7 +339,6 @@ DATA SQIdentifier | SQIdentifier ann:Annotation is:{[String]}
 
 
 
--- maybe this should be called relation valued expression?
 DATA QueryExpr
     | Select ann:Annotation
              selDistinct : Distinct
@@ -364,6 +363,7 @@ DATA QueryExpr
 TYPE WithQueryList = [WithQuery]
 DATA WithQuery | WithQuery ann : Annotation
                            name : String
+                           colAliases : {Maybe [String]}
                            ex : QueryExpr
 
 DATA FnBody | SqlFnBody ann:Annotation sts : StatementList
@@ -879,7 +879,7 @@ typeCheckParameterizedStatement cat st =
 -- or to get its type.
 typeCheckScalarExpr :: Catalog -> ScalarExpr -> ScalarExpr
 typeCheckScalarExpr cat ex =
-    let t = sem_ScalarExprRoot (ScalarExprRoot ex)
+    let t = sem_ScalarExprRoot (ScalarExprRoot $ fixUpIdentifiersSE cat ex)
         rt = (annotatedTree_Syn_ScalarExprRoot
               (wrap_ScalarExprRoot t Inh_ScalarExprRoot {cat_Inh_ScalarExprRoot = cat
                                                         ,lib_Inh_ScalarExprRoot = emptyBindings

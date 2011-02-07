@@ -316,8 +316,9 @@ this recursion needs refactoring cos it's a mess
 >                           <*> commaSep1 withQuery
 >                           <*> selectScalarExpr
 >         withQuery = WithQuery <$> pos
->                               <*> (idString <* keyword "as")
->                               <*> parens selectScalarExpr
+>                               <*> idString
+>                               <*> tryOptionMaybe (parens $ commaSep idString)
+>                               <*> (keyword "as" *> parens selectScalarExpr)
 >         combTable = [map (\(c,p) -> Infix (CombineSelect
 >                                            <$> pos
 >                                            <*> (c <$ p)) AssocLeft)

@@ -470,8 +470,11 @@ Statement components
 >   text "with" $$ nest 2 (vcat $ csv $ map pwq wqs)
 >        $+$ convQueryExpr True False ex
 >   where
->     pwq (WithQuery _ nm ex1) =
->       text nm <+> text "as"
+>     pwq (WithQuery _ nm cs ex1) =
+>       text nm <> case cs of
+>                    Nothing -> empty
+>                    Just cs' -> parens $ hcatCsvMap text cs'
+>       <+> text "as"
 >       <+> parens (convQueryExpr True False ex1)
 >
 > convTref :: TableRef -> Doc
@@ -507,7 +510,7 @@ Statement components
 > convTrefAlias :: TableAlias -> Doc
 > convTrefAlias NoAlias = empty
 > convTrefAlias (TableAlias t) = text t
-> convTrefAlias (FullAlias t s) = text t <+> parens (hcatCsvMap text s)
+> convTrefAlias (FullAlias t s) = text t <> parens (hcatCsvMap text s)
 
 > convDir :: Direction -> Doc
 > convDir d = text $ case d of

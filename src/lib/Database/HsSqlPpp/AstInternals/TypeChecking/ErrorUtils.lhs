@@ -6,6 +6,7 @@ type checking.
 >     where
 >
 > import Database.HsSqlPpp.AstInternals.TypeType
+> import Debug.Trace
 
 > type E a = Either [TypeError] a
 > type Et = E Type
@@ -19,3 +20,11 @@ type checking.
 > etmt :: E a -> Maybe a
 > etmt = either (const Nothing) Just
 >
+
+> liftList :: [(a,Maybe b)] -> Maybe [(a,b)]
+> liftList is = sequence $ flip map is $ \(a,b) -> case b of
+>                                                    Just b' -> Just (a,b')
+>                                                    Nothing -> Nothing
+
+> showIt :: Show a => String -> a -> a
+> showIt m a = trace (m ++ " " ++ show a) $ a
