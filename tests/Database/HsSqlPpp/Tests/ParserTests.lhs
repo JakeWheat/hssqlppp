@@ -25,6 +25,7 @@ There are no tests for invalid syntax at the moment.
 >
 > data Item = Expr String ScalarExpr
 >           | Stmt String [Statement]
+>           | MSStmt String [Statement]
 >           | PgSqlStmt String [Statement]
 >           | Group String [Item]
 > parserTests :: Test.Framework.Test
@@ -254,6 +255,16 @@ select statements
 >         (FunCall ea "!and"
 >          [FunCall ea "="  [Identifier ea "b", IntegerLit ea 2]
 >          ,FunCall ea "=" [Identifier ea "c", IntegerLit ea 3]])]
+>      ,MSStmt "select a from t;\ngo"
+>          [QueryStatement ea $ selectFrom (selIL ["a"]) (Tref ea (i "t") NoAlias)]
+>      ,MSStmt "select a from t;\nset rowcount -1\ngo"
+>          [QueryStatement ea $ selectFrom (selIL ["a"]) (Tref ea (i "t") NoAlias)]
+>      ,MSStmt "select a from t;\nset rowcount 10\ngo"
+>       [QueryStatement ea $ Select ea Dupes
+>        (sl (selIL ["a"]))
+>        [Tref ea (i "t") NoAlias]
+>        Nothing [] Nothing [] (Just (IntegerLit ea 10)) Nothing]
+
 >      ]
 >
 
@@ -790,7 +801,12 @@ ddl statements
 >       s "create view v1 as\n\
 >         \select a,b from t;"
 >       [CreateView ea
->        "v1"
+>        "v1" Nothing
+>        (selectFrom [selI "a", selI "b"] (Tref ea (i "t") NoAlias))]
+>      ,s "create view v1(c,d) as\n\
+>         \select a,b from t;"
+>       [CreateView ea
+>        "v1" (Just ["c","d"])
 >        (selectFrom [selI "a", selI "b"] (Tref ea (i "t") NoAlias))]
 >      ,s "create domain td as text check (value in ('t1', 't2'));"
 >       [CreateDomain ea "td" (SimpleTypeName ea "text") ""
@@ -1335,30 +1351,44 @@ Unit test helpers
 > itemToTft (Expr a b) = testParseScalarExpr a b
 > itemToTft (PgSqlStmt a b) = testParsePlpgsqlStatements a b
 > itemToTft (Stmt a b) = testParseStatements a b
+> itemToTft (MSStmt a b) = testParseMSStatements a b
 > itemToTft (Group s is) = testGroup s $ map itemToTft is
 >
 > testParseScalarExpr :: String -> ScalarExpr -> Test.Framework.Test
-> testParseScalarExpr src ast = parseUtil src ast
->                                  (parseScalarExpr "") printScalarExpr
+> testParseScalarExpr src ast =
+>   parseUtil src ast (parseScalarExpr "") (parseScalarExpr "") printScalarExpr
 >
 > testParseStatements :: String -> [Statement] -> Test.Framework.Test
-> testParseStatements src ast = parseUtil src ast (parseStatements "") printStatements
+> testParseStatements src ast =
+>   parseUtil src ast (parseStatements "") (parseStatements "") printStatements
+>
+> testParseMSStatements :: String -> [Statement] -> Test.Framework.Test
+> testParseMSStatements src ast =
+>   parseUtil src ast parseMsQuery (parseStatements "") printStatements
+>   where
+>     parseMsQuery :: String -> Either ParseErrorExtra [Statement]
+>     parseMsQuery s =
+>       (\p' -> [QueryStatement ea p'])
+>       `fmap` parseSqlServerQueryExpr "" s
+
 >
 > testParsePlpgsqlStatements :: String -> [Statement] -> Test.Framework.Test
-> testParsePlpgsqlStatements src ast = parseUtil src ast (parsePlpgsql "") printStatements
+> testParsePlpgsqlStatements src ast =
+>   parseUtil src ast (parsePlpgsql "") (parsePlpgsql "") printStatements
 >
 > parseUtil :: (Show t, Eq b, Show b, Data b) =>
 >              String
 >           -> b
 >           -> (String -> Either t b)
+>           -> (String -> Either t b)
 >           -> (b -> String)
 >           -> Test.Framework.Test
-> parseUtil src ast parser printer = testCase ("parse " ++ src) $
+> parseUtil src ast parser reparser printer = testCase ("parse " ++ src) $
 >   case parser src of
 >     Left er -> assertFailure $ show er
 >     Right ast' -> do
 >       assertEqual ("parse " ++ src) ast $ resetAnnotations ast'
->       case parser (printer ast) of
+>       case reparser (printer ast) of
 >         Left er -> assertFailure $ "reparse\n" ++ show er ++ "\n" -- ++ pp ++ "\n"
 >         Right ast'' -> assertEqual ("reparse " ++ printer ast) ast $ resetAnnotations ast''
 

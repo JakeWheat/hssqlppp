@@ -8,6 +8,7 @@ Forward the public part of ParserInternal
 >              ,parseStatementsWithPosition
 >              ,parseStatementsFromFile
 >              ,parseQueryExpr
+>              ,parseSqlServerQueryExpr
 >              -- * Testing
 >              ,parseScalarExpr
 >              ,parsePlpgsql

@@ -207,9 +207,13 @@ Conversion routines - convert Sql asts into Docs
 >         text n <+> text "alias for $" <> text (show p) <> semi
 >
 >
-> convStatement ca (CreateView ann name sel) =
+> convStatement ca (CreateView ann name cols sel) =
 >     convPa ca ann <+>
->     text "create view" <+> text name <+> text "as"
+>     text "create view" <+> text name
+>     <> case cols of
+>          Nothing -> empty
+>          Just cs -> parens (hcatCsvMap text cs)
+>     <+> text "as"
 >     $+$ nest 2 (convQueryExpr True True sel) <> statementEnd
 >
 > convStatement ca (CreateDomain ann name tp n ex) =

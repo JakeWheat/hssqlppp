@@ -13,7 +13,7 @@ pretty simple, just forwards the select expression type
 SEM Statement
     | CreateView
         loc.tpe = Right $ Pseudo Void
-        loc.backTree = CreateView @ann @name @expr.annotatedTree
+        loc.backTree = CreateView @ann @name @colNames @expr.annotatedTree
         loc.catUpdates =
             maybe [] (\a -> [CatCreateView @name a]) @expr.uType
         loc.statementType = Nothing

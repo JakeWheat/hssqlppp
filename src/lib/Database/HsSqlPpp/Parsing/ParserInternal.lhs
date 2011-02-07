@@ -11,6 +11,7 @@ right choice, but it seems to do the job pretty well at the moment.
 >     ,parseStatementsWithPosition
 >     ,parseStatementsFromFile
 >     ,parseQueryExpr
+>     ,parseSqlServerQueryExpr
 >      -- * Testing
 >     ,parseScalarExpr
 >     ,parsePlpgsql
@@ -52,7 +53,7 @@ right choice, but it seems to do the job pretty well at the moment.
 > import Database.HsSqlPpp.Annotation as A
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Catalog
-> --import Debug.Trace
+> import Debug.Trace
 
 --------------------------------------------------------------------------------
 
@@ -109,6 +110,39 @@ To support antiquotation, the following approach is used:
 >           _ <- optional (symbol ";")
 >           eof
 >           return q
+
+> -- | Hacky wrapper to parse a query statement in the form:
+> -- | select expr;
+> -- | optionally 'set rowcount N'
+> -- | GO
+> parseSqlServerQueryExpr :: String -- ^ filename to use in errors
+>                         -> String -- ^ a string containing the sql to parse
+>                         -> Either ParseErrorExtra A.QueryExpr
+> parseSqlServerQueryExpr f s =
+>   deQE $ parseIt l pqe f Nothing s startState
+>   where
+>     l = lexSqlText f s
+>     pqe :: SParser QueryExpr
+>     pqe = do
+>           (QueryStatement _ q) <- selectStatement
+>           _ <- optional $ symbol ";"
+>           rc <- tryOptionMaybe rowcount
+>           keyword "go"
+>           eof
+>           return $ case rc of
+>                      Nothing -> q
+>                      Just (-1) -> q
+>                      Just n -> updateLimit n q
+>     rowcount = trace "try set" $
+>       keyword "set"
+>       *> keyword "rowcount"
+>       *> (choice [
+>            symbol "-" *> (((* (-1)) . fromInteger) <$> integer)
+>           ,fromInteger <$> integer])
+>     updateLimit n (Select a di sl tr wh gb hv ob _l o) =
+>       (Select a di sl tr wh gb hv ob (Just $ IntegerLit emptyAnnotation n) o)
+>     updateLimit _ x = error $ "query style not supported for sql server style: " ++ show x
+
 
 > -- | Parse expression fragment, used for testing purposes
 > parseScalarExpr :: String -- ^ filename for error messages
@@ -749,20 +783,11 @@ variable declarations in a plpgsql function
 >     <* symbol ";"
 >
 > createView :: SParser Statement
-> {-createView = CreateView
+> createView = CreateView
 >              <$> pos <* keyword "view"
 >              <*> idString
->              <*> (keyword "as" *> selectScalarExpr)-}
-> createView = CreateView
->              <$> posAndIgnoreView
->              <*> idString
->              <*> ignoreAsAndQueryExpr
->              where
->                posAndIgnoreView =
->                  pos <* keyword "view"
->                ignoreAsAndQueryExpr =
->                  keyword "as" *> selectScalarExpr
-
+>              <*> tryOptionMaybe (parens $ commaSep idString)
+>              <*> (keyword "as" *> selectScalarExpr)
 
 >
 > createDomain :: SParser Statement

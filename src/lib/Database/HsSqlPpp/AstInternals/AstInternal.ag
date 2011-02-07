@@ -221,6 +221,7 @@ DATA Statement
                     expr : QueryExpr
     | CreateView ann:Annotation
                  name : String
+                 colNames : {Maybe [String]}
                  expr : QueryExpr
     | CreateType ann:Annotation
                  name : String

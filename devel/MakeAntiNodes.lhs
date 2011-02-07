@@ -234,6 +234,7 @@ get the constructor information for a type, in a nice simple format
 >     aInfo (UnBangedTy (TyParen (TyApp (TyCon (UnQual (Ident "Maybe"))) (TyCon (UnQual (Ident m))))))
 >           = "Maybe" ++ m
 >     aInfo (UnBangedTy (TyCon (UnQual (Ident s)))) = s
+>     aInfo (UnBangedTy (TyParen (TyApp (TyCon (UnQual (Ident "Maybe"))) (TyList (TyCon (UnQual (Ident "String"))))))) = "MaybeStringList"
 >     aInfo a = error $ "aInfo " ++ show a
 >
 

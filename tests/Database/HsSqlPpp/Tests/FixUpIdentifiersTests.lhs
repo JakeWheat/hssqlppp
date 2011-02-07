@@ -13,6 +13,7 @@ cd /home/jake/wd/hssqlppp/trunk/src/lib/Database/HsSqlPpp/AstInternals && uuagc 
 
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.TypeChecker
+> import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.SqlTypes
@@ -24,6 +25,7 @@ cd /home/jake/wd/hssqlppp/trunk/src/lib/Database/HsSqlPpp/AstInternals && uuagc 
 
 > data Item = Group String [Item]
 >           | Item [CatalogUpdate] String String
+>           | MSItem [CatalogUpdate] String String
 >
 > fixUpIdentifiersTests :: Test.Framework.Test
 > fixUpIdentifiersTests = itemToTft fixUpIdentifiersTestsData
@@ -84,13 +86,13 @@ cd /home/jake/wd/hssqlppp/trunk/src/lib/Database/HsSqlPpp/AstInternals && uuagc 
 >     [Item db1 "select a,b,f(a),a::int,a+b,row_number() over (order by a), a as c from t;"
 >               "select t.a as a,t.b as b,f(t.a) as f,t.a::int as \"int\",t.a+t.b as \"?column?\",row_number() over (order by t.a) as row_number, t.a as c from t;"
 >     ]
->   {-,Group "tpch"
->     $ zipWith (\q q1 -> Item tpchCatalog q q1) (map snd tpchQueries)
+>   ,Group "tpch"
+>     $ zipWith (\q q1 -> MSItem tpchCatalog q q1) (map snd tpchQueries)
 >         [[$here|
 \begin{code}
 select
-        lineitem.l_returnflag,
-        lineitem.l_linestatus,
+        lineitem.l_returnflag as l_returnflag,
+        lineitem.l_linestatus as l_linestatus,
         sum(lineitem.l_quantity) as sum_qty,
         sum(lineitem.l_extendedprice) as sum_base_price,
         sum(lineitem.l_extendedprice * (1 - lineitem.l_discount)) as sum_disc_price,
@@ -109,6 +111,8 @@ group by
 order by
         lineitem.l_returnflag,
         lineitem.l_linestatus;
+set rowcount -1
+go
 \end{code}
 >                                     |]
 >         ,[$here|
@@ -157,11 +161,11 @@ order by
         nation.n_name,
         supplier.s_name,
         part.p_partkey;
---set rowcount 100
---go
+set rowcount 100
+go
 \end{code}
 >                                     |]
->     ]-}
+>     ]
 >   ]
 
 qualifier and column name the same
@@ -179,13 +183,21 @@ qualifier and column name the same
 
 > itemToTft :: Item -> Test.Framework.Test
 > itemToTft (Group s is) = testGroup s $ map itemToTft is
-> itemToTft (Item eu sql esql) = testCase sql $ do
->   let eAst = case parseStatements "" esql of
->                               Left e -> error $ show e
->                               Right l -> resetAnnotations l
->       ast = case parseStatements "" sql of
->                               Left e -> error $ show e
->                               Right l -> resetAnnotations l
+> itemToTft (Item eu sql esql) = itemToTft' parseQueryExpr eu sql esql
+> itemToTft (MSItem eu sql esql) = itemToTft' parseSqlServerQueryExpr eu sql esql
+
+> type P =  String -> String -> Either ParseErrorExtra QueryExpr
+
+> itemToTft' :: P -> [CatalogUpdate] -> String -> String -> Test.Framework.Test
+> itemToTft' p eu sql esql = testCase sql $ do
+>   let eAst = [QueryStatement emptyAnnotation
+>               $ case p "" esql of
+>                              Left e -> error $ show e
+>                              Right l -> resetAnnotations l]
+>       ast = [QueryStatement emptyAnnotation
+>              $ case p "" sql of
+>                            Left e -> error $ show e
+>                            Right l -> resetAnnotations l]
 >       cAst = fixUpIdentifiers makeCat ast
 >       c2Ast = fixUpIdentifiers makeCat cAst
 >   --putStrLn $ printStatements cAst ++ "\n" ++ printStatements c2Ast
