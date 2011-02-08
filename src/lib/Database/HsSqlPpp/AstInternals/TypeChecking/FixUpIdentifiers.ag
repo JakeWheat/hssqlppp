@@ -334,6 +334,11 @@ fixUpIdentifiersSE cat sts =
     in case tl of
          ScalarExprRoot r -> r
 
+fixUpIdentifiersQE :: Catalog -> QueryExpr -> QueryExpr
+fixUpIdentifiersQE cat qe =
+    let [QueryStatement _ qe'] = fixUpIdentifiers cat [QueryStatement emptyAnnotation qe]
+    in qe'
+
 }
 
 

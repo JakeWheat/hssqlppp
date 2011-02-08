@@ -62,8 +62,8 @@ SEM SelectItem
         lhs.itemType = (@name, unwrapSetof `fmap` @ex.uType)
 
 {
-unwrapSetofs :: [(String,Type)] -> [(String,Type)]
-unwrapSetofs = map (\(n,t) -> (n, unwrapSetof t))
+--unwrapSetofs :: [(String,Type)] -> [(String,Type)]
+--unwrapSetofs = map (\(n,t) -> (n, unwrapSetof t))
 
 unwrapSetof :: Type -> Type
 unwrapSetof (SetOfType u) = u

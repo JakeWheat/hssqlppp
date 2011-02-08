@@ -28,8 +28,11 @@ This is the public module for the type checking functionality.
 >      -- * typechecking/ annotation functions
 >      typeCheckStatements
 >     ,typeCheckParameterizedStatement
+>     ,typeCheckQueryExpression
 >     ,typeCheckScalarExpr
 >     ,fixUpIdentifiers
+>     ,fixUpIdentifiersQE
+>     ,fixUpIdentifiersSE
 >      -- * Annotated tree utils
 >     ,getStatementAnnotations
 >     ) where

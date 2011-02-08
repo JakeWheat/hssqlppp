@@ -106,10 +106,10 @@ getTName x = error $ "internal error getName called on: " ++ show x
 unwrapLookup :: (String,[String],Type) -> Type
 unwrapLookup (_,_,t) = t
 
-unwrapStar :: [(String,[String],Type)] -> [(String,Type)]
+{-unwrapStar :: [(String,[String],Type)] -> [(String,Type)]
 unwrapStar = map uw
              where
-               uw (_,n,t) = (last n, t)
+               uw (_,n,t) = (last n, t)-}
 
 allAtts :: ([(String,Type)],[(String,Type)]) -> [(String,Type)]
 allAtts (a,b) = a ++ b

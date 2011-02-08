@@ -1,0 +1,52 @@
+targets for 0.3.0
+fix expression parsing issues?
+support most postgresql syntax
+reconsider parse tree and ast
+production quality parsing and type checking for selects, dml,
+   parameterized statements
+good documentation and plenty of examples, fix up website + nav
+big reorganisation of tests - split into multiple files
+review and fix api + names
+report generator
+better automated testing of extras: chaos sql, example programs/code
+reorganised source files, all under src/
+super simple build and run tests
+simple syntax extensions support: parser plus conversions
+more extensive quasi quoting
+typesafe haskell wrappers for parameterized statements
+build system for syntax extended sql projects
+extend the catalog a lot
+nullability inference in type checker
+
+report generator:
+the idea is to have the following for experimentation, evaluate how
+   well hssqlppp supports some existing sql, support while developing
+   sql (possibly with syntax extensions), and generating
+   documentation:
+take source sql:
+standard postgresql sql in text files
+sql taken from postgresql dump from live db
+syntax extended sql in text files
+do some or all of the following:
+parse and type check - report problems
+parse, pretty print, reparse and check
+generate documentation, catalog
+load into postgresql and double check catalog from typechecker
+load and dump postgresql, reparse and typecheck for changes
+
+============
+
+future:
+profiling, maybe switch parsing library
+definitely fix operator parsing - one approach is to adjust parse tree
+   after parsing to take into account custom operators and precedence
+integrate with haskelldb?
+heavily cross linked docs + diagrams
+materialized view extension
+temporal data extension
+generalised inclusions
+order independent ddl source
+show used catalog, work with module extension as well
+better annotation approach
+lint tool
+modules extension

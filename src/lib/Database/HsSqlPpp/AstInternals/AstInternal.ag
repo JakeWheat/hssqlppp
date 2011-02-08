@@ -124,7 +124,10 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,typeCheckStatements
    ,typeCheckParameterizedStatement
    ,typeCheckScalarExpr
+   ,typeCheckQueryExpression
    ,fixUpIdentifiers
+   ,fixUpIdentifiersQE
+   ,fixUpIdentifiersSE
 }
 
 {
@@ -848,6 +851,11 @@ typeCheckStatements cat sts =
         cat1 = producedCat_Syn_Root ta
     in case tl of
          Root r -> (cat1,r)
+
+typeCheckQueryExpression :: Catalog -> QueryExpr -> QueryExpr
+typeCheckQueryExpression cat qe =
+   let (_,[QueryStatement _ qe']) = typeCheckStatements cat [QueryStatement emptyAnnotation qe]
+   in qe'
 
 -- | Unfinished version of type check which can type check an
 -- individual statement with ? or positional arg placeholders in
