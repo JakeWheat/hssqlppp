@@ -1,0 +1,184 @@
+
+{-
+================================================================================
+
+proper dodgy:
+1st pass is to add inferred types to the tree. This is done only for
+expressions in a funcall argument list atm. Then we pull out the
+placeholders after they've had this information added. Only the
+placeholders in funcall argument lists will have their type inferred
+in this way, to be expanded. Insert also does this currently, but in Dml.ag
+
+This should probably be done during the typechecking phase instead,
+but probably needs a proper type inferencing algorithm to be used, is
+done like this for development expediency.
+
+Trying to follow haskell naming convention (?) - the type that the
+node is expected to have as determined by it's parent node is the
+expectedType, and the type it claims to have by its own logic and the
+types of its child nodes is the inferred type. Confusingly, this means
+the inferredType is often the declared type, and not the type that has
+been inferred here...
+
+The plan is to have three attributes: inferredType, expectedType and
+type, where the type is Just iff the inferredType and expectedType are
+the same, or onne of them is Nothing.
+
+-}
+{
+getPlaceholderTypes :: Data a => a -> [Maybe Type]
+getPlaceholderTypes ex =
+    [infType (getAnnotation x) | x <- universeBi ex
+                               , isPlaceholder x]
+    where
+      isPlaceholder e = case e of
+                          PositionalArg _ _ -> True
+                          Placeholder _ -> True
+                          _ -> False
+
+}
+
+
+{-
+================================================================================
+
+slightly dodgy type inference
+
+target is just to support parameterized statements at the moment, so
+lots missing and no unification or anything like that, although this
+wouldn't be too hard to add
+
+some more of the code is in insert.ag
+
+basically we just pass inferred types from function calls to the
+individual arguments using the matched function prototype, and we pass
+inferred types from the table's attribute types in an insert
+statement. No other inferrence is done, and the inferred types aren't
+checked for consistency with any type already in a node.
+
+Then we use this info only to get the types of any placeholders in a
+parameterized statement.
+
+-}
+
+
+-- some of this could be filled in quite easily
+
+ATTR ScalarExpr [expectedType : {Maybe Type}||]
+
+ATTR ScalarExprList [expectedTypes : {[Maybe Type]}||]
+
+SEM AlterTableAction
+    | AlterColumnDefault def.expectedType = Nothing
+
+
+SEM CaseScalarExprListScalarExprPair
+    | Tuple x1.expectedTypes = []
+            x2.expectedType = Nothing
+
+SEM Constraint
+    | CheckConstraint expr.expectedType = Nothing
+
+SEM ScalarExprDirectionPair
+    | Tuple x1.expectedType = Nothing
+
+SEM ScalarExprList
+    | Cons hd.expectedType = case @lhs.expectedTypes of
+                               (t:_) -> t
+                               _ -> Nothing
+           tl.expectedTypes  = case @lhs.expectedTypes of
+                               (_:ts) -> ts
+                               _ -> []
+
+SEM JoinExpr
+    | JoinOn expr.expectedType = Just typeBool
+
+SEM MaybeBoolExpr
+    | Just just.expectedType = Just typeBool
+
+SEM MaybeScalarExpr
+    | Just just.expectedType = Nothing
+
+SEM RowConstraint
+    | RowCheckConstraint expr.expectedType = Nothing
+
+SEM SelectList
+    | SelectList into.expectedTypes = []
+
+
+SEM SelectItem
+    | SelExp SelectItem ex.expectedType = Nothing
+
+SEM Statement
+    | Assignment value.expectedType = Nothing
+    | CaseStatementSimple val.expectedType = Nothing
+    | Execute ExecuteInto Perform ReturnNext WhileStatement
+        expr.expectedType = Nothing
+    | ForIntegerStatement from.expectedType = Nothing
+                          to.expectedType = Nothing
+    | Assignment target.expectedType = Nothing
+    | ForIntegerStatement ForQueryStatement var.expectedType = Nothing
+SEM TableRef
+    | FunTref fn.expectedType = Nothing
+
+SEM ScalarExprRoot
+    | ScalarExprRoot expr.expectedType = Nothing
+
+SEM ScalarExprStatementListPair
+    | Tuple x1.expectedType = Nothing
+
+SEM ScalarExpr
+    | FunCall
+        args.expectedTypes = maybe [] id $
+                             -- hack for anonymousrecordtypes
+                             case (@funName,@lhs.expectedType) of
+                               ("!rowctor", Just (AnonymousRecordType ts)) -> return $ map Just ts
+                               _ -> do
+                                    (_,t,_,_) <- @loc.prototype
+                                    return $ map Just t
+    | LiftOperator
+        args.expectedTypes = []
+    | WindowFn
+        partitionBy.expectedTypes = []
+        orderBy.expectedTypes = []
+
+SEM ScalarExprListStatementListPair
+    | Tuple x1.expectedTypes = []
+
+SEM InList
+    | InList exprs.expectedTypes = []
+
+SEM QueryExpr
+    | Select selGroupBy.expectedTypes = []
+
+SEM Statement
+    | CreateTrigger fnArgs.expectedTypes = []
+    | Raise args.expectedTypes = []
+    | Update assigns.expectedTypes = []
+
+-- inferred types in the select expresssion
+
+ATTR QueryExpr [expectedTypes: {[Maybe Type]}||]
+
+ATTR ScalarExprListList [expectedTypes: {[Maybe Type]}||]
+
+SEM QueryExpr
+    | Values vll.expectedTypes = @lhs.expectedTypes
+
+SEM ScalarExprListList
+    | Cons hd.expectedTypes = @lhs.expectedTypes
+           tl.expectedTypes = @lhs.expectedTypes
+
+SEM ScalarExpr
+    | Exists ScalarSubQuery sel.expectedTypes = []
+SEM InList
+    | InSelect sel.expectedTypes = []
+SEM Statement
+    | CreateTableAs CreateView expr.expectedTypes = []
+    | ForQueryStatement ReturnQuery
+        sel.expectedTypes = []
+    | QueryStatement ex.expectedTypes = []
+SEM TableRef
+    | SubTref sel.expectedTypes = []
+SEM WithQuery
+    | WithQuery ex.expectedTypes = []

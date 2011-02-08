@@ -5,7 +5,12 @@ This file contains the type checking code for the expression ast data
 type.
 
 
-
+attributes:
+annotatedTree - usual
+backTree - usual
+loc.tpe - usual
+The bottom up types (the usual type checking) are in uType (as well as in the annotatedTree
+loc.prototype: the matched prototype for a function call
 
 -}
 
@@ -18,7 +23,7 @@ SEM ScalarExpr
         lhs.annotatedTree = updateAnnotation
                               (setTypeAddErrorsA @loc.tpe
                                . \a -> a {fnProt = @loc.prototype
-                                         ,infType = msum [@lhs.expectedType
+                                         ,infType = msum [@lhs.expectedType -- from parameterized statements
                                                          ,etmt @loc.tpe
                                                          ,Nothing]}) @loc.backTree
         loc.tpe : Et
@@ -45,6 +50,9 @@ SEM ScalarExprList
 
 
 ATTR ScalarExprListList [||uType : {[[Maybe Type]]}]
+
+ATTR ScalarExprList [||uType : {[Maybe Type]}]
+
 
 SEM ScalarExprListList
     | Cons lhs.uType = @hd.uType : @tl.uType
@@ -256,27 +264,6 @@ SEM ScalarExpr
         loc.qAnnTreeNoUnrec = updateAnnotation (\a -> a {errs = []}) @qual.annotatedTree
 
 SEM ScalarExpr
-  | FunCall
-      loc.liftedColumnName =
-          case @funName of
-            "." -> getName @loc.backTree
-            x | isOperatorName x -> "?column?"
-            _ -> @funName
-  | Cast
-      loc.liftedColumnName = case @tn.annotatedTree of
-                               SimpleTypeName _ tn -> tn
-                               _ -> ""
-  | WindowFn
-      loc.liftedColumnName = let (FunCall _ fn _) = @fn.annotatedTree
-                             in fn
-
-SEM ScalarExpr
-  | BooleanLit Case Exists FloatLit IntegerLit LiftOperator
-    NullLit PositionalArg Placeholder ScalarSubQuery StringLit
-    CaseSimple InPredicate TypedStringLit Interval
-      loc.liftedColumnName = ""
-
-SEM ScalarExpr
     | PositionalArg
         loc.tpe = unwrapLookup <$> lbLookupID @lhs.lib ['$':show @p]
         loc.backTree = PositionalArg @ann @p
@@ -343,146 +330,3 @@ SEM InList
                                  "got subquery with no columns? in inselect"]
                       1 -> Right $ head st
                       _ -> Right $ AnonymousRecordType st
-{-
-================================================================================
-
-slightly dodgy type inference
-
-target is just to support parameterized statements at the moment, so
-lots missing and no unification or anything like that, although this
-wouldn't be too hard to add
-
-some more of the code is in insert.ag
-
-basically we just pass inferred types from function calls to the
-individual arguments using the matched function prototype, and we pass
-inferred types from the table's attribute types in an insert
-statement. No other inferrence is done, and the inferred types aren't
-checked for consistency with any type already in a node.
-
-Then we use this info only to get the types of any placeholders in a
-parameterized statement.
-
--}
-
-
--- some of this could be filled in quite easily
-
-ATTR ScalarExpr [expectedType : {Maybe Type}||]
-
-ATTR ScalarExprList [expectedTypes : {[Maybe Type]}||uType : {[Maybe Type]}]
-
-SEM AlterTableAction
-    | AlterColumnDefault def.expectedType = Nothing
-
-
-SEM CaseScalarExprListScalarExprPair
-    | Tuple x1.expectedTypes = []
-            x2.expectedType = Nothing
-
-SEM Constraint
-    | CheckConstraint expr.expectedType = Nothing
-
-SEM ScalarExprDirectionPair
-    | Tuple x1.expectedType = Nothing
-
-SEM ScalarExprList
-    | Cons hd.expectedType = case @lhs.expectedTypes of
-                               (t:_) -> t
-                               _ -> Nothing
-           tl.expectedTypes  = case @lhs.expectedTypes of
-                               (_:ts) -> ts
-                               _ -> []
-
-SEM JoinExpr
-    | JoinOn expr.expectedType = Just typeBool
-
-SEM MaybeBoolExpr
-    | Just just.expectedType = Just typeBool
-
-SEM MaybeScalarExpr
-    | Just just.expectedType = Nothing
-
-SEM RowConstraint
-    | RowCheckConstraint expr.expectedType = Nothing
-
-SEM SelectList
-    | SelectList into.expectedTypes = []
-
-
-SEM SelectItem
-    | SelExp SelectItem ex.expectedType = Nothing
-
-SEM Statement
-    | Assignment value.expectedType = Nothing
-    | CaseStatementSimple val.expectedType = Nothing
-    | Execute ExecuteInto Perform ReturnNext WhileStatement
-        expr.expectedType = Nothing
-    | ForIntegerStatement from.expectedType = Nothing
-                          to.expectedType = Nothing
-    | Assignment target.expectedType = Nothing
-    | ForIntegerStatement ForQueryStatement var.expectedType = Nothing
-SEM TableRef
-    | FunTref fn.expectedType = Nothing
-
-SEM ScalarExprRoot
-    | ScalarExprRoot expr.expectedType = Nothing
-
-SEM ScalarExprStatementListPair
-    | Tuple x1.expectedType = Nothing
-
-SEM ScalarExpr
-    | FunCall
-        args.expectedTypes = maybe [] id $
-                             -- hack for anonymousrecordtypes
-                             case (@funName,@lhs.expectedType) of
-                               ("!rowctor", Just (AnonymousRecordType ts)) -> return $ map Just ts
-                               _ -> do
-                                    (_,t,_,_) <- @loc.prototype
-                                    return $ map Just t
-    | LiftOperator
-        args.expectedTypes = []
-    | WindowFn
-        partitionBy.expectedTypes = []
-        orderBy.expectedTypes = []
-
-SEM ScalarExprListStatementListPair
-    | Tuple x1.expectedTypes = []
-
-SEM InList
-    | InList exprs.expectedTypes = []
-
-SEM QueryExpr
-    | Select selGroupBy.expectedTypes = []
-
-SEM Statement
-    | CreateTrigger fnArgs.expectedTypes = []
-    | Raise args.expectedTypes = []
-    | Update assigns.expectedTypes = []
-
--- inferred types in the select expresssion
-
-ATTR QueryExpr [expectedTypes: {[Maybe Type]}||]
-
-ATTR ScalarExprListList [expectedTypes: {[Maybe Type]}||]
-
-SEM QueryExpr
-    | Values vll.expectedTypes = @lhs.expectedTypes
-
-SEM ScalarExprListList
-    | Cons hd.expectedTypes = @lhs.expectedTypes
-           tl.expectedTypes = @lhs.expectedTypes
-
-SEM ScalarExpr
-    | Exists ScalarSubQuery sel.expectedTypes = []
-SEM InList
-    | InSelect sel.expectedTypes = []
-SEM Statement
-    | CreateTableAs CreateView expr.expectedTypes = []
-    | ForQueryStatement ReturnQuery
-        sel.expectedTypes = []
-    | QueryStatement ex.expectedTypes = []
-SEM TableRef
-    | SubTref sel.expectedTypes = []
-SEM WithQuery
-    | WithQuery ex.expectedTypes = []

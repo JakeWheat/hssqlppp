@@ -110,14 +110,14 @@ hidden, without having to create a separate module.
 >                                 insert into modules (module_name)
 >                                 values ($s(modname));|] : tl
 >                s@(CreateTable _ n _ _) : tl -> insertIt s tl n "table"
->                s@(CreateView _ n _) : tl -> insertIt s tl n "view"
+>                s@(CreateView _ n _ _) : tl -> insertIt s tl n "view"
 >                s@(CreateType _ n _) : tl -> insertIt s tl n "type"
 >                s@(CreateFunction _ n _ _ _ _ _ _) : tl -> insertIt s tl n "function"
 >                s@(CreateTrigger _ n _ _ _ _ _ _) : tl -> insertIt s tl n "trigger"
 >                s@(CreateDomain _ n _ _ _ ) : tl -> insertIt s tl n "domain"
 >                x1 -> return x1))
 >     where
->       insertIt s tl nm ty= do
+>       insertIt s tl nm ty = do
 >          m <- get
 >          return $ replaceSourcePos1 s ([$sqlStmt|
 >                    insert into all_module_objects (object_name,object_type,module_name)

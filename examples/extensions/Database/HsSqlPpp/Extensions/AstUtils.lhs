@@ -78,7 +78,7 @@ it and quits.
 >
 > listViews :: Data a => a -> [(String,Statement)]
 > listViews ast =
->   [(vn,v) | v@(CreateView _ vn _) <- universeBi ast]
+>   [(vn,v) | v@(CreateView _ vn _ _) <- universeBi ast]
 >
 > listTables :: Data a => a  -> [(String,Statement)]
 > listTables ast =

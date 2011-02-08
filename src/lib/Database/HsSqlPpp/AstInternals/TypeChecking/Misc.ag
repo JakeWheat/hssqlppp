@@ -45,8 +45,7 @@ SEM TypeName
 -}
 
 ATTR SQIdentifier [||tbUType : {Maybe ([(String,Type)],[(String,Type)])}
-                     tbAnnotatedTree : SQIdentifier
-                  ]
+                     tbAnnotatedTree : SQIdentifier]
 
 SEM SQIdentifier
     | SQIdentifier
@@ -57,17 +56,13 @@ SEM SQIdentifier
                 (\a -> a {errs = errs a ++ tes @loc.tbUType}) @loc.backTree
         loc.backTree = SQIdentifier @ann @is
 
-
-
-
-{
 {-
 ================================================================================
 
 = some small utils
 
 -}
-
+{
 
 addTypeErrors :: Data a => [TypeError] -> a -> a
 addTypeErrors es el = updateAnnotation u el
@@ -106,49 +101,6 @@ getTName x = error $ "internal error getName called on: " ++ show x
 unwrapLookup :: (String,[String],Type) -> Type
 unwrapLookup (_,_,t) = t
 
-{-unwrapStar :: [(String,[String],Type)] -> [(String,Type)]
-unwrapStar = map uw
-             where
-               uw (_,n,t) = (last n, t)-}
-
 allAtts :: ([(String,Type)],[(String,Type)]) -> [(String,Type)]
 allAtts (a,b) = a ++ b
-
-{-
-================================================================================
-
-proper dodgy:
-1st pass is to add inferred types to the tree. This is done only for
-expressions in a funcall argument list atm. Then we pull out the
-placeholders after they've had this information added. Only the
-placeholders in funcall argument lists will have their type inferred
-in this way, to be expanded. Insert also does this currently, but in Dml.ag
-
-This should probably be done during the typechecking phase instead,
-but probably needs a proper type inferencing algorithm to be used, is
-done like this for development expediency.
-
-Trying to follow haskell naming convention (?) - the type that the
-node is expected to have as determined by it's parent node is the
-expectedType, and the type it claims to have by its own logic and the
-types of its child nodes is the inferred type. Confusingly, this means
-the inferredType is often the declared type, and not the type that has
-been inferred here...
-
-The plan is to have three attributes: inferredType, expectedType and
-type, where the type is Just iff the inferredType and expectedType are
-the same, or onne of them is Nothing.
-
--}
-
-getPlaceholderTypes :: Data a => a -> [Maybe Type]
-getPlaceholderTypes ex =
-    [infType (getAnnotation x) | x <- universeBi ex
-                                 ,isPlaceholder x]
-    where
-      isPlaceholder e = case e of
-                          PositionalArg _ _ -> True
-                          Placeholder _ -> True
-                          _ -> False
-
 }

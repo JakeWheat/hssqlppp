@@ -17,6 +17,7 @@ typesafe haskell wrappers for parameterized statements
 build system for syntax extended sql projects
 extend the catalog a lot
 nullability inference in type checker
+rewrite typeconversion.lhs
 
 report generator:
 the idea is to have the following for experimentation, evaluate how

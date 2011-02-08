@@ -86,6 +86,8 @@ ATTR AllNodes Root ScalarExprRoot
 INCLUDE "TypeChecking/Misc.ag"
 INCLUDE "TypeChecking/ScalarExprs/ScalarExprs.ag"
 INCLUDE "TypeChecking/Statements.ag"
+INCLUDE "TypeChecking/ParameterizedStatements.ag"
+
 
 
 {-
