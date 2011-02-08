@@ -17,7 +17,7 @@ and unnamed columns whilst giving the same results except column name
 differences only where needed to avoid the above (renaming is for the
 entire tree, not just the results
 
-this is all to support 
+this is all to support
 
 ----
 
@@ -84,7 +84,7 @@ ATTR AllNodes Root ScalarExprRoot
 
 
 INCLUDE "TypeChecking/Misc.ag"
-INCLUDE "TypeChecking/ScalarExprs.ag"
+INCLUDE "TypeChecking/ScalarExprs/ScalarExprs.ag"
 INCLUDE "TypeChecking/Statements.ag"
 
 

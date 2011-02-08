@@ -251,6 +251,6 @@ SEM WithQuery
 
 
 
-INCLUDE "TypeChecking/TableRefs.ag"
+INCLUDE "TypeChecking/QueryExprs/TableRefs.ag"
 
-INCLUDE "TypeChecking/SelectLists.ag"
+INCLUDE "TypeChecking/QueryExprs/SelectLists.ag"

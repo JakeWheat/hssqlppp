@@ -140,15 +140,15 @@ SEM Statement
 
 
 
-INCLUDE "TypeChecking/QueryStatement.ag"
-INCLUDE "TypeChecking/Insert.ag"
-INCLUDE "TypeChecking/Update.ag"
-INCLUDE "TypeChecking/Delete.ag"
-INCLUDE "TypeChecking/CreateTable.ag"
-INCLUDE "TypeChecking/MiscCreates.ag"
-INCLUDE "TypeChecking/CreateFunction.ag"
-INCLUDE "TypeChecking/Block.ag"
-INCLUDE "TypeChecking/Triggers.ag"
-INCLUDE "TypeChecking/Drops.ag"
-INCLUDE "TypeChecking/Plpgsql.ag"
+INCLUDE "TypeChecking/QueryExprs/QueryStatement.ag"
+INCLUDE "TypeChecking/Dml/Insert.ag"
+INCLUDE "TypeChecking/Dml/Update.ag"
+INCLUDE "TypeChecking/Dml/Delete.ag"
+INCLUDE "TypeChecking/Ddl/CreateTable.ag"
+INCLUDE "TypeChecking/Ddl/MiscCreates.ag"
+INCLUDE "TypeChecking/Ddl/CreateFunction.ag"
+INCLUDE "TypeChecking/Plpgsql/Block.ag"
+INCLUDE "TypeChecking/Ddl/Triggers.ag"
+INCLUDE "TypeChecking/Ddl/Drops.ag"
+INCLUDE "TypeChecking/Plpgsql/Plpgsql.ag"
 
