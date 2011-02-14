@@ -409,10 +409,12 @@ then we combine by seeing if there is a join looking prefix
 >                 ,Just <$> (JoinUsing <$> pos
 >                            <*> (keyword "using" *> columnNameList))
 >                 ,return Nothing]
->         palias = option NoAlias
+>         palias = do
+>            p <- pos
+>            option (NoAlias p)
 >                    (optionalSuffix
->                       TableAlias (optional (keyword "as") *> nkwid)
->                       FullAlias () (parens $ commaSep1 idString))
+>                       (TableAlias p) (optional (keyword "as") *> nkwid)
+>                       (FullAlias p) () (parens $ commaSep1 idString))
 >         badNames = ["as"
 >                    ,"where"
 >                    ,"except"

@@ -124,6 +124,7 @@ later on down the line.
 >                | AnyAllError String
 >                | InternalError String
 >                | FromToTypesNotSame Type Type
+>                | WrongNumberOfAliasCols Int Int
 >                 --shoved in to humour the Either Monad
 >                | MiscError String
 >                  deriving (Eq,Show,Ord,Typeable,Data)
@@ -143,7 +144,8 @@ Introduce some aliases to protect client code if/when the ast
 canonical names are changed:
 
 > typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4,
->   typeFloat8,typeVarChar,typeChar,typeBool,typeDate :: Type
+>   typeFloat8,typeVarChar,typeChar,typeBool,typeDate,
+>   typeInterval :: Type
 > typeSmallInt = ScalarType "int2"
 > typeBigInt = ScalarType "int8"
 > typeInt = ScalarType "int4"
@@ -154,6 +156,7 @@ canonical names are changed:
 > typeChar = ScalarType "char"
 > typeBool = ScalarType "bool"
 > typeDate = ScalarType "date"
+> typeInterval = ScalarType "interval"
 
 this converts the name of a type to its canonical name:
 try to follow the names that pg uses in a dump

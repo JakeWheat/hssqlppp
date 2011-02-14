@@ -124,7 +124,7 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,typeCheckStatements
    ,typeCheckParameterizedStatement
    ,typeCheckScalarExpr
-   ,typeCheckQueryExpression
+   ,typeCheckQueryExpr
    ,fixUpIdentifiers
    ,fixUpIdentifiersQE
    ,fixUpIdentifiersSE
@@ -137,6 +137,7 @@ import Control.Applicative
 import Data.Data
 import Data.Char
 import Control.Monad.State
+import Control.Arrow
 
 import Data.Generics.PlateData
 import Debug.Trace
@@ -388,12 +389,10 @@ DATA TableRef | Tref ann:Annotation
               | FunTref ann:Annotation
                         fn:ScalarExpr
                         alias : TableAlias
-{
-data TableAlias = NoAlias
-                | TableAlias String --alias:String
-                | FullAlias String [String] -- alias:String cols:{[String]}
-                  deriving (Show,Eq,Typeable,Data)
-}
+
+DATA TableAlias | NoAlias ann:Annotation
+                | TableAlias ann:Annotation tb:String
+                | FullAlias ann:Annotation tb:String cols:{[String]}
 
 DATA JoinExpr | JoinOn ann:Annotation expr:ScalarExpr
               | JoinUsing ann:Annotation x:{[String]}
@@ -795,6 +794,7 @@ SET AllNodes = Statement QueryExpr FnBody TableRef
                ScalarExprDirectionPair
                ScalarExprDirectionPairList AlterTableActionList
                WithQueryList WithQuery SQIdentifier
+               TableAlias
 
 
 DERIVING AllNodes: Show,Eq,Typeable,Data
@@ -816,90 +816,7 @@ makeSelect = Select Dupes (SelectList [SelExp (Identifier "*")] [])
                    Nothing Nothing [] Nothing [] Asc Nothing Nothing
 
 
-================================================================================
-
-= annotation functions
-
--}
-{
-{-
--- | Type check multiple asts, allowing type checking references in
---   later files to definitions in earlier files. This is probably
---   more straightforward if you parse the files then concatenate the
---   statementlists together before type checking rather than using
---   this function
-typeCheckMany :: Catalog -> [StatementList] -> [StatementList]
-typeCheckMany cat sts =
-    annInt cat sts []
-    where
-      annInt e (s:ss) ress =
-          let (e1,res) = typeCheck e s
-          in annInt e1 ss (res:ress)
-      annInt _ [] ress = reverse ress
--}
-
--- | Takes an ast, checks against catalog passed, and adds
---   annotations, including types, type errors, and statement info.
---   Returns the updated catalog as well as the annotated ast.
-typeCheckStatements :: Catalog -> StatementList -> (Catalog,StatementList)
-typeCheckStatements cat sts =
-    let t = sem_Root (Root $ fixUpIdentifiers cat sts)
-        ta = wrap_Root t Inh_Root {cat_Inh_Root = cat
-                                  ,lib_Inh_Root = emptyBindings
-                                  ,idenv_Inh_Root = emptyIDEnv}
-        tl = annotatedTree_Syn_Root ta
-        cat1 = producedCat_Syn_Root ta
-    in case tl of
-         Root r -> (cat1,r)
-
-typeCheckQueryExpression :: Catalog -> QueryExpr -> QueryExpr
-typeCheckQueryExpression cat qe =
-   let (_,[QueryStatement _ qe']) = typeCheckStatements cat [QueryStatement emptyAnnotation qe]
-   in qe'
-
--- | Unfinished version of type check which can type check an
--- individual statement with ? or positional arg placeholders in
--- it. Will error if the statement isn't select, update, insert or
--- delete. For use in type checking embedded parameterized
--- statements. Does all typechecking and annotation that the regular
--- typecheck does.
-typeCheckParameterizedStatement :: Catalog -> Statement -> Either String Statement
-typeCheckParameterizedStatement cat st =
-    case st of
-      QueryStatement _ _ -> tc
-      Insert _ _ _ _ _ -> tc
-      Update _ _ _ _ _ _ -> tc
-      Delete _ _ _ _ _ -> tc
-      _ -> Left "requires select, update, insert or delete statement"
-    where
-      tc = let t = sem_Root (Root $ fixUpIdentifiers cat [st])
-               ta = wrap_Root t Inh_Root {cat_Inh_Root = cat
-                                         ,lib_Inh_Root = emptyBindings
-                                         ,idenv_Inh_Root = emptyIDEnv}
-               tl = annotatedTree_Syn_Root ta
-               --cat1 = producedCat_Syn_Root ta
-           in case tl of
-                Root [st1] -> Right st1
-                _ -> error "impossible happened in typeCheckPS!"
-
-
--- | Testing utility, mainly used to check an expression for type errors
--- or to get its type.
-typeCheckScalarExpr :: Catalog -> ScalarExpr -> ScalarExpr
-typeCheckScalarExpr cat ex =
-    let t = sem_ScalarExprRoot (ScalarExprRoot $ fixUpIdentifiersSE cat ex)
-        rt = (annotatedTree_Syn_ScalarExprRoot
-              (wrap_ScalarExprRoot t Inh_ScalarExprRoot {cat_Inh_ScalarExprRoot = cat
-                                                        ,lib_Inh_ScalarExprRoot = emptyBindings
-                                                        ,idenv_Inh_ScalarExprRoot = emptyIDEnv}))
-    in case rt of
-         ScalarExprRoot e -> e
-
-}
-
-INCLUDE "TypeChecking/FixUpIdentifiers.ag"
-
-{-
+---------------------------
 
 Future plans:
 
@@ -907,9 +824,6 @@ Investigate how much mileage can get out of making these nodes the
 parse tree nodes, and using a separate ast. Hinges on how much extra
 value can get from making the types more restrictive for the ast nodes
 compared to the parse tree. Starting to think this won't be worth it.
-
-Would like to turn this back into regular Haskell file, maybe could
-use AspectAG instead of uuagc to make this happen?
 
 
 -}

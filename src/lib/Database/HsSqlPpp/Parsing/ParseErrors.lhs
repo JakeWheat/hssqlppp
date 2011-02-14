@@ -66,8 +66,8 @@ plus output error location in emacs friendly format.
 >     show (ParseErrorExtra pe sp src) = showPE pe sp src
 >
 > instance Error ParseErrorExtra where
->   noMsg = ParseErrorExtra undefined Nothing "unknown"
->   strMsg = ParseErrorExtra undefined Nothing
+>   noMsg = ParseErrorExtra (error "instance Error ParseErrorExtra") Nothing "unknown"
+>   strMsg = ParseErrorExtra (error "instance Error ParseErrorExtra") Nothing
 >
 > toParseErrorExtra :: Either ParseError b -> Maybe (Int,Int) -> String
 >                   -> Either ParseErrorExtra b

@@ -8,10 +8,11 @@ of the system.
 >     ,LocalBindings
 >     ,emptyBindings
 >     ,lbUpdate
->     ,lbExpandStar
 >     ,lbLookupID
 >     ,lbLookupIDInType
 >     ,ppLocalBindings
+>     ,createLocalBindings
+>     ,lookupLocalBinding
 >     ) where
 >
 > import Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindingsInternal

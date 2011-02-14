@@ -1,88 +1,52 @@
 {-
 
+Type checking tablerefs:
 
-This file contains the checking for tablerefs (the from part of a
-select expression).
+Want to produce a list of identifier lookups for the rest of the query
+expression to use.
 
-Type checking joins is a real brain twister.
+Simple tablerefs, subselect tablerefs and function table refs are
+relatively straight forward - pretty much you just have to lookup the
+table, function or get the type info from the sub select and plug it
+in. The errors are unrecognised table/view/function and wrong number
+of cols in alias.
 
------------
-notes on how to write this file:
+The join tablerefs are where the mess comes in. For joins, the
+produced list of identifier lookups gets slightly complicated:
 
-want to have inline diagrams - how to do this? - can't have inline in
-ides usually, but can have inline when rendering source to html with
-e.g. pandoc, but still want to be able to view the diagrams when
-reading/editing the source code
+without a table alias on the join, you get a mixture of qualifying
+names
 
-do in literate style
+natural and using joins reorder the columns and eliminate duplicates.
 
-want to add transcripts of sessions with psql
-want to add output along the lines of 'load this sql, then pg_dump it,
-this is what you get'
-- stuff like this can be done usin a script which processes the source code and
-  replaces the output, but need to know when it breaks, so the output
-  also should be matched to check it's still working right, want an
-  automated way of doing this rather than eyeballing diffs before
-  commiting to source control
+The complications in star expansion are handled in the fixup
+identifiers stage so this code doesn't have to worry about
+this. Common identifers from natural/using joins are qualified with
+the name of the first table.
 
-also, along these lines, want the automated tests to live here next to
-the code they exercise. Would be extra nice if could use code coverage
-to check that when the test is run, the code it's supposed to be
-testing is used.
--------
-
-Apart from the usual new annotated tree, tablerefs need to produce new
-local bindings information to feed to the other parts of a select
-expression, e.g. the field names and types than can be referenced in
-the select list.
-
-The different types of tablerefs are:
-table name
-sub select
-function (I think pg will promotes non set returning functions and non
-  composite returning functions implicitly so they all work, the name
-  of the function is used to supply the correlation name and field
-  name if there is none)
-join
-
-Join is the tricky one, partly because it is recursive.
-
-The other complication is passing new local bindings into the sub
-nodes. So far, this is done only of the onexpr part of a join
-
-notes to add:
-mainly a list of sql statements and the /d+ from psql to show how the
-correlation names work with joins
-1) natural/using joins when selected unqualified have the correlation
-name from the first table
-2) you can get these fields with the other table's correlation name by using that table name.* or .field_name
-3) can create a view with two fields with the same name from different tables.
-but if you add an alias to the join tref then they both attempt to have the same correlation name - error
-
-maybe put the localbindings tests in here as well, so each chunk is a
-bit of blather, some example sql/ possibly with /d+ or pg_dump output
-from pg with notes, then some test cases, then the code that makes it
-happen
+the following additional type checks are needed in a join tableref:
+for using joins - check both tables have the named identifiers
+for using and natural joins, check the join columns from each table
+have compatible types
+pass in environments to the onexpr
 
 
+From the fixup identifiers, have:
+
+all recognised identifiers are qualified already, but ambiguous
+identifers are left unqualified - need to pick this up using the
+correct error
+
+all trefs have explicit aliases, except joins with a mixture of
+qualifying names
 -}
 
--- lib update contains the updated id and star expansions coming out
--- of the tableref part of a select expression. These updates aren't
--- used for chaining these things for nested table refs (in join
--- statements) - use attributes for them
+-- lib update contains the updated ids bindings coming out of the
+-- tableref part of a select expression. These updates aren't used for
+-- chaining these things for nested table refs (in join statements) -
+-- uses attributes for that
 
 ATTR TableRef TableRefList [|| libUpdates: {[LocalBindingsUpdate]}]
-
--- use these attributes which contain a copy of the info in lib
--- updates in a form more digestible to the join attributes resolution
--- the main advantages is we don't have to pull the ids out of a list
--- of update wrappers, and we don't have to split the id bindings into
--- qualified and unqualified parts. We could do it just using the
--- libupdates in principle, but this way seems to be a bit more direct
--- and clear to write and read (i.e. when I tried to to it using
--- libupdates I failed and gave up several times).
---ATTR TableRef [|| libUpdatesidLookups: {[LocalBindingsUpdate]}]
 
 -- set the annotations, just need to pick up any type errors whilst
 -- calculating the new bindings
@@ -96,32 +60,6 @@ SEM TableRefList
     | Cons
         lhs.libUpdates = @hd.libUpdates -- todo, combine properly
 
-{-
-
-in the individual sem parts, we set four values:
-idlookups : [(string,type)] pairs for all the unqualified ids which will be in scope coming out of the tref
-qidlookups: [(string, [(string,type)])] for all the qualified ids
-starexpansion: to expand unqualified *
-qstarexpansion: to expand qualified *
-(we need idlookups and starexpansion because of pg system columns,
-which are a serious pain to deal with).
-
-These are set as local vars, because we need to feed the resultant lib
-update into the on expressions in joins lower down, which we can't do
-directly with a syn attribute, so we collect them in locals, the
-combined the in a local for libupdates. We copy all the parts and the
-lib updates to regular attributes so we can access them from other
-sems (the components (idlookups, etc.) are needed in working out joins
-attributes, and the libupdate is used in the join expression, so all
-this extra copying is only needed to support joins).
-
-in each part, we collect errors in the errs local which we can then
-add to the annotation for the node. when this happens, further type
-checking in the select statement should stop but this isn't properly
-implemented yet (this is to avoid too many type errors all over the
-tree resulting from one mistake - a user friendliness consideration)
-
--}
 
 SEM TableRef
     | SubTref
@@ -136,7 +74,7 @@ subtref - pull the type of the select expression out (which will be a
                            Right _ -> []
         loc.selectAttrs : {Either [TypeError] [(String,Type)]}
         loc.selectAttrs = lmt @sel.uType
-        lhs.libUpdates = [LBTref "sub query" (getAlias "" @alias) --"" should be error
+        lhs.libUpdates = [LBTref "sub query" (getAlias "" @alias.originalTree) --"" should be error
                                          (fromRight [] @loc.selectAttrs) []]
 
     | Tref
@@ -149,7 +87,7 @@ tref - just a name of a table or view, just need to retrieve the fields from the
                          let n = getTName @tbl.annotatedTree
                          (pu,pr) <- @tbl.tbUType
                          return [LBTref ("tref: " ++ n)
-                                   (getAlias n @alias)
+                                   (getAlias n @alias.originalTree)
                                    pu
                                    pr]
 
@@ -167,7 +105,7 @@ column names and types - see that function for how this works
 
 
         loc.eqfunIdens : {Either [TypeError] (String,[(String,Type)])}
-        loc.eqfunIdens = funIdens @lhs.cat (getAlias "" @alias) @fn.annotatedTree @fn.uType
+        loc.eqfunIdens = funIdens @lhs.cat (getAlias "" @alias.originalTree) @fn.annotatedTree @fn.uType
         lhs.libUpdates = [LBTref "fn"
                                          (fst @loc.qfunIdens)
                                          (snd @loc.qfunIdens)
@@ -188,10 +126,10 @@ join - most of the hard work is done in local bindings
         loc.libUpdates =
             case (@tbl.libUpdates, @tbl1.libUpdates) of
               ([u1], [u2]) -> [LBJoinTref "join" u1 u2 jids
-                                              (case @alias of
-                                                       NoAlias -> Nothing
-                                                       TableAlias t -> Just t
-                                                       FullAlias t _ -> Just t)]
+                                              (case @alias.originalTree of
+                                                       NoAlias _ -> Nothing
+                                                       TableAlias _ t -> Just t
+                                                       FullAlias _ t _ -> Just t)]
               _ -> []
             where
               jids = case (@nat, @onExpr.originalTree) of
@@ -246,21 +184,52 @@ funIdens cat alias fnVal ft = do
 getAlias :: String -> TableAlias -> String
 getAlias def alias =
   case alias of
-    NoAlias -> def
-    TableAlias t -> t
-    FullAlias t _ -> t
+    NoAlias _ -> def
+    TableAlias _ t -> t
+    FullAlias _ t _ -> t
 
 }
+
+{-
+-----------------------------------------------------------
+new environment creation code
+-}
+
+ATTR TableRef TableRefList [|| newLib2 : LocalBindings]
+
+SEM TableRefList
+    | Nil
+        lhs.newLib2 = createLocalBindings $ Just []
+    | Cons
+        lhs.newLib2 = @hd.newLib2 -- todo, combine properly
+
+SEM TableRef
+    | Tref
+        lhs.newLib2 =
+             createLocalBindings $ do
+             let n = getTName @tbl.annotatedTree
+             (pu,pr) <- @tbl.tbUType
+             -- factor in alias
+             let (n,cs) = case @alias.originalTree of
+                            (FullAlias _ n cs) -> (n,cs)
+                            _ -> (n, []) --todo:fix, shouldn't ever not have full alias but does
+             return [(n,zip cs $ map (Just . snd) pu)
+                    ,(n,map (second Just) pr)]
+    | SubTref JoinTref FunTref
+        lhs.newLib2 = emptyBindings
+
+
+-------------------------------------------------------------
 
 -- backtrees
 
 SEM TableRef
     | SubTref
-        loc.backTree = SubTref @ann @sel.annotatedTree @alias
+        loc.backTree = SubTref @ann @sel.annotatedTree @alias.annotatedTree
     | Tref
-        loc.backTree = Tref @ann @tbl.tbAnnotatedTree @alias
+        loc.backTree = Tref @ann @tbl.tbAnnotatedTree @alias.annotatedTree
     | FunTref
-        loc.backTree = FunTref @ann @fn.annotatedTree @alias
+        loc.backTree = FunTref @ann @fn.annotatedTree @alias.annotatedTree
     | JoinTref
         loc.backTree = JoinTref @ann
                                   @tbl.annotatedTree
@@ -268,5 +237,33 @@ SEM TableRef
                                   @joinType
                                   @tbl1.annotatedTree
                                   @onExpr.annotatedTree
-                                  @alias
+                                  @alias.annotatedTree
 
+
+ATTR TableAlias [expectedNumCols : {Maybe Int} ||]
+
+SEM TableRef
+    | Tref
+        alias.expectedNumCols =
+             do
+             let n = getTName @tbl.annotatedTree
+             (pu,_) <- @tbl.tbUType
+             return $ length pu
+    | SubTref JoinTref FunTref
+        alias.expectedNumCols = Nothing
+
+
+SEM TableAlias
+    | FullAlias TableAlias NoAlias
+        lhs.annotatedTree = addTypeErrors @loc.errs @loc.backTree
+    | FullAlias
+        loc.errs = case @lhs.expectedNumCols of
+                         Nothing -> []
+                         Just n -> if n == length @cols
+                                   then []
+                                   else [WrongNumberOfAliasCols n $ length @cols]
+        loc.backTree = FullAlias @ann @tb @cols
+    | TableAlias loc.backTree = TableAlias @ann @tb
+                 loc.errs = []
+    | NoAlias loc.backTree = NoAlias @ann
+              loc.errs = []

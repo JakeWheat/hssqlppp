@@ -40,16 +40,18 @@ in scope, and one for an unqualified star.
 >     ,FullId
 >     ,SimpleId
 >     ,IDLookup
->     ,StarExpand
+>     -- ,StarExpand
 >     ,LocalBindingsLookup(..)
 >     ,emptyBindings
 >     ,lbUpdate
->     ,lbExpandStar
+>     -- ,lbExpandStar
 >     ,lbLookupID
 >     ,lbLookupIDInType
 >     --,lbUpdateDot
 >     ,ppLocalBindings
 >     ,ppLbls
+>     ,createLocalBindings
+>     ,lookupLocalBinding
 >     ) where
 >
 > --import Control.Monad as M
@@ -68,13 +70,57 @@ in scope, and one for an unqualified star.
 > import Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
 >
 
+
+
+> data LocalBindings = LocalBindingsError
+>                    | LocalBindings [((String,String),Maybe Type)]
+
+> createLocalBindings :: (Maybe [(String,[(String,Maybe Type)])]) -> LocalBindings
+> createLocalBindings i =
+>   maybe LocalBindingsError mb i
+>   where
+>     mb b = LocalBindings
+>             $ flip concatMap b $ \(qn,cs) -> flip map cs $ \(c,t) -> ((qn,c), t)
+
+> lookupLocalBinding :: LocalBindings -> String -> String -> E (Maybe Type)
+> lookupLocalBinding LocalBindingsError _ _ = Right Nothing
+> lookupLocalBinding (LocalBindings lb) q i =
+>   case lookup (q,i) lb of
+>     Just t -> Right t
+>     Nothing -> if (q == "") || any (==q) (map (fst . fst) lb)
+>                then Left [UnrecognisedIdentifier i]
+>                else Left [UnrecognisedCorrelationName q]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---------------------------------------------
+
+
+
 The data type to represent a set of local bindings in scope. The list
 of updates used to create the local bindings is saved for debugging/
 information.
 
-> data LocalBindings = LocalBindings [LocalBindingsUpdate]
+> {-data LocalBindings = LocalBindings [LocalBindingsUpdate]
 >                                    [LocalBindingsLookup]
->                      deriving Show
+>                      deriving Show-}
 
 Each layer of the local bindings stack is
 a map from (correlation name, id name) to source,correlation name, id
@@ -91,11 +137,9 @@ correlation name.
 > type FullId = (Source,[String],Type) -- source,fully qualified name components,type
 > type SimpleId = (String,Type)
 > type IDLookup = ([String], E FullId)
-> type StarExpand = E [FullId] --the order of the [FullId] part is important
+> --type StarExpand = E [FullId] --the order of the [FullId] part is important
 >
-> data LocalBindingsLookup = LocalBindingsLookup
->                                [IDLookup]
->                                [(String,StarExpand)]
+> data LocalBindingsLookup = LocalBindingsLookup [IDLookup]
 >                            deriving (Eq,Show)
 
 This is the local bindings update that users of this module use.
@@ -116,17 +160,17 @@ This is the local bindings update that users of this module use.
 >                            deriving Show
 >
 > emptyBindings :: LocalBindings
-> emptyBindings = LocalBindings [] []
+> emptyBindings = LocalBindings [] -- undefined --LocalBindings [] []
 
 ================================================================================
 
 > ppLocalBindings :: LocalBindings -> String
-> ppLocalBindings (LocalBindings lbus lbls) =
->   "LocalBindings\n" ++ doList show lbus ++ doList ppLbls lbls
+> ppLocalBindings = error "ppLocalBindings" -- (LocalBindings lbus lbls) =
+>   -- "LocalBindings\n" ++ doList show lbus ++ doList ppLbls lbls-}
 >
 > ppLbls :: LocalBindingsLookup -> String
-> ppLbls (LocalBindingsLookup is ss) =
->       "LocalBindingsLookup\n" ++ doList show is ++ doList show ss
+> ppLbls = error "ppLbls" {- (LocalBindingsLookup is) =
+>        "LocalBindingsLookup\n" ++ doList show is -}
 >
 > doList :: (a -> String) -> [a] -> String
 > doList m l = "[\n" ++ intercalate "\n," (map m l) ++ "\n]\n"
@@ -134,19 +178,21 @@ This is the local bindings update that users of this module use.
 ================================================================================
 
 > lbUpdate :: Catalog -> LocalBindingsUpdate -> LocalBindings -> E LocalBindings
-> lbUpdate cat u1 (LocalBindings us s) = do
->   (ids,se) <- updateStuff cat u1
->   return $ LocalBindings (u1 : us) (LocalBindingsLookup ids se : s)
+> lbUpdate _ _ lb = return lb {- cat u1 (LocalBindings us s) = do
+>   ids <- updateStuff cat u1
+>   return $ LocalBindings (u1 : us) (LocalBindingsLookup ids : s)-}
 
 
 
-> updateStuff :: Catalog -> LocalBindingsUpdate -> E ([IDLookup],[(String,StarExpand)])
+> updateStuff :: Catalog -> LocalBindingsUpdate -> E [IDLookup]
+
+> updateStuff _ _ = error "updateStuff"
 
 LBIds doesn't support any star expansion, and doesn't support
 accessing the whole set of ids as a composite via cn
 
-> updateStuff _ (LBIds src cn ids) =
->     return (unQuals ++ quals, [])
+> {-updateStuff _ (LBIds src cn ids) =
+>     return (unQuals ++ quals)
 >     where
 >       unQuals = map (\(n,t) -> ([n], Right (src,maybe [n] (: [n]) cn, t))) ids
 >       quals = maybe [] (\cn' -> map (\(n,t) -> ([cn',n], Right (src,[cn',n], t))) ids) cn
@@ -158,8 +204,8 @@ id lookups. The star expansions are all the non system ids qualified and unquali
 > updateStuff _ (LBTref src al ids sids) =
 >     -- comp has to come after unquals because an unqualified reference which could refer
 >     -- to a column or the composite resolves as the column
->     return (unQuals ++ quals ++ [comp]
->            ,[("",Right pids),(al,Right pids)])
+>     return (unQuals ++ quals ++ [comp])
+>            -- ,[("",Right pids),(al,Right pids)])
 >     where
 >       allIds = ids ++ sids
 >       unQuals = map (\(n,t) -> ([n], Right (src,[al,n], t))) allIds
@@ -175,14 +221,14 @@ LBJoinTref {source :: Source
                   -- right [] represents no join ids
             ,jalias :: Maybe String}
 
-> updateStuff cat (LBJoinTref _src u1 u2 jnames' _al) = do
+> {-updateStuff cat (LBJoinTref _src u1 u2 jnames' _al) = do
 
 How to get the lbs for a join:
 
 First get the info for the two sub trefs:
 
->   (ids1,se1) <- updateStuff cat u1
->   (ids2,se2) <- updateStuff cat u2
+>   ids1 <- updateStuff cat u1
+>   ids2 <- updateStuff cat u2
 
 split these apart so we have the unqualified lookups and star expands
 separately
@@ -288,22 +334,22 @@ or star expands.
 >               -> ([(String, E FullId)],[([String], E FullId)])
 >     splitLkps = partitionEithers . (map $ \x -> case x of
 >                                                       ([n],t) -> Left (n,t)
->                                                       z -> Right z)
+>                                                       z -> Right z)-} -}
 
 ================================================================================
 
-> lbExpandStar :: LocalBindings -> String -> E [FullId]
+> {-lbExpandStar :: LocalBindings -> String -> E [FullId]
 > lbExpandStar (LocalBindings _ (LocalBindingsLookup _ x : _)) c =
 >   maybe (case c of
 >            "" -> Left [BadStarExpand]
 >            y -> Left [UnrecognisedCorrelationName y])
 >            id $ lookup c x
-> lbExpandStar _ _ = Left [BadStarExpand]
+> lbExpandStar _ _ = Left [BadStarExpand]-}
 
 ================================================================================
 
 > lbLookupID :: LocalBindings -> [String] -> E FullId
-> lbLookupID (LocalBindings _ lbl) i =
+> lbLookupID  = error "lbLookupID" {-(LocalBindings _ lbl) i =
 >     let ls :: [[([String],E FullId)]]
 >         ls = map getLbIdl lbl
 >     in lkp1 ls $ map mtl i
@@ -313,7 +359,7 @@ or star expands.
 >       lkp1 [] _ = if corMatch
 >                   then Left [UnrecognisedIdentifier (intercalate "." i)]
 >                   else Left [UnrecognisedCorrelationName (head i)]
->       getLbIdl (LocalBindingsLookup x _) = x
+>       getLbIdl (LocalBindingsLookup x ) = x
 >       corMatch = case i of
 >                    [q,_] -> q `elem` cors
 >                    _ -> True
@@ -322,11 +368,11 @@ or star expands.
 >              in catMaybes $ concatMap (map getQ) ls
 >       getQ :: ([String], E FullId) -> Maybe String
 >       getQ ([q,_], _) = Just q
->       getQ _ = Nothing
+>       getQ _ = Nothing -}
 
 
 > lbLookupIDInType :: Catalog -> LocalBindings -> Type -> String -> E FullId
-> lbLookupIDInType cat _ ty i = do
+> lbLookupIDInType = error "lbLookupIDInType" {-cat _ ty i = do
 >   t <- lmt $ getNamedCompositeTypes ty
 >   maybe (Left [UnrecognisedIdentifier i]) (fmap Right ("",[i],)) $ lookup i t
 >  where
@@ -335,7 +381,7 @@ or star expands.
 >         Just $ either (const []) id $ catCompositePublicAttrs cat [] n
 >    getNamedCompositeTypes (CompositeType t) = Just t
 >    getNamedCompositeTypes (PgRecord (Just t)) = getNamedCompositeTypes t
->    getNamedCompositeTypes _ = Nothing
+>    getNamedCompositeTypes _ = Nothing -}
 
 ================================================================================
 
@@ -375,6 +421,7 @@ or star expands.
 
 
 
+------------------------------------------------------------
 
 
 

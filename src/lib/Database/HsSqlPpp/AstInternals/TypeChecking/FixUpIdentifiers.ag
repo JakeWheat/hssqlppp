@@ -361,50 +361,32 @@ SEM TableRef
             ids = case catCompositePublicAttrs @lhs.cat relationComposites tn of
                     Right attrs -> [(tn, map fst attrs)]
                     Left _ -> [(tn,[])]
-            (trs,al) = doAlias @alias ids
+            (trs,al) = doAlias @alias.annotatedTree  ids
         in (trs,Tref @ann @tbl.fixedUpIdentifiersTree al)
 
     | SubTref (lhs.trefIDs,lhs.fixedUpIdentifiersTree) =
         let IDEnv x = @sel.cidenv
-            (trs,al) = doAlias @alias x
+            (trs,al) = doAlias @alias.annotatedTree x
         in (trs, SubTref @ann @sel.fixedUpIdentifiersTree al)
 
     | FunTref (lhs.trefIDs,lhs.fixedUpIdentifiersTree) =
         let (FunCall _ f _) = @fn.fixedUpIdentifiersTree
-            (trs,al) = doAlias @alias [(f,[f])] -- needs fixing for table returning functions
+            (trs,al) = doAlias @alias.annotatedTree [(f,[f])] -- needs fixing for table returning functions
         in (trs,FunTref @ann @fn.fixedUpIdentifiersTree al)
 
     | JoinTref (lhs.trefIDs,lhs.fixedUpIdentifiersTree) =
         -- temp - needs fixing for natural joins
-        let (trs,al) = doAlias @alias $ @tbl.trefIDs ++ @tbl1.trefIDs
+        let (trs,al) = doAlias @alias.annotatedTree $ @tbl.trefIDs ++ @tbl1.trefIDs
         in (trs, JoinTref @ann @tbl.fixedUpIdentifiersTree
                           @nat @joinType @tbl1.fixedUpIdentifiersTree
                           @onExpr.fixedUpIdentifiersTree al)
-{-
-| Tref ann:Annotation
-                     tbl:SQIdentifier
-                     alias : TableAlias
-              | JoinTref ann:Annotation
-                         tbl : TableRef
-                         nat : Natural
-                         joinType : JoinType
-                         tbl1 : TableRef
-                         onExpr : OnExpr
-                         alias : TableAlias
-              | SubTref ann:Annotation
-                        sel : QueryExpr
-                        alias : TableAlias
-              | FunTref ann:Annotation
-                        fn:ScalarExpr
-                        alias : TableAlias
--}
 {
 doAlias :: TableAlias -> [(String,[String])] -> ([(String,[String])],TableAlias)
-doAlias NoAlias [] = ([],NoAlias)
-doAlias NoAlias cs@((t,_):ts) = if all (==t) $ map fst ts
-                                then (cs,FullAlias t $ concatMap snd cs)
-                                else (cs,NoAlias)
-doAlias (TableAlias a) cs = let cs' = concatMap snd cs
-                            in ([(a, cs')], FullAlias a cs')
-doAlias f@(FullAlias a cs) _ = ([(a,cs)], f)
+doAlias (NoAlias a) [] = ([],NoAlias a)
+doAlias (NoAlias a) cs@((t,_):ts) = if all (==t) $ map fst ts
+                                then (cs,FullAlias a t $ concatMap snd cs)
+                                else (cs,NoAlias a)
+doAlias (TableAlias a t) cs = let cs' = concatMap snd cs
+                              in ([(t, cs')], FullAlias a t cs')
+doAlias f@(FullAlias _ t cs) _ = ([(t,cs)], f)
 }

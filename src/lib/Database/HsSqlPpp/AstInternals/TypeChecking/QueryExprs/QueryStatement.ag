@@ -95,9 +95,10 @@ For now, just send the input columns in as identifiers
 
 SEM QueryExpr
     | Select
-         loc.newLib = case foldM (flip $ lbUpdate @lhs.cat) @lhs.lib @selTref.libUpdates of
+         {-loc.newLib = case foldM (flip $ lbUpdate @lhs.cat) @lhs.lib @selTref.libUpdates of
                         Left x -> error $ "selectexpression-select-loc.newlib " ++ show x -- @lhs.cat
-                        Right e -> e
+                        Right e -> e-}
+         loc.newLib = @selTref.newLib2
          selSelectList.lib = @loc.newLib
          selWhere.lib = @loc.newLib
          selGroupBy.lib = @loc.newLib

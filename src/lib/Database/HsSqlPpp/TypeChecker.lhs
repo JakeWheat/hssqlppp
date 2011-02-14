@@ -28,7 +28,7 @@ This is the public module for the type checking functionality.
 >      -- * typechecking/ annotation functions
 >      typeCheckStatements
 >     ,typeCheckParameterizedStatement
->     ,typeCheckQueryExpression
+>     ,typeCheckQueryExpr
 >     ,typeCheckScalarExpr
 >     ,fixUpIdentifiers
 >     ,fixUpIdentifiersQE

@@ -45,11 +45,6 @@ convertStatements = statementList
 convertScalarExpr :: ScalarExpr -> A.ScalarExpr
 convertScalarExpr = scalarExpr
  
-data TableAlias = NoAlias
-                | TableAlias String
-                | FullAlias String [String]
-                deriving (Show, Eq, Typeable, Data)
- 
 data JoinType = Inner
               | LeftOuter
               | RightOuter
@@ -328,6 +323,11 @@ data Statement = AlterSequence (Annotation) (String) (SQIdentifier)
                | AntiStatement String
                deriving (Data, Eq, Show, Typeable)
  
+data TableAlias = FullAlias (Annotation) (String) ([String])
+                | NoAlias (Annotation)
+                | TableAlias (Annotation) (String)
+                deriving (Data, Eq, Show, Typeable)
+ 
 data TableRef = FunTref (Annotation) (ScalarExpr) (TableAlias)
               | JoinTref (Annotation) (TableRef) (Natural) (JoinType) (TableRef)
                          (OnExpr) (TableAlias)
@@ -414,13 +414,6 @@ type TypeNameList = [(TypeName)]
 type VarDefList = [(VarDef)]
  
 type WithQueryList = [(WithQuery)]
- 
-tableAlias :: TableAlias -> A.TableAlias
-tableAlias x
-  = case x of
-        NoAlias -> A.NoAlias
-        TableAlias a1 -> A.TableAlias a1
-        FullAlias a1 a2 -> A.FullAlias a1 a2
  
 joinType :: JoinType -> A.JoinType
 joinType x
@@ -833,6 +826,13 @@ statement x
                                         (scalarExpr a3)
                                         (statementList a4)
         AntiStatement _ -> error "can't convert anti statement"
+ 
+tableAlias :: TableAlias -> A.TableAlias
+tableAlias x
+  = case x of
+        FullAlias a1 a2 a3 -> A.FullAlias a1 a2 a3
+        NoAlias a1 -> A.NoAlias a1
+        TableAlias a1 a2 -> A.TableAlias a1 a2
  
 tableRef :: TableRef -> A.TableRef
 tableRef x

@@ -508,9 +508,9 @@ Statement components
 >             ++ show x
 >
 > convTrefAlias :: TableAlias -> Doc
-> convTrefAlias NoAlias = empty
-> convTrefAlias (TableAlias t) = text t
-> convTrefAlias (FullAlias t s) = text t <> parens (hcatCsvMap text s)
+> convTrefAlias (NoAlias _) = empty
+> convTrefAlias (TableAlias _ t) = text t
+> convTrefAlias (FullAlias _ t s) = text t <> parens (hcatCsvMap text s)
 
 > convDir :: Direction -> Doc
 > convDir d = text $ case d of
