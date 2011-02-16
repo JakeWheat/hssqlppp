@@ -4,8 +4,8 @@
 > import Test.Framework
 >
 > import Database.HsSqlPpp.Tests.ParserTests
+> import Database.HsSqlPpp.Tests.FixUpIdentifiersTests
 > --import Database.HsSqlPpp.Tests.TypeCheckTests
-> --import Database.HsSqlPpp.Tests.FixUpIdentifiersTests
 > --import Database.HsSqlPpp.Tests.TpchTests
 > {-import Database.HsSqlPpp.Extensions.ExtensionTests
 > import Database.HsSqlPpp.Tests.ParameterizedStatementTests
@@ -19,9 +19,9 @@
 > allTests :: [Test]
 > allTests =
 >     parserTests :
+>     fixUpIdentifiersTests :
 >     tableRefTests : [] {-
 >     --typeCheckTests :
->     --fixUpIdentifiersTests :
 >     --tpchTests : []
 >     extensionTests :
 >     quasiQuoteTests :

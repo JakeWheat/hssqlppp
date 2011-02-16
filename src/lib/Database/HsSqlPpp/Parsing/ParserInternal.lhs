@@ -312,14 +312,14 @@ this recursion needs refactoring cos it's a mess
 >   buildExpressionParser combTable selFactor
 >   where
 >         selFactor = try (parens selectScalarExpr) <|> selQuerySpec <|> values
->         with = WithSelect <$> (pos <* keyword "with")
->                           <*> commaSep1 withQuery
->                           <*> selectScalarExpr
+>         with = WithQueryExpr <$> (pos <* keyword "with")
+>                              <*> commaSep1 withQuery
+>                              <*> selectScalarExpr
 >         withQuery = WithQuery <$> pos
 >                               <*> idString
 >                               <*> tryOptionMaybe (parens $ commaSep idString)
 >                               <*> (keyword "as" *> parens selectScalarExpr)
->         combTable = [map (\(c,p) -> Infix (CombineSelect
+>         combTable = [map (\(c,p) -> Infix (CombineQueryExpr
 >                                            <$> pos
 >                                            <*> (c <$ p)) AssocLeft)
 >                         [(Except, keyword "except")
@@ -1387,7 +1387,7 @@ then a list of expressions or a subselect
 >   <$> pos
 >   <*> return e
 >   <*> option True (False <$ keyword "not")
->   <*> (keyword "in" *> parens ((InSelect <$> pos <*> selectScalarExpr)
+>   <*> (keyword "in" *> parens ((InQueryExpr <$> pos <*> selectScalarExpr)
 >                                <|>
 >                                (InList <$> pos <*> commaSep1 expr)))
 

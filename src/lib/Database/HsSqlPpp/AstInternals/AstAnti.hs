@@ -197,7 +197,7 @@ data FnBody = PlpgsqlFnBody (Annotation) (Statement)
             deriving (Data, Eq, Show, Typeable)
  
 data InList = InList (Annotation) (ScalarExprList)
-            | InSelect (Annotation) (QueryExpr)
+            | InQueryExpr (Annotation) (QueryExpr)
             deriving (Data, Eq, Show, Typeable)
  
 data JoinExpr = JoinOn (Annotation) (ScalarExpr)
@@ -208,13 +208,13 @@ data ParamDef = ParamDef (Annotation) (String) (TypeName)
               | ParamDefTp (Annotation) (TypeName)
               deriving (Data, Eq, Show, Typeable)
  
-data QueryExpr = CombineSelect (Annotation) (CombineType)
-                               (QueryExpr) (QueryExpr)
+data QueryExpr = CombineQueryExpr (Annotation) (CombineType)
+                                  (QueryExpr) (QueryExpr)
                | Select (Annotation) (Distinct) (SelectList) (TableRefList)
                         (MaybeBoolExpr) (ScalarExprList) (MaybeBoolExpr)
                         (ScalarExprDirectionPairList) (MaybeScalarExpr) (MaybeScalarExpr)
                | Values (Annotation) (ScalarExprListList)
-               | WithSelect (Annotation) (WithQueryList) (QueryExpr)
+               | WithQueryExpr (Annotation) (WithQueryList) (QueryExpr)
                deriving (Data, Eq, Show, Typeable)
  
 data RowConstraint = NotNullConstraint (Annotation) (String)
@@ -629,7 +629,7 @@ inList :: InList -> A.InList
 inList x
   = case x of
         InList a1 a2 -> A.InList a1 (scalarExprList a2)
-        InSelect a1 a2 -> A.InSelect a1 (queryExpr a2)
+        InQueryExpr a1 a2 -> A.InQueryExpr a1 (queryExpr a2)
  
 joinExpr :: JoinExpr -> A.JoinExpr
 joinExpr x
@@ -646,9 +646,10 @@ paramDef x
 queryExpr :: QueryExpr -> A.QueryExpr
 queryExpr x
   = case x of
-        CombineSelect a1 a2 a3 a4 -> A.CombineSelect a1 (combineType a2)
-                                       (queryExpr a3)
-                                       (queryExpr a4)
+        CombineQueryExpr a1 a2 a3 a4 -> A.CombineQueryExpr a1
+                                          (combineType a2)
+                                          (queryExpr a3)
+                                          (queryExpr a4)
         Select a1 a2 a3 a4 a5 a6 a7 a8 a9 a10 -> A.Select a1 (distinct a2)
                                                    (selectList a3)
                                                    (tableRefList a4)
@@ -659,8 +660,8 @@ queryExpr x
                                                    (maybeScalarExpr a9)
                                                    (maybeScalarExpr a10)
         Values a1 a2 -> A.Values a1 (scalarExprListList a2)
-        WithSelect a1 a2 a3 -> A.WithSelect a1 (withQueryList a2)
-                                 (queryExpr a3)
+        WithQueryExpr a1 a2 a3 -> A.WithQueryExpr a1 (withQueryList a2)
+                                    (queryExpr a3)
  
 rowConstraint :: RowConstraint -> A.RowConstraint
 rowConstraint x

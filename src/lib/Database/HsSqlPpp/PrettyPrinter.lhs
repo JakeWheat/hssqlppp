@@ -22,6 +22,7 @@
 > import Text.PrettyPrint
 > import Data.Char
 > import Data.List
+> import Data.Maybe
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
@@ -438,24 +439,30 @@ Statement components
 > convQueryExpr :: Bool -> Bool -> QueryExpr -> Doc
 > convQueryExpr writeSelect _ (Select _ dis l tb wh grp hav
 >                                 order lim off) =
->   text (if writeSelect then "select" else "")
->   <+> (case dis of
->          Dupes -> empty
->          Distinct -> text "distinct")
->   <+> convSelList l
->   $+$ nest 2 (
->               (if null tb
->                  then empty
->                  else text "from" <+> hcatCsvMap convTref tb)
->               $+$ convWhere wh)
->   <+> ifNotEmpty (\g -> text "group by" <+> hcatCsvMap convExp g) grp
->   <+> maybeConv (\h -> text "having" <+> convExp h) hav
->   <+> ifNotEmpty (\o -> text "order by" <+> hcatCsvMap (\(oe,od) -> convExp oe
->                   <+> convDir od) o) order
->   <+> maybeConv (\lm -> text "limit" <+> convExp lm) lim
->   <+> maybeConv (\offs -> text "offset" <+> convExp offs) off
+>   (text (if writeSelect then "select" else "")
+>          <+> (case dis of
+>                  Dupes -> empty
+>                  Distinct -> text "distinct"))
+>   $+$ nest 2 (vcat $ catMaybes
+>   [Just $ nest 2 $ convSelList l
+>   ,Just $ (if null tb
+>            then empty
+>            else text "from" $+$ nest 2 (vcatCsvMap convTref tb))
+>   ,Just $ convWhere wh
+>   ,case grp of
+>      [] -> Nothing
+>      g -> Just $ text "group by" $+$ nest 2 (hcatCsvMap convExp g)
+>   ,flip fmap hav $ \h -> text "having" $+$ nest 2 (convExp h)
+>   ,case order of
+>      [] -> Nothing
+>      o -> Just $ text "order by"
+>                   $+$ nest 2 (hcatCsvMap (\(oe,od) -> convExp oe
+>                                               <+> convDir od) o)
+>   ,flip fmap lim $ \lm -> text "limit" <+> convExp lm
+>   ,flip fmap off $ \offs -> text "offset" <+> convExp offs
+>   ])
 >
-> convQueryExpr writeSelect topLev (CombineSelect _ tp s1 s2) =
+> convQueryExpr writeSelect topLev (CombineQueryExpr _ tp s1 s2) =
 >   let p = convQueryExpr writeSelect False s1
 >           $+$ (case tp of
 >                        Except -> text "except"
@@ -466,7 +473,7 @@ Statement components
 >   in if topLev then p else parens p
 > convQueryExpr _ _ (Values _ expss) =
 >   text "values" $$ nest 2 (vcat $ csv $ map (parens . csvExp) expss)
-> convQueryExpr _ _ (WithSelect _ wqs ex) =
+> convQueryExpr _ _ (WithQueryExpr _ wqs ex) =
 >   text "with" $$ nest 2 (vcat $ csv $ map pwq wqs)
 >        $+$ convQueryExpr True False ex
 >   where
@@ -518,12 +525,12 @@ Statement components
 >                           Desc -> "desc"
 >
 > convWhere :: Maybe ScalarExpr -> Doc
-> convWhere (Just ex) = text "where" <+> convExp ex
+> convWhere (Just ex) = text "where" $+$ nest 2 (convExp ex)
 > convWhere Nothing = empty
 >
 > convSelList :: SelectList -> Doc
 > convSelList (SelectList _ ex into) =
->   hcatCsvMap convSelItem ex
+>   vcatCsvMap convSelItem ex
 >   <+> ifNotEmpty (\i -> text "into" <+> hcatCsvMap convExp i) into
 >   where
 >     convSelItem (SelectItem _ ex1 nm) = convExpSl ex1 <+> text "as" <+> text nm
@@ -636,9 +643,12 @@ Statement components
 >      _ | isOperatorName n ->
 >         case forceRight (getOperatorType defaultTemplate1Catalog n) of
 >                           BinaryOp ->
->                               parens (convExp (head es)
->                                       <+> text (filterKeyword n)
->                                       <+> convExp (es !! 1))
+>                               let e1d = convExp (head es)
+>                                   opd = text $ filterKeyword n
+>                                   e2d = convExp (es !! 1)
+>                               in parens (if n `elem` ["!and", "!or"]
+>                                          then vcat [e1d, opd <+> e2d]
+>                                          else e1d <+> opd <+> e2d)
 >                           PrefixOp -> parens (text (if n == "u-"
 >                                                        then "-"
 >                                                        else filterKeyword n)
@@ -662,7 +672,7 @@ Statement components
 >   convExp att <+> (if not t then text "not" else empty) <+> text "in"
 >   <+> parens (case lst of
 >                        InList _ expr -> csvExp expr
->                        InSelect _ sel -> convQueryExpr True True sel)
+>                        InQueryExpr _ sel -> convQueryExpr True True sel)
 > convExp (LiftOperator _ op flav args) =
 >   convExp (head args) <+> text op
 >   <+> text (case flav of
@@ -812,6 +822,10 @@ Statement components
 >
 > hcatCsvMap :: (a -> Doc) -> [a] -> Doc
 > hcatCsvMap ex = hcatCsv . map ex
+
+> vcatCsvMap :: (a -> Doc) -> [a] -> Doc
+> vcatCsvMap ex = vcat . csv . map ex
+
 >
 > bool :: Bool -> Doc
 > bool b = if b then text "true" else text "false"

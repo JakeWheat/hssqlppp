@@ -227,9 +227,9 @@ ATTR QueryExpr --  WithQuery WithQueryList
 
 SEM QueryExpr
     | Select lhs.cidenv = @selSelectList.cidenv
-    | CombineSelect lhs.cidenv = @sel1.cidenv
+    | CombineQueryExpr lhs.cidenv = @sel1.cidenv
     | Values lhs.cidenv = unimplementedIDEnv
-    | WithSelect lhs.cidenv = @ex.cidenv
+    | WithQueryExpr lhs.cidenv = @ex.cidenv
 
 {-SEM QueryExpr
     | WithSelect ex.idenv = showIt "****withsidenv****" @withs.cidenv

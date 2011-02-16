@@ -354,15 +354,15 @@ DATA QueryExpr
              selOrderBy : ScalarExprDirectionPairList
              selLimit : MaybeScalarExpr
              selOffset : MaybeScalarExpr
-    | CombineSelect ann:Annotation
-                    ctype : CombineType
-                    sel1 : QueryExpr
-                    sel2 : QueryExpr
+    | CombineQueryExpr ann:Annotation
+                       ctype : CombineType
+                       sel1 : QueryExpr
+                       sel2 : QueryExpr
     | Values ann:Annotation
              vll:ScalarExprListList
-    | WithSelect ann : Annotation
-                 withs : WithQueryList
-                 ex : QueryExpr
+    | WithQueryExpr ann : Annotation
+                    withs : WithQueryList
+                    ex : QueryExpr
 
 TYPE WithQueryList = [WithQuery]
 DATA WithQuery | WithQuery ann : Annotation
@@ -651,7 +651,7 @@ data ExtractField = ExtractCentury
 
 --todo: use liftoperator to implement inlist?
 DATA InList | InList ann:Annotation exprs : ScalarExprList
-            | InSelect ann:Annotation sel : QueryExpr
+            | InQueryExpr ann:Annotation sel : QueryExpr
 
 {
 data FrameClause = FrameUnboundedPreceding

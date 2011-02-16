@@ -24,7 +24,7 @@ SEM Statement
         loc.catUpdates = []
 
 SEM QueryExpr
-    | Values Select CombineSelect WithSelect
+    | Values Select CombineQueryExpr WithQueryExpr
         loc.tpe : Et
         lhs.annotatedTree = setTypeAddErrors @loc.tpe @loc.backTree
 
@@ -112,11 +112,11 @@ SEM Statement
         loc.libUpdates = @ex.libUpdates
 
 SEM QueryExpr
-    | Values CombineSelect
+    | Values CombineQueryExpr
         lhs.libUpdates = []
     | Select
         lhs.libUpdates = @selSelectList.libUpdates
-    | WithSelect
+    | WithQueryExpr
         lhs.libUpdates = @ex.libUpdates
 
 
@@ -139,24 +139,24 @@ SEM QueryExpr
                               @selOrderBy.annotatedTree
                               @selLimit.annotatedTree
                               @selOffset.annotatedTree
-    | CombineSelect
+    | CombineQueryExpr
         loc.tpe =
           do
           sel1t <- lmt ((SetOfType . CompositeType) <$> @sel1.uType)
           sel2t <- lmt ((SetOfType . CompositeType) <$> @sel2.uType)
           typeCheckCombineSelect @lhs.cat sel1t sel2t
 
-        loc.backTree = CombineSelect @ann @ctype
+        loc.backTree = CombineQueryExpr @ann @ctype
                                      @sel1.annotatedTree
                                      @sel2.annotatedTree
-    | WithSelect
+    | WithQueryExpr
         loc.tpe = lmt ((SetOfType . CompositeType) <$> @ex.uType)
-        loc.backTree = WithSelect @ann @withs.annotatedTree @ex.annotatedTree
+        loc.backTree = WithQueryExpr @ann @withs.annotatedTree @ex.annotatedTree
         ex.cat = @withs.producedCat
         withs.catUpdates = []
 
 SEM QueryExpr
-    | Values CombineSelect WithSelect Select
+    | Values CombineQueryExpr WithQueryExpr Select
         lhs.uType = etmt (@loc.tpe >>= unwrapSetOfComposite)
 
 {

@@ -330,7 +330,7 @@ ATTR InList [||listType : {Either [TypeError] Type}]
 SEM InList
     | InList
         lhs.listType = mapM lmt @exprs.uType >>= resolveResultSetType @lhs.cat
-    | InSelect
+    | InQueryExpr
         lhs.listType =
             do
             st <- lmt (map snd <$> @sel.uType)

@@ -2343,7 +2343,7 @@ sem_FnBody_SqlFnBody ann_ sts_  =
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
             local originalTree : _
-      alternative InSelect:
+      alternative InQueryExpr:
          child ann            : {Annotation}
          child sel            : QueryExpr 
          visit 0:
@@ -2352,15 +2352,15 @@ sem_FnBody_SqlFnBody ann_ sts_  =
             local originalTree : _
 -}
 data InList  = InList (Annotation) (ScalarExprList) 
-             | InSelect (Annotation) (QueryExpr) 
+             | InQueryExpr (Annotation) (QueryExpr) 
              deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_InList :: InList  ->
               T_InList 
 sem_InList (InList _ann _exprs )  =
     (sem_InList_InList _ann (sem_ScalarExprList _exprs ) )
-sem_InList (InSelect _ann _sel )  =
-    (sem_InList_InSelect _ann (sem_QueryExpr _sel ) )
+sem_InList (InQueryExpr _ann _sel )  =
+    (sem_InList_InQueryExpr _ann (sem_QueryExpr _sel ) )
 -- semantic domain
 type T_InList  = Catalog ->
                  IDEnv ->
@@ -2452,10 +2452,10 @@ sem_InList_InList ann_ exprs_  =
               ( _exprsIannotatedTree,_exprsIfixedUpIdentifiersTree,_exprsIoriginalTree,_exprsIuType) =
                   (exprs_ _exprsOcat _exprsOexpectedTypes _exprsOidenv _exprsOlib )
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOlistType,_lhsOoriginalTree)))
-sem_InList_InSelect :: Annotation ->
-                       T_QueryExpr  ->
-                       T_InList 
-sem_InList_InSelect ann_ sel_  =
+sem_InList_InQueryExpr :: Annotation ->
+                          T_QueryExpr  ->
+                          T_InList 
+sem_InList_InQueryExpr ann_ sel_  =
     (\ _lhsIcat
        _lhsIidenv
        _lhsIlib ->
@@ -2484,7 +2484,7 @@ sem_InList_InSelect ann_ sel_  =
                             1 -> Right $ head st
                             _ -> Right $ AnonymousRecordType st
                   {-# LINE 2487 "AstInternal.hs" #-}
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 175, column 16)
+              -- "./TypeChecking/ParameterizedStatements.ag"(line 175, column 19)
               _selOexpectedTypes =
                   {-# LINE 175 "./TypeChecking/ParameterizedStatements.ag" #-}
                   []
@@ -2492,17 +2492,17 @@ sem_InList_InSelect ann_ sel_  =
               -- self rule
               _annotatedTree =
                   {-# LINE 84 "./TypeChecking/TypeChecking.ag" #-}
-                  InSelect ann_ _selIannotatedTree
+                  InQueryExpr ann_ _selIannotatedTree
                   {-# LINE 2497 "AstInternal.hs" #-}
               -- self rule
               _fixedUpIdentifiersTree =
                   {-# LINE 312 "./TypeChecking/FixUpIdentifiers.ag" #-}
-                  InSelect ann_ _selIfixedUpIdentifiersTree
+                  InQueryExpr ann_ _selIfixedUpIdentifiersTree
                   {-# LINE 2502 "AstInternal.hs" #-}
               -- self rule
               _originalTree =
                   {-# LINE 90 "./TypeChecking/TypeChecking.ag" #-}
-                  InSelect ann_ _selIoriginalTree
+                  InQueryExpr ann_ _selIoriginalTree
                   {-# LINE 2507 "AstInternal.hs" #-}
               -- self rule
               _lhsOannotatedTree =
@@ -3770,7 +3770,7 @@ sem_ParamDefList_Nil  =
          originalTree         : SELF 
          uType                : Maybe [(String,Type)]
    alternatives:
-      alternative CombineSelect:
+      alternative CombineQueryExpr:
          child ann            : {Annotation}
          child ctype          : {CombineType}
          child sel1           : QueryExpr 
@@ -3810,7 +3810,7 @@ sem_ParamDefList_Nil  =
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
             local originalTree : _
-      alternative WithSelect:
+      alternative WithQueryExpr:
          child ann            : {Annotation}
          child withs          : WithQueryList 
          child ex             : QueryExpr 
@@ -3821,22 +3821,22 @@ sem_ParamDefList_Nil  =
             local fixedUpIdentifiersTree : _
             local originalTree : _
 -}
-data QueryExpr  = CombineSelect (Annotation) (CombineType) (QueryExpr) (QueryExpr) 
+data QueryExpr  = CombineQueryExpr (Annotation) (CombineType) (QueryExpr) (QueryExpr) 
                 | Select (Annotation) (Distinct) (SelectList) (TableRefList) (MaybeBoolExpr) (ScalarExprList) (MaybeBoolExpr) (ScalarExprDirectionPairList) (MaybeScalarExpr) (MaybeScalarExpr) 
                 | Values (Annotation) (ScalarExprListList) 
-                | WithSelect (Annotation) (WithQueryList) (QueryExpr) 
+                | WithQueryExpr (Annotation) (WithQueryList) (QueryExpr) 
                 deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_QueryExpr :: QueryExpr  ->
                  T_QueryExpr 
-sem_QueryExpr (CombineSelect _ann _ctype _sel1 _sel2 )  =
-    (sem_QueryExpr_CombineSelect _ann _ctype (sem_QueryExpr _sel1 ) (sem_QueryExpr _sel2 ) )
+sem_QueryExpr (CombineQueryExpr _ann _ctype _sel1 _sel2 )  =
+    (sem_QueryExpr_CombineQueryExpr _ann _ctype (sem_QueryExpr _sel1 ) (sem_QueryExpr _sel2 ) )
 sem_QueryExpr (Select _ann _selDistinct _selSelectList _selTref _selWhere _selGroupBy _selHaving _selOrderBy _selLimit _selOffset )  =
     (sem_QueryExpr_Select _ann _selDistinct (sem_SelectList _selSelectList ) (sem_TableRefList _selTref ) (sem_MaybeBoolExpr _selWhere ) (sem_ScalarExprList _selGroupBy ) (sem_MaybeBoolExpr _selHaving ) (sem_ScalarExprDirectionPairList _selOrderBy ) (sem_MaybeScalarExpr _selLimit ) (sem_MaybeScalarExpr _selOffset ) )
 sem_QueryExpr (Values _ann _vll )  =
     (sem_QueryExpr_Values _ann (sem_ScalarExprListList _vll ) )
-sem_QueryExpr (WithSelect _ann _withs _ex )  =
-    (sem_QueryExpr_WithSelect _ann (sem_WithQueryList _withs ) (sem_QueryExpr _ex ) )
+sem_QueryExpr (WithQueryExpr _ann _withs _ex )  =
+    (sem_QueryExpr_WithQueryExpr _ann (sem_WithQueryList _withs ) (sem_QueryExpr _ex ) )
 -- semantic domain
 type T_QueryExpr  = Catalog ->
                     ([Maybe Type]) ->
@@ -3852,12 +3852,12 @@ wrap_QueryExpr sem (Inh_QueryExpr _lhsIcat _lhsIexpectedTypes _lhsIidenv _lhsIli
     (let ( _lhsOannotatedTree,_lhsOcidenv,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree,_lhsOuType) =
              (sem _lhsIcat _lhsIexpectedTypes _lhsIidenv _lhsIlib )
      in  (Syn_QueryExpr _lhsOannotatedTree _lhsOcidenv _lhsOfixedUpIdentifiersTree _lhsOlibUpdates _lhsOoriginalTree _lhsOuType ))
-sem_QueryExpr_CombineSelect :: Annotation ->
-                               CombineType ->
-                               T_QueryExpr  ->
-                               T_QueryExpr  ->
-                               T_QueryExpr 
-sem_QueryExpr_CombineSelect ann_ ctype_ sel1_ sel2_  =
+sem_QueryExpr_CombineQueryExpr :: Annotation ->
+                                  CombineType ->
+                                  T_QueryExpr  ->
+                                  T_QueryExpr  ->
+                                  T_QueryExpr 
+sem_QueryExpr_CombineQueryExpr ann_ ctype_ sel1_ sel2_  =
     (\ _lhsIcat
        _lhsIexpectedTypes
        _lhsIidenv
@@ -3889,7 +3889,7 @@ sem_QueryExpr_CombineSelect ann_ ctype_ sel1_ sel2_  =
               _sel2IlibUpdates :: ([LocalBindingsUpdate])
               _sel2IoriginalTree :: QueryExpr
               _sel2IuType :: (Maybe [(String,Type)])
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 230, column 21)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 230, column 24)
               _lhsOcidenv =
                   {-# LINE 230 "./TypeChecking/FixUpIdentifiers.ag" #-}
                   _sel1Icidenv
@@ -3915,7 +3915,7 @@ sem_QueryExpr_CombineSelect ann_ ctype_ sel1_ sel2_  =
               -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 149, column 9)
               _backTree =
                   {-# LINE 149 "./TypeChecking/QueryExprs/QueryStatement.ag" #-}
-                  CombineSelect ann_ ctype_
+                  CombineQueryExpr ann_ ctype_
                                 _sel1IannotatedTree
                                 _sel2IannotatedTree
                   {-# LINE 3922 "AstInternal.hs" #-}
@@ -3927,17 +3927,17 @@ sem_QueryExpr_CombineSelect ann_ ctype_ sel1_ sel2_  =
               -- self rule
               _annotatedTree =
                   {-# LINE 84 "./TypeChecking/TypeChecking.ag" #-}
-                  CombineSelect ann_ ctype_ _sel1IannotatedTree _sel2IannotatedTree
+                  CombineQueryExpr ann_ ctype_ _sel1IannotatedTree _sel2IannotatedTree
                   {-# LINE 3932 "AstInternal.hs" #-}
               -- self rule
               _fixedUpIdentifiersTree =
                   {-# LINE 312 "./TypeChecking/FixUpIdentifiers.ag" #-}
-                  CombineSelect ann_ ctype_ _sel1IfixedUpIdentifiersTree _sel2IfixedUpIdentifiersTree
+                  CombineQueryExpr ann_ ctype_ _sel1IfixedUpIdentifiersTree _sel2IfixedUpIdentifiersTree
                   {-# LINE 3937 "AstInternal.hs" #-}
               -- self rule
               _originalTree =
                   {-# LINE 90 "./TypeChecking/TypeChecking.ag" #-}
-                  CombineSelect ann_ ctype_ _sel1IoriginalTree _sel2IoriginalTree
+                  CombineQueryExpr ann_ ctype_ _sel1IoriginalTree _sel2IoriginalTree
                   {-# LINE 3942 "AstInternal.hs" #-}
               -- self rule
               _lhsOfixedUpIdentifiersTree =
@@ -4408,11 +4408,11 @@ sem_QueryExpr_Values ann_ vll_  =
               ( _vllIannotatedTree,_vllIfixedUpIdentifiersTree,_vllIoriginalTree,_vllIuType) =
                   (vll_ _vllOcat _vllOexpectedTypes _vllOidenv _vllOlib )
           in  ( _lhsOannotatedTree,_lhsOcidenv,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree,_lhsOuType)))
-sem_QueryExpr_WithSelect :: Annotation ->
-                            T_WithQueryList  ->
-                            T_QueryExpr  ->
-                            T_QueryExpr 
-sem_QueryExpr_WithSelect ann_ withs_ ex_  =
+sem_QueryExpr_WithQueryExpr :: Annotation ->
+                               T_WithQueryList  ->
+                               T_QueryExpr  ->
+                               T_QueryExpr 
+sem_QueryExpr_WithQueryExpr ann_ withs_ ex_  =
     (\ _lhsIcat
        _lhsIexpectedTypes
        _lhsIidenv
@@ -4442,7 +4442,7 @@ sem_QueryExpr_WithSelect ann_ withs_ ex_  =
               _exIlibUpdates :: ([LocalBindingsUpdate])
               _exIoriginalTree :: QueryExpr
               _exIuType :: (Maybe [(String,Type)])
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 232, column 18)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 232, column 21)
               _lhsOcidenv =
                   {-# LINE 232 "./TypeChecking/FixUpIdentifiers.ag" #-}
                   _exIcidenv
@@ -4465,7 +4465,7 @@ sem_QueryExpr_WithSelect ann_ withs_ ex_  =
               -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 154, column 9)
               _backTree =
                   {-# LINE 154 "./TypeChecking/QueryExprs/QueryStatement.ag" #-}
-                  WithSelect ann_ _withsIannotatedTree _exIannotatedTree
+                  WithQueryExpr ann_ _withsIannotatedTree _exIannotatedTree
                   {-# LINE 4470 "AstInternal.hs" #-}
               -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 155, column 9)
               _exOcat =
@@ -4485,17 +4485,17 @@ sem_QueryExpr_WithSelect ann_ withs_ ex_  =
               -- self rule
               _annotatedTree =
                   {-# LINE 84 "./TypeChecking/TypeChecking.ag" #-}
-                  WithSelect ann_ _withsIannotatedTree _exIannotatedTree
+                  WithQueryExpr ann_ _withsIannotatedTree _exIannotatedTree
                   {-# LINE 4490 "AstInternal.hs" #-}
               -- self rule
               _fixedUpIdentifiersTree =
                   {-# LINE 312 "./TypeChecking/FixUpIdentifiers.ag" #-}
-                  WithSelect ann_ _withsIfixedUpIdentifiersTree _exIfixedUpIdentifiersTree
+                  WithQueryExpr ann_ _withsIfixedUpIdentifiersTree _exIfixedUpIdentifiersTree
                   {-# LINE 4495 "AstInternal.hs" #-}
               -- self rule
               _originalTree =
                   {-# LINE 90 "./TypeChecking/TypeChecking.ag" #-}
-                  WithSelect ann_ _withsIoriginalTree _exIoriginalTree
+                  WithQueryExpr ann_ _withsIoriginalTree _exIoriginalTree
                   {-# LINE 4500 "AstInternal.hs" #-}
               -- self rule
               _lhsOfixedUpIdentifiersTree =

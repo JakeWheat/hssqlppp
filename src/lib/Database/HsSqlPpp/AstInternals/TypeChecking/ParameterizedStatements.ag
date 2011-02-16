@@ -172,7 +172,7 @@ SEM ScalarExprListList
 SEM ScalarExpr
     | Exists ScalarSubQuery sel.expectedTypes = []
 SEM InList
-    | InSelect sel.expectedTypes = []
+    | InQueryExpr sel.expectedTypes = []
 SEM Statement
     | CreateTableAs CreateView expr.expectedTypes = []
     | ForQueryStatement ReturnQuery

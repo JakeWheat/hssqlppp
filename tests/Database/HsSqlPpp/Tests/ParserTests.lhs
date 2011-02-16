@@ -272,39 +272,39 @@ select statements
 >       s "select a from tbl\n\
 >         \except\n\
 >         \select a from tbl1;"
->       [QueryStatement ea $ CombineSelect ea Except
+>       [QueryStatement ea $ CombineQueryExpr ea Except
 >        (selectFrom (selIL ["a"]) (Tref ea (i "tbl") (NoAlias ea)))
 >        (selectFrom (selIL ["a"]) (Tref ea (i "tbl1") (NoAlias ea)))]
 >      ,s "select a from tbl where true\n\
 >         \except\n\
 >         \select a from tbl1 where true;"
->       [QueryStatement ea $ CombineSelect ea Except
+>       [QueryStatement ea $ CombineQueryExpr ea Except
 >        (selectFromWhere (selIL ["a"]) (Tref ea (i "tbl") (NoAlias ea)) (BooleanLit ea True))
 >        (selectFromWhere (selIL ["a"]) (Tref ea (i "tbl1") (NoAlias ea)) (BooleanLit ea True))]
 >      ,s "select a from tbl\n\
 >         \union\n\
 >         \select a from tbl1;"
->       [QueryStatement ea $ CombineSelect ea Union
+>       [QueryStatement ea $ CombineQueryExpr ea Union
 >        (selectFrom (selIL ["a"]) (Tref ea (i "tbl") (NoAlias ea)))
 >        (selectFrom (selIL ["a"]) (Tref ea (i "tbl1") (NoAlias ea)))]
 >      ,s "select a from tbl\n\
 >         \union all\n\
 >         \select a from tbl1;"
->       [QueryStatement ea $ CombineSelect ea UnionAll
+>       [QueryStatement ea $ CombineQueryExpr ea UnionAll
 >        (selectFrom (selIL ["a"]) (Tref ea (i "tbl") (NoAlias ea)))
 >        (selectFrom (selIL ["a"]) (Tref ea (i "tbl1") (NoAlias ea)))]
 >      ,s "(select 1 union select 2) union select 3;"
 >       [QueryStatement ea
->        (CombineSelect ea Union
->         (CombineSelect ea Union
+>        (CombineQueryExpr ea Union
+>         (CombineQueryExpr ea Union
 >          (selectE (SelectList ea [SelExp ea (IntegerLit ea 1)] []))
 >          (selectE (SelectList ea [SelExp ea (IntegerLit ea 2)] [])))
 >         (selectE (SelectList ea [SelExp ea (IntegerLit ea 3)] [])))]
 >      ,s "select 1 union (select 2 union select 3);"
 >       [QueryStatement ea
->        (CombineSelect ea Union
+>        (CombineQueryExpr ea Union
 >         (selectE (SelectList ea [SelExp ea (IntegerLit ea 1)] []))
->         (CombineSelect ea Union
+>         (CombineQueryExpr ea Union
 >          (selectE (SelectList ea [SelExp ea (IntegerLit ea 2)] []))
 >          (selectE (SelectList ea [SelExp ea (IntegerLit ea 3)] []))))]
 >      ,s [$here|
@@ -312,7 +312,7 @@ select statements
 >               b as (select * from a)
 >               select * from b; |]
 >          [QueryStatement ea
->           (WithSelect ea
+>           (WithQueryExpr ea
 >            [WithQuery ea "a" Nothing (selectE $ SelectList ea
 >                                [SelectItem ea (IntegerLit ea 1) "a1"] [])
 >            ,WithQuery ea "b" Nothing (selectFrom (selIL ["*"]) (Tref ea (i "a") (NoAlias ea)))]
@@ -323,11 +323,11 @@ select statements
 >               select * from a
 >               union select * from b; |]
 >          [QueryStatement ea
->           (WithSelect ea
+>           (WithQueryExpr ea
 >            [WithQuery ea "a" Nothing (selectE $ SelectList ea
 >                                [SelectItem ea (IntegerLit ea 1) "a1"] [])
 >            ,WithQuery ea "b" Nothing (selectFrom (selIL ["*"]) (Tref ea (i "a") (NoAlias ea)))]
->            (CombineSelect ea Union
+>            (CombineQueryExpr ea Union
 >              (selectFrom (selIL ["*"]) (Tref ea (i "a") (NoAlias ea)))
 >              (selectFrom (selIL ["*"]) (Tref ea (i "b") (NoAlias ea)))))]
 >      ,s "select a as b from tbl;"
