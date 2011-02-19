@@ -106,7 +106,7 @@ To support antiquotation, the following approach is used:
 >     l = lexSqlText f s
 >     pqe :: SParser QueryExpr
 >     pqe = do
->           (QueryStatement _ q) <- selectStatement
+>           (QueryStatement _ q) <- queryStatement
 >           _ <- optional (symbol ";")
 >           eof
 >           return q
@@ -124,7 +124,7 @@ To support antiquotation, the following approach is used:
 >     l = lexSqlText f s
 >     pqe :: SParser QueryExpr
 >     pqe = do
->           (QueryStatement _ q) <- selectStatement
+>           (QueryStatement _ q) <- queryStatement
 >           _ <- optional $ symbol ";"
 >           rc <- tryOptionMaybe rowcount
 >           keyword "go"
@@ -250,7 +250,7 @@ Parsing top level statements
 > sqlStatement reqSemi =
 >    (choice [
 >      antiStatement
->     ,selectStatement
+>     ,queryStatement
 >     ,insert
 >     ,update
 >     ,delete
@@ -303,22 +303,38 @@ expecting a plpgsql statement.
 recurses to support parsing excepts, unions, etc.
 this recursion needs refactoring cos it's a mess
 
-> selectStatement :: SParser Statement
-> selectStatement = QueryStatement <$> pos <*> selectScalarExpr
+> queryStatement :: SParser Statement
+> queryStatement = QueryStatement <$> pos <*> pQueryExpr
 >
-> selectScalarExpr :: SParser QueryExpr
-> selectScalarExpr =
->   with <|>
->   buildExpressionParser combTable selFactor
+> into :: SParser (Statement -> Statement)
+> into = do
+>   p <- (pos <* keyword "into")
+>   st <- option False (True <$ keyword "strict")
+>   is <- commaSep1 qName
+>   return $ \s -> Into p st is s
+
+> intoQueryStatement :: SParser Statement
+> intoQueryStatement = do
+>   p <- pos
+>   (i,q) <- pQueryExprX True
+>   return $ i $ QueryStatement p q
+
+> pQueryExpr :: SParser QueryExpr
+> pQueryExpr = snd <$> pQueryExprX False
+
+> pQueryExprX :: Bool -> SParser ((Statement -> Statement), QueryExpr)
+> pQueryExprX allowInto = (id,) <$>
+>   (with <|>
+>    buildExpressionParser combTable selFactor)
 >   where
->         selFactor = try (parens selectScalarExpr) <|> selQuerySpec <|> values
+>         selFactor = try (parens pQueryExpr) <|> selQuerySpec <|> values
 >         with = WithQueryExpr <$> (pos <* keyword "with")
 >                              <*> commaSep1 withQuery
->                              <*> selectScalarExpr
+>                              <*> pQueryExpr
 >         withQuery = WithQuery <$> pos
 >                               <*> idString
 >                               <*> tryOptionMaybe (parens $ commaSep idString)
->                               <*> (keyword "as" *> parens selectScalarExpr)
+>                               <*> (keyword "as" *> parens pQueryExpr)
 >         combTable = [map (\(c,p) -> Infix (CombineQueryExpr
 >                                            <$> pos
 >                                            <*> (c <$ p)) AssocLeft)
@@ -326,10 +342,18 @@ this recursion needs refactoring cos it's a mess
 >                         ,(Intersect, keyword "intersect")
 >                         ,(UnionAll, try (keyword "union" *> keyword "all"))
 >                         ,(Union, keyword "union")]]
->         selQuerySpec = Select <$> (pos <* keyword "select")
->                    <*> option Dupes (Distinct <$ keyword "distinct")
->                    <*> selectList
->                    <*> option [] from
+>         selQuerySpec = do
+>           p <- (pos <* keyword "select")
+>           d <- option Dupes (Distinct <$ keyword "distinct")
+>           -- todo: work out how to make this work properly - need to return
+>           -- the into
+>           (sl,_intoBit) <- if allowInto
+>                           then permute ((,)
+>                                         <$$> try selectList
+>                                         <|?> (Nothing, Just <$> into))
+>                          else (,Nothing) <$> selectList
+>           Select p d sl
+>                    <$> option [] from
 >                    <*> optionMaybe whereClause
 >                    <*> option [] groupBy
 >                    <*> optionMaybe having
@@ -350,6 +374,7 @@ this recursion needs refactoring cos it's a mess
 >         offset = keyword "offset" *> expr
 >         values = Values <$> (pos <* keyword "values")
 >                         <*> commaSep1 (parens $ commaSep1 expr)
+
 
 table refs
 have to cope with:
@@ -380,7 +405,7 @@ then we combine by seeing if there is a join looking prefix
 >                   p2 <- pos
 >                   choice [
 >                          SubTref p2
->                          <$> parens selectScalarExpr
+>                          <$> parens pQueryExpr
 >                          <*> palias
 >                         ,FunTref p2
 >                          <$> try (identifier >>= functionCallSuffix)
@@ -469,7 +494,7 @@ multiple rows to insert and insert from select statements
 >          <$> pos <* keyword "insert" <* keyword "into"
 >          <*> dqi
 >          <*> option [] (try columnNameList)
->          <*> selectScalarExpr
+>          <*> pQueryExpr
 >          <*> tryOptionMaybe returning
 >
 > update :: SParser Statement
@@ -570,7 +595,7 @@ ddl
 >   keyword "table"
 >   tname <- idString
 >   choice [
->      CreateTableAs p tname <$> (keyword "as" *> selectScalarExpr)
+>      CreateTableAs p tname <$> (keyword "as" *> pQueryExpr)
 >     ,uncurry (CreateTable p tname) <$> readAttsAndCons]
 >   where
 >     --parse our unordered list of attribute defs or constraints, for
@@ -790,7 +815,7 @@ variable declarations in a plpgsql function
 >              <$> pos <* keyword "view"
 >              <*> idString
 >              <*> tryOptionMaybe (parens $ commaSep idString)
->              <*> (keyword "as" *> selectScalarExpr)
+>              <*> (keyword "as" *> pQueryExpr)
 
 >
 > createDomain :: SParser Statement
@@ -940,10 +965,20 @@ plpgsql statements
 
 > plPgsqlStatement :: SParser Statement
 > plPgsqlStatement =
->    sqlStatement True
->     <|> (choice [
+>    choice [
+>      -- modified sql statements
+>      (choice [
+>         try intoQueryStatement
+>        ,choice [insert
+>                ,update
+>                ,delete] >>= intoSuffix
+>        ]) <* symbol ";"
+>     -- regular sql statements
+>     ,(sqlStatement True)
+>     -- regular plpgsql statements
+>     ,(choice [
 >           continue
->          ,execute
+>          ,execute >>= intoSuffix
 >          ,caseStatement
 >          ,assignment
 >          ,ifStatement
@@ -954,7 +989,12 @@ plpgsql statements
 >          ,nullStatement
 >          ,exitStatement]
 >          <* symbol ";")
+>     ]
 >    where
+>      intoSuffix e =
+>        option e (try $ do
+>                  i <- into
+>                  return $ i e)
 >      labelPrefixed = do
 >        p <- pos
 >        l <- label
@@ -1016,7 +1056,7 @@ plpgsql statements
 > returnSt = pos >>= \p -> keyword "return" >>
 >            choice [
 >             ReturnNext p <$> (keyword "next" *> expr)
->            ,ReturnQuery p <$> (keyword "query" *> selectScalarExpr)
+>            ,ReturnQuery p <$> (keyword "query" *> pQueryExpr)
 >            ,Return p <$> tryOptionMaybe expr]
 >
 > raise :: SParser Statement
@@ -1036,7 +1076,7 @@ plpgsql statements
 >                start <- qName
 >                keyword "in"
 >                choice [ForQueryStatement p l start
->                        <$> try selectScalarExpr <*> theRest
+>                        <$> try pQueryExpr <*> theRest
 >                       ,ForIntegerStatement p l start
 >                               <$> expr
 >                               <*> (symbol ".." *> expr)
@@ -1379,7 +1419,7 @@ I think the lookahead is used in an attempt to help the error messages.
 >                                                <|> keyword "with")) >>
 >                  ScalarSubQuery
 >                  <$> pos
->                  <*> selectScalarExpr <* symbol ")"
+>                  <*> pQueryExpr <* symbol ")"
 
 in predicate - an identifier or row constructor followed by 'in'
 then a list of expressions or a subselect
@@ -1390,7 +1430,7 @@ then a list of expressions or a subselect
 >   <$> pos
 >   <*> return e
 >   <*> option True (False <$ keyword "not")
->   <*> (keyword "in" *> parens ((InQueryExpr <$> pos <*> selectScalarExpr)
+>   <*> (keyword "in" *> parens ((InQueryExpr <$> pos <*> pQueryExpr)
 >                                <|>
 >                                (InList <$> pos <*> commaSep1 expr)))
 
@@ -1441,7 +1481,7 @@ row ctor: one of
 >                     <*> (keyword "then" *> expr)
 >
 > exists :: SParser ScalarExpr
-> exists = Exists <$> pos <* keyword "exists" <*> parens selectScalarExpr
+> exists = Exists <$> pos <* keyword "exists" <*> parens pQueryExpr
 >
 
 > booleanLit :: SParser ScalarExpr

@@ -274,7 +274,7 @@ DATA Statement
 
 
 
-{-    | SqlStatement ann:Annotation
+{-    | SqlStatement ann:Annotation -- todo: put this in so that the lib can be better used as a pure sql parser
                    stmt:Statement -}
     | Into ann:Annotation
            strict:Bool
