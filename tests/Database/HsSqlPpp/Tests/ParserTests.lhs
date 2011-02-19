@@ -230,7 +230,7 @@ select statements
 
 >   ,Group "simple select statements" [
 >     Group "select no table" [
->       s "select 1;" [QueryStatement ea $ selectE (SelectList ea [SelExp ea (IntegerLit ea 1)] [])]
+>       s "select 1;" [QueryStatement ea $ selectE (SelectList ea [SelExp ea (IntegerLit ea 1)])]
 >      ]
 >    ,Group "select from table" [
 >       s "select * from tbl;"
@@ -240,7 +240,7 @@ select statements
 >      ,s "select a,b from inf.tbl;"
 >       [QueryStatement ea $ selectFrom (selIL ["a", "b"]) (Tref ea (qi "inf" "tbl") (NoAlias ea))]
 >      ,s "select distinct * from tbl;"
->       [QueryStatement ea $ Select ea Distinct (SelectList ea (selIL ["*"]) []) [Tref ea (i "tbl") (NoAlias ea)]
+>       [QueryStatement ea $ Select ea Distinct (SelectList ea (selIL ["*"])) [Tref ea (i "tbl") (NoAlias ea)]
 >        Nothing [] Nothing [] Nothing Nothing]
 >      ,s "select a from tbl where b=2;"
 >       [QueryStatement ea $ selectFromWhere
@@ -297,16 +297,16 @@ select statements
 >       [QueryStatement ea
 >        (CombineQueryExpr ea Union
 >         (CombineQueryExpr ea Union
->          (selectE (SelectList ea [SelExp ea (IntegerLit ea 1)] []))
->          (selectE (SelectList ea [SelExp ea (IntegerLit ea 2)] [])))
->         (selectE (SelectList ea [SelExp ea (IntegerLit ea 3)] [])))]
+>          (selectE (SelectList ea [SelExp ea (IntegerLit ea 1)]))
+>          (selectE (SelectList ea [SelExp ea (IntegerLit ea 2)])))
+>         (selectE (SelectList ea [SelExp ea (IntegerLit ea 3)])))]
 >      ,s "select 1 union (select 2 union select 3);"
 >       [QueryStatement ea
 >        (CombineQueryExpr ea Union
->         (selectE (SelectList ea [SelExp ea (IntegerLit ea 1)] []))
+>         (selectE (SelectList ea [SelExp ea (IntegerLit ea 1)]))
 >         (CombineQueryExpr ea Union
->          (selectE (SelectList ea [SelExp ea (IntegerLit ea 2)] []))
->          (selectE (SelectList ea [SelExp ea (IntegerLit ea 3)] []))))]
+>          (selectE (SelectList ea [SelExp ea (IntegerLit ea 2)]))
+>          (selectE (SelectList ea [SelExp ea (IntegerLit ea 3)]))))]
 >      ,s [$here|
 >          with a as (select 1 as a1),
 >               b as (select * from a)
@@ -314,7 +314,7 @@ select statements
 >          [QueryStatement ea
 >           (WithQueryExpr ea
 >            [WithQuery ea "a" Nothing (selectE $ SelectList ea
->                                [SelectItem ea (IntegerLit ea 1) "a1"] [])
+>                                [SelectItem ea (IntegerLit ea 1) "a1"])
 >            ,WithQuery ea "b" Nothing (selectFrom (selIL ["*"]) (Tref ea (i "a") (NoAlias ea)))]
 >            (selectFrom (selIL ["*"]) (Tref ea (i "b") (NoAlias ea))))]
 >      ,s [$here|
@@ -325,7 +325,7 @@ select statements
 >          [QueryStatement ea
 >           (WithQueryExpr ea
 >            [WithQuery ea "a" Nothing (selectE $ SelectList ea
->                                [SelectItem ea (IntegerLit ea 1) "a1"] [])
+>                                [SelectItem ea (IntegerLit ea 1) "a1"])
 >            ,WithQuery ea "b" Nothing (selectFrom (selIL ["*"]) (Tref ea (i "a") (NoAlias ea)))]
 >            (CombineQueryExpr ea Union
 >              (selectFrom (selIL ["*"]) (Tref ea (i "a") (NoAlias ea)))
@@ -347,7 +347,7 @@ select statements
 >             [QueryStatement ea
 >              (Select ea Dupes
 >               (SelectList ea
->                [SelExp ea (Identifier ea "*")] [])
+>                [SelExp ea (Identifier ea "*")])
 >               [Tref ea (i "t1") (TableAlias ea "a"),Tref ea (i "t2") (TableAlias ea "b")]
 >               Nothing [] Nothing [] Nothing Nothing)]
 >      ,s "select a from b inner join c on b.a=c.a;"
@@ -588,7 +588,7 @@ select statements
 >          [selI "a"]
 >          (SubTref ea (selectE $ SelectList ea
 >                                [SelectItem ea (IntegerLit ea 1) "a"
->                                ,SelectItem ea (IntegerLit ea 2) "b"] [])
+>                                ,SelectItem ea (IntegerLit ea 2) "b"])
 >                   (TableAlias ea "x"))]
 >      ]
 
@@ -709,14 +709,6 @@ insert from select
 >       [Update ea (dqi "tb") [FunCall ea "=" [Identifier ea "x", IntegerLit ea 1]
 >                       ,FunCall ea "=" [Identifier ea "y", IntegerLit ea 2]]
 >        [] Nothing (Just $ sl [selI "id"])]
->      ,s "update pieces\n\
->         \set a=b returning tag into r.tag;"
->       [Update ea (dqi "pieces") [FunCall ea "=" [Identifier ea "a"
->                                           ,Identifier ea "b"]]
->        []
->        Nothing (Just (SelectList ea
->                       [SelExp ea (Identifier ea "tag")]
->                       [eqi "r" "tag"]))]
 >      ,s "update tb\n\
 >         \  set (x,y) = (1,2);"
 >       [Update ea (dqi "tb") [FunCall ea "="
@@ -787,7 +779,7 @@ ddl statements
 >
 >      ,s "create table tbl as select 1;"
 >       [CreateTableAs ea "tbl"
->        (selectE (SelectList ea [SelExp ea (IntegerLit ea 1)] []))]
+>        (selectE (SelectList ea [SelExp ea (IntegerLit ea 1)]))]
 >
 >      ,s "alter table a alter column b set default 1;"
 >       [AlterTable ea "a" [AlterColumnDefault ea "b" (IntegerLit ea 1)]]
@@ -1187,18 +1179,40 @@ quick sanity check
 >                     FunCall ea "||" [eqi "r" "relvar_name"
 >                                     ,stringQ "_and_stuff"]]]
 >      ,f "select into a,b c,d from e;"
->       [QueryStatement ea $ Select ea Dupes (SelectList ea [selI "c", selI "d"] [ei "a", ei "b"])
->                   [Tref ea (i "e") (NoAlias ea)] Nothing [] Nothing [] Nothing Nothing]
+>       [Into ea False [ei "a", ei "b"]
+>        $ QueryStatement ea $ Select ea Dupes (SelectList ea [selI "c", selI "d"])
+>              [Tref ea (i "e") (NoAlias ea)] Nothing [] Nothing [] Nothing Nothing]
 >      ,f "select c,d into a,b from e;"
->       [QueryStatement ea $ Select ea Dupes (SelectList ea [selI "c", selI "d"] [ei "a", ei "b"])
->                   [Tref ea (i "e") (NoAlias ea)] Nothing [] Nothing [] Nothing Nothing]
->
+>       [Into ea False [ei "a", ei "b"]
+>        $ QueryStatement ea $ Select ea Dupes (SelectList ea [selI "c", selI "d"])
+>        [Tref ea (i "e") (NoAlias ea)] Nothing [] Nothing [] Nothing Nothing]
+>      ,f "update pieces\n\
+>         \set a=b returning tag into r.tag;"
+>       [Into ea False [eqi "r" "tag"]
+>          $ Update ea (dqi "pieces") [FunCall ea "=" [Identifier ea "a"
+>                                                     ,Identifier ea "b"]]
+>            []
+>            Nothing (Just (SelectList ea
+>                           [SelExp ea (Identifier ea "tag")]))]
+>      ,f "insert into t(a) values (1) returning id into x;"
+>       [Into ea False [ei "x"]
+>        $ Insert ea
+>         (dqi "t")
+>         ["a"]
+>         (Values ea [[IntegerLit ea 1]])
+>         (Just $ sl [selI "id"])]
+
+>      ,f "update t\n\
+>         \  set x = 1 returning id into z;"
+>       [Into ea False [ei "z"]
+>       $ Update ea (dqi "t") [FunCall ea "=" [Identifier ea "x", IntegerLit ea 1]]
+>         [] Nothing (Just $ sl [selI "id"])]
+
 >      ,f "execute s;"
 >       [Execute ea (Identifier ea "s")]
 >      ,f "execute s into r;"
->       [ExecuteInto ea (Identifier ea "s") ["r"]]
->
->      ,f "continue;" [ContinueStatement ea Nothing]
+>       [Into ea False [ei "r"] (Execute ea (Identifier ea "s"))]
+>     ,f "continue;" [ContinueStatement ea Nothing]
 >     ]
 >
 >     ,Group "other plpgsql statements" [
@@ -1296,7 +1310,7 @@ shortcuts for constructing test data and asts
 > selectFrom :: SelectItemList
 >            -> TableRef
 >            -> QueryExpr
-> selectFrom selList frm = Select ea Dupes (SelectList ea selList [])
+> selectFrom selList frm = Select ea Dupes (SelectList ea selList)
 >                            [frm] Nothing [] Nothing [] Nothing Nothing
 >
 > selectE :: SelectList -> QueryExpr
@@ -1327,14 +1341,14 @@ shortcuts for constructing test data and asts
 > selI = SelExp ea . Identifier ea
 >
 > sl :: SelectItemList -> SelectList
-> sl a = SelectList ea a []
+> sl a = SelectList ea a
 >
 > selectFromWhere :: SelectItemList
 >                 -> TableRef
 >                 -> ScalarExpr
 >                 -> QueryExpr
 > selectFromWhere selList frm whr =
->     Select ea Dupes (SelectList ea selList [])
+>     Select ea Dupes (SelectList ea selList)
 >                [frm] (Just whr) [] Nothing [] Nothing Nothing
 >
 > att :: String -> String -> AttributeDef

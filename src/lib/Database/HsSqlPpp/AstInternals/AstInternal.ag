@@ -266,6 +266,20 @@ DATA Statement
                     ifE : IfExists
                     names : {[String]}
                     cascade : Cascade
+
+--misc
+
+    | Set ann:Annotation name:String values:{[SetValue]}
+    | Notify ann:Annotation name:String
+
+
+
+{-    | SqlStatement ann:Annotation
+                   stmt:Statement -}
+    | Into ann:Annotation
+           strict:Bool
+           into : ScalarExprList
+           stmt : Statement
     | Assignment ann:Annotation
                  target : ScalarExpr
                  value : ScalarExpr
@@ -284,9 +298,6 @@ DATA Statement
               expr : ScalarExpr
     | Execute ann:Annotation
               expr : ScalarExpr
-    | ExecuteInto ann:Annotation
-                  expr : ScalarExpr
-                  targets : {[String]}
     | ForQueryStatement ann:Annotation
                         lb : {Maybe String}
                         var : ScalarExpr
@@ -322,11 +333,6 @@ DATA Statement
          cases : ScalarExprStatementListPairList
          els : StatementList
     | Block ann:Annotation lb:{Maybe String} vars:VarDefList sts : StatementList
-
---misc
-
-    | Set ann:Annotation name:String values:{[SetValue]}
-    | Notify ann:Annotation name:String
 
 -- =============================================================================
 
@@ -404,7 +410,7 @@ data JoinType = Inner | LeftOuter| RightOuter | FullOuter | Cross
 
 -- select columns, into columns
 
-DATA SelectList | SelectList ann:Annotation items:SelectItemList into:ScalarExprList
+DATA SelectList | SelectList ann:Annotation items:SelectItemList
 
 DATA SelectItem | SelExp ann:Annotation ex:ScalarExpr
                 | SelectItem ann:Annotation ex:ScalarExpr name:String

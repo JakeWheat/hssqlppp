@@ -131,7 +131,7 @@ to deal with nulls/ maybe types?
 >         fixSelectList attrs st =
 >           flip transformBi st $ \x ->
 >             case x of
->               SelectList _ _ _ -> SelectList ea (map (SelExp ea) attrs) []
+>               SelectList _ _ -> SelectList ea (map (SelExp ea) attrs)
 >               -- x1 -> x1
 >         makeConstraint :: (String,[(String,[ScalarExpr])]) -> Maybe Constraint
 >         makeConstraint (tn, flds) =

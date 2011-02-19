@@ -75,7 +75,7 @@ unwrapSetof v = v
 SEM SelectList
     | SelectList
         lhs.listType = @items.listType
-        loc.intoFroms : {E ([(String,Type)],[(String,Type)])}
+        {-loc.intoFroms : {E ([(String,Type)],[(String,Type)])}
         loc.intoFroms =
           -- get the name and type of the assigning to identifiers
           -- and the type of the assigning from vars
@@ -89,15 +89,15 @@ SEM SelectList
             intoTypes = do
                         ts <- sequence @into.uType
                         let ns = map getName @into.originalTree
-                        return $ zip ns ts
-        loc.tpe =
+                        return $ zip ns ts-}
+        {-loc.tpe =
             returnWhen (@into.originalTree == []) () $ do
             (it,ft) <- @loc.intoFroms
-            checkAssignmentsValid @lhs.cat (map snd ft) (map snd it)
-
-        lhs.libUpdates =
+            checkAssignmentsValid @lhs.cat (map snd ft) (map snd it)-}
+        lhs.libUpdates = []
+        {-lhs.libUpdates =
             maybe [] id $ do
-            _ <- etmt @loc.tpe
+            -- _ <- etmt @loc.tpe
             (it,ft) <- etmt @loc.intoFroms
             -- not complete, we only cope with situation when
             -- assigning to a single record type on its own
@@ -105,7 +105,7 @@ SEM SelectList
               [(n,PgRecord _)] -> [LBIds "set record actual fields from select into"
                                          Nothing
                                          [(n,PgRecord $ Just $ CompositeType ft)]]
-              _ -> []
+              _ -> []-}
 
 {-
 somewhere this has gone wrong.
@@ -128,9 +128,8 @@ vars,
 -}
 
 
-        lhs.annotatedTree = addTypeErrors (tes @loc.tpe) $
-                            SelectList @ann
+        lhs.annotatedTree = SelectList @ann
                                        @items.annotatedTree
-                                       @into.annotatedTree
+                                       -- @into.annotatedTree
 
 --[(@var,@loc.selType)]

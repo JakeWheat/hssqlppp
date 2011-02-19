@@ -382,11 +382,6 @@ Conversion routines - convert Sql asts into Docs
 >     convPa ca ann <+>
 >     text "execute" <+> convExp s <> statementEnd
 >
-> convStatement ca (ExecuteInto ann s is) =
->     convPa ca ann <+>
->     text "execute" <+> convExp s
->     <+> text "into" <+> hcatCsvMap text is
->     <> statementEnd
 >
 > convStatement ca (CaseStatementSimple ann c conds els) =
 >     convPa ca ann <+>
@@ -529,9 +524,9 @@ Statement components
 > convWhere Nothing = empty
 >
 > convSelList :: SelectList -> Doc
-> convSelList (SelectList _ ex into) =
+> convSelList (SelectList _ ex) =
 >   vcatCsvMap convSelItem ex
->   <+> ifNotEmpty (\i -> text "into" <+> hcatCsvMap convExp i) into
+>   -- <+> ifNotEmpty (\i -> text "into" <+> hcatCsvMap convExp i) into
 >   where
 >     convSelItem (SelectItem _ ex1 nm) = convExpSl ex1 <+> text "as" <+> text nm
 >     convSelItem (SelExp _ e) = convExpSl e

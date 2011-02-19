@@ -261,7 +261,6 @@ data SelectItem = SelExp (Annotation) (ScalarExpr)
                 deriving (Data, Eq, Show, Typeable)
  
 data SelectList = SelectList (Annotation) (SelectItemList)
-                             (ScalarExprList)
                 deriving (Data, Eq, Show, Typeable)
  
 data Statement = AlterSequence (Annotation) (String) (SQIdentifier)
@@ -296,7 +295,6 @@ data Statement = AlterSequence (Annotation) (String) (SQIdentifier)
                | DropSomething (Annotation) (DropType) (IfExists) ([String])
                                (Cascade)
                | Execute (Annotation) (ScalarExpr)
-               | ExecuteInto (Annotation) (ScalarExpr) ([String])
                | ExitStatement (Annotation) (Maybe String)
                | ForIntegerStatement (Annotation) (Maybe String) (ScalarExpr)
                                      (ScalarExpr) (ScalarExpr) (StatementList)
@@ -305,6 +303,7 @@ data Statement = AlterSequence (Annotation) (String) (SQIdentifier)
                | If (Annotation) (ScalarExprStatementListPairList) (StatementList)
                | Insert (Annotation) (SQIdentifier) ([String]) (QueryExpr)
                         (MaybeSelectList)
+               | Into (Annotation) (Bool) (ScalarExprList) (Statement)
                | LoopStatement (Annotation) (Maybe String) (StatementList)
                | Notify (Annotation) (String)
                | NullStatement (Annotation)
@@ -726,8 +725,7 @@ selectItem x
 selectList :: SelectList -> A.SelectList
 selectList x
   = case x of
-        SelectList a1 a2 a3 -> A.SelectList a1 (selectItemList a2)
-                                 (scalarExprList a3)
+        SelectList a1 a2 -> A.SelectList a1 (selectItemList a2)
  
 statement :: Statement -> A.Statement
 statement x
@@ -788,7 +786,6 @@ statement x
                                           a4
                                           (cascade a5)
         Execute a1 a2 -> A.Execute a1 (scalarExpr a2)
-        ExecuteInto a1 a2 a3 -> A.ExecuteInto a1 (scalarExpr a2) a3
         ExitStatement a1 a2 -> A.ExitStatement a1 a2
         ForIntegerStatement a1 a2 a3 a4 a5 a6 -> A.ForIntegerStatement a1
                                                    a2
@@ -805,6 +802,7 @@ statement x
         Insert a1 a2 a3 a4 a5 -> A.Insert a1 (sQIdentifier a2) a3
                                    (queryExpr a4)
                                    (maybeSelectList a5)
+        Into a1 a2 a3 a4 -> A.Into a1 a2 (scalarExprList a3) (statement a4)
         LoopStatement a1 a2 a3 -> A.LoopStatement a1 a2 (statementList a3)
         Notify a1 a2 -> A.Notify a1 a2
         NullStatement a1 -> A.NullStatement a1

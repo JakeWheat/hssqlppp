@@ -109,10 +109,10 @@ SEM Root
 
 SEM Statement
     | CaseStatement CaseStatementSimple ContinueStatement Copy CopyData
-      DropSomething Execute ExecuteInto
+      DropSomething Execute
       If NullStatement ExitStatement Perform Raise ReturnNext ReturnQuery Truncate
       WhileStatement Set Notify CreateSequence LoopStatement
-      AlterSequence AlterTable CreateTrigger
+      AlterSequence AlterTable CreateTrigger Into
         lhs.catUpdates = []
         lhs.libUpdates = []
 

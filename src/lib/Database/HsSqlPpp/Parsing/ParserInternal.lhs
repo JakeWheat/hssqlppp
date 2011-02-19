@@ -886,13 +886,14 @@ check for into either before the whole list of select columns
 or after the whole list
 
 > selectList :: SParser SelectList
-> selectList =
->     pos >>= \p ->
+> selectList = SelectList <$> pos
+>              <*> itemList
+>     {-pos >>= \p ->
 >     choice [
->         flip (SelectList p) <$> readInto <*> itemList
->        ,SelectList p  <$> itemList <*> option [] readInto]
+>         --flip (SelectList p) <$> readInto <*> itemList
+>        SelectList p <$> itemList] -- <*> option [] readInto]-}
 >   where
->     readInto = keyword "into" *> commaSep1 qName
+>     --readInto = keyword "into" *> commaSep1 qName
 >     itemList = commaSep1 selectItem
 >     selectItem = pos >>= \p ->
 >                  optionalSuffix
@@ -993,12 +994,14 @@ plpgsql statements
 > perform = Perform <$> (pos <* keyword "perform") <*> expr
 >
 > execute :: SParser Statement
-> execute = pos >>= \p -> keyword "execute" >>
+> execute = Execute <$> (pos <* keyword "execute")
+>          <*> expr
+>          {-pos >>= \p ->  >>
 >           optionalSuffix
 >             (Execute p) expr
 >             (ExecuteInto p) () readInto
 >     where
->       readInto = keyword "into" *> commaSep1 idString
+>       readInto = keyword "into" *> commaSep1 idString-}
 >
 > assignment :: SParser Statement
 > assignment = Assignment
