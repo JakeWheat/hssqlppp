@@ -16,12 +16,13 @@
 >                      ,printQueryExpr
 >                       --convert a single expression parse node to text
 >                      ,printScalarExpr
+>                      ,printQueryExprNice
 >                      )
 >     where
 >
 > import Text.PrettyPrint
 > import Data.Char
-> import Data.List
+> --import Data.List
 > import Data.Maybe
 >
 > import Database.HsSqlPpp.Ast
@@ -41,15 +42,23 @@ Public functions
 > -- text using the function provided and interpolate the output of
 > -- this function(inside comments) with the SQL source.
 > printStatementsAnn :: (Annotation -> String) -> StatementList -> String
-> printStatementsAnn f ast = render $ vcat (map (convStatement True f) ast) <> text "\n"
+> printStatementsAnn f ast = render $ vcat (map (convStatement False True f) ast) <> text "\n"
 >
 
 > printQueryExpr :: QueryExpr -> String
-> printQueryExpr ast = render (convQueryExpr True True ast <> statementEnd True)
+> printQueryExpr ast = render (convQueryExpr False True True ast <> statementEnd True)
 
 > -- | Testing function, pretty print an expression
 > printScalarExpr :: ScalarExpr -> String
-> printScalarExpr = render . convExp
+> printScalarExpr = render . convExp False
+
+
+Try harder to make the output human readable, not necessary correct
+currently
+
+> printQueryExprNice :: QueryExpr -> String
+> printQueryExprNice ast = render (convQueryExpr True True True ast <> statementEnd True)
+
 
 -------------------------------------------------------------------------------
 
@@ -57,44 +66,44 @@ Conversion routines - convert Sql asts into Docs
 
 > -- Statements
 >
-> convStatement :: Bool -> (Annotation -> String) -> Statement -> Doc
+> convStatement :: Bool -> Bool -> (Annotation -> String) -> Statement -> Doc
 >
 > -- selects
 >
-> convStatement se ca (QueryStatement ann s) =
+> convStatement nice se ca (QueryStatement ann s) =
 >   convPa ca ann <+>
->   convQueryExpr True True s <> statementEnd se
+>   convQueryExpr nice True True s <> statementEnd se
 >
 > --dml
 >
-> convStatement se pa (Insert ann tb atts idata rt) =
+> convStatement nice se pa (Insert ann tb atts idata rt) =
 >   convPa pa ann <+>
 >   text "insert into" <+> convDqi tb
->   <+> ifNotEmpty (parens . hcatCsvMap text) atts
->   $+$ convQueryExpr True True idata
->   $+$ convReturning rt
+>   <+> ifNotEmpty (parens . sepCsvMap text) atts
+>   $+$ convQueryExpr nice True True idata
+>   $+$ convReturning nice rt
 >   <> statementEnd se
 >
-> convStatement se ca (Update ann tb scs fr wh rt) =
+> convStatement nice se ca (Update ann tb scs fr wh rt) =
 >    convPa ca ann <+>
 >    text "update" <+> convDqi tb <+> text "set"
->    <+> hcatCsvMap convSet scs
->    <+> ifNotEmpty (\_ -> text "from" <+> hcatCsvMap convTref fr) fr
->    <+> convWhere wh
->    $+$ convReturning rt <> statementEnd se
+>    <+> sepCsvMap (convSet nice) scs
+>    <+> ifNotEmpty (\_ -> text "from" <+> sepCsvMap (convTref nice) fr) fr
+>    <+> convWhere nice wh
+>    $+$ convReturning nice rt <> statementEnd se
 >
-> convStatement se ca (Delete ann tbl us wh rt) =
+> convStatement nice se ca (Delete ann tbl us wh rt) =
 >    convPa ca ann <+>
 >    text "delete from" <+> convDqi tbl
->    <+> ifNotEmpty (\_ -> text "using" <+> hcatCsvMap convTref us) us
->    <+> convWhere wh
->    $+$ convReturning rt
+>    <+> ifNotEmpty (\_ -> text "using" <+> sepCsvMap (convTref nice) us) us
+>    <+> convWhere nice wh
+>    $+$ convReturning nice rt
 >    <> statementEnd se
 >
-> convStatement se ca (Truncate ann names ri casc) =
+> convStatement _nice se ca (Truncate ann names ri casc) =
 >     convPa ca ann <+>
 >     text "truncate"
->     <+> hcatCsvMap text names
+>     <+> sepCsvMap text names
 >     <+> text (case ri of
 >                       RestartIdentity -> "restart identity"
 >                       ContinueIdentity -> "continue identity")
@@ -103,23 +112,23 @@ Conversion routines - convert Sql asts into Docs
 >
 > -- ddl
 >
-> convStatement se ca (CreateTable ann tbl atts cns) =
+> convStatement nice se ca (CreateTable ann tbl atts cns) =
 >     convPa ca ann <+>
 >     text "create table"
 >     <+> text tbl <+> lparen
->     $+$ nest 2 (vcat (csv (map convAttDef atts ++ map convCon cns)))
+>     $+$ nest 2 (vcat (csv (map convAttDef atts ++ map (convCon nice) cns)))
 >     $+$ rparen <> statementEnd se
 >     where
 >       convAttDef (AttributeDef _ n t def cons) =
 >         text n <+> convTypeName t
->         <+> maybeConv (\e -> text "default" <+> convExp e) def
+>         <+> maybeConv (\e -> text "default" <+> convExp nice e) def
 >         <+> hsep (map cCons cons)
 >       cCons (NullConstraint _ cn) =
 >         mname cn <+> text "null"
 >       cCons (NotNullConstraint _ cn) =
 >         mname cn <+> text "not null"
 >       cCons (RowCheckConstraint _ cn ew) =
->         mname cn <+> text "check" <+> parens (convExp ew)
+>         mname cn <+> text "check" <+> parens (convExp nice ew)
 >       cCons (RowUniqueConstraint _ cn) =
 >         mname cn <+> text "unique"
 >       cCons (RowPrimaryKeyConstraint _ cn) =
@@ -130,18 +139,18 @@ Conversion routines - convert Sql asts into Docs
 >         <+> text "on delete" <+> convCasc ondel
 >         <+> text "on update" <+> convCasc onupd
 >
-> convStatement se ca (AlterTable ann name act) =
+> convStatement nice se ca (AlterTable ann name act) =
 >     convPa ca ann <+>
 >     text "alter table" <+> text name
 >     <+> hcatCsvMap convAct act <> statementEnd se
 >     where
 >       convAct (AlterColumnDefault _ nm def) =
 >           text "alter column" <+> text nm
->           <+> text "set default" <+> convExp def
+>           <+> text "set default" <+> convExp nice def
 >       convAct (AddConstraint _ con) =
->           text "add " <+> convCon con
+>           text "add " <+> convCon nice con
 >
-> convStatement se ca (CreateSequence ann nm incr _ _ start cache) =
+> convStatement _nice se ca (CreateSequence ann nm incr _ _ start cache) =
 >     convPa ca ann <+>
 >     text "create sequence" <+> text nm <+>
 >     text "increment" <+> text (show incr) <+>
@@ -150,25 +159,25 @@ Conversion routines - convert Sql asts into Docs
 >     text "start" <+> text (show start) <+>
 >     text "cache" <+> text (show cache) <> statementEnd se
 >
-> convStatement se ca (AlterSequence ann nm o) =
+> convStatement _nice se ca (AlterSequence ann nm o) =
 >     convPa ca ann <+>
 >     text "alter sequence" <+> text nm
 >     <+> text "owned by" <+> convDqi o <> statementEnd se
 >
-> convStatement se ca (CreateTableAs ann t sel) =
+> convStatement nice se ca (CreateTableAs ann t sel) =
 >     convPa ca ann <+>
 >     text "create table"
 >     <+> text t <+> text "as"
->     $+$ convQueryExpr True True sel
+>     $+$ convQueryExpr nice True True sel
 >     <> statementEnd se
 >
-> convStatement se ca (CreateFunction ann name args retType rep lang body vol) =
+> convStatement nice se ca (CreateFunction ann name args retType rep lang body vol) =
 >     convPa ca ann <+>
 >     text ("create " ++ (case rep of
 >                          Replace -> "or replace "
 >                          _ -> "") ++ "function")
 >     <+> text name
->     <+> parens (hcatCsvMap convParamDef args)
+>     <+> parens (sepCsvMap convParamDef args)
 >     <+> text "returns" <+> convTypeName retType <+> text "as" <+> text "$$"
 >     $+$ convFnBody body
 >     $+$ text "$$" <+> text "language"
@@ -183,62 +192,62 @@ Conversion routines - convert Sql asts into Docs
 >     where
 >       convFnBody (SqlFnBody ann1 sts) =
 >         convPa ca ann1 <+>
->         convNestedStatements ca sts
+>         convNestedStatements nice ca sts
 >       convFnBody (PlpgsqlFnBody ann1 blk) =
 >           convPa ca ann1 <+>
->           convStatement True ca blk
+>           convStatement nice True ca blk
 >       convParamDef (ParamDef _ n t) = text n <+> convTypeName t
 >       convParamDef  (ParamDefTp _ t) = convTypeName t
 >
-> convStatement se ca (Block ann lb decls sts) =
+> convStatement nice se ca (Block ann lb decls sts) =
 >   convPa ca ann <+>
 >   convLabel lb <>
 >   ifNotEmpty (\l -> text "declare"
 >                   $+$ nest 2 (vcat $ map convVarDef l)) decls
 >   $+$ text "begin"
->   $+$ convNestedStatements ca sts
+>   $+$ convNestedStatements nice ca sts
 >   $+$ text "end" <> statementEnd se
 >   where
 >       convVarDef (VarDef _ n t v) =
 >         text n <+> convTypeName t
->         <+> maybeConv (\x -> text ":=" <+> convExp x) v <> semi
+>         <+> maybeConv (\x -> text ":=" <+> convExp nice x) v <> semi
 >       convVarDef (VarAlias _ n n1) =
 >         text n <+> text "alias for" <+> text n1 <> semi
 >       convVarDef (ParamAlias _ n p) =
 >         text n <+> text "alias for $" <> text (show p) <> semi
 >
 >
-> convStatement se ca (CreateView ann name cols sel) =
+> convStatement nice se ca (CreateView ann name cols sel) =
 >     convPa ca ann <+>
 >     text "create view" <+> text name
 >     <> case cols of
 >          Nothing -> empty
->          Just cs -> parens (hcatCsvMap text cs)
+>          Just cs -> parens (sepCsvMap text cs)
 >     <+> text "as"
->     $+$ nest 2 (convQueryExpr True True sel) <> statementEnd se
+>     $+$ nest 2 (convQueryExpr nice True True sel) <> statementEnd se
 >
-> convStatement se ca (CreateDomain ann name tp n ex) =
+> convStatement nice se ca (CreateDomain ann name tp n ex) =
 >     convPa ca ann <+>
 >     text "create domain" <+> text name <+> text "as"
 >     <+> convTypeName tp <+> cname <+> checkExp ex <> statementEnd se
 >     where
->       checkExp = maybeConv (\e -> text "check" <+> parens (convExp e))
+>       checkExp = maybeConv (\e -> text "check" <+> parens (convExp nice e))
 >       cname = if n == ""
 >                then empty
 >                else text "constraint" <+> text n
 >
-> convStatement se ca (DropFunction ann ifExists fns casc) =
+> convStatement _nice se ca (DropFunction ann ifExists fns casc) =
 >   convPa ca ann <+>
 >   text "drop function"
 >   <+> convIfExists ifExists
->   <+> hcatCsvMap doFunction fns
+>   <+> sepCsvMap doFunction fns
 >   <+> convCasc casc
 >   <> statementEnd se
 >   where
 >     doFunction (name,types) =
->       text name <> parens (hcatCsvMap convTypeName types)
+>       text name <> parens (sepCsvMap convTypeName types)
 >
-> convStatement se ca (DropSomething ann dropType ifExists names casc) =
+> convStatement _nice se ca (DropSomething ann dropType ifExists names casc) =
 >     convPa ca ann <+>
 >     text "drop"
 >     <+> text (case dropType of
@@ -247,22 +256,22 @@ Conversion routines - convert Sql asts into Docs
 >                 Domain -> "domain"
 >                 Type -> "type")
 >     <+> convIfExists ifExists
->     <+> hcatCsvMap text names
+>     <+> sepCsvMap text names
 >     <+> convCasc casc
 >     <> statementEnd se
 >
-> convStatement se ca (CreateType ann name atts) =
+> convStatement _nice se ca (CreateType ann name atts) =
 >     convPa ca ann <+>
 >     text "create type" <+> text name <+> text "as" <+> lparen
 >     $+$ nest 2 (vcat (csv
 >           (map (\(TypeAttDef _ n t) -> text n <+> convTypeName t)  atts)))
 >     $+$ rparen <> statementEnd se
 >
-> convStatement se ca (CreateLanguage ann name) =
+> convStatement _nice se ca (CreateLanguage ann name) =
 >     convPa ca ann <+>
 >     text "create language" <+> text name <> statementEnd se
 >
-> convStatement se ca (CreateTrigger ann name wh events tbl firing fnName fnArgs) =
+> convStatement nice se ca (CreateTrigger ann name wh events tbl firing fnName fnArgs) =
 >     convPa ca ann <+>
 >     text "create trigger" <+> text name
 >     <+> text (case wh of
@@ -274,9 +283,9 @@ Conversion routines - convert Sql asts into Docs
 >                                         EachRow -> "row"
 >                                         EachStatement -> "statement")
 >     <+> text "execute procedure" <+> text fnName
->     <> parens (hcatCsvMap convExp fnArgs) <> statementEnd se
+>     <> parens (sepCsvMap (convExp nice) fnArgs) <> statementEnd se
 >     where
->       evs = hcat $ map text $ intersperse " or "
+>       evs = sep $ punctuate (text " or ") $ map text
 >             $ map (\e -> case e of
 >                                 TInsert -> "insert"
 >                                 TUpdate -> "update"
@@ -284,132 +293,132 @@ Conversion routines - convert Sql asts into Docs
 >
 > -- plpgsql
 >
-> convStatement se ca (NullStatement ann) =
+> convStatement _nice se ca (NullStatement ann) =
 >   convPa ca ann <+> text "null" <> statementEnd se
-> convStatement se ca (ExitStatement ann lb) =
+> convStatement _nice se ca (ExitStatement ann lb) =
 >   convPa ca ann <+> text "exit"
 >     <+> maybe empty text lb <> statementEnd se
 >
 
-> convStatement _se _ca (Into _ann _str _into (QueryStatement _annq _s)) = error "no select into"
+> convStatement _ _se _ca (Into _ann _str _into (QueryStatement _annq _s)) = error "no select into"
 
-> convStatement se ca (Into ann str into st) =
+> convStatement nice se ca (Into ann str into st) =
 >   convPa ca ann <+>
->   convStatement False ca st
+>   convStatement nice False ca st
 >   <+> text "into"
 >   <> (if str
 >       then empty <+> text "strict"
 >       else empty)
->   <+> hcatCsvMap convExp into
+>   <+> sepCsvMap (convExp nice) into
 >   <> statementEnd se
 >   --fixme, should be insert,update,delete,execute
 
-> convStatement se ca (Assignment ann name val) =
+> convStatement nice se ca (Assignment ann name val) =
 >     convPa ca ann <+>
->     convExp name <+> text ":=" <+> convExp val <> statementEnd se
+>     convExp nice name <+> text ":=" <+> convExp nice val <> statementEnd se
 >
-> convStatement se ca (Return ann ex) =
+> convStatement nice se ca (Return ann ex) =
 >     convPa ca ann <+>
->     text "return" <+> maybeConv convExp ex <> statementEnd se
+>     text "return" <+> maybeConv (convExp nice) ex <> statementEnd se
 >
-> convStatement se ca (ReturnNext ann ex) =
+> convStatement nice se ca (ReturnNext ann ex) =
 >     convPa ca ann <+>
->     text "return" <+> text "next" <+> convExp ex <> statementEnd se
+>     text "return" <+> text "next" <+> convExp nice ex <> statementEnd se
 >
-> convStatement se ca (ReturnQuery ann sel) =
+> convStatement nice se ca (ReturnQuery ann sel) =
 >     convPa ca ann <+>
 >     text "return" <+> text "query"
->     <+> convQueryExpr True True sel <> statementEnd se
+>     <+> convQueryExpr nice True True sel <> statementEnd se
 >
-> convStatement se ca (Raise ann rt st exps) =
+> convStatement nice se ca (Raise ann rt st exps) =
 >     convPa ca ann <+>
 >     text "raise"
 >     <+> case rt of
 >                 RNotice -> text "notice"
 >                 RException -> text "exception"
 >                 RError -> text "error"
->     <+> convExp (StringLit emptyAnnotation st)
->     <> ifNotEmpty (\e -> comma <+> csvExp e) exps
+>     <+> convExp nice (StringLit emptyAnnotation st)
+>     <> ifNotEmpty (\e -> comma <+> csvExp nice e) exps
 >     <> statementEnd se
 >
-> convStatement se ca (ForQueryStatement ann lb i sel stmts) =
+> convStatement nice se ca (ForQueryStatement ann lb i sel stmts) =
 >     convPa ca ann <+>
 >     convLabel lb <>
->     text "for" <+> convExp i <+> text "in"
->     <+> convQueryExpr True True sel <+> text "loop"
->     $+$ convNestedStatements ca stmts
+>     text "for" <+> convExp nice i <+> text "in"
+>     <+> convQueryExpr nice True True sel <+> text "loop"
+>     $+$ convNestedStatements nice ca stmts
 >     $+$ text "end loop" <> statementEnd se
 >
-> convStatement se ca (ForIntegerStatement ann lb var st en stmts) =
+> convStatement nice se ca (ForIntegerStatement ann lb var st en stmts) =
 >     convPa ca ann <+>
 >     convLabel lb <>
->     text "for" <+> convExp var <+> text "in"
->     <+> convExp st <+> text ".." <+> convExp en <+> text "loop"
->     $+$ convNestedStatements ca stmts
+>     text "for" <+> convExp nice var <+> text "in"
+>     <+> convExp nice st <+> text ".." <+> convExp nice en <+> text "loop"
+>     $+$ convNestedStatements nice ca stmts
 >     $+$ text "end loop" <> statementEnd se
 >
-> convStatement se ca (WhileStatement ann lb ex stmts) =
+> convStatement nice se ca (WhileStatement ann lb ex stmts) =
 >     convPa ca ann <+>
 >     convLabel lb <>
->     text "while" <+> convExp ex <+> text "loop"
->     $+$ convNestedStatements ca stmts
+>     text "while" <+> convExp nice ex <+> text "loop"
+>     $+$ convNestedStatements nice ca stmts
 >     $+$ text "end loop" <> statementEnd se
-> convStatement se ca (LoopStatement ann lb stmts) =
+> convStatement nice se ca (LoopStatement ann lb stmts) =
 >     convPa ca ann <+>
 >     convLabel lb <>
 >     text "loop"
->     $+$ convNestedStatements ca stmts
+>     $+$ convNestedStatements nice ca stmts
 >     $+$ text "end loop" <> statementEnd se
 >
-> convStatement se ca (ContinueStatement ann lb) =
+> convStatement _nice se ca (ContinueStatement ann lb) =
 >     convPa ca ann <+> text "continue"
 >       <+> maybe empty text lb <> statementEnd se
-> convStatement se ca (Perform ann f@(FunCall _ _ _)) =
+> convStatement nice se ca (Perform ann f@(FunCall _ _ _)) =
 >     convPa ca ann <+>
->     text "perform" <+> convExp f <> statementEnd se
-> convStatement _ _ (Perform _ x) =
+>     text "perform" <+> convExp nice f <> statementEnd se
+> convStatement _ _ _ (Perform _ x) =
 >    error $ "internal error: convStatement not supported for " ++ show x
 >
-> convStatement se ca (Copy ann tb cols src) =
+> convStatement _nice se ca (Copy ann tb cols src) =
 >     convPa ca ann <+>
 >     text "copy" <+> text tb
->     <+> ifNotEmpty (parens . hcatCsvMap text) cols
+>     <+> ifNotEmpty (parens . sepCsvMap text) cols
 >     <+> text "from"
 >     <+> case src of
 >                  CopyFilename s -> quotes $ text s <> statementEnd se
 >                  Stdin -> text "stdin" <> text ";"
 >
-> convStatement _ ca (CopyData ann s) =
+> convStatement _ _ ca (CopyData ann s) =
 >     convPa ca ann <+>
 >     text s <> text "\\." <> newline
 >
-> convStatement se ca (If ann conds els) =
+> convStatement nice se ca (If ann conds els) =
 >    convPa ca ann <+>
 >    text "if" <+> convCond (head conds)
 >    $+$ vcat (map (\c -> text "elseif" <+> convCond c) $ tail conds)
->    $+$ ifNotEmpty (\e -> text "else" $+$ convNestedStatements ca e) els
+>    $+$ ifNotEmpty (\e -> text "else" $+$ convNestedStatements nice ca e) els
 >    $+$ text "end if" <> statementEnd se
 >     where
->       convCond (ex, sts) = convExp ex <+> text "then"
->                            $+$ convNestedStatements ca sts
-> convStatement se ca (Execute ann s) =
+>       convCond (ex, sts) = convExp nice ex <+> text "then"
+>                            $+$ convNestedStatements nice ca sts
+> convStatement nice se ca (Execute ann s) =
 >     convPa ca ann <+>
->     text "execute" <+> convExp s <> statementEnd se
+>     text "execute" <+> convExp nice s <> statementEnd se
 >
 >
-> convStatement se ca (CaseStatementSimple ann c conds els) =
+> convStatement nice se ca (CaseStatementSimple ann c conds els) =
 >     convPa ca ann <+>
->     text "case" <+> convExp c
+>     text "case" <+> convExp nice c
 >     $+$ nest 2 (
 >                 vcat (map (uncurry convWhenSt) conds)
 >                 $+$ convElseSt els
 >                 ) $+$ text "end case" <> statementEnd se
 >     where
->       convWhenSt ex sts = text "when" <+> hcatCsvMap convExp ex
->                           <+> text "then" $+$ convNestedStatements ca sts
+>       convWhenSt ex sts = text "when" <+> sepCsvMap (convExp nice) ex
+>                           <+> text "then" $+$ convNestedStatements nice ca sts
 >       convElseSt = ifNotEmpty (\s -> text "else"
->                                      $+$ convNestedStatements ca s)
-> convStatement se ca (CaseStatement ann conds els) =
+>                                      $+$ convNestedStatements nice ca s)
+> convStatement nice se ca (CaseStatement ann conds els) =
 >     convPa ca ann <+>
 >     text "case"
 >     $+$ nest 2 (
@@ -417,23 +426,23 @@ Conversion routines - convert Sql asts into Docs
 >                 $+$ convElseSt els
 >                 ) $+$ text "end case" <> statementEnd se
 >     where
->       convWhenSt ex sts = text "when" <+> hcatCsvMap convExp ex
->                           <+> text "then" $+$ convNestedStatements ca sts
+>       convWhenSt ex sts = text "when" <+> sepCsvMap (convExp nice) ex
+>                           <+> text "then" $+$ convNestedStatements nice ca sts
 >       convElseSt = ifNotEmpty (\s -> text "else"
->                                      $+$ convNestedStatements ca s)
+>                                      $+$ convNestedStatements nice ca s)
 
 >
 > -- misc
 >
-> convStatement se _ (Set _ n vs) =
+> convStatement _nice se _ (Set _ n vs) =
 >   text "set" <+> text n <+> text "="
->   <+> hcatCsvMap (text . dv) vs <> statementEnd se
+>   <+> sepCsvMap (text . dv) vs <> statementEnd se
 >   where
 >     dv (SetStr _ s) = "'" ++ s ++ "'"
 >     dv (SetId _ i) = i
 >     dv (SetNum _ nm) = show nm
 >
-> convStatement se _ (Notify _ n) =
+> convStatement _nice se _ (Notify _ n) =
 >   text "notify" <+> text n  <> statementEnd se
 >
 > statementEnd :: Bool -> Doc
@@ -447,58 +456,64 @@ Statement components
 
 > -- selects
 >
-> convQueryExpr :: Bool -> Bool -> QueryExpr -> Doc
-> convQueryExpr writeSelect _ (Select _ dis l tb wh grp hav
+> convQueryExpr :: Bool -> Bool -> Bool -> QueryExpr -> Doc
+> convQueryExpr nice writeSelect _ (Select _ dis l tb wh grp hav
 >                                 order lim off) =
 >   (text (if writeSelect then "select" else "")
 >          <+> (case dis of
 >                  Dupes -> empty
 >                  Distinct -> text "distinct"))
 >   $+$ nest 2 (vcat $ catMaybes
->   [Just $ nest 2 $ convSelList l
+>   [Just $ nest 2 $ convSelList nice l
 >   ,Just $ (if null tb
 >            then empty
->            else text "from" $+$ nest 2 (vcatCsvMap convTref tb))
->   ,Just $ convWhere wh
+>            else text "from" $+$ nest 2 (sepCsvMap (convTref nice) tb))
+>   ,Just $ convWhere nice wh
 >   ,case grp of
 >      [] -> Nothing
->      g -> Just $ text "group by" $+$ nest 2 (hcatCsvMap convExp g)
->   ,flip fmap hav $ \h -> text "having" $+$ nest 2 (convExp h)
+>      g -> Just $ text "group by" $+$ nest 2 (sepCsvMap (convExp nice) g)
+>   ,flip fmap hav $ \h -> text "having" $+$ nest 2 (convExp nice h)
 >   ,case order of
 >      [] -> Nothing
 >      o -> Just $ text "order by"
->                   $+$ nest 2 (hcatCsvMap (\(oe,od) -> convExp oe
+>                   $+$ nest 2 (sepCsvMap (\(oe,od) -> convExp nice oe
 >                                               <+> convDir od) o)
->   ,flip fmap lim $ \lm -> text "limit" <+> convExp lm
->   ,flip fmap off $ \offs -> text "offset" <+> convExp offs
+>   ,flip fmap lim $ \lm -> text "limit" <+> convExp nice lm
+>   ,flip fmap off $ \offs -> text "offset" <+> convExp nice offs
 >   ])
 >
-> convQueryExpr writeSelect topLev (CombineQueryExpr _ tp s1 s2) =
->   let p = convQueryExpr writeSelect False s1
+> convQueryExpr nice writeSelect topLev (CombineQueryExpr _ tp s1 s2) =
+>   let p = convQueryExpr nice writeSelect False s1
 >           $+$ (case tp of
 >                        Except -> text "except"
 >                        Union -> text "union"
 >                        UnionAll -> text "union" <+> text "all"
 >                        Intersect -> text "intersect")
->           $+$ convQueryExpr True False s2
+>           $+$ convQueryExpr nice True False s2
 >   in if topLev then p else parens p
-> convQueryExpr _ _ (Values _ expss) =
->   text "values" $$ nest 2 (vcat $ csv $ map (parens . csvExp) expss)
-> convQueryExpr _ _ (WithQueryExpr _ wqs ex) =
+> convQueryExpr nice _ _ (Values _ expss) =
+>   text "values" $$ nest 2 (vcat $ csv $ map (parens . csvExp nice) expss)
+> convQueryExpr nice _ _ (WithQueryExpr _ wqs ex) =
 >   text "with" $$ nest 2 (vcat $ csv $ map pwq wqs)
->        $+$ convQueryExpr True False ex
+>        $+$ convQueryExpr nice True False ex
 >   where
 >     pwq (WithQuery _ nm cs ex1) =
 >       text nm <> case cs of
 >                    Nothing -> empty
->                    Just cs' -> parens $ hcatCsvMap text cs'
+>                    Just cs' -> parens $ sepCsvMap text cs'
 >       <+> text "as"
->       <+> parens (convQueryExpr True False ex1)
+>       <+> parens (convQueryExpr nice True False ex1)
 >
-> convTref :: TableRef -> Doc
-> convTref (Tref _ f a) = convDqi f <+> convTrefAlias a
-> convTref (JoinTref _ t1 nat jt t2 ex a) =
->         parens (convTref t1
+> convTref :: Bool -> TableRef -> Doc
+> convTref nice (Tref _ f@(SQIdentifier _ t) (TableAlias _ ta))
+>   | nice, last t == ta = convDqi f
+>   -- slightly bad hack:
+> convTref nice (Tref _ f@(SQIdentifier _ t) (FullAlias _ ta _))
+>   | nice, last t == ta = convDqi f
+
+> convTref nice (Tref _ f a) = convDqi f <+> convTrefAlias nice a
+> convTref nice (JoinTref _ t1 nat jt t2 ex a) =
+>         parens (convTref nice t1
 >         $+$ (case nat of
 >                       Natural -> text "natural"
 >                       Unnatural -> empty)
@@ -509,43 +524,51 @@ Statement components
 >                           RightOuter -> "right outer"
 >                           FullOuter -> "full outer")
 >         <+> text "join"
->         <+> convTref t2
+>         <+> convTref nice t2
 >         <+> maybeConv (nest 2 . convJoinScalarExpr) ex
->         <+> convTrefAlias a)
+>         <+> convTrefAlias nice a)
 >         where
->           convJoinScalarExpr (JoinOn _ e) = text "on" <+> convExp e
+>           convJoinScalarExpr (JoinOn _ e) = text "on" <+> convExp nice e
 >           convJoinScalarExpr (JoinUsing _ ids) =
->               text "using" <+> parens (hcatCsvMap text ids)
+>               text "using" <+> parens (sepCsvMap text ids)
 >
-> convTref (SubTref _ sub alias) =
->         parens (convQueryExpr True True sub)
->         <+> text "as" <+> convTrefAlias alias
-> convTref (FunTref _ f@(FunCall _ _ _) a) = convExp f <+> convTrefAlias a
-> convTref (FunTref _ x _) =
+> convTref nice (SubTref _ sub alias) =
+>         parens (convQueryExpr nice True True sub)
+>         <+> text "as" <+> convTrefAlias nice alias
+> convTref nice (FunTref _ f@(FunCall _ _ _) a) = convExp nice f <+> convTrefAlias nice a
+> convTref _nice (FunTref _ x _) =
 >       error $ "internal error: node not supported in function tref: "
 >             ++ show x
 >
-> convTrefAlias :: TableAlias -> Doc
-> convTrefAlias (NoAlias _) = empty
-> convTrefAlias (TableAlias _ t) = text t
-> convTrefAlias (FullAlias _ t s) = text t <> parens (hcatCsvMap text s)
+> convTrefAlias :: Bool -> TableAlias -> Doc
+> convTrefAlias _ (NoAlias _) = empty
+> convTrefAlias _ (TableAlias _ t) = text t
+> -- hack this out for now. When the type checking is fixed, can try
+> -- to eliminate unneeded aliases?
+> convTrefAlias nice (FullAlias _ t s) =
+>   text t <> (if nice
+>              then empty
+>              else parens (sepCsvMap text s))
 
 > convDir :: Direction -> Doc
 > convDir d = text $ case d of
 >                           Asc -> "asc"
 >                           Desc -> "desc"
 >
-> convWhere :: Maybe ScalarExpr -> Doc
-> convWhere (Just ex) = text "where" $+$ nest 2 (convExp ex)
-> convWhere Nothing = empty
+> convWhere :: Bool -> Maybe ScalarExpr -> Doc
+> convWhere nice (Just ex) = text "where" $+$ nest 2 (convExp nice ex)
+> convWhere _ Nothing = empty
 >
-> convSelList :: SelectList -> Doc
-> convSelList (SelectList _ ex) =
->   vcatCsvMap convSelItem ex
+> convSelList :: Bool -> SelectList -> Doc
+> convSelList nice (SelectList _ ex) =
+>   sepCsvMap convSelItem ex
 >   -- <+> ifNotEmpty (\i -> text "into" <+> hcatCsvMap convExp i) into
 >   where
->     convSelItem (SelectItem _ ex1 nm) = convExpSl ex1 <+> text "as" <+> text nm
->     convSelItem (SelExp _ e) = convExpSl e
+>     -- try to avoid printing alias if not necessary
+>     convSelItem (SelectItem _ ex1@(QIdentifier _ _ i) nm) | nice, i == nm = convExpSl nice ex1
+>     convSelItem (SelectItem _ ex1@(Identifier _ i) nm) | nice, i == nm = convExpSl nice ex1
+>     convSelItem (SelectItem _ ex1 nm) = convExpSl nice ex1 <+> text "as" <+> text nm
+>     convSelItem (SelExp _ e) = convExpSl nice e
 >
 > convCasc :: Cascade -> Doc
 > convCasc casc = text $ case casc of
@@ -557,21 +580,21 @@ Statement components
 
 > -- ddl
 >
-> convCon :: Constraint -> Doc
-> convCon (UniqueConstraint _ n c) =
+> convCon :: Bool -> Constraint -> Doc
+> convCon _nice (UniqueConstraint _ n c) =
 >         mname n <+> text "unique"
->         <+> parens (hcatCsvMap text c)
-> convCon (PrimaryKeyConstraint _ n p) =
+>         <+> parens (sepCsvMap text c)
+> convCon _nice (PrimaryKeyConstraint _ n p) =
 >         mname n <+>
 >         text "primary key"
->         <+> parens (hcatCsvMap text p)
-> convCon (CheckConstraint _ n c) =
->         mname n <+> text "check" <+> parens (convExp c)
-> convCon (ReferenceConstraint _ n at tb rat ondel onupd) =
+>         <+> parens (sepCsvMap text p)
+> convCon nice (CheckConstraint _ n c) =
+>         mname n <+> text "check" <+> parens (convExp nice c)
+> convCon _nice (ReferenceConstraint _ n at tb rat ondel onupd) =
 >         mname n <+>
->         text "foreign key" <+> parens (hcatCsvMap text at)
+>         text "foreign key" <+> parens (sepCsvMap text at)
 >         <+> text "references" <+> text tb
->         <+> ifNotEmpty (parens . hcatCsvMap text) rat
+>         <+> ifNotEmpty (parens . sepCsvMap text) rat
 >         <+> text "on update" <+> convCasc onupd
 >         <+> text "on delete" <+> convCasc ondel
 >
@@ -580,10 +603,10 @@ Statement components
 >           then empty
 >           else text "constraint" <+> text n
 >
-> convReturning :: Maybe SelectList -> Doc
-> convReturning l = case l of
+> convReturning :: Bool -> Maybe SelectList -> Doc
+> convReturning nice l = case l of
 >                 Nothing -> empty
->                 Just ls -> nest 2 (text "returning" <+> convSelList ls)
+>                 Just ls -> nest 2 (text "returning" <+> convSelList nice ls)
 >
 > convIfExists :: IfExists -> Doc
 > convIfExists i = case i of
@@ -592,20 +615,20 @@ Statement components
 >
 > -- plpgsql
 >
-> convNestedStatements :: (Annotation -> String) -> StatementList -> Doc
-> convNestedStatements pa = nest 2 . vcat . map (convStatement True pa)
+> convNestedStatements :: Bool -> (Annotation -> String) -> StatementList -> Doc
+> convNestedStatements nice pa = nest 2 . vcat . map (convStatement nice True pa)
 >
 > convTypeName :: TypeName -> Doc
 > convTypeName (SimpleTypeName _ s) = text s
 > convTypeName (PrecTypeName _ s i) = text s <> parens(integer i)
-> convTypeName (Prec2TypeName _ s i i1) = text s <> parens (hcatCsv [integer i, integer i1])
+> convTypeName (Prec2TypeName _ s i i1) = text s <> parens (sepCsv [integer i, integer i1])
 > convTypeName (ArrayTypeName _ t) = convTypeName t <> text "[]"
 > convTypeName (SetOfTypeName _ t) = text "setof" <+> convTypeName t
 >
 > -- expressions
 >
-> convExp :: ScalarExpr -> Doc
-> convExp (Identifier _ i) =
+> convExp :: Bool -> ScalarExpr -> Doc
+> convExp _ (Identifier _ i) =
 >   if quotesNeeded
 >      then text $ "\"" ++ i ++ "\""
 >      else text i
@@ -618,56 +641,57 @@ Statement components
 >                        | otherwise -> True
 >                    where
 >                      okChar x =isAlphaNum x || x `elem` "*_."
-> convExp (QIdentifier a i1@(Identifier _ _) i) = convExp i1 <> text "." <> convExp (Identifier a i)
-> convExp (QIdentifier a e i) = parens (convExp e) <> text "." <> convExp (Identifier a i)
+> convExp nice (QIdentifier a i1@(Identifier _ _) i) = convExp nice i1 <> text "." <> convExp nice (Identifier a i)
+> convExp nice (QIdentifier a e i) = parens (convExp nice e) <> text "." <> convExp nice (Identifier a i)
 
 > --convExp (PIdentifier _ i) = parens $ convExp i
-> convExp (IntegerLit _ n) = integer n
-> convExp (FloatLit _ n) = double n
-> convExp (StringLit _ s) = -- needs some thought about using $$?
+> convExp _ (IntegerLit _ n) = integer n
+> convExp _ (FloatLit _ n) = double n
+> convExp _ (StringLit _ s) = -- needs some thought about using $$?
 >                           text "'" <> text replaceQuotes <> text "'"
 >                           where
 >                             replaceQuotes = replace "'" "''" s {-if tag == "'"
 >                                               then replace "'" "''" s
 >                                               else s-}
 >
-> convExp (FunCall _ n es) =
+> convExp nice (FunCall _ n es) =
 >     --check for special operators
 >    case n of
->      "!arrayctor" -> text "array" <> brackets (csvExp es)
->      "!between" -> convExp (head es) <+> text "between"
->                    <+> parens (convExp (es !! 1))
+>      "!and" | nice, [a,b] <- es -> doLeftAnds a b
+>      "!arrayctor" -> text "array" <> brackets (csvExp nice es)
+>      "!between" -> convExp nice (head es) <+> text "between"
+>                    <+> parens (convExp nice (es !! 1))
 >                   <+> text "and"
->                   <+> parens (convExp (es !! 2))
+>                   <+> parens (convExp nice (es !! 2))
 >      "!substring" -> text "substring"
->                      <> parens (convExp (head es)
->                                 <+> text "from" <+> convExp (es !! 1)
->                                 <+> text "for" <+> convExp (es !! 2))
+>                      <> parens (convExp nice (head es)
+>                                 <+> text "from" <+> convExp nice (es !! 1)
+>                                 <+> text "for" <+> convExp nice (es !! 2))
 >      "!arraysub" -> case es of
 >                        (Identifier _ i : es1) -> text i
->                                                  <> brackets (csvExp es1)
->                        _ -> parens (convExp (head es))
->                             <> brackets (csvExp (tail es))
->      "!rowctor" -> text "row" <> parens (hcatCsvMap convExp es)
+>                                                  <> brackets (csvExp nice es1)
+>                        _ -> parens (convExp nice (head es))
+>                             <> brackets (csvExp nice (tail es))
+>      "!rowctor" -> text "row" <> parens (sepCsvMap (convExp nice) es)
 >      "."   -- special case to avoid ws around '.'. Don't know if this is important
 >            -- or just cosmetic
->          | [a,b] <- es -> convExp a <> text "." <> convExp b
+>          | [a,b] <- es -> convExp nice a <> text "." <> convExp nice b
 >      _ | isOperatorName n ->
 >         case forceRight (getOperatorType defaultTemplate1Catalog n) of
 >                           BinaryOp ->
->                               let e1d = convExp (head es)
+>                               let e1d = convExp nice (head es)
 >                                   opd = text $ filterKeyword n
->                                   e2d = convExp (es !! 1)
+>                                   e2d = convExp nice (es !! 1)
 >                               in parens (if n `elem` ["!and", "!or"]
 >                                          then vcat [e1d, opd <+> e2d]
 >                                          else e1d <+> opd <+> e2d)
 >                           PrefixOp -> parens (text (if n == "u-"
 >                                                        then "-"
 >                                                        else filterKeyword n)
->                                                <+> parens (convExp (head es)))
->                           PostfixOp -> parens (convExp (head es)
+>                                                <+> parens (convExp nice (head es)))
+>                           PostfixOp -> parens (convExp nice (head es)
 >                                        <+> text (filterKeyword n))
->        | otherwise -> text n <> parens (csvExp es)
+>        | otherwise -> text n <> parens (csvExp nice es)
 >    where
 >      filterKeyword t = case t of
 >                          "!and" -> "and"
@@ -678,29 +702,37 @@ Statement components
 >                          "!like" -> "like"
 >                          "!notlike" -> "not like"
 >                          x -> x
+>      -- try to write a series of ands in a vertical line with slightly less parens
+>      doLeftAnds a b = let as = and' a
+>                       in vcat ((convExp nice (head as)
+>                                 : map (\x -> text "and" <+> convExp nice x) (tail as))
+>                                ++ [text "and" <+> convExp nice b])
+>      and' a = case a of
+>                 FunCall _ "!and" [x,y] -> and' x ++ and' y
+>                 _ -> [a]
 >
-> convExp (BooleanLit _ b) = bool b
-> convExp (InPredicate _ att t lst) =
->   convExp att <+> (if not t then text "not" else empty) <+> text "in"
+> convExp _ (BooleanLit _ b) = bool b
+> convExp nice (InPredicate _ att t lst) =
+>   convExp nice att <+> (if not t then text "not" else empty) <+> text "in"
 >   <+> parens (case lst of
->                        InList _ expr -> csvExp expr
->                        InQueryExpr _ sel -> convQueryExpr True True sel)
-> convExp (LiftOperator _ op flav args) =
->   convExp (head args) <+> text op
+>                        InList _ expr -> csvExp nice expr
+>                        InQueryExpr _ sel -> convQueryExpr nice True True sel)
+> convExp nice (LiftOperator _ op flav args) =
+>   convExp nice (head args) <+> text op
 >   <+> text (case flav of
 >               LiftAny -> "any"
 >               LiftAll -> "all")
->   <+> parens (convExp $ head $ tail args)
-> convExp (ScalarSubQuery _ s) = parens (convQueryExpr True True s)
-> convExp (NullLit _) = text "null"
-> convExp (WindowFn _ fn part order asc frm) =
->   convExp fn <+> text "over"
+>   <+> parens (convExp nice $ head $ tail args)
+> convExp nice (ScalarSubQuery _ s) = parens (convQueryExpr nice True True s)
+> convExp _ (NullLit _) = text "null"
+> convExp nice (WindowFn _ fn part order asc frm) =
+>   convExp nice fn <+> text "over"
 >   <+> parens (if hp || ho
 >               then (if hp
->                     then text "partition by" <+> csvExp part
+>                     then text "partition by" <+> csvExp nice part
 >                     else empty)
 >                     <+> (if ho
->                          then text "order by" <+> csvExp order
+>                          then text "order by" <+> csvExp nice order
 >                               <+> convDir asc
 >                          else empty)
 >                     <+> convFrm
@@ -714,37 +746,37 @@ Statement components
 >                                            \preceding and unbounded following"
 >                 FrameRowsUnboundedPreceding -> text "rows unbounded preceding"
 >
-> convExp (Case _ whens els) =
+> convExp nice (Case _ whens els) =
 >   text "case"
 >   $+$ nest 2 (vcat (map convWhen whens)
->               $+$ maybeConv (\e -> text "else" <+> convExp e) els)
+>               $+$ maybeConv (\e -> text "else" <+> convExp nice e) els)
 >   $+$ text "end"
 >       where
 >         convWhen (ex1, ex2) =
->             text "when" <+> hcatCsvMap convExp ex1
->             <+> text "then" <+> convExp ex2
+>             text "when" <+> sepCsvMap (convExp nice) ex1
+>             <+> text "then" <+> convExp nice ex2
 >
-> convExp (CaseSimple _ val whens els) =
->   text "case" <+> convExp val
+> convExp nice (CaseSimple _ val whens els) =
+>   text "case" <+> convExp nice val
 >   $+$ nest 2 (vcat (map convWhen whens)
->               $+$ maybeConv (\e -> text "else" <+> convExp e) els)
+>               $+$ maybeConv (\e -> text "else" <+> convExp nice e) els)
 >   $+$ text "end"
 >       where
 >         convWhen (ex1, ex2) =
->             text "when" <+> hcatCsvMap convExp ex1
->             <+> text "then" <+> convExp ex2
+>             text "when" <+> sepCsvMap (convExp nice) ex1
+>             <+> text "then" <+> convExp nice ex2
 >
-> convExp (PositionalArg _ a) = text "$" <> integer a
-> convExp (Placeholder _) = text "?"
-> convExp (Exists _ s) =
->   text "exists" <+> parens (convQueryExpr True True s)
-> convExp (Cast _ ex t) = text "cast" <> parens (convExp ex
+> convExp _ (PositionalArg _ a) = text "$" <> integer a
+> convExp _ (Placeholder _) = text "?"
+> convExp nice (Exists _ s) =
+>   text "exists" <+> parens (convQueryExpr nice True True s)
+> convExp nice (Cast _ ex t) = text "cast" <> parens (convExp nice ex
 >                                              <+> text "as"
 >                                              <+> convTypeName t)
-> convExp (TypedStringLit a t s) =
->   convTypeName t <+> convExp (StringLit a s)
-> convExp (Interval a v f p) =
->   text "interval" <+> convExp (StringLit a v)
+> convExp nice (TypedStringLit a t s) =
+>   convTypeName t <+> convExp nice (StringLit a s)
+> convExp nice (Interval a v f p) =
+>   text "interval" <+> convExp nice (StringLit a v)
 >   <+> convIntervalField <+> convPrec
 >   where
 >     convIntervalField =
@@ -765,9 +797,9 @@ Statement components
 >     convPrec = case p of
 >                  Nothing -> empty
 >                  Just i -> parens (int i)
-> convExp (Extract _ f e) =
+> convExp nice (Extract _ f e) =
 >   text "extract"
->   <> parens (text convField <+> text "from" <+> convExp e)
+>   <> parens (text convField <+> text "from" <+> convExp nice e)
 >   where
 >     convField =
 >       case f of
@@ -794,28 +826,28 @@ Statement components
 >              ExtractYear -> "year"
 
 
-> convExpSl :: ScalarExpr -> Doc
-> convExpSl (FunCall _ "." es) | [a@(Identifier _ _), b] <- es =
->   parens (convExpSl a) <> text "." <> convExpSl b
-> convExpSl x = convExp x
+> convExpSl :: Bool ->  ScalarExpr -> Doc
+> convExpSl nice (FunCall _ "." es) | [a@(Identifier _ _), b] <- es =
+>   parens (convExpSl nice a) <> text "." <> convExpSl nice b
+> convExpSl nice x = convExp nice x
 
 >
-> convSet :: ScalarExpr -> Doc
-> convSet (FunCall _ "=" [Identifier _ a, e]) =
->   text a <+> text "=" <+> convExp e
-> convSet (FunCall _ "=" [a, b]) | (FunCall _ "!rowctor" is1) <- a
+> convSet :: Bool -> ScalarExpr -> Doc
+> convSet nice (FunCall _ "=" [Identifier _ a, e]) =
+>   text a <+> text "=" <+> convExp nice e
+> convSet nice (FunCall _ "=" [a, b]) | (FunCall _ "!rowctor" is1) <- a
 >                                 ,(FunCall _ "!rowctor" is2) <- b =
 >   rsNoRow is1 <+> text "=" <+> rsNoRow is2
 >   where
->     rsNoRow is = parens (hcatCsvMap convExp is)
-> convSet a = error $ "bad expression in set in update: " ++ show a
+>     rsNoRow is = parens (sepCsvMap (convExp nice) is)
+> convSet _ a = error $ "bad expression in set in update: " ++ show a
 >
 > --utils
 >
 > -- convert a list of expressions to horizontal csv
 >
-> csvExp :: [ScalarExpr] -> Doc
-> csvExp = hcatCsvMap convExp
+> csvExp :: Bool -> [ScalarExpr] -> Doc
+> csvExp nice = hcatCsvMap (convExp nice)
 >
 > maybeConv :: (t -> Doc) -> Maybe t -> Doc
 > maybeConv f c =
@@ -828,6 +860,9 @@ Statement components
 >
 > hcatCsv :: [Doc] -> Doc
 > hcatCsv = hcat . csv
+
+> sepCsv :: [Doc] -> Doc
+> sepCsv = sep . csv
 >
 > ifNotEmpty :: ([a] -> Doc) -> [a] -> Doc
 > ifNotEmpty c l = if null l then empty else c l
@@ -835,8 +870,13 @@ Statement components
 > hcatCsvMap :: (a -> Doc) -> [a] -> Doc
 > hcatCsvMap ex = hcatCsv . map ex
 
-> vcatCsvMap :: (a -> Doc) -> [a] -> Doc
-> vcatCsvMap ex = vcat . csv . map ex
+> sepCsvMap :: (a -> Doc) -> [a] -> Doc
+> sepCsvMap ex = sepCsv . map ex
+
+
+
+> --vcatCsvMap :: (a -> Doc) -> [a] -> Doc
+> --vcatCsvMap ex = vcat . csv . map ex
 
 >
 > bool :: Bool -> Doc

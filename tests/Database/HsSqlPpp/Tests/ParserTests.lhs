@@ -117,6 +117,13 @@ test some more really basic expressions
 >         (FunCall ea "!like" [Identifier ea "a", Identifier ea "b"])
 >      ,e "a not like b"
 >         (FunCall ea "!notlike" [Identifier ea "a", Identifier ea "b"])
+>      , e "a and b and c and d"
+>         (FunCall ea "!and"
+>          [FunCall ea "!and"
+>           [FunCall ea "!and" [Identifier ea "a"
+>                              ,Identifier ea "b"]
+>           ,Identifier ea "c"]
+>          ,Identifier ea "d"])
 >      ]
 >    ,Group "function calls" [
 >       e "fn()" (FunCall ea "fn" [])
