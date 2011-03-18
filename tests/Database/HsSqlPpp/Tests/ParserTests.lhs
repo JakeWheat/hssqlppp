@@ -1185,14 +1185,14 @@ quick sanity check
 >       [Perform ea $ FunCall ea "test" [
 >                     FunCall ea "||" [eqi "r" "relvar_name"
 >                                     ,stringQ "_and_stuff"]]]
->      ,f "select into a,b c,d from e;"
+>      {-,f "select into a,b c,d from e;"
 >       [Into ea False [ei "a", ei "b"]
 >        $ QueryStatement ea $ Select ea Dupes (SelectList ea [selI "c", selI "d"])
->              [Tref ea (i "e") (NoAlias ea)] Nothing [] Nothing [] Nothing Nothing]
->      ,f "select c,d into a,b from e;"
+>              [Tref ea (i "e") (NoAlias ea)] Nothing [] Nothing [] Nothing Nothing]-}
+>      {-,f "select c,d into a,b from e;"
 >       [Into ea False [ei "a", ei "b"]
 >        $ QueryStatement ea $ Select ea Dupes (SelectList ea [selI "c", selI "d"])
->        [Tref ea (i "e") (NoAlias ea)] Nothing [] Nothing [] Nothing Nothing]
+>        [Tref ea (i "e") (NoAlias ea)] Nothing [] Nothing [] Nothing Nothing]-}
 >      ,f "update pieces\n\
 >         \set a=b returning tag into r.tag;"
 >       [Into ea False [eqi "r" "tag"]

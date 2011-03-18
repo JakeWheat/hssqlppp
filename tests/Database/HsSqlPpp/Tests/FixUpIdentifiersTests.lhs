@@ -110,7 +110,7 @@ cd /home/jake/wd/hssqlppp/trunk/src/lib/Database/HsSqlPpp/AstInternals && uuagc 
 >     [Item db1 "select a,b,f(a),a::int,a+b,row_number() over (order by a), a as c from t;"
 >               "select t.a as a,t.b as b,f(t.a) as f,t.a::int as \"int\",t.a+t.b as \"?column?\",row_number() over (order by t.a) as row_number, t.a as c from t as t(a,b);"
 >     ]
->   ,Group "tpch"
+>   {-,Group "tpch"
 >     $ zipWith (\q q1 -> MSItem tpchCatalog q q1) (map snd tpchQueries)
 >         [[$here|
 \begin{code}
@@ -189,7 +189,7 @@ set rowcount 100
 go
 \end{code}
 >                                     |]
->     ]
+>     ] -}
 >   ]
 
 qualifier and column name the same

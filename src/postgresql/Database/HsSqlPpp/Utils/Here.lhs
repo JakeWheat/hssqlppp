@@ -10,4 +10,5 @@ robbed from http://old.nabble.com/Multi-line-string-literals-are-both-easy--and-
 > import Language.Haskell.TH.Lib
 >
 > here :: QuasiQuoter
-> here = QuasiQuoter (litE . stringL) (litP . stringL)
+> here = QuasiQuoter {quoteExp = litE . stringL
+>                    ,quotePat = litP . stringL}
