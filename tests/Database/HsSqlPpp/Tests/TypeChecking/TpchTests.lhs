@@ -36,18 +36,59 @@ moment.
 >                           Query n s (SetOfType $ CompositeType t))
 >   tpchQueries
 >   [-- q1
->    [("l_returnflag", typeChar), ("l_linestatus", typeChar)
->    ,("sum_qty", typeNumeric), ("sum_base_price", typeNumeric)
->    ,("sum_disc_price", typeNumeric), ("sum_charge", typeNumeric)
->    ,("avg_qty", typeNumeric),("avg_price", typeNumeric)
->    ,("avg_disc", typeNumeric),("count_order", typeBigInt)]
+>    [("l_returnflag", typeChar)
+>    ,("l_linestatus", typeChar)
+>    ,("sum_qty", typeNumeric)
+>    ,("sum_base_price", typeNumeric)
+>    ,("sum_disc_price", typeNumeric)
+>    ,("sum_charge", typeNumeric)
+>    ,("avg_qty", typeNumeric)
+>    ,("avg_price", typeNumeric)
+>    ,("avg_disc", typeNumeric)
+>    ,("count_order", typeBigInt)]
 >   ,--q2
 >    [("s_acctbal", typeNumeric)
 >    ,("s_name", typeChar)
->    ,("n_name", typeChar), ("p_partkey", typeInt), ("p_mfgr", typeChar)
->    ,("s_address", typeVarChar), ("s_phone", typeChar)
+>    ,("n_name", typeChar)
+>    ,("p_partkey", typeInt)
+>    ,("p_mfgr", typeChar)
+>    ,("s_address", typeVarChar)
+>    ,("s_phone", typeChar)
 >    ,("s_comment", typeVarChar)]
-
+>   ,--q3
+>    [("l_orderkey", typeInt)
+>     ,("revenue", typeNumeric)
+>     ,("o_orderdate", typeDate)
+>     ,("o_shippriority", typeInt)]
+>   ,--q4
+>    [("o_orderpriority", typeChar)
+>    ,("order_count", typeBigInt)]
+>   ,--q5
+>    [("n_name", typeChar)
+>    ,("revenue", typeNumeric)]
+>   ,--q6
+>    [("revenue", typeNumeric)]
+>   ,--q7
+>    [("supp_nation", typeChar)
+>    ,("cust_nation", typeChar)
+>    ,("l_year", typeFloat8)
+>    ,("revenue", typeNumeric)]
+>   ,--q8
+>    [("o_year", typeFloat8)
+>    ,("mkt_share", typeNumeric)]
+>   ,--q9
+>    [("nation", typeChar)
+>     ,("o_year", typeFloat8)
+>     ,("sum_profit", typeNumeric)]
+>   ,--q10
+>    [("c_custkey",typeInt)
+>    ,("c_name", typeChar)
+>    ,("revenue", typeNumeric)
+>    ,("c_acctbal", typeNumeric)
+>    ,("n_name", typeChar)
+>    ,("c_address", typeVarChar)
+>    ,("c_phone", typeChar)
+>    ,("c_comment", typeVarChar)]
 >   ]
 
 > itemToTft :: Item -> Test.Framework.Test

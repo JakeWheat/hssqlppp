@@ -103,7 +103,12 @@ SEM QueryExpr
          -- add for correlated subquery support
          selWhere.lib = joinBindings @loc.newLib @lhs.csql
          selGroupBy.lib = @loc.newLib
-         selOrderBy.lib = @loc.newLib
+         -- have to add the select list columns aliases to the order by local bindings
+         -- since these can be referenced in an order by. TODO: add restriction
+         -- for the select list identifiers, see 7.5. Sorting Rows in pg 9.0 manual
+         loc.slTypes : LocalBindings
+         loc.slTypes = createLocalBindings $ Just [("",@selSelectList.listType)]
+         selOrderBy.lib = joinBindings @loc.slTypes @loc.newLib
 
 ATTR QueryExpr [||libUpdates : {[LocalBindingsUpdate]}
                   uType : {Maybe [(String,Type)]}]
@@ -112,8 +117,6 @@ ATTR QueryExpr [csql : LocalBindings||]
 
 SEM InList
     | InQueryExpr sel.csql = emptyBindings
-SEM ScalarExpr
-    | Exists sel.csql = emptyBindings -- fixme
 SEM Statement
     | CreateTableAs expr.csql = emptyBindings
     | CreateView expr.csql = emptyBindings

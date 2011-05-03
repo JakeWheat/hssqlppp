@@ -20,6 +20,7 @@ SEM ScalarExpr
       QIdentifier
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
       PositionalArg Placeholder WindowFn TypedStringLit Interval
+      Extract
         lhs.annotatedTree = updateAnnotation
                               (setTypeAddErrorsA @loc.tpe
                                . \a -> a {fnProt = @loc.prototype
@@ -32,7 +33,7 @@ SEM ScalarExpr
     | IntegerLit StringLit FloatLit BooleanLit NullLit Identifier
       QIdentifier
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
-      PositionalArg Placeholder WindowFn TypedStringLit Interval
+      PositionalArg Placeholder WindowFn TypedStringLit Interval Extract
         loc.prototype : {Maybe FunctionPrototype}
         loc.prototype = Nothing
 
@@ -91,7 +92,7 @@ ATTR ScalarExpr [|| uType : {Maybe Type}]
 SEM ScalarExpr
     | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier QIdentifier
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
-      PositionalArg Placeholder WindowFn TypedStringLit Interval
+      PositionalArg Placeholder WindowFn TypedStringLit Interval Extract
         lhs.uType = etmt @loc.tpe
 
 SEM ScalarExprList
@@ -360,6 +361,8 @@ SEM ScalarExpr
         loc.backTree = ScalarSubQuery @ann @sel.annotatedTree
         -- support for correlated subqueries
         sel.csql = @lhs.lib
+    | Exists
+        sel.csql = @lhs.lib
 {-
 == inlist
 todo: make the ast and typechecking a special case of lifted operator
@@ -392,3 +395,12 @@ SEM InList
                                  "got subquery with no columns? in inselect"]
                       1 -> Right $ head st
                       _ -> Right $ AnonymousRecordType st
+
+SEM ScalarExpr
+    | Extract
+        loc.tpe = do
+                  x <- lmt @e.uType
+                  case x of
+                    typeDate -> Right typeFloat8
+                    _ -> Left [NoMatchingOperator "extract" [x]]
+        loc.backTree = Extract @ann @field @e.annotatedTree

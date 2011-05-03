@@ -926,15 +926,15 @@ CREATE TABLE ORDERS  ( O_ORDERKEY       INTEGER NOT NULL,
                            O_SHIPPRIORITY   INTEGER NOT NULL,
                            O_COMMENT        VARCHAR(79) NOT NULL);
 
->   ,CatCreateTable "order" [("o_orderkey", typeInt)
->                           ,("o_custykey", typeInt)
->                           ,("o_orderstatus", typeChar)
->                           ,("o_totalprice", typeNumeric)
->                           ,("o_orderdate", typeDate)
->                           ,("o_orderpriority", typeChar)
->                           ,("o_clerk", typeChar)
->                           ,("o_shippriority", typeInt)
->                           ,("o_comment", typeVarChar)] []
+>   ,CatCreateTable "orders" [("o_orderkey", typeInt)
+>                            ,("o_custkey", typeInt)
+>                            ,("o_orderstatus", typeChar)
+>                            ,("o_totalprice", typeNumeric)
+>                            ,("o_orderdate", typeDate)
+>                            ,("o_orderpriority", typeChar)
+>                            ,("o_clerk", typeChar)
+>                            ,("o_shippriority", typeInt)
+>                            ,("o_comment", typeVarChar)] []
 
 
 CREATE TABLE LINEITEM ( L_ORDERKEY    INTEGER NOT NULL,
