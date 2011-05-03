@@ -201,13 +201,14 @@ SEM TableRefList
     | Nil
         lhs.newLib2 = createLocalBindings $ Just []
     | Cons
-        lhs.newLib2 = @hd.newLib2 -- todo, combine properly
+        lhs.newLib2 = joinBindings @hd.newLib2 @tl.newLib2
 
 SEM TableRef
     | Tref
         lhs.newLib2 =
              createLocalBindings $ do
              let n = getTName @tbl.annotatedTree
+             -- public and pg internal fields
              (pu,pr) <- @tbl.tbUType
              -- factor in alias
              let (n,cs) = case @alias.originalTree of
@@ -215,7 +216,31 @@ SEM TableRef
                             _ -> (n, []) --todo:fix, shouldn't ever not have full alias but does
              return [(n,zip cs $ map (Just . snd) pu)
                     ,(n,map (second Just) pr)]
-    | SubTref JoinTref FunTref
+    | JoinTref
+        lhs.newLib2 =
+             let t0t :: [(String,Maybe Type)]
+                 t0t = getUnqualifiedBindings @tbl.newLib2
+                 t1t = getUnqualifiedBindings @tbl1.newLib2
+             -- missing the internal fields
+             in case @alias.originalTree of
+               (FullAlias _ n cs) ->
+                   -- not sure if this is correct
+                   createLocalBindings $ Just [(n,zip cs $ map snd (t0t ++ t1t))]
+               (TableAlias _ n) ->
+                   createLocalBindings $ Just [(n, t0t ++ t1t)]
+               NoAlias _ ->
+                   joinBindings @tbl.newLib2 @tbl1.newLib2
+    | SubTref
+        lhs.newLib2 =
+             createLocalBindings $ do
+             pu <- @sel.uType
+             -- factor in alias
+             let (n,cs) = case @alias.originalTree of
+                            (FullAlias _ n cs) -> (n,cs)
+                            _ -> (n, []) --todo:fix, shouldn't ever not have full alias but does
+             return [(n,zip cs $ map (Just . snd) pu)]
+    | FunTref
+      -- todo
         lhs.newLib2 = emptyBindings
 
 

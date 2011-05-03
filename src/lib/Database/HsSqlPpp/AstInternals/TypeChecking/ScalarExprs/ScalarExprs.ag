@@ -36,6 +36,56 @@ SEM ScalarExpr
         loc.prototype : {Maybe FunctionPrototype}
         loc.prototype = Nothing
 
+-- support for correlated subqueries
+{-ATTR ScalarExpr
+     CaseScalarExprListScalarExprPair
+     CaseScalarExprListScalarExprPairList
+     [ csqt : {Maybe [(String,Maybe Type)]}||]
+
+SEM AlterTableAction
+    | AlterColumnDefault def.csqt = Nothing
+SEM Constraint
+    | CheckConstraint expr.csqt = Nothing
+SEM JoinExpr
+    | JoinOn expr.csqt = Nothing
+SEM MaybeBoolExpr
+    | Just just.csqt = Nothing
+SEM MaybeScalarExpr
+    | Just just.csqt = Nothing
+SEM RowConstraint
+    | RowCheckConstraint expr.csqt = Nothing
+SEM ScalarExprDirectionPair
+    | Tuple x1.csqt = Nothing
+SEM ScalarExprList
+    | Cons hd.csqt = Nothing
+SEM ScalarExprRoot
+    | ScalarExprRoot expr.csqt = Nothing
+SEM ScalarExprStatementListPair
+    | Tuple x1.csqt = Nothing
+SEM SelectItem
+    | SelExp ex.csqt = Nothing
+    | SelectItem ex.csqt = Nothing
+SEM Statement
+    | Assignment
+        target.csqt = Nothing
+        value.csqt = Nothing
+    | CaseStatementSimple val.csqt = Nothing
+    | Execute expr.csqt = Nothing
+    | ForIntegerStatement
+        var.csqt = Nothing
+        from.csqt = Nothing
+        to.csqt = Nothing
+    | ForQueryStatement var.csqt = Nothing
+    | Perform expr.csqt = Nothing
+    | ReturnNext expr.csqt = Nothing
+    | WhileStatement expr.csqt = Nothing
+SEM TableRef
+    | FunTref fn.csqt = Nothing-}
+
+
+
+---------------------------------------------------------------------
+
 ATTR ScalarExpr [|| uType : {Maybe Type}]
 
 SEM ScalarExpr
@@ -64,6 +114,7 @@ ATTR MaybeScalarExpr  [||uType : {Maybe Type}]
 SEM MaybeScalarExpr
     | Just lhs.uType = @just.uType
     | Nothing lhs.uType = Nothing
+
 
 -- maybe bool expression: if present, then check its type is bool
 
@@ -291,7 +342,7 @@ SEM ScalarExpr
 
 
 {-
-== scalar subquery
+== scalarsubquery
 1 col -> type of that col
 2 + cols -> row type
 -}
@@ -307,6 +358,8 @@ SEM ScalarExpr
               _ -> Right $ AnonymousRecordType selType
 
         loc.backTree = ScalarSubQuery @ann @sel.annotatedTree
+        -- support for correlated subqueries
+        sel.csql = @lhs.lib
 {-
 == inlist
 todo: make the ast and typechecking a special case of lifted operator

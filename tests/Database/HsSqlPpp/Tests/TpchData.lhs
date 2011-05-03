@@ -34,8 +34,8 @@ group by
 order by
         l_returnflag,
         l_linestatus;
-set rowcount -1
-go
+--set rowcount -1
+--go
 \end{code}
 >                                     |])
 >   ,("Q2",[$here|
@@ -84,8 +84,8 @@ order by
         n_name,
         s_name,
         p_partkey;
-set rowcount 100
-go
+--set rowcount 100
+--go
 \end{code}
 >                                     |])
 >   ,("Q3",[$here|

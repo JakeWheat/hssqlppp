@@ -12,6 +12,8 @@ of the system.
 >     ,lbLookupIDInType
 >     ,ppLocalBindings
 >     ,createLocalBindings
+>     ,getUnqualifiedBindings
+>     ,joinBindings
 >     ,lookupLocalBinding
 >     ) where
 >

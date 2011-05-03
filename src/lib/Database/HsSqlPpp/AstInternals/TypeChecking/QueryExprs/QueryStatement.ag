@@ -100,12 +100,33 @@ SEM QueryExpr
                         Right e -> e-}
          loc.newLib = @selTref.newLib2
          selSelectList.lib = @loc.newLib
-         selWhere.lib = @loc.newLib
+         -- add for correlated subquery support
+         selWhere.lib = joinBindings @loc.newLib @lhs.csql
          selGroupBy.lib = @loc.newLib
          selOrderBy.lib = @loc.newLib
 
 ATTR QueryExpr [||libUpdates : {[LocalBindingsUpdate]}
-                         uType : {Maybe [(String,Type)]}]
+                  uType : {Maybe [(String,Type)]}]
+-- correlated subqueries
+ATTR QueryExpr [csql : LocalBindings||]
+
+SEM InList
+    | InQueryExpr sel.csql = emptyBindings
+SEM ScalarExpr
+    | Exists sel.csql = emptyBindings -- fixme
+SEM Statement
+    | CreateTableAs expr.csql = emptyBindings
+    | CreateView expr.csql = emptyBindings
+    | ForQueryStatement sel.csql = emptyBindings
+    | Insert insData.csql = emptyBindings
+    | QueryStatement ex.csql = emptyBindings
+    | ReturnQuery sel.csql = emptyBindings
+SEM TableRef
+    | SubTref sel.csql = emptyBindings
+SEM WithQuery
+    | WithQuery ex.csql = emptyBindings
+
+------------------------------------
 
 SEM Statement
     | QueryStatement

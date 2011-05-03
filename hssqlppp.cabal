@@ -60,6 +60,8 @@ Library
   if flag(quasiquotes) || flag(tests)
      Build-Depends:  template-haskell >= 2.4.0.0 && < 2.6
 
+  build-tools:       cpphs
+
   hs-source-dirs:    src/lib
   if flag(quasiquotes) || flag(tests)
     hs-source-dirs:    src/qq
@@ -112,7 +114,8 @@ Library
                      FlexibleContexts,
                      ExistentialQuantification,
                      CPP,
-                     PatternGuards
+                     PatternGuards,
+                     TupleSections
 
 Executable Tests
   Main-Is:           Tests.lhs
@@ -134,6 +137,7 @@ Executable Tests
   else
     Build-Depends:   base >= 4 && < 5
 
+  build-tools:       cpphs
   ghc-options:       -pgmPcpphs -optP--cpp
 
   if flag(tests)
@@ -147,4 +151,5 @@ Executable Tests
                      FlexibleContexts,
                      ExistentialQuantification,
                      CPP,
-                     PatternGuards
+                     PatternGuards,
+                     TupleSections

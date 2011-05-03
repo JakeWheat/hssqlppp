@@ -51,6 +51,8 @@ in scope, and one for an unqualified star.
 >     ,ppLocalBindings
 >     ,ppLbls
 >     ,createLocalBindings
+>     ,getUnqualifiedBindings
+>     ,joinBindings
 >     ,lookupLocalBinding
 >     ) where
 >
@@ -58,9 +60,9 @@ in scope, and one for an unqualified star.
 > --import Control.Applicative
 > --import Debug.Trace
 > import Data.List
-> import Data.Maybe
+> --import Data.Maybe
 > import Data.Char
-> import Data.Either
+> --import Data.Either
 > --import qualified Data.Map as M
 >
 > import Database.HsSqlPpp.AstInternals.TypeType
@@ -81,6 +83,18 @@ in scope, and one for an unqualified star.
 >   where
 >     mb b = LocalBindings
 >             $ flip concatMap b $ \(qn,cs) -> flip map cs $ \(c,t) -> ((qn,c), t)
+
+> getUnqualifiedBindings :: LocalBindings -> [(String,Maybe Type)]
+> getUnqualifiedBindings (LocalBindings ls) =
+>   map unwrap ls
+>   where
+>     unwrap ((_,n),t) = (n,t)
+> getUnqualifiedBindings LocalBindingsError = []
+
+> joinBindings :: LocalBindings -> LocalBindings -> LocalBindings
+> joinBindings (LocalBindings a) (LocalBindings b) = LocalBindings $ a ++ b
+> joinBindings LocalBindingsError _ = LocalBindingsError
+> joinBindings _ LocalBindingsError = LocalBindingsError
 
 > lookupLocalBinding :: LocalBindings -> String -> String -> E (Maybe Type)
 > lookupLocalBinding LocalBindingsError _ _ = Right Nothing

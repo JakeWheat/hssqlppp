@@ -322,7 +322,7 @@ fixUpIdentifiers cat sts =
                                   ,idenv_Inh_Root = emptyIDEnv}
         tl = fixedUpIdentifiersTree_Syn_Root ta
     in case tl of
-         Root r -> r
+         Root r -> countHack r
 
 fixUpIdentifiersSE :: Catalog -> ScalarExpr -> ScalarExpr
 fixUpIdentifiersSE cat sts =
@@ -332,12 +332,21 @@ fixUpIdentifiersSE cat sts =
                                   ,idenv_Inh_ScalarExprRoot = emptyIDEnv}
         tl = fixedUpIdentifiersTree_Syn_ScalarExprRoot ta
     in case tl of
-         ScalarExprRoot r -> r
+         ScalarExprRoot r -> countHack r
 
 fixUpIdentifiersQE :: Catalog -> QueryExpr -> QueryExpr
 fixUpIdentifiersQE cat qe =
     let [QueryStatement _ qe'] = fixUpIdentifiers cat [QueryStatement emptyAnnotation qe]
-    in qe'
+    in countHack qe'
+
+-- small hack to convert count(*) into count(1). Should be fixed when
+-- a more general approach to aggregates is written
+
+countHack :: Data a => a -> a
+countHack = transformBi $ \x -> case x of
+              FunCall a "count" [Identifier ia "*"] ->
+                FunCall a "count" [IntegerLit ia 1]
+              x1 -> x1
 
 }
 
