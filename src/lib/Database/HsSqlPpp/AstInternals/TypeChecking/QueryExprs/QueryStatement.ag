@@ -102,6 +102,7 @@ SEM QueryExpr
          selSelectList.lib = @loc.newLib
          -- add for correlated subquery support
          selWhere.lib = joinBindings @loc.newLib @lhs.csql
+         selHaving.lib = joinBindings @loc.newLib @lhs.csql
          selGroupBy.lib = @loc.newLib
          -- have to add the select list columns aliases to the order by local bindings
          -- since these can be referenced in an order by. TODO: add restriction

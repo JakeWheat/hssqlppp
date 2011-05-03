@@ -383,12 +383,15 @@ SEM TableRef
             (trs,al) = doAlias @alias.annotatedTree [(f,[f])] -- needs fixing for table returning functions
         in (trs,FunTref @ann @fn.fixedUpIdentifiersTree al)
 
-    | JoinTref (lhs.trefIDs,lhs.fixedUpIdentifiersTree) =
-        -- temp - needs fixing for natural joins
-        let (trs,al) = doAlias @alias.annotatedTree $ @tbl.trefIDs ++ @tbl1.trefIDs
-        in (trs, JoinTref @ann @tbl.fixedUpIdentifiersTree
-                          @nat @joinType @tbl1.fixedUpIdentifiersTree
-                          @onExpr.fixedUpIdentifiersTree al)
+    | JoinTref
+        (loc.trefIDs,lhs.fixedUpIdentifiersTree) =
+          -- temp - needs fixing for natural joins
+          let (trs,al) = doAlias @alias.annotatedTree $ @tbl.trefIDs ++ @tbl1.trefIDs
+          in (trs, JoinTref @ann @tbl.fixedUpIdentifiersTree
+                            @nat @joinType @tbl1.fixedUpIdentifiersTree
+                            @onExpr.fixedUpIdentifiersTree al)
+        lhs.trefIDs = @loc.trefIDs
+        onExpr.idenv = IDEnv @loc.trefIDs
 {
 doAlias :: TableAlias -> [(String,[String])] -> ([(String,[String])],TableAlias)
 doAlias (NoAlias a) [] = ([],NoAlias a)

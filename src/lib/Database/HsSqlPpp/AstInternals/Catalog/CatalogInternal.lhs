@@ -414,6 +414,7 @@ This is wrong, these need to be separated into prefix, postfix, binary
 >   ("!and", [typeBool, typeBool], typeBool, False)
 >  ,("!or", [typeBool, typeBool], typeBool, False)
 >  ,("!like", [ScalarType "text", ScalarType "text"], typeBool, False)
+>  ,("!notlike", [ScalarType "text", ScalarType "text"], typeBool, False)
 >  ,("!not", [typeBool], typeBool, False)
 >  ,("!isnull", [Pseudo AnyElement], typeBool, False)
 >  ,("!isnotnull", [Pseudo AnyElement], typeBool, False)

@@ -141,7 +141,7 @@ join - most of the hard work is done in local bindings
                        ([u1],[u2]) -> lbUpdate @lhs.cat
                                         (LBJoinTref "join" u1 u2 (Right []) Nothing) @lhs.lib
                        _ -> Right @lhs.lib
-        onExpr.lib = fromRight @lhs.lib @loc.newLib
+        --onExpr.lib = fromRight @lhs.lib @loc.newLib
 
 {
 
@@ -217,7 +217,7 @@ SEM TableRef
              return [(n,zip cs $ map (Just . snd) pu)
                     ,(n,map (second Just) pr)]
     | JoinTref
-        lhs.newLib2 =
+        loc.newLib2 =
              let t0t :: [(String,Maybe Type)]
                  t0t = getUnqualifiedBindings @tbl.newLib2
                  t1t = getUnqualifiedBindings @tbl1.newLib2
@@ -230,6 +230,9 @@ SEM TableRef
                    createLocalBindings $ Just [(n, t0t ++ t1t)]
                NoAlias _ ->
                    joinBindings @tbl.newLib2 @tbl1.newLib2
+        lhs.newLib2 = @loc.newLib2
+        onExpr.lib = @loc.newLib2
+
     | SubTref
         lhs.newLib2 =
              createLocalBindings $ do

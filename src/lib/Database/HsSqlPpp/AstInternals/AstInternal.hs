@@ -2058,7 +2058,7 @@ sem_InList_InQueryExpr ann_ sel_  =
                                        "got subquery with no columns? in inselect"]
                             1 -> Right $ head st
                             _ -> Right $ AnonymousRecordType st
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 119, column 19)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 120, column 19)
               _selOcsql =
                   emptyBindings
               -- "./TypeChecking/ParameterizedStatements.ag"(line 173, column 19)
@@ -3198,21 +3198,21 @@ sem_QueryExpr_CombineQueryExpr ann_ ctype_ sel1_ sel2_  =
               -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 29, column 9)
               _lhsOannotatedTree =
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 140, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 141, column 9)
               _lhsOlibUpdates =
                   []
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 167, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 168, column 9)
               _tpe =
                   do
                   sel1t <- lmt ((SetOfType . CompositeType) <$> _sel1IuType)
                   sel2t <- lmt ((SetOfType . CompositeType) <$> _sel2IuType)
                   typeCheckCombineSelect _lhsIcat sel1t sel2t
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 173, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 174, column 9)
               _backTree =
                   CombineQueryExpr ann_ ctype_
                                 _sel1IannotatedTree
                                 _sel2IannotatedTree
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 184, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 185, column 9)
               _lhsOuType =
                   etmt (_tpe     >>= unwrapSetOfComposite)
               -- self rule
@@ -3292,6 +3292,7 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
               _lhsOannotatedTree :: QueryExpr 
               _selSelectListOlib :: LocalBindings
               _selWhereOlib :: LocalBindings
+              _selHavingOlib :: LocalBindings
               _selGroupByOlib :: LocalBindings
               _slTypes :: LocalBindings
               _selOrderByOlib :: LocalBindings
@@ -3307,7 +3308,6 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
               _selWhereOcat :: Catalog
               _selGroupByOcat :: Catalog
               _selHavingOcat :: Catalog
-              _selHavingOlib :: LocalBindings
               _selOrderByOcat :: Catalog
               _selLimitOcat :: Catalog
               _selLimitOidenv :: IDEnv
@@ -3397,21 +3397,24 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
               _selWhereOlib =
                   joinBindings _newLib     _lhsIcsql
               -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 105, column 10)
+              _selHavingOlib =
+                  joinBindings _newLib     _lhsIcsql
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 106, column 10)
               _selGroupByOlib =
                   _newLib
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 110, column 10)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 111, column 10)
               _slTypes =
                   createLocalBindings $ Just [("",_selSelectListIlistType)]
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 111, column 10)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 112, column 10)
               _selOrderByOlib =
                   joinBindings _slTypes     _newLib
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 142, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 143, column 9)
               _lhsOlibUpdates =
                   _selSelectListIlibUpdates
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 154, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 155, column 9)
               _tpe =
                   Right $ SetOfType $ CompositeType $ fromMaybe [] $ liftList  _selSelectListIlistType
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 156, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 157, column 9)
               _backTree =
                   Select ann_
                          selDistinct_
@@ -3423,7 +3426,7 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
                          _selOrderByIannotatedTree
                          _selLimitIannotatedTree
                          _selOffsetIannotatedTree
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 184, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 185, column 9)
               _lhsOuType =
                   etmt (_tpe     >>= unwrapSetOfComposite)
               -- "./TypeChecking/ParameterizedStatements.ag"(line 150, column 14)
@@ -3462,9 +3465,6 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
               -- copy rule (down)
               _selHavingOcat =
                   _lhsIcat
-              -- copy rule (down)
-              _selHavingOlib =
-                  _lhsIlib
               -- copy rule (down)
               _selOrderByOcat =
                   _lhsIcat
@@ -3533,18 +3533,18 @@ sem_QueryExpr_Values ann_ vll_  =
               -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 29, column 9)
               _lhsOannotatedTree =
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 140, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 141, column 9)
               _lhsOlibUpdates =
                   []
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 149, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 150, column 9)
               _tpe =
                   typeCheckValuesExpr
                               _lhsIcat
                               _vllIuType
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 152, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 153, column 9)
               _backTree =
                   Values ann_ _vllIannotatedTree
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 184, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 185, column 9)
               _lhsOuType =
                   etmt (_tpe     >>= unwrapSetOfComposite)
               -- "./TypeChecking/ParameterizedStatements.ag"(line 164, column 14)
@@ -3619,22 +3619,22 @@ sem_QueryExpr_WithQueryExpr ann_ withs_ ex_  =
               -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 29, column 9)
               _lhsOannotatedTree =
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 144, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 145, column 9)
               _lhsOlibUpdates =
                   _exIlibUpdates
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 177, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 178, column 9)
               _tpe =
                   lmt ((SetOfType . CompositeType) <$> _exIuType)
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 178, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 179, column 9)
               _backTree =
                   WithQueryExpr ann_ _withsIannotatedTree _exIannotatedTree
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 179, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 180, column 9)
               _exOcat =
                   _withsIproducedCat
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 180, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 181, column 9)
               _withsOcatUpdates =
                   []
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 184, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 185, column 9)
               _lhsOuType =
                   etmt (_tpe     >>= unwrapSetOfComposite)
               -- self rule
@@ -9499,7 +9499,7 @@ sem_Statement_CreateTableAs ann_ name_ expr_  =
               -- "./TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
                   []
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 121, column 21)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 122, column 21)
               _exprOcsql =
                   emptyBindings
               -- "./TypeChecking/Ddl/CreateTable.ag"(line 64, column 9)
@@ -9743,7 +9743,7 @@ sem_Statement_CreateView ann_ name_ colNames_ expr_  =
               -- "./TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
                   []
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 122, column 18)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 123, column 18)
               _exprOcsql =
                   emptyBindings
               -- "./TypeChecking/Ddl/MiscCreates.ag"(line 15, column 9)
@@ -10405,7 +10405,7 @@ sem_Statement_ForQueryStatement ann_ lb_ var_ sel_ sts_  =
               -- "./TypeChecking/Statements.ag"(line 139, column 9)
               _stsOlibUpdates =
                   []
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 123, column 25)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 124, column 25)
               _selOcsql =
                   emptyBindings
               -- "./TypeChecking/Plpgsql/Plpgsql.ag"(line 64, column 9)
@@ -10626,7 +10626,7 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
               -- "./TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
                   []
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 124, column 14)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 125, column 14)
               _insDataOcsql =
                   emptyBindings
               -- "./TypeChecking/Dml/Insert.ag"(line 14, column 9)
@@ -11063,10 +11063,10 @@ sem_Statement_QueryStatement ann_ ex_  =
               -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 24, column 9)
               _catUpdates =
                   []
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 125, column 22)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 126, column 22)
               _exOcsql =
                   emptyBindings
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 136, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 137, column 9)
               _libUpdates =
                   _exIlibUpdates
               -- "./TypeChecking/ParameterizedStatements.ag"(line 178, column 22)
@@ -11328,7 +11328,7 @@ sem_Statement_ReturnQuery ann_ sel_  =
               -- "./TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 126, column 19)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 127, column 19)
               _selOcsql =
                   emptyBindings
               -- "./TypeChecking/ParameterizedStatements.ag"(line 177, column 9)
@@ -12215,17 +12215,17 @@ sem_TableAlias_FullAlias ann_ tb_ cols_  =
          (let _lhsOannotatedTree :: TableAlias 
               _lhsOfixedUpIdentifiersTree :: TableAlias 
               _lhsOoriginalTree :: TableAlias 
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 283, column 9)
+              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 286, column 9)
               _lhsOannotatedTree =
                   addTypeErrors _errs     _backTree
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 285, column 9)
+              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 288, column 9)
               _errs =
                   case _lhsIexpectedNumCols of
                         Nothing -> []
                         Just n -> if n == length cols_
                                   then []
                                   else [WrongNumberOfAliasCols n $ length cols_]
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 290, column 9)
+              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 293, column 9)
               _backTree =
                   FullAlias ann_ tb_ cols_
               -- self rule
@@ -12254,13 +12254,13 @@ sem_TableAlias_NoAlias ann_  =
          (let _lhsOannotatedTree :: TableAlias 
               _lhsOfixedUpIdentifiersTree :: TableAlias 
               _lhsOoriginalTree :: TableAlias 
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 283, column 9)
+              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 286, column 9)
               _lhsOannotatedTree =
                   addTypeErrors _errs     _backTree
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 293, column 15)
+              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 296, column 15)
               _backTree =
                   NoAlias ann_
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 294, column 15)
+              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 297, column 15)
               _errs =
                   []
               -- self rule
@@ -12290,13 +12290,13 @@ sem_TableAlias_TableAlias ann_ tb_  =
          (let _lhsOannotatedTree :: TableAlias 
               _lhsOfixedUpIdentifiersTree :: TableAlias 
               _lhsOoriginalTree :: TableAlias 
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 283, column 9)
+              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 286, column 9)
               _lhsOannotatedTree =
                   addTypeErrors _errs     _backTree
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 291, column 18)
+              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 294, column 18)
               _backTree =
                   TableAlias ann_ tb_
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 292, column 18)
+              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 295, column 18)
               _errs =
                   []
               -- self rule
@@ -12352,11 +12352,13 @@ sem_TableAlias_TableAlias ann_ tb_  =
          child onExpr         : OnExpr 
          child alias          : TableAlias 
          visit 0:
-            local _tup3       : {([(String,[String])],TableRef)}
+            local _tup3       : _
+            local trefIDs     : _
             local errs        : _
             local joinErrors  : _
             local libUpdates  : _
             local newLib      : {Either [TypeError] LocalBindings}
+            local newLib2     : _
             local backTree    : _
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
@@ -12476,13 +12478,13 @@ sem_TableRef_FunTref ann_ fn_ alias_  =
               -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 113, column 9)
               _qfunIdens =
                   fromRight ("",[]) _eqfunIdens
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 244, column 9)
+              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 247, column 9)
               _lhsOnewLib2 =
                   emptyBindings
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 257, column 9)
+              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 260, column 9)
               _backTree =
                   FunTref ann_ _fnIannotatedTree _aliasIannotatedTree
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 278, column 9)
+              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 281, column 9)
               _aliasOexpectedNumCols =
                   Nothing
               -- "./TypeChecking/ParameterizedStatements.ag"(line 120, column 15)
@@ -12535,14 +12537,14 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
     (\ _lhsIcat
        _lhsIidenv
        _lhsIlib ->
-         (let __tup3 :: (([(String,[String])],TableRef))
+         (let _lhsOfixedUpIdentifiersTree :: TableRef 
               _lhsOtrefIDs :: ([(String,[String])])
-              _lhsOfixedUpIdentifiersTree :: TableRef 
+              _onExprOidenv :: IDEnv
               _lhsOannotatedTree :: TableRef 
               _lhsOlibUpdates :: ([LocalBindingsUpdate])
               _newLib :: (Either [TypeError] LocalBindings)
-              _onExprOlib :: LocalBindings
               _lhsOnewLib2 :: LocalBindings
+              _onExprOlib :: LocalBindings
               _aliasOexpectedNumCols :: (Maybe Int)
               _lhsOoriginalTree :: TableRef 
               _tblOcat :: Catalog
@@ -12552,7 +12554,6 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
               _tbl1Oidenv :: IDEnv
               _tbl1Olib :: LocalBindings
               _onExprOcat :: Catalog
-              _onExprOidenv :: IDEnv
               _aliasOcat :: Catalog
               _aliasOidenv :: IDEnv
               _aliasOlib :: LocalBindings
@@ -12574,18 +12575,24 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
               _aliasIannotatedTree :: TableAlias 
               _aliasIfixedUpIdentifiersTree :: TableAlias 
               _aliasIoriginalTree :: TableAlias 
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 386, column 16)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 387, column 9)
               __tup3 =
                   let (trs,al) = doAlias _aliasIannotatedTree $ _tblItrefIDs ++ _tbl1ItrefIDs
                   in (trs, JoinTref ann_ _tblIfixedUpIdentifiersTree
                                     nat_ joinType_ _tbl1IfixedUpIdentifiersTree
                                     _onExprIfixedUpIdentifiersTree al)
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 386, column 16)
-              (_lhsOtrefIDs,_) =
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 387, column 9)
+              (_trefIDs,_) =
                   __tup3
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 386, column 16)
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 387, column 9)
               (_,_lhsOfixedUpIdentifiersTree) =
                   __tup3
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 393, column 9)
+              _lhsOtrefIDs =
+                  _trefIDs
+              -- "./TypeChecking/FixUpIdentifiers.ag"(line 394, column 9)
+              _onExprOidenv =
+                  IDEnv _trefIDs
               -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
               _lhsOannotatedTree =
                   addTypeErrors _errs     _backTree
@@ -12621,11 +12628,8 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
                     ([u1],[u2]) -> lbUpdate _lhsIcat
                                      (LBJoinTref "join" u1 u2 (Right []) Nothing) _lhsIlib
                     _ -> Right _lhsIlib
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 144, column 9)
-              _onExprOlib =
-                  fromRight _lhsIlib _newLib
               -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 220, column 9)
-              _lhsOnewLib2 =
+              _newLib2 =
                   let t0t :: [(String,Maybe Type)]
                       t0t = getUnqualifiedBindings _tblInewLib2
                       t1t = getUnqualifiedBindings _tbl1InewLib2
@@ -12636,7 +12640,13 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
                         createLocalBindings $ Just [(n, t0t ++ t1t)]
                     NoAlias _ ->
                         joinBindings _tblInewLib2 _tbl1InewLib2
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 259, column 9)
+              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 233, column 9)
+              _lhsOnewLib2 =
+                  _newLib2
+              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 234, column 9)
+              _onExprOlib =
+                  _newLib2
+              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 262, column 9)
               _backTree =
                   JoinTref ann_
                              _tblIannotatedTree
@@ -12645,7 +12655,7 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
                              _tbl1IannotatedTree
                              _onExprIannotatedTree
                              _aliasIannotatedTree
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 278, column 9)
+              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 281, column 9)
               _aliasOexpectedNumCols =
                   Nothing
               -- self rule
@@ -12681,9 +12691,6 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
               -- copy rule (down)
               _onExprOcat =
                   _lhsIcat
-              -- copy rule (down)
-              _onExprOidenv =
-                  _lhsIidenv
               -- copy rule (down)
               _aliasOcat =
                   _lhsIcat
@@ -12747,7 +12754,7 @@ sem_TableRef_SubTref ann_ sel_ alias_  =
               -- "./TypeChecking/FixUpIdentifiers.ag"(line 376, column 15)
               (_,_lhsOfixedUpIdentifiersTree) =
                   __tup4
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 128, column 15)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 129, column 15)
               _selOcsql =
                   emptyBindings
               -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
@@ -12765,7 +12772,7 @@ sem_TableRef_SubTref ann_ sel_ alias_  =
               _lhsOlibUpdates =
                   [LBTref "sub query" (getAlias "" _aliasIoriginalTree)
                                   (fromRight [] _selectAttrs    ) []]
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 234, column 9)
+              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 237, column 9)
               _lhsOnewLib2 =
                   createLocalBindings $ do
                   pu <- _selIuType
@@ -12773,10 +12780,10 @@ sem_TableRef_SubTref ann_ sel_ alias_  =
                                  (FullAlias _ n cs) -> (n,cs)
                                  _ -> (n, [])
                   return [(n,zip cs $ map (Just . snd) pu)]
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 253, column 9)
+              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 256, column 9)
               _backTree =
                   SubTref ann_ _selIannotatedTree _aliasIannotatedTree
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 278, column 9)
+              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 281, column 9)
               _aliasOexpectedNumCols =
                   Nothing
               -- "./TypeChecking/ParameterizedStatements.ag"(line 180, column 15)
@@ -12886,10 +12893,10 @@ sem_TableRef_Tref ann_ tbl_ alias_  =
                                  _ -> (n, [])
                   return [(n,zip cs $ map (Just . snd) pu)
                          ,(n,map (second Just) pr)]
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 255, column 9)
+              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 258, column 9)
               _backTree =
                   Tref ann_ _tblItbAnnotatedTree _aliasIannotatedTree
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 272, column 9)
+              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 275, column 9)
               _aliasOexpectedNumCols =
                   do
                   let n = getTName _tblIannotatedTree
@@ -14220,22 +14227,22 @@ sem_WithQuery_WithQuery ann_ name_ colAliases_ ex_  =
               _exIlibUpdates :: ([LocalBindingsUpdate])
               _exIoriginalTree :: QueryExpr 
               _exIuType :: (Maybe [(String,Type)])
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 130, column 17)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 131, column 17)
               _exOcsql =
                   emptyBindings
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 271, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 272, column 9)
               _tpe =
                   Right $ Pseudo Void
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 272, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 273, column 9)
               _backTree =
                   WithQuery ann_ name_ colAliases_ _exIannotatedTree
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 273, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 274, column 9)
               _attrs =
                   maybe [] id $ _exIuType
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 274, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 275, column 9)
               _catUpdates =
                   [CatCreateView name_ _attrs    ]
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 275, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 276, column 9)
               _statementType =
                   Nothing
               -- "./TypeChecking/ParameterizedStatements.ag"(line 182, column 17)
@@ -14350,19 +14357,19 @@ sem_WithQueryList_Cons hd_ tl_  =
               _tlIfixedUpIdentifiersTree :: WithQueryList 
               _tlIoriginalTree :: WithQueryList 
               _tlIproducedCat :: Catalog
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 255, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 256, column 9)
               _newCat =
                   fromRight _lhsIcat $ updateCatalog _lhsIcat _lhsIcatUpdates
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 257, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 258, column 9)
               _hdOcat =
                   _newCat
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 258, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 259, column 9)
               _tlOcat =
                   _newCat
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 262, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 263, column 9)
               _lhsOproducedCat =
                   _tlIproducedCat
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 265, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 266, column 9)
               _tlOcatUpdates =
                   _hdIcatUpdates
               -- self rule
@@ -14410,10 +14417,10 @@ sem_WithQueryList_Nil  =
               _lhsOannotatedTree :: WithQueryList 
               _lhsOfixedUpIdentifiersTree :: WithQueryList 
               _lhsOoriginalTree :: WithQueryList 
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 255, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 256, column 9)
               _newCat =
                   fromRight _lhsIcat $ updateCatalog _lhsIcat _lhsIcatUpdates
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 267, column 9)
+              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 268, column 9)
               _lhsOproducedCat =
                   _newCat
               -- self rule

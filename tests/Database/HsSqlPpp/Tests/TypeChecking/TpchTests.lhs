@@ -89,6 +89,50 @@ moment.
 >    ,("c_address", typeVarChar)
 >    ,("c_phone", typeChar)
 >    ,("c_comment", typeVarChar)]
+>   ,--q11
+>    [("ps_partkey", typeInt)
+>    ,("value", typeNumeric)]
+>   ,--q12
+>    [("l_shipmode", typeChar)
+>    ,("high_line_count", typeBigInt)
+>    ,("low_line_count", typeBigInt)]
+>   ,--q13
+>    [("c_count", typeBigInt)
+>    ,("custdist", typeBigInt)]
+>   ,--q14
+>    [("promo_revenue", typeNumeric)]
+>   ,--q15
+>    [("s_suppkey", typeInt)
+>    ,("s_name", typeChar)
+>    ,("s_address", typeVarChar)
+>    ,("s_phone", typeChar)
+>    ,("total_revenue", typeNumeric)]
+>   ,--q16
+>    [("p_brand", typeChar)
+>    ,("p_type", typeVarChar)
+>    ,("p_size", typeInt)
+>    ,("supplier_cnt", typeBigInt)]
+>   ,--q17
+>    [("avg_yearly", typeNumeric)]
+>   ,--q18
+>    [("c_name", typeChar)
+>    ,("c_custkey", typeInt)
+>    ,("o_orderkey", typeInt)
+>    ,("o_orderdate", typeDate)
+>    ,("o_totalprice", typeNumeric)
+>    ,("sum", typeNumeric)]
+>   ,--q19
+>    [("revenue", typeNumeric)]
+>   ,--q20
+>    [("s_name", typeChar)
+>    ,("s_address", typeVarChar)]
+>   ,--q21
+>    [("s_name", typeChar)
+>    ,("numwait", typeBigInt)]
+>   ,--q22
+>    [("cntrycode", ScalarType "text")
+>    ,("numcust", typeBigInt)
+>    ,("totacctbal", typeNumeric)]
 >   ]
 
 > itemToTft :: Item -> Test.Framework.Test
