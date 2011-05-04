@@ -18,7 +18,7 @@ moment.
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.SqlTypes
-> --import Database.HsSqlPpp.Utils.PPExpr
+> import Database.HsSqlPpp.Utils.PPExpr
 > --import Database.HsSqlPpp.Tests.TestUtils
 > import Database.HsSqlPpp.PrettyPrinter
 > --import Database.HsSqlPpp.Tests.TpchData
@@ -39,22 +39,24 @@ moment.
 > explicitCastTestData =
 >   Group "explicitcasts" [
 >     Query "select a+b from t;" "select (a::float8) + (b::float8) from t;"
->     --not written yet
->    {-,Query "select case true when true then 1::int else 1::float4 end;"
+>    ,Query "select case true when true then 1::int else 1::float4 end;"
 >           "select case true when true then (1::int)::float4 else 1::float4 end;"
 >    ,Query "select case when true then 1::int else 1::float4 end;"
->           "select case when true then (1::int)::float4 else 1::float4 end;"-}
+>           "select case when true then (1::int)::float4 else 1::float4 end;"
 >   ]
 
 > itemToTft :: Item -> Test.Framework.Test
 > itemToTft (Group s is) = testGroup s $ map itemToTft is
 > itemToTft (Query sql sql1) = testCase ("ec " ++ sql) $ do
->   let ast = resetAnnotations $ addExplicitCasts $ ptc sql
->       ast1 = resetAnnotations $ ptc sql1
->   when (ast /= ast1)
+>   let ast = {-resetAnnotations $-} addExplicitCasts $ ptc sql
+>       ast1 = {-resetAnnotations $-} ptc sql1
+>   when (resetAnnotations ast /= resetAnnotations ast1)
 >     $ putStrLn $ printQueryExpr ast
 >        ++ "\n" ++ printQueryExpr ast1
->   assertEqual "" ast ast1
+>        ++ "\n\n" ++ ppExpr ast
+>        ++ "\n\n" ++ ppExpr ast1
+>        ++ "\n\n"
+>   assertEqual "" (resetAnnotations ast) (resetAnnotations ast1)
 >   where
 >     ptc s = typeCheckQueryExpr cat
 >             $  case parseQueryExpr "" s of

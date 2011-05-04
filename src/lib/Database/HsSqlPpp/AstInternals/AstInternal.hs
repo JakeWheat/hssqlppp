@@ -298,6 +298,8 @@ addExplicitCasts = transformBi $ \x -> case x of
                  , Just ats <- getTys as
                  , p /= ats
     -> FunCall a f $ zipWith3 addCastIfNeeded p ats as
+  Case a cs els | Just f <- doCase a cs els -> f
+  CaseSimple a v cs els | Just f <- doCaseSimple a v cs els -> f
   x1 -> x1
   where
     getProtoATys :: Annotation -> Maybe [Type]
@@ -310,11 +312,44 @@ addExplicitCasts = transformBi $ \x -> case x of
       if ot == nt
       then e
       else Cast ea e $ typeName nt
-    typeName :: Type -> TypeName
-    typeName (ScalarType t) = SimpleTypeName ea t
-    typeName e = error $ "don't know how to convert " ++ show e ++ " to typename"
-    ea :: Annotation
-    ea = emptyAnnotation
+
+typeName :: Type -> TypeName
+typeName (ScalarType t) = SimpleTypeName ea t
+typeName e = error $ "don't know how to convert " ++ show e ++ " to typename"
+
+ea :: Annotation
+ea = emptyAnnotation
+
+doCase :: Annotation -> [([ScalarExpr],ScalarExpr)] -> Maybe ScalarExpr -> Maybe ScalarExpr
+doCase a whths els = do
+  (whths',els') <- doCaseStuff a whths els
+  return $ Case a whths' els'
+
+doCaseSimple :: Annotation -> ScalarExpr -> [([ScalarExpr],ScalarExpr)] -> Maybe ScalarExpr -> Maybe ScalarExpr
+doCaseSimple a v whths els = do
+  (whths',els') <- doCaseStuff a whths els
+  return $ CaseSimple a v whths' els'
+
+doCaseStuff :: Annotation -> [([ScalarExpr],ScalarExpr)] -> Maybe ScalarExpr -> Maybe ([([ScalarExpr],ScalarExpr)],Maybe ScalarExpr)
+doCaseStuff a whths els = do
+  expectedType <- atype a
+  thenTypes <- mapM (atype . getAnnotation . snd) whths
+  thenAndElseTypes <- case els of
+                        Nothing -> return thenTypes
+                        Just els' -> fmap (:thenTypes) $ atype $ getAnnotation els'
+  when (all (==expectedType) thenAndElseTypes) Nothing
+  return ((map (fixWhTh expectedType) whths),(castElse expectedType))
+  where
+    castElse et = case els of
+                    Nothing -> Nothing
+                    Just els' | Just t' <- atype $ getAnnotation els
+                              , t' /= et
+                      -> Just (Cast ea els' $ typeName et)
+                              | otherwise -> els
+    fixWhTh :: Type -> ([ScalarExpr],ScalarExpr) -> ([ScalarExpr],ScalarExpr)
+    fixWhTh et (whs,th) | Just t' <- atype $ getAnnotation th
+                        , t' /= et = (whs, Cast ea th $ typeName et)
+                        | otherwise = (whs,th)
 
 
 
@@ -5143,9 +5178,9 @@ sem_ScalarExpr_Extract ann_ field_ e_  =
               _tpe =
                   do
                   x <- lmt _eIuType
-                  case x of
-                    typeDate -> Right typeFloat8
-                    _ -> Left [NoMatchingOperator "extract" [x]]
+                  if x == typeDate
+                    then Right typeFloat8
+                    else Left [NoMatchingOperator "extract" [x]]
               -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 406, column 9)
               _backTree =
                   Extract ann_ field_ _eIannotatedTree

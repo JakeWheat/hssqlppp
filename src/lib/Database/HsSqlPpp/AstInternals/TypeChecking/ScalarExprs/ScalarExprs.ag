@@ -400,7 +400,7 @@ SEM ScalarExpr
     | Extract
         loc.tpe = do
                   x <- lmt @e.uType
-                  case x of
-                    typeDate -> Right typeFloat8
-                    _ -> Left [NoMatchingOperator "extract" [x]]
+                  if x == typeDate
+                    then Right typeFloat8
+                    else Left [NoMatchingOperator "extract" [x]]
         loc.backTree = Extract @ann @field @e.annotatedTree
