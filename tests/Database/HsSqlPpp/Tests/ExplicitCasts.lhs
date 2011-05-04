@@ -43,13 +43,17 @@ moment.
 >           "select case true when true then (1::int)::float4 else 1::float4 end;"
 >    ,Query "select case when true then 1::int else 1::float4 end;"
 >           "select case when true then (1::int)::float4 else 1::float4 end;"
+>    ,Query "select 3::int between 1::float8 and 4::numeric;"
+>           "select (3::int)::float8 between 1::float8 and (4::numeric)::float8;"
+>    ,Query "select a from t where c between 1.0 and 1.2"
+>           "select a from t where c between 1.0::numeric and 1.2::numeric"
 >   ]
 
 > itemToTft :: Item -> Test.Framework.Test
 > itemToTft (Group s is) = testGroup s $ map itemToTft is
 > itemToTft (Query sql sql1) = testCase ("ec " ++ sql) $ do
 >   let ast = {-resetAnnotations $-} addExplicitCasts $ ptc sql
->       ast1 = {-resetAnnotations $-} ptc sql1
+>       ast1 = {-resetAnnotations $-} canonicalizeTypeNames $ ptc sql1
 >   when (resetAnnotations ast /= resetAnnotations ast1)
 >     $ putStrLn $ printQueryExpr ast
 >        ++ "\n" ++ printQueryExpr ast1
@@ -72,4 +76,5 @@ moment.
 
 > testCatalog :: [CatalogUpdate]
 > testCatalog = [CatCreateTable "t" [("a", typeFloat4)
->                                   ,("b", typeInt)] []]
+>                                   ,("b", typeInt)
+>                                   ,("c", typeNumeric)] []]

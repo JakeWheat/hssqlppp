@@ -421,7 +421,7 @@ This is wrong, these need to be separated into prefix, postfix, binary
 >  ,("!arrayctor", [ArrayType $ Pseudo AnyElement], Pseudo AnyArray, True)
 >  ,("!between", [Pseudo AnyElement
 >                ,Pseudo AnyElement
->                ,Pseudo AnyElement], Pseudo AnyElement, False)
+>                ,Pseudo AnyElement], typeBool, False)
 >  ,("!substring"
 >   ,[ScalarType "text",typeInt,typeInt]
 >   ,ScalarType "text"

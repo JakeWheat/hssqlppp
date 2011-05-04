@@ -149,19 +149,23 @@ typeCheckScalarExpr cat ex =
          ScalarExprRoot e -> e
 
 -- | Run through a typechecked tree and add in explicit casts where
--- implicit casts are used to typecheck. Only does function and
--- operator calls, and case result expressions at the moment, todo:
--- union, array, greatest, least
+-- implicit casts are used to typecheck. Does function and operator
+-- calls, case result expressions, and string, integer and float
+-- literals at the moment, todo: union, array, greatest, least
 addExplicitCasts :: Data a => a -> a
-addExplicitCasts = transformBi $ \x -> case x of
-  FunCall a f as | Just p <- getProtoATys a
-                 , Just ats <- getTys as
-                 , p /= ats
-    -> FunCall a f $ zipWith3 addCastIfNeeded p ats as
-  Case a cs els | Just f <- doCase a cs els -> f
-  CaseSimple a v cs els | Just f <- doCaseSimple a v cs els -> f
-  x1 -> x1
+addExplicitCasts = refix . tr . canonicalizeTypeNames
   where
+    tr = transformBi $ \x -> case x of
+           FunCall a f as | Just p <- getProtoATys a
+                          , Just ats <- getTys as
+                          , p /= ats
+             -> FunCall a f $ zipWith3 addCastIfNeeded p ats as
+           Case a cs els | Just f <- doCase a cs els -> f
+           CaseSimple a v cs els | Just f <- doCaseSimple a v cs els -> f
+           i@(IntegerLit a _) | Just t <- infType a -> Cast ea i $ typeName t
+           i@(FloatLit a _) | Just t <- infType a -> Cast ea i $ typeName t
+           i@(StringLit a _) | Just t <- infType a -> Cast ea i $ typeName t
+           x1 -> x1
     getProtoATys :: Annotation -> Maybe [Type]
     getProtoATys a = let p = fnProt a
                      in flip fmap p $ \(_,t,_,_) -> t
@@ -172,6 +176,23 @@ addExplicitCasts = transformBi $ \x -> case x of
       if ot == nt
       then e
       else Cast ea e $ typeName nt
+    -- not sure how to avoid inserting a cast for a literal which is
+    -- already being cast when using transformBi, so run through and
+    -- remove the suplerfluous casts in a second sweep
+    -- spot them when there is a cast of a cast of a literal
+    -- and the type of the inner cast is the same as the type of the literal
+    -- not sure if this pass can cause other problems
+    refix = transformBi $ \x -> case x of
+              Cast ca (Cast _ l t) t1 | isLiteral l
+                                      , Just lt <- infType $ getAnnotation l
+                                      , t == typeName lt
+                -> Cast ca l t1
+              x1 -> x1
+    isLiteral (IntegerLit _ _) = True
+    isLiteral (FloatLit _ _) = True
+    isLiteral (StringLit _ _) = True
+    isLiteral _ = False
+
 
 typeName :: Type -> TypeName
 typeName (ScalarType t) = SimpleTypeName ea t
@@ -210,6 +231,25 @@ doCaseStuff a whths els = do
     fixWhTh et (whs,th) | Just t' <- atype $ getAnnotation th
                         , t' /= et = (whs, Cast ea th $ typeName et)
                         | otherwise = (whs,th)
+
+-- bit crap, this function is called canonicalizeTypeNames
+-- and it uses a function called canonicalizeTypeName
+
+-- | Convert all the typenames in the ast to canonical form
+-- e.g. int -> int4
+canonicalizeTypeNames :: Data a => a -> a
+canonicalizeTypeNames = fixTypes . fixTypeNames
+  where
+    fixTypes =
+      transformBi $ \x -> case x of
+        ScalarType t -> ScalarType $ ct t
+        x1 -> x1
+    fixTypeNames =
+      transformBi $ \x -> case x of
+        SimpleTypeName a t -> SimpleTypeName a $ ct t
+        PrecTypeName a t i -> PrecTypeName a (ct t) i
+        Prec2TypeName a t i0 i1 -> Prec2TypeName a (ct t) i0 i1
+    ct = canonicalizeTypeName
 
 }
 

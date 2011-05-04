@@ -34,6 +34,7 @@ This is the public module for the type checking functionality.
 >     ,fixUpIdentifiersQE
 >     ,fixUpIdentifiersSE
 >     ,addExplicitCasts
+>     ,canonicalizeTypeNames
 >      -- * Annotated tree utils
 >     ,getStatementAnnotations
 >     ) where

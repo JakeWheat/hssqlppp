@@ -55,7 +55,8 @@ out. If not, will have to add another type.
 >
 > import Data.Data
 > import Data.Generics.PlateData
->
+> import Data.Char
+
 > data Type = ScalarType String
 >           | ArrayType Type
 >           | SetOfType Type
@@ -164,7 +165,7 @@ this converts the name of a type to its canonical name:
 try to follow the names that pg uses in a dump
 
 > canonicalizeTypeName :: String -> String
-> canonicalizeTypeName s =
+> canonicalizeTypeName s' =
 >   case () of
 >                   _ | s `elem` smallIntNames -> "int2"
 >                     | s `elem` intNames -> "int4"
@@ -186,6 +187,7 @@ try to follow the names that pg uses in a dump
 >       varcharNames = ["character varying", "varchar"]
 >       charNames = ["character", "char"]
 >       boolNames = ["boolean", "bool"]
+>       s = map toLower s'
 >
 > canonicalizeTypes :: Data a => a -> a
 > canonicalizeTypes =

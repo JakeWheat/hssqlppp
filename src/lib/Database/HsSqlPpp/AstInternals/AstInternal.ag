@@ -129,6 +129,7 @@ MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
    ,fixUpIdentifiersQE
    ,fixUpIdentifiersSE
    ,addExplicitCasts
+   ,canonicalizeTypeNames
 }
 
 {
