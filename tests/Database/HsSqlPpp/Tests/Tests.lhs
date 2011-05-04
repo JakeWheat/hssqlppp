@@ -15,6 +15,7 @@
 > import Database.HsSqlPpp.Tests.TypeInferenceTests
 > import Database.HsSqlPpp.Tests.BindingsTests-}
 > import Database.HsSqlPpp.Tests.TypeChecking.TableRefTests
+> import Database.HsSqlPpp.Tests.ExplicitCasts
 >
 > allTests :: [Test]
 > allTests =
@@ -23,6 +24,7 @@
 >     : tableRefTests
 >     -- : typeCheckTests
 >     : tpchTests
+>     : explicitCastTests
 >     {-extensionTests :
 >     quasiQuoteTests :
 >     typeInferenceTests :

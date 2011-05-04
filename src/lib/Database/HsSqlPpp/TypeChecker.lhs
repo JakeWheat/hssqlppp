@@ -33,6 +33,7 @@ This is the public module for the type checking functionality.
 >     ,fixUpIdentifiers
 >     ,fixUpIdentifiersQE
 >     ,fixUpIdentifiersSE
+>     ,addExplicitCasts
 >      -- * Annotated tree utils
 >     ,getStatementAnnotations
 >     ) where

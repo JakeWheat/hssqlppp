@@ -85,6 +85,7 @@ module Database.HsSqlPpp.AstInternals.AstInternal(
    ,fixUpIdentifiers
    ,fixUpIdentifiersQE
    ,fixUpIdentifiersSE
+   ,addExplicitCasts
 ) where
 
 import Data.Maybe
@@ -286,6 +287,34 @@ typeCheckScalarExpr cat ex =
                                                         ,idenv_Inh_ScalarExprRoot = emptyIDEnv}))
     in case rt of
          ScalarExprRoot e -> e
+
+-- | Run through a typechecked tree and add in explicit casts where
+-- implicit casts are used to typecheck. Only does function and
+-- operator calls at the moment, todo: case result expressions, union,
+-- array, greatest, least
+addExplicitCasts :: Data a => a -> a
+addExplicitCasts = transformBi $ \x -> case x of
+  FunCall a f as | Just p <- getProtoATys a
+                 , Just ats <- getTys as
+                 , p /= ats
+    -> FunCall a f $ zipWith3 addCastIfNeeded p ats as
+  x1 -> x1
+  where
+    getProtoATys :: Annotation -> Maybe [Type]
+    getProtoATys a = let p = fnProt a
+                     in flip fmap p $ \(_,t,_,_) -> t
+    getTys :: [ScalarExpr] -> Maybe [Type]
+    getTys = mapM $ atype . getAnnotation
+    addCastIfNeeded :: Type -> Type -> ScalarExpr -> ScalarExpr
+    addCastIfNeeded nt ot e =
+      if ot == nt
+      then e
+      else Cast ea e $ typeName nt
+    typeName :: Type -> TypeName
+    typeName (ScalarType t) = SimpleTypeName ea t
+    typeName e = error $ "don't know how to convert " ++ show e ++ " to typename"
+    ea :: Annotation
+    ea = emptyAnnotation
 
 
 
