@@ -339,13 +339,13 @@ fixUpIdentifiersQE cat qe =
     let [QueryStatement _ qe'] = fixUpIdentifiers cat [QueryStatement emptyAnnotation qe]
     in countHack qe'
 
--- small hack to convert count(*) into count(1). Should be fixed when
+-- small hack to convert count(*) into count(True). Should be fixed when
 -- a more general approach to aggregates is written
 
 countHack :: Data a => a -> a
 countHack = transformBi $ \x -> case x of
               FunCall a "count" [Identifier ia "*"] ->
-                FunCall a "count" [IntegerLit ia 1]
+                FunCall a "count" [BooleanLit ia True]
               x1 -> x1
 
 }

@@ -414,7 +414,11 @@ This is wrong, these need to be separated into prefix, postfix, binary
 >   ("!and", [typeBool, typeBool], typeBool, False)
 >  ,("!or", [typeBool, typeBool], typeBool, False)
 >  ,("!like", [ScalarType "text", ScalarType "text"], typeBool, False)
+>  ,("!like", [ScalarType "char", ScalarType "char"], typeBool, False)
+>  ,("!like", [ScalarType "varchar", ScalarType "varchar"], typeBool, False)
 >  ,("!notlike", [ScalarType "text", ScalarType "text"], typeBool, False)
+>  ,("!notlike", [ScalarType "char", ScalarType "char"], typeBool, False)
+>  ,("!notlike", [ScalarType "varchar", ScalarType "varchar"], typeBool, False)
 >  ,("!not", [typeBool], typeBool, False)
 >  ,("!isnull", [Pseudo AnyElement], typeBool, False)
 >  ,("!isnotnull", [Pseudo AnyElement], typeBool, False)
@@ -422,10 +426,9 @@ This is wrong, these need to be separated into prefix, postfix, binary
 >  ,("!between", [Pseudo AnyElement
 >                ,Pseudo AnyElement
 >                ,Pseudo AnyElement], typeBool, False)
->  ,("!substring"
->   ,[ScalarType "text",typeInt,typeInt]
->   ,ScalarType "text"
->   ,False)
+>  ,("!substring",[ScalarType "text",typeInt,typeInt],ScalarType "text",False)
+>  ,("!substring",[ScalarType "varchar",typeInt,typeInt],ScalarType "varchar",False)
+>  ,("!substring",[ScalarType "char",typeInt,typeInt],ScalarType "char",False)
 >  ,("!arraysub", [Pseudo AnyArray,typeInt], Pseudo AnyElement, False)
 >  ]
 >

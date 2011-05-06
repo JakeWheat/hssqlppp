@@ -86,7 +86,7 @@ SEM ScalarExprList
     | Cons hd.expectedType = case @lhs.expectedTypes of
                                (t:_) -> t
                                _ -> Nothing
-           tl.expectedTypes  = case @lhs.expectedTypes of
+           tl.expectedTypes = case @lhs.expectedTypes of
                                (_:ts) -> ts
                                _ -> []
 
@@ -143,8 +143,8 @@ SEM ScalarExpr
 SEM ScalarExprListStatementListPair
     | Tuple x1.expectedTypes = []
 
-SEM InList
-    | InList exprs.expectedTypes = []
+--SEM InList
+--    | InList exprs.expectedTypes = []
 
 SEM QueryExpr
     | Select selGroupBy.expectedTypes = []

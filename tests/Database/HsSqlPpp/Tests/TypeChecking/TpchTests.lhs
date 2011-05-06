@@ -130,7 +130,7 @@ moment.
 >    [("s_name", typeChar)
 >    ,("numwait", typeBigInt)]
 >   ,--q22
->    [("cntrycode", ScalarType "text")
+>    [("cntrycode", ScalarType "char")
 >    ,("numcust", typeBigInt)
 >    ,("totacctbal", typeNumeric)]
 >   ]

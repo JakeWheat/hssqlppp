@@ -16,11 +16,13 @@ loc.prototype: the matched prototype for a function call
 
 --gather the backtree, type errors and types together and add annotations
 SEM ScalarExpr
-    | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier
+    | BooleanLit FunCall Identifier
       QIdentifier
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
       PositionalArg Placeholder WindowFn TypedStringLit Interval
       Extract
+      IntegerLit StringLit FloatLit NullLit
+        --loc.fixedTpe = @loc.tpe
         lhs.annotatedTree = updateAnnotation
                               (setTypeAddErrorsA @loc.tpe
                                . \a -> a {fnProt = @loc.prototype
@@ -28,6 +30,14 @@ SEM ScalarExpr
                                                          ,etmt @loc.tpe
                                                          ,Nothing]}) @loc.backTree
         loc.tpe : Et
+
+{-SEM ScalarExpr
+    | IntegerLit StringLit FloatLit NullLit
+        -- fix up the tpe in the case of an inferred type
+        loc.fixedTpe = trace ("set expected type: " ++ show @lhs.expectedType)
+                       $ case @lhs.expectedType of
+                         Just t -> Right t
+                         _ -> @loc.tpe-}
 
 SEM ScalarExpr
     | IntegerLit StringLit FloatLit BooleanLit NullLit Identifier
@@ -129,7 +139,12 @@ SEM MaybeBoolExpr
 {-
 == literals
 
-pretty straightforward
+want to get the type from the context if possible
+
+this typechecking doesn't check if the literal represents a valid
+value for the inferred type, in pg I think these produce runtime
+errors only, but would like to do better here.
+
 -}
 
 SEM ScalarExpr
@@ -370,22 +385,31 @@ todo: make the ast and typechecking a special case of lifted operator
 
 SEM ScalarExpr
     | InPredicate
+        loc.rt : {Either [TypeError] Type}
+        loc.rt = do
+                 lt <- @list.listType
+                 expt <- lmt @expr.uType
+                 resolveResultSetType @lhs.cat [expt, lt]
         loc.tpe = do
-                  lt <- @list.listType
-                  expt <- lmt @expr.uType
-                  _ <- resolveResultSetType @lhs.cat [expt, lt]
+                  _ <- @loc.rt
                   return typeBool
+        list.expectedType = etmt @loc.rt
+        expr.expectedType = etmt @loc.rt
         loc.backTree = InPredicate @ann
                                    @expr.annotatedTree
                                    @i
                                    @list.annotatedTree
 
 
-ATTR InList [||listType : {Either [TypeError] Type}]
+ATTR InList [expectedType : {Maybe Type}
+            ||listType : {Either [TypeError] Type}]
+--ATTR ScalarExprList [expectedType : {[Maybe Type]}||]
 
 SEM InList
     | InList
         lhs.listType = mapM lmt @exprs.uType >>= resolveResultSetType @lhs.cat
+        exprs.expectedTypes = repeat @lhs.expectedType
+
     | InQueryExpr
         lhs.listType =
             do

@@ -98,6 +98,7 @@ Library
                      Database.HsSqlPpp.AstInternals.AnnotationUtils
                      Database.HsSqlPpp.AstInternals.AstInternal
                      Database.HsSqlPpp.AstInternals.TypeType
+                     Database.HsSqlPpp.AstInternals.TypeChecking.Utils
   if flag(postgres) || flag(tests)
      Other-Modules:  Database.HsSqlPpp.Utils.DbmsCommon
 

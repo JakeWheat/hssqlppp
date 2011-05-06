@@ -56,7 +56,7 @@ cd /home/jake/wd/hssqlppp/trunk/src/lib/Database/HsSqlPpp/AstInternals && uuagc 
 >               \  from t as t(a,b),u as u(c,d);"
 >     ,Item db1 "select v from v;" "select v.v as v from v as v(v);"
 >     ,Item db1 "select count(*) from t;"
->               "select count(1) as count from t as t(a,b);"
+>               "select count(true) as count from t as t(a,b);"
 >     ]
 >   ,Group "trefs"
 >     [Item db1 "select * from generate_series(1,5) g;"

@@ -47,11 +47,14 @@ moment.
 >           "select (3::int)::float8 between 1::float8 and (4::numeric)::float8;"
 >    ,Query "select a from t where c between 1.0 and 1.2"
 >           "select a from t where c between 1.0::numeric and 1.2::numeric"
+>    ,Query "select a from t where d in ('a', 'bc')"
+>           "select a from t where d in ('a'::char, 'bc'::char)"
 >   ]
 
 > itemToTft :: Item -> Test.Framework.Test
 > itemToTft (Group s is) = testGroup s $ map itemToTft is
 > itemToTft (Query sql sql1) = testCase ("ec " ++ sql) $ do
+>   --putStrLn $ ppExpr $ ptc sql
 >   let ast = {-resetAnnotations $-} addExplicitCasts $ ptc sql
 >       ast1 = {-resetAnnotations $-} canonicalizeTypeNames $ ptc sql1
 >   when (resetAnnotations ast /= resetAnnotations ast1)
@@ -77,4 +80,5 @@ moment.
 > testCatalog :: [CatalogUpdate]
 > testCatalog = [CatCreateTable "t" [("a", typeFloat4)
 >                                   ,("b", typeInt)
->                                   ,("c", typeNumeric)] []]
+>                                   ,("c", typeNumeric)
+>                                   ,("d", typeChar)] []]

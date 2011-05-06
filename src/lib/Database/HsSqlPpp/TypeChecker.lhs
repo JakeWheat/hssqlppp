@@ -40,5 +40,6 @@ This is the public module for the type checking functionality.
 >     ) where
 >
 > import Database.HsSqlPpp.AstInternals.AstInternal
+> import Database.HsSqlPpp.AstInternals.TypeChecking.Utils
 > --import Database.HsSqlPpp.AstInternals.AstAnnotation
 > import Database.HsSqlPpp.AstInternals.AnnotationUtils
