@@ -552,8 +552,7 @@ appear in different places.  Maybe this should be called scalar
 expression?
 
 -}
-DATA ScalarExpr | IntegerLit ann:Annotation i:Integer
-                | FloatLit ann:Annotation d:String
+DATA ScalarExpr | NumberLit ann:Annotation d:String
                 | StringLit ann:Annotation
                             value : String
                 | TypedStringLit ann:Annotation

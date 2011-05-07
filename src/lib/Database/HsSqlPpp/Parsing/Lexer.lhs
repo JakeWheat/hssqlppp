@@ -30,6 +30,8 @@ copy payload (used to lex copy from stdin data)
 >
 > import Control.Applicative
 > import Control.Monad.Identity
+
+> import Data.Maybe
 >
 > import Database.HsSqlPpp.Parsing.ParseErrors
 > import Database.HsSqlPpp.Utils.Utils
@@ -53,12 +55,18 @@ copy payload (used to lex copy from stdin data)
 
 >          | PositionalArgTok Integer -- used for $1, etc.
 
->          | FloatTok Double
->          | IntegerTok Integer
+Use a numbertok with a string to parse numbers. This is mainly so that
+numeric constants can be parsed accurately - if they are parsed to
+floats in the ast then converted back to numeric, then the accuracy
+can be lost (e.g. something like "0.2" parsing to 0.199999999 float.
+
+>          | NumberTok String
+
 >          | CopyPayloadTok String -- support copy from stdin; with inline data
 >            deriving (Eq,Show)
 >
 > type LexState = [Tok]
+> type Parser = ParsecT String LexState Identity
 >
 > lexSqlFile :: FilePath -> IO (Either ParseErrorExtra [Token])
 > lexSqlFile f = do
@@ -83,7 +91,7 @@ copy payload (used to lex copy from stdin data)
 lexer for tokens, contains a hack for copy from stdin with inline
 table data.
 
-> sqlTokens :: ParsecT String LexState Identity [Token]
+> sqlTokens :: Parser [Token]
 > sqlTokens =
 >   setState [] >>
 >   whiteSpace >>
@@ -91,25 +99,24 @@ table data.
 
 Lexer for an individual token.
 
-What we could do is lex lazily and when the lexer reads a copy from
-stdin statement, it switches lexers to lex the inline table data, then
-switches back. Don't know how to do this in parsec, or even if it is
-possible, so as a work around, we use the state to trap if we've just
-seen 'from stdin;', if so, we read the copy payload as one big token,
-otherwise we read a normal token.
+Could lex lazily and when the lexer reads a copy from stdin statement,
+it switches lexers to lex the inline table data, then switches
+back. Don't know how to do this in parsec, or even if it is possible,
+so as a work around, we use the state to trap if we've just seen 'from
+stdin;', if so, we read the copy payload as one big token, otherwise
+we read a normal token.
 
-> sqlToken :: ParsecT String LexState Identity Token
+> sqlToken :: Parser Token
 > sqlToken = do
 >            sp <- getPosition
 >            sta <- getState
 >            t <- if sta == [ft,st,mt]
 >                 then copyPayload
->                 else try sqlString
+>                 else try sqlNumber
+>                  <|> try sqlString
 >                  <|> try idString
 >                  <|> try positionalArg
 >                  <|> try sqlSymbol
->                  <|> try sqlFloat
->                  <|> try sqlInteger
 >            updateState $ \stt ->
 >              case () of
 >                      _ | stt == [] && t == ft -> [ft]
@@ -125,7 +132,7 @@ otherwise we read a normal token.
 
 == specialized token parsers
 
-> sqlString :: ParsecT String LexState Identity Tok
+> sqlString :: Parser Tok
 > sqlString = stringQuotes <|> stringLD
 >   where
 >     --parse a string delimited by single quotes
@@ -156,10 +163,10 @@ parse a dollar quoted string
 >                       (try $ char '$' <* string tag <* char '$')
 >                return $ StringTok ("$" ++ tag ++ "$") s
 >
-> idString :: ParsecT String LexState Identity Tok
+> idString :: Parser Tok
 > idString = IdStringTok <$> identifierString
 >
-> positionalArg :: ParsecT String LexState Identity Tok
+> positionalArg :: Parser Tok
 > positionalArg = char '$' >> PositionalArgTok <$> integer
 
 
@@ -205,7 +212,7 @@ deals with this.
 
 ~~~~
 
-> sqlSymbol :: ParsecT String LexState Identity Tok
+> sqlSymbol :: Parser Tok
 > sqlSymbol =
 >   SymbolTok <$> lexeme (choice [
 >                          replicate 1 <$> oneOf "()[],;"
@@ -220,11 +227,54 @@ deals with this.
 >                         ,many1 (oneOf "+-*/<>=~!@#%^&|`?")
 >                         ])
 >
-> sqlFloat :: ParsecT String LexState Identity Tok
-> sqlFloat = FloatTok <$> float
->
-> sqlInteger :: ParsecT String LexState Identity Tok
-> sqlInteger = IntegerTok <$> integer
+
+parse a number:
+digits
+digits.[digits][e[+-]digits]
+[digits].digits[e[+-]digits]
+digitse[+-]digits
+
+I'm sure the implementation can be simpler than this
+
+> sqlNumber :: Parser Tok
+> sqlNumber = NumberTok <$> lexeme (
+>   choice [do
+>           -- starts with digits
+>           d <- digits
+>           suff <- choice [-- complete fractional part
+>                           try fracPart
+>                          ,-- dot followed by optional exp
+>                           do
+>                           _ <- char '.'
+>                           e <- optionMaybe expn
+>                           return $ concat $ catMaybes
+>                             [Just "."
+>                             ,e]
+>                          ,--no dot then expn
+>                           expn
+>                           -- just an integer
+>                          ,return ""
+>                          ]
+>           return $ d ++ suff
+>          ,fracPart
+>          ])
+>   where
+>      fracPart = do
+>           _ <- char '.'
+>           d <- digits
+>           e <- optionMaybe expn
+>           return $ concat $ catMaybes
+>             [Just "."
+>             ,Just d
+>             ,e]
+>      expn = do
+>        _ <- char 'e'
+>        s <- optionMaybe (char '+' <|> char '-')
+>        d <- digits
+>        return $ concat $ catMaybes [Just "e"
+>                                    ,fmap (:[]) s
+>                                    ,Just d]
+>      digits = many1 digit
 
 ================================================================================
 
@@ -235,7 +285,7 @@ is also used for keywords, so identifiers and keywords aren't
 distinguished until during proper parsing, and * and qualifiers aren't
 really examined until type checking
 
-> identifierString :: ParsecT String LexState Identity String
+> identifierString :: Parser String
 > identifierString = lexeme $ choice [
 >                     "*" <$ symbol "*"
 >                    ,nonStarPart]
@@ -247,7 +297,7 @@ really examined until type checking
 parse the block of inline data for a copy from stdin, ends with \. on
 its own on a line
 
-> copyPayload :: ParsecT String LexState Identity Tok
+> copyPayload :: Parser Tok
 > copyPayload = CopyPayloadTok <$> lexeme (getLinesTillMatches "\\.\n")
 >   where
 >     getLinesTillMatches s = do
@@ -257,28 +307,22 @@ its own on a line
 >                               else (x++) <$> getLinesTillMatches s
 >     getALine = (++"\n") <$> manyTill anyChar (try newline)
 >
-> {-tryMaybeP :: GenParser tok st a
->           -> ParsecT [tok] st Identity (Maybe a)
-> tryMaybeP p = try (optionMaybe p) <|> return Nothing-}
 
 ================================================================================
 
 = parsec pass throughs
 
-> symbol :: String -> ParsecT String LexState Identity String
+> symbol :: String -> Parser String
 > symbol = P.symbol lexer
 >
-> integer :: ParsecT String LexState Identity Integer
+
+> integer :: Parser Integer
 > integer = lexeme $ P.integer lexer
+
+> whiteSpace :: Parser ()
+> whiteSpace = P.whiteSpace lexer
 >
-> float :: ParsecT String LexState Identity Double
-> float = lexeme $ P.float lexer
->
-> whiteSpace :: ParsecT String LexState Identity ()
-> whiteSpace= P.whiteSpace lexer
->
-> lexeme :: ParsecT String LexState Identity a
->           -> ParsecT String LexState Identity a
+> lexeme :: Parser a -> Parser a
 > lexeme = P.lexeme lexer
 
 this lexer isn't really used as much as it could be, probably some of

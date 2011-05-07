@@ -53,7 +53,7 @@ right choice, but it seems to do the job pretty well at the moment.
 > import Database.HsSqlPpp.Annotation as A
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Catalog
-> import Debug.Trace
+> --import Debug.Trace
 
 --------------------------------------------------------------------------------
 
@@ -133,14 +133,14 @@ To support antiquotation, the following approach is used:
 >                      Nothing -> q
 >                      Just (-1) -> q
 >                      Just n -> updateLimit n q
->     rowcount = trace "try set" $
+>     rowcount = --trace "try set" $
 >       keyword "set"
 >       *> keyword "rowcount"
 >       *> (choice [
 >            symbol "-" *> (((* (-1)) . fromInteger) <$> integer)
->           ,fromInteger <$> integer])
+>           ,integer])
 >     updateLimit n (Select a di sl tr wh gb hv ob _l o) =
->       (Select a di sl tr wh gb hv ob (Just $ IntegerLit emptyAnnotation n) o)
+>       (Select a di sl tr wh gb hv ob (Just $ NumberLit emptyAnnotation (show n)) o)
 >     updateLimit _ x = error $ "query style not supported for sql server style: " ++ show x
 
 
@@ -578,7 +578,8 @@ misc
 >         sv = choice [
 >               SetStr <$> pos <*> stringN
 >              ,SetId <$> pos <*> idString
->              ,SetNum <$> pos <*> ((fromInteger <$> integer) <|> float)]
+>              ,SetNum <$> pos <*> (try (fromInteger <$> integer)
+>                                   <|> (read <$> numString))]
 >
 > notify :: SParser Statement
 > notify = Notify <$> pos
@@ -1191,8 +1192,7 @@ try a few random things which can't start a different expression
 >       ,positionalArg
 >       ,placeholder
 >       ,stringLit
->       ,floatLit
->       ,integerLit
+>       ,numberLit
 
 put the factors which start with keywords before the ones which start
 with a function, so we don't try an parse a keyword as a function name
@@ -1453,13 +1453,22 @@ row ctor: one of
 >            keyword "row" *> parens (commaSep expr)
 >           ,parens $ commaSep2 expr]
 >
-> floatLit :: SParser ScalarExpr
-> floatLit = FloatLit <$> pos <*> (show <$> float) -- fixme
+> numberLit :: SParser ScalarExpr
+> numberLit = NumberLit <$> pos <*> numString
 >
-> integerLit :: SParser ScalarExpr
-> integerLit = do
->   p <- pos
->   (IntegerLit p) <$> integer
+
+> integer :: SParser Integer
+> integer = do
+>   l <- numString
+>   guard (all (`elem` digChars) l)
+>   return $ read l
+>   where
+>     digChars = concatMap show [(0::Int)..9]
+
+ > integerLit :: SParser ScalarExpr
+ > integerLit = do
+ >   p <- pos
+ >   (IntegerLit p) <$> integer
 
  IntegerLit <$> pos <*> integer
 
@@ -1753,10 +1762,10 @@ identifier which happens to start with a complete keyword
 >                                    SymbolTok s | c==s -> Just ()
 >                                    _           -> Nothing)
 >
-> integer :: SParser Integer
+> {-integer :: SParser Integer
 > integer = mytoken (\tok -> case tok of
 >                                     IntegerTok n -> Just n
->                                     _ -> Nothing)
+>                                     _ -> Nothing)-}
 >
 > liftPositionalArgTok :: SParser Integer
 > liftPositionalArgTok =
@@ -1773,10 +1782,11 @@ identifier which happens to start with a complete keyword
 > placeholder :: SParser ScalarExpr
 > placeholder = (Placeholder <$> pos) <* symbol "?"
 >
-> float :: SParser Double
-> float = mytoken (\tok -> case tok of
->                                     FloatTok n -> Just n
+> numString :: SParser String
+> numString = mytoken (\tok -> case tok of
+>                                     NumberTok n -> Just n
 >                                     _ -> Nothing)
+
 >
 > liftStringTok :: SParser String
 > liftStringTok = mytoken (\tok ->

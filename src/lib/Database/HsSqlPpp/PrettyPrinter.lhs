@@ -645,8 +645,7 @@ Statement components
 > convExp nice (QIdentifier a e i) = parens (convExp nice e) <> text "." <> convExp nice (Identifier a i)
 
 > --convExp (PIdentifier _ i) = parens $ convExp i
-> convExp _ (IntegerLit _ n) = integer n
-> convExp _ (FloatLit _ n) = text n
+> convExp _ (NumberLit _ n) = text n
 > convExp _ (StringLit _ s) = -- needs some thought about using $$?
 >                           text "'" <> text replaceQuotes <> text "'"
 >                           where

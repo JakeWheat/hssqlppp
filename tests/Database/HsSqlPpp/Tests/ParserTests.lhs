@@ -35,38 +35,39 @@ There are no tests for invalid syntax at the moment.
 > parserTestData =
 >   Group "parserTests" [
 
-
-42
-3.5
-4.
-.001
-5e2
-1.925e-3
-
 --------------------------------------------------------------------------------
 
 >    Group "parse expressions" [
->     Group "basic expressions" [
->       e "1" (IntegerLit ea 1)
->      ,e "-1" (FunCall ea "u-" [IntegerLit ea 1])
->      ,e "1.1" (FloatLit ea "1.1")
->      ,e "-1.1" (FunCall ea "u-" [FloatLit ea "1.1"])
->      ,e " 1 + 1 " (FunCall ea "+" [IntegerLit ea 1
->                                   ,IntegerLit ea 1])
->      ,e "1+1+1" (FunCall ea "+" [FunCall ea "+" [IntegerLit ea 1
->                                                 ,IntegerLit ea 1]
->                                 ,IntegerLit ea 1])
+>     Group "numbers" [
+>       e "42" (NumberLit ea "42")
+>      ,e "3.5" (NumberLit ea "3.5")
+>      ,e "4." (NumberLit ea "4.")
+>      ,e ".001" (NumberLit ea ".001")
+>      ,e "5e2" (NumberLit ea "5e2")
+>      ,e "1.925e-3" (NumberLit ea "1.925e-3")
+
+>      ]
+>    ,Group "basic expressions" [
+>       e "1" (NumberLit ea "1")
+>      ,e "-1" (FunCall ea "u-" [NumberLit ea "1"])
+>      ,e "1.1" (NumberLit ea "1.1")
+>      ,e "-1.1" (FunCall ea "u-" [NumberLit ea "1.1"])
+>      ,e " 1 + 1 " (FunCall ea "+" [NumberLit ea "1"
+>                                   ,NumberLit ea "1"])
+>      ,e "1+1+1" (FunCall ea "+" [FunCall ea "+" [NumberLit ea "1"
+>                                                 ,NumberLit ea "1"]
+>                                 ,NumberLit ea "1"])
 >      ]
 >    ,Group "parens" [
 
 check some basic parens use wrt naked values and row constructors
 these tests reflect how pg seems to interpret the variants.
 
->       e "(1)" (IntegerLit ea 1)
+>       e "(1)" (NumberLit ea "1")
 >      ,e "row ()" (FunCall ea "!rowctor" [])
->      ,e "row (1)" (FunCall ea "!rowctor" [IntegerLit ea 1])
->      ,e "row (1,2)" (FunCall ea "!rowctor" [IntegerLit ea 1,IntegerLit ea 2])
->      ,e "(1,2)" (FunCall ea "!rowctor" [IntegerLit ea 1,IntegerLit ea 2])
+>      ,e "row (1)" (FunCall ea "!rowctor" [NumberLit ea "1"])
+>      ,e "row (1,2)" (FunCall ea "!rowctor" [NumberLit ea "1",NumberLit ea "2"])
+>      ,e "(1,2)" (FunCall ea "!rowctor" [NumberLit ea "1",NumberLit ea "2"])
 >      ]
 >    ,Group "more basic expressions" [
 
@@ -84,43 +85,43 @@ test some more really basic expressions
 >      ,e "null" (NullLit ea)
 >      ]
 >    ,Group "array ctor and selector" [
->       e "array[1,2]" (FunCall ea "!arrayctor" [IntegerLit ea 1, IntegerLit ea 2])
->      ,e "a[1]" (FunCall ea "!arraysub" [Identifier ea "a", IntegerLit ea 1])
+>       e "array[1,2]" (FunCall ea "!arrayctor" [NumberLit ea "1", NumberLit ea "2"])
+>      ,e "a[1]" (FunCall ea "!arraysub" [Identifier ea "a", NumberLit ea "1"])
 >      ]
 >    ,Group "simple operators" [
->       e "1 + tst1" (FunCall ea "+" [IntegerLit ea 1
+>       e "1 + tst1" (FunCall ea "+" [NumberLit ea "1"
 >                                ,Identifier ea "tst1"])
 >      ,e "tst1 + 1" (FunCall ea "+" [Identifier ea "tst1"
->                                ,IntegerLit ea 1])
+>                                ,NumberLit ea "1"])
 >      ,e "tst + tst1" (FunCall ea "+" [Identifier ea "tst"
 >                                  ,Identifier ea "tst1"])
 >      ,e "'a' || 'b'" (FunCall ea "||" [stringQ "a"
 >                                   ,stringQ "b"])
 >      ,e "'stuff'::text" (Cast ea (stringQ "stuff") (SimpleTypeName ea "text"))
->      ,e "245::float(24)" (Cast ea (IntegerLit ea 245) (PrecTypeName ea "float" 24))
->      ,e "245.1::numeric(5,3)" (Cast ea (FloatLit ea "245.1") (Prec2TypeName ea "numeric" 5 3))
->      ,e "245::double precision" (Cast ea (IntegerLit ea 245) (SimpleTypeName ea "double precision"))
+>      ,e "245::float(24)" (Cast ea (NumberLit ea "245") (PrecTypeName ea "float" 24))
+>      ,e "245.1::numeric(5,3)" (Cast ea (NumberLit ea "245.1") (Prec2TypeName ea "numeric" 5 3))
+>      ,e "245::double precision" (Cast ea (NumberLit ea "245") (SimpleTypeName ea "double precision"))
 >      ,e "date '1998-12-01'" (TypedStringLit ea (SimpleTypeName ea "date") "1998-12-01")
 >      ,e "interval '63' day" (Interval ea "63" IntervalDay Nothing)
 >      ,e "interval '63' day (3)" (Interval ea "63" IntervalDay $ Just 3)
 >      ,e "extract(year from a)" (Extract ea ExtractYear $ Identifier ea "a")
 >      ,e "a between 1 and 3"
->         (FunCall ea "!between" [Identifier ea "a", IntegerLit ea 1, IntegerLit ea 3])
+>         (FunCall ea "!between" [Identifier ea "a", NumberLit ea "1", NumberLit ea "3"])
 >      ,e "a between 7 - 1 and 7 + 1"
 >         (FunCall ea "!between" [Identifier ea "a"
->                                ,FunCall ea "-" [IntegerLit ea 7
->                                                ,IntegerLit ea 1]
->                                ,FunCall ea "+" [IntegerLit ea 7
->                                                ,IntegerLit ea 1]])
+>                                ,FunCall ea "-" [NumberLit ea "7"
+>                                                ,NumberLit ea "1"]
+>                                ,FunCall ea "+" [NumberLit ea "7"
+>                                                ,NumberLit ea "1"]])
 >      ,e "cast(a as text)"
 >         (Cast ea (Identifier ea "a") (SimpleTypeName ea "text"))
 >      ,e "@ a"
 >         (FunCall ea "@" [Identifier ea "a"])
 >      ,e "substring(a from 0 for 3)"
->         (FunCall ea "!substring" [Identifier ea "a", IntegerLit ea 0, IntegerLit ea 3])
+>         (FunCall ea "!substring" [Identifier ea "a", NumberLit ea "0", NumberLit ea "3"])
 >      ,e "substring(a from 0 for (5 - 3))"
->         (FunCall ea "!substring" [Identifier ea "a",IntegerLit ea 0,
->          FunCall ea "-" [IntegerLit ea 5,IntegerLit ea 3]])
+>         (FunCall ea "!substring" [Identifier ea "a",NumberLit ea "0",
+>          FunCall ea "-" [NumberLit ea "5",NumberLit ea "3"]])
 >      ,e "a like b"
 >         (FunCall ea "!like" [Identifier ea "a", Identifier ea "b"])
 >      ,e "a not like b"
@@ -135,16 +136,16 @@ test some more really basic expressions
 >      ]
 >    ,Group "function calls" [
 >       e "fn()" (FunCall ea "fn" [])
->      ,e "fn(1)" (FunCall ea "fn" [IntegerLit ea 1])
+>      ,e "fn(1)" (FunCall ea "fn" [NumberLit ea "1"])
 >      ,e "fn('test')" (FunCall ea "fn" [stringQ "test"])
->      ,e "fn(1,'test')" (FunCall ea "fn" [IntegerLit ea 1, stringQ "test"])
+>      ,e "fn(1,'test')" (FunCall ea "fn" [NumberLit ea "1", stringQ "test"])
 >      ,e "fn('test')" (FunCall ea "fn" [stringQ "test"])
 >      ]
 >    ,Group "simple whitespace sanity checks" [
->       e "fn (1)" (FunCall ea "fn" [IntegerLit ea 1])
->      ,e "fn( 1)" (FunCall ea "fn" [IntegerLit ea 1])
->      ,e "fn(1 )" (FunCall ea "fn" [IntegerLit ea 1])
->      ,e "fn(1) " (FunCall ea "fn" [IntegerLit ea 1])
+>       e "fn (1)" (FunCall ea "fn" [NumberLit ea "1"])
+>      ,e "fn( 1)" (FunCall ea "fn" [NumberLit ea "1"])
+>      ,e "fn(1 )" (FunCall ea "fn" [NumberLit ea "1"])
+>      ,e "fn(1) " (FunCall ea "fn" [NumberLit ea "1"])
 >      ]
 >    ,Group "null stuff" [
 >       e "not null" (FunCall ea "!not" [NullLit ea])
@@ -166,13 +167,13 @@ test some more really basic expressions
 >               else 5
 >          end
 >          |]
->         (Case ea [([Identifier ea "a", Identifier ea "b"], IntegerLit ea 3)
->               ,([Identifier ea "c"], IntegerLit ea 4)]
->          (Just $ IntegerLit ea 5))
+>         (Case ea [([Identifier ea "a", Identifier ea "b"], NumberLit ea "3")
+>               ,([Identifier ea "c"], NumberLit ea "4")]
+>          (Just $ NumberLit ea "5"))
 >      ,e  "case 1 when 2 then 3 else 4 end"
->         (CaseSimple ea (IntegerLit ea 1)
->            [([IntegerLit ea 2], IntegerLit ea 3)]
->          (Just $ IntegerLit ea 4))
+>         (CaseSimple ea (NumberLit ea "1")
+>            [([NumberLit ea "2"], NumberLit ea "3")]
+>          (Just $ NumberLit ea "4"))
 >      ]
 >    ,Group "positional args" [
 >       e "$1" (PositionalArg ea 1)
@@ -181,25 +182,25 @@ test some more really basic expressions
 >      ]
 >    ,Group "exists" [
 >       e "exists (select 1 from a)"
->       (Exists ea (selectFrom [SelExp ea (IntegerLit ea 1)] (Tref ea (i "a") (NoAlias ea))))
+>       (Exists ea (selectFrom [SelExp ea (NumberLit ea "1")] (Tref ea (i "a") (NoAlias ea))))
 >      ]
 >    ,Group "in variants" [
 >       e "t in (1,2)"
->       (InPredicate ea (Identifier ea "t") True (InList ea [IntegerLit ea 1,IntegerLit ea 2]))
+>       (InPredicate ea (Identifier ea "t") True (InList ea [NumberLit ea "1",NumberLit ea "2"]))
 >      ,e "t not in (1,2)"
->       (InPredicate ea (Identifier ea "t") False (InList ea [IntegerLit ea 1,IntegerLit ea 2]))
+>       (InPredicate ea (Identifier ea "t") False (InList ea [NumberLit ea "1",NumberLit ea "2"]))
 >      ,e "(t,u) in (1,2)"
 >       (InPredicate ea (FunCall ea "!rowctor" [Identifier ea "t",Identifier ea "u"]) True
->        (InList ea [IntegerLit ea 1,IntegerLit ea 2]))
+>        (InList ea [NumberLit ea "1",NumberLit ea "2"]))
 >      ,e "3 = any (array[1,2])"
->       (LiftOperator ea "=" LiftAny [IntegerLit ea 3
->                                     ,FunCall ea "!arrayctor" [IntegerLit ea 1
->                                                              ,IntegerLit ea 2]])
+>       (LiftOperator ea "=" LiftAny [NumberLit ea "3"
+>                                     ,FunCall ea "!arrayctor" [NumberLit ea "1"
+>                                                              ,NumberLit ea "2"]])
 >      ,e "3 = all (array[1,2,4])"
->       (LiftOperator ea "=" LiftAll [IntegerLit ea 3
->                                     ,FunCall ea "!arrayctor" [IntegerLit ea 1
->                                                              ,IntegerLit ea 2
->                                                              ,IntegerLit ea 4]])
+>       (LiftOperator ea "=" LiftAll [NumberLit ea "3"
+>                                     ,FunCall ea "!arrayctor" [NumberLit ea "1"
+>                                                              ,NumberLit ea "2"
+>                                                              ,NumberLit ea "4"]])
 >      ]
 >    ,Group "comparison operators" [
 >       e "a < b"
@@ -245,7 +246,7 @@ select statements
 
 >   ,Group "simple select statements" [
 >     Group "select no table" [
->       s "select 1;" [QueryStatement ea $ selectE (SelectList ea [SelExp ea (IntegerLit ea 1)])]
+>       s "select 1;" [QueryStatement ea $ selectE (SelectList ea [SelExp ea (NumberLit ea "1")])]
 >      ]
 >    ,Group "select from table" [
 >       s "select * from tbl;"
@@ -262,14 +263,14 @@ select statements
 >         (selIL ["a"])
 >         (Tref ea (i "tbl") (NoAlias ea))
 >         (FunCall ea "="
->          [Identifier ea "b", IntegerLit ea 2])]
+>          [Identifier ea "b", NumberLit ea "2"])]
 >      ,s "select a from tbl where b=2 and c=3;"
 >       [QueryStatement ea $ selectFromWhere
 >         (selIL ["a"])
 >         (Tref ea (i "tbl") (NoAlias ea))
 >         (FunCall ea "!and"
->          [FunCall ea "="  [Identifier ea "b", IntegerLit ea 2]
->          ,FunCall ea "=" [Identifier ea "c", IntegerLit ea 3]])]
+>          [FunCall ea "="  [Identifier ea "b", NumberLit ea "2"]
+>          ,FunCall ea "=" [Identifier ea "c", NumberLit ea "3"]])]
 >      ,MSStmt "select a from t;\ngo"
 >          [QueryStatement ea $ selectFrom (selIL ["a"]) (Tref ea (i "t") (NoAlias ea))]
 >      ,MSStmt "select a from t;\nset rowcount -1\ngo"
@@ -278,7 +279,7 @@ select statements
 >       [QueryStatement ea $ Select ea Dupes
 >        (sl (selIL ["a"]))
 >        [Tref ea (i "t") (NoAlias ea)]
->        Nothing [] Nothing [] (Just (IntegerLit ea 10)) Nothing]
+>        Nothing [] Nothing [] (Just (NumberLit ea "10")) Nothing]
 
 >      ]
 >
@@ -312,16 +313,16 @@ select statements
 >       [QueryStatement ea
 >        (CombineQueryExpr ea Union
 >         (CombineQueryExpr ea Union
->          (selectE (SelectList ea [SelExp ea (IntegerLit ea 1)]))
->          (selectE (SelectList ea [SelExp ea (IntegerLit ea 2)])))
->         (selectE (SelectList ea [SelExp ea (IntegerLit ea 3)])))]
+>          (selectE (SelectList ea [SelExp ea (NumberLit ea "1")]))
+>          (selectE (SelectList ea [SelExp ea (NumberLit ea "2")])))
+>         (selectE (SelectList ea [SelExp ea (NumberLit ea "3")])))]
 >      ,s "select 1 union (select 2 union select 3);"
 >       [QueryStatement ea
 >        (CombineQueryExpr ea Union
->         (selectE (SelectList ea [SelExp ea (IntegerLit ea 1)]))
+>         (selectE (SelectList ea [SelExp ea (NumberLit ea "1")]))
 >         (CombineQueryExpr ea Union
->          (selectE (SelectList ea [SelExp ea (IntegerLit ea 2)]))
->          (selectE (SelectList ea [SelExp ea (IntegerLit ea 3)]))))]
+>          (selectE (SelectList ea [SelExp ea (NumberLit ea "2")]))
+>          (selectE (SelectList ea [SelExp ea (NumberLit ea "3")]))))]
 >      ,s [$here|
 >          with a as (select 1 as a1),
 >               b as (select * from a)
@@ -329,7 +330,7 @@ select statements
 >          [QueryStatement ea
 >           (WithQueryExpr ea
 >            [WithQuery ea "a" Nothing (selectE $ SelectList ea
->                                [SelectItem ea (IntegerLit ea 1) "a1"])
+>                                [SelectItem ea (NumberLit ea "1") "a1"])
 >            ,WithQuery ea "b" Nothing (selectFrom (selIL ["*"]) (Tref ea (i "a") (NoAlias ea)))]
 >            (selectFrom (selIL ["*"]) (Tref ea (i "b") (NoAlias ea))))]
 >      ,s [$here|
@@ -340,7 +341,7 @@ select statements
 >          [QueryStatement ea
 >           (WithQueryExpr ea
 >            [WithQuery ea "a" Nothing (selectE $ SelectList ea
->                                [SelectItem ea (IntegerLit ea 1) "a1"])
+>                                [SelectItem ea (NumberLit ea "1") "a1"])
 >            ,WithQuery ea "b" Nothing (selectFrom (selIL ["*"]) (Tref ea (i "a") (NoAlias ea)))]
 >            (CombineQueryExpr ea Union
 >              (selectFrom (selIL ["*"]) (Tref ea (i "a") (NoAlias ea)))
@@ -495,7 +496,7 @@ select statements
 >          (Just $ JoinOn ea (BooleanLit ea True)) (NoAlias ea))
 >         Unnatural Inner (Tref ea (i "d") (NoAlias ea))
 >         (Just $ JoinOn ea (FunCall ea "="
->                [IntegerLit ea 1, IntegerLit ea 1])) (NoAlias ea))]
+>                [NumberLit ea "1", NumberLit ea "1"])) (NoAlias ea))]
 
 >      ,s "select row_number() over(order by a) as place from tbl;"
 >       [QueryStatement ea $ selectFrom [SelectItem ea
@@ -568,12 +569,12 @@ select statements
 >       [QueryStatement ea $ Select ea Dupes
 >        (sl (selIL ["*"]))
 >        [Tref ea (i "a") (NoAlias ea)]
->        Nothing [] Nothing [(Identifier ea "c",Asc)] (Just (IntegerLit ea 1)) Nothing]
+>        Nothing [] Nothing [(Identifier ea "c",Asc)] (Just (NumberLit ea "1")) Nothing]
 >      ,s "select * from a order by c offset 3;"
 >       [QueryStatement ea $ Select ea Dupes
 >        (sl (selIL ["*"]))
 >        [Tref ea (i "a") (NoAlias ea)]
->        Nothing [] Nothing [(Identifier ea "c",Asc)] Nothing (Just $ IntegerLit ea 3)]
+>        Nothing [] Nothing [(Identifier ea "c",Asc)] Nothing (Just $ NumberLit ea "3")]
 >      ,s "select a from (select b from c) as d;"
 >         [QueryStatement ea $ selectFrom
 >          (selIL ["a"])
@@ -596,20 +597,20 @@ select statements
 >         [QueryStatement ea $ Select ea Dupes
 >          (sl [selI "a", SelectItem ea (FunCall ea "count" [Identifier ea "b"]) "cnt"])
 >          [Tref ea (i "c") (NoAlias ea)] Nothing [Identifier ea "a"]
->          (Just $ FunCall ea ">" [Identifier ea "cnt", IntegerLit ea 4])
+>          (Just $ FunCall ea ">" [Identifier ea "cnt", NumberLit ea "4"])
 >          [] Nothing Nothing]
 >      ,s "select a from (select 1 as a, 2 as b) x;"
 >         [QueryStatement ea $ selectFrom
 >          [selI "a"]
 >          (SubTref ea (selectE $ SelectList ea
->                                [SelectItem ea (IntegerLit ea 1) "a"
->                                ,SelectItem ea (IntegerLit ea 2) "b"])
+>                                [SelectItem ea (NumberLit ea "1") "a"
+>                                ,SelectItem ea (NumberLit ea "2") "b"])
 >                   (TableAlias ea "x"))]
 >      ]
 
 >    ,Group "multiple statements" [
->       s "select 1;\nselect 2;" [QueryStatement ea $ selectE $ sl [SelExp ea (IntegerLit ea 1)]
->                                ,QueryStatement ea $ selectE $ sl [SelExp ea (IntegerLit ea 2)]]
+>       s "select 1;\nselect 2;" [QueryStatement ea $ selectE $ sl [SelExp ea (NumberLit ea "1")]
+>                                ,QueryStatement ea $ selectE $ sl [SelExp ea (NumberLit ea "2")]]
 >      ]
 >    ,Group "comments" [
 >       s "" []
@@ -619,15 +620,15 @@ select statements
 >      ,s "select 1;\n\
 >         \-- this is a test\n\
 >         \select -- this is a test\n\
->         \2;" [QueryStatement ea $ selectE $ sl [SelExp ea (IntegerLit ea 1)]
->              ,QueryStatement ea $ selectE $ sl [SelExp ea (IntegerLit ea 2)]
+>         \2;" [QueryStatement ea $ selectE $ sl [SelExp ea (NumberLit ea "1")]
+>              ,QueryStatement ea $ selectE $ sl [SelExp ea (NumberLit ea "2")]
 >              ]
 >      ,s "select 1;\n\
 >         \/* this is\n\
 >         \a test*/\n\
 >         \select /* this is a test*/2;"
->                     [QueryStatement ea $ selectE $ sl [SelExp ea (IntegerLit ea 1)]
->                     ,QueryStatement ea $ selectE $ sl [SelExp ea (IntegerLit ea 2)]
+>                     [QueryStatement ea $ selectE $ sl [SelExp ea (NumberLit ea "1")]
+>                     ,QueryStatement ea $ selectE $ sl [SelExp ea (NumberLit ea "2")]
 >                     ]
 >      ]
 >    ,Group "some mis stuff" [
@@ -667,15 +668,15 @@ dml statements
 >        [Insert ea
 >         (dqi "testtable")
 >         ["columna", "columnb"]
->         (Values ea [[IntegerLit ea 1, IntegerLit ea 2]])
+>         (Values ea [[NumberLit ea "1", NumberLit ea "2"]])
 >         Nothing]
 
 multi row insert, test the stand alone values statement first, maybe
 that should be in the select section?
 
 >      ,s "values (1,2), (3,4);"
->      [QueryStatement ea $ Values ea [[IntegerLit ea 1, IntegerLit ea 2]
->              ,[IntegerLit ea 3, IntegerLit ea 4]]]
+>      [QueryStatement ea $ Values ea [[NumberLit ea "1", NumberLit ea "2"]
+>              ,[NumberLit ea "3", NumberLit ea "4"]]]
 >
 >      ,s "insert into testtable\n\
 >         \(columna,columnb)\n\
@@ -683,8 +684,8 @@ that should be in the select section?
 >       [Insert ea
 >         (dqi "testtable")
 >         ["columna", "columnb"]
->         (Values ea [[IntegerLit ea 1, IntegerLit ea 2]
->                 ,[IntegerLit ea 3, IntegerLit ea 4]])
+>         (Values ea [[NumberLit ea "1", NumberLit ea "2"]
+>                 ,[NumberLit ea "3", NumberLit ea "4"]])
 >         Nothing]
 
 insert from select
@@ -701,41 +702,41 @@ insert from select
 >       [Insert ea
 >         (dqi "testtable")
 >         ["columna", "columnb"]
->         (Values ea [[IntegerLit ea 1, IntegerLit ea 2]])
+>         (Values ea [[NumberLit ea "1", NumberLit ea "2"]])
 >         (Just $ sl [selI "id"])]
 >      ]
 >
 >     ,Group "update" [
 >       s "update tb\n\
 >         \  set x = 1, y = 2;"
->       [Update ea (dqi "tb") [FunCall ea "=" [Identifier ea "x", IntegerLit ea 1]
->                       ,FunCall ea "=" [Identifier ea "y", IntegerLit ea 2]]
+>       [Update ea (dqi "tb") [FunCall ea "=" [Identifier ea "x", NumberLit ea "1"]
+>                       ,FunCall ea "=" [Identifier ea "y", NumberLit ea "2"]]
 >        [] Nothing Nothing]
 >      ,s "update tb\n\
 >         \  set x = 1, y = 2 where z = true;"
->       [Update ea (dqi "tb") [FunCall ea "=" [Identifier ea "x", IntegerLit ea 1]
->                       ,FunCall ea "=" [Identifier ea "y", IntegerLit ea 2]]
+>       [Update ea (dqi "tb") [FunCall ea "=" [Identifier ea "x", NumberLit ea "1"]
+>                       ,FunCall ea "=" [Identifier ea "y", NumberLit ea "2"]]
 >        []
 >        (Just $ FunCall ea "="
 >         [Identifier ea "z", BooleanLit ea True])
 >        Nothing]
 >      ,s "update tb\n\
 >         \  set x = 1, y = 2 returning id;"
->       [Update ea (dqi "tb") [FunCall ea "=" [Identifier ea "x", IntegerLit ea 1]
->                       ,FunCall ea "=" [Identifier ea "y", IntegerLit ea 2]]
+>       [Update ea (dqi "tb") [FunCall ea "=" [Identifier ea "x", NumberLit ea "1"]
+>                       ,FunCall ea "=" [Identifier ea "y", NumberLit ea "2"]]
 >        [] Nothing (Just $ sl [selI "id"])]
 >      ,s "update tb\n\
 >         \  set (x,y) = (1,2);"
 >       [Update ea (dqi "tb") [FunCall ea "="
 >                        [FunCall ea "!rowctor" [Identifier ea "x"
 >                                               ,Identifier ea "y"]
->                        ,FunCall ea "!rowctor" [IntegerLit ea 1
->                                               ,IntegerLit ea 2]]]
+>                        ,FunCall ea "!rowctor" [NumberLit ea "1"
+>                                               ,NumberLit ea "2"]]]
 >        []
 >        Nothing Nothing]
 >      ]
 
-FunCall ea "=" [FunCall ea "!rowctor" [Identifier ea "x",Identifier ea "y"],FunCall ea "!rowctor" [IntegerLit ea 1,IntegerLit ea 2]])
+FunCall ea "=" [FunCall ea "!rowctor" [Identifier ea "x",Identifier ea "y"],FunCall ea "!rowctor" [NumberLit ea "1",NumberLit ea "2"]])
 
 
 >
@@ -794,10 +795,10 @@ ddl statements
 >
 >      ,s "create table tbl as select 1;"
 >       [CreateTableAs ea "tbl"
->        (selectE (SelectList ea [SelExp ea (IntegerLit ea 1)]))]
+>        (selectE (SelectList ea [SelExp ea (NumberLit ea "1")]))]
 >
 >      ,s "alter table a alter column b set default 1;"
->       [AlterTable ea "a" [AlterColumnDefault ea "b" (IntegerLit ea 1)]]
+>       [AlterTable ea "a" [AlterColumnDefault ea "b" (NumberLit ea "1")]]
 >
 >      ,s "alter table a add constraint unique(b);"
 >       [AlterTable ea "a" [AddConstraint ea (UniqueConstraint ea "" ["b"])]]
@@ -1100,7 +1101,7 @@ quick sanity check
 >       [CreateFunction ea "fn" [] (SimpleTypeName ea "void") NoReplace Plpgsql
 >        (PlpgsqlFnBody ea
 >         (Block ea Nothing
->          [VarDef ea "a" (SimpleTypeName ea "int") (Just $ IntegerLit ea 3)]
+>          [VarDef ea "a" (SimpleTypeName ea "int") (Just $ NumberLit ea "3")]
 >          [NullStatement ea]))
 >        Stable]
 >      ,s "create function fn(int) returns void as '\n\
@@ -1180,11 +1181,11 @@ quick sanity check
 >      ,f "return;"
 >       [Return ea Nothing]
 >      ,f "return next 1;"
->       [ReturnNext ea $ IntegerLit ea 1]
+>       [ReturnNext ea $ NumberLit ea "1"]
 >      ,f "return query select a from b;"
 >       [ReturnQuery ea $ selectFrom [selI "a"] (Tref ea (i "b") (NoAlias ea))]
 >      ,f "raise notice 'stuff %', 1;"
->       [Raise ea RNotice "stuff %" [IntegerLit ea 1]]
+>       [Raise ea RNotice "stuff %" [NumberLit ea "1"]]
 >      ,f "perform test();"
 >       [Perform ea $ FunCall ea "test" []]
 >      ,f "perform test(a,b);"
@@ -1214,13 +1215,13 @@ quick sanity check
 >        $ Insert ea
 >         (dqi "t")
 >         ["a"]
->         (Values ea [[IntegerLit ea 1]])
+>         (Values ea [[NumberLit ea "1"]])
 >         (Just $ sl [selI "id"])]
 
 >      ,f "update t\n\
 >         \  set x = 1 returning id into z;"
 >       [Into ea False [ei "z"]
->       $ Update ea (dqi "t") [FunCall ea "=" [Identifier ea "x", IntegerLit ea 1]]
+>       $ Update ea (dqi "t") [FunCall ea "=" [Identifier ea "x", NumberLit ea "1"]]
 >         [] Nothing (Just $ sl [selI "id"])]
 
 >      ,f "execute s;"
@@ -1246,7 +1247,7 @@ quick sanity check
 >         \null;\n\
 >         \end loop;"
 >       [ForIntegerStatement ea Nothing (ei "r")
->        (IntegerLit ea 1) (IntegerLit ea 10)
+>        (NumberLit ea "1") (NumberLit ea "10")
 >        [NullStatement ea]]
 >
 >      ,f "if a=b then\n\

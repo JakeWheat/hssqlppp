@@ -21,7 +21,7 @@ SEM ScalarExpr
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
       PositionalArg Placeholder WindowFn TypedStringLit Interval
       Extract
-      IntegerLit StringLit FloatLit NullLit
+      NumberLit StringLit NullLit
         --loc.fixedTpe = @loc.tpe
         lhs.annotatedTree = updateAnnotation
                               (setTypeAddErrorsA @loc.tpe
@@ -40,7 +40,7 @@ SEM ScalarExpr
                          _ -> @loc.tpe-}
 
 SEM ScalarExpr
-    | IntegerLit StringLit FloatLit BooleanLit NullLit Identifier
+    | NumberLit StringLit BooleanLit NullLit Identifier
       QIdentifier
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
       PositionalArg Placeholder WindowFn TypedStringLit Interval Extract
@@ -100,7 +100,7 @@ SEM TableRef
 ATTR ScalarExpr [|| uType : {Maybe Type}]
 
 SEM ScalarExpr
-    | IntegerLit StringLit FloatLit BooleanLit NullLit FunCall Identifier QIdentifier
+    | NumberLit StringLit BooleanLit NullLit FunCall Identifier QIdentifier
       Exists Case CaseSimple Cast InPredicate ScalarSubQuery LiftOperator
       PositionalArg Placeholder WindowFn TypedStringLit Interval Extract
         lhs.uType = etmt @loc.tpe
@@ -148,20 +148,21 @@ errors only, but would like to do better here.
 -}
 
 SEM ScalarExpr
-     | IntegerLit loc.tpe = Right typeInt
+     | NumberLit loc.tpe = if all (`elem` digChars) @d
+                           then Right typeInt
+                           else Right typeNumeric
+                           where
+                             digChars = concatMap show [(0::Int)..9]
      | StringLit loc.tpe = Right UnknownType
-     | FloatLit loc.tpe = Right typeNumeric
      | BooleanLit loc.tpe = Right typeBool
      -- I think a null has the same type resolution as an unknown string lit
      | NullLit loc.tpe = Right UnknownType
 
 SEM ScalarExpr
-    | IntegerLit
-        loc.backTree = IntegerLit @ann @i
+    | NumberLit
+        loc.backTree = NumberLit @ann @d
     | StringLit
         loc.backTree = StringLit @ann @value
-    | FloatLit
-        loc.backTree = FloatLit @ann @d
     | BooleanLit
         loc.backTree = BooleanLit @ann @b
     | NullLit

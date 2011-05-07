@@ -29,8 +29,7 @@ For extra utility functions to help with asts
 >              -> FunCall a f $ zipWith3 addCastIfNeeded p ats as
 >            Case a cs els | (Just f) <- doCase a cs els -> f
 >            CaseSimple a v cs els | (Just f) <- doCaseSimple a v cs els -> f
->            i@(IntegerLit a _) | Just t <- infType a -> castToT t i
->            i@(FloatLit a _) | Just t <- infType a -> castToT t i
+>            i@(NumberLit a _) | Just t <- infType a -> castToT t i
 >            i@(StringLit a _) | Just t <- infType a -> castToT t i
 >            x1 -> x1
 >     -- need to put the type annotation in the created cast to allow
@@ -58,8 +57,7 @@ For extra utility functions to help with asts
 >                                       , t == typeName 3 lt
 >                 -> Cast ca l t1
 >               x1 -> x1
->     isLiteral (IntegerLit _ _) = True
->     isLiteral (FloatLit _ _) = True
+>     isLiteral (NumberLit _ _) = True
 >     isLiteral (StringLit _ _) = True
 >     isLiteral _ = False
 

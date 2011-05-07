@@ -231,14 +231,13 @@ data ScalarExpr = BooleanLit Annotation Bool
                 | Cast Annotation ScalarExpr TypeName
                 | Exists Annotation QueryExpr
                 | Extract Annotation ExtractField ScalarExpr
-                | FloatLit Annotation String
                 | FunCall Annotation String ScalarExprList
                 | Identifier Annotation String
                 | InPredicate Annotation ScalarExpr Bool InList
-                | IntegerLit Annotation Integer
                 | Interval Annotation String IntervalField (Maybe Int)
                 | LiftOperator Annotation String LiftFlavour ScalarExprList
                 | NullLit Annotation
+                | NumberLit Annotation String
                 | Placeholder Annotation
                 | PositionalArg Annotation Integer
                 | QIdentifier Annotation ScalarExpr String
@@ -682,16 +681,15 @@ scalarExpr x
         Cast a1 a2 a3 -> A.Cast a1 (scalarExpr a2) (typeName a3)
         Exists a1 a2 -> A.Exists a1 (queryExpr a2)
         Extract a1 a2 a3 -> A.Extract a1 (extractField a2) (scalarExpr a3)
-        FloatLit a1 a2 -> A.FloatLit a1 a2
         FunCall a1 a2 a3 -> A.FunCall a1 a2 (scalarExprList a3)
         Identifier a1 a2 -> A.Identifier a1 a2
         InPredicate a1 a2 a3 a4 -> A.InPredicate a1 (scalarExpr a2) a3
                                      (inList a4)
-        IntegerLit a1 a2 -> A.IntegerLit a1 a2
         Interval a1 a2 a3 a4 -> A.Interval a1 a2 (intervalField a3) a4
         LiftOperator a1 a2 a3 a4 -> A.LiftOperator a1 a2 (liftFlavour a3)
                                       (scalarExprList a4)
         NullLit a1 -> A.NullLit a1
+        NumberLit a1 a2 -> A.NumberLit a1 a2
         Placeholder a1 -> A.Placeholder a1
         PositionalArg a1 a2 -> A.PositionalArg a1 a2
         QIdentifier a1 a2 a3 -> A.QIdentifier a1 (scalarExpr a2) a3
