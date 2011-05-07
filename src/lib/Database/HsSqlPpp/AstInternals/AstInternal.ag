@@ -553,7 +553,7 @@ expression?
 
 -}
 DATA ScalarExpr | IntegerLit ann:Annotation i:Integer
-                | FloatLit ann:Annotation d:Double
+                | FloatLit ann:Annotation d:String
                 | StringLit ann:Annotation
                             value : String
                 | TypedStringLit ann:Annotation

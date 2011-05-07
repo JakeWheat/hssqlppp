@@ -1454,7 +1454,7 @@ row ctor: one of
 >           ,parens $ commaSep2 expr]
 >
 > floatLit :: SParser ScalarExpr
-> floatLit = FloatLit <$> pos <*> float
+> floatLit = FloatLit <$> pos <*> (show <$> float) -- fixme
 >
 > integerLit :: SParser ScalarExpr
 > integerLit = do

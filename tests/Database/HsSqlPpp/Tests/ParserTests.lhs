@@ -35,14 +35,22 @@ There are no tests for invalid syntax at the moment.
 > parserTestData =
 >   Group "parserTests" [
 
+
+42
+3.5
+4.
+.001
+5e2
+1.925e-3
+
 --------------------------------------------------------------------------------
 
 >    Group "parse expressions" [
 >     Group "basic expressions" [
 >       e "1" (IntegerLit ea 1)
 >      ,e "-1" (FunCall ea "u-" [IntegerLit ea 1])
->      ,e "1.1" (FloatLit ea 1.1)
->      ,e "-1.1" (FunCall ea "u-" [FloatLit ea 1.1])
+>      ,e "1.1" (FloatLit ea "1.1")
+>      ,e "-1.1" (FunCall ea "u-" [FloatLit ea "1.1"])
 >      ,e " 1 + 1 " (FunCall ea "+" [IntegerLit ea 1
 >                                   ,IntegerLit ea 1])
 >      ,e "1+1+1" (FunCall ea "+" [FunCall ea "+" [IntegerLit ea 1
@@ -90,7 +98,7 @@ test some more really basic expressions
 >                                   ,stringQ "b"])
 >      ,e "'stuff'::text" (Cast ea (stringQ "stuff") (SimpleTypeName ea "text"))
 >      ,e "245::float(24)" (Cast ea (IntegerLit ea 245) (PrecTypeName ea "float" 24))
->      ,e "245.1::numeric(5,3)" (Cast ea (FloatLit ea 245.1) (Prec2TypeName ea "numeric" 5 3))
+>      ,e "245.1::numeric(5,3)" (Cast ea (FloatLit ea "245.1") (Prec2TypeName ea "numeric" 5 3))
 >      ,e "245::double precision" (Cast ea (IntegerLit ea 245) (SimpleTypeName ea "double precision"))
 >      ,e "date '1998-12-01'" (TypedStringLit ea (SimpleTypeName ea "date") "1998-12-01")
 >      ,e "interval '63' day" (Interval ea "63" IntervalDay Nothing)

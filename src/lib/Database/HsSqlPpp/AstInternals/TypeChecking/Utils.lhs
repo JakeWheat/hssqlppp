@@ -123,5 +123,6 @@ For extra utility functions to help with asts
 >         SimpleTypeName a t -> SimpleTypeName a $ ct t
 >         PrecTypeName a t i -> PrecTypeName a (ct t) i
 >         Prec2TypeName a t i0 i1 -> Prec2TypeName a (ct t) i0 i1
+>         x1 -> x1
 >     ct = canonicalizeTypeName
 

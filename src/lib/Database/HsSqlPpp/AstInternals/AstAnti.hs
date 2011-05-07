@@ -231,7 +231,7 @@ data ScalarExpr = BooleanLit Annotation Bool
                 | Cast Annotation ScalarExpr TypeName
                 | Exists Annotation QueryExpr
                 | Extract Annotation ExtractField ScalarExpr
-                | FloatLit Annotation Double
+                | FloatLit Annotation String
                 | FunCall Annotation String ScalarExprList
                 | Identifier Annotation String
                 | InPredicate Annotation ScalarExpr Bool InList

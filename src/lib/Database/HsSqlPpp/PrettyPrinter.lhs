@@ -646,7 +646,7 @@ Statement components
 
 > --convExp (PIdentifier _ i) = parens $ convExp i
 > convExp _ (IntegerLit _ n) = integer n
-> convExp _ (FloatLit _ n) = double n
+> convExp _ (FloatLit _ n) = text n
 > convExp _ (StringLit _ s) = -- needs some thought about using $$?
 >                           text "'" <> text replaceQuotes <> text "'"
 >                           where

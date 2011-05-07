@@ -4390,7 +4390,7 @@ sem_SQIdentifier_SQIdentifier ann_ is_  =
             local originalTree : _
       alternative FloatLit:
          child ann            : {Annotation}
-         child d              : {Double}
+         child d              : {String}
          visit 0:
             local prototype   : {Maybe FunctionPrototype}
             local tpe         : {Et}
@@ -4560,7 +4560,7 @@ data ScalarExpr  = BooleanLit (Annotation) (Bool)
                  | Cast (Annotation) (ScalarExpr ) (TypeName ) 
                  | Exists (Annotation) (QueryExpr ) 
                  | Extract (Annotation) (ExtractField) (ScalarExpr ) 
-                 | FloatLit (Annotation) (Double) 
+                 | FloatLit (Annotation) (String) 
                  | FunCall (Annotation) (String) (ScalarExprList ) 
                  | Identifier (Annotation) (String) 
                  | InPredicate (Annotation) (ScalarExpr ) (Bool) (InList ) 
@@ -5156,7 +5156,7 @@ sem_ScalarExpr_Extract ann_ field_ e_  =
                   e_ _eOcat _eOexpectedType _eOidenv _eOlib 
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree,_lhsOuType)))
 sem_ScalarExpr_FloatLit :: Annotation ->
-                           Double ->
+                           String ->
                            T_ScalarExpr 
 sem_ScalarExpr_FloatLit ann_ d_  =
     (\ _lhsIcat
