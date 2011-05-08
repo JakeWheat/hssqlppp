@@ -1,6 +1,6 @@
 Name:                hssqlppp
 Version:             0.3.0
-Synopsis:            SQL parser, quasiquoter, and type checker
+Synopsis:            SQL parser and type checker
 License:             BSD3
 License-file:        LICENSE
 Author:              Jake Wheat
@@ -13,8 +13,7 @@ homepage:            http://jakewheat.github.com/hssqlppp/
 bug-reports:         https://github.com/JakeWheat/hssqlppp/issues
 category:            Database
 Description:
-    SQL parser, quasiquoter, and type checker, targets PostgreSQL SQL
-    and PL/pgSQL.
+    SQL parser and type checker, targets PostgreSQL SQL and PL/pgSQL.
     .
     Documentation, examples on the homepage:
     <http://jakewheat.github.com/hssqlppp/>.
@@ -29,13 +28,14 @@ extra-source-files:  README
 Flag tests
   Description:       Build the tests
   Default:           False
-Flag postgres
-  Description:       Use HDBC-postgresql
-  Default:           False
 
-Flag quasiquotes
-  Description:       Compile quasiquote support
-  Default:           False
+--Flag postgres
+--  Description:       Use HDBC-postgresql
+--  Default:           False
+
+--Flag quasiquotes
+--  Description:       Compile quasiquote support
+--  Default:           False
 
 Flag library
   Description:       Build the library
@@ -52,21 +52,14 @@ Library
                      uniplate >= 1.6 && < 1.7,
                      transformers >= 0.2.2.0 && < 0.3
 
-  if flag(postgres) || flag(tests)
-     Build-Depends:  HDBC >= 2.2.6.1 && < 2.3,
-                     HDBC-postgresql >= 2.2.3.1 && < 3,
-                     template-haskell >= 2.4.0.0 && < 2.6
-
-  if flag(quasiquotes) || flag(tests)
-     Build-Depends:  template-haskell >= 2.4.0.0 && < 2.6
+--  if flag(quasiquotes) || flag(tests)
+--     Build-Depends:  template-haskell
 
   build-tools:       cpphs
 
   hs-source-dirs:    src/lib
-  if flag(quasiquotes) || flag(tests)
-    hs-source-dirs:    src/qq
-  if flag(postgres) || flag(tests)
-    hs-source-dirs:    src/postgresql
+--  if flag(quasiquotes)
+--    hs-source-dirs:    src/qq
 
   Exposed-modules:   Database.HsSqlPpp.Ast
                      Database.HsSqlPpp.Annotation
@@ -75,19 +68,17 @@ Library
                      Database.HsSqlPpp.PrettyPrinter
                      Database.HsSqlPpp.SqlTypes
                      Database.HsSqlPpp.TypeChecker
-  if flag(quasiquotes) || flag(tests)
-    Exposed-modules: Database.HsSqlPpp.SqlQuote
-  if flag(postgres) || flag(tests)
-    Exposed-modules: Database.HsSqlPpp.CatalogReader
+--  if flag(quasiquotes) || flag(tests)
+--    Exposed-modules: Database.HsSqlPpp.SqlQuote
+--  if flag(postgres) || flag(tests)
+--    Exposed-modules: Database.HsSqlPpp.CatalogReader
 
                      -- find src -iname '*hs' | sed -e "s@src/@@" | sed -e "s@/@.@g" |sed -e "s/.lhs//" |sed -e "s/.hs//"
   Other-Modules:     Database.HsSqlPpp.Utils.Utils
-                     --Database.HsSqlPpp.Utils.Here
                      Database.HsSqlPpp.Parsing.ParseErrors
                      Database.HsSqlPpp.Parsing.Lexer
                      Database.HsSqlPpp.Parsing.ParserInternal
                      Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
-                     --Database.HsSqlPpp.AstInternals.Catalog.CatalogReader
                      Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog
                      Database.HsSqlPpp.AstInternals.AstAnti
                      Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
@@ -99,8 +90,8 @@ Library
                      Database.HsSqlPpp.AstInternals.AstInternal
                      Database.HsSqlPpp.AstInternals.TypeType
                      Database.HsSqlPpp.AstInternals.TypeChecking.Utils
-  if flag(postgres) || flag(tests)
-     Other-Modules:  Database.HsSqlPpp.Utils.DbmsCommon
+--  if flag(postgres) || flag(tests)
+--     Other-Modules:  Database.HsSqlPpp.Utils.DbmsCommon
 
   ghc-options:       -pgmPcpphs -optP--cpp
 
@@ -120,7 +111,7 @@ Library
 
 Executable Tests
   Main-Is:           Tests.lhs
-  hs-source-dirs:    src/lib,src/qq,src/postgresql,tests,examples/chaos,examples/extensions,examples/util,examples/wrappers
+  hs-source-dirs:    src/lib,src/qq,src/postgresql,src/tests,src/examples/chaos,src/examples/extensions,src/examples/util,src/examples/wrappers
   if flag(tests)
     Build-Depends:   base >= 4 && < 5,
                      mtl >= 2.0.1.0 && < 2.1,

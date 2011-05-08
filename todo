@@ -1,4 +1,20 @@
-targets for 0.3.0
+fix basic typechecking so it works again:
+  refactor to do numpty inferred types better
+  go through existing tests and get working again
+get chaos sql parsing and typechecking (add as automated test?) but
+  not use as example
+library usage examples:
+  parse
+  typecheck -> result type, check for errors
+  code generation
+  view catalog/ toy documentation generator
+redo website
+reorganise code tree
+
+
+
+
+targets for 0.4.0?
 fix expression parsing issues?
 support most postgresql syntax
 reconsider parse tree and ast

@@ -1,0 +1,6 @@
+examples/utils to add:
+lex?
+type check errors with source positions
+show catalog
+type check against existing database
+print sql with stuff in comments

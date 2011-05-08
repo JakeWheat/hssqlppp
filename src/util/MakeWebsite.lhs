@@ -2,9 +2,9 @@ Make the website,
 
 To compile and run, use something like:
 
-ghc --make -threaded -XScopedTypeVariables -XDeriveDataTypeable -XTupleSections -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -idevel:src/lib:src/qq:src/postgresql:examples/chaos:examples/extensions/:examples/util/:tests/ --make devel/DevelTool.lhs
+ghc --make -threaded -XScopedTypeVariables -XDeriveDataTypeable -XTupleSections -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -iutil:src/lib:src/qq:src/postgresql:examples/chaos:examples/extensions/:examples/util/:tests/ --make util/DevelTool.lhs -rtsopts
 
-time devel/DevelTool makewebsite +RTS -N
+time util/DevelTool makewebsite +RTS -N
 
 > module MakeWebsite (makeWebsite, sourceLinks) where
 
@@ -38,7 +38,7 @@ time devel/DevelTool makewebsite +RTS -N
 >   let ex = removeMatches ["util/Database/HsSqlPpp/Utils/PQ.chs.h"
 >                          ,"util/Database/HsSqlPpp/Utils/PQ.hs"] ex'
 
->   devel <- doF "devel/" ("source" </>)
+>   devel <- doF "util/" ("source" </>)
 >   tests <- doF "tests/" ("source" </>)
 
 >   qq <- quasiQuoteTestsTable
@@ -52,13 +52,13 @@ time devel/DevelTool makewebsite +RTS -N
 >             ,OutputFile (Text qq)
 >                         Txt "hssqlppp/QuasiQuoteTests.html"
 >                         "HsSqlPpp quasiquotation examples"]
->   trch1 <- flip fmap getTransformedChaosSql
+>   {-trch1 <- flip fmap getTransformedChaosSql
 >                 $ map $ \(title, fn, txt) ->
 >                           OutputFile (Text txt)
 >                                      Txt
 >                                      ("hssqlppp/source" </> fn)
->                                      title
->   return $ tfp ++ src ++ trch1 ++ wso ++ ex ++ devel ++ tests
+>                                      title-}
+>   return $ tfp ++ src {-++ trch1-} ++ wso ++ ex ++ devel ++ tests
 >   where
 >     removeMatches :: [String] -> [OutputFile] -> [OutputFile]
 >     removeMatches bads =

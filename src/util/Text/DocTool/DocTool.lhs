@@ -87,7 +87,7 @@
 >                           Pandoc m bs -> Pandoc m (map hi bs)
 >       hi (CodeBlock a b) | Just t <- getType a b =
 >          case illuminate t b of
->            Right result -> RawHtml $ getPres a ++ result ++ getClosePres a
+>            Right result -> RawBlock "html" $ getPres a ++ result ++ getClosePres a
 >            Left  err    -> error $ "Could not parse input: " ++ err
 >       hi x = x
 >       getClasses (_,x,_) = x

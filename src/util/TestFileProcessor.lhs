@@ -37,6 +37,8 @@ examples.
 > mapParserTests (PT.Stmt s e) = [Row [[Sql s],[Haskell (ppExprNoAnns e)]]]
 > mapParserTests (PT.PgSqlStmt s e) = [Row [[Sql s],[Haskell (ppExprNoAnns e)]]]
 > mapParserTests (PT.Group n is) = HHeader n : concatMap mapParserTests is
+> mapParserTests (PT.MSStmt s e) = [Row [[Sql s],[Haskell (ppExprNoAnns e)]]]
+
 
 > ppExprNoAnns :: Show a => a -> String
 > ppExprNoAnns = ppExprT stripA

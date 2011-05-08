@@ -79,9 +79,8 @@ boilerplate utils to hook everything together
 >
 > makeQQ :: (Show e, Data a) =>
 >           Parser e a -> QuasiQuoter
-> makeQQ p = QuasiQuoter (parseExprExp p)
->                        (parseExprPat p)
->
+> makeQQ p = QuasiQuoter {quoteExp = (parseExprExp p)
+>                        ,quotePat = (parseExprPat p)}
 
 these return asts of from the module
 Database.HsSqlPpp.AstInternals.AstAnti, but when you expect the result
