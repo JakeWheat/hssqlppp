@@ -23,8 +23,9 @@ type checking tests.
 > data Item = Group String [Item]
 >           | Statements [(String, [CatalogUpdate], Maybe StatementType)]
 >
-> parameterizedStatementTests :: [Test.Framework.Test]
-> parameterizedStatementTests = itemToTft testData
+> parameterizedStatementTests :: Test.Framework.Test
+> parameterizedStatementTests =
+>   testGroup "parameterized statement tests" $ itemToTft testData
 >
 > testData :: Item
 > testData =

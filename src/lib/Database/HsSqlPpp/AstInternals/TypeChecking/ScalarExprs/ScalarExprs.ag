@@ -1,9 +1,7 @@
 {-
 
 
-This file contains the type checking code for the expression ast data
-type.
-
+This file contains the type checking code for the scalar expressions.
 
 attributes:
 annotatedTree - usual

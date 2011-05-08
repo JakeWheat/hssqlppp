@@ -73,7 +73,7 @@ expressions
 >      in PgSqlStmt [$pgsqlStmt| return $(expr); |]
 >                   [$pgsqlStmt| return "testing"; |]
 >
->     ,let expr = (FunCall ea "+" [IntegerLit ea 3,IntegerLit ea 4])
+>     ,let expr = (FunCall ea "+" [NumberLit ea "3",NumberLit ea "4"])
 >      in PgSqlStmt [$pgsqlStmt| return $(expr); |]
 >                   [$pgsqlStmt| return 3 + 4; |]
 >

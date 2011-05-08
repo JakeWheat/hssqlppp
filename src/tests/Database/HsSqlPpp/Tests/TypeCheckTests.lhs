@@ -67,9 +67,9 @@ errors for sql which doesn't type check.
 >
 >      ,e "3 between 2 and 4" $ Right typeBool
 >      ,e "3 between true and 4" $ Left
->                                [NoMatchingOperator ">="
->                                 [typeInt
->                                 ,typeBool]]
+>                                [IncompatibleTypeSet [ScalarType "int4"
+>                                                     ,ScalarType "bool"
+>                                                     ,ScalarType "int4"]]
 >
 >      ,e "array[1,2,3][2]" $ Right typeInt
 >      ,e "array['a','b'][1]" $ Right UnknownType
@@ -328,7 +328,7 @@ rows don't match types
 >      ,s "select p.oid from pg_type p;"
 >         $ Right [Just $ ([], [("oid", ScalarType "oid")])]
 >      ,s "select typlen from nope;"
->         $ Left [UnrecognisedIdentifier "typlen",UnrecognisedRelation "nope"]
+>         $ Left [UnrecognisedRelation "nope"]
 >      ,s "select generate_series from generate_series(1,7);"
 >         $ Right [Just $ ([], [("generate_series", typeInt)])]
 >
