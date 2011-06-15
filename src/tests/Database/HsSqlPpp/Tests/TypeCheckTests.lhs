@@ -20,7 +20,7 @@ errors for sql which doesn't type check.
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.SqlTypes
-> import Database.HsSqlPpp.Utils.PPExpr
+> import Text.Groom
 > import Database.HsSqlPpp.Tests.TestUtils
 >
 > data Item = Group String [Item]
@@ -1150,8 +1150,8 @@ check errors: select into wrong number of vars, wrong types, and into
 >       er = [x | x <- universeBi aast]
 >   in case (length er, length is) of
 >        (0,0) -> assertFailure "didn't get any infos?"
->        (0,_) -> assertTrace (ppExpr aast) ("typecheck " ++ src) sis $ Right is
->        _ -> assertTrace (ppExpr aast) ("typecheck " ++ src) sis $ Left er
+>        (0,_) -> assertTrace (groom aast) ("typecheck " ++ src) sis $ Right is
+>        _ -> assertTrace (groom aast) ("typecheck " ++ src) sis $ Left er
 
 > testCatUpStatementType :: String
 >                        -> [CatalogUpdate]

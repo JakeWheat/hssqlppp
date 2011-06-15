@@ -14,6 +14,7 @@ and test the produced simple select lists
 > --import Data.List
 > import Data.Generics.Uniplate.Data
 > import Control.Monad
+> import Text.Groom
 >
 > --import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Parser
@@ -21,7 +22,7 @@ and test the produced simple select lists
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.SqlTypes
-> import Database.HsSqlPpp.Utils.PPExpr
+> --import Database.HsSqlPpp.Utils.PPExpr
 > --import Database.HsSqlPpp.Tests.TestUtils
 > import Database.HsSqlPpp.PrettyPrinter
 >
@@ -125,7 +126,7 @@ missing join attribute
 >                    Just ty' -> Right ty'
 >             else Left er
 >   when (t /= res) $ putStrLn $ "bad sql: " ++ printQueryExpr aast
->        ++ "\n" ++ ppExpr aast
+>        ++ "\n" ++ groom aast
 >   assertEqual "" t res
 >   where
 >     cat = case updateCatalog defaultTemplate1Catalog eu of

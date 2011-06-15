@@ -368,9 +368,9 @@ SEM TableRef
     | Tref (lhs.trefIDs,lhs.fixedUpIdentifiersTree) =
         let tn = getTName @tbl.fixedUpIdentifiersTree
             ids = case catCompositePublicAttrs @lhs.cat relationComposites tn of
-                    Right attrs -> [(tn, map fst attrs)]
+                     Right attrs -> [(tn, map fst attrs)]
                     Left _ -> [(tn,[])]
-            (trs,al) = doAlias @alias.annotatedTree  ids
+            (trs,al) = doAlias @alias.annotatedTree ids
         in (trs,Tref @ann @tbl.fixedUpIdentifiersTree al)
 
     | SubTref (lhs.trefIDs,lhs.fixedUpIdentifiersTree) =

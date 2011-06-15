@@ -12,6 +12,7 @@ moment.
 > --import Data.List
 > import Data.Generics.Uniplate.Data
 > import Control.Monad
+> import Text.Groom
 >
 > --import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Parser
@@ -19,7 +20,7 @@ moment.
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.SqlTypes
-> import Database.HsSqlPpp.Utils.PPExpr
+> --import Database.HsSqlPpp.Utils.PPExpr
 > --import Database.HsSqlPpp.Tests.TestUtils
 > import Database.HsSqlPpp.PrettyPrinter
 > import Database.HsSqlPpp.Tests.TpchData
@@ -151,7 +152,7 @@ moment.
 >                    Just ty' -> Right ty'
 >             else Left er
 >   when (Right t /= res) $ putStrLn $ "bad sql: " ++ printQueryExpr aast
->        ++ "\n" ++ ppExpr aast
+>        ++ "\n" ++ groom aast
 >   assertEqual "" (Right t) res
 >   where
 >     cat = case updateCatalog defaultTemplate1Catalog tpchCatalog of

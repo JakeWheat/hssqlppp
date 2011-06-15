@@ -18,10 +18,11 @@ moment.
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.SqlTypes
-> import Database.HsSqlPpp.Utils.PPExpr
+> --import Database.HsSqlPpp.Utils.PPExpr
 > --import Database.HsSqlPpp.Tests.TestUtils
 > import Database.HsSqlPpp.PrettyPrinter
 > --import Database.HsSqlPpp.Tests.TpchData
+> import Text.Groom
 
 
 > --import Data.Data
@@ -60,8 +61,8 @@ moment.
 >   when (resetAnnotations ast /= resetAnnotations ast1)
 >     $ putStrLn $ printQueryExpr ast
 >        ++ "\n" ++ printQueryExpr ast1
->        ++ "\n\n" ++ ppExpr ast
->        ++ "\n\n" ++ ppExpr ast1
+>        ++ "\n\n" ++ groom ast
+>        ++ "\n\n" ++ groom ast1
 >        ++ "\n\n"
 >   assertEqual "" (resetAnnotations ast) (resetAnnotations ast1)
 >   where

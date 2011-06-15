@@ -1,20 +1,23 @@
-fix basic typechecking so it works again:
-  refactor to do numpty inferred types better
-  go through existing tests and get working again
-get chaos sql parsing and typechecking (add as automated test?) but
-  not use as example
-library usage examples:
-  parse
-  typecheck -> result type, check for errors
-  code generation
-  view catalog/ toy documentation generator
-redo website
-reorganise code tree
+targets for next release:
+
+fix low hanging fruit for typechecking only, see where this is as
+fix website, examples
+code tidy - haddock, comments
+fix code tree structure
+remove all hdbc/postgresql dependencies from the released library
+don't have any exes
+
+quickish release after that:
+simple quasi quotes
+fix inferred types approach
+get chaos sql parsing and typechecking (add as automated test?) and
+  use as example
+view catalog/ toy documentation generator
+simple typesafe haskell wrapper
 
 
 
-
-targets for 0.4.0?
+targets for future:
 fix expression parsing issues?
 support most postgresql syntax
 reconsider parse tree and ast
