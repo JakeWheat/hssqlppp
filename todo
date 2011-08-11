@@ -1,19 +1,37 @@
-targets for next release:
+next release:
+review docs
+  readme
+  examples in website index
+review files quickly - check comments?
+hlint
+haddock review
+check on another machine
 
-fix low hanging fruit for typechecking only, see where this is as
-fix website, examples
-code tidy - haddock, comments
-fix code tree structure
-remove all hdbc/postgresql dependencies from the released library
-don't have any exes
+update overview of source code
 
-quickish release after that:
-simple quasi quotes
-fix inferred types approach
-get chaos sql parsing and typechecking (add as automated test?) and
-  use as example
-view catalog/ toy documentation generator
-simple typesafe haskell wrapper
+todo items:
+add qq back in as flag
+create separate package with examples, tests, postgresql utils, etc.
+fuller parsing: work through pg manual
+better quasi quotes
+doctool + website
+typechecking:
+  big refactor
+  get typechecking tests working again
+catalog work: new items, better checking
+custom syntax thing
+documentation generator with catalog
+fix expression parsing and custom operators: stage one is to do a hack
+which supplies the parser with the operator details
+parameterized statements, typesafe haskell access
+
+
+chaos: get it parsing, typechecking, use new custom syntax stuff
+       use typesafe haskell wrapper
+       catalog documentation
+       add simple ui which just allows ai battles
+
+
 
 
 

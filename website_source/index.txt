@@ -14,7 +14,7 @@ This documentation is a work in progress.
 Use
 ===
 
-Possible uses of this library include:
+Possible future uses of this library include:
 
 * parsing sql as part of another library
 * lint checking sql code
@@ -28,84 +28,66 @@ Possible uses of this library include:
 * helping with typesafe database access from haskell
 * generating documentation for sql
 
-Some of these are partially written already - this isn't a finished
-product.
-
 Status
 ======
 
 Pre-alpha. Support for parsing SQL is patchy, but not too bad. Here is
-an extract from the parsing tests which gives load of examples of what
+an extract from the parsing tests which gives a bunch of examples of what
 kind of SQL can currently be parsed:
 
 * [Parsing examples](ParserTests.html)
 
-The type checker is currently in a mess after some reworking of
-parsing and ast types.
+The type checker is currently still being fixed after some reworking
+of parsing and ast types. It should handle a lot of queries and dml
+fine though.
 
 Extract from the type checking tests:
 
 * [Type-checking examples](TypeCheckTests.html)
 
-Currently limited support for quasiquoting, here are the examples:
-
-* [Quasiquotation examples](QuasiQuoteTests.html)
-
-The [example database for a game, Chaos
-2010](source/examples/chaos/index.txt.html) is an example of a
-smallish database which is parsed, transformed, then loaded into the
-database successfully. The extensions which it uses to transform the
-SQL use quite a lot of quasiquoting.
-
 Installation
 ============
 
-This project is currently developed on GHC 6.12.1.
+This project is currently developed on GHC 7.0.4.
 
-There are cabal flags:
-
-* postgres: for omitting HDBC-postgresql - this allows you to
-  install the library without having postgresql, useful is you just
-  want an SQL parser
-* quasiquotes: for omitting SQL quasi quoting support - this removes
-  the dependency on template-haskell (you cannot currently have hdbc
-  without quasiquotes although this would be easy to fix if useful)
-* tests: to compile the tests
-
-The defaults are all off.
-
-Use
+To install use
 
 ~~~~~{.sh}
 cabal install hssqlppp
 ~~~~~
 
-to install the library with the defaults, or e.g.
-
-~~~~~{.sh}
-cabal install hssqlppp -fpostgres -fquasiquotes
-~~~~~
-
-for postgresql extras and quasiquotation support, and
-
-~~~~~{.sh}
-cabal install hssqlppp -ftests
-~~~~~
-
-to compile the tests executable as well (this also forces postgres and
-quasiquote support).
-
 Documentation
 =============
 
-Some simple examples coming soon.
+Here is a program to parse some sql and print the ast:
+
+~~~~~{.haskell}
+
+main :: IO ()
+main = undefined
+
+~~~~~
+
+Here is a program which parses and typechecks a query and outputs the
+result type:
+
+~~~~~{.haskell}
+
+main :: IO ()
+main = undefined
+
+~~~~~
+
+Here is a program which generates sql:
+
+~~~~~{.haskell}
+
+main :: IO ()
+main = undefined
+
+~~~~~
 
 [Haddock docs](haddock/index.html)
-
-See the [htmlized source for the library, tests, and examples](source.txt.html); has lots of
-comments but is quite rough at the moment.
-
-Developer notes: [devel/index.txt.html](devel/index.txt.html)
 
 Useful links
 ============
@@ -120,26 +102,21 @@ Reporting issues and feature requests
 =====================================
 
 Use the github issue tracker. Please supply an example of sql which
-doesn't work where relevant.
+doesn't parse/typecheck correctly where relevant.
 
 [https://github.com/JakeWheat/hssqlppp/issues](https://github.com/JakeWheat/hssqlppp/issues)
 
 
-Future Plans
-============
+Provisional Future Plans
+========================
 
-Currently working on fixing the typechecker for queries to be
-production quality.
-
-Provisional for 0.3.0:
-
-* add support for parsing most postgresql syntax
-* add comprehensive set of splices for quasi-quoting
-* add a fair bit to the catalog
-* add slightly better support for custom syntax
-* report function which can be run on a big bit of sql - so you can
-  easily find out how well your sql is supported by hssqlppp
-* production quality parsing and type checking for queries
+* parse most postgresql syntax, possibly other sql dialects as well
+* improve the typechecker
+* improve the catalog
+* quasi-quoting
+* some simple syntax extension support
+* parameterized statements/typesafe haskell access
+* documentation generator for sql codebases
 
 Contact
 =======

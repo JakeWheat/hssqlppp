@@ -5,7 +5,7 @@ Install with:
 cabal update
 cabal install hssqlppp
 
-Website, with docs and examples:
+Website, with some docs and examples:
 http://jakewheat.github.com/hssqlppp/
 
 Hackage: http://hackage.haskell.org/package/hssqlppp

@@ -22,25 +22,8 @@ Description:
 
 extra-source-files:  README
                      LICENSE
-                     -- todo: add website stuff
-                     --find src/ devel/ tests/ examples/ -iname '*.ag' -o -iname '.sql' -o -iname '*.txt' -o -iname '*.hs' -o -iname '*.lhs'
-
-Flag tests
-  Description:       Build the tests
-  Default:           False
-
---Flag postgres
---  Description:       Use HDBC-postgresql
---  Default:           False
-
---Flag quasiquotes
---  Description:       Compile quasiquote support
---  Default:           False
-
-Flag library
-  Description:       Build the library
-  Default:          True
-
+                     THANKS
+                     --find src/ -iname '*.ag' -o -iname '.sql' -o -iname '*.txt' -o -iname '*.hs' -o -iname '*.lhs'
 
 Library
   Build-Depends:     base >= 4 && < 5,
@@ -51,16 +34,9 @@ Library
                      syb >= 0.1.0.2 && < 0.4,
                      uniplate >= 1.6 && < 1.7,
                      transformers >= 0.2.2.0 && < 0.3
-
---  if flag(quasiquotes) || flag(tests)
---     Build-Depends:  template-haskell
-
   build-tools:       cpphs
 
-  hs-source-dirs:    src/lib
---  if flag(quasiquotes)
---    hs-source-dirs:    src/qq
-
+  hs-source-dirs:    src
   Exposed-modules:   Database.HsSqlPpp.Ast
                      Database.HsSqlPpp.Annotation
                      Database.HsSqlPpp.Catalog
@@ -68,12 +44,8 @@ Library
                      Database.HsSqlPpp.PrettyPrinter
                      Database.HsSqlPpp.SqlTypes
                      Database.HsSqlPpp.TypeChecker
---  if flag(quasiquotes) || flag(tests)
---    Exposed-modules: Database.HsSqlPpp.SqlQuote
---  if flag(postgres) || flag(tests)
---    Exposed-modules: Database.HsSqlPpp.CatalogReader
 
-                     -- find src -iname '*hs' | sed -e "s@src/@@" | sed -e "s@/@.@g" |sed -e "s/.lhs//" |sed -e "s/.hs//"
+                     -- find src/lib -iname '*hs' | sed -e "s@src/@@" | sed -e "s@/@.@g" |sed -e "s/.lhs//" |sed -e "s/.hs//"
   Other-Modules:     Database.HsSqlPpp.Utils.Utils
                      Database.HsSqlPpp.Parsing.ParseErrors
                      Database.HsSqlPpp.Parsing.Lexer
@@ -84,59 +56,13 @@ Library
                      Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
                      Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
                      Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindings
+                     Database.HsSqlPpp.AstInternals.TypeChecking.Utils
                      Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindingsInternal
                      Database.HsSqlPpp.AstInternals.AstAnnotation
                      Database.HsSqlPpp.AstInternals.AnnotationUtils
                      Database.HsSqlPpp.AstInternals.AstInternal
                      Database.HsSqlPpp.AstInternals.TypeType
-                     Database.HsSqlPpp.AstInternals.TypeChecking.Utils
---  if flag(postgres) || flag(tests)
---     Other-Modules:  Database.HsSqlPpp.Utils.DbmsCommon
-
   ghc-options:       -pgmPcpphs -optP--cpp
-
-  if flag(library)
-    Buildable:       True
-  else
-    Buildable:       False
-
-  extensions:        DeriveDataTypeable,
-                     RankNTypes,
-                     ScopedTypeVariables,
-                     FlexibleContexts,
-                     ExistentialQuantification,
-                     CPP,
-                     PatternGuards,
-                     TupleSections
-
-Executable Tests
-  Main-Is:           Tests.lhs
-  hs-source-dirs:    src/lib,src/qq,src/postgresql,src/tests,src/examples/chaos,src/examples/extensions,src/examples/util,src/examples/wrappers
-  if flag(tests)
-    Build-Depends:   base >= 4 && < 5,
-                     mtl >= 2.0.1.0 && < 2.1,
-                     containers >= 0.3.0.0 && < 0.5,
-                     parsec >= 3.1 && < 3.2,
-                     pretty >= 1.0.1.1 && < 1.1,
-                     syb >= 0.1.0.2 && < 0.4,
-                     uniplate >= 1.6 && < 1.7,
-                     transformers >= 0.2.2.0 && < 0.3,
-                     template-haskell >= 2.4.0.0 && < 2.6,
-                     test-framework >= 0.3.3 && < 0.4,
-                     groom >= 0.1 && < 0.2,
-                     --haskell-src-exts >= 1.10 && < 1.11,
-                     test-framework-hunit >= 0.2.6 && < 0.3,
-                     HUnit >= 1.2.2.3 && < 1.3
-  else
-    Build-Depends:   base >= 4 && < 5
-
-  build-tools:       cpphs
-  ghc-options:       -pgmPcpphs -optP--cpp
-
-  if flag(tests)
-    Buildable:       True
-  else
-    Buildable:       False
 
   extensions:        DeriveDataTypeable,
                      RankNTypes,
