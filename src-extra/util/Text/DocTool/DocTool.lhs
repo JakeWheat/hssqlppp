@@ -146,7 +146,7 @@ bit dodgy
 >     back = concat $ replicate (length $
 >                       splitDirectories $
 >                       dropFileName relpath)
->                      "../"
+>                      ""
 
 > wheader :: String -> Html
 > wheader v =

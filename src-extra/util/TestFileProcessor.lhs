@@ -131,10 +131,10 @@ compile time.
 > It's a bit rough at the moment, the clarity will be improved.
 >
 > The source this file is generated from is here:
-> [https://github.com/JakeWheat/hssqlppp/blob/master/src-extra/tests/Database/HsSqlPpp/Tests/TypeCheckTests.lhs)
+> [TypeCheckTests.lhs](https://github.com/JakeWheat/hssqlppp/blob/master/src-extra/tests/Database/HsSqlPpp/Tests/TypeCheckTests.lhs)
 > |]
 
-TypeCheckTests.lhs](source/tests/Database/HsSqlPpp/Tests/TypeCheckTests.lhs.html
+(source/tests/Database/HsSqlPpp/Tests/TypeCheckTests.lhs.html
 
 > qqIntro :: String
 > qqIntro = [here|
