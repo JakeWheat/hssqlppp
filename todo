@@ -1,14 +1,17 @@
 = fix existing features
 
 == for next release:
+qq back in DONE
+cabal file for tests DONE
+catalog reader, typecheck against db example DONE
 
-add qq back in as flag on main library
-add cabal file to build tests
-
-parameterized queries, typesafe haskell access example
-postgresql utils -> separate hackage package?
+parameterized queries/ typesafe haskell wrappers
 
 developer docs: overhaul overview of files plus review the other docs
+
+development tools:
+makewebsite
+makeantinodes
 
 == near future:
 

@@ -201,7 +201,7 @@ To support antiquotation, the following approach is used:
 >     p = expr <* eof
 >     ps = Just (l,c)
 >
-> --utility function to do error handling in one place
+> -- utility function to do error handling in one place
 > parseIt :: forall t s u b.(Stream s Identity t, Data b) =>
 >            Either ParseErrorExtra s
 >         -> Parsec s u b
@@ -1439,8 +1439,7 @@ row ctor: one of
 >
 > arraySubSuffix :: ScalarExpr -> SParser ScalarExpr
 > arraySubSuffix e = case e of
->                      Identifier _ "array" -> fail "can't use array as \
->                                                   \identifier name"
+>                      Identifier _ "array" -> fail "can't use array as identifier name"
 >                      _ -> FunCall <$> pos
 >                                   <*> return "!arraysub"
 >                                   <*> ((e:) <$> squares (commaSep1 expr))
@@ -1687,11 +1686,6 @@ identifier which happens to start with a complete keyword
 > symbol c = mytoken (\tok -> case tok of
 >                                    SymbolTok s | c==s -> Just ()
 >                                    _           -> Nothing)
->
-> {-integer :: SParser Integer
-> integer = mytoken (\tok -> case tok of
->                                     IntegerTok n -> Just n
->                                     _ -> Nothing)-}
 >
 > liftPositionalArgTok :: SParser Integer
 > liftPositionalArgTok =
@@ -1942,8 +1936,7 @@ be an array or subselect, etc)
 >                                  "any" -> LiftAny
 >                                  "some" -> LiftAny
 >                                  "all" -> LiftAll
->                                  z -> error $ "internal error in parsing \
->                                               \lift transform: " ++ z
+>                                  z -> error $ "internal error in parsing lift transform: " ++ z
 >              x1 -> x1
 
 --------------------------------------------------------------------------------

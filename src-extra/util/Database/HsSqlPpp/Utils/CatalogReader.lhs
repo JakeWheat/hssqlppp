@@ -7,7 +7,7 @@ was heavily changed so it's a bit messy.
 
 > {-# LANGUAGE QuasiQuotes #-}
 >
-> module Database.HsSqlPpp.CatalogReader
+> module Database.HsSqlPpp.Utils.CatalogReader
 >     (readCatalogFromDatabase) where
 >
 > import qualified Data.Map as M
@@ -15,11 +15,13 @@ was heavily changed so it's a bit messy.
 > import Control.Applicative
 > --import Debug.Trace
 >
-> import Database.HsSqlPpp.AstInternals.TypeType
-> import Database.HsSqlPpp.Utils.Utils
+> --import Database.HsSqlPpp.AstInternals.TypeType
+> --import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Utils.Here
-> import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
-> import Database.HsSqlPpp.Utils.DbmsCommon
+> --import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
+> import Database.HsSqlPpp.Utils.PgUtils
+> import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.Types
 >
 > -- | Creates an 'CatalogUpdate' list by reading the database given.
 > -- To create an Catalog value from this, use
@@ -28,10 +30,10 @@ was heavily changed so it's a bit messy.
 > -- cat <- readCatalogFromDatabase 'something'
 > -- let newCat = updateCatalog defaultCatalog cat
 > -- @
-> readCatalogFromDatabase :: String -- ^ name of the database to read
+> readCatalogFromDatabase :: String -- ^ connection string of the database to read
 >                             -> IO [CatalogUpdate]
-> readCatalogFromDatabase dbName = withConn ("dbname=" ++ dbName) $ \conn -> do
->    typeInfo <- selectRelation conn [$here|
+> readCatalogFromDatabase cs = withConn cs $ \conn -> do
+>    typeInfo <- selectRelation conn [here|
 
 \begin{code}
 
@@ -67,7 +69,7 @@ select t.oid as oid,
 >        typeMap = M.fromList typeAssoc
 >    cts <- map (\(nm:cat:pref:[]) ->
 >                CatCreateScalar (ScalarType nm) cat ( read pref :: Bool)) <$>
->           selectRelation conn [$here|
+>           selectRelation conn [here|
 
 \begin{code}
 
@@ -83,7 +85,7 @@ where t.typarray<>0 and
 \end{code}
 
 >                |] []
->    domainDefInfo <- selectRelation conn [$here|
+>    domainDefInfo <- selectRelation conn [here|
 
 \begin{code}
 
@@ -114,7 +116,7 @@ select pg_type.oid, typbasetype
 >                                   "e" -> ExplicitCastContext
 >                                   _ -> error $ "internal error: unknown \
 >                                                \cast context " ++ (l!!2)))
->    operatorInfo <- selectRelation conn [$here|
+>    operatorInfo <- selectRelation conn [here|
 
 \begin{code}
 
@@ -141,7 +143,7 @@ from pg_operator
 >                     | otherwise -> getOps pref post (bit [jlt (l!!1)
 >                                                          ,jlt (l!!2)]:bin) ls
 >    let (prefixOps, postfixOps, binaryOps) = getOps [] [] [] operatorInfo
->    functionInfo <- selectRelation conn [$here|
+>    functionInfo <- selectRelation conn [here|
 
 \begin{code}
 
@@ -159,7 +161,7 @@ order by proname,proargtypes;
 
 >                |] []
 >    let fnProts = map (convFnRow jlt) functionInfo
->    aggregateInfo <- selectRelation conn [$here|
+>    aggregateInfo <- selectRelation conn [here|
 
 \begin{code}
 
@@ -176,7 +178,7 @@ order by proname,proargtypes;
 
 >                |] []
 >    let aggProts = map (convFnRow jlt) aggregateInfo
->    windowInfo <- selectRelation conn [$here|
+>    windowInfo <- selectRelation conn [here|
 
 \begin{code}
 
@@ -205,7 +207,7 @@ order by proname,proargtypes;
 >                                               (convertAttString jlt sysatts)
 >                     "v" -> CatCreateView nm1 (convertAttString jlt atts)
 >                     _ -> error $ "unrecognised relkind: " ++ kind) <$>
->                 selectRelation conn [$here|
+>                 selectRelation conn [here|
 
 \begin{code}
 
@@ -321,3 +323,10 @@ with att1 as (
 >                    "trigger" -> Trigger
 >                    "void" -> Void
 >                    _ -> error $ "internal error: unknown pseudo " ++ t
+
+> split :: Char -> String -> [String]
+> split _ ""                =  []
+> split c s                 =  let (l, s') = break (== c) s
+>                            in  l : case s' of
+>                                            [] -> []
+>                                            (_:s'') -> split c s''

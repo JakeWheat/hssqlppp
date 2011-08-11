@@ -56,6 +56,9 @@ Documentation
 
 [Haddock docs](haddock/index.html)
 
+Parsing
+-------
+
 Here is a program to parse some SQL from a file and print the ast:
 
 ~~~~~{.haskell}
@@ -153,6 +156,9 @@ Right
 You can see the various parsing functions in the haddock docs here:
 [Database.HsSqlPpp.Parser](haddock/Database-HsSqlPpp-Parser.html)
 
+Typechecking
+------------
+
 Here is a program which parses and typechecks a query and outputs the
 result type:
 
@@ -189,6 +195,54 @@ Running gives:
 $ src-extra/examples/TypeCheck
 Just (SetOfType (CompositeType [("a",ScalarType "int4"),("b",ScalarType "int4")]))
 ~~~~~
+
+Typecheck against an existing database:
+
+~~~~~{.haskell}
+> import System.Environment
+
+> import Database.HsSqlPpp.Parser
+> import Database.HsSqlPpp.TypeChecker
+> import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.Types
+> import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.Ast
+
+> import Database.HsSqlPpp.Utils.CatalogReader
+
+> main :: IO ()
+> main = do
+>   [cs] <- getArgs
+>   cus <- readCatalogFromDatabase cs
+>   let Right cat = updateCatalog defaultCatalog cus
+>       query = "select * from t"
+>       ast :: QueryExpr
+>       Right ast = parseQueryExpr "" query
+>       aast :: QueryExpr
+>       aast = typeCheckQueryExpr cat ast
+>       ann :: Annotation
+>       ann = getAnnotation aast
+>       ty :: Maybe Type
+>       ty = atype ann
+>   print ty
+~~~~~
+
+Assume the database 'db' has the following table:
+
+~~~~~{.sql}
+create table t (a int, b float);
+~~~~~
+
+~~~~~
+$ TypeCheckDB "dbname=db"
+Just (SetOfType (CompositeType [("a",ScalarType "int4"),("b",ScalarType "float8")]))
+~~~~~
+
+This uses some extra utils which are only available in the repo at the moment:
+[CatalogReader](https://github.com/JakeWheat/hssqlppp/blob/master/src-extra/util/Database/HsSqlPpp/Utils/CatalogReader.lhs)
+
+Generating SQL
+--------------
 
 Here is a program which generates SQL:
 
@@ -229,6 +283,44 @@ select
     t;
 ~~~~~
 
+Using quasiquotes
+-----------------
+
+~~~~~{.haskell}
+> {-# LANGUAGE QuasiQuotes #-}
+> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.SqlQuote
+> import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.Pretty
+
+> test :: Statement
+> test = [sqlStmt|
+>
+>   create table $(tablename) (
+>    $(varname) $(typename)
+>   );
+>
+>         |]
+>   where
+>     tablename = "my_table"
+>     varname = "my_field"
+>     typename = "text"
+
+> main :: IO ()
+> main = putStrLn $ printStatements [test]
+
+~~~~~
+
+The output is:
+
+~~~~~
+$ QQ
+create table my_table (
+  my_field text
+);
+~~~~~
+
+
 Useful links
 ============
 
@@ -247,13 +339,13 @@ doesn't parse/typecheck correctly where relevant.
 [https://github.com/JakeWheat/hssqlppp/issues](https://github.com/JakeWheat/hssqlppp/issues)
 
 
-Provisional Future Plans
+Provisional future plans
 ========================
 
 * parse most PostgreSQL syntax, possibly other SQL dialects as well
 * improve the typechecker
 * improve the catalog
-* quasi-quoting
+* improve the quasi-quoting
 * some simple syntax extension support
 * parameterized statements/typesafe haskell access
 * documentation generator for SQL codebases

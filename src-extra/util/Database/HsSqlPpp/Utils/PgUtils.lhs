@@ -1,7 +1,7 @@
 
 Some simple wrappers around HDBC for the code to use.
 
-> module Database.HsSqlPpp.Utils.DbmsCommon
+> module Database.HsSqlPpp.Utils.PgUtils
 >     (withConn
 >     ,selectRelation
 >     ,runSqlCommand

@@ -740,8 +740,7 @@ Statement components
 >     ho = not (null order)
 >     convFrm = case frm of
 >                 FrameUnboundedPreceding -> text "range unbounded preceding"
->                 FrameUnboundedFull -> text "range between unbounded \
->                                            \preceding and unbounded following"
+>                 FrameUnboundedFull -> text "range between unbounded preceding and unbounded following"
 >                 FrameRowsUnboundedPreceding -> text "rows unbounded preceding"
 >
 > convExp nice (Case _ whens els) =

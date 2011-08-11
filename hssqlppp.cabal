@@ -1,5 +1,5 @@
 Name:                hssqlppp
-Version:             0.3.0
+Version:             0.3.1
 Synopsis:            SQL parser and type checker
 License:             BSD3
 License-file:        LICENSE
@@ -17,8 +17,6 @@ Description:
     .
     Documentation, examples on the homepage:
     <http://jakewheat.github.com/hssqlppp/>.
-
--- to run haddock use 'cabal configure --ghc-options "-pgmPcpphs -optP--cpp"' first
 
 extra-source-files:  README
                      LICENSE
