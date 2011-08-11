@@ -136,11 +136,11 @@ To support antiquotation, the following approach is used:
 >     rowcount = --trace "try set" $
 >       keyword "set"
 >       *> keyword "rowcount"
->       *> (choice [
+>       *> choice [
 >            symbol "-" *> (((* (-1)) . fromInteger) <$> integer)
->           ,integer])
+>           ,integer]
 >     updateLimit n (Select a di sl tr wh gb hv ob _l o) =
->       (Select a di sl tr wh gb hv ob (Just $ NumberLit emptyAnnotation (show n)) o)
+>       Select a di sl tr wh gb hv ob (Just $ NumberLit emptyAnnotation (show n)) o
 >     updateLimit _ x = error $ "query style not supported for sql server style: " ++ show x
 
 
@@ -308,7 +308,7 @@ this recursion needs refactoring cos it's a mess
 >
 > into :: SParser (Statement -> Statement)
 > into = do
->   p <- (pos <* keyword "into")
+>   p <- pos <* keyword "into"
 >   st <- option False (True <$ keyword "strict")
 >   is <- commaSep1 qName
 >   return $ \s -> Into p st is s
@@ -322,7 +322,7 @@ this recursion needs refactoring cos it's a mess
 > pQueryExpr :: SParser QueryExpr
 > pQueryExpr = snd <$> pQueryExprX False
 
-> pQueryExprX :: Bool -> SParser ((Statement -> Statement), QueryExpr)
+> pQueryExprX :: Bool -> SParser (Statement -> Statement, QueryExpr)
 > pQueryExprX allowInto = (id,) <$>
 >   (with <|>
 >    buildExpressionParser combTable selFactor)
@@ -343,7 +343,7 @@ this recursion needs refactoring cos it's a mess
 >                         ,(UnionAll, try (keyword "union" *> keyword "all"))
 >                         ,(Union, keyword "union")]]
 >         selQuerySpec = do
->           p <- (pos <* keyword "select")
+>           p <- pos <* keyword "select"
 >           d <- option Dupes (Distinct <$ keyword "distinct")
 >           -- todo: work out how to make this work properly - need to return
 >           -- the into
@@ -760,13 +760,13 @@ rather than just a string.
 >         parseBody :: Language -> ScalarExpr -> MySourcePos
 >                   -> Either String FnBody
 >         parseBody lang body (fileName,line,col) =
->             case (parseIt
+>             case parseIt
 >                   (lexSqlTextWithPosition fileName line col (extrStr body))
 >                   (functionBody lang)
 >                   fileName
 >                   (Just (line,col))
 >                   (extrStr body)
->                   ()) of
+>                   () of
 >                      Left er@(ParseErrorExtra _ _ _) -> Left $ show er
 >                      Right body' -> Right body'
 >         -- sql function is just a list of statements, the last one
@@ -968,16 +968,16 @@ plpgsql statements
 > plPgsqlStatement =
 >    choice [
 >      -- modified sql statements
->      (choice [
+>      choice [
 >         try intoQueryStatement
 >        ,choice [insert
 >                ,update
 >                ,delete] >>= intoSuffix
->        ]) <* symbol ";"
+>        ] <* symbol ";"
 >     -- regular sql statements
->     ,(sqlStatement True)
+>     ,sqlStatement True
 >     -- regular plpgsql statements
->     ,(choice [
+>     ,choice [
 >           continue
 >          ,execute >>= intoSuffix
 >          ,caseStatement
@@ -989,7 +989,7 @@ plpgsql statements
 >          ,labelPrefixed
 >          ,nullStatement
 >          ,exitStatement]
->          <* symbol ";")
+>          <* symbol ";"
 >     ]
 >    where
 >      intoSuffix e =
@@ -1249,8 +1249,8 @@ something like this?)
 The full list of operators from a standard template1 database should
 be used here.
 
-> table :: [[Operator [Token] ParseState Identity ScalarExpr]]
-> table = [[{-binary "." AssocLeft-}]
+> tableAB :: Bool -> [[Operator [Token] ParseState Identity ScalarExpr]]
+> tableAB isB = [[{-binary "." AssocLeft-}]
 >          --[binary "::" (BinOpCall Cast) AssocLeft]
 >          --missing [] for array element select
 >         ,[prefix "-" "u-"]
@@ -1285,8 +1285,11 @@ be used here.
 >         ,[notNot
 >          ,prefixk "not" "!not"
 >          ]
->         ,[binaryk "and" "!and" AssocLeft
->          ,binaryk "or" "!or" AssocLeft]]
+>         ,let x = [binaryk "or" "!or" AssocLeft]
+>          in if isB
+>             then x
+>             else binaryk "and" "!and" AssocLeft : x
+>          ]
 >     where
 >       binary s = binarycust (symbol s) s
 >       -- '*' is lexed as an id token rather than a symbol token, so
@@ -1331,83 +1334,18 @@ From postgresql src/backend/parser/gram.y
 
 ~~~~~
 
+> table :: [[Operator [Token] ParseState Identity ScalarExpr]]
+> table = tableAB False
+
+> tableB :: [[Operator [Token] ParseState Identity ScalarExpr]]
+> tableB = tableAB True
+
 use the same factors
 
 > b_expr :: SParser ScalarExpr
-> b_expr = buildExpressionParser b_table factor
+> b_expr = buildExpressionParser tableB factor
 >        <?> "expression"
 >
-
-same as the other operator table part from no 'and'. Should find a way
-to take the other table and just filter out the and part.
-
-> b_table :: [[Operator [Token] ParseState Identity ScalarExpr]]
-> b_table =
->         [[{-binary "." AssocLeft-}]
->          --[binary "::" (BinOpCall Cast) AssocLeft]
->          --missing [] for array element select
->         ,[prefix "-" "u-"]
->         ,[binary "^" AssocLeft]
->         ,[binary "*" AssocLeft
->          ,idHackBinary "*" AssocLeft
->          ,binary "/" AssocLeft
->          ,binary "%" AssocLeft]
->         ,[binary "+" AssocLeft
->          ,binary "-" AssocLeft]
->          --should be is isnull and notnull
->         ,[postfixks ["is", "not", "null"] "!isnotnull"
->          ,postfixks ["is", "null"] "!isnull"]
->          --other operators all added in this list according to the pg docs:
->         ,[binary "<->" AssocNone
->          ,binary "<=" AssocRight
->          ,binary ">=" AssocRight
->          ,binary "||" AssocLeft
->          ,prefix "@" "@"
->          ]
->          --in should be here, but is treated as a factor instead
->          --between
->          --overlaps
->         ,[binaryk "like" "!like" AssocNone
->          ,binaryks ["not","like"] "!notlike" AssocNone
->          ,binarycust (symbol "!=") "<>" AssocNone]
->          --(also ilike similar)
->         ,[binary "<" AssocNone
->          ,binary ">" AssocNone]
->         ,[binary "=" AssocRight
->          ,binary "<>" AssocNone]
->         ,[notNot
->          ,prefixk "not" "!not"
->          ]
->         ,[binaryk "or" "!or" AssocLeft]]
->     where
->       binary s = binarycust (symbol s) s
->       -- '*' is lexed as an id token rather than a symbol token, so
->       -- work around here
->       idHackBinary s = binarycust (keyword s) s
->       binaryk = binarycust . keyword
->       binaryks = binarycust . mapM_ keyword
->       prefix = unaryCust Prefix . symbol
->       prefixk = unaryCust Prefix . keyword
->       postfixks = unaryCust Postfix . mapM_ keyword
->       binarycust opParse t =
->         Infix $ try $ do
->              f <- FunCall <$> pos <*> (t <$ opParse)
->              return (\l m -> f [l,m])
->       unaryCust ctor opParse t =
->         ctor $ try $ do
->           f <- FunCall <$> pos <*> (t <$ opParse)
->           return (\l -> f [l])
->       -- hack - haven't worked out why parsec buildexpression parser won't
->       -- parse something like "not not EXPR" without parens so hack here
->       notNot =
->         Prefix (try $ do
->                       p1 <- pos
->                       keyword "not"
->                       p2 <- pos
->                       keyword "not"
->                       return (\l -> FunCall p1 "!not"
->                                       [FunCall p2 "!not" [l]]))
-
 
 factor parsers
 --------------
@@ -2012,7 +1950,7 @@ be an array or subselect, etc)
 >                | isOperatorName op
 >                  && map toLower nm `elem` ["any", "some", "all"]
 >                -> LiftOperator an op flav (expr1:expr2s ++ expr3s)
->                   where flav = case (map toLower nm) of
+>                   where flav = case map toLower nm of
 >                                  "any" -> LiftAny
 >                                  "some" -> LiftAny
 >                                  "all" -> LiftAll

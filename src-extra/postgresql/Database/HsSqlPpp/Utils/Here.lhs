@@ -11,4 +11,6 @@ robbed from http://old.nabble.com/Multi-line-string-literals-are-both-easy--and-
 >
 > here :: QuasiQuoter
 > here = QuasiQuoter {quoteExp = litE . stringL
->                    ,quotePat = litP . stringL}
+>                    ,quotePat = litP . stringL
+>                    ,quoteType = undefined
+>                    ,quoteDec = undefined}

@@ -77,7 +77,7 @@ in scope, and one for an unqualified star.
 > data LocalBindings = LocalBindingsError
 >                    | LocalBindings [((String,String),Maybe Type)]
 
-> createLocalBindings :: (Maybe [(String,[(String,Maybe Type)])]) -> LocalBindings
+> createLocalBindings :: Maybe [(String,[(String,Maybe Type)])] -> LocalBindings
 > createLocalBindings i =
 >   maybe LocalBindingsError mb i
 >   where
@@ -186,8 +186,8 @@ This is the local bindings update that users of this module use.
 > ppLbls = error "ppLbls" {- (LocalBindingsLookup is) =
 >        "LocalBindingsLookup\n" ++ doList show is -}
 >
-> doList :: (a -> String) -> [a] -> String
-> doList m l = "[\n" ++ intercalate "\n," (map m l) ++ "\n]\n"
+> --doList :: (a -> String) -> [a] -> String
+> --doList m l = "[\n" ++ intercalate "\n," (map m l) ++ "\n]\n"
 
 ================================================================================
 
@@ -198,9 +198,9 @@ This is the local bindings update that users of this module use.
 
 
 
-> updateStuff :: Catalog -> LocalBindingsUpdate -> E [IDLookup]
+> --updateStuff :: Catalog -> LocalBindingsUpdate -> E [IDLookup]
 
-> updateStuff _ _ = error "updateStuff"
+> --updateStuff _ _ = error "updateStuff"
 
 LBIds doesn't support any star expansion, and doesn't support
 accessing the whole set of ids as a composite via cn
@@ -427,8 +427,8 @@ or star expands.
 
 ================================================================================
 
-> mtl :: String -> String
-> mtl = map toLower
+> --mtl :: String -> String
+> --mtl = map toLower
 
 
 

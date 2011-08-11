@@ -54,7 +54,7 @@ grammar code and aren't exposed.
 > getAnnotation = head . childrenBi
 
 > getAnnotations :: Data a => a -> [Annotation]
-> getAnnotations st = [x | x <- universeBi st]
+> getAnnotations = universeBi -- st --[x | x <- universeBi st]
 
 > updateAnnotations :: Data a => (Annotation -> Annotation) -> a -> a
 > updateAnnotations = transformBi

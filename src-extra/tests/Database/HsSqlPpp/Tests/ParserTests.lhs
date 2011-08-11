@@ -161,7 +161,7 @@ test some more really basic expressions
 >         \     when c then 4\n\
 >         \     else 5\n\
 >         \end" -}
->         [$here|
+>         [here|
 >          case when a,b then 3
 >               when c then 4
 >               else 5
@@ -323,7 +323,7 @@ select statements
 >         (CombineQueryExpr ea Union
 >          (selectE (SelectList ea [SelExp ea (NumberLit ea "2")]))
 >          (selectE (SelectList ea [SelExp ea (NumberLit ea "3")]))))]
->      ,s [$here|
+>      ,s [here|
 >          with a as (select 1 as a1),
 >               b as (select * from a)
 >               select * from b; |]
@@ -333,7 +333,7 @@ select statements
 >                                [SelectItem ea (NumberLit ea "1") "a1"])
 >            ,WithQuery ea "b" Nothing (selectFrom (selIL ["*"]) (Tref ea (i "a") (NoAlias ea)))]
 >            (selectFrom (selIL ["*"]) (Tref ea (i "b") (NoAlias ea))))]
->      ,s [$here|
+>      ,s [here|
 >          with a as (select 1 as a1),
 >               b as (select * from a)
 >               select * from a

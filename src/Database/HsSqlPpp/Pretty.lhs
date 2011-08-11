@@ -285,11 +285,11 @@ Conversion routines - convert Sql asts into Docs
 >     <+> text "execute procedure" <+> text fnName
 >     <> parens (sepCsvMap (convExp nice) fnArgs) <> statementEnd se
 >     where
->       evs = sep $ punctuate (text " or ") $ map text
->             $ map (\e -> case e of
+>       evs = sep $ punctuate (text " or ") $ map
+>             (text . (\e -> case e of
 >                                 TInsert -> "insert"
 >                                 TUpdate -> "update"
->                                 TDelete -> "delete") events
+>                                 TDelete -> "delete")) events
 >
 > -- plpgsql
 >
@@ -465,9 +465,9 @@ Statement components
 >                  Distinct -> text "distinct"))
 >   $+$ nest 2 (vcat $ catMaybes
 >   [Just $ nest 2 $ convSelList nice l
->   ,Just $ (if null tb
->            then empty
->            else text "from" $+$ nest 2 (sepCsvMap (convTref nice) tb))
+>   ,Just $ if null tb
+>           then empty
+>           else text "from" $+$ nest 2 (sepCsvMap (convTref nice) tb)
 >   ,Just $ convWhere nice wh
 >   ,case grp of
 >      [] -> Nothing

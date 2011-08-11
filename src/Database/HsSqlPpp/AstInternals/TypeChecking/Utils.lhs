@@ -91,7 +91,8 @@ For extra utility functions to help with asts
 >                         Just els' -> fmap (:thenTypes) $ atype $ getAnnotation els'
 >   --trace ("checking cast: " ++ show expectedType ++ " " ++ show thenAndElseTypes)
 >   when (all (==expectedType) thenAndElseTypes) Nothing
->   return ((map (fixWhTh expectedType) whths),(castElse expectedType))
+>   return (map (fixWhTh expectedType) whths
+>          ,castElse expectedType)
 >   where
 >     castElse et = case els of
 >                     Nothing -> Nothing

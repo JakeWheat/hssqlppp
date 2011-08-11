@@ -27,4 +27,4 @@ type checking.
 >                                                    Nothing -> Nothing
 
 > showIt :: Show a => String -> a -> a
-> showIt m a = trace (m ++ " " ++ show a) $ a
+> showIt m a = trace (m ++ " " ++ show a) a

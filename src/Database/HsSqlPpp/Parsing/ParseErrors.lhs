@@ -57,7 +57,7 @@ plus output error location in emacs friendly format.
 >                        -- messages right - this is
 >                        -- the same as what is passed
 >                        -- into parseSqlWithPosition
->                        ,parseErrorPosition :: (Maybe (Int, Int))
+>                        ,parseErrorPosition :: Maybe (Int, Int)
 >                        -- | sql source
 >                        ,parseErrorSqlSource :: String
 >                        }

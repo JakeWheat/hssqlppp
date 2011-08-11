@@ -41,8 +41,8 @@ Library
                      Database.HsSqlPpp.Annotation
                      Database.HsSqlPpp.Catalog
                      Database.HsSqlPpp.Parser
-                     Database.HsSqlPpp.PrettyPrinter
-                     Database.HsSqlPpp.SqlTypes
+                     Database.HsSqlPpp.Pretty
+                     Database.HsSqlPpp.Types
                      Database.HsSqlPpp.TypeChecker
 
                      -- find src/lib -iname '*hs' | sed -e "s@src/@@" | sed -e "s@/@.@g" |sed -e "s/.lhs//" |sed -e "s/.hs//"

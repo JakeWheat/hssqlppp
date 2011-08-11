@@ -122,9 +122,8 @@ order of application stays the same instead of going backwards when
 > npartition keyf l =
 >   np [] l
 >   where
->     np acc (p:ps) = let k = keyf p
->                     in np (insertWith (++) k [p] acc) ps
->     np acc [] = acc
+>     np acc =
+>       foldl (\ acc p -> insertWith (++) (keyf p) [p] acc) acc
 >
 > insertWith :: Eq k => (a -> a -> a) -> k -> a -> [(k,a)] -> [(k,a)]
 > insertWith ac k v m =
