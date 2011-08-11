@@ -41,7 +41,7 @@ time util/DevelTool makewebsite +RTS -N
 >   devel <- doF "util/" ("source" </>)
 >   tests <- doF "tests/" ("source" </>)-}
 
->   --qq <- quasiQuoteTestsTable
+>   qq <- quasiQuoteTestsTable
 
 >   let tfp = [OutputFile (Text parserTestsTable)
 >                         Txt "hssqlppp/ParserTests.html"
@@ -49,9 +49,9 @@ time util/DevelTool makewebsite +RTS -N
 >             ,OutputFile (Text typeCheckTestsTable)
 >                         Txt "hssqlppp/TypeCheckTests.html"
 >                         "HsSqlPpp type checking examples"
->             {-,OutputFile (Text qq)
+>             ,OutputFile (Text qq)
 >                         Txt "hssqlppp/QuasiQuoteTests.html"
->                         "HsSqlPpp quasiquotation examples"-}]
+>                         "HsSqlPpp quasiquotation examples"]
 >   {-trch1 <- flip fmap getTransformedChaosSql
 >                 $ map $ \(title, fn, txt) ->
 >                           OutputFile (Text txt)

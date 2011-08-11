@@ -1,58 +1,48 @@
-next release:
-review docs
-  readme
-  examples in website index
-review files quickly - check comments?
-hlint
-haddock review
-check on another machine
+= fix existing features
 
-update overview of source code
+== for next release:
 
-todo items:
-add qq back in as flag
-create separate package with examples, tests, postgresql utils, etc.
+add qq back in as flag on main library
+add cabal file to build tests
+
+parameterized queries, typesafe haskell access example
+postgresql utils -> separate hackage package?
+
+developer docs: overhaul overview of files plus review the other docs
+
+== near future:
+
+typechecking fixup, refactoring -> tests working again + chaos
+
+chaos: get parsing, typechecking again, add simple ui which allows ai
+  battles + the crazy transformed sql docs
+  later on: use custom syntax plugins, generate documentation
+
+doctool + website
+
+
+= new features
+custom syntax plugins for parser
+docgen for sql codebase
+catalog work - better checking, more items in catalog
 fuller parsing: work through pg manual
 better quasi quotes
-doctool + website
-typechecking:
-  big refactor
-  get typechecking tests working again
-catalog work: new items, better checking
-custom syntax thing
-documentation generator with catalog
+
 fix expression parsing and custom operators: stage one is to do a hack
 which supplies the parser with the operator details
-parameterized statements, typesafe haskell access
-
 
 chaos: get it parsing, typechecking, use new custom syntax stuff
        use typesafe haskell wrapper
        catalog documentation
        add simple ui which just allows ai battles
 
-
-
-
-
-targets for future:
-fix expression parsing issues?
-support most postgresql syntax
 reconsider parse tree and ast
-production quality parsing and type checking for selects, dml,
-   parameterized statements
 good documentation and plenty of examples, fix up website + nav
 big reorganisation of tests - split into multiple files
 review and fix api + names
 report generator
 better automated testing of extras: chaos sql, example programs/code
-reorganised source files, all under src/
-super simple build and run tests
-simple syntax extensions support: parser plus conversions
-more extensive quasi quoting
-typesafe haskell wrappers for parameterized statements
 build system for syntax extended sql projects
-extend the catalog a lot
 nullability inference in type checker
 rewrite typeconversion.lhs
 
@@ -78,11 +68,10 @@ future:
 profiling, maybe switch parsing library
 definitely fix operator parsing - one approach is to adjust parse tree
    after parsing to take into account custom operators and precedence
-integrate with haskelldb?
 heavily cross linked docs + diagrams
 materialized view extension
 temporal data extension
-generalised inclusions
+generalised inclusions syntax
 order independent ddl source
 show used catalog, work with module extension as well
 better annotation approach

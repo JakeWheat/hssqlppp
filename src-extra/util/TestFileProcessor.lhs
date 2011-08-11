@@ -91,7 +91,7 @@ compile time.
 > quasiQuoteTestsTable :: IO String
 > quasiQuoteTestsTable = do
 >
->   ast <- pf "tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs"
+>   ast <- pf "src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs"
 >   let lets = [l | l@(Let _ _) <- universeBi ast]
 >   --mapM_ (putStrLn . prettyPrint) lets
 >   return $ qqIntro ++ rowsToHtml (map ((\s -> Row [[Haskell s]]) . prettyPrint) lets)
@@ -99,7 +99,7 @@ compile time.
 
 > pf :: String -> IO Module
 > pf f = do
->   x <- parseFile f
+>   x <- parseFileWithExts [QuasiQuotes] f
 >   case x of
 >         ParseOk ast -> return ast
 >         e -> error $ show e
@@ -143,6 +143,8 @@ compile time.
 > quasiquotes: one with antiquotes, and one with the resultant sql without antiquotes.
 >
 > The source this file is generated from is here:
-> [QuasiQuoteTests.lhs](source/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs.html)
+> [QuasiQuoteTests.lhs](https://github.com/JakeWheat/hssqlppp/blob/master/src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs)
 > |]
+
+source/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs.html)
 

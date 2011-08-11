@@ -36,14 +36,14 @@ expressions
 >      let tablename = "my_table"
 >          varname = "my_field"
 >          typename = "text"
->      in Stmt [sqlStmt|
+>      in Stmt [$sqlStmt|
 >
 >      create table $(tablename) (
 >        $(varname) $(typename)
 >      );
 >
 >      |]
->      [sqlStmt|
+>      [$sqlStmt|
 >      create table my_table (
 >        my_field text
 >      );
@@ -52,37 +52,37 @@ expressions
 >     ,let fnname = "my_function"
 >          tablename = "my_table"
 >          typename = "int"
->      in Stmt [sqlStmt|
+>      in Stmt [$sqlStmt|
 >
 >   create function $(fnname)() returns $(typename) as $a$
 >     select * from $(tablename);
 >   $a$ language sql stable;
 >
 >      |]
->      [sqlStmt|
+>      [$sqlStmt|
 >   create function my_function() returns int as $a$
 >     select * from my_table;
 >   $a$ language sql stable;
 >      |]
 >
 >     ,let fnname = "my_function"
->      in Stmt [sqlStmt| drop function $(fnname)();|]
->              [sqlStmt| drop function my_function();|]
+>      in Stmt [$sqlStmt| drop function $(fnname)();|]
+>              [$sqlStmt| drop function my_function();|]
 >
 >     ,let expr = Identifier ea "testing"
->      in PgSqlStmt [pgsqlStmt| return $(expr); |]
->                   [pgsqlStmt| return "testing"; |]
+>      in PgSqlStmt [$pgsqlStmt| return $(expr); |]
+>                   [$pgsqlStmt| return "testing"; |]
 >
 >     ,let expr = (FunCall ea "+" [NumberLit ea "3",NumberLit ea "4"])
->      in PgSqlStmt [pgsqlStmt| return $(expr); |]
->                   [pgsqlStmt| return 3 + 4; |]
+>      in PgSqlStmt [$pgsqlStmt| return $(expr); |]
+>                   [$pgsqlStmt| return 3 + 4; |]
 >
 >     ,let errMsg = "this splice is slighty dodgy"
->      in PgSqlStmt [pgsqlStmt|
+>      in PgSqlStmt [$pgsqlStmt|
 >      if true then
 >        raise exception '$(errMsg)';
 >      end if;|]
->      [pgsqlStmt|
+>      [$pgsqlStmt|
 >      if true then
 >        raise exception 'this splice is slighty dodgy';
 >      end if;|]
@@ -90,13 +90,13 @@ expressions
 >     ,let triggername = "my_trigger"
 >          tablename = "my_table"
 >          opname = "my_function"
->      in Stmt [sqlStmt|
+>      in Stmt [$sqlStmt|
 >   create trigger $(triggername)
 >     after insert or update or delete on $(tablename)
 >     for each statement
 >     execute procedure $(opname)();
 >             |]
->              [sqlStmt|
+>              [$sqlStmt|
 >   create trigger my_trigger
 >     after insert or update or delete on my_table
 >     for each statement
@@ -110,12 +110,12 @@ expressions
 >          tablename = "tbl"
 >          tevent = TUpdate
 >          fn = "checkit"
->      in Stmt [sqlStmt|
+>      in Stmt [$sqlStmt|
 >      create trigger $(trigname)
 >         after $(tevent) on $(tablename)
 >         for each row
 >         execute procedure $(fn)();
->             |] [sqlStmt|
+>             |] [$sqlStmt|
 >      create trigger tbl_trig1
 >         after update on tbl
 >         for each row
@@ -131,8 +131,8 @@ expressions
 >      in Expr [$sqlExpr| $i(x) |]
 >              (Identifier ea "splicedIdentifier")
 >     ,let errMsg = "this splice isn't too dodgy"
->      in PgSqlStmt [pgsqlStmt| raise exception $s(errMsg); |]
->                   [pgsqlStmt| raise exception 'this splice isn''t too dodgy'; |]
+>      in PgSqlStmt [$pgsqlStmt| raise exception $s(errMsg); |]
+>                   [$pgsqlStmt| raise exception 'this splice isn''t too dodgy'; |]
 
 >     {-,let s1 = [sqlStmts| select * from tbl; |]
 >      in Stmts [sqlStmts|

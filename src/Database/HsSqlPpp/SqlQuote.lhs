@@ -26,11 +26,14 @@
 > >
 >
 > See <http://jakewheat.github.com/hssqlppp/QuasiQuoteTests.html>
-> for more simple examples, and
-> <http://jakewheat.github.com/hssqlppp/source/examples/Database/HsSqlPpp/Examples/Extensions/>
-> for some example files which use quasiquotation to do ast
-> transformations which implement syntax extensions to sql
+> for more simple examples
 >      -}
+
+, and
+<http://jakewheat.github.com/hssqlppp/source/examples/Database/HsSqlPpp/Examples/Extensions/>
+for some example files which use quasiquotation to do ast
+transformations which implement syntax extensions to sql
+
 >
 > {-# LANGUAGE ScopedTypeVariables #-}
 >

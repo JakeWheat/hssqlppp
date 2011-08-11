@@ -35,6 +35,10 @@ Extract from the type checking tests:
 
 * [Type-checking examples](TypeCheckTests.html)
 
+Currently limited support for quasiquoting, here are the examples:
+
+* [Quasiquotation examples](QuasiQuoteTests.html)
+
 Installation
 ============
 

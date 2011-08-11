@@ -1403,13 +1403,6 @@ row ctor: one of
 >   where
 >     digChars = concatMap show [(0::Int)..9]
 
- > integerLit :: SParser ScalarExpr
- > integerLit = do
- >   p <- pos
- >   (IntegerLit p) <$> integer
-
- IntegerLit <$> pos <*> integer
-
 >
 > caseScalarExpr :: SParser ScalarExpr
 > caseScalarExpr = do
@@ -1503,15 +1496,10 @@ row ctor: one of
 > betweenSuffix a = do
 >   p <- pos
 >   keyword "between"
->   b <- b_expr --dodgyParseElement
+>   b <- b_expr
 >   keyword "and"
->   c <- b_expr -- dodgyParseElement
+>   c <- b_expr
 >   return $ FunCall p "!between" [a,b,c]
->              --can't use the full expression parser at this time
->              --because of a conflict between the operator 'and' and
->              --the 'and' part of a between
->   --where
->   --  dodgyParseElement = factor
 
 
 > functionCallSuffix :: ScalarExpr -> SParser ScalarExpr
@@ -1634,7 +1622,7 @@ for that
 >            p <- pos
 >            symbol "."
 >            i1 <- idString
->            return $ QIdentifier p i i1 --FunCall p "." [i,i1]
+>            return $ QIdentifier p i i1
 >          ,return i]
 
 > dqi :: SParser SQIdentifier
