@@ -121,15 +121,24 @@ modules.
 >     -- | add a new scalar type with the name given, also creates
 >     -- an array type automatically
 >     CatCreateScalar Type String Bool
+>     -- | add a new domain to the catalog
 >   | CatCreateDomain Type Type
+>     -- | add a new composite type to the catalog
 >   | CatCreateComposite String [(String,Type)]
+>     -- | add a new cast to the catalog
 >   | CatCreateCast Type Type CastContext
+>     -- | add a new table to the catalog with the given public and private columns
+>     -- also creates the composite type to go with this table
 >   | CatCreateTable String [(String,Type)] [(String,Type)]
+>     -- | add the view to the catalog, using the column names and types supplied
 >   | CatCreateView String [(String,Type)]
+>     -- | add a new function to the catalog
 >   | CatCreateFunction FunFlav String [Type] Type Bool
+>     -- | drop a function from the catalog
 >   | CatDropFunction Bool String [Type]
 >     deriving (Eq,Ord,Typeable,Data,Show)
 >
+> -- | attempt to show a readable representation of a 'CatalogUpdate' value
 > ppCatUpdate :: CatalogUpdate -> String
 > ppCatUpdate (CatCreateScalar t c p) =
 >   "CatCreateScalar " ++ show t ++ "(" ++ c ++ "," ++ show p ++ ")"

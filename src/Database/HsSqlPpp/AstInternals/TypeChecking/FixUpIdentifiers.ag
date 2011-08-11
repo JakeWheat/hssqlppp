@@ -314,6 +314,7 @@ ATTR Root ScalarExprRoot AllNodes [
                    ]
 
 {
+-- | transform the tree by converting * to explicit lists of columns and adding qualifiers to all column references
 fixUpIdentifiers :: Catalog -> [Statement] -> [Statement]
 fixUpIdentifiers cat sts =
     let t = sem_Root (Root sts)
@@ -369,7 +370,7 @@ SEM TableRef
         let tn = getTName @tbl.fixedUpIdentifiersTree
             ids = case catCompositePublicAttrs @lhs.cat relationComposites tn of
                      Right attrs -> [(tn, map fst attrs)]
-                    Left _ -> [(tn,[])]
+                     Left _ -> [(tn,[])]
             (trs,al) = doAlias @alias.annotatedTree ids
         in (trs,Tref @ann @tbl.fixedUpIdentifiersTree al)
 

@@ -32,20 +32,30 @@ grammar code and aren't exposed.
 > import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
 > --import Database.HsSqlPpp.Utils.Utils
 >
+> -- | Represents a source file position, usually set by the parser.
 > type SourcePosition = (String,Int,Int)
+> -- | Statement type is used for getting type information for a parameterized statement.
 > type StatementType = ([Type],[(String,Type)])
 
 > -- | Annotation type - one of these is attached to most of the
 > -- data types used in the ast.
-> data Annotation = Annotation {asrc :: Maybe SourcePosition
->                              ,atype :: Maybe Type -- type of the node, nothing if type error prevents determining type
->                              ,errs :: [TypeError] -- any type errors
->                              ,stType :: Maybe StatementType -- 'statement type' - used for getting the in and out types of a parameterized statement
->                              ,catUpd :: [CatalogUpdate] -- any catalog updates that a ddl statement produces
->                              ,fnProt :: Maybe FunctionPrototype -- the matched function prototype for a funcall
->                              ,infType :: Maybe Type} -- 'inferred' type - fake type inference used for getting the type of ? placeholders in parameterized statements
+> data Annotation = Annotation { -- | source position for this node
+>                               asrc :: Maybe SourcePosition
+>                                -- | type of the node, 'Nothing' if the tree hasn't been typechecked or if a type error prevents determining the type
+>                              ,atype :: Maybe Type
+>                                -- | any type errors
+>                              ,errs :: [TypeError]
+>                                -- | 'statement type' - used for getting the in and out types of a parameterized statement
+>                              ,stType :: Maybe StatementType
+>                                -- | any catalog updates that a ddl statement produces
+>                              ,catUpd :: [CatalogUpdate]
+>                                -- | the matched function prototype for a funcall
+>                              ,fnProt :: Maybe FunctionPrototype
+>                                -- | 'inferred' type - fake type inference used for getting the type of ? placeholders in parameterized statements
+>                              ,infType :: Maybe Type}
 >                   deriving (Eq, Show,Typeable,Data)
 >
+> -- | An annotation value with no information.
 > emptyAnnotation :: Annotation
 > emptyAnnotation = Annotation Nothing Nothing [] Nothing [] Nothing Nothing
 
@@ -53,9 +63,11 @@ grammar code and aren't exposed.
 > getAnnotation :: Data a => a -> Annotation
 > getAnnotation = head . childrenBi
 
+> -- | get all the annotations from a tree
 > getAnnotations :: Data a => a -> [Annotation]
 > getAnnotations = universeBi -- st --[x | x <- universeBi st]
 
+> -- | update all the annotations in a tree
 > updateAnnotations :: Data a => (Annotation -> Annotation) -> a -> a
 > updateAnnotations = transformBi
 

@@ -109,11 +109,13 @@ compile time.
 > parserIntro = [here|
 >
 > The parser examples have the sql source on the left, and the ast that the parser produces
-> the right, the annotations have been replaced with a placeholder 'Ann' to avoid clutter.
+> the right, the annotations have been replaced with a placeholder 'Ann' to make the output a bit more readable.
 >
 > The source this file is generated from is here:
-> [ParserTests.lhs](source/tests/Database/HsSqlPpp/Tests/ParserTests.lhs.html)
+> [ParserTests.lhs](https://github.com/JakeWheat/hssqlppp/blob/master/src-extra/tests/Database/HsSqlPpp/Tests/ParserTests.lhs)
 > |]
+
+ [ParserTests.lhs](source/tests/Database/HsSqlPpp/Tests/ParserTests.lhs.html)
 
 > typeCheckIntro :: String
 > typeCheckIntro = [here|
@@ -129,8 +131,10 @@ compile time.
 > It's a bit rough at the moment, the clarity will be improved.
 >
 > The source this file is generated from is here:
-> [TypeCheckTests.lhs](source/tests/Database/HsSqlPpp/Tests/TypeCheckTests.lhs.html)
+> [https://github.com/JakeWheat/hssqlppp/blob/master/src-extra/tests/Database/HsSqlPpp/Tests/TypeCheckTests.lhs)
 > |]
+
+TypeCheckTests.lhs](source/tests/Database/HsSqlPpp/Tests/TypeCheckTests.lhs.html
 
 > qqIntro :: String
 > qqIntro = [here|

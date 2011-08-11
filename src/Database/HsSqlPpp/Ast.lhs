@@ -6,7 +6,7 @@
 >      the seemingly pointless type synonyms below, they are an
 >      artefact of using UUAGC. You can see labels for the fields by
 >      looking at the ag source here:
->      <http://jakewheat.github.com/hssqlppp/source/src/lib/Database/HsSqlPpp/AstInternals/AstInternal.ag.html>
+>      <http://jakewheat.github.com/hssqlppp/source/src/Database/HsSqlPpp/AstInternals/AstInternal.ag.html>
 >      -}
 >
 > module Database.HsSqlPpp.Ast

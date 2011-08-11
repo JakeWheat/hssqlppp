@@ -1,32 +1,22 @@
-HsSqlPpp
-========
+A parser, pretty printer, and type checker for SQL written in
+Haskell. Supports PostgreSQL SQL and PL/pgSQL syntax. BSD licensed.
 
-A parser, quasiquoter, pretty printer, and type checker for SQL
-written in Haskell. Supports PostgreSQL SQL and PL/pgSQL syntax. BSD
-licensed.
-
-This documentation is for the HEAD of the master branch in github:
-
-[https://github.com/JakeWheat/hssqlppp](https://github.com/JakeWheat/hssqlppp)
-
-This documentation is a work in progress.
-
-Use
-===
+Purpose
+=======
 
 Possible future uses of this library include:
 
-* parsing sql as part of another library
-* lint checking sql code
-* type-checker can help with sql development: e.g. change the name of
+* parsing SQL
+* lint checking SQL code
+* type-checker can help with SQL development: e.g. change the name of
   a view, type-check, and you can see which functions you need to
   update with the new name
-* generating sql code programmatically/ generating sql from some other
+* generating SQL code programmatically/ generating SQL from some other
   source
-* transforming sql code using quasiquoting
-* viewing the catalog produced by some sql code
+* transforming SQL code using quasiquoting
+* viewing the catalog produced by some SQL code
 * helping with typesafe database access from haskell
-* generating documentation for sql
+* generating documentation for SQL
 
 Status
 ======
@@ -48,7 +38,8 @@ Extract from the type checking tests:
 Installation
 ============
 
-This project is currently developed on GHC 7.0.4.
+This project is currently developed on GHC 7.0.4. I think it should
+work with any 7.0.x.
 
 To install use
 
@@ -59,35 +50,180 @@ cabal install hssqlppp
 Documentation
 =============
 
-Here is a program to parse some sql and print the ast:
+[Haddock docs](haddock/index.html)
+
+Here is a program to parse some SQL from a file and print the ast:
 
 ~~~~~{.haskell}
+> import System.Environment
 
-main :: IO ()
-main = undefined
+> import Database.HsSqlPpp.Parser
+
+> main :: IO ()
+> main = do
+>   [f] <- getArgs
+>   ast <- parseStatementsFromFile f
+>   print ast
+~~~~~
+
+Given the SQL file x.sql:
+
+~~~~~{.sql}
+select * from t;
+~~~~~
+
+the result is something like:
 
 ~~~~~
+$ Parse x.sql
+Right [QueryStatement (Annotation {asrc = Just ("x.sql",1,1), atype =
+Nothing, errs = [], stType = Nothing, catUpd = [], fnProt = Nothing,
+infType = Nothing}) (Select (Annotation {asrc = Just ("x.sql",1,1),
+atype = Nothing, errs = [], stType = Nothing, catUpd = [], fnProt =
+Nothing, infType = Nothing}) Dupes (SelectList (Annotation {asrc =
+Just ("x.sql",1,8), atype = Nothing, errs = [], stType = Nothing,
+catUpd = [], fnProt = Nothing, infType = Nothing}) [SelExp (Annotation
+{asrc = Just ("x.sql",1,8), atype = Nothing, errs = [], stType =
+Nothing, catUpd = [], fnProt = Nothing, infType = Nothing})
+(Identifier (Annotation {asrc = Just ("x.sql",1,8), atype = Nothing,
+errs = [], stType = Nothing, catUpd = [], fnProt = Nothing, infType =
+Nothing}) "*")]) [Tref (Annotation {asrc = Just ("x.sql",1,15), atype
+= Nothing, errs = [], stType = Nothing, catUpd = [], fnProt = Nothing,
+infType = Nothing}) (SQIdentifier (Annotation {asrc = Just
+("x.sql",1,15), atype = Nothing, errs = [], stType = Nothing, catUpd =
+[], fnProt = Nothing, infType = Nothing}) ["t"]) (NoAlias (Annotation
+{asrc = Just ("x.sql",1,16), atype = Nothing, errs = [], stType =
+Nothing, catUpd = [], fnProt = Nothing, infType = Nothing}))] Nothing
+[] Nothing [] Nothing Nothing)]
+~~~~~
+
+More readable output from this variation:
+
+~~~~~{.haskell}
+> import System.Environment
+
+> import Language.Haskell.Exts
+> import Data.Generics.Uniplate.Data
+
+> import Database.HsSqlPpp.Parser
+
+> main :: IO ()
+> main = do
+>   [f] <- getArgs
+>   ast <- parseStatementsFromFile f
+>   putStrLn $ showNoAnns ast
+
+> showNoAnns :: Show a => a -> String
+> showNoAnns = p stripA
+>   where
+>     stripA :: Exp -> Exp
+>     stripA = transformBi $ \x ->
+>                case x of
+>                  (Paren (RecConstr (UnQual (Ident "Annotation")) _)) ->
+>                           Con $ UnQual $ Ident "Ann"
+>                  x1 -> x1
+>     p f s =
+>         case parseExp (show s) of
+>           ParseOk ast -> prettyPrint (f ast)
+>           x -> error $ show x
+~~~~~
+
+The annotation values have been replace with the string 'Ann', and the
+output indented using haskell-src-exts:
+
+~~~~~
+$ Parse2 x.sql
+Right
+  [QueryStatement Ann
+     (Select Ann Dupes
+        (SelectList Ann [SelExp Ann (Identifier Ann "*")])
+        [Tref Ann (SQIdentifier Ann ["t"]) (NoAlias Ann)]
+        Nothing
+        []
+        Nothing
+        []
+        Nothing
+        Nothing)]
+~~~~~
+
+You can see the various parsing functions in the haddock docs here:
+[Database.HsSqlPpp.Parser](haddock/Database-HsSqlPpp-Parser.html)
 
 Here is a program which parses and typechecks a query and outputs the
 result type:
 
 ~~~~~{.haskell}
+> import Database.HsSqlPpp.Parser
+> import Database.HsSqlPpp.TypeChecker
+> import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.Types
+> import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.Ast
 
-main :: IO ()
-main = undefined
-
+> main :: IO ()
+> main = do
+>   let query = "select * from t"
+>       ast :: QueryExpr
+>       Right ast = parseQueryExpr "" query
+>       aast :: QueryExpr
+>       aast = typeCheckQueryExpr cat ast
+>       ann :: Annotation
+>       ann = getAnnotation aast
+>       ty :: Maybe Type
+>       ty = atype ann
+>   print ty
+>   where
+>     Right cat = updateCatalog defaultTemplate1Catalog
+>                   [CatCreateTable "t" [("a", typeInt)
+>                                       ,("b", typeInt)
+>                                       ] []]
 ~~~~~
 
-Here is a program which generates sql:
+Running gives:
+
+~~~~~
+$ src-extra/examples/TypeCheck
+Just (SetOfType (CompositeType [("a",ScalarType "int4"),("b",ScalarType "int4")]))
+~~~~~
+
+Here is a program which generates SQL:
 
 ~~~~~{.haskell}
+> import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Pretty
 
-main :: IO ()
-main = undefined
 
+> data MakeSelect = MakeSelect [String] String
+
+> sqlGen :: MakeSelect -> QueryExpr
+> sqlGen (MakeSelect cols tb) =
+>   Select emptyAnnotation Dupes
+>          sl tr
+>          Nothing [] Nothing [] Nothing Nothing
+>   where
+>     sl = SelectList emptyAnnotation
+>                     (map si cols)
+>     tr = [Tref emptyAnnotation
+>                (SQIdentifier emptyAnnotation [tb])
+>                (NoAlias emptyAnnotation)]
+>     si i = SelExp emptyAnnotation
+>                   (Identifier emptyAnnotation
+>                               i)
+
+> main :: IO ()
+> main = do
+>   let s = MakeSelect ["a", "b"] "t"
+>   putStrLn $ printQueryExpr $ sqlGen s
 ~~~~~
 
-[Haddock docs](haddock/index.html)
+~~~~~
+$ MakeSelect
+select
+    a, b
+  from
+    t;
+~~~~~
 
 Useful links
 ============
@@ -101,7 +237,7 @@ Repository: [https://github.com/JakeWheat/hssqlppp](https://github.com/JakeWheat
 Reporting issues and feature requests
 =====================================
 
-Use the github issue tracker. Please supply an example of sql which
+Use the github issue tracker. Please supply an example of SQL which
 doesn't parse/typecheck correctly where relevant.
 
 [https://github.com/JakeWheat/hssqlppp/issues](https://github.com/JakeWheat/hssqlppp/issues)
@@ -110,13 +246,13 @@ doesn't parse/typecheck correctly where relevant.
 Provisional Future Plans
 ========================
 
-* parse most postgresql syntax, possibly other sql dialects as well
+* parse most PostgreSQL syntax, possibly other SQL dialects as well
 * improve the typechecker
 * improve the catalog
 * quasi-quoting
 * some simple syntax extension support
 * parameterized statements/typesafe haskell access
-* documentation generator for sql codebases
+* documentation generator for SQL codebases
 
 Contact
 =======

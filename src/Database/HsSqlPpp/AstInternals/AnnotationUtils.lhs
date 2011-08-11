@@ -22,6 +22,7 @@ asts and annotations which depend on the ast types.
 > getStatementAnnotations st =
 >     [getAnnotation s | (s::Statement) <- universeBi st]
 
+> -- | Set all the annotations in a tree to be 'emptyAnnotation'.
 > resetAnnotations :: Data a => a -> a
 > resetAnnotations =
 >     updateAnnotations (const emptyAnnotation)

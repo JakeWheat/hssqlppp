@@ -53,9 +53,8 @@ Public functions
 > printScalarExpr = render . convExp False
 
 
-Try harder to make the output human readable, not necessary correct
-currently
-
+> -- | Try harder to make the output human readable, not necessary correct
+> -- sql output at the moment
 > printQueryExprNice :: QueryExpr -> String
 > printQueryExprNice ast = render (convQueryExpr True True True ast <> statementEnd True)
 
