@@ -18,7 +18,7 @@ checkAssignmentValid - pass in source type and target type, returns
                 Value Storage
 
 > {-# LANGUAGE PatternGuards #-}
-> module Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion (
+> module Database.HsSqlPpp.Internals.TypeChecking.TypeConversion (
 >                        findCallMatch
 >                       ,resolveResultSetType
 >                       ,checkAssignmentValid
@@ -31,8 +31,8 @@ checkAssignmentValid - pass in source type and target type, returns
 > --import Debug.Trace
 > import Data.Char
 >
-> import Database.HsSqlPpp.AstInternals.TypeType
-> import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
+> import Database.HsSqlPpp.Internals.TypeType
+> import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 > import Database.HsSqlPpp.Utils.Utils
 
  > traceIt :: Show a => String -> a -> a

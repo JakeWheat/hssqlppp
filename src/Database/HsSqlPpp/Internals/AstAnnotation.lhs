@@ -9,7 +9,7 @@ grammar code and aren't exposed.
 
 > {-# LANGUAGE DeriveDataTypeable,ScopedTypeVariables  #-}
 >
-> module Database.HsSqlPpp.AstInternals.AstAnnotation
+> module Database.HsSqlPpp.Internals.AstAnnotation
 >     (
 >      Annotation(..)
 >     ,SourcePosition
@@ -27,8 +27,8 @@ grammar code and aren't exposed.
 > import Data.Generics.Uniplate.Data
 > --import Debug.Trace
 >
-> import Database.HsSqlPpp.AstInternals.TypeType
-> import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
+> import Database.HsSqlPpp.Internals.TypeType
+> import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 > --import Database.HsSqlPpp.Utils.Utils
 >
 > -- | Represents a source file position, usually set by the parser.

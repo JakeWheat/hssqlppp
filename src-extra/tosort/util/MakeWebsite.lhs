@@ -33,7 +33,7 @@ time util/DevelTool makewebsite +RTS -N
 >     flip when (removeDirectoryRecursive "hssqlppp")
 >   wso <- doF "website_source/" (makeRelative "website_source")
 >   --src' <- doF "src/" ("source" </>)
->   --let src = removeMatches ["src/Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs"] src'
+>   --let src = removeMatches ["src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs"] src'
 >   {-ex' <- doF "examples/" ("source" </>)
 >   let ex = removeMatches ["util/Database/HsSqlPpp/Utils/PQ.chs.h"
 >                          ,"util/Database/HsSqlPpp/Utils/PQ.hs"] ex'

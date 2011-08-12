@@ -39,7 +39,7 @@ writeAntiNodes
 > import Text.Groom
 
 > writeAntiNodes :: IO()
-> writeAntiNodes = makeAntiNodes >>= writeFile "src/Database/HsSqlPpp/AstInternals/AstAnti.hs"
+> writeAntiNodes = makeAntiNodes >>= writeFile "src/Database/HsSqlPpp/Internals/AstAnti.hs"
 
 >
 > preamble :: String
@@ -59,9 +59,9 @@ writeAntiNodes
 >
 > makeAntiNodes :: IO String
 > makeAntiNodes = do
->   ast' <- pf "src/Database/HsSqlPpp/AstInternals/AstInternal.hs"
+>   ast' <- pf "src/Database/HsSqlPpp/Internals/AstInternal.hs"
 >   let ast = stripTyParen ast'
->   -- ast1 <- pf "Database/HsSqlPpp/AstInternals/AstAnti.hs"
+>   -- ast1 <- pf "Database/HsSqlPpp/Internals/AstAnti.hs"
 >   -- trace (ppExpr ast) $ return ()
 >   --  get the interesting declarations out
 >   let ndecls = [(n,d) | d@(DataDecl _ _ _ (Ident n) _ _ _) <- universeBi ast
@@ -153,7 +153,7 @@ conversions
 >         (BDecls [])]
 > convertPair _ _ = Nothing
 
-TypeDecl (SrcLoc {srcFilename = "src/lib/Database/HsSqlPpp/AstInternals/AstInternal.hs", srcLine = 7201, srcColumn = 1}) (Ident "ScalarExprStatementListPair") [] (TyTuple Boxed [TyCon (UnQual (Ident "ScalarExpr")),TyCon (UnQual (Ident "StatementList"))])
+TypeDecl (SrcLoc {srcFilename = "src/lib/Database/HsSqlPpp/Internals/AstInternal.hs", srcLine = 7201, srcColumn = 1}) (Ident "ScalarExprStatementListPair") [] (TyTuple Boxed [TyCon (UnQual (Ident "ScalarExpr")),TyCon (UnQual (Ident "StatementList"))])
 
 
 TypeDecl a (Ident "StringTypeNameListPair") [
@@ -379,7 +379,7 @@ ready for compilation
 > makeModule :: [ExportSpec] -> [Decl] -> Module
 > makeModule es =
 >     Module nsrc
->         (ModuleName "Database.HsSqlPpp.AstInternals.AstAnti")
+>         (ModuleName "Database.HsSqlPpp.Internals.AstAnti")
 >         [LanguagePragma nsrc
 >          [Ident "DeriveDataTypeable"]]
 >         Nothing (Just es)
@@ -389,12 +389,12 @@ ready for compilation
 >                     importSrc = False, importPkg = Nothing, importAs = Nothing,
 >                     importSpecs = Nothing},
 >          ImportDecl{importLoc = nsrc,
->                     importModule = ModuleName "Database.HsSqlPpp.AstInternals.AstAnnotation",
+>                     importModule = ModuleName "Database.HsSqlPpp.Internals.AstAnnotation",
 >                     importQualified = False, importSrc = False, importPkg = Nothing,
 >                     importAs = Nothing, importSpecs = Nothing},
 >          ImportDecl{importLoc =
 >                     nsrc,
->                     importModule = ModuleName "Database.HsSqlPpp.AstInternals.AstInternal",
+>                     importModule = ModuleName "Database.HsSqlPpp.Internals.AstInternal",
 >                     importQualified = True, importSrc = False, importPkg = Nothing,
 >                     importAs = Just (ModuleName "A"), importSpecs = Nothing}]
 

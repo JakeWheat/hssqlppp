@@ -46,7 +46,7 @@ right choice, but it seems to do the job pretty well at the moment.
 >
 > import Database.HsSqlPpp.Parsing.Lexer
 > import Database.HsSqlPpp.Parsing.ParseErrors
-> import Database.HsSqlPpp.AstInternals.AstAnti
+> import Database.HsSqlPpp.Internals.AstAnti
 > --import Database.HsSqlPpp.Ast
 > import qualified Database.HsSqlPpp.Ast as A
 > import Database.HsSqlPpp.Annotation as A

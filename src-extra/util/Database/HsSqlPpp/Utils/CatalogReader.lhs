@@ -15,10 +15,10 @@ was heavily changed so it's a bit messy.
 > import Control.Applicative
 > --import Debug.Trace
 >
-> --import Database.HsSqlPpp.AstInternals.TypeType
+> --import Database.HsSqlPpp.Internals.TypeType
 > --import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Utils.Here
-> --import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
+> --import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 > import Database.HsSqlPpp.Utils.PgUtils
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Types

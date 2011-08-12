@@ -6,7 +6,7 @@
 
 echo uuagc
 
-uuagc  -dcfwsp -P src/Database/HsSqlPpp/AstInternals/ src/Database/HsSqlPpp/AstInternals/AstInternal.ag || exit $?
+uuagc  -dcfwsp -P src/Database/HsSqlPpp/Internals/ src/Database/HsSqlPpp/Internals/AstInternal.ag || exit $?
 
 # generate a new astanti file
 

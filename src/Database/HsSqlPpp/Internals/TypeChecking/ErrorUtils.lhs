@@ -2,10 +2,10 @@
 This file contains a bunch of small low level utilities to help with
 type checking.
 
-> module Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
+> module Database.HsSqlPpp.Internals.TypeChecking.ErrorUtils
 >     where
 >
-> import Database.HsSqlPpp.AstInternals.TypeType
+> import Database.HsSqlPpp.Internals.TypeType
 > import Debug.Trace
 
 > type E a = Either [TypeError] a

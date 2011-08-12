@@ -7,7 +7,7 @@ add test(s) to the automated tests under src-extra/tests/
 
 compile and run the tests to check the new test fails
 
-add new datatypes to AstInternals.ag
+add new datatypes to AstInternal.ag
 
 fix any default uuagc rules if needed
 
@@ -91,7 +91,7 @@ the tests which match the string.
 ## Syntax
 
 Editing syntax is currently pretty hairy in hssqlppp. The first place
-to go is the AstInternals.ag file, which is not written in haskell
+to go is the AstInternal.ag file, which is not written in haskell
 syntax, but in uuagc syntax.
 
 Searching for PrecTypeName in this file should give a good place to

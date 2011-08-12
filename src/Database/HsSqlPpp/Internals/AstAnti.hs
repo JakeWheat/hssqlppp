@@ -5,7 +5,7 @@ nwriteAntiNodes
 n\nThe path might need tweaking.
 n-}
 {-# LANGUAGE DeriveDataTypeable #-}
-module Database.HsSqlPpp.AstInternals.AstAnti
+module Database.HsSqlPpp.Internals.AstAnti
        (convertStatements, convertScalarExpr, attributeDef, queryExpr,
         Statement(..), QueryExpr(..), WithQuery(..), FnBody(..),
         TableRef(..), TableAlias(..), JoinExpr(..), JoinType(..),
@@ -31,8 +31,8 @@ module Database.HsSqlPpp.AstInternals.AstAnti
         AlterTableActionList)
        where
 import Data.Generics
-import Database.HsSqlPpp.AstInternals.AstAnnotation
-import qualified Database.HsSqlPpp.AstInternals.AstInternal as A
+import Database.HsSqlPpp.Internals.AstAnnotation
+import qualified Database.HsSqlPpp.Internals.AstInternal as A
  
 convertStatements :: [Statement] -> [A.Statement]
 convertStatements = statementList

@@ -4,7 +4,7 @@ asts and annotations which depend on the ast types.
 
 > {-# LANGUAGE ScopedTypeVariables #-}
 >
-> module Database.HsSqlPpp.AstInternals.AnnotationUtils
+> module Database.HsSqlPpp.Internals.AnnotationUtils
 >     (
 >      getStatementAnnotations
 >     ,resetAnnotations
@@ -13,8 +13,8 @@ asts and annotations which depend on the ast types.
 > import Data.Data
 > import Data.Generics.Uniplate.Data
 >
-> import Database.HsSqlPpp.AstInternals.AstInternal
-> import Database.HsSqlPpp.AstInternals.AstAnnotation
+> import Database.HsSqlPpp.Internals.AstInternal
+> import Database.HsSqlPpp.Internals.AstAnnotation
 >
 > -- | Run through the ast and return all the annotations attached to
 > --   a Statement node.

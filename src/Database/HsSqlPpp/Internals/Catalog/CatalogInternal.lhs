@@ -5,7 +5,7 @@ modules.
 
 > {-# LANGUAGE DeriveDataTypeable #-}
 >
-> module Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
+> module Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 >     (
 >      Catalog
 >     ,CastContext(..)
@@ -48,7 +48,7 @@ modules.
 > -- import Debug.Trace
 > import Data.Char
 >
-> import Database.HsSqlPpp.AstInternals.TypeType
+> import Database.HsSqlPpp.Internals.TypeType
 > import Database.HsSqlPpp.Utils.Utils
 >
 > -- | The main datatype, this holds the catalog and context

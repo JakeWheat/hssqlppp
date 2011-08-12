@@ -7,11 +7,11 @@ MUMBLE MUMBLE SOMETHING
 
 from the project root (i.e. where the cabal file is located).
 
-> module Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog
+> module Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
 >      (defaultTemplate1Catalog) where
 >
-> import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
-> import Database.HsSqlPpp.AstInternals.TypeType
+> import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+> import Database.HsSqlPpp.Internals.TypeType
 >
 > defaultTemplate1Catalog :: Catalog
 > defaultTemplate1Catalog =

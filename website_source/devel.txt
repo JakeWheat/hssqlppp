@@ -21,7 +21,7 @@ Rebuild the generated files for the syntax
 ==========================================
 
 For a full rebuild, use the build.sh script. This rebuilds two of the
-generated files: AstInternals.hs which is generated from the .ag
+generated files: AstInternal.hs which is generated from the .ag
 files, and AstAnti.hs.
 
 There is one further generated file,

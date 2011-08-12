@@ -2,7 +2,7 @@
 Forwarder for the interface to LocalBindingsInternal used by the rest
 of the system.
 
-> module Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindings
+> module Database.HsSqlPpp.Internals.TypeChecking.LocalBindings
 >     (
 >      LocalBindingsUpdate(..)
 >     ,LocalBindings
@@ -17,4 +17,4 @@ of the system.
 >     ,lookupLocalBinding
 >     ) where
 >
-> import Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindingsInternal
+> import Database.HsSqlPpp.Internals.TypeChecking.LocalBindingsInternal

@@ -22,4 +22,4 @@ This is the public module to the SQL data types, mainly from TypeType.
 >     ,TypeError (..)
 >     ) where
 >
-> import Database.HsSqlPpp.AstInternals.TypeType
+> import Database.HsSqlPpp.Internals.TypeType

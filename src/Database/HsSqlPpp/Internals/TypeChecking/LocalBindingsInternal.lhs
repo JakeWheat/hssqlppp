@@ -32,7 +32,7 @@ in scope, and one for an unqualified star.
 
 > {-# LANGUAGE ScopedTypeVariables,TupleSections #-}
 >
-> module Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindingsInternal
+> module Database.HsSqlPpp.Internals.TypeChecking.LocalBindingsInternal
 >     (
 >      LocalBindingsUpdate(..)
 >     ,LocalBindings(..)
@@ -65,11 +65,11 @@ in scope, and one for an unqualified star.
 > --import Data.Either
 > --import qualified Data.Map as M
 >
-> import Database.HsSqlPpp.AstInternals.TypeType
+> import Database.HsSqlPpp.Internals.TypeType
 > --import Database.HsSqlPpp.Utils.Utils
-> import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
-> --import Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
-> import Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
+> import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+> --import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
+> import Database.HsSqlPpp.Internals.TypeChecking.ErrorUtils
 >
 
 

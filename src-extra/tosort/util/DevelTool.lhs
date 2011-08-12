@@ -41,15 +41,15 @@ PostgreSQL catalog contents.
 \begin{code}
 
 This file is auto generated, to regenerate run
-example/HsSqlSystem dbcatalog --database=template1 > src/Database/HsSqlPpp/AstInternals/Catalog/DefaultTemplate1Catalog.lhs
+example/HsSqlSystem dbcatalog --database=template1 > src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs
 
 from the project root (i.e. where the cabal file is located).
 
-> module Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog
+> module Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
 >      (defaultTemplate1Catalog) where
 >
-> import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
-> import Database.HsSqlPpp.AstInternals.TypeType
+> import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+> import Database.HsSqlPpp.Internals.TypeType
 >
 > defaultTemplate1Catalog :: Catalog
 > defaultTemplate1Catalog =

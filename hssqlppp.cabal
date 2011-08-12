@@ -55,18 +55,18 @@ Library
                      Database.HsSqlPpp.Parsing.ParseErrors
                      Database.HsSqlPpp.Parsing.Lexer
                      Database.HsSqlPpp.Parsing.ParserInternal
-                     Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
-                     Database.HsSqlPpp.AstInternals.Catalog.DefaultTemplate1Catalog
-                     Database.HsSqlPpp.AstInternals.AstAnti
-                     Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
-                     Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
-                     Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindings
-                     Database.HsSqlPpp.AstInternals.TypeChecking.Utils
-                     Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindingsInternal
-                     Database.HsSqlPpp.AstInternals.AstAnnotation
-                     Database.HsSqlPpp.AstInternals.AnnotationUtils
-                     Database.HsSqlPpp.AstInternals.AstInternal
-                     Database.HsSqlPpp.AstInternals.TypeType
+                     Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+                     Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
+                     Database.HsSqlPpp.Internals.AstAnti
+                     Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
+                     Database.HsSqlPpp.Internals.TypeChecking.ErrorUtils
+                     Database.HsSqlPpp.Internals.TypeChecking.LocalBindings
+                     Database.HsSqlPpp.Internals.TypeChecking.Utils
+                     Database.HsSqlPpp.Internals.TypeChecking.LocalBindingsInternal
+                     Database.HsSqlPpp.Internals.AstAnnotation
+                     Database.HsSqlPpp.Internals.AnnotationUtils
+                     Database.HsSqlPpp.Internals.AstInternal
+                     Database.HsSqlPpp.Internals.TypeType
 
   extensions:        TupleSections
                      DeriveDataTypeable,

@@ -1,15 +1,15 @@
 
 For extra utility functions to help with asts
 
-> module Database.HsSqlPpp.AstInternals.TypeChecking.Utils
+> module Database.HsSqlPpp.Internals.TypeChecking.Utils
 >     (addExplicitCasts
 >     ,canonicalizeTypeNames) where
 
 > import Data.Data
-> import Database.HsSqlPpp.AstInternals.AstInternal
+> import Database.HsSqlPpp.Internals.AstInternal
 > import Data.Generics.Uniplate.Data
-> import Database.HsSqlPpp.AstInternals.AstAnnotation
-> import Database.HsSqlPpp.AstInternals.TypeType
+> import Database.HsSqlPpp.Internals.AstAnnotation
+> import Database.HsSqlPpp.Internals.TypeType
 > import Control.Monad
 
 

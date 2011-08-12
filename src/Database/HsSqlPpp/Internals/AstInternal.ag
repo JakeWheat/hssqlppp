@@ -43,7 +43,7 @@ cabal install uuagc
 
 {- | test
 -}
-MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
+MODULE {Database.HsSqlPpp.Internals.AstInternal}
 {
     -- {-# LANGUAGE DeriveDataTypeable,ScopedTypeVariables #-}
     --from the ag files:
@@ -143,13 +143,13 @@ import Data.Generics.Uniplate.Data
 import Debug.Trace
 
 
-import Database.HsSqlPpp.AstInternals.TypeType
-import Database.HsSqlPpp.AstInternals.TypeChecking.TypeConversion
-import Database.HsSqlPpp.AstInternals.AstAnnotation
-import Database.HsSqlPpp.AstInternals.Catalog.CatalogInternal
-import Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindings
+import Database.HsSqlPpp.Internals.TypeType
+import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
+import Database.HsSqlPpp.Internals.AstAnnotation
+import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+import Database.HsSqlPpp.Internals.TypeChecking.LocalBindings
+import Database.HsSqlPpp.Internals.TypeChecking.ErrorUtils
 import Database.HsSqlPpp.Utils.Utils
-import Database.HsSqlPpp.AstInternals.TypeChecking.ErrorUtils
 
 }
 

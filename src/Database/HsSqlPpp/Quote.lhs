@@ -47,7 +47,7 @@ transformations which implement syntax extensions to sql
 >
 > import Database.HsSqlPpp.Parsing.ParserInternal
 > import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.AstInternals.AstAnti
+> import Database.HsSqlPpp.Internals.AstAnti
 >
 
 public api: the quasiquote functions
@@ -88,7 +88,7 @@ boilerplate utils to hook everything together
 >                        ,quoteDec = undefined}
 
 these return asts of from the module
-Database.HsSqlPpp.AstInternals.AstAnti, but when you expect the result
+Database.HsSqlPpp.Internals.AstAnti, but when you expect the result
 of a quasiquote to be from the module Database.HsSqlPpp.Ast, it
 magically converts from one to the other ...
 

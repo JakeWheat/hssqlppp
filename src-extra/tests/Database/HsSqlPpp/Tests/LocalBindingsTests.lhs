@@ -62,7 +62,7 @@ looking individual items up and checking the results.
 > import Control.Monad
 > import Control.Monad.Error
 >
-> import Database.HsSqlPpp.AstInternals.TypeChecking.LocalBindingsInternal
+> import Database.HsSqlPpp.Internals.TypeChecking.LocalBindingsInternal
 > import Database.HsSqlPpp.SqlTypes
 > import Database.HsSqlPpp.Catalog
 >
