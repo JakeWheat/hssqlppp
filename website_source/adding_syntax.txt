@@ -19,8 +19,9 @@ compile and run the tests to check that the new test(s) now pass
 
 # Example
 
-Worked through example of adding support for parsing data types with 2
-precision components. (This has already been completed).
+Worked through example of adding support for parsing data types with
+two precision components. (This is already in the latest version of
+hssqlppp).
 
 The parser/syntax currently supports the precision of floating point
 types, e.g.
@@ -43,18 +44,17 @@ create table t {
 
 The first step: add a test. At the moment, all the parsing tests go
 src-extra/tests/Database/HsSqlPpp/Tests/ParserTest.lhs. You could also
-add a new module, and link it in src-extra/tests/Tests.
+add a new module, and add it to src-extra/tests/Tests.
 
 To add the new test, we have to figure out how the new abstract syntax
 will look. We can defer this while we add the test, until we actually
-edit the abstract syntax types. The added code:
+edit the abstract syntax types. The code added to ParserTests.lhs:
 
 ~~~~{.haskell}
 e "245.1::numeric(5,3)" (Cast ea (FloatLit ea 245.1) (PrecTypeName ea "numeric" 5))
 ~~~~
 
-Now check the test fails, not really that useful at this time, but
-good sanity check.
+Now check the test fails.
 
 ~~~~
 $ cd src-extra
@@ -91,8 +91,8 @@ the tests which match the string.
 ## Syntax
 
 Editing syntax is currently pretty hairy in hssqlppp. The first place
-to go is the AstInternal.ag file, which is not written in haskell
-syntax, but in uuagc syntax.
+to go is the AstInternal.ag file, which is not written in Haskell, but
+in uuagc.
 
 Searching for PrecTypeName in this file should give a good place to
 alter the syntax.
@@ -126,9 +126,8 @@ $ ./build.sh
 ./TypeChecking/Misc.ag:15:18: warning: Missing rule for synthesized attribute namedType in alternative Prec2TypeName of nonterminal TypeName.
 ~~~~
 
-OK, so this is a bit weird if you don't know uuagc. Looking at the
-file, the simplest fix seems to be to copy the style of the
-PrecTypeName part. The previous code:
+OK, so this is a bit weird. One way to fix it is as follows: copy the
+style of the PrecTypeName part. The previous code:
 
 ~~~~{.haskell}
 SEM TypeName
@@ -177,22 +176,23 @@ SEM TypeName
         loc.backTree = Prec2TypeName @ann @tn @prec @prec1
 ~~~~
 
-Now uuagc runs without warnings. You should mostly be able to add new
-syntax and parsing without doing any fixes to these rules, so you can
-focus on getting the syntax and parsing working first. Patches which
-add new syntax/parsing but leave the type checker broken are OK.
+Now uuagc runs without warnings. You can try and skip fixing these
+warnings just to get the parsing working. (Patches which add new
+syntax/parsing but leave the type checker broken are welcome.)
 
 If the build.sh script completes successfully, then the .ag files
 should be compiled to hs, the AstAnti.hs module should be generated,
 and cabal build run.
 
-Time to fix the tests: the line in ParserTests.lhs is now
+Time to fix the tests: editing the line in ParserTests.lhs to match
+the new syntax gives:
 
 ~~~~{.haskell}
 e "(245.1)::numeric(5,3)" (Cast ea (FloatLit ea 245.1) (Prec2TypeName ea "numeric" 5 3))
 ~~~~
 
-Recompiling works, and running the test fails.
+Recompiling works, and running the test fails. You could also use
+undefined here.
 
 The next job is to add to the parser. The parsing code is mostly in
 src/Database/HsSqlPpp/Parsing/ParserInternal.lhs.
@@ -222,8 +222,8 @@ parser function:
 ~~~~
 
 Here is the updated version. It could probably be a bit better
-designed but getting a crappily written version working and passing
-tests is usually a good first step before trying to make it clean and
+designed but getting a badly written version working and passing tests
+is usually a good first step before trying to make it clean and
 elegant.
 
 ~~~~{.haskell}
@@ -250,9 +250,6 @@ elegant.
 >                       <|> idString
 ~~~~
 
-We have to use try with this approach since it Prec2TypeName starts
-out the same as PrecTypeName.
-
 ## Pretty printing
 
 Compiling and running the tests gives:
@@ -262,7 +259,7 @@ parserTests:
   parse expressions:
     simple operators:
       parse 245.1::numeric(5,3): [Failed]
-ERROR: src/Database/HsSqlPpp/PrettyPrinter.lhs:(565,2)-(568,67): Non-exhaustive patterns in function convTypeName
+ERROR: src/Database/HsSqlPpp/Pretty.lhs:(565,2)-(568,67): Non-exhaustive patterns in function convTypeName
 
 
          Test Cases  Total      
@@ -280,7 +277,7 @@ parse then pretty print gives the same sql (and pretty print then
 parse gives the same ast).
 
 The pretty printing routines are in
-'src/Database/HsSqlPpp.PrettyPrinter'. Here is the line I added
+'src/Database/HsSqlPpp.Pretty'. Here is the line I added
 after the PrecTypeName pretty printer:
 
 ~~~~{.haskell}
@@ -293,4 +290,5 @@ after the PrecTypeName pretty printer:
 Now the test passes and the only thing left is to run all the tests to
 check nothing else has been broken.
 
-This is just a sketch guide, please email me if you have any questions.
+This is just a sketch guide, please email me if you are trying to
+follow this and have any questions.

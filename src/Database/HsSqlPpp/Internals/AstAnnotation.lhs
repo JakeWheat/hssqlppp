@@ -149,7 +149,7 @@ without having to get the positions correct.
  > filterAnnotations f = transformBi (filter f)
 
 >
-> -- | Update all the annotations in a tree using the function supplied
+> -- | Update the first annotation in a tree using the function supplied
 > updateAnnotation :: Data a => (Annotation -> Annotation) -> a -> a
 > updateAnnotation f = gmapT (mkT f)
 >

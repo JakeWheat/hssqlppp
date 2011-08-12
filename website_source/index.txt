@@ -8,13 +8,14 @@ Possible uses of this library include:
 
 * parsing SQL
 * lint checking SQL code
-* type-checker can help with SQL development
+* type-checker can help with SQL development and catch bugs which
+  aren't statically detected by PostgreSQL
 * generating SQL code programmatically/ generating SQL from some other
   source
 * transforming SQL code using quasiquoting
 * viewing the catalog produced by some SQL code
-* helping with typesafe database access from haskell
-* generating documentation for SQL
+* typesafe database access from haskell
+* generating documentation for SQL code
 
 Status
 ======
@@ -86,9 +87,10 @@ Provisional future plans
 * some simple syntax extension support for SQL
 * a 'compiler' command to help developing SQL
 * parse most PostgreSQL syntax, possibly other SQL dialects as well
-* improve the typechecker
-* improve the catalog
-* improve the quasi-quoting
+* improve the typechecker - fix current regressions, get more sql type
+  checking correctly
+* improve the catalog - add more checking, more item types
+* improve the quasi-quoting - is a bit ad hoc and limited at the moment
 * documentation generator for SQL codebases
 
 Contact

@@ -28,7 +28,7 @@ writeAntiNodes
 >
 > import Language.Haskell.Exts hiding (String)
 > import qualified Language.Haskell.Exts as Exts
-> import Data.Generics
+> import Data.Data
 > import Data.Generics.Uniplate.Data
 > import Data.Char
 > import Data.Maybe
@@ -384,7 +384,7 @@ ready for compilation
 >          [Ident "DeriveDataTypeable"]]
 >         Nothing (Just es)
 >         [ImportDecl{importLoc = nsrc,
->                     importModule = ModuleName "Data.Generics",
+>                     importModule = ModuleName "Data.Data",
 >                     importQualified = False,
 >                     importSrc = False, importPkg = Nothing, importAs = Nothing,
 >                     importSpecs = Nothing},

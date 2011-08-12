@@ -2,7 +2,9 @@ Here are some limited notes on working on the source of hssqlppp:
 
 Get the source
 ==============
-please use the code from git to develop with, for instance
+
+Please use the code from git to develop with, one way to get the code
+is to run:
 
 ~~~~~
 git clone https://github.com/JakeWheat/hssqlppp.git
@@ -20,15 +22,13 @@ cabal configure && cabal build
 Rebuild the generated files for the syntax
 ==========================================
 
-For a full rebuild, use the build.sh script. This rebuilds two of the
-generated files: AstInternal.hs which is generated from the .ag
-files, and AstAnti.hs.
+If you edit the ag files, use the build.sh script. This rebuilds two
+of the generated files: AstInternal.hs which is generated from the .ag
+files, and AstAnti.hs which is generated from AstInternal.hs.
 
 There is one further generated file,
 DefaultTemplate1Catalog.lhs. There isn't a straightforward way to
-rebuild this at the moment, but you should only need to if there is
-something added to a new version of the PostgreSQL catalog which you
-need to typecheck against.
+rebuild this at the moment.
 
 Build and run the tests
 =======================
@@ -47,10 +47,8 @@ lots of failures (~50). These should all be typechecking failures.
 Background reading
 ==================
 
-Learning Haskell: <http://learnyouahaskell.com/>
-
-The technology buzzwords used in hssqlppp are:
-parsec, uuagc, generics, quasiquoting, pretty printing
+The main components used in hssqlppp are: parsec, uuagc, generics,
+quasiquoting, pretty printing.
 
 Parsec is used for parsing:
 Here is a outdated tutorial for parsec which isn't too bad for getting
@@ -59,8 +57,8 @@ started: <http://legacy.cs.uu.nl/daan/parsec.html>
 Chapter in Real World Haskell on parsec:
 <http://book.realworldhaskell.org/read/using-parsec.html>
 
-UUAGC is used for the typechecking. It is also used to define the ast
-data types:
+UUAGC is used to assist the typechecking. It is also used to define
+the ast data types:
 <http://www.cs.uu.nl/wiki/bin/view/HUT/AttributeGrammarSystem>
 
 A tutorial, not that easy to follow:
@@ -81,19 +79,13 @@ The automated tests use test-framework and HUnit.
 Source overview
 ===============
 
-FIXME
-
 weird bits:
 
 * uuagc
 * astanti
 * lexing/parsing split
-* typechecker: fixupidentifiers, describe main attributes
+* typechecker: fixupidentifiers
 
+TODO: make this less cryptic
 
-Adding syntax
-=============
-
-Probably the most interesting thing to do with the source a the moment
-is add support for new syntax, see this short guide for some pointers:
-[Adding Syntax](adding_syntax.txt.html).
+A short guide on [adding Syntax](adding_syntax.txt.html).
