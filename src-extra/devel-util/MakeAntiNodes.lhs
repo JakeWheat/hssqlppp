@@ -20,8 +20,8 @@ Run this from ghci:
 change to the folder with the cabal file in
 run ghci
 enter:
-:set -isrc/lib:src/postgresql:examples/util
-:l "devel/MakeAntiNodes.lhs"
+:set -isrc-extra/util:src-extra/devel-util
+:l "src-extra/devel-util/MakeAntiNodes.lhs"
 writeAntiNodes
 
 > module MakeAntiNodes (writeAntiNodes) where
@@ -39,7 +39,7 @@ writeAntiNodes
 > import Text.Groom
 
 > writeAntiNodes :: IO()
-> writeAntiNodes = makeAntiNodes >>= writeFile "src/lib/Database/HsSqlPpp/AstInternals/AstAnti.hs"
+> writeAntiNodes = makeAntiNodes >>= writeFile "src/Database/HsSqlPpp/AstInternals/AstAnti.hs"
 
 >
 > preamble :: String
@@ -59,7 +59,7 @@ writeAntiNodes
 >
 > makeAntiNodes :: IO String
 > makeAntiNodes = do
->   ast' <- pf "src/lib/Database/HsSqlPpp/AstInternals/AstInternal.hs"
+>   ast' <- pf "src/Database/HsSqlPpp/AstInternals/AstInternal.hs"
 >   let ast = stripTyParen ast'
 >   -- ast1 <- pf "Database/HsSqlPpp/AstInternals/AstAnti.hs"
 >   -- trace (ppExpr ast) $ return ()

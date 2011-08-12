@@ -4,13 +4,13 @@ To compile, use something like:
 
 time ghc -threaded -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -idevel:src:examples/chaos:examples/extensions/:examples/util/:tests/ --make devel/DevelTool
 
-ghc -XTupleSections -XScopedTypeVariables -XDeriveDataTypeable -cpp -pgmPcpphs -optP--cpp --make -i/home/jake/wd/hssqlppp/trunk/src:/home/jake/wd/hssqlppp/trunk/src-extra/examples:/home/jake/wd/hssqlppp/trunk/src-extra/postgresql:/home/jake/wd/hssqlppp/trunk/src-extra/qq:/home/jake/wd/hssqlppp/trunk/src-extra/tests:/home/jake/wd/hssqlppp/trunk/src-extra/util /home/jake/wd/hssqlppp/trunk/src-extra/util/DevelTool.lhs
+ghc -XTupleSections -XScopedTypeVariables -XDeriveDataTypeable -i/home/jake/wd/hssqlppp/trunk/src:/home/jake/wd/hssqlppp/trunk/src-extra/examples:/home/jake/wd/hssqlppp/trunk/src-extra/tests:/home/jake/wd/hssqlppp/trunk/src-extra/util:/home/jake/wd/hssqlppp/trunk/src-extra/tosort/util /home/jake/wd/hssqlppp/trunk/src-extra/tosort/util/DevelTool.lhs -rtsopts -threaded
 
 
 > import System.Environment
 
 > import MakeWebsite
-> import MakeAntiNodes
+> --import MakeAntiNodes
 
 > main :: IO ()
 > main = do
@@ -18,7 +18,7 @@ ghc -XTupleSections -XScopedTypeVariables -XDeriveDataTypeable -cpp -pgmPcpphs -
 >   case args of
 >     ["sourcelinks"] -> sourceLinks
 >     ["makewebsite"] -> makeWebsite
->     ["makeantinodes"] -> writeAntiNodes
+>     --["makeantinodes"] -> writeAntiNodes
 >     x -> error $ "don't understand " ++ show x
 
 -------------------------------------------------------------------------------

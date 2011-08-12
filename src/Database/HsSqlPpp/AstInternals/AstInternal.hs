@@ -1,6 +1,6 @@
 
 
--- UUAGC 0.9.39.0 (AstInternal.ag)
+-- UUAGC 0.9.39.0 (src/Database/HsSqlPpp/AstInternals/AstInternal.ag)
 module Database.HsSqlPpp.AstInternals.AstInternal(
     -- {-# LANGUAGE DeriveDataTypeable,ScopedTypeVariables #-}
     --from the ag files:
@@ -673,7 +673,7 @@ sem_AlterTableAction_AlterColumnDefault ann_ nm_ def_  =
               _defIfixedUpIdentifiersTree :: ScalarExpr 
               _defIoriginalTree :: ScalarExpr 
               _defIuType :: (Maybe Type)
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 72, column 26)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 72, column 26)
               _defOexpectedType =
                   Nothing
               -- self rule
@@ -920,13 +920,13 @@ sem_AttributeDef_AttributeDef ann_ name_ typ_ def_ cons_  =
               _consIannotatedTree :: RowConstraintList 
               _consIfixedUpIdentifiersTree :: RowConstraintList 
               _consIoriginalTree :: RowConstraintList 
-              -- "./TypeChecking/Ddl/CreateTable.ag"(line 83, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateTable.ag"(line 83, column 9)
               _lhsOattrName =
                   map toLower name_
-              -- "./TypeChecking/Ddl/CreateTable.ag"(line 84, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateTable.ag"(line 84, column 9)
               _lhsOnamedType =
                   _typInamedType
-              -- "./TypeChecking/Ddl/CreateTable.ag"(line 98, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateTable.ag"(line 98, column 9)
               _consOlib =
                   either (const _lhsIlib) id $ do
                   t <- lmt _typInamedType
@@ -1053,7 +1053,7 @@ sem_AttributeDefList_Cons hd_ tl_  =
               _tlIattrs :: ([(String, Maybe Type)])
               _tlIfixedUpIdentifiersTree :: AttributeDefList 
               _tlIoriginalTree :: AttributeDefList 
-              -- "./TypeChecking/Ddl/CreateTable.ag"(line 88, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateTable.ag"(line 88, column 12)
               _lhsOattrs =
                   (_hdIattrName, _hdInamedType) : _tlIattrs
               -- self rule
@@ -1106,7 +1106,7 @@ sem_AttributeDefList_Nil  =
               _lhsOannotatedTree :: AttributeDefList 
               _lhsOfixedUpIdentifiersTree :: AttributeDefList 
               _lhsOoriginalTree :: AttributeDefList 
-              -- "./TypeChecking/Ddl/CreateTable.ag"(line 89, column 11)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateTable.ag"(line 89, column 11)
               _lhsOattrs =
                   []
               -- self rule
@@ -1197,16 +1197,16 @@ sem_CaseScalarExprListScalarExprPair_Tuple x1_ x2_  =
               _x2IfixedUpIdentifiersTree :: ScalarExpr 
               _x2IoriginalTree :: ScalarExpr 
               _x2IuType :: (Maybe Type)
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 270, column 13)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 270, column 13)
               _lhsOwhenTypes =
                   _x1IuType
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 271, column 13)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 271, column 13)
               _lhsOthenType =
                   _x2IuType
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 76, column 13)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 76, column 13)
               _x1OexpectedTypes =
                   []
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 77, column 13)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 77, column 13)
               _x2OexpectedType =
                   Nothing
               -- self rule
@@ -1324,10 +1324,10 @@ sem_CaseScalarExprListScalarExprPairList_Cons hd_ tl_  =
               _tlIoriginalTree :: CaseScalarExprListScalarExprPairList 
               _tlIthenTypes :: ([Maybe Type])
               _tlIwhenTypes :: ([[Maybe Type]])
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 261, column 10)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 261, column 10)
               _lhsOwhenTypes =
                   _hdIwhenTypes : _tlIwhenTypes
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 262, column 10)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 262, column 10)
               _lhsOthenTypes =
                   _hdIthenType : _tlIthenTypes
               -- self rule
@@ -1381,10 +1381,10 @@ sem_CaseScalarExprListScalarExprPairList_Nil  =
               _lhsOannotatedTree :: CaseScalarExprListScalarExprPairList 
               _lhsOfixedUpIdentifiersTree :: CaseScalarExprListScalarExprPairList 
               _lhsOoriginalTree :: CaseScalarExprListScalarExprPairList 
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 263, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 263, column 9)
               _lhsOwhenTypes =
                   []
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 264, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 264, column 9)
               _lhsOthenTypes =
                   []
               -- self rule
@@ -1503,7 +1503,7 @@ sem_Constraint_CheckConstraint ann_ name_ expr_  =
               _exprIfixedUpIdentifiersTree :: ScalarExpr 
               _exprIoriginalTree :: ScalarExpr 
               _exprIuType :: (Maybe Type)
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 80, column 23)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 80, column 23)
               _exprOexpectedType =
                   Nothing
               -- self rule
@@ -1833,7 +1833,7 @@ sem_FnBody_PlpgsqlFnBody ann_ blk_  =
               _blkIfixedUpIdentifiersTree :: Statement 
               _blkIlibUpdates :: ([LocalBindingsUpdate])
               _blkIoriginalTree :: Statement 
-              -- "./TypeChecking/Statements.ag"(line 104, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 104, column 9)
               _blkOinProducedCat =
                   emptyCatalog
               -- self rule
@@ -1886,10 +1886,10 @@ sem_FnBody_SqlFnBody ann_ sts_  =
               _stsIoriginalTree :: StatementList 
               _stsIproducedCat :: Catalog
               _stsIproducedLib :: LocalBindings
-              -- "./TypeChecking/Statements.ag"(line 129, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 129, column 9)
               _stsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 130, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 130, column 9)
               _stsOlibUpdates =
                   []
               -- self rule
@@ -1995,10 +1995,10 @@ sem_InList_InList ann_ exprs_  =
               _exprsIfixedUpIdentifiersTree :: ScalarExprList 
               _exprsIoriginalTree :: ScalarExprList 
               _exprsIuType :: ([Maybe Type])
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 409, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 409, column 9)
               _lhsOlistType =
                   mapM lmt _exprsIuType >>= resolveResultSetType _lhsIcat
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 410, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 410, column 9)
               _exprsOexpectedTypes =
                   repeat _lhsIexpectedType
               -- self rule
@@ -2054,7 +2054,7 @@ sem_InList_InQueryExpr ann_ sel_  =
               _selIlibUpdates :: ([LocalBindingsUpdate])
               _selIoriginalTree :: QueryExpr 
               _selIuType :: (Maybe [(String,Type)])
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 413, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 413, column 9)
               _lhsOlistType =
                   do
                   st <- lmt (map snd <$> _selIuType)
@@ -2063,10 +2063,10 @@ sem_InList_InQueryExpr ann_ sel_  =
                                        "got subquery with no columns? in inselect"]
                             1 -> Right $ head st
                             _ -> Right $ AnonymousRecordType st
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 120, column 19)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 120, column 19)
               _selOcsql =
                   emptyBindings
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 173, column 19)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 173, column 19)
               _selOexpectedTypes =
                   []
               -- self rule
@@ -2167,7 +2167,7 @@ sem_JoinExpr_JoinOn ann_ expr_  =
               _exprIfixedUpIdentifiersTree :: ScalarExpr 
               _exprIoriginalTree :: ScalarExpr 
               _exprIuType :: (Maybe Type)
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 94, column 14)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 94, column 14)
               _exprOexpectedType =
                   Just typeBool
               -- self rule
@@ -2291,13 +2291,13 @@ sem_MaybeBoolExpr_Just just_  =
               _justIfixedUpIdentifiersTree :: ScalarExpr 
               _justIoriginalTree :: ScalarExpr 
               _justIuType :: (Maybe Type)
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 132, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 132, column 9)
               _lhsOannotatedTree =
                   let t = _justIuType
                   in if t `elem` [Nothing,Just typeBool]
                      then Just _justIannotatedTree
                      else Just $ addTypeErrors [ExpressionMustBeBool] _justIannotatedTree
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 97, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 97, column 12)
               _justOexpectedType =
                   Just typeBool
               -- self rule
@@ -2418,10 +2418,10 @@ sem_MaybeScalarExpr_Just just_  =
               _justIfixedUpIdentifiersTree :: ScalarExpr 
               _justIoriginalTree :: ScalarExpr 
               _justIuType :: (Maybe Type)
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 124, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 124, column 12)
               _lhsOuType =
                   _justIuType
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 100, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 100, column 12)
               _justOexpectedType =
                   Nothing
               -- self rule
@@ -2463,7 +2463,7 @@ sem_MaybeScalarExpr_Nothing  =
               _lhsOannotatedTree :: MaybeScalarExpr 
               _lhsOfixedUpIdentifiersTree :: MaybeScalarExpr 
               _lhsOoriginalTree :: MaybeScalarExpr 
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 125, column 15)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 125, column 15)
               _lhsOuType =
                   Nothing
               -- self rule
@@ -2550,7 +2550,7 @@ sem_MaybeSelectList_Just just_  =
               _justIlibUpdates :: ([LocalBindingsUpdate])
               _justIlistType :: ([(String,Maybe Type)])
               _justIoriginalTree :: SelectList 
-              -- "./TypeChecking/QueryExprs/SelectLists.ag"(line 38, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/SelectLists.ag"(line 38, column 12)
               _lhsOlistType =
                   _justIlistType
               -- self rule
@@ -2592,7 +2592,7 @@ sem_MaybeSelectList_Nothing  =
               _lhsOannotatedTree :: MaybeSelectList 
               _lhsOfixedUpIdentifiersTree :: MaybeSelectList 
               _lhsOoriginalTree :: MaybeSelectList 
-              -- "./TypeChecking/QueryExprs/SelectLists.ag"(line 39, column 15)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/SelectLists.ag"(line 39, column 15)
               _lhsOlistType =
                   []
               -- self rule
@@ -2807,10 +2807,10 @@ sem_ParamDef_ParamDef ann_ name_ typ_  =
               _typIfixedUpIdentifiersTree :: TypeName 
               _typInamedType :: (Maybe Type)
               _typIoriginalTree :: TypeName 
-              -- "./TypeChecking/Ddl/CreateFunction.ag"(line 45, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateFunction.ag"(line 45, column 9)
               _lhsOnamedType =
                   _typInamedType
-              -- "./TypeChecking/Ddl/CreateFunction.ag"(line 47, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateFunction.ag"(line 47, column 9)
               _lhsOparamName =
                   NamedParam _lhsIpos name_
               -- self rule
@@ -2863,10 +2863,10 @@ sem_ParamDef_ParamDefTp ann_ typ_  =
               _typIfixedUpIdentifiersTree :: TypeName 
               _typInamedType :: (Maybe Type)
               _typIoriginalTree :: TypeName 
-              -- "./TypeChecking/Ddl/CreateFunction.ag"(line 45, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateFunction.ag"(line 45, column 9)
               _lhsOnamedType =
                   _typInamedType
-              -- "./TypeChecking/Ddl/CreateFunction.ag"(line 49, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateFunction.ag"(line 49, column 9)
               _lhsOparamName =
                   UnnamedParam _lhsIpos
               -- self rule
@@ -2975,13 +2975,13 @@ sem_ParamDefList_Cons hd_ tl_  =
               _tlIfixedUpIdentifiersTree :: ParamDefList 
               _tlIoriginalTree :: ParamDefList 
               _tlIparams :: ([(ParamName, Maybe Type)])
-              -- "./TypeChecking/Ddl/CreateFunction.ag"(line 53, column 13)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateFunction.ag"(line 53, column 13)
               _lhsOparams =
                   ((_hdIparamName, _hdInamedType) : _tlIparams)
-              -- "./TypeChecking/Ddl/CreateFunction.ag"(line 54, column 13)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateFunction.ag"(line 54, column 13)
               _hdOpos =
                   _lhsIpos
-              -- "./TypeChecking/Ddl/CreateFunction.ag"(line 55, column 13)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateFunction.ag"(line 55, column 13)
               _tlOpos =
                   _lhsIpos + 1
               -- self rule
@@ -3035,7 +3035,7 @@ sem_ParamDefList_Nil  =
               _lhsOannotatedTree :: ParamDefList 
               _lhsOfixedUpIdentifiersTree :: ParamDefList 
               _lhsOoriginalTree :: ParamDefList 
-              -- "./TypeChecking/Ddl/CreateFunction.ag"(line 52, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateFunction.ag"(line 52, column 12)
               _lhsOparams =
                   []
               -- self rule
@@ -3197,27 +3197,27 @@ sem_QueryExpr_CombineQueryExpr ann_ ctype_ sel1_ sel2_  =
               _sel2IlibUpdates :: ([LocalBindingsUpdate])
               _sel2IoriginalTree :: QueryExpr 
               _sel2IuType :: (Maybe [(String,Type)])
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 230, column 24)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 230, column 24)
               _lhsOcidenv =
                   _sel1Icidenv
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 29, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 29, column 9)
               _lhsOannotatedTree =
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 141, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 141, column 9)
               _lhsOlibUpdates =
                   []
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 168, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 168, column 9)
               _tpe =
                   do
                   sel1t <- lmt ((SetOfType . CompositeType) <$> _sel1IuType)
                   sel2t <- lmt ((SetOfType . CompositeType) <$> _sel2IuType)
                   typeCheckCombineSelect _lhsIcat sel1t sel2t
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 174, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 174, column 9)
               _backTree =
                   CombineQueryExpr ann_ ctype_
                                 _sel1IannotatedTree
                                 _sel2IannotatedTree
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 185, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 185, column 9)
               _lhsOuType =
                   etmt (_tpe     >>= unwrapSetOfComposite)
               -- self rule
@@ -3353,7 +3353,7 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
               _selOffsetIfixedUpIdentifiersTree :: MaybeScalarExpr 
               _selOffsetIoriginalTree :: MaybeScalarExpr 
               _selOffsetIuType :: (Maybe Type)
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 187, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 187, column 9)
               _lhsOfixedUpIdentifiersTree =
                   Select ann_
                          selDistinct_
@@ -3365,61 +3365,61 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
                          _selOrderByIfixedUpIdentifiersTree
                          _selLimitIfixedUpIdentifiersTree
                          _selOffsetIfixedUpIdentifiersTree
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 229, column 14)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 229, column 14)
               _lhsOcidenv =
                   _selSelectListIcidenv
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 270, column 14)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 270, column 14)
               _trefEnv =
                   makeIDEnvP _selTrefItrefIDs
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 271, column 14)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 271, column 14)
               _includeCorrelations =
                   joinIDEnvs _lhsIidenv _trefEnv
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 272, column 14)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 272, column 14)
               _selSelectListOidenv =
                   _trefEnv
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 273, column 14)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 273, column 14)
               _selWhereOidenv =
                   _includeCorrelations
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 274, column 14)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 274, column 14)
               _selGroupByOidenv =
                   _trefEnv
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 275, column 14)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 275, column 14)
               _selHavingOidenv =
                   _includeCorrelations
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 276, column 14)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 276, column 14)
               _selOrderByOidenv =
                   _trefEnv
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 29, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 29, column 9)
               _lhsOannotatedTree =
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 101, column 10)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 101, column 10)
               _newLib =
                   _selTrefInewLib2
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 102, column 10)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 102, column 10)
               _selSelectListOlib =
                   _newLib
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 104, column 10)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 104, column 10)
               _selWhereOlib =
                   joinBindings _newLib     _lhsIcsql
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 105, column 10)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 105, column 10)
               _selHavingOlib =
                   joinBindings _newLib     _lhsIcsql
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 106, column 10)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 106, column 10)
               _selGroupByOlib =
                   _newLib
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 111, column 10)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 111, column 10)
               _slTypes =
                   createLocalBindings $ Just [("",_selSelectListIlistType)]
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 112, column 10)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 112, column 10)
               _selOrderByOlib =
                   joinBindings _slTypes     _newLib
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 143, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 143, column 9)
               _lhsOlibUpdates =
                   _selSelectListIlibUpdates
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 155, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 155, column 9)
               _tpe =
                   Right $ SetOfType $ CompositeType $ fromMaybe [] $ liftList  _selSelectListIlistType
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 157, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 157, column 9)
               _backTree =
                   Select ann_
                          selDistinct_
@@ -3431,10 +3431,10 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
                          _selOrderByIannotatedTree
                          _selLimitIannotatedTree
                          _selOffsetIannotatedTree
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 185, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 185, column 9)
               _lhsOuType =
                   etmt (_tpe     >>= unwrapSetOfComposite)
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 150, column 14)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 150, column 14)
               _selGroupByOexpectedTypes =
                   []
               -- self rule
@@ -3532,27 +3532,27 @@ sem_QueryExpr_Values ann_ vll_  =
               _vllIfixedUpIdentifiersTree :: ScalarExprListList 
               _vllIoriginalTree :: ScalarExprListList 
               _vllIuType :: ([[Maybe Type]])
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 231, column 14)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 231, column 14)
               _lhsOcidenv =
                   unimplementedIDEnv
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 29, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 29, column 9)
               _lhsOannotatedTree =
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 141, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 141, column 9)
               _lhsOlibUpdates =
                   []
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 150, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 150, column 9)
               _tpe =
                   typeCheckValuesExpr
                               _lhsIcat
                               _vllIuType
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 153, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 153, column 9)
               _backTree =
                   Values ann_ _vllIannotatedTree
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 185, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 185, column 9)
               _lhsOuType =
                   etmt (_tpe     >>= unwrapSetOfComposite)
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 164, column 14)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 164, column 14)
               _vllOexpectedTypes =
                   _lhsIexpectedTypes
               -- self rule
@@ -3618,28 +3618,28 @@ sem_QueryExpr_WithQueryExpr ann_ withs_ ex_  =
               _exIlibUpdates :: ([LocalBindingsUpdate])
               _exIoriginalTree :: QueryExpr 
               _exIuType :: (Maybe [(String,Type)])
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 232, column 21)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 232, column 21)
               _lhsOcidenv =
                   _exIcidenv
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 29, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 29, column 9)
               _lhsOannotatedTree =
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 145, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 145, column 9)
               _lhsOlibUpdates =
                   _exIlibUpdates
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 178, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 178, column 9)
               _tpe =
                   lmt ((SetOfType . CompositeType) <$> _exIuType)
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 179, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 179, column 9)
               _backTree =
                   WithQueryExpr ann_ _withsIannotatedTree _exIannotatedTree
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 180, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 180, column 9)
               _exOcat =
                   _withsIproducedCat
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 181, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 181, column 9)
               _withsOcatUpdates =
                   []
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 185, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 185, column 9)
               _lhsOuType =
                   etmt (_tpe     >>= unwrapSetOfComposite)
               -- self rule
@@ -3745,10 +3745,10 @@ sem_Root_Root statements_  =
               _statementsIoriginalTree :: StatementList 
               _statementsIproducedCat :: Catalog
               _statementsIproducedLib :: LocalBindings
-              -- "./TypeChecking/Statements.ag"(line 107, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 107, column 12)
               _statementsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 108, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 108, column 12)
               _statementsOlibUpdates =
                   []
               -- self rule
@@ -3959,7 +3959,7 @@ sem_RowConstraint_RowCheckConstraint ann_ name_ expr_  =
               _exprIfixedUpIdentifiersTree :: ScalarExpr 
               _exprIoriginalTree :: ScalarExpr 
               _exprIuType :: (Maybe Type)
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 103, column 26)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 103, column 26)
               _exprOexpectedType =
                   Nothing
               -- self rule
@@ -4274,17 +4274,17 @@ sem_SQIdentifier_SQIdentifier ann_ is_  =
               _lhsOannotatedTree :: SQIdentifier 
               _lhsOfixedUpIdentifiersTree :: SQIdentifier 
               _lhsOoriginalTree :: SQIdentifier 
-              -- "./TypeChecking/Misc.ag"(line 67, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag"(line 67, column 9)
               _tpe =
                   catCompositeAttrsPair _lhsIcat relationComposites (last is_)
-              -- "./TypeChecking/Misc.ag"(line 68, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag"(line 68, column 9)
               _lhsOtbUType =
                   either (const Nothing) Just _tpe
-              -- "./TypeChecking/Misc.ag"(line 69, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag"(line 69, column 9)
               _lhsOtbAnnotatedTree =
                   updateAnnotation
                     (\a -> a {errs = errs a ++ tes _tpe    }) _backTree
-              -- "./TypeChecking/Misc.ag"(line 72, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag"(line 72, column 9)
               _backTree =
                   SQIdentifier ann_ is_
               -- self rule
@@ -4637,7 +4637,7 @@ sem_ScalarExpr_BooleanLit ann_ b_  =
               _tpe :: Et
               _lhsOfixedUpIdentifiersTree :: ScalarExpr 
               _lhsOoriginalTree :: ScalarExpr 
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                     (setTypeAddErrorsA _tpe
@@ -4645,16 +4645,16 @@ sem_ScalarExpr_BooleanLit ann_ b_  =
                                ,infType = msum [_lhsIexpectedType
                                                ,etmt _tpe
                                                ,Nothing]}) _backTree
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
               _prototype =
                   Nothing
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 155, column 19)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 155, column 19)
               _tpe =
                   Right typeBool
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 165, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 165, column 9)
               _backTree =
                   BooleanLit ann_ b_
               -- self rule
@@ -4703,7 +4703,7 @@ sem_ScalarExpr_Case ann_ cases_ els_  =
               _elsIfixedUpIdentifiersTree :: MaybeScalarExpr 
               _elsIoriginalTree :: MaybeScalarExpr 
               _elsIuType :: (Maybe Type)
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                     (setTypeAddErrorsA _tpe
@@ -4711,19 +4711,19 @@ sem_ScalarExpr_Case ann_ cases_ els_  =
                                ,infType = msum [_lhsIexpectedType
                                                ,etmt _tpe
                                                ,Nothing]}) _backTree
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
               _prototype =
                   Nothing
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 276, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 276, column 9)
               _whenTypes =
                   _casesIwhenTypes
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 277, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 277, column 9)
               _thenTypes =
                   _casesIthenTypes ++ maybe [] ((:[]) . Just) _elsIuType
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 281, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 281, column 9)
               _tpe =
                   do
                   wt <- mapM lmt $ concat _whenTypes
@@ -4731,7 +4731,7 @@ sem_ScalarExpr_Case ann_ cases_ els_  =
                       [WrongTypes typeBool wt]
                   tt <- mapM lmt _thenTypes
                   resolveResultSetType _lhsIcat tt
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 289, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 289, column 9)
               _backTree =
                   Case ann_ _casesIannotatedTree _elsIannotatedTree
               -- self rule
@@ -4811,7 +4811,7 @@ sem_ScalarExpr_CaseSimple ann_ value_ cases_ els_  =
               _elsIfixedUpIdentifiersTree :: MaybeScalarExpr 
               _elsIoriginalTree :: MaybeScalarExpr 
               _elsIuType :: (Maybe Type)
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                     (setTypeAddErrorsA _tpe
@@ -4819,19 +4819,19 @@ sem_ScalarExpr_CaseSimple ann_ value_ cases_ els_  =
                                ,infType = msum [_lhsIexpectedType
                                                ,etmt _tpe
                                                ,Nothing]}) _backTree
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
               _prototype =
                   Nothing
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 276, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 276, column 9)
               _whenTypes =
                   _casesIwhenTypes
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 277, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 277, column 9)
               _thenTypes =
                   _casesIthenTypes ++ maybe [] ((:[]) . Just) _elsIuType
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 294, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 294, column 9)
               _tpe =
                   do
                   wt <- mapM lmt $ concat _whenTypes
@@ -4839,7 +4839,7 @@ sem_ScalarExpr_CaseSimple ann_ value_ cases_ els_  =
                   _ <- resolveResultSetType _lhsIcat (vt : wt)
                   tt <- mapM lmt _thenTypes
                   resolveResultSetType _lhsIcat tt
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 301, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 301, column 9)
               _backTree =
                   CaseSimple ann_
                              _valueIannotatedTree
@@ -4927,7 +4927,7 @@ sem_ScalarExpr_Cast ann_ expr_ tn_  =
               _tnIfixedUpIdentifiersTree :: TypeName 
               _tnInamedType :: (Maybe Type)
               _tnIoriginalTree :: TypeName 
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                     (setTypeAddErrorsA _tpe
@@ -4935,16 +4935,16 @@ sem_ScalarExpr_Cast ann_ expr_ tn_  =
                                ,infType = msum [_lhsIexpectedType
                                                ,etmt _tpe
                                                ,Nothing]}) _backTree
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
               _prototype =
                   Nothing
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 182, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 182, column 12)
               _tpe =
                   lmt _tnInamedType
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 183, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 183, column 12)
               _backTree =
                   Cast ann_ _exprIannotatedTree _tnIannotatedTree
               -- self rule
@@ -5013,7 +5013,7 @@ sem_ScalarExpr_Exists ann_ sel_  =
               _selIlibUpdates :: ([LocalBindingsUpdate])
               _selIoriginalTree :: QueryExpr 
               _selIuType :: (Maybe [(String,Type)])
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                     (setTypeAddErrorsA _tpe
@@ -5021,22 +5021,22 @@ sem_ScalarExpr_Exists ann_ sel_  =
                                ,infType = msum [_lhsIexpectedType
                                                ,etmt _tpe
                                                ,Nothing]}) _backTree
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
               _prototype =
                   Nothing
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 355, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 355, column 9)
               _tpe =
                   Right typeBool
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 356, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 356, column 9)
               _backTree =
                   Exists ann_ _selIannotatedTree
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 379, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 379, column 9)
               _selOcsql =
                   _lhsIlib
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 171, column 29)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 171, column 29)
               _selOexpectedTypes =
                   []
               -- self rule
@@ -5089,7 +5089,7 @@ sem_ScalarExpr_Extract ann_ field_ e_  =
               _eIfixedUpIdentifiersTree :: ScalarExpr 
               _eIoriginalTree :: ScalarExpr 
               _eIuType :: (Maybe Type)
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                     (setTypeAddErrorsA _tpe
@@ -5097,20 +5097,20 @@ sem_ScalarExpr_Extract ann_ field_ e_  =
                                ,infType = msum [_lhsIexpectedType
                                                ,etmt _tpe
                                                ,Nothing]}) _backTree
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
               _prototype =
                   Nothing
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 424, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 424, column 9)
               _tpe =
                   do
                   x <- lmt _eIuType
                   if x == typeDate
                     then Right typeFloat8
                     else Left [NoMatchingOperator "extract" [x]]
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 429, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 429, column 9)
               _backTree =
                   Extract ann_ field_ _eIannotatedTree
               -- self rule
@@ -5165,7 +5165,7 @@ sem_ScalarExpr_FunCall ann_ funName_ args_  =
               _argsIfixedUpIdentifiersTree :: ScalarExprList 
               _argsIoriginalTree :: ScalarExprList 
               _argsIuType :: ([Maybe Type])
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                     (setTypeAddErrorsA _tpe
@@ -5173,10 +5173,10 @@ sem_ScalarExpr_FunCall ann_ funName_ args_  =
                                ,infType = msum [_lhsIexpectedType
                                                ,etmt _tpe
                                                ,Nothing]}) _backTree
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 196, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 196, column 9)
               __tup1 =
                   either (\e -> (Left e, Nothing)) id $ do
                   args <- mapM lmt _argsIuType
@@ -5185,16 +5185,16 @@ sem_ScalarExpr_FunCall ann_ funName_ args_  =
                                        args
                   let (_,_,r,_) = efp
                   return (Right r, Just efp)
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 196, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 196, column 9)
               (_tpe,_) =
                   __tup1
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 196, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 196, column 9)
               (_,_prototype) =
                   __tup1
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 206, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 206, column 9)
               _backTree =
                   FunCall ann_ funName_ _argsIannotatedTree
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 130, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 130, column 9)
               _argsOexpectedTypes =
                   maybe [] id $
                   case (funName_,_lhsIexpectedType) of
@@ -5243,12 +5243,12 @@ sem_ScalarExpr_Identifier ann_ i_  =
               _lhsOuType :: (Maybe Type)
               _tpe :: Et
               _lhsOoriginalTree :: ScalarExpr 
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 131, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 131, column 9)
               _lhsOfixedUpIdentifiersTree =
                   case qualifyID _lhsIidenv i_ of
                     Nothing -> Identifier ann_ i_
                     Just (t,i) -> QIdentifier ann_ (Identifier ann_ t) i
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                     (setTypeAddErrorsA _tpe
@@ -5256,19 +5256,19 @@ sem_ScalarExpr_Identifier ann_ i_  =
                                ,infType = msum [_lhsIexpectedType
                                                ,etmt _tpe
                                                ,Nothing]}) _backTree
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
               _prototype =
                   Nothing
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 314, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 314, column 9)
               _tpe =
                   case lookupLocalBinding _lhsIlib "" i_ of
                                         Right Nothing -> Left []
                                         Right (Just t) -> Right t
                                         Left e -> Left e
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 319, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 319, column 9)
               _backTree =
                   Identifier ann_ i_
               -- self rule
@@ -5317,7 +5317,7 @@ sem_ScalarExpr_InPredicate ann_ expr_ i_ list_  =
               _listIfixedUpIdentifiersTree :: InList 
               _listIlistType :: (Either [TypeError] Type)
               _listIoriginalTree :: InList 
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                     (setTypeAddErrorsA _tpe
@@ -5325,30 +5325,30 @@ sem_ScalarExpr_InPredicate ann_ expr_ i_ list_  =
                                ,infType = msum [_lhsIexpectedType
                                                ,etmt _tpe
                                                ,Nothing]}) _backTree
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
               _prototype =
                   Nothing
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 388, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 388, column 9)
               _rt =
                   do
                   lt <- _listIlistType
                   expt <- lmt _exprIuType
                   resolveResultSetType _lhsIcat [expt, lt]
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 392, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 392, column 9)
               _tpe =
                   do
                   _ <- _rt
                   return typeBool
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 395, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 395, column 9)
               _listOexpectedType =
                   etmt _rt
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 396, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 396, column 9)
               _exprOexpectedType =
                   etmt _rt
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 397, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 397, column 9)
               _backTree =
                   InPredicate ann_
                               _exprIannotatedTree
@@ -5408,7 +5408,7 @@ sem_ScalarExpr_Interval ann_ value_ field_ prec_  =
               _tpe :: Et
               _lhsOfixedUpIdentifiersTree :: ScalarExpr 
               _lhsOoriginalTree :: ScalarExpr 
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                     (setTypeAddErrorsA _tpe
@@ -5416,16 +5416,16 @@ sem_ScalarExpr_Interval ann_ value_ field_ prec_  =
                                ,infType = msum [_lhsIexpectedType
                                                ,etmt _tpe
                                                ,Nothing]}) _backTree
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
               _prototype =
                   Nothing
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 170, column 16)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 170, column 16)
               _tpe =
                   Right $ ScalarType "interval"
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 171, column 16)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 171, column 16)
               _backTree =
                   Interval ann_ value_ field_ prec_
               -- self rule
@@ -5468,7 +5468,7 @@ sem_ScalarExpr_LiftOperator ann_ oper_ flav_ args_  =
               _argsIfixedUpIdentifiersTree :: ScalarExprList 
               _argsIoriginalTree :: ScalarExprList 
               _argsIuType :: ([Maybe Type])
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                     (setTypeAddErrorsA _tpe
@@ -5476,13 +5476,13 @@ sem_ScalarExpr_LiftOperator ann_ oper_ flav_ args_  =
                                ,infType = msum [_lhsIexpectedType
                                                ,etmt _tpe
                                                ,Nothing]}) _backTree
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
               _prototype =
                   Nothing
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 229, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 229, column 9)
               _tpe =
                   do
                   at <- mapM lmt _argsIuType
@@ -5498,10 +5498,10 @@ sem_ScalarExpr_LiftOperator ann_ oper_ flav_ args_  =
                   errorWhen (resType /= typeBool)
                             [AnyAllError $ "operator must have bool return, got " ++ show resType]
                   return resType
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 243, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 243, column 9)
               _backTree =
                   LiftOperator ann_ oper_ flav_ _argsIannotatedTree
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 138, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 138, column 9)
               _argsOexpectedTypes =
                   []
               -- self rule
@@ -5544,7 +5544,7 @@ sem_ScalarExpr_NullLit ann_  =
               _tpe :: Et
               _lhsOfixedUpIdentifiersTree :: ScalarExpr 
               _lhsOoriginalTree :: ScalarExpr 
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                     (setTypeAddErrorsA _tpe
@@ -5552,16 +5552,16 @@ sem_ScalarExpr_NullLit ann_  =
                                ,infType = msum [_lhsIexpectedType
                                                ,etmt _tpe
                                                ,Nothing]}) _backTree
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
               _prototype =
                   Nothing
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 157, column 16)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 157, column 16)
               _tpe =
                   Right UnknownType
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 167, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 167, column 9)
               _backTree =
                   NullLit ann_
               -- self rule
@@ -5594,7 +5594,7 @@ sem_ScalarExpr_NumberLit ann_ d_  =
               _tpe :: Et
               _lhsOfixedUpIdentifiersTree :: ScalarExpr 
               _lhsOoriginalTree :: ScalarExpr 
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                     (setTypeAddErrorsA _tpe
@@ -5602,20 +5602,20 @@ sem_ScalarExpr_NumberLit ann_ d_  =
                                ,infType = msum [_lhsIexpectedType
                                                ,etmt _tpe
                                                ,Nothing]}) _backTree
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
               _prototype =
                   Nothing
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 149, column 18)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 149, column 18)
               _tpe =
                   if all (`elem` digChars) d_
                   then Right typeInt
                   else Right typeNumeric
                   where
                     digChars = concatMap show [(0::Int)..9]
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 161, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 161, column 9)
               _backTree =
                   NumberLit ann_ d_
               -- self rule
@@ -5647,7 +5647,7 @@ sem_ScalarExpr_Placeholder ann_  =
               _tpe :: Et
               _lhsOfixedUpIdentifiersTree :: ScalarExpr 
               _lhsOoriginalTree :: ScalarExpr 
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                     (setTypeAddErrorsA _tpe
@@ -5655,16 +5655,16 @@ sem_ScalarExpr_Placeholder ann_  =
                                ,infType = msum [_lhsIexpectedType
                                                ,etmt _tpe
                                                ,Nothing]}) _backTree
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
               _prototype =
                   Nothing
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 349, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 349, column 9)
               _tpe =
                   Right UnknownType
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 350, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 350, column 9)
               _backTree =
                   Placeholder ann_
               -- self rule
@@ -5697,7 +5697,7 @@ sem_ScalarExpr_PositionalArg ann_ p_  =
               _tpe :: Et
               _lhsOfixedUpIdentifiersTree :: ScalarExpr 
               _lhsOoriginalTree :: ScalarExpr 
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                     (setTypeAddErrorsA _tpe
@@ -5705,16 +5705,16 @@ sem_ScalarExpr_PositionalArg ann_ p_  =
                                ,infType = msum [_lhsIexpectedType
                                                ,etmt _tpe
                                                ,Nothing]}) _backTree
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
               _prototype =
                   Nothing
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 343, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 343, column 9)
               _tpe =
                   unwrapLookup <$> lbLookupID _lhsIlib ['$':show p_]
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 344, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 344, column 9)
               _backTree =
                   PositionalArg ann_ p_
               -- self rule
@@ -5757,10 +5757,10 @@ sem_ScalarExpr_QIdentifier ann_ qual_ i_  =
               _qualIfixedUpIdentifiersTree :: ScalarExpr 
               _qualIoriginalTree :: ScalarExpr 
               _qualIuType :: (Maybe Type)
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 137, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 137, column 9)
               _lhsOfixedUpIdentifiersTree =
                   QIdentifier ann_ _qualIoriginalTree i_
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                     (setTypeAddErrorsA _tpe
@@ -5768,13 +5768,13 @@ sem_ScalarExpr_QIdentifier ann_ qual_ i_  =
                                ,infType = msum [_lhsIexpectedType
                                                ,etmt _tpe
                                                ,Nothing]}) _backTree
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
               _prototype =
                   Nothing
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 321, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 321, column 9)
               _tpe =
                   case _qid     of
                             Nothing -> Left [InternalError "dot selection not implemented"]
@@ -5782,15 +5782,15 @@ sem_ScalarExpr_QIdentifier ann_ qual_ i_  =
                                         Right Nothing -> Left []
                                         Right (Just t) -> Right t
                                         Left e -> Left e
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 334, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 334, column 9)
               _qid =
                   case _backTree     of
                      QIdentifier _ (Identifier _ q) _ -> Just q
                      _ -> Nothing
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 337, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 337, column 9)
               _backTree =
                   QIdentifier ann_ _qAnnTreeNoUnrec     i_
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 339, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 339, column 9)
               _qAnnTreeNoUnrec =
                   updateAnnotation (\a -> a {errs = []}) _qualIannotatedTree
               -- self rule
@@ -5845,7 +5845,7 @@ sem_ScalarExpr_ScalarSubQuery ann_ sel_  =
               _selIlibUpdates :: ([LocalBindingsUpdate])
               _selIoriginalTree :: QueryExpr 
               _selIuType :: (Maybe [(String,Type)])
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                     (setTypeAddErrorsA _tpe
@@ -5853,13 +5853,13 @@ sem_ScalarExpr_ScalarSubQuery ann_ sel_  =
                                ,infType = msum [_lhsIexpectedType
                                                ,etmt _tpe
                                                ,Nothing]}) _backTree
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
               _prototype =
                   Nothing
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 367, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 367, column 9)
               _tpe =
                   do
                   selType <- lmt (map snd <$> _selIuType)
@@ -5867,13 +5867,13 @@ sem_ScalarExpr_ScalarSubQuery ann_ sel_  =
                     0 -> Left [InternalError "no columns in scalar subquery?"]
                     1 -> Right $ head selType
                     _ -> Right $ AnonymousRecordType selType
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 375, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 375, column 9)
               _backTree =
                   ScalarSubQuery ann_ _selIannotatedTree
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 377, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 377, column 9)
               _selOcsql =
                   _lhsIlib
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 171, column 29)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 171, column 29)
               _selOexpectedTypes =
                   []
               -- self rule
@@ -5917,7 +5917,7 @@ sem_ScalarExpr_StringLit ann_ value_  =
               _tpe :: Et
               _lhsOfixedUpIdentifiersTree :: ScalarExpr 
               _lhsOoriginalTree :: ScalarExpr 
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                     (setTypeAddErrorsA _tpe
@@ -5925,16 +5925,16 @@ sem_ScalarExpr_StringLit ann_ value_  =
                                ,infType = msum [_lhsIexpectedType
                                                ,etmt _tpe
                                                ,Nothing]}) _backTree
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
               _prototype =
                   Nothing
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 154, column 18)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 154, column 18)
               _tpe =
                   Right UnknownType
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 163, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 163, column 9)
               _backTree =
                   StringLit ann_ value_
               -- self rule
@@ -5975,7 +5975,7 @@ sem_ScalarExpr_TypedStringLit ann_ tn_ value_  =
               _tnIfixedUpIdentifiersTree :: TypeName 
               _tnInamedType :: (Maybe Type)
               _tnIoriginalTree :: TypeName 
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                     (setTypeAddErrorsA _tpe
@@ -5983,16 +5983,16 @@ sem_ScalarExpr_TypedStringLit ann_ tn_ value_  =
                                ,infType = msum [_lhsIexpectedType
                                                ,etmt _tpe
                                                ,Nothing]}) _backTree
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
               _prototype =
                   Nothing
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 187, column 10)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 187, column 10)
               _tpe =
                   lmt _tnInamedType
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 188, column 10)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 188, column 10)
               _backTree =
                   TypedStringLit ann_ _tnIannotatedTree value_
               -- self rule
@@ -6064,7 +6064,7 @@ sem_ScalarExpr_WindowFn ann_ fn_ partitionBy_ orderBy_ dir_ frm_  =
               _orderByIfixedUpIdentifiersTree :: ScalarExprList 
               _orderByIoriginalTree :: ScalarExprList 
               _orderByIuType :: ([Maybe Type])
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                     (setTypeAddErrorsA _tpe
@@ -6072,16 +6072,16 @@ sem_ScalarExpr_WindowFn ann_ fn_ partitionBy_ orderBy_ dir_ frm_  =
                                ,infType = msum [_lhsIexpectedType
                                                ,etmt _tpe
                                                ,Nothing]}) _backTree
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 46, column 9)
               _prototype =
                   Nothing
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 210, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 210, column 9)
               _tpe =
                   lmt _fnIuType
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 211, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 211, column 9)
               _backTree =
                   WindowFn ann_
                            _fnIannotatedTree
@@ -6089,10 +6089,10 @@ sem_ScalarExpr_WindowFn ann_ fn_ partitionBy_ orderBy_ dir_ frm_  =
                            _orderByIannotatedTree
                            dir_
                            frm_
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 140, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 140, column 9)
               _partitionByOexpectedTypes =
                   []
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 141, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 141, column 9)
               _orderByOexpectedTypes =
                   []
               -- self rule
@@ -6204,7 +6204,7 @@ sem_ScalarExprDirectionPair_Tuple x1_ x2_  =
               _x1IfixedUpIdentifiersTree :: ScalarExpr 
               _x1IoriginalTree :: ScalarExpr 
               _x1IuType :: (Maybe Type)
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 83, column 13)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 83, column 13)
               _x1OexpectedType =
                   Nothing
               -- self rule
@@ -6446,15 +6446,15 @@ sem_ScalarExprList_Cons hd_ tl_  =
               _tlIfixedUpIdentifiersTree :: ScalarExprList 
               _tlIoriginalTree :: ScalarExprList 
               _tlIuType :: ([Maybe Type])
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 107, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 107, column 12)
               _lhsOuType =
                   _hdIuType : _tlIuType
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 86, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 86, column 12)
               _hdOexpectedType =
                   case _lhsIexpectedTypes of
                     (t:_) -> t
                     _ -> Nothing
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 89, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 89, column 12)
               _tlOexpectedTypes =
                   case _lhsIexpectedTypes of
                    (_:ts) -> ts
@@ -6510,7 +6510,7 @@ sem_ScalarExprList_Nil  =
               _lhsOannotatedTree :: ScalarExprList 
               _lhsOfixedUpIdentifiersTree :: ScalarExprList 
               _lhsOoriginalTree :: ScalarExprList 
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 108, column 11)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 108, column 11)
               _lhsOuType =
                   []
               -- self rule
@@ -6607,13 +6607,13 @@ sem_ScalarExprListList_Cons hd_ tl_  =
               _tlIfixedUpIdentifiersTree :: ScalarExprListList 
               _tlIoriginalTree :: ScalarExprListList 
               _tlIuType :: ([[Maybe Type]])
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 117, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 117, column 12)
               _lhsOuType =
                   _hdIuType : _tlIuType
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 167, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 167, column 12)
               _hdOexpectedTypes =
                   _lhsIexpectedTypes
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 168, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 168, column 12)
               _tlOexpectedTypes =
                   _lhsIexpectedTypes
               -- self rule
@@ -6667,7 +6667,7 @@ sem_ScalarExprListList_Nil  =
               _lhsOannotatedTree :: ScalarExprListList 
               _lhsOfixedUpIdentifiersTree :: ScalarExprListList 
               _lhsOoriginalTree :: ScalarExprListList 
-              -- "./TypeChecking/ScalarExprs/ScalarExprs.ag"(line 118, column 11)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 118, column 11)
               _lhsOuType =
                   []
               -- self rule
@@ -6756,13 +6756,13 @@ sem_ScalarExprListStatementListPair_Tuple x1_ x2_  =
               _x2IoriginalTree :: StatementList 
               _x2IproducedCat :: Catalog
               _x2IproducedLib :: LocalBindings
-              -- "./TypeChecking/Statements.ag"(line 121, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 121, column 9)
               _x2OcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 122, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 122, column 9)
               _x2OlibUpdates =
                   []
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 144, column 13)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 144, column 13)
               _x1OexpectedTypes =
                   []
               -- self rule
@@ -6996,7 +6996,7 @@ sem_ScalarExprRoot_ScalarExprRoot expr_  =
               _exprIfixedUpIdentifiersTree :: ScalarExpr 
               _exprIoriginalTree :: ScalarExpr 
               _exprIuType :: (Maybe Type)
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 123, column 22)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 123, column 22)
               _exprOexpectedType =
                   Nothing
               -- self rule
@@ -7096,13 +7096,13 @@ sem_ScalarExprStatementListPair_Tuple x1_ x2_  =
               _x2IoriginalTree :: StatementList 
               _x2IproducedCat :: Catalog
               _x2IproducedLib :: LocalBindings
-              -- "./TypeChecking/Statements.ag"(line 125, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 125, column 9)
               _x2OcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 126, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 126, column 9)
               _x2OlibUpdates =
                   []
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 126, column 13)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 126, column 13)
               _x1OexpectedType =
                   Nothing
               -- self rule
@@ -7353,7 +7353,7 @@ sem_SelectItem_SelExp ann_ ex_  =
               _exIfixedUpIdentifiersTree :: ScalarExpr 
               _exIoriginalTree :: ScalarExpr 
               _exIuType :: (Maybe Type)
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 150, column 14)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 150, column 14)
               _lhsOseIdTree =
                   case _exIfixedUpIdentifiersTree of
                     Identifier a "*" -> let s = expandStar _lhsIidenv Nothing
@@ -7366,13 +7366,13 @@ sem_SelectItem_SelExp ann_ ex_  =
                           then [addSIAlias $ SelExp ann_ _exIfixedUpIdentifiersTree]
                           else makeSelExps ann_ a0 a1 s
                     _ -> [addSIAlias $ SelExp ann_ _exIfixedUpIdentifiersTree]
-              -- "./TypeChecking/QueryExprs/SelectLists.ag"(line 32, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/SelectLists.ag"(line 32, column 9)
               _annotatedTree =
                   SelExp ann_ _exIannotatedTree
-              -- "./TypeChecking/QueryExprs/SelectLists.ag"(line 60, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/SelectLists.ag"(line 60, column 9)
               _lhsOitemType =
                   ("", Nothing)
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 106, column 25)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 106, column 25)
               _exOexpectedType =
                   Nothing
               -- self rule
@@ -7423,16 +7423,16 @@ sem_SelectItem_SelectItem ann_ ex_ name_  =
               _exIfixedUpIdentifiersTree :: ScalarExpr 
               _exIoriginalTree :: ScalarExpr 
               _exIuType :: (Maybe Type)
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 163, column 18)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 163, column 18)
               _lhsOseIdTree =
                   [SelectItem ann_ _exIfixedUpIdentifiersTree name_]
-              -- "./TypeChecking/QueryExprs/SelectLists.ag"(line 34, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/SelectLists.ag"(line 34, column 9)
               _annotatedTree =
                   SelectItem ann_ _exIannotatedTree name_
-              -- "./TypeChecking/QueryExprs/SelectLists.ag"(line 62, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/SelectLists.ag"(line 62, column 9)
               _lhsOitemType =
                   (name_, unwrapSetof `fmap` _exIuType)
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 106, column 25)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 106, column 25)
               _exOexpectedType =
                   Nothing
               -- self rule
@@ -7533,10 +7533,10 @@ sem_SelectItemList_Cons hd_ tl_  =
               _tlIfixedUpIdentifiersTree :: SelectItemList 
               _tlIlistType :: ([(String,Maybe Type)])
               _tlIoriginalTree :: SelectItemList 
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 141, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 141, column 12)
               _lhsOfixedUpIdentifiersTree =
                   _hdIseIdTree ++ _tlIfixedUpIdentifiersTree
-              -- "./TypeChecking/QueryExprs/SelectLists.ag"(line 42, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/SelectLists.ag"(line 42, column 12)
               _lhsOlistType =
                   _hdIitemType : _tlIlistType
               -- self rule
@@ -7586,10 +7586,10 @@ sem_SelectItemList_Nil  =
               _lhsOlistType :: ([(String,Maybe Type)])
               _lhsOannotatedTree :: SelectItemList 
               _lhsOoriginalTree :: SelectItemList 
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 142, column 11)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 142, column 11)
               _lhsOfixedUpIdentifiersTree =
                   []
-              -- "./TypeChecking/QueryExprs/SelectLists.ag"(line 43, column 11)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/SelectLists.ag"(line 43, column 11)
               _lhsOlistType =
                   []
               -- self rule
@@ -7671,17 +7671,17 @@ sem_SelectList_SelectList ann_ items_  =
               _itemsIfixedUpIdentifiersTree :: SelectItemList 
               _itemsIlistType :: ([(String,Maybe Type)])
               _itemsIoriginalTree :: SelectItemList 
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 124, column 18)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 124, column 18)
               _lhsOcidenv =
                   makeIDEnv "" $ flip map _itemsIfixedUpIdentifiersTree
                                    $ \(SelectItem _ _ n) -> n
-              -- "./TypeChecking/QueryExprs/SelectLists.ag"(line 77, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/SelectLists.ag"(line 77, column 9)
               _lhsOlistType =
                   _itemsIlistType
-              -- "./TypeChecking/QueryExprs/SelectLists.ag"(line 97, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/SelectLists.ag"(line 97, column 9)
               _lhsOlibUpdates =
                   []
-              -- "./TypeChecking/QueryExprs/SelectLists.ag"(line 131, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/SelectLists.ag"(line 131, column 9)
               _lhsOannotatedTree =
                   SelectList ann_
                              _itemsIannotatedTree
@@ -8338,13 +8338,13 @@ sem_Statement_AlterSequence ann_ name_ ownedBy_  =
               _ownedByIoriginalTree :: SQIdentifier 
               _ownedByItbAnnotatedTree :: SQIdentifier 
               _ownedByItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
-              -- "./TypeChecking/Statements.ag"(line 94, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 116, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 117, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
               -- self rule
@@ -8397,10 +8397,10 @@ sem_Statement_AlterTable ann_ name_ actions_  =
               _actionsIannotatedTree :: AlterTableActionList 
               _actionsIfixedUpIdentifiersTree :: AlterTableActionList 
               _actionsIoriginalTree :: AlterTableActionList 
-              -- "./TypeChecking/Statements.ag"(line 116, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 117, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
               -- self rule
@@ -8466,41 +8466,41 @@ sem_Statement_Assignment ann_ target_ value_  =
               _valueIfixedUpIdentifiersTree :: ScalarExpr 
               _valueIoriginalTree :: ScalarExpr 
               _valueIuType :: (Maybe Type)
-              -- "./TypeChecking/Statements.ag"(line 82, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 82, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                       (\a -> a {stType = _statementType
                                ,catUpd = _catUpdates    }) $
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/Statements.ag"(line 88, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 88, column 9)
               _lhsOcatUpdates =
                   _catUpdates
-              -- "./TypeChecking/Statements.ag"(line 89, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 89, column 9)
               _lhsOlibUpdates =
                   _libUpdates
-              -- "./TypeChecking/Statements.ag"(line 94, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
                   []
-              -- "./TypeChecking/Plpgsql/Plpgsql.ag"(line 20, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql/Plpgsql.ag"(line 20, column 9)
               _tpe =
                   do
                   fromType <- lmt _valueIuType
                   toType <- lmt _targetIuType
                   checkAssignmentValid _lhsIcat fromType toType
                   return $ Pseudo Void
-              -- "./TypeChecking/Plpgsql/Plpgsql.ag"(line 26, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql/Plpgsql.ag"(line 26, column 9)
               _backTree =
                   Assignment ann_ _targetIannotatedTree _valueIannotatedTree
-              -- "./TypeChecking/Plpgsql/Plpgsql.ag"(line 27, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql/Plpgsql.ag"(line 27, column 9)
               _catUpdates =
                   []
-              -- "./TypeChecking/Plpgsql/Plpgsql.ag"(line 28, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql/Plpgsql.ag"(line 28, column 9)
               _statementType =
                   Nothing
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 109, column 18)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 109, column 18)
               _valueOexpectedType =
                   Nothing
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 115, column 18)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 115, column 18)
               _targetOexpectedType =
                   Nothing
               -- self rule
@@ -8573,16 +8573,16 @@ sem_Statement_Block ann_ lb_ vars_ sts_  =
               _stsIoriginalTree :: StatementList 
               _stsIproducedCat :: Catalog
               _stsIproducedLib :: LocalBindings
-              -- "./TypeChecking/Statements.ag"(line 94, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 100, column 13)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 100, column 13)
               _lhsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 101, column 13)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 101, column 13)
               _stsOcatUpdates =
                   []
-              -- "./TypeChecking/Plpgsql/Block.ag"(line 22, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql/Block.ag"(line 22, column 9)
               _stsOlib =
                   fromRight _lhsIlib $
                   lbUpdate _lhsIcat
@@ -8665,16 +8665,16 @@ sem_Statement_CaseStatement ann_ cases_ els_  =
               _elsIoriginalTree :: StatementList 
               _elsIproducedCat :: Catalog
               _elsIproducedLib :: LocalBindings
-              -- "./TypeChecking/Statements.ag"(line 116, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 117, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 134, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 134, column 9)
               _elsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 135, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 135, column 9)
               _elsOlibUpdates =
                   []
               -- self rule
@@ -8757,19 +8757,19 @@ sem_Statement_CaseStatementSimple ann_ val_ cases_ els_  =
               _elsIoriginalTree :: StatementList 
               _elsIproducedCat :: Catalog
               _elsIproducedLib :: LocalBindings
-              -- "./TypeChecking/Statements.ag"(line 116, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 117, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 134, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 134, column 9)
               _elsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 135, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 135, column 9)
               _elsOlibUpdates =
                   []
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 110, column 27)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 110, column 27)
               _valOexpectedType =
                   Nothing
               -- self rule
@@ -8837,10 +8837,10 @@ sem_Statement_ContinueStatement ann_ lb_  =
               _lhsOannotatedTree :: Statement 
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
-              -- "./TypeChecking/Statements.ag"(line 116, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 117, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
               -- self rule
@@ -8877,10 +8877,10 @@ sem_Statement_Copy ann_ table_ targetCols_ source_  =
               _lhsOannotatedTree :: Statement 
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
-              -- "./TypeChecking/Statements.ag"(line 116, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 117, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
               -- self rule
@@ -8915,10 +8915,10 @@ sem_Statement_CopyData ann_ insData_  =
               _lhsOannotatedTree :: Statement 
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
-              -- "./TypeChecking/Statements.ag"(line 116, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 117, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
               -- self rule
@@ -8972,34 +8972,34 @@ sem_Statement_CreateDomain ann_ name_ typ_ checkName_ check_  =
               _checkIannotatedTree :: MaybeBoolExpr 
               _checkIfixedUpIdentifiersTree :: MaybeBoolExpr 
               _checkIoriginalTree :: MaybeBoolExpr 
-              -- "./TypeChecking/Statements.ag"(line 82, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 82, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                       (\a -> a {stType = _statementType
                                ,catUpd = _catUpdates    }) $
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/Statements.ag"(line 88, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 88, column 9)
               _lhsOcatUpdates =
                   _catUpdates
-              -- "./TypeChecking/Statements.ag"(line 89, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 89, column 9)
               _lhsOlibUpdates =
                   _libUpdates
-              -- "./TypeChecking/Statements.ag"(line 94, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
                   []
-              -- "./TypeChecking/Ddl/MiscCreates.ag"(line 65, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/MiscCreates.ag"(line 65, column 9)
               _tpe =
                   Right $ Pseudo Void
-              -- "./TypeChecking/Ddl/MiscCreates.ag"(line 66, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/MiscCreates.ag"(line 66, column 9)
               _backTree =
                   CreateDomain ann_ name_ _typIannotatedTree checkName_ _checkIannotatedTree
-              -- "./TypeChecking/Ddl/MiscCreates.ag"(line 67, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/MiscCreates.ag"(line 67, column 9)
               _statementType =
                   Nothing
-              -- "./TypeChecking/Ddl/MiscCreates.ag"(line 68, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/MiscCreates.ag"(line 68, column 9)
               _catUpdates =
                   maybe [] (\t -> [CatCreateDomain (DomainType name_) t]) _typInamedType
-              -- "./TypeChecking/Ddl/MiscCreates.ag"(line 70, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/MiscCreates.ag"(line 70, column 9)
               _checkOlib =
                   either (const _lhsIlib) id $ do
                   nt <- lmt _typInamedType
@@ -9084,22 +9084,22 @@ sem_Statement_CreateFunction ann_ name_ params_ rettype_ rep_ lang_ body_ vol_  
               _bodyIannotatedTree :: FnBody 
               _bodyIfixedUpIdentifiersTree :: FnBody 
               _bodyIoriginalTree :: FnBody 
-              -- "./TypeChecking/Statements.ag"(line 82, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 82, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                       (\a -> a {stType = _statementType
                                ,catUpd = _catUpdates    }) $
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/Statements.ag"(line 88, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 88, column 9)
               _lhsOcatUpdates =
                   _catUpdates
-              -- "./TypeChecking/Statements.ag"(line 89, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 89, column 9)
               _lhsOlibUpdates =
                   _libUpdates
-              -- "./TypeChecking/Statements.ag"(line 94, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
                   []
-              -- "./TypeChecking/Ddl/CreateFunction.ag"(line 63, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateFunction.ag"(line 63, column 9)
               _bodyOlib =
                   either (const _lhsIlib) id $ do
                   _ <- lmt _rettypeInamedType
@@ -9117,13 +9117,13 @@ sem_Statement_CreateFunction ann_ name_ params_ rettype_ rep_ lang_ body_ vol_  
                     pnp :: (ParamName,Maybe Type) -> Maybe (String,Type)
                     pnp (NamedParam _ n,Just t) = Just (n,t)
                     pnp _ = Nothing
-              -- "./TypeChecking/Ddl/CreateFunction.ag"(line 79, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateFunction.ag"(line 79, column 9)
               _paramsOpos =
                   1
-              -- "./TypeChecking/Ddl/CreateFunction.ag"(line 88, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateFunction.ag"(line 88, column 9)
               _tpe =
                   Right $ Pseudo Void
-              -- "./TypeChecking/Ddl/CreateFunction.ag"(line 89, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateFunction.ag"(line 89, column 9)
               _catUpdates =
                   either (const []) id $ do
                   let ps = mapMaybe lpt _paramsIparams
@@ -9136,7 +9136,7 @@ sem_Statement_CreateFunction ann_ name_ params_ rettype_ rep_ lang_ body_ vol_  
                   where
                     lpt (_,Just t) = Just t
                     lpt _ = Nothing
-              -- "./TypeChecking/Ddl/CreateFunction.ag"(line 101, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateFunction.ag"(line 101, column 9)
               _backTree =
                   CreateFunction ann_
                                  name_
@@ -9146,10 +9146,10 @@ sem_Statement_CreateFunction ann_ name_ params_ rettype_ rep_ lang_ body_ vol_  
                                  lang_
                                  _bodyIannotatedTree
                                  vol_
-              -- "./TypeChecking/Ddl/CreateFunction.ag"(line 109, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateFunction.ag"(line 109, column 9)
               _statementType =
                   Nothing
-              -- "./TypeChecking/Ddl/CreateFunction.ag"(line 110, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateFunction.ag"(line 110, column 9)
               _bodyOcat =
                   _lhsIinProducedCat
               -- self rule
@@ -9211,31 +9211,31 @@ sem_Statement_CreateLanguage ann_ name_  =
               _catUpdates :: ([CatalogUpdate])
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
-              -- "./TypeChecking/Statements.ag"(line 82, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 82, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                       (\a -> a {stType = _statementType
                                ,catUpd = _catUpdates    }) $
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/Statements.ag"(line 88, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 88, column 9)
               _lhsOcatUpdates =
                   _catUpdates
-              -- "./TypeChecking/Statements.ag"(line 89, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 89, column 9)
               _lhsOlibUpdates =
                   _libUpdates
-              -- "./TypeChecking/Statements.ag"(line 94, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
                   []
-              -- "./TypeChecking/Ddl/MiscCreates.ag"(line 78, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/MiscCreates.ag"(line 78, column 9)
               _tpe =
                   Right $ Pseudo Void
-              -- "./TypeChecking/Ddl/MiscCreates.ag"(line 79, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/MiscCreates.ag"(line 79, column 9)
               _backTree =
                   CreateLanguage ann_ name_
-              -- "./TypeChecking/Ddl/MiscCreates.ag"(line 80, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/MiscCreates.ag"(line 80, column 9)
               _statementType =
                   Nothing
-              -- "./TypeChecking/Ddl/MiscCreates.ag"(line 81, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/MiscCreates.ag"(line 81, column 9)
               _catUpdates =
                   [CatCreateFunction FunName "plpgsql_call_handler" [] (Pseudo LanguageHandler) False
                   ,CatCreateFunction FunName "plpgsql_validator" [ScalarType "oid"] (Pseudo Void) False]
@@ -9273,13 +9273,13 @@ sem_Statement_CreateSequence ann_ name_ incr_ min_ max_ start_ cache_  =
               _lhsOannotatedTree :: Statement 
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
-              -- "./TypeChecking/Statements.ag"(line 94, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 116, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 117, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
               -- self rule
@@ -9333,43 +9333,43 @@ sem_Statement_CreateTable ann_ name_ atts_ cons_  =
               _consIannotatedTree :: ConstraintList 
               _consIfixedUpIdentifiersTree :: ConstraintList 
               _consIoriginalTree :: ConstraintList 
-              -- "./TypeChecking/Statements.ag"(line 82, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 82, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                       (\a -> a {stType = _statementType
                                ,catUpd = _catUpdates    }) $
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/Statements.ag"(line 88, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 88, column 9)
               _lhsOcatUpdates =
                   _catUpdates
-              -- "./TypeChecking/Statements.ag"(line 89, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 89, column 9)
               _lhsOlibUpdates =
                   _libUpdates
-              -- "./TypeChecking/Statements.ag"(line 94, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
                   []
-              -- "./TypeChecking/Ddl/CreateTable.ag"(line 31, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateTable.ag"(line 31, column 9)
               _tpe =
                   Right $ Pseudo Void
-              -- "./TypeChecking/Ddl/CreateTable.ag"(line 32, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateTable.ag"(line 32, column 9)
               _catUpdates =
                   [CatCreateTable name_ _attrs     defaultSystemColumns]
-              -- "./TypeChecking/Ddl/CreateTable.ag"(line 35, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateTable.ag"(line 35, column 9)
               _attrs =
                   mapMaybe okAt _attsIattrs
                   where
                     okAt (s, Just t) = Just (s,t)
                     okAt (_,Nothing) = Nothing
-              -- "./TypeChecking/Ddl/CreateTable.ag"(line 40, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateTable.ag"(line 40, column 9)
               _statementType =
                   Nothing
-              -- "./TypeChecking/Ddl/CreateTable.ag"(line 41, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateTable.ag"(line 41, column 9)
               _backTree =
                   CreateTable ann_
                               name_
                               _attsIannotatedTree
                               _consIannotatedTree
-              -- "./TypeChecking/Ddl/CreateTable.ag"(line 45, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateTable.ag"(line 45, column 9)
               _consOlib =
                   case lbUpdate _lhsIcat
                          (LBIds "attributedefs" Nothing _attrs    )
@@ -9440,42 +9440,42 @@ sem_Statement_CreateTableAs ann_ name_ expr_  =
               _exprIlibUpdates :: ([LocalBindingsUpdate])
               _exprIoriginalTree :: QueryExpr 
               _exprIuType :: (Maybe [(String,Type)])
-              -- "./TypeChecking/Statements.ag"(line 82, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 82, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                       (\a -> a {stType = _statementType
                                ,catUpd = _catUpdates    }) $
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/Statements.ag"(line 88, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 88, column 9)
               _lhsOcatUpdates =
                   _catUpdates
-              -- "./TypeChecking/Statements.ag"(line 89, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 89, column 9)
               _lhsOlibUpdates =
                   _libUpdates
-              -- "./TypeChecking/Statements.ag"(line 94, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
                   []
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 122, column 21)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 122, column 21)
               _exprOcsql =
                   emptyBindings
-              -- "./TypeChecking/Ddl/CreateTable.ag"(line 64, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateTable.ag"(line 64, column 9)
               _tpe =
                   CompositeType <$> lmt _exprIuType
-              -- "./TypeChecking/Ddl/CreateTable.ag"(line 65, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateTable.ag"(line 65, column 9)
               _catUpdates =
                   either (const []) id $ do
                   ats <- _attrs
                   return [CatCreateTable name_ ats defaultSystemColumns]
-              -- "./TypeChecking/Ddl/CreateTable.ag"(line 71, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateTable.ag"(line 71, column 9)
               _attrs =
                   lmt _exprIuType
-              -- "./TypeChecking/Ddl/CreateTable.ag"(line 73, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateTable.ag"(line 73, column 9)
               _backTree =
                   CreateTableAs ann_ name_ _exprIannotatedTree
-              -- "./TypeChecking/Ddl/CreateTable.ag"(line 74, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/CreateTable.ag"(line 74, column 9)
               _statementType =
                   Nothing
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 175, column 32)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 175, column 32)
               _exprOexpectedTypes =
                   []
               -- self rule
@@ -9532,13 +9532,13 @@ sem_Statement_CreateTrigger ann_ name_ wh_ events_ tbl_ firing_ fnName_ fnArgs_ 
               _fnArgsIfixedUpIdentifiersTree :: ScalarExprList 
               _fnArgsIoriginalTree :: ScalarExprList 
               _fnArgsIuType :: ([Maybe Type])
-              -- "./TypeChecking/Statements.ag"(line 116, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 117, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 153, column 21)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 153, column 21)
               _fnArgsOexpectedTypes =
                   []
               -- self rule
@@ -9595,37 +9595,37 @@ sem_Statement_CreateType ann_ name_ atts_  =
               _attsIattrs :: ([(String, Maybe Type)])
               _attsIfixedUpIdentifiersTree :: TypeAttributeDefList 
               _attsIoriginalTree :: TypeAttributeDefList 
-              -- "./TypeChecking/Statements.ag"(line 82, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 82, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                       (\a -> a {stType = _statementType
                                ,catUpd = _catUpdates    }) $
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/Statements.ag"(line 88, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 88, column 9)
               _lhsOcatUpdates =
                   _catUpdates
-              -- "./TypeChecking/Statements.ag"(line 89, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 89, column 9)
               _lhsOlibUpdates =
                   _libUpdates
-              -- "./TypeChecking/Statements.ag"(line 94, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
                   []
-              -- "./TypeChecking/Ddl/MiscCreates.ag"(line 48, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/MiscCreates.ag"(line 48, column 9)
               _tpe =
                   Right $ Pseudo Void
-              -- "./TypeChecking/Ddl/MiscCreates.ag"(line 49, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/MiscCreates.ag"(line 49, column 9)
               _attrs =
                   mapMaybe okAt _attsIattrs
                   where
                     okAt (s, Just t) = Just (s,t)
                     okAt (_,Nothing) = Nothing
-              -- "./TypeChecking/Ddl/MiscCreates.ag"(line 53, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/MiscCreates.ag"(line 53, column 9)
               _backTree =
                   CreateType ann_ name_ _attsIannotatedTree
-              -- "./TypeChecking/Ddl/MiscCreates.ag"(line 54, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/MiscCreates.ag"(line 54, column 9)
               _statementType =
                   Nothing
-              -- "./TypeChecking/Ddl/MiscCreates.ag"(line 55, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/MiscCreates.ag"(line 55, column 9)
               _catUpdates =
                   [CatCreateComposite name_ _attrs    ]
               -- self rule
@@ -9684,37 +9684,37 @@ sem_Statement_CreateView ann_ name_ colNames_ expr_  =
               _exprIlibUpdates :: ([LocalBindingsUpdate])
               _exprIoriginalTree :: QueryExpr 
               _exprIuType :: (Maybe [(String,Type)])
-              -- "./TypeChecking/Statements.ag"(line 82, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 82, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                       (\a -> a {stType = _statementType
                                ,catUpd = _catUpdates    }) $
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/Statements.ag"(line 88, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 88, column 9)
               _lhsOcatUpdates =
                   _catUpdates
-              -- "./TypeChecking/Statements.ag"(line 89, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 89, column 9)
               _lhsOlibUpdates =
                   _libUpdates
-              -- "./TypeChecking/Statements.ag"(line 94, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
                   []
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 123, column 18)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 123, column 18)
               _exprOcsql =
                   emptyBindings
-              -- "./TypeChecking/Ddl/MiscCreates.ag"(line 15, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/MiscCreates.ag"(line 15, column 9)
               _tpe =
                   Right $ Pseudo Void
-              -- "./TypeChecking/Ddl/MiscCreates.ag"(line 16, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/MiscCreates.ag"(line 16, column 9)
               _backTree =
                   CreateView ann_ name_ colNames_ _exprIannotatedTree
-              -- "./TypeChecking/Ddl/MiscCreates.ag"(line 17, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/MiscCreates.ag"(line 17, column 9)
               _catUpdates =
                   maybe [] (\a -> [CatCreateView name_ a]) _exprIuType
-              -- "./TypeChecking/Ddl/MiscCreates.ag"(line 19, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/MiscCreates.ag"(line 19, column 9)
               _statementType =
                   Nothing
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 175, column 32)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 175, column 32)
               _exprOexpectedTypes =
                   []
               -- self rule
@@ -9793,45 +9793,45 @@ sem_Statement_Delete ann_ table_ using_ whr_ returning_  =
               _returningIfixedUpIdentifiersTree :: MaybeSelectList 
               _returningIlistType :: ([(String,Maybe Type)])
               _returningIoriginalTree :: MaybeSelectList 
-              -- "./TypeChecking/Statements.ag"(line 82, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 82, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                       (\a -> a {stType = _statementType
                                ,catUpd = _catUpdates    }) $
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/Statements.ag"(line 88, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 88, column 9)
               _lhsOcatUpdates =
                   _catUpdates
-              -- "./TypeChecking/Statements.ag"(line 89, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 89, column 9)
               _lhsOlibUpdates =
                   _libUpdates
-              -- "./TypeChecking/Statements.ag"(line 94, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
                   []
-              -- "./TypeChecking/Dml/Delete.ag"(line 13, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Dml/Delete.ag"(line 13, column 9)
               _tpe =
                   Right $ Pseudo Void
-              -- "./TypeChecking/Dml/Delete.ag"(line 14, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Dml/Delete.ag"(line 14, column 9)
               _statementType =
                   do
                   pt <- sequence $ getPlaceholderTypes _whrIannotatedTree
                   lt <- liftList _returningIlistType
                   return (pt,lt)
-              -- "./TypeChecking/Dml/Delete.ag"(line 19, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Dml/Delete.ag"(line 19, column 9)
               _backTree =
                   Delete ann_ _tableItbAnnotatedTree _usingIannotatedTree _whrIannotatedTree _returningIannotatedTree
-              -- "./TypeChecking/Dml/Delete.ag"(line 20, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Dml/Delete.ag"(line 20, column 9)
               _catUpdates =
                   []
-              -- "./TypeChecking/Dml/Delete.ag"(line 22, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Dml/Delete.ag"(line 22, column 9)
               _lib =
                   either (const _lhsIlib) id $ do
                   a <- lmt (allAtts <$> _tableItbUType)
                   lbUpdate _lhsIcat (LBIds "delete table attrs" (Just $ getTName _tableIannotatedTree) a) _lhsIlib
-              -- "./TypeChecking/Dml/Delete.ag"(line 26, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Dml/Delete.ag"(line 26, column 9)
               _whrOlib =
                   _lib
-              -- "./TypeChecking/Dml/Delete.ag"(line 27, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Dml/Delete.ag"(line 27, column 9)
               _returningOlib =
                   _lib
               -- self rule
@@ -9913,28 +9913,28 @@ sem_Statement_DropFunction ann_ ifE_ sigs_ cascade_  =
               _sigsIfixedUpIdentifiersTree :: StringTypeNameListPairList 
               _sigsIfnSigs :: ([(String,[Maybe Type])])
               _sigsIoriginalTree :: StringTypeNameListPairList 
-              -- "./TypeChecking/Statements.ag"(line 82, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 82, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                       (\a -> a {stType = _statementType
                                ,catUpd = _catUpdates    }) $
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/Statements.ag"(line 88, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 88, column 9)
               _lhsOcatUpdates =
                   _catUpdates
-              -- "./TypeChecking/Statements.ag"(line 89, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 89, column 9)
               _lhsOlibUpdates =
                   _libUpdates
-              -- "./TypeChecking/Statements.ag"(line 94, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
                   []
-              -- "./TypeChecking/Ddl/Drops.ag"(line 10, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/Drops.ag"(line 10, column 9)
               _tpe =
                   Right $ Pseudo Void
-              -- "./TypeChecking/Ddl/Drops.ag"(line 11, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/Drops.ag"(line 11, column 9)
               _backTree =
                   DropFunction ann_ ifE_ _sigsIannotatedTree cascade_
-              -- "./TypeChecking/Ddl/Drops.ag"(line 12, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/Drops.ag"(line 12, column 9)
               _catUpdates =
                   either (const []) id $
                   Right $ map mcu $ mapMaybe goodSig _sigsIfnSigs
@@ -9946,7 +9946,7 @@ sem_Statement_DropFunction ann_ ifE_ sigs_ cascade_  =
                     goodSig (s, ts) = do
                                   ts1 <- sequence ts
                                   return (s,ts1)
-              -- "./TypeChecking/Ddl/Drops.ag"(line 23, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/Drops.ag"(line 23, column 9)
               _statementType =
                   Nothing
               -- self rule
@@ -9992,10 +9992,10 @@ sem_Statement_DropSomething ann_ dropType_ ifE_ names_ cascade_  =
               _lhsOannotatedTree :: Statement 
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
-              -- "./TypeChecking/Statements.ag"(line 116, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 117, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
               -- self rule
@@ -10038,13 +10038,13 @@ sem_Statement_Execute ann_ expr_  =
               _exprIfixedUpIdentifiersTree :: ScalarExpr 
               _exprIoriginalTree :: ScalarExpr 
               _exprIuType :: (Maybe Type)
-              -- "./TypeChecking/Statements.ag"(line 116, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 117, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 112, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 112, column 9)
               _exprOexpectedType =
                   Nothing
               -- self rule
@@ -10090,10 +10090,10 @@ sem_Statement_ExitStatement ann_ lb_  =
               _lhsOannotatedTree :: Statement 
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
-              -- "./TypeChecking/Statements.ag"(line 116, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 117, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
               -- self rule
@@ -10169,28 +10169,28 @@ sem_Statement_ForIntegerStatement ann_ lb_ var_ from_ to_ sts_  =
               _stsIoriginalTree :: StatementList 
               _stsIproducedCat :: Catalog
               _stsIproducedLib :: LocalBindings
-              -- "./TypeChecking/Statements.ag"(line 82, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 82, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                       (\a -> a {stType = _statementType
                                ,catUpd = _catUpdates    }) $
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/Statements.ag"(line 88, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 88, column 9)
               _lhsOcatUpdates =
                   _catUpdates
-              -- "./TypeChecking/Statements.ag"(line 89, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 89, column 9)
               _lhsOlibUpdates =
                   _libUpdates
-              -- "./TypeChecking/Statements.ag"(line 94, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 138, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 138, column 9)
               _stsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 139, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 139, column 9)
               _stsOlibUpdates =
                   []
-              -- "./TypeChecking/Plpgsql/Plpgsql.ag"(line 32, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql/Plpgsql.ag"(line 32, column 9)
               _tpe =
                   do
                   fromType <- lmt _fromIuType
@@ -10200,12 +10200,12 @@ sem_Statement_ForIntegerStatement ann_ lb_ var_ from_ to_ sts_  =
                     Just t -> checkAssignmentValid _lhsIcat fromType t
                     Nothing -> return ()
                   return $ Pseudo Void
-              -- "./TypeChecking/Plpgsql/Plpgsql.ag"(line 41, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql/Plpgsql.ag"(line 41, column 9)
               _implicitVar =
                   case _varIannotatedTree of
                       Identifier a i | errs a == [UnrecognisedIdentifier i] -> True
                       _ -> False
-              -- "./TypeChecking/Plpgsql/Plpgsql.ag"(line 44, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql/Plpgsql.ag"(line 44, column 9)
               _stsOlib =
                   if _implicitVar
                   then either (const _lhsIlib) id $ do
@@ -10213,26 +10213,26 @@ sem_Statement_ForIntegerStatement ann_ lb_ var_ from_ to_ sts_  =
                        lbUpdate _lhsIcat
                           (LBIds "local for loop variable" Nothing [((getName _varIannotatedTree),ft)]) _lhsIlib
                   else _lhsIlib
-              -- "./TypeChecking/Plpgsql/Plpgsql.ag"(line 52, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql/Plpgsql.ag"(line 52, column 9)
               _backTree =
                   let i = if _implicitVar
                           then let (Identifier a i') = _varIannotatedTree
                                in Identifier a { errs = []} i'
                           else _varIannotatedTree
                   in ForIntegerStatement ann_ lb_ i _fromIannotatedTree _toIannotatedTree _stsIannotatedTree
-              -- "./TypeChecking/Plpgsql/Plpgsql.ag"(line 58, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql/Plpgsql.ag"(line 58, column 9)
               _catUpdates =
                   []
-              -- "./TypeChecking/Plpgsql/Plpgsql.ag"(line 59, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql/Plpgsql.ag"(line 59, column 9)
               _statementType =
                   Nothing
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 113, column 27)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 113, column 27)
               _fromOexpectedType =
                   Nothing
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 114, column 27)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 114, column 27)
               _toOexpectedType =
                   Nothing
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 116, column 45)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 116, column 45)
               _varOexpectedType =
                   Nothing
               -- self rule
@@ -10340,56 +10340,56 @@ sem_Statement_ForQueryStatement ann_ lb_ var_ sel_ sts_  =
               _stsIoriginalTree :: StatementList 
               _stsIproducedCat :: Catalog
               _stsIproducedLib :: LocalBindings
-              -- "./TypeChecking/Statements.ag"(line 82, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 82, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                       (\a -> a {stType = _statementType
                                ,catUpd = _catUpdates    }) $
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/Statements.ag"(line 88, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 88, column 9)
               _lhsOcatUpdates =
                   _catUpdates
-              -- "./TypeChecking/Statements.ag"(line 89, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 89, column 9)
               _lhsOlibUpdates =
                   _libUpdates
-              -- "./TypeChecking/Statements.ag"(line 94, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 138, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 138, column 9)
               _stsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 139, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 139, column 9)
               _stsOlibUpdates =
                   []
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 124, column 25)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 124, column 25)
               _selOcsql =
                   emptyBindings
-              -- "./TypeChecking/Plpgsql/Plpgsql.ag"(line 64, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql/Plpgsql.ag"(line 64, column 9)
               _tpe =
                   do
                   st <- lmt (CompositeType <$> _selIuType)
                   toType <- lmt _varIuType
                   checkAssignmentValid _lhsIcat st toType
                   return $ Pseudo Void
-              -- "./TypeChecking/Plpgsql/Plpgsql.ag"(line 74, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql/Plpgsql.ag"(line 74, column 9)
               _stsOlib =
                   either (const _lhsIlib) id $ do
                   _ <- _tpe
                   st <- lmt (CompositeType <$> _selIuType)
                   lbUpdate _lhsIcat (LBIds "for loop record type" Nothing [(getName _varIannotatedTree,st)]) _lhsIlib
-              -- "./TypeChecking/Plpgsql/Plpgsql.ag"(line 80, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql/Plpgsql.ag"(line 80, column 9)
               _backTree =
                   ForQueryStatement ann_ lb_ _varIannotatedTree _selIannotatedTree _stsIannotatedTree
-              -- "./TypeChecking/Plpgsql/Plpgsql.ag"(line 81, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql/Plpgsql.ag"(line 81, column 9)
               _catUpdates =
                   []
-              -- "./TypeChecking/Plpgsql/Plpgsql.ag"(line 82, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql/Plpgsql.ag"(line 82, column 9)
               _statementType =
                   Nothing
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 116, column 45)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 116, column 45)
               _varOexpectedType =
                   Nothing
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 177, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 177, column 9)
               _selOexpectedTypes =
                   []
               -- self rule
@@ -10468,16 +10468,16 @@ sem_Statement_If ann_ cases_ els_  =
               _elsIoriginalTree :: StatementList 
               _elsIproducedCat :: Catalog
               _elsIproducedLib :: LocalBindings
-              -- "./TypeChecking/Statements.ag"(line 116, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 117, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 134, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 134, column 9)
               _elsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 135, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 135, column 9)
               _elsOlibUpdates =
                   []
               -- self rule
@@ -10567,32 +10567,32 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
               _returningIfixedUpIdentifiersTree :: MaybeSelectList 
               _returningIlistType :: ([(String,Maybe Type)])
               _returningIoriginalTree :: MaybeSelectList 
-              -- "./TypeChecking/Statements.ag"(line 82, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 82, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                       (\a -> a {stType = _statementType
                                ,catUpd = _catUpdates    }) $
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/Statements.ag"(line 88, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 88, column 9)
               _lhsOcatUpdates =
                   _catUpdates
-              -- "./TypeChecking/Statements.ag"(line 89, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 89, column 9)
               _lhsOlibUpdates =
                   _libUpdates
-              -- "./TypeChecking/Statements.ag"(line 94, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
                   []
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 125, column 14)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 125, column 14)
               _insDataOcsql =
                   emptyBindings
-              -- "./TypeChecking/Dml/Insert.ag"(line 14, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Dml/Insert.ag"(line 14, column 9)
               _tpe =
                   either Left (const $ Right $ Pseudo Void) _columnTypes
-              -- "./TypeChecking/Dml/Insert.ag"(line 15, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Dml/Insert.ag"(line 15, column 9)
               _statementType =
                   Just (catMaybes $ getPlaceholderTypes _insDataIannotatedTree
                        ,fromMaybe [] $ liftList _returningIlistType)
-              -- "./TypeChecking/Dml/Insert.ag"(line 20, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Dml/Insert.ag"(line 20, column 9)
               _columnTypes =
                   do
                   atts <- lmt (allAtts <$> _tableItbUType)
@@ -10608,21 +10608,21 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
                     lkpA m n = maybe (Left [UnrecognisedIdentifier n])
                                      (\t -> Right (n,t))
                                      $ lookup n m
-              -- "./TypeChecking/Dml/Insert.ag"(line 36, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Dml/Insert.ag"(line 36, column 9)
               _backTree =
                   Insert ann_ _tableItbAnnotatedTree
                          targetCols_
                          _insDataIannotatedTree
                          _returningIannotatedTree
-              -- "./TypeChecking/Dml/Insert.ag"(line 40, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Dml/Insert.ag"(line 40, column 9)
               _catUpdates =
                   []
-              -- "./TypeChecking/Dml/Insert.ag"(line 41, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Dml/Insert.ag"(line 41, column 9)
               _insDataOexpectedTypes =
                   maybe [] id $ do
                   ts <- etmt $ _columnTypes
                   return $ map (Just . snd) ts
-              -- "./TypeChecking/Dml/Insert.ag"(line 45, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Dml/Insert.ag"(line 45, column 9)
               _returningOlib =
                   either (const _lhsIlib) id $ do
                     atts <- lmt (allAtts <$> _tableItbUType)
@@ -10705,13 +10705,13 @@ sem_Statement_Into ann_ strict_ into_ stmt_  =
               _stmtIfixedUpIdentifiersTree :: Statement 
               _stmtIlibUpdates :: ([LocalBindingsUpdate])
               _stmtIoriginalTree :: Statement 
-              -- "./TypeChecking/Statements.ag"(line 116, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 117, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 117, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 117, column 12)
               _intoOexpectedTypes =
                   []
               -- self rule
@@ -10782,16 +10782,16 @@ sem_Statement_LoopStatement ann_ lb_ sts_  =
               _stsIoriginalTree :: StatementList 
               _stsIproducedCat :: Catalog
               _stsIproducedLib :: LocalBindings
-              -- "./TypeChecking/Statements.ag"(line 116, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 117, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 138, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 138, column 9)
               _stsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 139, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 139, column 9)
               _stsOlibUpdates =
                   []
               -- self rule
@@ -10837,13 +10837,13 @@ sem_Statement_Notify ann_ name_  =
               _lhsOannotatedTree :: Statement 
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
-              -- "./TypeChecking/Statements.ag"(line 94, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 116, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 117, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
               -- self rule
@@ -10877,10 +10877,10 @@ sem_Statement_NullStatement ann_  =
               _lhsOannotatedTree :: Statement 
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
-              -- "./TypeChecking/Statements.ag"(line 116, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 117, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
               -- self rule
@@ -10923,13 +10923,13 @@ sem_Statement_Perform ann_ expr_  =
               _exprIfixedUpIdentifiersTree :: ScalarExpr 
               _exprIoriginalTree :: ScalarExpr 
               _exprIuType :: (Maybe Type)
-              -- "./TypeChecking/Statements.ag"(line 116, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 117, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 112, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 112, column 9)
               _exprOexpectedType =
                   Nothing
               -- self rule
@@ -10989,22 +10989,22 @@ sem_Statement_QueryStatement ann_ ex_  =
               _exIlibUpdates :: ([LocalBindingsUpdate])
               _exIoriginalTree :: QueryExpr 
               _exIuType :: (Maybe [(String,Type)])
-              -- "./TypeChecking/Statements.ag"(line 82, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 82, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                       (\a -> a {stType = _statementType
                                ,catUpd = _catUpdates    }) $
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/Statements.ag"(line 88, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 88, column 9)
               _lhsOcatUpdates =
                   _catUpdates
-              -- "./TypeChecking/Statements.ag"(line 89, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 89, column 9)
               _lhsOlibUpdates =
                   _libUpdates
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 14, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 14, column 9)
               _tpe =
                   Right $ Pseudo Void
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 15, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 15, column 9)
               _statementType =
                   do
                   pt <- sequence $ getPlaceholderTypes _exIannotatedTree
@@ -11013,19 +11013,19 @@ sem_Statement_QueryStatement ann_ ex_  =
                          ,case st of
                             [(_,(Pseudo Void))] -> []
                             t -> t)
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 23, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 23, column 9)
               _backTree =
                   QueryStatement ann_ _exIannotatedTree
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 24, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 24, column 9)
               _catUpdates =
                   []
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 126, column 22)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 126, column 22)
               _exOcsql =
                   emptyBindings
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 137, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 137, column 9)
               _libUpdates =
                   _exIlibUpdates
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 178, column 22)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 178, column 22)
               _exOexpectedTypes =
                   []
               -- self rule
@@ -11078,13 +11078,13 @@ sem_Statement_Raise ann_ level_ message_ args_  =
               _argsIfixedUpIdentifiersTree :: ScalarExprList 
               _argsIoriginalTree :: ScalarExprList 
               _argsIuType :: ([Maybe Type])
-              -- "./TypeChecking/Statements.ag"(line 116, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 117, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 154, column 13)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 154, column 13)
               _argsOexpectedTypes =
                   []
               -- self rule
@@ -11140,31 +11140,31 @@ sem_Statement_Return ann_ value_  =
               _valueIfixedUpIdentifiersTree :: MaybeScalarExpr 
               _valueIoriginalTree :: MaybeScalarExpr 
               _valueIuType :: (Maybe Type)
-              -- "./TypeChecking/Statements.ag"(line 82, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 82, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                       (\a -> a {stType = _statementType
                                ,catUpd = _catUpdates    }) $
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/Statements.ag"(line 88, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 88, column 9)
               _lhsOcatUpdates =
                   _catUpdates
-              -- "./TypeChecking/Statements.ag"(line 89, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 89, column 9)
               _lhsOlibUpdates =
                   _libUpdates
-              -- "./TypeChecking/Statements.ag"(line 94, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
                   []
-              -- "./TypeChecking/Plpgsql/Plpgsql.ag"(line 12, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql/Plpgsql.ag"(line 12, column 9)
               _tpe =
                   maybe (Right $ Pseudo Void) Right _valueIuType
-              -- "./TypeChecking/Plpgsql/Plpgsql.ag"(line 13, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql/Plpgsql.ag"(line 13, column 9)
               _backTree =
                   Return ann_ _valueIannotatedTree
-              -- "./TypeChecking/Plpgsql/Plpgsql.ag"(line 14, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql/Plpgsql.ag"(line 14, column 9)
               _catUpdates =
                   []
-              -- "./TypeChecking/Plpgsql/Plpgsql.ag"(line 15, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql/Plpgsql.ag"(line 15, column 9)
               _statementType =
                   Nothing
               -- self rule
@@ -11215,13 +11215,13 @@ sem_Statement_ReturnNext ann_ expr_  =
               _exprIfixedUpIdentifiersTree :: ScalarExpr 
               _exprIoriginalTree :: ScalarExpr 
               _exprIuType :: (Maybe Type)
-              -- "./TypeChecking/Statements.ag"(line 116, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 117, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 112, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 112, column 9)
               _exprOexpectedType =
                   Nothing
               -- self rule
@@ -11278,16 +11278,16 @@ sem_Statement_ReturnQuery ann_ sel_  =
               _selIlibUpdates :: ([LocalBindingsUpdate])
               _selIoriginalTree :: QueryExpr 
               _selIuType :: (Maybe [(String,Type)])
-              -- "./TypeChecking/Statements.ag"(line 116, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 117, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 127, column 19)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 127, column 19)
               _selOcsql =
                   emptyBindings
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 177, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 177, column 9)
               _selOexpectedTypes =
                   []
               -- self rule
@@ -11334,13 +11334,13 @@ sem_Statement_Set ann_ name_ values_  =
               _lhsOannotatedTree :: Statement 
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
-              -- "./TypeChecking/Statements.ag"(line 94, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 116, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 117, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
               -- self rule
@@ -11377,10 +11377,10 @@ sem_Statement_Truncate ann_ tables_ restartIdentity_ cascade_  =
               _lhsOannotatedTree :: Statement 
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
-              -- "./TypeChecking/Statements.ag"(line 116, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 117, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
               -- self rule
@@ -11460,31 +11460,31 @@ sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
               _returningIfixedUpIdentifiersTree :: MaybeSelectList 
               _returningIlistType :: ([(String,Maybe Type)])
               _returningIoriginalTree :: MaybeSelectList 
-              -- "./TypeChecking/Statements.ag"(line 82, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 82, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
                       (\a -> a {stType = _statementType
                                ,catUpd = _catUpdates    }) $
                   setTypeAddErrors _tpe     _backTree
-              -- "./TypeChecking/Statements.ag"(line 88, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 88, column 9)
               _lhsOcatUpdates =
                   _catUpdates
-              -- "./TypeChecking/Statements.ag"(line 89, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 89, column 9)
               _lhsOlibUpdates =
                   _libUpdates
-              -- "./TypeChecking/Statements.ag"(line 94, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
                   []
-              -- "./TypeChecking/Dml/Update.ag"(line 13, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Dml/Update.ag"(line 13, column 9)
               _tpe =
                   Right $ Pseudo Void
-              -- "./TypeChecking/Dml/Update.ag"(line 18, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Dml/Update.ag"(line 18, column 9)
               _statementType =
                   do
                   pt <- sequence $ getPlaceholderTypes _assignsIannotatedTree
                                    ++ getPlaceholderTypes _whrIannotatedTree
                   return (pt,fromMaybe [] $ liftList _returningIlistType)
-              -- "./TypeChecking/Dml/Update.ag"(line 24, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Dml/Update.ag"(line 24, column 9)
               _backTree =
                   Update ann_
                          _tableItbAnnotatedTree
@@ -11492,24 +11492,24 @@ sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
                          _fromListIannotatedTree
                          _whrIannotatedTree
                          _returningIannotatedTree
-              -- "./TypeChecking/Dml/Update.ag"(line 30, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Dml/Update.ag"(line 30, column 9)
               _catUpdates =
                   []
-              -- "./TypeChecking/Dml/Update.ag"(line 35, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Dml/Update.ag"(line 35, column 9)
               _lib =
                   either (const _lhsIlib) id $ do
                   a <- lmt (allAtts <$> _tableItbUType)
                   lbUpdate _lhsIcat (LBIds "updated table attrs" (Just $ getTName _tableIannotatedTree) a) _lhsIlib
-              -- "./TypeChecking/Dml/Update.ag"(line 39, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Dml/Update.ag"(line 39, column 9)
               _whrOlib =
                   _lib
-              -- "./TypeChecking/Dml/Update.ag"(line 40, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Dml/Update.ag"(line 40, column 9)
               _assignsOlib =
                   _lib
-              -- "./TypeChecking/Dml/Update.ag"(line 41, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Dml/Update.ag"(line 41, column 9)
               _returningOlib =
                   _lib
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 155, column 14)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 155, column 14)
               _assignsOexpectedTypes =
                   []
               -- self rule
@@ -11607,19 +11607,19 @@ sem_Statement_WhileStatement ann_ lb_ expr_ sts_  =
               _stsIoriginalTree :: StatementList 
               _stsIproducedCat :: Catalog
               _stsIproducedLib :: LocalBindings
-              -- "./TypeChecking/Statements.ag"(line 116, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 117, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 138, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 138, column 9)
               _stsOcatUpdates =
                   []
-              -- "./TypeChecking/Statements.ag"(line 139, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 139, column 9)
               _stsOlibUpdates =
                   []
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 112, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 112, column 9)
               _exprOexpectedType =
                   Nothing
               -- self rule
@@ -11750,37 +11750,37 @@ sem_StatementList_Cons hd_ tl_  =
               _tlIoriginalTree :: StatementList 
               _tlIproducedCat :: Catalog
               _tlIproducedLib :: LocalBindings
-              -- "./TypeChecking/Statements.ag"(line 56, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 56, column 9)
               _newCat =
                   fromRight _lhsIcat $ updateCatalog _lhsIcat _lhsIcatUpdates
-              -- "./TypeChecking/Statements.ag"(line 57, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 57, column 9)
               _newLib =
                   fromRight _lhsIlib $ foldM (flip $ lbUpdate _lhsIcat) _lhsIlib _lhsIlibUpdates
-              -- "./TypeChecking/Statements.ag"(line 59, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 59, column 9)
               _hdOcat =
                   _newCat
-              -- "./TypeChecking/Statements.ag"(line 60, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 60, column 9)
               _tlOcat =
                   _newCat
-              -- "./TypeChecking/Statements.ag"(line 61, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 61, column 9)
               _hdOlib =
                   _newLib
-              -- "./TypeChecking/Statements.ag"(line 62, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 62, column 9)
               _tlOlib =
                   _newLib
-              -- "./TypeChecking/Statements.ag"(line 66, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 66, column 9)
               _lhsOproducedCat =
                   _tlIproducedCat
-              -- "./TypeChecking/Statements.ag"(line 67, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 67, column 9)
               _lhsOproducedLib =
                   _tlIproducedLib
-              -- "./TypeChecking/Statements.ag"(line 70, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 70, column 9)
               _tlOcatUpdates =
                   _hdIcatUpdates
-              -- "./TypeChecking/Statements.ag"(line 71, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 71, column 9)
               _tlOlibUpdates =
                   _hdIlibUpdates
-              -- "./TypeChecking/Statements.ag"(line 97, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 97, column 12)
               _hdOinProducedCat =
                   _tlIproducedCat
               -- self rule
@@ -11824,16 +11824,16 @@ sem_StatementList_Nil  =
               _lhsOannotatedTree :: StatementList 
               _lhsOfixedUpIdentifiersTree :: StatementList 
               _lhsOoriginalTree :: StatementList 
-              -- "./TypeChecking/Statements.ag"(line 56, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 56, column 9)
               _newCat =
                   fromRight _lhsIcat $ updateCatalog _lhsIcat _lhsIcatUpdates
-              -- "./TypeChecking/Statements.ag"(line 57, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 57, column 9)
               _newLib =
                   fromRight _lhsIlib $ foldM (flip $ lbUpdate _lhsIcat) _lhsIlib _lhsIlibUpdates
-              -- "./TypeChecking/Statements.ag"(line 73, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 73, column 9)
               _lhsOproducedCat =
                   _newCat
-              -- "./TypeChecking/Statements.ag"(line 74, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Statements.ag"(line 74, column 9)
               _lhsOproducedLib =
                   _newLib
               -- self rule
@@ -11913,7 +11913,7 @@ sem_StringTypeNameListPair_Tuple x1_ x2_  =
               _x2IfixedUpIdentifiersTree :: TypeNameList 
               _x2InamedTypes :: ([Maybe Type])
               _x2IoriginalTree :: TypeNameList 
-              -- "./TypeChecking/Ddl/Drops.ag"(line 32, column 13)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/Drops.ag"(line 32, column 13)
               _lhsOfnSig =
                   (x1_, _x2InamedTypes)
               -- self rule
@@ -12016,7 +12016,7 @@ sem_StringTypeNameListPairList_Cons hd_ tl_  =
               _tlIfixedUpIdentifiersTree :: StringTypeNameListPairList 
               _tlIfnSigs :: ([(String,[Maybe Type])])
               _tlIoriginalTree :: StringTypeNameListPairList 
-              -- "./TypeChecking/Ddl/Drops.ag"(line 27, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/Drops.ag"(line 27, column 12)
               _lhsOfnSigs =
                   _hdIfnSig : _tlIfnSigs
               -- self rule
@@ -12069,7 +12069,7 @@ sem_StringTypeNameListPairList_Nil  =
               _lhsOannotatedTree :: StringTypeNameListPairList 
               _lhsOfixedUpIdentifiersTree :: StringTypeNameListPairList 
               _lhsOoriginalTree :: StringTypeNameListPairList 
-              -- "./TypeChecking/Ddl/Drops.ag"(line 28, column 11)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/Drops.ag"(line 28, column 11)
               _lhsOfnSigs =
                   []
               -- self rule
@@ -12171,17 +12171,17 @@ sem_TableAlias_FullAlias ann_ tb_ cols_  =
          (let _lhsOannotatedTree :: TableAlias 
               _lhsOfixedUpIdentifiersTree :: TableAlias 
               _lhsOoriginalTree :: TableAlias 
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 286, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 286, column 9)
               _lhsOannotatedTree =
                   addTypeErrors _errs     _backTree
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 288, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 288, column 9)
               _errs =
                   case _lhsIexpectedNumCols of
                         Nothing -> []
                         Just n -> if n == length cols_
                                   then []
                                   else [WrongNumberOfAliasCols n $ length cols_]
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 293, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 293, column 9)
               _backTree =
                   FullAlias ann_ tb_ cols_
               -- self rule
@@ -12210,13 +12210,13 @@ sem_TableAlias_NoAlias ann_  =
          (let _lhsOannotatedTree :: TableAlias 
               _lhsOfixedUpIdentifiersTree :: TableAlias 
               _lhsOoriginalTree :: TableAlias 
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 286, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 286, column 9)
               _lhsOannotatedTree =
                   addTypeErrors _errs     _backTree
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 296, column 15)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 296, column 15)
               _backTree =
                   NoAlias ann_
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 297, column 15)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 297, column 15)
               _errs =
                   []
               -- self rule
@@ -12246,13 +12246,13 @@ sem_TableAlias_TableAlias ann_ tb_  =
          (let _lhsOannotatedTree :: TableAlias 
               _lhsOfixedUpIdentifiersTree :: TableAlias 
               _lhsOoriginalTree :: TableAlias 
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 286, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 286, column 9)
               _lhsOannotatedTree =
                   addTypeErrors _errs     _backTree
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 294, column 18)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 294, column 18)
               _backTree =
                   TableAlias ann_ tb_
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 295, column 18)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 295, column 18)
               _errs =
                   []
               -- self rule
@@ -12403,47 +12403,47 @@ sem_TableRef_FunTref ann_ fn_ alias_  =
               _aliasIannotatedTree :: TableAlias 
               _aliasIfixedUpIdentifiersTree :: TableAlias 
               _aliasIoriginalTree :: TableAlias 
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 382, column 15)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 382, column 15)
               __tup2 =
                   let (FunCall _ f _) = _fnIfixedUpIdentifiersTree
                       (trs,al) = doAlias _aliasIannotatedTree [(f,[f])]
                   in (trs,FunTref ann_ _fnIfixedUpIdentifiersTree al)
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 382, column 15)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 382, column 15)
               (_lhsOtrefIDs,_) =
                   __tup2
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 382, column 15)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 382, column 15)
               (_,_lhsOfixedUpIdentifiersTree) =
                   __tup2
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
               _lhsOannotatedTree =
                   addTypeErrors _errs     _backTree
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 102, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 102, column 9)
               _errs =
                   case _eqfunIdens of
                     Left e -> e
                     Right _ -> []
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 108, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 108, column 9)
               _eqfunIdens =
                   funIdens _lhsIcat (getAlias "" _aliasIoriginalTree) _fnIannotatedTree _fnIuType
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 109, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 109, column 9)
               _lhsOlibUpdates =
                   [LBTref "fn"
                                   (fst _qfunIdens    )
                                   (snd _qfunIdens    )
                                   []]
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 113, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 113, column 9)
               _qfunIdens =
                   fromRight ("",[]) _eqfunIdens
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 247, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 247, column 9)
               _lhsOnewLib2 =
                   emptyBindings
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 260, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 260, column 9)
               _backTree =
                   FunTref ann_ _fnIannotatedTree _aliasIannotatedTree
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 281, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 281, column 9)
               _aliasOexpectedNumCols =
                   Nothing
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 120, column 15)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 120, column 15)
               _fnOexpectedType =
                   Nothing
               -- self rule
@@ -12531,40 +12531,40 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
               _aliasIannotatedTree :: TableAlias 
               _aliasIfixedUpIdentifiersTree :: TableAlias 
               _aliasIoriginalTree :: TableAlias 
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 388, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 388, column 9)
               __tup3 =
                   let (trs,al) = doAlias _aliasIannotatedTree $ _tblItrefIDs ++ _tbl1ItrefIDs
                   in (trs, JoinTref ann_ _tblIfixedUpIdentifiersTree
                                     nat_ joinType_ _tbl1IfixedUpIdentifiersTree
                                     _onExprIfixedUpIdentifiersTree al)
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 388, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 388, column 9)
               (_trefIDs,_) =
                   __tup3
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 388, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 388, column 9)
               (_,_lhsOfixedUpIdentifiersTree) =
                   __tup3
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 394, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 394, column 9)
               _lhsOtrefIDs =
                   _trefIDs
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 395, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 395, column 9)
               _onExprOidenv =
                   IDEnv _trefIDs
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
               _lhsOannotatedTree =
                   addTypeErrors _errs     _backTree
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 118, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 118, column 9)
               _errs =
                   fromLeft [] _newLib
                   ++ _joinErrors
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 120, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 120, column 9)
               _lhsOlibUpdates =
                   if _joinErrors     == []
                   then _libUpdates
                   else []
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 125, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 125, column 9)
               _joinErrors =
                   fromLeft [] (foldM (flip $ lbUpdate _lhsIcat) _lhsIlib _libUpdates    )
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 126, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 126, column 9)
               _libUpdates =
                   case (_tblIlibUpdates, _tbl1IlibUpdates) of
                     ([u1], [u2]) -> [LBJoinTref "join" u1 u2 jids
@@ -12578,13 +12578,13 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
                                 (Natural, _) -> Left ()
                                 (_,Just (JoinUsing _ s)) -> Right s
                                 _ -> Right []
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 140, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 140, column 9)
               _newLib =
                   case (_tblIlibUpdates, _tbl1IlibUpdates) of
                     ([u1],[u2]) -> lbUpdate _lhsIcat
                                      (LBJoinTref "join" u1 u2 (Right []) Nothing) _lhsIlib
                     _ -> Right _lhsIlib
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 220, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 220, column 9)
               _newLib2 =
                   let t0t :: [(String,Maybe Type)]
                       t0t = getUnqualifiedBindings _tblInewLib2
@@ -12596,13 +12596,13 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
                         createLocalBindings $ Just [(n, t0t ++ t1t)]
                     NoAlias _ ->
                         joinBindings _tblInewLib2 _tbl1InewLib2
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 233, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 233, column 9)
               _lhsOnewLib2 =
                   _newLib2
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 234, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 234, column 9)
               _onExprOlib =
                   _newLib2
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 262, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 262, column 9)
               _backTree =
                   JoinTref ann_
                              _tblIannotatedTree
@@ -12611,7 +12611,7 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
                              _tbl1IannotatedTree
                              _onExprIannotatedTree
                              _aliasIannotatedTree
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 281, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 281, column 9)
               _aliasOexpectedNumCols =
                   Nothing
               -- self rule
@@ -12699,36 +12699,36 @@ sem_TableRef_SubTref ann_ sel_ alias_  =
               _aliasIannotatedTree :: TableAlias 
               _aliasIfixedUpIdentifiersTree :: TableAlias 
               _aliasIoriginalTree :: TableAlias 
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 377, column 15)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 377, column 15)
               __tup4 =
                   let IDEnv x = _selIcidenv
                       (trs,al) = doAlias _aliasIannotatedTree x
                   in (trs, SubTref ann_ _selIfixedUpIdentifiersTree al)
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 377, column 15)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 377, column 15)
               (_lhsOtrefIDs,_) =
                   __tup4
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 377, column 15)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 377, column 15)
               (_,_lhsOfixedUpIdentifiersTree) =
                   __tup4
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 129, column 15)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 129, column 15)
               _selOcsql =
                   emptyBindings
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
               _lhsOannotatedTree =
                   addTypeErrors _errs     _backTree
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 72, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 72, column 9)
               _errs =
                   case _selectAttrs     of
                           Left e -> e
                           Right _ -> []
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 76, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 76, column 9)
               _selectAttrs =
                   lmt _selIuType
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 77, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 77, column 9)
               _lhsOlibUpdates =
                   [LBTref "sub query" (getAlias "" _aliasIoriginalTree)
                                   (fromRight [] _selectAttrs    ) []]
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 237, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 237, column 9)
               _lhsOnewLib2 =
                   createLocalBindings $ do
                   pu <- _selIuType
@@ -12736,13 +12736,13 @@ sem_TableRef_SubTref ann_ sel_ alias_  =
                                  (FullAlias _ n cs) -> (n,cs)
                                  _ -> (n, [])
                   return [(n,zip cs $ map (Just . snd) pu)]
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 256, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 256, column 9)
               _backTree =
                   SubTref ann_ _selIannotatedTree _aliasIannotatedTree
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 281, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 281, column 9)
               _aliasOexpectedNumCols =
                   Nothing
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 180, column 15)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 180, column 15)
               _selOexpectedTypes =
                   []
               -- self rule
@@ -12810,7 +12810,7 @@ sem_TableRef_Tref ann_ tbl_ alias_  =
               _aliasIannotatedTree :: TableAlias 
               _aliasIfixedUpIdentifiersTree :: TableAlias 
               _aliasIoriginalTree :: TableAlias 
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 369, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 369, column 12)
               __tup5 =
                   let tn = getTName _tblIfixedUpIdentifiersTree
                       ids = case catCompositePublicAttrs _lhsIcat relationComposites tn of
@@ -12818,19 +12818,19 @@ sem_TableRef_Tref ann_ tbl_ alias_  =
                                Left _ -> [(tn,[])]
                       (trs,al) = doAlias _aliasIannotatedTree ids
                   in (trs,Tref ann_ _tblIfixedUpIdentifiersTree al)
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 369, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 369, column 12)
               (_lhsOtrefIDs,_) =
                   __tup5
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 369, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 369, column 12)
               (_,_lhsOfixedUpIdentifiersTree) =
                   __tup5
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
               _lhsOannotatedTree =
                   addTypeErrors _errs     _backTree
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 85, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 85, column 9)
               _errs =
                   []
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 86, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 86, column 9)
               _lhsOlibUpdates =
                   maybe [] id $ do
                   let n = getTName _tblIannotatedTree
@@ -12839,7 +12839,7 @@ sem_TableRef_Tref ann_ tbl_ alias_  =
                             (getAlias n _aliasIoriginalTree)
                             pu
                             pr]
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 208, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 208, column 9)
               _lhsOnewLib2 =
                   createLocalBindings $ do
                   let n = getTName _tblIannotatedTree
@@ -12849,10 +12849,10 @@ sem_TableRef_Tref ann_ tbl_ alias_  =
                                  _ -> (n, [])
                   return [(n,zip cs $ map (Just . snd) pu)
                          ,(n,map (second Just) pr)]
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 258, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 258, column 9)
               _backTree =
                   Tref ann_ _tblItbAnnotatedTree _aliasIannotatedTree
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 275, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 275, column 9)
               _aliasOexpectedNumCols =
                   do
                   let n = getTName _tblIannotatedTree
@@ -12971,13 +12971,13 @@ sem_TableRefList_Cons hd_ tl_  =
               _tlInewLib2 :: LocalBindings
               _tlIoriginalTree :: TableRefList 
               _tlItrefIDs :: ([(String,[String])])
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 365, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 365, column 12)
               _lhsOtrefIDs =
                   _hdItrefIDs ++ _tlItrefIDs
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 61, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 61, column 9)
               _lhsOlibUpdates =
                   _hdIlibUpdates
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 204, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 204, column 9)
               _lhsOnewLib2 =
                   joinBindings _hdInewLib2 _tlInewLib2
               -- self rule
@@ -13032,13 +13032,13 @@ sem_TableRefList_Nil  =
               _lhsOannotatedTree :: TableRefList 
               _lhsOfixedUpIdentifiersTree :: TableRefList 
               _lhsOoriginalTree :: TableRefList 
-              -- "./TypeChecking/FixUpIdentifiers.ag"(line 366, column 11)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/FixUpIdentifiers.ag"(line 366, column 11)
               _lhsOtrefIDs =
                   []
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 59, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 59, column 9)
               _lhsOlibUpdates =
                   []
-              -- "./TypeChecking/QueryExprs/TableRefs.ag"(line 202, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/TableRefs.ag"(line 202, column 9)
               _lhsOnewLib2 =
                   createLocalBindings $ Just []
               -- self rule
@@ -13123,10 +13123,10 @@ sem_TypeAttributeDef_TypeAttDef ann_ name_ typ_  =
               _typIfixedUpIdentifiersTree :: TypeName 
               _typInamedType :: (Maybe Type)
               _typIoriginalTree :: TypeName 
-              -- "./TypeChecking/Ddl/MiscCreates.ag"(line 37, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/MiscCreates.ag"(line 37, column 9)
               _lhsOattrName =
                   name_
-              -- "./TypeChecking/Ddl/MiscCreates.ag"(line 38, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/MiscCreates.ag"(line 38, column 9)
               _lhsOnamedType =
                   _typInamedType
               -- self rule
@@ -13230,7 +13230,7 @@ sem_TypeAttributeDefList_Cons hd_ tl_  =
               _tlIattrs :: ([(String, Maybe Type)])
               _tlIfixedUpIdentifiersTree :: TypeAttributeDefList 
               _tlIoriginalTree :: TypeAttributeDefList 
-              -- "./TypeChecking/Ddl/MiscCreates.ag"(line 43, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/MiscCreates.ag"(line 43, column 12)
               _lhsOattrs =
                   (_hdIattrName, _hdInamedType) : _tlIattrs
               -- self rule
@@ -13283,7 +13283,7 @@ sem_TypeAttributeDefList_Nil  =
               _lhsOannotatedTree :: TypeAttributeDefList 
               _lhsOfixedUpIdentifiersTree :: TypeAttributeDefList 
               _lhsOoriginalTree :: TypeAttributeDefList 
-              -- "./TypeChecking/Ddl/MiscCreates.ag"(line 44, column 11)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/MiscCreates.ag"(line 44, column 11)
               _lhsOattrs =
                   []
               -- self rule
@@ -13417,16 +13417,16 @@ sem_TypeName_ArrayTypeName ann_ typ_  =
               _typIfixedUpIdentifiersTree :: TypeName 
               _typInamedType :: (Maybe Type)
               _typIoriginalTree :: TypeName 
-              -- "./TypeChecking/Misc.ag"(line 19, column 10)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag"(line 19, column 10)
               _lhsOnamedType =
                   etmt _tpe
-              -- "./TypeChecking/Misc.ag"(line 20, column 10)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag"(line 20, column 10)
               _lhsOannotatedTree =
                   addTypeErrors (tes _tpe    ) _backTree
-              -- "./TypeChecking/Misc.ag"(line 27, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag"(line 27, column 9)
               _tpe =
                   lmt _typInamedType >>=  Right . ArrayType
-              -- "./TypeChecking/Misc.ag"(line 28, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag"(line 28, column 9)
               _backTree =
                   ArrayTypeName ann_ _typIannotatedTree
               -- self rule
@@ -13469,16 +13469,16 @@ sem_TypeName_Prec2TypeName ann_ tn_ prec_ prec1_  =
               _lhsOannotatedTree :: TypeName 
               _lhsOfixedUpIdentifiersTree :: TypeName 
               _lhsOoriginalTree :: TypeName 
-              -- "./TypeChecking/Misc.ag"(line 19, column 10)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag"(line 19, column 10)
               _lhsOnamedType =
                   etmt _tpe
-              -- "./TypeChecking/Misc.ag"(line 20, column 10)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag"(line 20, column 10)
               _lhsOannotatedTree =
                   addTypeErrors (tes _tpe    ) _backTree
-              -- "./TypeChecking/Misc.ag"(line 36, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag"(line 36, column 9)
               _tpe =
                   catLookupType _lhsIcat $ canonicalizeTypeName tn_
-              -- "./TypeChecking/Misc.ag"(line 37, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag"(line 37, column 9)
               _backTree =
                   Prec2TypeName ann_ tn_ prec_ prec1_
               -- self rule
@@ -13509,16 +13509,16 @@ sem_TypeName_PrecTypeName ann_ tn_ prec_  =
               _lhsOannotatedTree :: TypeName 
               _lhsOfixedUpIdentifiersTree :: TypeName 
               _lhsOoriginalTree :: TypeName 
-              -- "./TypeChecking/Misc.ag"(line 19, column 10)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag"(line 19, column 10)
               _lhsOnamedType =
                   etmt _tpe
-              -- "./TypeChecking/Misc.ag"(line 20, column 10)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag"(line 20, column 10)
               _lhsOannotatedTree =
                   addTypeErrors (tes _tpe    ) _backTree
-              -- "./TypeChecking/Misc.ag"(line 33, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag"(line 33, column 9)
               _tpe =
                   catLookupType _lhsIcat $ canonicalizeTypeName tn_
-              -- "./TypeChecking/Misc.ag"(line 34, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag"(line 34, column 9)
               _backTree =
                   PrecTypeName ann_ tn_ prec_
               -- self rule
@@ -13555,16 +13555,16 @@ sem_TypeName_SetOfTypeName ann_ typ_  =
               _typIfixedUpIdentifiersTree :: TypeName 
               _typInamedType :: (Maybe Type)
               _typIoriginalTree :: TypeName 
-              -- "./TypeChecking/Misc.ag"(line 19, column 10)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag"(line 19, column 10)
               _lhsOnamedType =
                   etmt _tpe
-              -- "./TypeChecking/Misc.ag"(line 20, column 10)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag"(line 20, column 10)
               _lhsOannotatedTree =
                   addTypeErrors (tes _tpe    ) _backTree
-              -- "./TypeChecking/Misc.ag"(line 30, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag"(line 30, column 9)
               _tpe =
                   lmt _typInamedType >>=  Right . SetOfType
-              -- "./TypeChecking/Misc.ag"(line 31, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag"(line 31, column 9)
               _backTree =
                   SetOfTypeName ann_ _typIannotatedTree
               -- self rule
@@ -13605,16 +13605,16 @@ sem_TypeName_SimpleTypeName ann_ tn_  =
               _lhsOannotatedTree :: TypeName 
               _lhsOfixedUpIdentifiersTree :: TypeName 
               _lhsOoriginalTree :: TypeName 
-              -- "./TypeChecking/Misc.ag"(line 19, column 10)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag"(line 19, column 10)
               _lhsOnamedType =
                   etmt _tpe
-              -- "./TypeChecking/Misc.ag"(line 20, column 10)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag"(line 20, column 10)
               _lhsOannotatedTree =
                   addTypeErrors (tes _tpe    ) _backTree
-              -- "./TypeChecking/Misc.ag"(line 24, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag"(line 24, column 9)
               _tpe =
                   catLookupType _lhsIcat $ canonicalizeTypeName tn_
-              -- "./TypeChecking/Misc.ag"(line 25, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Misc.ag"(line 25, column 9)
               _backTree =
                   SimpleTypeName ann_ tn_
               -- self rule
@@ -13703,7 +13703,7 @@ sem_TypeNameList_Cons hd_ tl_  =
               _tlIfixedUpIdentifiersTree :: TypeNameList 
               _tlInamedTypes :: ([Maybe Type])
               _tlIoriginalTree :: TypeNameList 
-              -- "./TypeChecking/Ddl/Drops.ag"(line 37, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/Drops.ag"(line 37, column 12)
               _lhsOnamedTypes =
                   _hdInamedType : _tlInamedTypes
               -- self rule
@@ -13756,7 +13756,7 @@ sem_TypeNameList_Nil  =
               _lhsOannotatedTree :: TypeNameList 
               _lhsOfixedUpIdentifiersTree :: TypeNameList 
               _lhsOoriginalTree :: TypeNameList 
-              -- "./TypeChecking/Ddl/Drops.ag"(line 38, column 11)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Ddl/Drops.ag"(line 38, column 11)
               _lhsOnamedTypes =
                   []
               -- self rule
@@ -13855,7 +13855,7 @@ sem_VarDef_ParamAlias ann_ name_ i_  =
               _lhsOannotatedTree :: VarDef 
               _lhsOfixedUpIdentifiersTree :: VarDef 
               _lhsOoriginalTree :: VarDef 
-              -- "./TypeChecking/Plpgsql/Block.ag"(line 14, column 18)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql/Block.ag"(line 14, column 18)
               _lhsOdef =
                   (name_, Nothing)
               -- self rule
@@ -13889,7 +13889,7 @@ sem_VarDef_VarAlias ann_ name_ aliased_  =
               _lhsOannotatedTree :: VarDef 
               _lhsOfixedUpIdentifiersTree :: VarDef 
               _lhsOoriginalTree :: VarDef 
-              -- "./TypeChecking/Plpgsql/Block.ag"(line 13, column 16)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql/Block.ag"(line 13, column 16)
               _lhsOdef =
                   (name_, Nothing)
               -- self rule
@@ -13931,7 +13931,7 @@ sem_VarDef_VarDef ann_ name_ typ_ value_  =
               _typIfixedUpIdentifiersTree :: TypeName 
               _typInamedType :: (Maybe Type)
               _typIoriginalTree :: TypeName 
-              -- "./TypeChecking/Plpgsql/Block.ag"(line 10, column 14)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql/Block.ag"(line 10, column 14)
               _lhsOdef =
                   (name_, if _typInamedType == Just (Pseudo Record)
                           then Just (PgRecord Nothing)
@@ -14036,7 +14036,7 @@ sem_VarDefList_Cons hd_ tl_  =
               _tlIdefs :: ([(String,Maybe Type)])
               _tlIfixedUpIdentifiersTree :: VarDefList 
               _tlIoriginalTree :: VarDefList 
-              -- "./TypeChecking/Plpgsql/Block.ag"(line 17, column 12)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql/Block.ag"(line 17, column 12)
               _lhsOdefs =
                   _hdIdef : _tlIdefs
               -- self rule
@@ -14089,7 +14089,7 @@ sem_VarDefList_Nil  =
               _lhsOannotatedTree :: VarDefList 
               _lhsOfixedUpIdentifiersTree :: VarDefList 
               _lhsOoriginalTree :: VarDefList 
-              -- "./TypeChecking/Plpgsql/Block.ag"(line 18, column 11)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/Plpgsql/Block.ag"(line 18, column 11)
               _lhsOdefs =
                   []
               -- self rule
@@ -14183,25 +14183,25 @@ sem_WithQuery_WithQuery ann_ name_ colAliases_ ex_  =
               _exIlibUpdates :: ([LocalBindingsUpdate])
               _exIoriginalTree :: QueryExpr 
               _exIuType :: (Maybe [(String,Type)])
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 131, column 17)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 131, column 17)
               _exOcsql =
                   emptyBindings
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 272, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 272, column 9)
               _tpe =
                   Right $ Pseudo Void
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 273, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 273, column 9)
               _backTree =
                   WithQuery ann_ name_ colAliases_ _exIannotatedTree
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 274, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 274, column 9)
               _attrs =
                   maybe [] id $ _exIuType
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 275, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 275, column 9)
               _catUpdates =
                   [CatCreateView name_ _attrs    ]
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 276, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 276, column 9)
               _statementType =
                   Nothing
-              -- "./TypeChecking/ParameterizedStatements.ag"(line 182, column 17)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/ParameterizedStatements.ag"(line 182, column 17)
               _exOexpectedTypes =
                   []
               -- self rule
@@ -14313,19 +14313,19 @@ sem_WithQueryList_Cons hd_ tl_  =
               _tlIfixedUpIdentifiersTree :: WithQueryList 
               _tlIoriginalTree :: WithQueryList 
               _tlIproducedCat :: Catalog
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 256, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 256, column 9)
               _newCat =
                   fromRight _lhsIcat $ updateCatalog _lhsIcat _lhsIcatUpdates
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 258, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 258, column 9)
               _hdOcat =
                   _newCat
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 259, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 259, column 9)
               _tlOcat =
                   _newCat
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 263, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 263, column 9)
               _lhsOproducedCat =
                   _tlIproducedCat
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 266, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 266, column 9)
               _tlOcatUpdates =
                   _hdIcatUpdates
               -- self rule
@@ -14373,10 +14373,10 @@ sem_WithQueryList_Nil  =
               _lhsOannotatedTree :: WithQueryList 
               _lhsOfixedUpIdentifiersTree :: WithQueryList 
               _lhsOoriginalTree :: WithQueryList 
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 256, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 256, column 9)
               _newCat =
                   fromRight _lhsIcat $ updateCatalog _lhsIcat _lhsIcatUpdates
-              -- "./TypeChecking/QueryExprs/QueryStatement.ag"(line 268, column 9)
+              -- "src/Database/HsSqlPpp/AstInternals/TypeChecking/QueryExprs/QueryStatement.ag"(line 268, column 9)
               _lhsOproducedCat =
                   _newCat
               -- self rule

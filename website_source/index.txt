@@ -4,7 +4,7 @@ Haskell. Supports PostgreSQL SQL and PL/pgSQL syntax. BSD licensed.
 Purpose
 =======
 
-Possible future uses of this library include:
+Possible uses of this library include:
 
 * parsing SQL
 * lint checking SQL code
@@ -342,12 +342,13 @@ doesn't parse/typecheck correctly where relevant.
 Provisional future plans
 ========================
 
+* parameterized statements/typesafe haskell access
+* some simple syntax extension support for SQL
+* a 'compiler' command to help developing SQL
 * parse most PostgreSQL syntax, possibly other SQL dialects as well
 * improve the typechecker
 * improve the catalog
 * improve the quasi-quoting
-* some simple syntax extension support
-* parameterized statements/typesafe haskell access
 * documentation generator for SQL codebases
 
 Contact
