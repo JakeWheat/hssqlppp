@@ -1,0 +1,20 @@
+0.3.1
+
+add quasiquotation back in
+add build script which handles the two ast generated files (but not
+  the defaultTemplate1Catalog file yet)
+add cabal file to compile the automated tests
+add example to typecheck against existing database in postgresql
+get cabal haddock working without any extra work
+get rid of unused cpp dependency and some other extensions
+
+0.3.0
+
+Cleanup release
+lots of improvements to the parser
+lots of regressions with the typechecking
+lots of renames in the api
+remove the dodgy exe file
+reduce the dependencies drastically
+temporarily drop quasiquotation
+remove hdbc/postgresql dependency

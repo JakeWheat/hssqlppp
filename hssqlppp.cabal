@@ -17,6 +17,8 @@ Description:
     .
     Documentation, examples on the homepage:
     <http://jakewheat.github.com/hssqlppp/>.
+    .
+    Changes here: <https://github.com/JakeWheat/hssqlppp/blob/master/CHANGES>
 
 extra-source-files:  README
                      LICENSE

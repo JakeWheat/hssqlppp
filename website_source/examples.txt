@@ -1,0 +1,264 @@
+
+Parsing
+=======
+
+Here is a program to parse some SQL from a file and print the ast:
+
+~~~~~{.haskell}
+> import System.Environment
+
+> import Database.HsSqlPpp.Parser
+
+> main :: IO ()
+> main = do
+>   [f] <- getArgs
+>   ast <- parseStatementsFromFile f
+>   print ast
+~~~~~
+
+Given the SQL file x.sql:
+
+~~~~~{.sql}
+select * from t;
+~~~~~
+
+the result is something like:
+
+~~~~~
+$ Parse x.sql
+Right [QueryStatement (Annotation {asrc = Just ("x.sql",1,1), atype =
+Nothing, errs = [], stType = Nothing, catUpd = [], fnProt = Nothing,
+infType = Nothing}) (Select (Annotation {asrc = Just ("x.sql",1,1),
+atype = Nothing, errs = [], stType = Nothing, catUpd = [], fnProt =
+Nothing, infType = Nothing}) Dupes (SelectList (Annotation {asrc =
+Just ("x.sql",1,8), atype = Nothing, errs = [], stType = Nothing,
+catUpd = [], fnProt = Nothing, infType = Nothing}) [SelExp (Annotation
+{asrc = Just ("x.sql",1,8), atype = Nothing, errs = [], stType =
+Nothing, catUpd = [], fnProt = Nothing, infType = Nothing})
+(Identifier (Annotation {asrc = Just ("x.sql",1,8), atype = Nothing,
+errs = [], stType = Nothing, catUpd = [], fnProt = Nothing, infType =
+Nothing}) "*")]) [Tref (Annotation {asrc = Just ("x.sql",1,15), atype
+= Nothing, errs = [], stType = Nothing, catUpd = [], fnProt = Nothing,
+infType = Nothing}) (SQIdentifier (Annotation {asrc = Just
+("x.sql",1,15), atype = Nothing, errs = [], stType = Nothing, catUpd =
+[], fnProt = Nothing, infType = Nothing}) ["t"]) (NoAlias (Annotation
+{asrc = Just ("x.sql",1,16), atype = Nothing, errs = [], stType =
+Nothing, catUpd = [], fnProt = Nothing, infType = Nothing}))] Nothing
+[] Nothing [] Nothing Nothing)]
+~~~~~
+
+More readable output from this variation:
+
+~~~~~{.haskell}
+> import System.Environment
+
+> import Language.Haskell.Exts
+> import Data.Generics.Uniplate.Data
+
+> import Database.HsSqlPpp.Parser
+
+> main :: IO ()
+> main = do
+>   [f] <- getArgs
+>   ast <- parseStatementsFromFile f
+>   putStrLn $ showNoAnns ast
+
+> showNoAnns :: Show a => a -> String
+> showNoAnns = p stripA
+>   where
+>     stripA :: Exp -> Exp
+>     stripA = transformBi $ \x ->
+>                case x of
+>                  (Paren (RecConstr (UnQual (Ident "Annotation")) _)) ->
+>                           Con $ UnQual $ Ident "Ann"
+>                  x1 -> x1
+>     p f s =
+>         case parseExp (show s) of
+>           ParseOk ast -> prettyPrint (f ast)
+>           x -> error $ show x
+~~~~~
+
+The annotation values have been replace with the string 'Ann', and the
+output indented using haskell-src-exts:
+
+~~~~~
+$ Parse2 x.sql
+Right
+  [QueryStatement Ann
+     (Select Ann Dupes
+        (SelectList Ann [SelExp Ann (Identifier Ann "*")])
+        [Tref Ann (SQIdentifier Ann ["t"]) (NoAlias Ann)]
+        Nothing
+        []
+        Nothing
+        []
+        Nothing
+        Nothing)]
+~~~~~
+
+You can see the various parsing functions in the haddock docs here:
+[Database.HsSqlPpp.Parser](haddock/Database-HsSqlPpp-Parser.html)
+
+Typechecking
+============
+
+Here is a program which parses and typechecks a query and outputs the
+result type:
+
+~~~~~{.haskell}
+> import Database.HsSqlPpp.Parser
+> import Database.HsSqlPpp.TypeChecker
+> import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.Types
+> import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.Ast
+
+> main :: IO ()
+> main = do
+>   let query = "select * from t"
+>       ast :: QueryExpr
+>       Right ast = parseQueryExpr "" query
+>       aast :: QueryExpr
+>       aast = typeCheckQueryExpr cat ast
+>       ann :: Annotation
+>       ann = getAnnotation aast
+>       ty :: Maybe Type
+>       ty = atype ann
+>   print ty
+>   where
+>     Right cat = updateCatalog defaultTemplate1Catalog
+>                   [CatCreateTable "t" [("a", typeInt)
+>                                       ,("b", typeInt)
+>                                       ] []]
+~~~~~
+
+Running gives:
+
+~~~~~
+$ src-extra/examples/TypeCheck
+Just (SetOfType (CompositeType [("a",ScalarType "int4"),("b",ScalarType "int4")]))
+~~~~~
+
+Typecheck against an existing database:
+
+~~~~~{.haskell}
+> import System.Environment
+
+> import Database.HsSqlPpp.Parser
+> import Database.HsSqlPpp.TypeChecker
+> import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.Types
+> import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.Ast
+
+> import Database.HsSqlPpp.Utils.CatalogReader
+
+> main :: IO ()
+> main = do
+>   [cs] <- getArgs
+>   cus <- readCatalogFromDatabase cs
+>   let Right cat = updateCatalog defaultCatalog cus
+>       query = "select * from t"
+>       ast :: QueryExpr
+>       Right ast = parseQueryExpr "" query
+>       aast :: QueryExpr
+>       aast = typeCheckQueryExpr cat ast
+>       ann :: Annotation
+>       ann = getAnnotation aast
+>       ty :: Maybe Type
+>       ty = atype ann
+>   print ty
+~~~~~
+
+Assume the database 'db' has the following table:
+
+~~~~~{.sql}
+create table t (a int, b float);
+~~~~~
+
+~~~~~
+$ TypeCheckDB "dbname=db"
+Just (SetOfType (CompositeType [("a",ScalarType "int4"),("b",ScalarType "float8")]))
+~~~~~
+
+This uses some extra utils which are only available in the repo at the moment:
+[CatalogReader](https://github.com/JakeWheat/hssqlppp/blob/master/src-extra/util/Database/HsSqlPpp/Utils/CatalogReader.lhs)
+
+Generating SQL
+==============
+
+Here is a program which generates SQL:
+
+~~~~~{.haskell}
+> import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Pretty
+
+
+> data MakeSelect = MakeSelect [String] String
+
+> sqlGen :: MakeSelect -> QueryExpr
+> sqlGen (MakeSelect cols tb) =
+>   Select emptyAnnotation Dupes
+>          sl tr
+>          Nothing [] Nothing [] Nothing Nothing
+>   where
+>     sl = SelectList emptyAnnotation
+>                     (map si cols)
+>     tr = [Tref emptyAnnotation
+>                (SQIdentifier emptyAnnotation [tb])
+>                (NoAlias emptyAnnotation)]
+>     si i = SelExp emptyAnnotation
+>                   (Identifier emptyAnnotation
+>                               i)
+
+> main :: IO ()
+> main = do
+>   let s = MakeSelect ["a", "b"] "t"
+>   putStrLn $ printQueryExpr $ sqlGen s
+~~~~~
+
+~~~~~
+$ MakeSelect
+select
+    a, b
+  from
+    t;
+~~~~~
+
+Using quasiquotes
+=================
+
+~~~~~{.haskell}
+> {-# LANGUAGE QuasiQuotes #-}
+> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Quote
+> import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.Pretty
+
+> test :: Statement
+> test = [sqlStmt|
+>
+>   create table $(tablename) (
+>    $(varname) $(typename)
+>   );
+>
+>         |]
+>   where
+>     tablename = "my_table"
+>     varname = "my_field"
+>     typename = "text"
+
+> main :: IO ()
+> main = putStrLn $ printStatements [test]
+
+~~~~~
+
+The output is:
+
+~~~~~
+$ QQ
+create table my_table (
+  my_field text
+);
+~~~~~
