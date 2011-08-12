@@ -7,7 +7,7 @@ For extra utility functions to help with asts
 
 > import Data.Data
 > import Database.HsSqlPpp.AstInternals.AstInternal
-> import Data.Generics.PlateData
+> import Data.Generics.Uniplate.Data
 > import Database.HsSqlPpp.AstInternals.AstAnnotation
 > import Database.HsSqlPpp.AstInternals.TypeType
 > import Control.Monad

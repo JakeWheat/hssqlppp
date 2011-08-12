@@ -8,9 +8,7 @@ Possible uses of this library include:
 
 * parsing SQL
 * lint checking SQL code
-* type-checker can help with SQL development: e.g. change the name of
-  a view, type-check, and you can see which functions you need to
-  update with the new name
+* type-checker can help with SQL development
 * generating SQL code programmatically/ generating SQL from some other
   source
 * transforming SQL code using quasiquoting
@@ -21,9 +19,9 @@ Possible uses of this library include:
 Status
 ======
 
-Pre-alpha. Support for parsing SQL is patchy, but not too bad. Here is
-an extract from the parsing tests which gives a bunch of examples of what
-kind of SQL can currently be parsed:
+Pre-alpha. Support for parsing SQL is patchy, but not too
+bad. Supports queries/DML and DDL. Here is an extract from the parsing
+tests which gives some examples of what can currently be parsed:
 
 * [Parsing examples](ParserTests.html)
 
@@ -35,7 +33,8 @@ Extract from the type checking tests:
 
 * [Type-checking examples](TypeCheckTests.html)
 
-Currently limited support for quasiquoting, here are the examples:
+Currently limited support for quasiquoting, here are the extracts from
+the tests:
 
 * [Quasiquotation examples](QuasiQuoteTests.html)
 
@@ -57,6 +56,8 @@ Documentation
 [Haddock docs](haddock/index.html)
 
 [Examples](examples.txt.html)
+
+[Some notes on hacking on hssqlppp itself](devel.txt.html)
 
 Useful links
 ============

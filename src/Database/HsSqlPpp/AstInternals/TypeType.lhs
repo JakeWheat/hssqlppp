@@ -54,7 +54,7 @@ out. If not, will have to add another type.
 > --import Control.Monad.Error
 >
 > import Data.Data
-> import Data.Generics.PlateData
+> import Data.Generics.Uniplate.Data
 > import Data.Char
 
 > data Type = ScalarType String

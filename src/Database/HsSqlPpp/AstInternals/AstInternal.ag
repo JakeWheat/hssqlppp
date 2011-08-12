@@ -139,7 +139,7 @@ import Data.Char
 import Control.Monad.State
 import Control.Arrow
 
-import Data.Generics.PlateData
+import Data.Generics.Uniplate.Data
 import Debug.Trace
 
 

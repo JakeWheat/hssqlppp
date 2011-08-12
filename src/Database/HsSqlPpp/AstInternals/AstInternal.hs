@@ -1,6 +1,6 @@
 
 
--- UUAGC 0.9.39.0 (src/Database/HsSqlPpp/AstInternals/AstInternal.ag)
+-- UUAGC 0.9.39.1 (src/Database/HsSqlPpp/AstInternals/AstInternal.ag)
 module Database.HsSqlPpp.AstInternals.AstInternal(
     -- {-# LANGUAGE DeriveDataTypeable,ScopedTypeVariables #-}
     --from the ag files:
@@ -95,7 +95,7 @@ import Data.Char
 import Control.Monad.State
 import Control.Arrow
 
-import Data.Generics.PlateData
+import Data.Generics.Uniplate.Data
 import Debug.Trace
 
 

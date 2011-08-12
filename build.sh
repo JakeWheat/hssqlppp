@@ -6,18 +6,18 @@
 
 echo uuagc
 
-uuagc  -dcfwsp -P src/Database/HsSqlPpp/AstInternals/ src/Database/HsSqlPpp/AstInternals/AstInternal.ag
+uuagc  -dcfwsp -P src/Database/HsSqlPpp/AstInternals/ src/Database/HsSqlPpp/AstInternals/AstInternal.ag || exit $?
 
 # generate a new astanti file
 
 echo compile MakeAntiNodes
 
-ghc -isrc-extra/util:src-extra/devel-util src-extra/devel-util/MakeAntiNodesRunner.lhs
+ghc -isrc-extra/util:src-extra/devel-util src-extra/devel-util/MakeAntiNodesRunner.lhs || exit $?
 
 echo run MakeAntiNodes
 
-src-extra/devel-util/MakeAntiNodesRunner
+src-extra/devel-util/MakeAntiNodesRunner || exit $?
 
 echo cabal build
 
-cabal build
+cabal build || exit $?

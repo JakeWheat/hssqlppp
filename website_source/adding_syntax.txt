@@ -1,9 +1,9 @@
 # Adding new syntax
 
-This is an example of how to add new syntax to the library. The basic
-steps are:
+This is an example of how to add new syntax to the library. One way to
+do it is:
 
-add tests to the appropriate file under tests/
+add test(s) to the automated tests under src-extra/tests/
 
 compile and run the tests to check the new test fails
 
@@ -11,17 +11,19 @@ add new datatypes to AstInternals.ag
 
 fix any default uuagc rules if needed
 
-run devel/MakeAntiNodes.lhs which is a crazy-baroque system to support
-the quasi-quotation system (not sure how to make this non-crazy)
+run the build script which processes the ag file into haskell files
 
 add code for parsing and pretty printing the new syntax
 
-compile and run the tests to check that the new test now passes
+compile and run the tests to check that the new test(s) now pass
 
 # Example
 
-The parser currently supports the precision of floating point types,
-e.g.
+Worked through example of adding support for parsing data types with 2
+precision components. (This has already been completed).
+
+The parser/syntax currently supports the precision of floating point
+types, e.g.
 
 ~~~~{.sql}
 create table t {
@@ -55,7 +57,7 @@ Now check the test fails, not really that useful at this time, but
 good sanity check.
 
 ~~~~
-$ cd $PROJ_ROOT/src-extra
+$ cd src-extra
 $ cabal configure
 $ cabal build
 $ dist/build/Tests/Tests -t "numeric"
@@ -79,20 +81,18 @@ ERROR HERE
  Passed  0           0          
  Failed  1           1          
  Total   1           1          
-~/wd/hssqlppp/trunk$ 
 
+$
 ~~~~
 
-Well, the error message isn't perfect, but it fails as expected. You
-can use -t [string] argument to the tests executable to only run the
-tests which match the string.
+You can use -t [string] argument to the tests executable to only run
+the tests which match the string.
 
 ## Syntax
 
-Editing syntax is pretty hairy in hssqlppp (advice on how to improve
-the system is welcome). The first place to go is the AstInternals.ag
-file, which is not written in haskell syntax, but in uuagc syntax
-which is quite similar to haskell.
+Editing syntax is currently pretty hairy in hssqlppp. The first place
+to go is the AstInternals.ag file, which is not written in haskell
+syntax, but in uuagc syntax.
 
 Searching for PrecTypeName in this file should give a good place to
 alter the syntax.
@@ -117,12 +117,12 @@ DATA TypeName | SimpleTypeName ann:Annotation tn:String
 ~~~~
 
 Now we have made changes to an ag file, we need to run uuagc to
-produce AstInternal.hs (see this file for the compilation
-instructions):
+produce AstInternal.hs.
+
+You can use the build.sh script to do this.
 
 ~~~~
-$ cd src/lib/Database/HsSqlPpp/AstInternals
-$ uuagc  -dcfwsp AstInternal.ag
+$ ./build.sh
 ./TypeChecking/Misc.ag:15:18: warning: Missing rule for synthesized attribute namedType in alternative Prec2TypeName of nonterminal TypeName.
 ~~~~
 
@@ -182,18 +182,11 @@ syntax and parsing without doing any fixes to these rules, so you can
 focus on getting the syntax and parsing working first. Patches which
 add new syntax/parsing but leave the type checker broken are OK.
 
-The next step is to generate the antinodes. You probably don't want to
-know what this is all about. See the file devel/MakeAntiNodes.lhs for
-simple instructions on how to do this.
+If the build.sh script completes successfully, then the .ag files
+should be compiled to hs, the AstAnti.hs module should be generated,
+and cabal build run.
 
-So each time you change the syntax types and want to recompile, you
-need to first run uuagc, and then run MakeAntiNodes.
-
-Now use 'cabal build' to see if the tests still compile. Fortunately,
-they do in this case. The next step is to fix the test to match the
-newly created syntax, and check it still fails.
-
-The line in ParserTests.lhs is now
+Time to fix the tests: the line in ParserTests.lhs is now
 
 ~~~~{.haskell}
 e "(245.1)::numeric(5,3)" (Cast ea (FloatLit ea 245.1) (Prec2TypeName ea "numeric" 5 3))
@@ -202,7 +195,7 @@ e "(245.1)::numeric(5,3)" (Cast ea (FloatLit ea 245.1) (Prec2TypeName ea "numeri
 Recompiling works, and running the test fails.
 
 The next job is to add to the parser. The parsing code is mostly in
-src/lib/Database/HsSqlPpp/Parsing/ParserInternal.lhs.
+src/Database/HsSqlPpp/Parsing/ParserInternal.lhs.
 
 Loading this file and searching for PrecTypeName gives the typeName
 parser function:
@@ -260,7 +253,7 @@ elegant.
 We have to use try with this approach since it Prec2TypeName starts
 out the same as PrecTypeName.
 
-== Pretty printing
+## Pretty printing
 
 Compiling and running the tests gives:
 
@@ -269,7 +262,7 @@ parserTests:
   parse expressions:
     simple operators:
       parse 245.1::numeric(5,3): [Failed]
-ERROR: src/lib/Database/HsSqlPpp/PrettyPrinter.lhs:(565,2)-(568,67): Non-exhaustive patterns in function convTypeName
+ERROR: src/Database/HsSqlPpp/PrettyPrinter.lhs:(565,2)-(568,67): Non-exhaustive patterns in function convTypeName
 
 
          Test Cases  Total      
@@ -287,7 +280,7 @@ parse then pretty print gives the same sql (and pretty print then
 parse gives the same ast).
 
 The pretty printing routines are in
-'src/lib/Database/HsSqlPpp.PrettyPrinter'. Here is the line I added
+'src/Database/HsSqlPpp.PrettyPrinter'. Here is the line I added
 after the PrecTypeName pretty printer:
 
 ~~~~{.haskell}
@@ -300,6 +293,4 @@ after the PrecTypeName pretty printer:
 Now the test passes and the only thing left is to run all the tests to
 check nothing else has been broken.
 
-This is just a sketch guide, there are lots of missing details so if
-you give it a go and get stuck, please don't hesitate to email me with
-any questions.
+This is just a sketch guide, please email me if you have any questions.

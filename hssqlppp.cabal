@@ -11,7 +11,7 @@ copyright:           Copyright 2009-2011 Jake Wheat
 stability:           pre-alpha
 homepage:            http://jakewheat.github.com/hssqlppp/
 bug-reports:         https://github.com/JakeWheat/hssqlppp/issues
-category:            Database
+category:            Database,Language
 Description:
     SQL parser and type checker, targets PostgreSQL SQL and PL/pgSQL.
     .

@@ -52,23 +52,23 @@ transformations which implement syntax extensions to sql
 
 public api: the quasiquote functions
 
-> -- | parses Statements
+> -- | quotes Statements
 > sqlStmts :: QuasiQuoter
 > sqlStmts = makeQQ parseAntiSql
 >
-> -- | parses a single Statement
+> -- | quotes a single Statement
 > sqlStmt :: QuasiQuoter
 > sqlStmt = makeQQ parseOneAntiSql
 >
-> -- | parses plpgsql Statements
+> -- | quotes plpgsql Statements
 > pgsqlStmts :: QuasiQuoter
 > pgsqlStmts = makeQQ parseAntiPlpgsql
 >
-> -- | parses a plpgsql Statement
+> -- | quotes a plpgsql Statement
 > pgsqlStmt :: QuasiQuoter
 > pgsqlStmt = makeQQ parseOneAntiPlpgsql
 
-> -- | parse an Expression
+> -- | quotes a ScalarExpr
 > sqlExpr :: QuasiQuoter
 > sqlExpr = makeQQ parseAntiScalarExpr
 

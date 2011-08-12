@@ -7,8 +7,10 @@ add cabal file to compile the automated tests
 add example to typecheck against existing database in postgresql
 get cabal haddock working without any extra work
 get rid of unused cpp dependency and some other extensions
+add some limited docs for hacking hssqlppp
 
 0.3.0
+Released 11/08/2011
 
 Cleanup release
 lots of improvements to the parser

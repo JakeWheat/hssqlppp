@@ -41,7 +41,7 @@ right choice, but it seems to do the job pretty well at the moment.
 > import Data.Maybe
 > import Data.Char
 >
-> import Data.Generics.PlateData
+> import Data.Generics.Uniplate.Data
 > import Data.Data hiding (Prefix,Infix)
 >
 > import Database.HsSqlPpp.Parsing.Lexer

@@ -61,7 +61,7 @@ in scope, and one for an unqualified star.
 > --import Debug.Trace
 > import Data.List
 > --import Data.Maybe
-> import Data.Char
+> --import Data.Char
 > --import Data.Either
 > --import qualified Data.Map as M
 >

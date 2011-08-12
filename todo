@@ -1,17 +1,10 @@
 = fix existing features
 
-== for next release:
-qq back in DONE
-cabal file for tests DONE
-catalog reader, typecheck against db example DONE
-
-build script: uuagc, makeantinodes DONE
+== next
 
 program to generate defaultTemplate1Catalog, etc.
 
 developer docs: overhaul overview of files plus review the other docs
-
-== next + 1
 
 parameterized queries get tests working again
 

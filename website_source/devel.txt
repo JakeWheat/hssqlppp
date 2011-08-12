@@ -1,0 +1,99 @@
+Here are some limited notes on working on the source of hssqlppp:
+
+Get the source
+==============
+please use the code from git to develop with, for instance
+
+~~~~~
+git clone https://github.com/JakeWheat/hssqlppp.git
+~~~~~
+
+Build the library
+=================
+
+Once you have the source, build using cabal
+
+~~~~~
+cabal configure && cabal build
+~~~~~
+
+Rebuild the generated files for the syntax
+==========================================
+
+For a full rebuild, use the build.sh script. This rebuilds two of the
+generated files: AstInternals.hs which is generated from the .ag
+files, and AstAnti.hs.
+
+There is one further generated file,
+DefaultTemplate1Catalog.lhs. There isn't a straightforward way to
+rebuild this at the moment, but you should only need to if there is
+something added to a new version of the PostgreSQL catalog which you
+need to typecheck against.
+
+Build and run the tests
+=======================
+
+To build and run the tests, use:
+
+~~~~~
+cd src-extra
+cabal configure && cabal build
+dist/build/Tests/Tests
+~~~~~
+
+There are a lot of regressions which haven't been fixed, so expect
+lots of failures (~50). These should all be typechecking failures.
+
+Background reading
+==================
+
+Learning Haskell: <http://learnyouahaskell.com/>
+
+The technology buzzwords used in hssqlppp are:
+parsec, uuagc, generics, quasiquoting, pretty printing
+
+Parsec is used for parsing:
+Here is a outdated tutorial for parsec which isn't too bad for getting
+started: <http://legacy.cs.uu.nl/daan/parsec.html>
+
+Chapter in Real World Haskell on parsec:
+<http://book.realworldhaskell.org/read/using-parsec.html>
+
+UUAGC is used for the typechecking. It is also used to define the ast
+data types:
+<http://www.cs.uu.nl/wiki/bin/view/HUT/AttributeGrammarSystem>
+
+A tutorial, not that easy to follow:
+<http://www.cs.uu.nl/wiki/bin/view/HUT/AttributeGrammarManual>
+
+Pretty printing:
+<http://hackage.haskell.org/package/pretty>
+
+Generics:
+Just uses a bit of this at the moment, mostly uses uniplate:
+<http://community.haskell.org/~ndm/uniplate/>
+
+Quasiquotation:
+<http://www.haskell.org/haskellwiki/Quasiquotation>
+
+The automated tests use test-framework and HUnit.
+
+Source overview
+===============
+
+FIXME
+
+weird bits:
+
+* uuagc
+* astanti
+* lexing/parsing split
+* typechecker: fixupidentifiers, describe main attributes
+
+
+Adding syntax
+=============
+
+Probably the most interesting thing to do with the source a the moment
+is add support for new syntax, see this short guide for some pointers:
+[Adding Syntax](adding_syntax.txt.html).
