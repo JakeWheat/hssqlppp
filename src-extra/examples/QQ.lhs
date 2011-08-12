@@ -1,7 +1,7 @@
 
 > {-# LANGUAGE QuasiQuotes #-}
 > import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.SqlQuote
+> import Database.HsSqlPpp.Quote
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Pretty
 

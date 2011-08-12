@@ -77,7 +77,7 @@ to deal with nulls/ maybe types?
 >
 > import Database.HsSqlPpp.Extensions.DenormSyntax
 > import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.SqlQuote
+> import Database.HsSqlPpp.Quote
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Extensions.AstUtils
 >

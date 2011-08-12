@@ -15,7 +15,7 @@ the create_fk call into a create_assertion call
 > --import Database.HsSqlPpp.Annotation
 > --import Database.HsSqlPpp.PrettyPrinter
 > import Database.HsSqlPpp.Extensions.ExtensionsUtils
-> --import Database.HsSqlPpp.SqlQuote
+> --import Database.HsSqlPpp.Quote
 > --import Database.HsSqlPpp.Examples.Extensions.CreateAssertion
 
 > generalInclusionsExamples :: [ExtensionTest]

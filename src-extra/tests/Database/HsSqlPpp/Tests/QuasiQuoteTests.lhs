@@ -13,7 +13,7 @@ Tests mainly for antiquotation, plus examples of where antiquotes work.
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Pretty
-> import Database.HsSqlPpp.SqlQuote
+> import Database.HsSqlPpp.Quote
 >
 > data Item = Expr ScalarExpr ScalarExpr
 >           | Stmts [Statement] [Statement]

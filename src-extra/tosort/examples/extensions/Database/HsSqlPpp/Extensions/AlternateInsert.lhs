@@ -14,7 +14,7 @@ just an insert syntax a bit like updates, so the fields are next to
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Examples.Extensions.ExtensionsUtils
-> import Database.HsSqlPpp.SqlQuote
+> import Database.HsSqlPpp.Quote
 >
 > altInsExamples :: [ExtensionTest]
 > altInsExamples = [altInsExample1]

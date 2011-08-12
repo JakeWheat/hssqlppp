@@ -20,7 +20,7 @@ chaos working again then will review approach.
 > import Database.HsSqlPpp.Annotation
 >
 > import Database.HsSqlPpp.Extensions.ExtensionsUtils
-> import Database.HsSqlPpp.SqlQuote
+> import Database.HsSqlPpp.Quote
 > import Database.HsSqlPpp.Extensions.TransitionConstraints
 > import Database.HsSqlPpp.Extensions.Modules
 > import Database.HsSqlPpp.Extensions.CreateAssertion

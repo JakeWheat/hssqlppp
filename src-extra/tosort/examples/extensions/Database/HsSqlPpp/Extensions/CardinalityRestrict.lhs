@@ -11,7 +11,7 @@ constraint shorthand to restrict cardinality of table
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Extensions.ExtensionsUtils
-> import Database.HsSqlPpp.SqlQuote
+> import Database.HsSqlPpp.Quote
 > import Database.HsSqlPpp.PrettyPrinter
 > import Database.HsSqlPpp.Extensions.CreateAssertion
 > import Database.HsSqlPpp.Annotation

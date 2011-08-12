@@ -10,7 +10,7 @@ Prepend view definitions for a simplified catalog.
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.SqlQuote
+> import Database.HsSqlPpp.Quote
 > import Database.HsSqlPpp.Extensions.AstUtils
 >
 > simplifiedCatalogSt :: [Statement]

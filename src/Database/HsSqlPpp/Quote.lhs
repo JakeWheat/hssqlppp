@@ -8,7 +8,7 @@
 > >
 > > {-# LANGUAGE QuasiQuotes #-}
 > > import Database.HsSqlPpp.Ast
-> > import Database.HsSqlPpp.SqlQuote
+> > import Database.HsSqlPpp.Quote
 > > import Database.HsSqlPpp.Annotation
 > >
 > > test :: Statement
@@ -37,7 +37,7 @@ transformations which implement syntax extensions to sql
 >
 > {-# LANGUAGE ScopedTypeVariables #-}
 >
-> module Database.HsSqlPpp.SqlQuote
+> module Database.HsSqlPpp.Quote
 >     (sqlStmts,sqlStmt,pgsqlStmts,pgsqlStmt,sqlExpr) where
 
 > import Language.Haskell.TH.Quote

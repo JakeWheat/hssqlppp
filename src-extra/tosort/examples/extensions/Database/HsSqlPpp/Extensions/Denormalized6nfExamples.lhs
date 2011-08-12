@@ -6,7 +6,7 @@
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Extensions.ExtensionsUtils
-> import Database.HsSqlPpp.SqlQuote
+> import Database.HsSqlPpp.Quote
 > import Database.HsSqlPpp.Extensions.Denormalized6nf
 > import Database.HsSqlPpp.Annotation
 >

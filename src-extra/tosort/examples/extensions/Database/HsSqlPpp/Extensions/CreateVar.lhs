@@ -14,7 +14,7 @@ database.
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Extensions.ExtensionsUtils
-> import Database.HsSqlPpp.SqlQuote
+> import Database.HsSqlPpp.Quote
 > import Database.HsSqlPpp.PrettyPrinter
 > import Database.HsSqlPpp.Extensions.CreateAssertion
 > import Database.HsSqlPpp.Extensions.AstUtils

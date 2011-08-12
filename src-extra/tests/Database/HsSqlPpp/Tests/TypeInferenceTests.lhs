@@ -16,7 +16,7 @@
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Types
-> import Database.HsSqlPpp.SqlQuote
+> import Database.HsSqlPpp.Quote
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Pretty
 
