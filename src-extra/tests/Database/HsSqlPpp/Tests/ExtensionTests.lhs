@@ -3,8 +3,6 @@
 Set of tests for the old chaosextensions, in the process of being
 replaced
 
-> {-# LANGUAGE RankNTypes,FlexibleContexts #-}
->
 > module Database.HsSqlPpp.Tests.ExtensionTests (extensionTests) where
 >
 > import Test.HUnit

@@ -20,7 +20,7 @@ Executable Tests
   hs-source-dirs:    examples,examples/chaos,examples/extensions,
                      examples/wrappers,examples/util,postgresql,
                      tests,util
-  Build-Depends:   base >= 4 && < 5,
+  Build-Depends:     base >= 4 && < 5,
                      mtl >= 2.0.1.0 && < 2.1,
                      containers >= 0.3.0.0 && < 0.5,
                      parsec >= 3.1 && < 3.2,
@@ -35,14 +35,8 @@ Executable Tests
                      HUnit >= 1.2.2.3 && < 1.3,
                      hssqlppp == 0.3.1
 
-  build-tools:       cpphs
-  ghc-options:       -pgmPcpphs -optP--cpp
-
-  extensions:        DeriveDataTypeable,
-                     RankNTypes,
+  extensions:        TupleSections
+                     DeriveDataTypeable,
                      ScopedTypeVariables,
-                     FlexibleContexts,
-                     ExistentialQuantification,
-                     CPP,
                      PatternGuards,
-                     TupleSections
+                     QuasiQuotes

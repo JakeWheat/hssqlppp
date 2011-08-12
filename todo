@@ -5,15 +5,19 @@ qq back in DONE
 cabal file for tests DONE
 catalog reader, typecheck against db example DONE
 
-parameterized queries/ typesafe haskell wrappers
+build script: uuagc, makeantinodes, defaulttemplate1catalog
+
+== next + 1
 
 developer docs: overhaul overview of files plus review the other docs
 
-development tools:
-makewebsite
-makeantinodes
+parameterized queries get tests working again
 
-== near future:
+typesafe haskell wrappers
+
+devel tools?
+
+== next + 2
 
 typechecking fixup, refactoring -> tests working again + chaos
 
@@ -21,7 +25,13 @@ chaos: get parsing, typechecking again, add simple ui which allows ai
   battles + the crazy transformed sql docs
   later on: use custom syntax plugins, generate documentation
 
-doctool + website
+doctool + website working again?
+
+compiler tool:
+  typecheck sql
+  transform sql -> output or load or just typecheck
+  load into pg
+  display catalog?
 
 
 = new features
@@ -32,12 +42,8 @@ fuller parsing: work through pg manual
 better quasi quotes
 
 fix expression parsing and custom operators: stage one is to do a hack
-which supplies the parser with the operator details
+which supplies the parser with the operator details at run time
 
-chaos: get it parsing, typechecking, use new custom syntax stuff
-       use typesafe haskell wrapper
-       catalog documentation
-       add simple ui which just allows ai battles
 
 reconsider parse tree and ast
 good documentation and plenty of examples, fix up website + nav

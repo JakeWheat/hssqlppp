@@ -2,8 +2,7 @@
 The main file for parsing sql, uses parsec. Not sure if parsec is the
 right choice, but it seems to do the job pretty well at the moment.
 
-> {-# LANGUAGE RankNTypes,FlexibleContexts #-}
->
+> {-# LANGUAGE FlexibleContexts #-}
 > -- | Functions to parse SQL.
 > module Database.HsSqlPpp.Parsing.ParserInternal
 >     (-- * Main
@@ -1439,7 +1438,8 @@ row ctor: one of
 >
 > arraySubSuffix :: ScalarExpr -> SParser ScalarExpr
 > arraySubSuffix e = case e of
->                      Identifier _ "array" -> fail "can't use array as identifier name"
+>                      Identifier _ "array" -> fail "can't use array \
+>                                                   \as identifier name"
 >                      _ -> FunCall <$> pos
 >                                   <*> return "!arraysub"
 >                                   <*> ((e:) <$> squares (commaSep1 expr))

@@ -7,8 +7,7 @@ want to use when looking at an ast. Internal annotations which are
 used in the type-checking/ annotation process use the attribute
 grammar code and aren't exposed.
 
-> {-# LANGUAGE ExistentialQuantification, DeriveDataTypeable,ScopedTypeVariables,
->   RankNTypes,FlexibleContexts #-}
+> {-# LANGUAGE DeriveDataTypeable,ScopedTypeVariables  #-}
 >
 > module Database.HsSqlPpp.AstInternals.AstAnnotation
 >     (

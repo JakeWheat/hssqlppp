@@ -1,6 +1,7 @@
 # Adding new syntax
 
-This is an example of how to add new syntax to the library. The basic steps are:
+This is an example of how to add new syntax to the library. The basic
+steps are:
 
 add tests to the appropriate file under tests/
 
@@ -8,12 +9,10 @@ compile and run the tests to check the new test fails
 
 add new datatypes to AstInternals.ag
 
-fix any default uuagc rules if needed (the typechecker supports
-untypeable syntax reasonably gracefully at the moment so it can
-partially type check asts)
+fix any default uuagc rules if needed
 
 run devel/MakeAntiNodes.lhs which is a crazy-baroque system to support
-the quasi-quotation system. Not sure how to make this non-crazy
+the quasi-quotation system (not sure how to make this non-crazy)
 
 add code for parsing and pretty printing the new syntax
 
@@ -21,7 +20,7 @@ compile and run the tests to check that the new test now passes
 
 # Example
 
-The parser currently supports the precision of flaoting point types,
+The parser currently supports the precision of floating point types,
 e.g.
 
 ~~~~{.sql}
@@ -40,17 +39,9 @@ create table t {
 
 ## Add a test
 
-The first step: add a test. Looking in the tests folder, this seems
-like the best file to add it to:
-tests/Database/HsSqlPpp/Tests/ParserTest.lhs. At the moment, all the
-parsing tests go in this file.
-
-A quick look through shows a good place to add the test, right after
-the test for the float(24) example, which looks like this:
-
-~~~~{.haskell}
-e "245::float(24)" (Cast ea (IntegerLit ea 245) (PrecTypeName ea "float" 24))
-~~~~
+The first step: add a test. At the moment, all the parsing tests go
+src-extra/tests/Database/HsSqlPpp/Tests/ParserTest.lhs. You could also
+add a new module, and link it in src-extra/tests/Tests.
 
 To add the new test, we have to figure out how the new abstract syntax
 will look. We can defer this while we add the test, until we actually
@@ -61,12 +52,11 @@ e "245.1::numeric(5,3)" (Cast ea (FloatLit ea 245.1) (PrecTypeName ea "numeric" 
 ~~~~
 
 Now check the test fails, not really that useful at this time, but
-good sanity check if you are getting used to things. (Adding
---ghc-options "-Wall" gives us all the warnings when compiling with
-cabal which is very useful).
+good sanity check.
 
 ~~~~
-$ cabal configure -ftests --ghc-options "-Wall"
+$ cd $PROJ_ROOT/src-extra
+$ cabal configure
 $ cabal build
 $ dist/build/Tests/Tests -t "numeric"
 parserTests:
@@ -93,24 +83,16 @@ ERROR HERE
 
 ~~~~
 
-Well, the error message isn't very good, but it fails as expected. You
+Well, the error message isn't perfect, but it fails as expected. You
 can use -t [string] argument to the tests executable to only run the
 tests which match the string.
 
 ## Syntax
 
-It's not straightforward to work out what variations postgresql
-supports for these precision parameters to types. In particular, I
-can't immediately see if if is only for float and numeric types, and
-also if custom datatypes can potentially have an arbitrary number of
-parameters, and whether they can be types other than integers. If it's
-simple, then just add another variation on the float(24) support which
-allows two arguments instead of one.
-
 Editing syntax is pretty hairy in hssqlppp (advice on how to improve
 the system is welcome). The first place to go is the AstInternals.ag
 file, which is not written in haskell syntax, but in uuagc syntax
-which isn't too different.
+which is quite similar to haskell.
 
 Searching for PrecTypeName in this file should give a good place to
 alter the syntax.
@@ -195,7 +177,10 @@ SEM TypeName
         loc.backTree = Prec2TypeName @ann @tn @prec @prec1
 ~~~~
 
-Now uuagc runs without warnings.
+Now uuagc runs without warnings. You should mostly be able to add new
+syntax and parsing without doing any fixes to these rules, so you can
+focus on getting the syntax and parsing working first. Patches which
+add new syntax/parsing but leave the type checker broken are OK.
 
 The next step is to generate the antinodes. You probably don't want to
 know what this is all about. See the file devel/MakeAntiNodes.lhs for

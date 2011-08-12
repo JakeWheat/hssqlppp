@@ -38,8 +38,6 @@ Library
                      transformers >= 0.2.2.0 && < 0.3,
                      template-haskell
 
-  build-tools:       cpphs
-
   hs-source-dirs:    src
   Exposed-modules:   Database.HsSqlPpp.Ast
                      Database.HsSqlPpp.Annotation
@@ -67,14 +65,9 @@ Library
                      Database.HsSqlPpp.AstInternals.AnnotationUtils
                      Database.HsSqlPpp.AstInternals.AstInternal
                      Database.HsSqlPpp.AstInternals.TypeType
-  ghc-options:       -pgmPcpphs -optP--cpp
 
-  extensions:        DeriveDataTypeable,
-                     RankNTypes,
+  extensions:        TupleSections
+                     DeriveDataTypeable,
                      ScopedTypeVariables,
-                     FlexibleContexts,
-                     ExistentialQuantification,
-                     CPP,
                      PatternGuards,
-                     TupleSections,
-                     QuasiQuotes
+                     FlexibleContexts

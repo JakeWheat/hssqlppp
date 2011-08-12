@@ -1,8 +1,6 @@
 
 This file contains some generic utility stuff
 
-> {-# LANGUAGE FlexibleContexts #-}
->
 > module Database.HsSqlPpp.Utils.Utils where
 >
 > import Data.List
@@ -102,10 +100,10 @@ order of application stays the same instead of going backwards when
 >
 > -- error utility - convert either to ErrorT String
 >
-> tsl :: (MonadError String m, Show t) => Either t a -> m a
+> {-tsl :: (MonadError String m, Show t) => Either t a -> m a
 > tsl x = case x of
 >                Left s -> throwError $ show s
->                Right b -> return b
+>                Right b -> return b-}
 >
 > listEither :: [Either a b] -> Either [a] [b]
 > listEither es = let (l,r) = partitionEithers es

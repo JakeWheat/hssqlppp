@@ -45,7 +45,7 @@ cabal install uuagc
 -}
 MODULE {Database.HsSqlPpp.AstInternals.AstInternal}
 {
-    -- {-# LANGUAGE DeriveDataTypeable,RankNTypes,ScopedTypeVariables #-}
+    -- {-# LANGUAGE DeriveDataTypeable,ScopedTypeVariables #-}
     --from the ag files:
     --ast nodes
     Statement (..)
