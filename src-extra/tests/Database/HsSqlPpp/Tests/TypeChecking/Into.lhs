@@ -1,30 +1,25 @@
 
-Set of tests to check the type checking code. Includes tests for the
-errors for sql which doesn't type check.
-
 > module Database.HsSqlPpp.Tests.TypeChecking.Into
 >     (tcIntoTestData) where
 >
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
 
 > import Database.HsSqlPpp.Types
->
-> --import Database.HsSqlPpp.Catalog
 
 --------------------------------------------------------------------------------
 
 
 > tcIntoTestData :: Item
-> tcIntoTestData = --fixme
+> tcIntoTestData = --fixme: intos need fixing
 >   Group "select into" $ drop 1000 [
 >       s "insert into pg_attrdef (adrelid,adnum,adbin,adsrc)\n\
 >         \values (1,2, 'a', 'b') returning adnum,adbin;"
->         $ Right [Just $ ([], [("adnum", ScalarType "int2")
+>         $ Right [Just ([], [("adnum", ScalarType "int2")
 >                                          ,("adbin", ScalarType "text")])]
 >      ,s "update pg_attrdef set adnum = adnum + 1 returning adnum;"
->         $ Right [Just $ ([], [("adnum", ScalarType "int2")])]
+>         $ Right [Just ([], [("adnum", ScalarType "int2")])]
 >      ,s "delete from pg_attrdef returning adnum,adbin;"
->         $ Right [Just $ ([], [("adnum", ScalarType "int2")
+>         $ Right [Just ([], [("adnum", ScalarType "int2")
 >                                          ,("adbin", ScalarType "text")])]
 >      ,s "create function t1() returns void as $$\n\
 >         \declare\n\
@@ -114,8 +109,5 @@ errors for sql which doesn't type check.
 >         $ Right [Nothing]
 >      ]
 >  where
->    --e = Expr
 >    s = StmtType
->    --c = CatStmtType
->    --d = Ddl
 

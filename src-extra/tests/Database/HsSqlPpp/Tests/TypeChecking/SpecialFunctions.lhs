@@ -1,8 +1,4 @@
 
-Set of tests to check the type checking code. Includes tests for the
-errors for sql which doesn't type check.
-
-> {-# LANGUAGE QuasiQuotes #-}
 > module Database.HsSqlPpp.Tests.TypeChecking.SpecialFunctions
 >     (tcSpecialFunctionsTestData) where
 >
@@ -34,7 +30,3 @@ errors for sql which doesn't type check.
 >      ]
 >  where
 >    e = Expr
->    --s = StmtType
->    --c = CatStmtType
->    --d = Ddl
-

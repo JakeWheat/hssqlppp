@@ -9,17 +9,7 @@ There are no tests for invalid syntax at the moment.
 
 > module Database.HsSqlPpp.Tests.Parsing.Misc (miscParserTestData) where
 >
-> --import Test.HUnit
-> --import Test.Framework
-> --import Test.Framework.Providers.HUnit
-> --import Data.Generics
->
-> --import Database.HsSqlPpp.Utils.Here
->
 > import Database.HsSqlPpp.Ast
-> --import Database.HsSqlPpp.Annotation
-> --import Database.HsSqlPpp.Parser
-> --import Database.HsSqlPpp.Pretty
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
 >
@@ -70,6 +60,4 @@ ddl statements
 >     ]
 >     ]
 >  where
->    --e = Expr
 >    s = Stmt
->    --f = PgSqlStmt

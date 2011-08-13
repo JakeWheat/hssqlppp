@@ -1,17 +1,8 @@
 
 > module Database.HsSqlPpp.Tests.Parsing.Utils where
 
-> --import Test.HUnit
-> --import Test.Framework
-> --import Test.Framework.Providers.HUnit
-> --import Data.Generics
->
-> --import Database.HsSqlPpp.Utils.Here
->
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
-> --import Database.HsSqlPpp.Parser
-> --import Database.HsSqlPpp.Pretty
 
 > data Item = Expr String ScalarExpr
 >           | Stmt String [Statement]
@@ -48,7 +39,7 @@ shortcuts for constructing test data and asts
 > dqi ii = SQIdentifier ea [ii]
 
 > eqi :: String -> String -> ScalarExpr
-> eqi c n = QIdentifier ea (Identifier ea c) n
+> eqi c = QIdentifier ea (Identifier ea c)
 
 > ei :: String -> ScalarExpr
 > ei = Identifier ea
@@ -60,7 +51,7 @@ shortcuts for constructing test data and asts
 > selI = SelExp ea . Identifier ea
 >
 > sl :: SelectItemList -> SelectList
-> sl a = SelectList ea a
+> sl = SelectList ea
 >
 > selectFromWhere :: SelectItemList
 >                 -> TableRef

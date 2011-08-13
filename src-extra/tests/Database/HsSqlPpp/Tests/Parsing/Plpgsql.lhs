@@ -2,17 +2,7 @@
 
 > module Database.HsSqlPpp.Tests.Parsing.Plpgsql (pgplsqlParsingTestData) where
 >
-> --import Test.HUnit
-> --import Test.Framework
-> --import Test.Framework.Providers.HUnit
-> --import Data.Generics
->
-> --import Database.HsSqlPpp.Utils.Here
->
 > import Database.HsSqlPpp.Ast
-> --import Database.HsSqlPpp.Annotation
-> --import Database.HsSqlPpp.Parser
-> --import Database.HsSqlPpp.Pretty
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
 
@@ -42,6 +32,8 @@
 >       [Perform ea $ FunCall ea "test" [
 >                     FunCall ea "||" [eqi "r" "relvar_name"
 >                                     ,stringQ "_and_stuff"]]]
+>       -- FIXME: get into working again
+>       -- This should be in the plpgsql section
 >      {-,f "select into a,b c,d from e;"
 >       [Into ea False [ei "a", ei "b"]
 >        $ QueryStatement ea $ Select ea Dupes (SelectList ea [selI "c", selI "d"])
@@ -118,15 +110,15 @@
 >         \else\n\
 >         \  null;\n\
 >         \end if;"
->       [If ea [((BooleanLit ea True),[NullStatement ea])]
+>       [If ea [(BooleanLit ea True,[NullStatement ea])]
 >        [NullStatement ea]]
 >      ,f "if true then\n\
 >         \  null;\n\
 >         \elseif false then\n\
 >         \  return;\n\
 >         \end if;"
->       [If ea [((BooleanLit ea True), [NullStatement ea])
->           ,((BooleanLit ea False), [Return ea Nothing])]
+>       [If ea [(BooleanLit ea True, [NullStatement ea])
+>              ,(BooleanLit ea False, [Return ea Nothing])]
 >        []]
 >      ,f "if true then\n\
 >         \  null;\n\
@@ -137,9 +129,9 @@
 >         \else\n\
 >         \  return;\n\
 >         \end if;"
->       [If ea [((BooleanLit ea True), [NullStatement ea])
->           ,((BooleanLit ea False), [Return ea Nothing])
->           ,((BooleanLit ea False), [Return ea Nothing])]
+>       [If ea [(BooleanLit ea True, [NullStatement ea])
+>              ,(BooleanLit ea False, [Return ea Nothing])
+>              ,(BooleanLit ea False, [Return ea Nothing])]
 >        [Return ea Nothing]]
 >      ,f "case a\n\
 >         \  when b then null;\n\
@@ -152,6 +144,4 @@
 >       [NullStatement ea]]
 >     ]]
 >  where
->    --e = Expr
->    --s = Stmt
 >    f = PgSqlStmt

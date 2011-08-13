@@ -7,8 +7,6 @@ reflects.
 
 There are no tests for invalid syntax at the moment.
 
-> {-# LANGUAGE QuasiQuotes #-}
->
 > module Database.HsSqlPpp.Tests.Parsing.ParserTests
 >     (parserTests
 >     ,parserTestData
@@ -20,8 +18,6 @@ There are no tests for invalid syntax at the moment.
 > import Test.Framework.Providers.HUnit
 > import Data.Generics
 >
-> --import Database.HsSqlPpp.Utils.Here
->
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Parser
@@ -29,7 +25,6 @@ There are no tests for invalid syntax at the moment.
 >
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
-> --import Database.HsSqlPpp.Tests.Parsing.Utils
 > import Database.HsSqlPpp.Tests.Parsing.Expressions
 > import Database.HsSqlPpp.Tests.Parsing.Selects
 > import Database.HsSqlPpp.Tests.Parsing.Dml

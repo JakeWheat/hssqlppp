@@ -1,7 +1,4 @@
 
-Set of tests to check the type checking code. Includes tests for the
-errors for sql which doesn't type check.
-
 > module Database.HsSqlPpp.Tests.TypeChecking.Drops
 >     (tcDropsTestData) where
 >
@@ -15,7 +12,7 @@ errors for sql which doesn't type check.
 
 
 > tcDropsTestData :: Item
-> tcDropsTestData = --fixme
+> tcDropsTestData =
 >   Group "drop stuff" [
 >       d "create function test(a int) returns void as $$\n\
 >         \begin\n\
@@ -30,15 +27,13 @@ errors for sql which doesn't type check.
 >         \$$ language plpgsql;\n\
 >         \drop function test(int);"
 >         []
->      ,d "drop function test(int);" -- this should fail but doesn't
+>         -- FIXME: this should fail but doesn't
+>      ,d "drop function test(int);"
 >         []
 >      ,d "drop function if exists test(int);"
 >         []
 >      ]
 
 >  where
->    --e = Expr
->    --s = StmtType
->    --c = CatStmtType
 >    d = Ddl
 

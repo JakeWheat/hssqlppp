@@ -1,8 +1,4 @@
 
-Set of tests to check the type checking code. Includes tests for the
-errors for sql which doesn't type check.
-
-> {-# LANGUAGE QuasiQuotes #-}
 > module Database.HsSqlPpp.Tests.TypeChecking.SimpleExpressions
 >     (tcSimpleExpressionTestData) where
 >
@@ -38,6 +34,7 @@ errors for sql which doesn't type check.
 >      ,e "array[1,2,3][2]" $ Right typeInt
 >      ,e "array['a','b'][1]" $ Right UnknownType
 >      ,e "array['a'::text,'b'][1]" $ Right (ScalarType "text")
+>         -- FIXME?
 >      {-,p "array['a','b'][true]" (TypeError ("",0,0)
 >                                   (WrongType
 >                                    typeInt
@@ -74,7 +71,3 @@ errors for sql which doesn't type check.
 >      ]
 >  where
 >    e = Expr
->    --s = StmtType
->    --c = CatStmtType
->    --d = Ddl
-

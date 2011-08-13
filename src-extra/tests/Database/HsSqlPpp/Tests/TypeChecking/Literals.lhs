@@ -1,8 +1,4 @@
 
-Set of tests to check the type checking code. Includes tests for the
-errors for sql which doesn't type check.
-
-> {-# LANGUAGE QuasiQuotes #-}
 > module Database.HsSqlPpp.Tests.TypeChecking.Literals
 >     (tcLiteralTestData) where
 >

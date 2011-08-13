@@ -1,19 +1,7 @@
 
-> {-# LANGUAGE QuasiQuotes #-}
->
 > module Database.HsSqlPpp.Tests.Parsing.Dml (dmlParsingTestData) where
 >
-> --import Test.HUnit
-> --import Test.Framework
-> --import Test.Framework.Providers.HUnit
-> --import Data.Generics
->
-> --import Database.HsSqlPpp.Utils.Here
->
 > import Database.HsSqlPpp.Ast
-> --import Database.HsSqlPpp.Annotation
-> --import Database.HsSqlPpp.Parser
-> --import Database.HsSqlPpp.Pretty
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
 
@@ -135,6 +123,4 @@ copy, bit crap at the moment
 >         \bear\tf\n"]
 >      ]]
 >  where
->    --e = Expr
 >    s = Stmt
->    --f = PgSqlStmt

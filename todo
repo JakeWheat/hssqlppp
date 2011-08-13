@@ -1,10 +1,6 @@
-= fix existing features
 
+= next release
 
-
-== next release
-
-add extension tests back in
 review test source manually and add in fixme comments to track
  - lots of stuff already commented out
 get most/all of the query/dml stuff working again inc. fixup
@@ -16,7 +12,7 @@ typesafe haskell wrappers
 
 devel tools?
 
-== next + 2
+= next + 2
 
 finish off existing typechecking fixes
 
@@ -28,18 +24,14 @@ syntax refactor? - follow sql standard better, split sql and plpgsql
 
 chaos: get parsing, typechecking again, add simple ui which allows ai
   battles + the crazy transformed sql docs
+  loaded via compiler tool
   later on: use custom syntax plugins, generate documentation
 
 doctool + website working again?
 
-compiler tool:
-  typecheck sql
-  transform sql -> output or load or just typecheck
-  load into pg
-  display catalog?
+add extension tests back in ... - ?
 
-
-= new features
+= future features
 custom syntax plugins for parser
 docgen for sql codebase
 catalog work - better checking, more items in catalog

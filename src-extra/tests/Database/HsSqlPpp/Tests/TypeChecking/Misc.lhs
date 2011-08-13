@@ -45,7 +45,7 @@ errors for sql which doesn't type check.
 
 >   ,-}Group "window fns" [
 >       s "select *, row_number() over () from pg_attrdef;"
->         $ Right [Just $ ([],
+>         $ Right [Just ([],
 >                   [("adrelid",ScalarType "oid")
 >                   ,("adnum",ScalarType "int2")
 >                   ,("adbin",ScalarType "text")

@@ -1,8 +1,4 @@
 
-Set of tests to check the type checking code. Includes tests for the
-errors for sql which doesn't type check.
-
-> {-# LANGUAGE QuasiQuotes #-}
 > module Database.HsSqlPpp.Tests.TypeChecking.MiscExpressions
 >     (miscExpressionsTestData) where
 >
@@ -54,7 +50,7 @@ check casts from unknown string lits
 >         $ Right typeInt
 >      ,e "cast ('1' as baz)"
 >         $ Left [UnknownTypeName "baz"]
->      ,e "array[]" -- this isn't quite right but not sure how to do it atm
+>      ,e "array[]" -- FIXME: this isn't quite right but not sure how to do it atm
 >                   -- no point fixing this case since need a load of other
 >                   -- test cases where the behaviour is different
 >         $ Right (Pseudo AnyArray) -- Left [TypelessEmptyArray]
@@ -65,7 +61,3 @@ check casts from unknown string lits
 >      ]
 >  where
 >    e = Expr
->    --s = StmtType
->    --c = CatStmtType
->    --d = Ddl
-

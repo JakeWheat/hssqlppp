@@ -1,15 +1,10 @@
 
-Set of tests to check the type checking code. Includes tests for the
-errors for sql which doesn't type check.
-
 > module Database.HsSqlPpp.Tests.TypeChecking.Plpgsql
 >     (tcPlpgsqlTestData) where
 >
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
 
 > import Database.HsSqlPpp.Types
->
-> --import Database.HsSqlPpp.Catalog
 
 --------------------------------------------------------------------------------
 
@@ -30,7 +25,7 @@ check type of initial values
 
 
 > tcPlpgsqlTestData :: Item
-> tcPlpgsqlTestData = --fixme
+> tcPlpgsqlTestData = --fixme: plpgsql ids
 >   Group "plpgsql" $ drop 1000 [
 >   Group "create function param resolution" [
 >       s "create function t1(stuff text) returns text as $$\n\
@@ -180,8 +175,5 @@ check type of initial values
 >      ]
 >      ]
 >  where
->    --e = Expr
 >    s = StmtType
->    --c = CatStmtType
->    --d = Ddl
 

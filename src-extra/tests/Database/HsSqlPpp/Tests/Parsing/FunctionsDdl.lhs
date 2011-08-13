@@ -2,17 +2,7 @@
 
 > module Database.HsSqlPpp.Tests.Parsing.FunctionsDdl (functionsDdlParsingTestData) where
 >
-> --import Test.HUnit
-> --import Test.Framework
-> --import Test.Framework.Providers.HUnit
-> --import Data.Generics
->
-> --import Database.HsSqlPpp.Utils.Here
->
 > import Database.HsSqlPpp.Ast
-> --import Database.HsSqlPpp.Annotation
-> --import Database.HsSqlPpp.Parser
-> --import Database.HsSqlPpp.Pretty
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
 
@@ -152,6 +142,4 @@
 >                           ,("test",[SimpleTypeName ea "text"])] Cascade]
 >     ]]
 >  where
->    --e = Expr
 >    s = Stmt
->    --f = PgSqlStmt

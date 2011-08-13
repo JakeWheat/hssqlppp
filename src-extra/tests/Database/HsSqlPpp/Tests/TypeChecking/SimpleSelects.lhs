@@ -1,8 +1,4 @@
 
-Set of tests to check the type checking code. Includes tests for the
-errors for sql which doesn't type check.
-
-> {-# LANGUAGE QuasiQuotes #-}
 > module Database.HsSqlPpp.Tests.TypeChecking.SimpleSelects
 >     (tcSimpleSelectsTestData) where
 >
@@ -14,39 +10,35 @@ errors for sql which doesn't type check.
 > tcSimpleSelectsTestData :: Item
 > tcSimpleSelectsTestData =
 >   Group "simple selects" [
->       s "select 1;" $ Right [Just $ ([], [("?column?", typeInt)])]
+>       s "select 1;" $ Right [Just ([], [("?column?", typeInt)])]
 >      ,s "select 1 as a;" $
->         Right [Just $ ([], [("a", typeInt)])]
+>         Right [Just ([], [("a", typeInt)])]
 >      ,s "select 1,2;" $
->         Right [Just $ ([], [("?column?", typeInt)
+>         Right [Just ([], [("?column?", typeInt)
 >                                                 ,("?column?", typeInt)])]
 >      ,s "select 1 as a, 2 as b;" $
->         Right [Just $ ([], [("a", typeInt)
+>         Right [Just ([], [("a", typeInt)
 >                                                 ,("b", typeInt)])]
 >      ,s "select 1+2 as a, 'a' || 'b';" $
->         Right [Just $ ([], [("a", typeInt)
+>         Right [Just ([], [("a", typeInt)
 >                                        ,("?column?", ScalarType "text")])]
->      ,s "values (1,2);" $ Right [Just $ ([],
+>      ,s "values (1,2);" $ Right [Just ([],
 >                                           [("column1", typeInt)
 >                                           ,("column2", typeInt)])]
->      ,s "values (1,2),('3', '4');" $ Right [Just $ ([],
+>      ,s "values (1,2),('3', '4');" $ Right [Just ([],
 >                                                      [("column1", typeInt)
 >                                                      ,("column2", typeInt)])]
 >      ,s "values (1,2),('a', true);" $ Left [IncompatibleTypeSet [typeInt
 >                                                                 ,typeBool]]
->      ,s "values ('3', '4'),(1,2);" $ Right [Just $ ([],
+>      ,s "values ('3', '4'),(1,2);" $ Right [Just ([],
 >                                                      [("column1", typeInt)
 >                                                      ,("column2", typeInt)])]
 >      ,s "values ('a', true),(1,2);" $ Left [IncompatibleTypeSet [typeBool
 >                                                                 ,typeInt]]
->      ,s "values ('a'::text, '2'::int2),('1','2');" $ Right [Just $ ([],
+>      ,s "values ('a'::text, '2'::int2),('1','2');" $ Right [Just ([],
 >                                      [("column1", ScalarType "text")
 >                                      ,("column2", typeSmallInt)])]
 >      ,s "values (1,2,3),(1,2);" $ Left [ValuesListsMustBeSameLength]
 >      ]
 >  where
->    --e = Expr
 >    s = StmtType
->    --c = CatStmtType
->    --d = Ddl
-

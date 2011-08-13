@@ -1,15 +1,10 @@
 
-Set of tests to check the type checking code. Includes tests for the
-errors for sql which doesn't type check.
-
 > module Database.HsSqlPpp.Tests.TypeChecking.Update
 >     (tcUpdateTestData) where
 >
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
 
 > import Database.HsSqlPpp.Types
->
-> --import Database.HsSqlPpp.Catalog
 
 > tcUpdateTestData :: Item
 > tcUpdateTestData = -- FIXME : update broken
@@ -35,17 +30,18 @@ errors for sql which doesn't type check.
 >      ,s "update pg_attrdef set (shmadrelid,adsrc) = ('a','b');"
 >         $ Left [UnrecognisedIdentifier "shmadrelid"]
 >      ,s "update pg_attrdef set adsrc='';"
->         $ Right [Just $ ([], [] {-UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")]-})]
+>         $ Right [Just ([], [] {-UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")]-})]
 >      ,s "update pg_attrdef set adsrc='' where 1=2;"
->         $ Right [Just $ ([], [] {-UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")]-})]
+>         $ Right [Just ([], [] {-UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")]-})]
+>           -- FIXME?
 >       -- TODO: actually, pg doesn't support this so need to generate error instead
 >      {-,s "update pg_attrdef set (adbin,adsrc) = ((select 'a','b'));"
->         $ Right [Just $ ([], [] {-UpdateInfo "pg_attrdef" [("adbin",ScalarType "text"),("adsrc",ScalarType "text")]-})]-}
+>         $ Right [Just ([], [] {-UpdateInfo "pg_attrdef" [("adbin",ScalarType "text"),("adsrc",ScalarType "text")]-})]-}
 >      --check where ids
 >      ,s "update pg_attrdef set adsrc='' where adsrc='';"
->         $ Right [Just $ ([], [] {-UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")]-})]
+>         $ Right [Just ([], [] {-UpdateInfo "pg_attrdef" [("adsrc",ScalarType "text")]-})]
 >      ,s "update pg_attrdef set adnum = adnum + 1;"
->         $ Right [Just $ ([], [] {-UpdateInfo "pg_attrdef" [("adnum",ScalarType "int2")]-})]
+>         $ Right [Just ([], [] {-UpdateInfo "pg_attrdef" [("adnum",ScalarType "int2")]-})]
 >      ]
 
 >  where
