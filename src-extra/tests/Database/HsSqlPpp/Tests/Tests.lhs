@@ -12,12 +12,7 @@
 
 > import Database.HsSqlPpp.Tests.QuasiQuoteTests
 
-> --import Database.HsSqlPpp.Tests.TypeInferenceTests
-> --import Database.HsSqlPpp.Tests.TypeCheckTests
-> --import Database.HsSqlPpp.Tests.TypeChecking.TpchTests
-> --import Database.HsSqlPpp.Extensions.ExtensionTests
-> --import Database.HsSqlPpp.Tests.ParameterizedStatementTests
-> --import Database.HsSqlPpp.Tests.RoundtripTests
+> --import Database.HsSqlPpp.Tests.ExtensionTests
 
 >
 > allTests :: [Test]
@@ -25,13 +20,8 @@
 >     parserTests
 >     : fixUpIdentifiersTests
 >     : explicitCastTests
->     -- : tableRefTests
->     : typeCheckTests
->     -- : tpchTests
 >     : quasiQuoteTests
->     -- : typeInferenceTests
->     -- : parameterizedStatementTests
+>     : typeCheckTests
 >     -- : extensionTests
->     -- : roundtripTests
 >     : []
 

@@ -1,6 +1,14 @@
 = fix existing features
 
-== next
+
+
+== next release
+
+add extension tests back in
+review test source manually and add in fixme comments to track
+ - lots of stuff already commented out
+get most/all of the query/dml stuff working again inc. fixup
+  identifiers for with
 
 parameterized queries get tests working again
 
@@ -10,10 +18,13 @@ devel tools?
 
 == next + 2
 
-break up parsing and typechecking tests into many files before working
-on fixing typechecking
+finish off existing typechecking fixes
 
-typechecking fixup, refactoring -> tests working again + chaos
+typechecking fixup, refactoring? -> tests working again
+chaos typecheck ok
+
+syntax refactor? - follow sql standard better, split sql and plpgsql
+  statements, get rid of separate astanti?
 
 chaos: get parsing, typechecking again, add simple ui which allows ai
   battles + the crazy transformed sql docs
@@ -34,9 +45,6 @@ docgen for sql codebase
 catalog work - better checking, more items in catalog
 fuller parsing: work through pg manual
 better quasi quotes
-ast review: main thing is to go through sql grammar standard and make
-  ast look more like this
-other big thing is splitting out sql statements from plpgsql statements
 consider adding explicit parens to ast?
 
 fix expression parsing and custom operators: stage one is to do a hack

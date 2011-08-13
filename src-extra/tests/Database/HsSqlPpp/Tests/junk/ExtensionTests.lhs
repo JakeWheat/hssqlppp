@@ -12,7 +12,7 @@ replaced
 >
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.Examples.ChaosExtensions
+> import ChaosExtensions
 > import Database.HsSqlPpp.Ast
 > --import Database.HsSqlPpp.PrettyPrinter.PrettyPrinter
 >

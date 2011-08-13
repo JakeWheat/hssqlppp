@@ -11,7 +11,7 @@ examples.
 > import Database.HsSqlPpp.Utils.Here
 > import Text.Groom
 > import Database.HsSqlPpp.Tests.Parsing.ParserTests as PT
-> import Database.HsSqlPpp.Tests.TypeCheckTests as TT
+> import Database.HsSqlPpp.Tests.TypeChecking.TypeCheckTests as TT
 > import Language.Haskell.Exts hiding (String)
 > import qualified Language.Haskell.Exts as Exts
 > --import Data.Generics
