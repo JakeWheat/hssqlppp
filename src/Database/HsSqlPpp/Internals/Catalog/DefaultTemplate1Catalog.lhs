@@ -1,11 +1,9 @@
 
 
 
-
-This file is auto generated, to regenerate run
-MUMBLE MUMBLE SOMETHING
-
-from the project root (i.e. where the cabal file is located).
+This file is auto generated, to regenerate use the
+regenDefaultTemplate1catalog.sh script. You will need postgresql
+installed to do this.
 
 > module Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
 >      (defaultTemplate1Catalog) where
@@ -20,7 +18,7 @@ from the project root (i.e. where the cabal file is located).
 >              Right e -> e) $
 >      updateCatalog defaultCatalog
 
- 
+    
 >        [CatCreateScalar (ScalarType "bool") "B" True,
 >         CatCreateScalar (ScalarType "bytea") "U" False,
 >         CatCreateScalar (ScalarType "char") "S" False,
@@ -86,6 +84,8 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "varchar"),
 >         CatCreateDomain (DomainType "information_schema.time_stamp")
 >           (ScalarType "timestamptz"),
+>         CatCreateDomain (DomainType "information_schema.yes_or_no")
+>           (ScalarType "varchar"),
 >         CatCreateCast (ScalarType "int8") (ScalarType "int2")
 >           AssignmentCastContext,
 >         CatCreateCast (ScalarType "int8") (ScalarType "int4")
@@ -468,20 +468,20 @@ from the project root (i.e. where the cabal file is located).
 >           ImplicitCastContext,
 >         CatCreateCast (ScalarType "numeric") (ScalarType "numeric")
 >           ImplicitCastContext,
+>         CatCreateFunction FunPrefix "~" [ScalarType "bit"]
+>           (ScalarType "bit")
+>           False,
 >         CatCreateFunction FunPrefix "~" [ScalarType "int8"]
 >           (ScalarType "int8")
 >           False,
 >         CatCreateFunction FunPrefix "~" [ScalarType "int4"]
 >           (ScalarType "int4")
 >           False,
->         CatCreateFunction FunPrefix "~" [ScalarType "int2"]
->           (ScalarType "int2")
->           False,
->         CatCreateFunction FunPrefix "~" [ScalarType "bit"]
->           (ScalarType "bit")
->           False,
 >         CatCreateFunction FunPrefix "~" [ScalarType "inet"]
 >           (ScalarType "inet")
+>           False,
+>         CatCreateFunction FunPrefix "~" [ScalarType "int2"]
+>           (ScalarType "int2")
 >           False,
 >         CatCreateFunction FunPrefix "||/" [ScalarType "float8"]
 >           (ScalarType "float8")
@@ -492,35 +492,38 @@ from the project root (i.e. where the cabal file is located).
 >         CatCreateFunction FunPrefix "|" [ScalarType "tinterval"]
 >           (ScalarType "abstime")
 >           False,
->         CatCreateFunction FunPrefix "@@" [ScalarType "circle"]
->           (ScalarType "point")
->           False,
 >         CatCreateFunction FunPrefix "@@" [ScalarType "lseg"]
->           (ScalarType "point")
->           False,
->         CatCreateFunction FunPrefix "@@" [ScalarType "path"]
 >           (ScalarType "point")
 >           False,
 >         CatCreateFunction FunPrefix "@@" [ScalarType "polygon"]
 >           (ScalarType "point")
 >           False,
+>         CatCreateFunction FunPrefix "@@" [ScalarType "circle"]
+>           (ScalarType "point")
+>           False,
 >         CatCreateFunction FunPrefix "@@" [ScalarType "box"]
 >           (ScalarType "point")
 >           False,
->         CatCreateFunction FunPrefix "@-@" [ScalarType "path"]
->           (ScalarType "float8")
+>         CatCreateFunction FunPrefix "@@" [ScalarType "path"]
+>           (ScalarType "point")
 >           False,
 >         CatCreateFunction FunPrefix "@-@" [ScalarType "lseg"]
 >           (ScalarType "float8")
 >           False,
->         CatCreateFunction FunPrefix "@" [ScalarType "int8"]
->           (ScalarType "int8")
+>         CatCreateFunction FunPrefix "@-@" [ScalarType "path"]
+>           (ScalarType "float8")
+>           False,
+>         CatCreateFunction FunPrefix "@" [ScalarType "int2"]
+>           (ScalarType "int2")
 >           False,
 >         CatCreateFunction FunPrefix "@" [ScalarType "int4"]
 >           (ScalarType "int4")
 >           False,
->         CatCreateFunction FunPrefix "@" [ScalarType "int2"]
->           (ScalarType "int2")
+>         CatCreateFunction FunPrefix "@" [ScalarType "numeric"]
+>           (ScalarType "numeric")
+>           False,
+>         CatCreateFunction FunPrefix "@" [ScalarType "int8"]
+>           (ScalarType "int8")
 >           False,
 >         CatCreateFunction FunPrefix "@" [ScalarType "float8"]
 >           (ScalarType "float8")
@@ -528,13 +531,10 @@ from the project root (i.e. where the cabal file is located).
 >         CatCreateFunction FunPrefix "@" [ScalarType "float4"]
 >           (ScalarType "float4")
 >           False,
->         CatCreateFunction FunPrefix "@" [ScalarType "numeric"]
->           (ScalarType "numeric")
->           False,
->         CatCreateFunction FunPrefix "?|" [ScalarType "line"]
+>         CatCreateFunction FunPrefix "?|" [ScalarType "lseg"]
 >           (ScalarType "bool")
 >           False,
->         CatCreateFunction FunPrefix "?|" [ScalarType "lseg"]
+>         CatCreateFunction FunPrefix "?|" [ScalarType "line"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunPrefix "?-" [ScalarType "lseg"]
@@ -545,9 +545,6 @@ from the project root (i.e. where the cabal file is located).
 >           False,
 >         CatCreateFunction FunPrefix "-" [ScalarType "interval"]
 >           (ScalarType "interval")
->           False,
->         CatCreateFunction FunPrefix "-" [ScalarType "numeric"]
->           (ScalarType "numeric")
 >           False,
 >         CatCreateFunction FunPrefix "-" [ScalarType "float8"]
 >           (ScalarType "float8")
@@ -561,11 +558,23 @@ from the project root (i.e. where the cabal file is located).
 >         CatCreateFunction FunPrefix "-" [ScalarType "int4"]
 >           (ScalarType "int4")
 >           False,
+>         CatCreateFunction FunPrefix "-" [ScalarType "numeric"]
+>           (ScalarType "numeric")
+>           False,
 >         CatCreateFunction FunPrefix "-" [ScalarType "int8"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunPrefix "+" [ScalarType "int8"]
 >           (ScalarType "int8")
 >           False,
 >         CatCreateFunction FunPrefix "+" [ScalarType "int2"]
 >           (ScalarType "int2")
+>           False,
+>         CatCreateFunction FunPrefix "+" [ScalarType "int4"]
+>           (ScalarType "int4")
+>           False,
+>         CatCreateFunction FunPrefix "+" [ScalarType "float4"]
+>           (ScalarType "float4")
 >           False,
 >         CatCreateFunction FunPrefix "+" [ScalarType "float8"]
 >           (ScalarType "float8")
@@ -573,33 +582,20 @@ from the project root (i.e. where the cabal file is located).
 >         CatCreateFunction FunPrefix "+" [ScalarType "numeric"]
 >           (ScalarType "numeric")
 >           False,
->         CatCreateFunction FunPrefix "+" [ScalarType "int8"]
->           (ScalarType "int8")
->           False,
->         CatCreateFunction FunPrefix "+" [ScalarType "float4"]
->           (ScalarType "float4")
->           False,
->         CatCreateFunction FunPrefix "+" [ScalarType "int4"]
->           (ScalarType "int4")
->           False,
 >         CatCreateFunction FunPrefix "#" [ScalarType "path"]
 >           (ScalarType "int4")
 >           False,
 >         CatCreateFunction FunPrefix "#" [ScalarType "polygon"]
 >           (ScalarType "int4")
 >           False,
->         CatCreateFunction FunPrefix "!!" [ScalarType "int8"]
->           (ScalarType "numeric")
->           False,
 >         CatCreateFunction FunPrefix "!!" [ScalarType "tsquery"]
 >           (ScalarType "tsquery")
 >           False,
->         CatCreateFunction FunPostfix "!" [ScalarType "int8"]
+>         CatCreateFunction FunPrefix "!!" [ScalarType "int8"]
 >           (ScalarType "numeric")
 >           False,
->         CatCreateFunction FunBinary "~~*"
->           [ScalarType "name", ScalarType "text"]
->           (ScalarType "bool")
+>         CatCreateFunction FunPostfix "!" [ScalarType "int8"]
+>           (ScalarType "numeric")
 >           False,
 >         CatCreateFunction FunBinary "~~*"
 >           [ScalarType "bpchar", ScalarType "text"]
@@ -609,8 +605,16 @@ from the project root (i.e. where the cabal file is located).
 >           [ScalarType "text", ScalarType "text"]
 >           (ScalarType "bool")
 >           False,
+>         CatCreateFunction FunBinary "~~*"
+>           [ScalarType "name", ScalarType "text"]
+>           (ScalarType "bool")
+>           False,
 >         CatCreateFunction FunBinary "~~"
 >           [ScalarType "bpchar", ScalarType "text"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "~~"
+>           [ScalarType "name", ScalarType "text"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "~~"
@@ -618,19 +622,15 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "~~"
->           [ScalarType "name", ScalarType "text"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "~~"
->           [ScalarType "text", ScalarType "text"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "~>~"
 >           [ScalarType "text", ScalarType "text"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "~>~"
 >           [ScalarType "bpchar", ScalarType "bpchar"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "~>~"
+>           [ScalarType "text", ScalarType "text"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "~>=~"
@@ -639,18 +639,6 @@ from the project root (i.e. where the cabal file is located).
 >           False,
 >         CatCreateFunction FunBinary "~>=~"
 >           [ScalarType "text", ScalarType "text"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "~="
->           [ScalarType "box", ScalarType "box"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "~="
->           [ScalarType "tinterval", ScalarType "tinterval"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "~="
->           [ScalarType "polygon", ScalarType "polygon"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "~="
@@ -661,6 +649,18 @@ from the project root (i.e. where the cabal file is located).
 >           [ScalarType "point", ScalarType "point"]
 >           (ScalarType "bool")
 >           False,
+>         CatCreateFunction FunBinary "~="
+>           [ScalarType "tinterval", ScalarType "tinterval"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "~="
+>           [ScalarType "box", ScalarType "box"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "~="
+>           [ScalarType "polygon", ScalarType "polygon"]
+>           (ScalarType "bool")
+>           False,
 >         CatCreateFunction FunBinary "~<~"
 >           [ScalarType "bpchar", ScalarType "bpchar"]
 >           (ScalarType "bool")
@@ -679,18 +679,22 @@ from the project root (i.e. where the cabal file is located).
 >           False,
 >         CatCreateFunction FunBinary "~*"
 >           [ScalarType "text", ScalarType "text"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "~*"
->           [ScalarType "bpchar", ScalarType "text"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "~*"
 >           [ScalarType "name", ScalarType "text"]
 >           (ScalarType "bool")
 >           False,
+>         CatCreateFunction FunBinary "~*"
+>           [ScalarType "bpchar", ScalarType "text"]
+>           (ScalarType "bool")
+>           False,
 >         CatCreateFunction FunBinary "~"
 >           [ScalarType "text", ScalarType "text"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "~"
+>           [ScalarType "name", ScalarType "text"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "~"
@@ -725,11 +729,31 @@ from the project root (i.e. where the cabal file is located).
 >           [ScalarType "polygon", ScalarType "polygon"]
 >           (ScalarType "bool")
 >           False,
->         CatCreateFunction FunBinary "~"
->           [ScalarType "name", ScalarType "text"]
->           (ScalarType "bool")
+>         CatCreateFunction FunBinary "||"
+>           [ScalarType "bytea", ScalarType "bytea"]
+>           (ScalarType "bytea")
+>           False,
+>         CatCreateFunction FunBinary "||"
+>           [ScalarType "text", Pseudo AnyNonArray]
+>           (ScalarType "text")
+>           False,
+>         CatCreateFunction FunBinary "||"
+>           [Pseudo AnyNonArray, ScalarType "text"]
+>           (ScalarType "text")
+>           False,
+>         CatCreateFunction FunBinary "||"
+>           [ScalarType "tsquery", ScalarType "tsquery"]
+>           (ScalarType "tsquery")
+>           False,
+>         CatCreateFunction FunBinary "||"
+>           [ScalarType "varbit", ScalarType "varbit"]
+>           (ScalarType "varbit")
 >           False,
 >         CatCreateFunction FunBinary "||" [Pseudo AnyArray, Pseudo AnyArray]
+>           (Pseudo AnyArray)
+>           False,
+>         CatCreateFunction FunBinary "||"
+>           [Pseudo AnyArray, Pseudo AnyElement]
 >           (Pseudo AnyArray)
 >           False,
 >         CatCreateFunction FunBinary "||"
@@ -737,36 +761,16 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "text")
 >           False,
 >         CatCreateFunction FunBinary "||"
->           [ScalarType "varbit", ScalarType "varbit"]
->           (ScalarType "varbit")
+>           [ScalarType "tsvector", ScalarType "tsvector"]
+>           (ScalarType "tsvector")
 >           False,
 >         CatCreateFunction FunBinary "||"
 >           [Pseudo AnyElement, Pseudo AnyArray]
 >           (Pseudo AnyArray)
 >           False,
->         CatCreateFunction FunBinary "||"
->           [ScalarType "tsquery", ScalarType "tsquery"]
->           (ScalarType "tsquery")
->           False,
->         CatCreateFunction FunBinary "||"
->           [ScalarType "bytea", ScalarType "bytea"]
->           (ScalarType "bytea")
->           False,
->         CatCreateFunction FunBinary "||"
->           [Pseudo AnyNonArray, ScalarType "text"]
->           (ScalarType "text")
->           False,
->         CatCreateFunction FunBinary "||"
->           [ScalarType "tsvector", ScalarType "tsvector"]
->           (ScalarType "tsvector")
->           False,
->         CatCreateFunction FunBinary "||"
->           [Pseudo AnyArray, Pseudo AnyElement]
->           (Pseudo AnyArray)
->           False,
->         CatCreateFunction FunBinary "||"
->           [ScalarType "text", Pseudo AnyNonArray]
->           (ScalarType "text")
+>         CatCreateFunction FunBinary "|>>"
+>           [ScalarType "box", ScalarType "box"]
+>           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "|>>"
 >           [ScalarType "circle", ScalarType "circle"]
@@ -776,29 +780,25 @@ from the project root (i.e. where the cabal file is located).
 >           [ScalarType "polygon", ScalarType "polygon"]
 >           (ScalarType "bool")
 >           False,
->         CatCreateFunction FunBinary "|>>"
+>         CatCreateFunction FunBinary "|&>"
+>           [ScalarType "polygon", ScalarType "polygon"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "|&>"
 >           [ScalarType "box", ScalarType "box"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "|&>"
 >           [ScalarType "circle", ScalarType "circle"]
 >           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "|&>"
->           [ScalarType "box", ScalarType "box"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "|&>"
->           [ScalarType "polygon", ScalarType "polygon"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "|"
->           [ScalarType "int8", ScalarType "int8"]
->           (ScalarType "int8")
 >           False,
 >         CatCreateFunction FunBinary "|"
 >           [ScalarType "int4", ScalarType "int4"]
 >           (ScalarType "int4")
+>           False,
+>         CatCreateFunction FunBinary "|"
+>           [ScalarType "int8", ScalarType "int8"]
+>           (ScalarType "int8")
 >           False,
 >         CatCreateFunction FunBinary "|"
 >           [ScalarType "int2", ScalarType "int2"]
@@ -813,23 +813,19 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bit")
 >           False,
 >         CatCreateFunction FunBinary "^"
->           [ScalarType "numeric", ScalarType "numeric"]
->           (ScalarType "numeric")
->           False,
->         CatCreateFunction FunBinary "^"
 >           [ScalarType "float8", ScalarType "float8"]
 >           (ScalarType "float8")
 >           False,
->         CatCreateFunction FunBinary "@@@"
->           [ScalarType "tsquery", ScalarType "tsvector"]
->           (ScalarType "bool")
+>         CatCreateFunction FunBinary "^"
+>           [ScalarType "numeric", ScalarType "numeric"]
+>           (ScalarType "numeric")
 >           False,
 >         CatCreateFunction FunBinary "@@@"
 >           [ScalarType "tsvector", ScalarType "tsquery"]
 >           (ScalarType "bool")
 >           False,
->         CatCreateFunction FunBinary "@@"
->           [ScalarType "text", ScalarType "tsquery"]
+>         CatCreateFunction FunBinary "@@@"
+>           [ScalarType "tsquery", ScalarType "tsvector"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "@@"
@@ -844,27 +840,8 @@ from the project root (i.e. where the cabal file is located).
 >           [ScalarType "tsvector", ScalarType "tsquery"]
 >           (ScalarType "bool")
 >           False,
->         CatCreateFunction FunBinary "@>" [Pseudo AnyArray, Pseudo AnyArray]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "@>"
->           [ScalarType "box", ScalarType "box"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "@>"
->           [ScalarType "tsquery", ScalarType "tsquery"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "@>"
->           [ScalarType "polygon", ScalarType "point"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "@>"
->           [ScalarType "path", ScalarType "point"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "@>"
->           [ArrayType (ScalarType "aclitem"), ScalarType "aclitem"]
+>         CatCreateFunction FunBinary "@@"
+>           [ScalarType "text", ScalarType "tsquery"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "@>"
@@ -876,7 +853,34 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "@>"
+>           [ScalarType "tsquery", ScalarType "tsquery"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "@>"
+>           [ScalarType "box", ScalarType "box"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "@>"
+>           [ArrayType (ScalarType "aclitem"), ScalarType "aclitem"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "@>"
+>           [ScalarType "box", ScalarType "point"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "@>"
 >           [ScalarType "circle", ScalarType "point"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "@>"
+>           [ScalarType "polygon", ScalarType "point"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "@>"
+>           [ScalarType "path", ScalarType "point"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "@>" [Pseudo AnyArray, Pseudo AnyArray]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "?||"
@@ -892,11 +896,11 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "?-|"
->           [ScalarType "line", ScalarType "line"]
+>           [ScalarType "lseg", ScalarType "lseg"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "?-|"
->           [ScalarType "lseg", ScalarType "lseg"]
+>           [ScalarType "line", ScalarType "line"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "?-"
@@ -904,23 +908,11 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "?#"
+>           [ScalarType "line", ScalarType "box"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "?#"
 >           [ScalarType "lseg", ScalarType "lseg"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "?#"
->           [ScalarType "path", ScalarType "path"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "?#"
->           [ScalarType "box", ScalarType "box"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "?#"
->           [ScalarType "lseg", ScalarType "line"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "?#"
->           [ScalarType "line", ScalarType "line"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "?#"
@@ -928,7 +920,19 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "?#"
->           [ScalarType "line", ScalarType "box"]
+>           [ScalarType "line", ScalarType "line"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "?#"
+>           [ScalarType "lseg", ScalarType "line"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "?#"
+>           [ScalarType "box", ScalarType "box"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "?#"
+>           [ScalarType "path", ScalarType "path"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">^"
@@ -944,15 +948,23 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">>"
+>           [ScalarType "bit", ScalarType "int4"]
+>           (ScalarType "bit")
+>           False,
+>         CatCreateFunction FunBinary ">>"
+>           [ScalarType "inet", ScalarType "inet"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">>"
+>           [ScalarType "circle", ScalarType "circle"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">>"
 >           [ScalarType "polygon", ScalarType "polygon"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">>"
 >           [ScalarType "box", ScalarType "box"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">>"
->           [ScalarType "point", ScalarType "point"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">>"
@@ -968,31 +980,19 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "int2")
 >           False,
 >         CatCreateFunction FunBinary ">>"
->           [ScalarType "circle", ScalarType "circle"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">>"
->           [ScalarType "inet", ScalarType "inet"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">>"
->           [ScalarType "bit", ScalarType "int4"]
->           (ScalarType "bit")
->           False,
->         CatCreateFunction FunBinary ">="
->           [ScalarType "uuid", ScalarType "uuid"]
+>           [ScalarType "point", ScalarType "point"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
->           [ScalarType "macaddr", ScalarType "macaddr"]
+>           [ScalarType "int2", ScalarType "int2"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
->           [ScalarType "bpchar", ScalarType "bpchar"]
+>           [ScalarType "lseg", ScalarType "lseg"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
->           [ScalarType "char", ScalarType "char"]
+>           [ScalarType "date", ScalarType "timestamp"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
@@ -1000,25 +1000,22 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
->           [ScalarType "int2", ScalarType "int8"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">=" [Pseudo AnyEnum, Pseudo AnyEnum]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">="
->           [ScalarType "int4", ScalarType "int4"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">="
->           [ScalarType "lseg", ScalarType "lseg"]
+>           [ScalarType "timestamptz", ScalarType "timestamptz"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">=" [Pseudo AnyArray, Pseudo AnyArray]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
->           [ScalarType "timestamp", ScalarType "date"]
+>           [ScalarType "abstime", ScalarType "abstime"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">="
+>           [ScalarType "date", ScalarType "timestamptz"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">="
+>           [ScalarType "tsquery", ScalarType "tsquery"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
@@ -1026,7 +1023,27 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
+>           [ScalarType "reltime", ScalarType "reltime"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">="
 >           [ScalarType "time", ScalarType "time"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">="
+>           [ScalarType "timestamp", ScalarType "date"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">="
+>           [ScalarType "interval", ScalarType "interval"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">="
+>           [ScalarType "text", ScalarType "text"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">="
+>           [ScalarType "name", ScalarType "name"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
@@ -1038,35 +1055,7 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
->           [ScalarType "varbit", ScalarType "varbit"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">="
->           [ScalarType "int4", ScalarType "int8"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">="
->           [ScalarType "name", ScalarType "name"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">="
->           [ScalarType "tsvector", ScalarType "tsvector"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">="
->           [ScalarType "text", ScalarType "text"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">="
->           [ScalarType "date", ScalarType "timestamp"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">="
->           [ScalarType "tsquery", ScalarType "tsquery"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">="
->           [ScalarType "float8", ScalarType "float4"]
+>           [ScalarType "timestamptz", ScalarType "date"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
@@ -1074,10 +1063,11 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
->           [ScalarType "float8", ScalarType "float8"]
+>           [ScalarType "bpchar", ScalarType "bpchar"]
 >           (ScalarType "bool")
 >           False,
->         CatCreateFunction FunBinary ">=" [Pseudo Record, Pseudo Record]
+>         CatCreateFunction FunBinary ">="
+>           [ScalarType "float8", ScalarType "float8"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
@@ -1085,39 +1075,31 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
->           [ScalarType "int2", ScalarType "int2"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">="
->           [ScalarType "timestamptz", ScalarType "timestamptz"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">="
->           [ScalarType "timestamp", ScalarType "timestamp"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">="
->           [ScalarType "timestamptz", ScalarType "date"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">="
 >           [ScalarType "box", ScalarType "box"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
->           [ScalarType "bit", ScalarType "bit"]
+>           [ScalarType "oid", ScalarType "oid"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">="
+>           [ScalarType "int4", ScalarType "int8"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">="
+>           [ScalarType "tsvector", ScalarType "tsvector"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">="
+>           [ScalarType "inet", ScalarType "inet"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">="
+>           [ScalarType "oidvector", ScalarType "oidvector"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
 >           [ScalarType "timestamp", ScalarType "timestamptz"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">="
->           [ScalarType "abstime", ScalarType "abstime"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">="
->           [ScalarType "path", ScalarType "path"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
@@ -1129,11 +1111,14 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
->           [ScalarType "int2", ScalarType "int4"]
+>           [ScalarType "macaddr", ScalarType "macaddr"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
->           [ScalarType "numeric", ScalarType "numeric"]
+>           [ScalarType "int8", ScalarType "int2"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">=" [Pseudo Record, Pseudo Record]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
@@ -1141,15 +1126,7 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
->           [ScalarType "oid", ScalarType "oid"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">="
->           [ScalarType "tinterval", ScalarType "tinterval"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">="
->           [ScalarType "date", ScalarType "timestamptz"]
+>           [ScalarType "float4", ScalarType "float4"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
@@ -1161,15 +1138,50 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
->           [ScalarType "oidvector", ScalarType "oidvector"]
+>           [ScalarType "int2", ScalarType "int8"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
->           [ScalarType "interval", ScalarType "interval"]
+>           [ScalarType "char", ScalarType "char"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
->           [ScalarType "reltime", ScalarType "reltime"]
+>           [ScalarType "tinterval", ScalarType "tinterval"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">="
+>           [ScalarType "uuid", ScalarType "uuid"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">="
+>           [ScalarType "numeric", ScalarType "numeric"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">="
+>           [ScalarType "path", ScalarType "path"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">="
+>           [ScalarType "float8", ScalarType "float4"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">="
+>           [ScalarType "varbit", ScalarType "varbit"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">=" [Pseudo AnyEnum, Pseudo AnyEnum]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">="
+>           [ScalarType "bit", ScalarType "bit"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">="
+>           [ScalarType "timestamp", ScalarType "timestamp"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">="
+>           [ScalarType "int2", ScalarType "int4"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
@@ -1177,19 +1189,162 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">="
->           [ScalarType "inet", ScalarType "inet"]
+>           [ScalarType "int4", ScalarType "int4"]
 >           (ScalarType "bool")
 >           False,
->         CatCreateFunction FunBinary ">="
->           [ScalarType "int8", ScalarType "int2"]
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "circle", ScalarType "circle"]
 >           (ScalarType "bool")
 >           False,
->         CatCreateFunction FunBinary ">="
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "tsquery", ScalarType "tsquery"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "tsvector", ScalarType "tsvector"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">" [Pseudo AnyEnum, Pseudo AnyEnum]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "uuid", ScalarType "uuid"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "int4", ScalarType "int8"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "tid", ScalarType "tid"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "int8", ScalarType "int8"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "int8", ScalarType "int4"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "timestamptz", ScalarType "timestamp"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "timestamp", ScalarType "timestamptz"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "box", ScalarType "box"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "timestamptz", ScalarType "date"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "timestamp", ScalarType "date"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "date", ScalarType "timestamptz"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "int2", ScalarType "int2"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "int4", ScalarType "int4"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "date", ScalarType "timestamp"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "int2", ScalarType "int4"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "timestamp", ScalarType "timestamp"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "int4", ScalarType "int2"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "bytea", ScalarType "bytea"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "abstime", ScalarType "abstime"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "reltime", ScalarType "reltime"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "oid", ScalarType "oid"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "oidvector", ScalarType "oidvector"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
 >           [ScalarType "float4", ScalarType "float4"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">"
->           [ScalarType "timestamptz", ScalarType "timestamptz"]
+>           [ScalarType "int8", ScalarType "int2"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "char", ScalarType "char"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "int2", ScalarType "int8"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "name", ScalarType "name"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "varbit", ScalarType "varbit"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "text", ScalarType "text"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "float8", ScalarType "float8"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "bit", ScalarType "bit"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "path", ScalarType "path"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "numeric", ScalarType "numeric"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "tinterval", ScalarType "tinterval"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary ">"
+>           [ScalarType "money", ScalarType "money"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">"
@@ -1205,61 +1360,10 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">"
->           [ScalarType "int4", ScalarType "int2"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "int8", ScalarType "int2"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "char", ScalarType "char"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">" [Pseudo AnyArray, Pseudo AnyArray]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "int4", ScalarType "int8"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "timestamp", ScalarType "timestamp"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "interval", ScalarType "interval"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">" [Pseudo AnyEnum, Pseudo AnyEnum]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "reltime", ScalarType "reltime"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "timestamptz", ScalarType "date"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "int2", ScalarType "int8"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "box", ScalarType "box"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
 >           [ScalarType "lseg", ScalarType "lseg"]
 >           (ScalarType "bool")
 >           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "tinterval", ScalarType "tinterval"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "int4", ScalarType "int4"]
+>         CatCreateFunction FunBinary ">" [Pseudo AnyArray, Pseudo AnyArray]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">"
@@ -1267,23 +1371,7 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">"
->           [ScalarType "int8", ScalarType "int8"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "timestamp", ScalarType "date"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
 >           [ScalarType "time", ScalarType "time"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "uuid", ScalarType "uuid"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "bytea", ScalarType "bytea"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">"
@@ -1291,34 +1379,10 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">"
->           [ScalarType "bit", ScalarType "bit"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "name", ScalarType "name"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
 >           [ScalarType "float4", ScalarType "float8"]
 >           (ScalarType "bool")
 >           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "oidvector", ScalarType "oidvector"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "path", ScalarType "path"]
->           (ScalarType "bool")
->           False,
 >         CatCreateFunction FunBinary ">" [Pseudo Record, Pseudo Record]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "int2", ScalarType "int2"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "timestamp", ScalarType "timestamptz"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">"
@@ -1326,74 +1390,65 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">"
->           [ScalarType "varbit", ScalarType "varbit"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "oid", ScalarType "oid"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "tsvector", ScalarType "tsvector"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
 >           [ScalarType "float8", ScalarType "float4"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">"
->           [ScalarType "text", ScalarType "text"]
+>           [ScalarType "timestamptz", ScalarType "timestamptz"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary ">"
->           [ScalarType "int2", ScalarType "int4"]
+>           [ScalarType "interval", ScalarType "interval"]
 >           (ScalarType "bool")
 >           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "date", ScalarType "timestamptz"]
+>         CatCreateFunction FunBinary "="
+>           [ScalarType "bpchar", ScalarType "bpchar"]
 >           (ScalarType "bool")
 >           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "date", ScalarType "timestamp"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "float8", ScalarType "float8"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "timestamptz", ScalarType "timestamp"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "money", ScalarType "money"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "tsquery", ScalarType "tsquery"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary ">"
+>         CatCreateFunction FunBinary "="
 >           [ScalarType "float4", ScalarType "float4"]
 >           (ScalarType "bool")
 >           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "tid", ScalarType "tid"]
+>         CatCreateFunction FunBinary "="
+>           [ScalarType "inet", ScalarType "inet"]
 >           (ScalarType "bool")
 >           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "numeric", ScalarType "numeric"]
+>         CatCreateFunction FunBinary "="
+>           [ScalarType "tsvector", ScalarType "tsvector"]
 >           (ScalarType "bool")
 >           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "circle", ScalarType "circle"]
+>         CatCreateFunction FunBinary "="
+>           [ScalarType "oidvector", ScalarType "oidvector"]
 >           (ScalarType "bool")
 >           False,
->         CatCreateFunction FunBinary ">"
->           [ScalarType "int8", ScalarType "int4"]
+>         CatCreateFunction FunBinary "="
+>           [ScalarType "int4", ScalarType "int4"]
 >           (ScalarType "bool")
 >           False,
->         CatCreateFunction FunBinary ">"
+>         CatCreateFunction FunBinary "="
+>           [ScalarType "oid", ScalarType "oid"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "="
+>           [ScalarType "macaddr", ScalarType "macaddr"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "=" [Pseudo AnyArray, Pseudo AnyArray]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "="
+>           [ScalarType "line", ScalarType "line"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "="
+>           [ScalarType "bytea", ScalarType "bytea"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "="
+>           [ScalarType "reltime", ScalarType "reltime"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "="
 >           [ScalarType "abstime", ScalarType "abstime"]
 >           (ScalarType "bool")
 >           False,
@@ -1406,14 +1461,6 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
->           [ScalarType "reltime", ScalarType "reltime"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "="
->           [ScalarType "bytea", ScalarType "bytea"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "="
 >           [ScalarType "int2", ScalarType "int4"]
 >           (ScalarType "bool")
 >           False,
@@ -1422,11 +1469,11 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
->           [ScalarType "oid", ScalarType "oid"]
+>           [ScalarType "int2", ScalarType "int2"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
->           [ScalarType "interval", ScalarType "interval"]
+>           [ScalarType "name", ScalarType "name"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
@@ -1434,15 +1481,19 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
->           [ScalarType "oidvector", ScalarType "oidvector"]
+>           [ScalarType "date", ScalarType "date"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
->           [ScalarType "float4", ScalarType "float4"]
+>           [ScalarType "timestamptz", ScalarType "timestamptz"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
->           [ScalarType "int8", ScalarType "int2"]
+>           [ScalarType "time", ScalarType "time"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "="
+>           [ScalarType "interval", ScalarType "interval"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
@@ -1450,15 +1501,11 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
->           [ScalarType "int2", ScalarType "int8"]
+>           [ScalarType "timetz", ScalarType "timetz"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
->           [ScalarType "varbit", ScalarType "varbit"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "="
->           [ScalarType "float8", ScalarType "float8"]
+>           [ScalarType "tsquery", ScalarType "tsquery"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
@@ -1466,7 +1513,19 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
+>           [ScalarType "float4", ScalarType "float8"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "="
+>           [ScalarType "char", ScalarType "char"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "="
 >           [ScalarType "timestamptz", ScalarType "date"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "="
+>           [ScalarType "bool", ScalarType "bool"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
@@ -1474,11 +1533,11 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
->           [ScalarType "path", ScalarType "path"]
+>           [ScalarType "int4", ScalarType "int8"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
->           [ScalarType "bit", ScalarType "bit"]
+>           [ScalarType "circle", ScalarType "circle"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
@@ -1490,27 +1549,19 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
->           [ScalarType "numeric", ScalarType "numeric"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "="
->           [ScalarType "tinterval", ScalarType "tinterval"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "="
 >           [ScalarType "int8", ScalarType "int8"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
->           [ScalarType "money", ScalarType "money"]
+>           [ScalarType "float8", ScalarType "float4"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "="
+>           [ScalarType "lseg", ScalarType "lseg"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
 >           [ScalarType "tid", ScalarType "tid"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "="
->           [ScalarType "aclitem", ScalarType "aclitem"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
@@ -1521,9 +1572,6 @@ from the project root (i.e. where the cabal file is located).
 >           [ScalarType "int2vector", ScalarType "int2vector"]
 >           (ScalarType "bool")
 >           False,
->         CatCreateFunction FunBinary "=" [Pseudo Record, Pseudo Record]
->           (ScalarType "bool")
->           False,
 >         CatCreateFunction FunBinary "="
 >           [ScalarType "cid", ScalarType "cid"]
 >           (ScalarType "bool")
@@ -1532,23 +1580,7 @@ from the project root (i.e. where the cabal file is located).
 >           [ScalarType "xid", ScalarType "int4"]
 >           (ScalarType "bool")
 >           False,
->         CatCreateFunction FunBinary "="
->           [ScalarType "bpchar", ScalarType "bpchar"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "="
->           [ScalarType "inet", ScalarType "inet"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "=" [Pseudo AnyArray, Pseudo AnyArray]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "="
->           [ScalarType "macaddr", ScalarType "macaddr"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "="
->           [ScalarType "line", ScalarType "line"]
+>         CatCreateFunction FunBinary "=" [Pseudo Record, Pseudo Record]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "=" [Pseudo AnyEnum, Pseudo AnyEnum]
@@ -1559,75 +1591,47 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
+>           [ScalarType "money", ScalarType "money"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "="
+>           [ScalarType "tinterval", ScalarType "tinterval"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "="
+>           [ScalarType "numeric", ScalarType "numeric"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "="
+>           [ScalarType "bit", ScalarType "bit"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "="
+>           [ScalarType "path", ScalarType "path"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "="
+>           [ScalarType "aclitem", ScalarType "aclitem"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "="
+>           [ScalarType "float8", ScalarType "float8"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "="
+>           [ScalarType "varbit", ScalarType "varbit"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "="
 >           [ScalarType "text", ScalarType "text"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
->           [ScalarType "tsvector", ScalarType "tsvector"]
+>           [ScalarType "int2", ScalarType "int8"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
->           [ScalarType "date", ScalarType "date"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "="
->           [ScalarType "time", ScalarType "time"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "="
->           [ScalarType "timetz", ScalarType "timetz"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "="
->           [ScalarType "float4", ScalarType "float8"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "="
->           [ScalarType "float8", ScalarType "float4"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "="
->           [ScalarType "int4", ScalarType "int8"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "="
->           [ScalarType "int4", ScalarType "int4"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "="
->           [ScalarType "lseg", ScalarType "lseg"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "="
->           [ScalarType "int2", ScalarType "int2"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "="
->           [ScalarType "name", ScalarType "name"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "="
->           [ScalarType "tsquery", ScalarType "tsquery"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "="
->           [ScalarType "char", ScalarType "char"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "="
->           [ScalarType "bool", ScalarType "bool"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "="
->           [ScalarType "circle", ScalarType "circle"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "="
->           [ScalarType "timestamptz", ScalarType "timestamptz"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "="
->           [ScalarType "abstime", ScalarType "abstime"]
+>           [ScalarType "int8", ScalarType "int2"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<^"
@@ -1694,10 +1698,7 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
->           [ScalarType "float4", ScalarType "float4"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>" [Pseudo AnyArray, Pseudo AnyArray]
+>           [ScalarType "timestamp", ScalarType "date"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
@@ -1705,99 +1706,11 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
->           [ScalarType "reltime", ScalarType "reltime"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
 >           [ScalarType "int4", ScalarType "int8"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
->           [ScalarType "int8", ScalarType "int4"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "tsvector", ScalarType "tsvector"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "interval", ScalarType "interval"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "time", ScalarType "time"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "date", ScalarType "date"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "oidvector", ScalarType "oidvector"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "int4", ScalarType "int2"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "lseg", ScalarType "lseg"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "char", ScalarType "char"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "int2", ScalarType "int4"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "text", ScalarType "text"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "oid", ScalarType "oid"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "bytea", ScalarType "bytea"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "point", ScalarType "point"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "timestamptz", ScalarType "timestamptz"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "int8", ScalarType "int2"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "date", ScalarType "timestamp"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "int8", ScalarType "int8"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "bit", ScalarType "bit"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "int2", ScalarType "int2"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "int4", ScalarType "int4"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "abstime", ScalarType "abstime"]
+>           [ScalarType "timestamptz", ScalarType "timestamp"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
@@ -1809,85 +1722,11 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
->           [ScalarType "name", ScalarType "name"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "numeric", ScalarType "numeric"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "tinterval", ScalarType "tinterval"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "int2", ScalarType "int8"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "timestamp", ScalarType "date"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "money", ScalarType "money"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "float8", ScalarType "float4"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>" [Pseudo AnyEnum, Pseudo AnyEnum]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "timestamp", ScalarType "timestamp"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "circle", ScalarType "circle"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "timestamptz", ScalarType "date"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "timestamp", ScalarType "timestamptz"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "uuid", ScalarType "uuid"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "varbit", ScalarType "varbit"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "tid", ScalarType "tid"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "bool", ScalarType "bool"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "float4", ScalarType "float8"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
 >           [ScalarType "inet", ScalarType "inet"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
->           [ScalarType "float8", ScalarType "float8"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "timestamptz", ScalarType "timestamp"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>" [Pseudo Record, Pseudo Record]
+>           [ScalarType "time", ScalarType "time"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
@@ -1898,16 +1737,189 @@ from the project root (i.e. where the cabal file is located).
 >           [ScalarType "macaddr", ScalarType "macaddr"]
 >           (ScalarType "bool")
 >           False,
->         CatCreateFunction FunBinary "<="
+>         CatCreateFunction FunBinary "<>" [Pseudo AnyArray, Pseudo AnyArray]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "timestamp", ScalarType "timestamptz"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "timestamptz", ScalarType "timestamptz"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>" [Pseudo Record, Pseudo Record]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "tsvector", ScalarType "tsvector"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "timestamptz", ScalarType "date"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "date", ScalarType "date"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "lseg", ScalarType "lseg"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "reltime", ScalarType "reltime"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
 >           [ScalarType "oidvector", ScalarType "oidvector"]
 >           (ScalarType "bool")
 >           False,
->         CatCreateFunction FunBinary "<="
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "bytea", ScalarType "bytea"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "float4", ScalarType "float4"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "bit", ScalarType "bit"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "name", ScalarType "name"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>" [Pseudo AnyEnum, Pseudo AnyEnum]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "abstime", ScalarType "abstime"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
 >           [ScalarType "oid", ScalarType "oid"]
 >           (ScalarType "bool")
 >           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "timestamp", ScalarType "timestamp"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "uuid", ScalarType "uuid"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "int4", ScalarType "int2"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "int2", ScalarType "int4"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "int2", ScalarType "int8"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "interval", ScalarType "interval"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "numeric", ScalarType "numeric"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "float8", ScalarType "float4"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "tid", ScalarType "tid"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "text", ScalarType "text"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "tinterval", ScalarType "tinterval"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "char", ScalarType "char"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "date", ScalarType "timestamp"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "int8", ScalarType "int8"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "point", ScalarType "point"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "money", ScalarType "money"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "int2", ScalarType "int2"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "float4", ScalarType "float8"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "varbit", ScalarType "varbit"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "int4", ScalarType "int4"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "circle", ScalarType "circle"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "int8", ScalarType "int4"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "bool", ScalarType "bool"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "int8", ScalarType "int2"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "float8", ScalarType "float8"]
+>           (ScalarType "bool")
+>           False,
 >         CatCreateFunction FunBinary "<="
->           [ScalarType "reltime", ScalarType "reltime"]
+>           [ScalarType "varbit", ScalarType "varbit"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<="
+>           [ScalarType "name", ScalarType "name"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<="
+>           [ScalarType "float4", ScalarType "float4"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<="
+>           [ScalarType "int2", ScalarType "int8"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<="
+>           [ScalarType "char", ScalarType "char"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
@@ -1918,7 +1930,7 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
->           [ScalarType "float8", ScalarType "float4"]
+>           [ScalarType "circle", ScalarType "circle"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
@@ -1926,7 +1938,7 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
->           [ScalarType "float4", ScalarType "float8"]
+>           [ScalarType "float8", ScalarType "float4"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
@@ -1934,7 +1946,7 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
->           [ScalarType "timetz", ScalarType "timetz"]
+>           [ScalarType "float4", ScalarType "float8"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
@@ -1942,38 +1954,11 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
->           [ScalarType "time", ScalarType "time"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<="
->           [ScalarType "interval", ScalarType "interval"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<="
 >           [ScalarType "int8", ScalarType "int4"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
->           [ScalarType "date", ScalarType "date"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<="
->           [ScalarType "lseg", ScalarType "lseg"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<=" [Pseudo AnyArray, Pseudo AnyArray]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<="
->           [ScalarType "macaddr", ScalarType "macaddr"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<="
->           [ScalarType "bpchar", ScalarType "bpchar"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<="
->           [ScalarType "inet", ScalarType "inet"]
+>           [ScalarType "timetz", ScalarType "timetz"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
@@ -1981,7 +1966,22 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
+>           [ScalarType "time", ScalarType "time"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<="
 >           [ScalarType "timestamp", ScalarType "timestamptz"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<="
+>           [ScalarType "date", ScalarType "date"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<=" [Pseudo AnyArray, Pseudo AnyArray]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<="
+>           [ScalarType "lseg", ScalarType "lseg"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
@@ -1989,23 +1989,23 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
+>           [ScalarType "bpchar", ScalarType "bpchar"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<="
+>           [ScalarType "macaddr", ScalarType "macaddr"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<="
+>           [ScalarType "inet", ScalarType "inet"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<="
 >           [ScalarType "box", ScalarType "box"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
->           [ScalarType "money", ScalarType "money"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<="
->           [ScalarType "bool", ScalarType "bool"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<="
 >           [ScalarType "timestamp", ScalarType "date"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<="
->           [ScalarType "tinterval", ScalarType "tinterval"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<=" [Pseudo Record, Pseudo Record]
@@ -2016,11 +2016,7 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
->           [ScalarType "numeric", ScalarType "numeric"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<="
->           [ScalarType "timestamptz", ScalarType "timestamptz"]
+>           [ScalarType "interval", ScalarType "interval"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
@@ -2028,11 +2024,7 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
->           [ScalarType "path", ScalarType "path"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<="
->           [ScalarType "bit", ScalarType "bit"]
+>           [ScalarType "money", ScalarType "money"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
@@ -2048,11 +2040,15 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
->           [ScalarType "circle", ScalarType "circle"]
+>           [ScalarType "tinterval", ScalarType "tinterval"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
->           [ScalarType "tsquery", ScalarType "tsquery"]
+>           [ScalarType "timestamp", ScalarType "timestamp"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<="
+>           [ScalarType "numeric", ScalarType "numeric"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
@@ -2064,39 +2060,19 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
->           [ScalarType "timestamp", ScalarType "timestamp"]
+>           [ScalarType "bool", ScalarType "bool"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
->           [ScalarType "float8", ScalarType "float8"]
+>           [ScalarType "path", ScalarType "path"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
->           [ScalarType "text", ScalarType "text"]
+>           [ScalarType "bit", ScalarType "bit"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
->           [ScalarType "varbit", ScalarType "varbit"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<="
->           [ScalarType "name", ScalarType "name"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<="
->           [ScalarType "int2", ScalarType "int8"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<="
->           [ScalarType "char", ScalarType "char"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<="
->           [ScalarType "int8", ScalarType "int2"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<="
->           [ScalarType "float4", ScalarType "float4"]
+>           [ScalarType "bytea", ScalarType "bytea"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
@@ -2104,7 +2080,35 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
->           [ScalarType "bytea", ScalarType "bytea"]
+>           [ScalarType "reltime", ScalarType "reltime"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<="
+>           [ScalarType "tsquery", ScalarType "tsquery"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<="
+>           [ScalarType "oid", ScalarType "oid"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<="
+>           [ScalarType "oidvector", ScalarType "oidvector"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<="
+>           [ScalarType "timestamptz", ScalarType "timestamptz"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<="
+>           [ScalarType "float8", ScalarType "float8"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<="
+>           [ScalarType "int8", ScalarType "int2"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<="
+>           [ScalarType "text", ScalarType "text"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<<|"
@@ -2112,11 +2116,11 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<<|"
->           [ScalarType "circle", ScalarType "circle"]
+>           [ScalarType "box", ScalarType "box"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<<|"
->           [ScalarType "box", ScalarType "box"]
+>           [ScalarType "circle", ScalarType "circle"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<<="
@@ -2124,11 +2128,27 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<<"
->           [ScalarType "int2", ScalarType "int4"]
->           (ScalarType "int2")
+>           [ScalarType "int4", ScalarType "int4"]
+>           (ScalarType "int4")
+>           False,
+>         CatCreateFunction FunBinary "<<"
+>           [ScalarType "bit", ScalarType "int4"]
+>           (ScalarType "bit")
+>           False,
+>         CatCreateFunction FunBinary "<<"
+>           [ScalarType "box", ScalarType "box"]
+>           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<<"
 >           [ScalarType "inet", ScalarType "inet"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<<"
+>           [ScalarType "int8", ScalarType "int4"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunBinary "<<"
+>           [ScalarType "point", ScalarType "point"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<<"
@@ -2140,55 +2160,15 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<<"
->           [ScalarType "box", ScalarType "box"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<<"
 >           [ScalarType "polygon", ScalarType "polygon"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<<"
->           [ScalarType "int8", ScalarType "int4"]
->           (ScalarType "int8")
->           False,
->         CatCreateFunction FunBinary "<<"
->           [ScalarType "bit", ScalarType "int4"]
->           (ScalarType "bit")
->           False,
->         CatCreateFunction FunBinary "<<"
->           [ScalarType "int4", ScalarType "int4"]
->           (ScalarType "int4")
->           False,
->         CatCreateFunction FunBinary "<<"
->           [ScalarType "point", ScalarType "point"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<->"
->           [ScalarType "point", ScalarType "point"]
->           (ScalarType "float8")
->           False,
->         CatCreateFunction FunBinary "<->"
->           [ScalarType "circle", ScalarType "polygon"]
->           (ScalarType "float8")
+>           [ScalarType "int2", ScalarType "int4"]
+>           (ScalarType "int2")
 >           False,
 >         CatCreateFunction FunBinary "<->"
 >           [ScalarType "point", ScalarType "line"]
->           (ScalarType "float8")
->           False,
->         CatCreateFunction FunBinary "<->"
->           [ScalarType "point", ScalarType "path"]
->           (ScalarType "float8")
->           False,
->         CatCreateFunction FunBinary "<->"
->           [ScalarType "circle", ScalarType "circle"]
->           (ScalarType "float8")
->           False,
->         CatCreateFunction FunBinary "<->"
->           [ScalarType "point", ScalarType "circle"]
->           (ScalarType "float8")
->           False,
->         CatCreateFunction FunBinary "<->"
->           [ScalarType "lseg", ScalarType "box"]
 >           (ScalarType "float8")
 >           False,
 >         CatCreateFunction FunBinary "<->"
@@ -2196,19 +2176,11 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "float8")
 >           False,
 >         CatCreateFunction FunBinary "<->"
->           [ScalarType "lseg", ScalarType "line"]
->           (ScalarType "float8")
->           False,
->         CatCreateFunction FunBinary "<->"
 >           [ScalarType "point", ScalarType "box"]
 >           (ScalarType "float8")
 >           False,
 >         CatCreateFunction FunBinary "<->"
->           [ScalarType "box", ScalarType "box"]
->           (ScalarType "float8")
->           False,
->         CatCreateFunction FunBinary "<->"
->           [ScalarType "polygon", ScalarType "polygon"]
+>           [ScalarType "circle", ScalarType "polygon"]
 >           (ScalarType "float8")
 >           False,
 >         CatCreateFunction FunBinary "<->"
@@ -2216,7 +2188,27 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "float8")
 >           False,
 >         CatCreateFunction FunBinary "<->"
+>           [ScalarType "polygon", ScalarType "polygon"]
+>           (ScalarType "float8")
+>           False,
+>         CatCreateFunction FunBinary "<->"
+>           [ScalarType "circle", ScalarType "circle"]
+>           (ScalarType "float8")
+>           False,
+>         CatCreateFunction FunBinary "<->"
+>           [ScalarType "lseg", ScalarType "line"]
+>           (ScalarType "float8")
+>           False,
+>         CatCreateFunction FunBinary "<->"
+>           [ScalarType "point", ScalarType "path"]
+>           (ScalarType "float8")
+>           False,
+>         CatCreateFunction FunBinary "<->"
 >           [ScalarType "line", ScalarType "line"]
+>           (ScalarType "float8")
+>           False,
+>         CatCreateFunction FunBinary "<->"
+>           [ScalarType "lseg", ScalarType "box"]
 >           (ScalarType "float8")
 >           False,
 >         CatCreateFunction FunBinary "<->"
@@ -2227,181 +2219,32 @@ from the project root (i.e. where the cabal file is located).
 >           [ScalarType "line", ScalarType "box"]
 >           (ScalarType "float8")
 >           False,
+>         CatCreateFunction FunBinary "<->"
+>           [ScalarType "point", ScalarType "circle"]
+>           (ScalarType "float8")
+>           False,
+>         CatCreateFunction FunBinary "<->"
+>           [ScalarType "point", ScalarType "point"]
+>           (ScalarType "float8")
+>           False,
+>         CatCreateFunction FunBinary "<->"
+>           [ScalarType "box", ScalarType "box"]
+>           (ScalarType "float8")
+>           False,
 >         CatCreateFunction FunBinary "<#>"
 >           [ScalarType "abstime", ScalarType "abstime"]
 >           (ScalarType "tinterval")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "oidvector", ScalarType "oidvector"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "money", ScalarType "money"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "float8", ScalarType "float4"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "timestamptz", ScalarType "date"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<" [Pseudo AnyEnum, Pseudo AnyEnum]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "float8", ScalarType "float8"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "bytea", ScalarType "bytea"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "timestamp", ScalarType "date"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "tinterval", ScalarType "tinterval"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "numeric", ScalarType "numeric"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "tsvector", ScalarType "tsvector"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "varbit", ScalarType "varbit"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "int8", ScalarType "int2"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "int4", ScalarType "int4"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "text", ScalarType "text"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "float4", ScalarType "float4"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "path", ScalarType "path"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "bit", ScalarType "bit"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "date", ScalarType "timestamptz"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "bool", ScalarType "bool"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "char", ScalarType "char"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<" [Pseudo Record, Pseudo Record]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "name", ScalarType "name"]
->           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
 >           [ScalarType "timestamptz", ScalarType "timestamptz"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
->           [ScalarType "interval", ScalarType "interval"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "date", ScalarType "date"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "int8", ScalarType "int4"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "lseg", ScalarType "lseg"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "time", ScalarType "time"]
+>           [ScalarType "char", ScalarType "char"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
 >           [ScalarType "int2", ScalarType "int8"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "int2", ScalarType "int2"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<" [Pseudo AnyArray, Pseudo AnyArray]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "box", ScalarType "box"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "int8", ScalarType "int8"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "macaddr", ScalarType "macaddr"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "abstime", ScalarType "abstime"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "bpchar", ScalarType "bpchar"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "tid", ScalarType "tid"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "inet", ScalarType "inet"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "float4", ScalarType "float8"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "timestamptz", ScalarType "timestamp"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "int4", ScalarType "int8"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "uuid", ScalarType "uuid"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "timestamp", ScalarType "timestamp"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
@@ -2409,7 +2252,46 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
->           [ScalarType "circle", ScalarType "circle"]
+>           [ScalarType "date", ScalarType "date"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "lseg", ScalarType "lseg"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<" [Pseudo AnyArray, Pseudo AnyArray]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "int4", ScalarType "int8"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "timestamptz", ScalarType "timestamp"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "macaddr", ScalarType "macaddr"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "bpchar", ScalarType "bpchar"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "time", ScalarType "time"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "inet", ScalarType "inet"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "varbit", ScalarType "varbit"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "timestamptz", ScalarType "date"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
@@ -2417,7 +2299,63 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
+>           [ScalarType "timestamp", ScalarType "date"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "int8", ScalarType "int2"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "int8", ScalarType "int4"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "tsquery", ScalarType "tsquery"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
 >           [ScalarType "oid", ScalarType "oid"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "float4", ScalarType "float8"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "float4", ScalarType "float4"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "date", ScalarType "timestamptz"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "money", ScalarType "money"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "int8", ScalarType "int8"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "int2", ScalarType "int2"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "interval", ScalarType "interval"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "name", ScalarType "name"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "oidvector", ScalarType "oidvector"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "float8", ScalarType "float8"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
@@ -2425,11 +2363,77 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
+>           [ScalarType "tinterval", ScalarType "tinterval"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "circle", ScalarType "circle"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "tid", ScalarType "tid"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
 >           [ScalarType "int2", ScalarType "int4"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
+>           [ScalarType "float8", ScalarType "float4"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
 >           [ScalarType "int4", ScalarType "int2"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "numeric", ScalarType "numeric"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "timestamp", ScalarType "timestamp"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "uuid", ScalarType "uuid"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "text", ScalarType "text"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "path", ScalarType "path"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<" [Pseudo AnyEnum, Pseudo AnyEnum]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "bit", ScalarType "bit"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "bool", ScalarType "bool"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "abstime", ScalarType "abstime"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<" [Pseudo Record, Pseudo Record]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "bytea", ScalarType "bytea"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "tsvector", ScalarType "tsvector"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "int4", ScalarType "int4"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
@@ -2437,67 +2441,63 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
->           [ScalarType "tsquery", ScalarType "tsquery"]
+>           [ScalarType "box", ScalarType "box"]
 >           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "/"
->           [ScalarType "int4", ScalarType "int4"]
->           (ScalarType "int4")
->           False,
->         CatCreateFunction FunBinary "/"
->           [ScalarType "int2", ScalarType "int8"]
->           (ScalarType "int8")
->           False,
->         CatCreateFunction FunBinary "/"
->           [ScalarType "float8", ScalarType "float8"]
->           (ScalarType "float8")
->           False,
->         CatCreateFunction FunBinary "/"
->           [ScalarType "int2", ScalarType "int2"]
->           (ScalarType "int2")
->           False,
->         CatCreateFunction FunBinary "/"
->           [ScalarType "money", ScalarType "float4"]
->           (ScalarType "money")
->           False,
->         CatCreateFunction FunBinary "/"
->           [ScalarType "int8", ScalarType "int2"]
->           (ScalarType "int8")
->           False,
->         CatCreateFunction FunBinary "/"
->           [ScalarType "int4", ScalarType "int2"]
->           (ScalarType "int4")
->           False,
->         CatCreateFunction FunBinary "/"
->           [ScalarType "point", ScalarType "point"]
->           (ScalarType "point")
 >           False,
 >         CatCreateFunction FunBinary "/"
 >           [ScalarType "circle", ScalarType "point"]
 >           (ScalarType "circle")
 >           False,
 >         CatCreateFunction FunBinary "/"
->           [ScalarType "int4", ScalarType "int8"]
->           (ScalarType "int8")
->           False,
->         CatCreateFunction FunBinary "/"
 >           [ScalarType "float8", ScalarType "float4"]
 >           (ScalarType "float8")
 >           False,
 >         CatCreateFunction FunBinary "/"
->           [ScalarType "money", ScalarType "int4"]
->           (ScalarType "money")
->           False,
->         CatCreateFunction FunBinary "/"
->           [ScalarType "path", ScalarType "point"]
->           (ScalarType "path")
+>           [ScalarType "float4", ScalarType "float8"]
+>           (ScalarType "float8")
 >           False,
 >         CatCreateFunction FunBinary "/"
 >           [ScalarType "interval", ScalarType "float8"]
 >           (ScalarType "interval")
 >           False,
 >         CatCreateFunction FunBinary "/"
->           [ScalarType "int8", ScalarType "int8"]
+>           [ScalarType "money", ScalarType "int2"]
+>           (ScalarType "money")
+>           False,
+>         CatCreateFunction FunBinary "/"
+>           [ScalarType "money", ScalarType "int4"]
+>           (ScalarType "money")
+>           False,
+>         CatCreateFunction FunBinary "/"
+>           [ScalarType "money", ScalarType "float8"]
+>           (ScalarType "money")
+>           False,
+>         CatCreateFunction FunBinary "/"
+>           [ScalarType "money", ScalarType "float4"]
+>           (ScalarType "money")
+>           False,
+>         CatCreateFunction FunBinary "/"
+>           [ScalarType "box", ScalarType "point"]
+>           (ScalarType "box")
+>           False,
+>         CatCreateFunction FunBinary "/"
+>           [ScalarType "numeric", ScalarType "numeric"]
+>           (ScalarType "numeric")
+>           False,
+>         CatCreateFunction FunBinary "/"
+>           [ScalarType "point", ScalarType "point"]
+>           (ScalarType "point")
+>           False,
+>         CatCreateFunction FunBinary "/"
+>           [ScalarType "int2", ScalarType "int8"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunBinary "/"
+>           [ScalarType "int8", ScalarType "int2"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunBinary "/"
+>           [ScalarType "int4", ScalarType "int8"]
 >           (ScalarType "int8")
 >           False,
 >         CatCreateFunction FunBinary "/"
@@ -2505,36 +2505,100 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "int8")
 >           False,
 >         CatCreateFunction FunBinary "/"
->           [ScalarType "int2", ScalarType "int4"]
->           (ScalarType "int4")
+>           [ScalarType "int8", ScalarType "int8"]
+>           (ScalarType "int8")
 >           False,
 >         CatCreateFunction FunBinary "/"
->           [ScalarType "numeric", ScalarType "numeric"]
->           (ScalarType "numeric")
->           False,
->         CatCreateFunction FunBinary "/"
->           [ScalarType "float4", ScalarType "float8"]
+>           [ScalarType "float8", ScalarType "float8"]
 >           (ScalarType "float8")
->           False,
->         CatCreateFunction FunBinary "/"
->           [ScalarType "money", ScalarType "int2"]
->           (ScalarType "money")
 >           False,
 >         CatCreateFunction FunBinary "/"
 >           [ScalarType "float4", ScalarType "float4"]
 >           (ScalarType "float4")
 >           False,
 >         CatCreateFunction FunBinary "/"
->           [ScalarType "money", ScalarType "float8"]
->           (ScalarType "money")
+>           [ScalarType "int4", ScalarType "int2"]
+>           (ScalarType "int4")
 >           False,
 >         CatCreateFunction FunBinary "/"
->           [ScalarType "box", ScalarType "point"]
->           (ScalarType "box")
+>           [ScalarType "int2", ScalarType "int4"]
+>           (ScalarType "int4")
+>           False,
+>         CatCreateFunction FunBinary "/"
+>           [ScalarType "int4", ScalarType "int4"]
+>           (ScalarType "int4")
+>           False,
+>         CatCreateFunction FunBinary "/"
+>           [ScalarType "int2", ScalarType "int2"]
+>           (ScalarType "int2")
+>           False,
+>         CatCreateFunction FunBinary "/"
+>           [ScalarType "path", ScalarType "point"]
+>           (ScalarType "path")
+>           False,
+>         CatCreateFunction FunBinary "-"
+>           [ScalarType "int2", ScalarType "int8"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunBinary "-"
+>           [ScalarType "float8", ScalarType "float8"]
+>           (ScalarType "float8")
+>           False,
+>         CatCreateFunction FunBinary "-"
+>           [ScalarType "date", ScalarType "interval"]
+>           (ScalarType "timestamp")
+>           False,
+>         CatCreateFunction FunBinary "-"
+>           [ScalarType "time", ScalarType "interval"]
+>           (ScalarType "time")
+>           False,
+>         CatCreateFunction FunBinary "-"
+>           [ScalarType "path", ScalarType "point"]
+>           (ScalarType "path")
 >           False,
 >         CatCreateFunction FunBinary "-"
 >           [ScalarType "interval", ScalarType "interval"]
 >           (ScalarType "interval")
+>           False,
+>         CatCreateFunction FunBinary "-"
+>           [ScalarType "float4", ScalarType "float4"]
+>           (ScalarType "float4")
+>           False,
+>         CatCreateFunction FunBinary "-"
+>           [ScalarType "date", ScalarType "date"]
+>           (ScalarType "int4")
+>           False,
+>         CatCreateFunction FunBinary "-"
+>           [ScalarType "float4", ScalarType "float8"]
+>           (ScalarType "float8")
+>           False,
+>         CatCreateFunction FunBinary "-"
+>           [ScalarType "int4", ScalarType "int2"]
+>           (ScalarType "int4")
+>           False,
+>         CatCreateFunction FunBinary "-"
+>           [ScalarType "int2", ScalarType "int4"]
+>           (ScalarType "int4")
+>           False,
+>         CatCreateFunction FunBinary "-"
+>           [ScalarType "int4", ScalarType "int4"]
+>           (ScalarType "int4")
+>           False,
+>         CatCreateFunction FunBinary "-"
+>           [ScalarType "int2", ScalarType "int2"]
+>           (ScalarType "int2")
+>           False,
+>         CatCreateFunction FunBinary "-"
+>           [ScalarType "money", ScalarType "money"]
+>           (ScalarType "money")
+>           False,
+>         CatCreateFunction FunBinary "-"
+>           [ScalarType "abstime", ScalarType "reltime"]
+>           (ScalarType "abstime")
+>           False,
+>         CatCreateFunction FunBinary "-"
+>           [ScalarType "int8", ScalarType "int2"]
+>           (ScalarType "int8")
 >           False,
 >         CatCreateFunction FunBinary "-"
 >           [ScalarType "timestamptz", ScalarType "interval"]
@@ -2545,6 +2609,30 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "interval")
 >           False,
 >         CatCreateFunction FunBinary "-"
+>           [ScalarType "time", ScalarType "time"]
+>           (ScalarType "interval")
+>           False,
+>         CatCreateFunction FunBinary "-"
+>           [ArrayType (ScalarType "aclitem"), ScalarType "aclitem"]
+>           (ArrayType (ScalarType "aclitem"))
+>           False,
+>         CatCreateFunction FunBinary "-"
+>           [ScalarType "int4", ScalarType "int8"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunBinary "-"
+>           [ScalarType "inet", ScalarType "inet"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunBinary "-"
+>           [ScalarType "int8", ScalarType "int8"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunBinary "-"
+>           [ScalarType "numeric", ScalarType "numeric"]
+>           (ScalarType "numeric")
+>           False,
+>         CatCreateFunction FunBinary "-"
 >           [ScalarType "circle", ScalarType "point"]
 >           (ScalarType "circle")
 >           False,
@@ -2553,188 +2641,140 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "float8")
 >           False,
 >         CatCreateFunction FunBinary "-"
->           [ScalarType "float4", ScalarType "float8"]
->           (ScalarType "float8")
->           False,
->         CatCreateFunction FunBinary "-"
->           [ScalarType "date", ScalarType "int4"]
->           (ScalarType "date")
->           False,
->         CatCreateFunction FunBinary "-"
->           [ScalarType "date", ScalarType "date"]
->           (ScalarType "int4")
->           False,
->         CatCreateFunction FunBinary "-"
->           [ScalarType "date", ScalarType "interval"]
->           (ScalarType "timestamp")
->           False,
->         CatCreateFunction FunBinary "-"
->           [ArrayType (ScalarType "aclitem"), ScalarType "aclitem"]
->           (ArrayType (ScalarType "aclitem"))
->           False,
->         CatCreateFunction FunBinary "-"
->           [ScalarType "money", ScalarType "money"]
->           (ScalarType "money")
->           False,
->         CatCreateFunction FunBinary "-"
 >           [ScalarType "inet", ScalarType "int8"]
 >           (ScalarType "inet")
->           False,
->         CatCreateFunction FunBinary "-"
->           [ScalarType "inet", ScalarType "inet"]
->           (ScalarType "int8")
 >           False,
 >         CatCreateFunction FunBinary "-"
 >           [ScalarType "box", ScalarType "point"]
 >           (ScalarType "box")
 >           False,
 >         CatCreateFunction FunBinary "-"
->           [ScalarType "numeric", ScalarType "numeric"]
->           (ScalarType "numeric")
->           False,
->         CatCreateFunction FunBinary "-"
->           [ScalarType "path", ScalarType "point"]
->           (ScalarType "path")
->           False,
->         CatCreateFunction FunBinary "-"
 >           [ScalarType "point", ScalarType "point"]
 >           (ScalarType "point")
->           False,
->         CatCreateFunction FunBinary "-"
->           [ScalarType "int2", ScalarType "int8"]
->           (ScalarType "int8")
->           False,
->         CatCreateFunction FunBinary "-"
->           [ScalarType "int8", ScalarType "int2"]
->           (ScalarType "int8")
->           False,
->         CatCreateFunction FunBinary "-"
->           [ScalarType "int4", ScalarType "int8"]
->           (ScalarType "int8")
->           False,
->         CatCreateFunction FunBinary "-"
->           [ScalarType "int8", ScalarType "int4"]
->           (ScalarType "int8")
->           False,
->         CatCreateFunction FunBinary "-"
->           [ScalarType "int8", ScalarType "int8"]
->           (ScalarType "int8")
->           False,
->         CatCreateFunction FunBinary "-"
->           [ScalarType "time", ScalarType "interval"]
->           (ScalarType "time")
 >           False,
 >         CatCreateFunction FunBinary "-"
 >           [ScalarType "timetz", ScalarType "interval"]
 >           (ScalarType "timetz")
 >           False,
 >         CatCreateFunction FunBinary "-"
->           [ScalarType "float8", ScalarType "float8"]
->           (ScalarType "float8")
->           False,
->         CatCreateFunction FunBinary "-"
->           [ScalarType "float4", ScalarType "float4"]
->           (ScalarType "float4")
->           False,
->         CatCreateFunction FunBinary "-"
->           [ScalarType "abstime", ScalarType "reltime"]
->           (ScalarType "abstime")
->           False,
->         CatCreateFunction FunBinary "-"
->           [ScalarType "int4", ScalarType "int2"]
->           (ScalarType "int4")
->           False,
->         CatCreateFunction FunBinary "-"
->           [ScalarType "int2", ScalarType "int4"]
->           (ScalarType "int4")
->           False,
->         CatCreateFunction FunBinary "-"
->           [ScalarType "int4", ScalarType "int4"]
->           (ScalarType "int4")
->           False,
->         CatCreateFunction FunBinary "-"
->           [ScalarType "int2", ScalarType "int2"]
->           (ScalarType "int2")
+>           [ScalarType "timestamp", ScalarType "timestamp"]
+>           (ScalarType "interval")
 >           False,
 >         CatCreateFunction FunBinary "-"
 >           [ScalarType "timestamp", ScalarType "interval"]
 >           (ScalarType "timestamp")
 >           False,
 >         CatCreateFunction FunBinary "-"
->           [ScalarType "time", ScalarType "time"]
->           (ScalarType "interval")
+>           [ScalarType "int8", ScalarType "int4"]
+>           (ScalarType "int8")
 >           False,
 >         CatCreateFunction FunBinary "-"
->           [ScalarType "timestamp", ScalarType "timestamp"]
->           (ScalarType "interval")
+>           [ScalarType "date", ScalarType "int4"]
+>           (ScalarType "date")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "numeric", ScalarType "numeric"]
+>           (ScalarType "numeric")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "interval", ScalarType "timetz"]
+>           (ScalarType "timetz")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "box", ScalarType "point"]
+>           (ScalarType "box")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "timestamp", ScalarType "interval"]
+>           (ScalarType "timestamp")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "interval", ScalarType "date"]
+>           (ScalarType "timestamp")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "timetz", ScalarType "date"]
+>           (ScalarType "timestamptz")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "date", ScalarType "int4"]
+>           (ScalarType "date")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "int8", ScalarType "int2"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "int8", ScalarType "inet"]
+>           (ScalarType "inet")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "money", ScalarType "money"]
+>           (ScalarType "money")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "time", ScalarType "interval"]
+>           (ScalarType "time")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "int2", ScalarType "int8"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "interval", ScalarType "time"]
+>           (ScalarType "time")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "int8", ScalarType "int4"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "inet", ScalarType "int8"]
+>           (ScalarType "inet")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ArrayType (ScalarType "aclitem"), ScalarType "aclitem"]
+>           (ArrayType (ScalarType "aclitem"))
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "date", ScalarType "interval"]
+>           (ScalarType "timestamp")
 >           False,
 >         CatCreateFunction FunBinary "+"
 >           [ScalarType "interval", ScalarType "interval"]
 >           (ScalarType "interval")
 >           False,
 >         CatCreateFunction FunBinary "+"
->           [ScalarType "date", ScalarType "time"]
->           (ScalarType "timestamp")
+>           [ScalarType "float8", ScalarType "float8"]
+>           (ScalarType "float8")
 >           False,
 >         CatCreateFunction FunBinary "+"
->           [ScalarType "int4", ScalarType "int2"]
->           (ScalarType "int4")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "int2", ScalarType "int4"]
->           (ScalarType "int4")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "int4", ScalarType "int4"]
->           (ScalarType "int4")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "int2", ScalarType "int2"]
->           (ScalarType "int2")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "timetz", ScalarType "interval"]
->           (ScalarType "timetz")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "time", ScalarType "interval"]
->           (ScalarType "time")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "int8", ScalarType "int8"]
->           (ScalarType "int8")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "int8", ScalarType "int4"]
->           (ScalarType "int8")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "int4", ScalarType "int8"]
->           (ScalarType "int8")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "timestamp", ScalarType "interval"]
->           (ScalarType "timestamp")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "time", ScalarType "date"]
->           (ScalarType "timestamp")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "int8", ScalarType "int2"]
->           (ScalarType "int8")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "date", ScalarType "timetz"]
->           (ScalarType "timestamptz")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "int2", ScalarType "int8"]
->           (ScalarType "int8")
+>           [ScalarType "float4", ScalarType "float4"]
+>           (ScalarType "float4")
 >           False,
 >         CatCreateFunction FunBinary "+"
 >           [ScalarType "point", ScalarType "point"]
 >           (ScalarType "point")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "abstime", ScalarType "reltime"]
+>           (ScalarType "abstime")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "timestamptz", ScalarType "interval"]
+>           (ScalarType "timestamptz")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "circle", ScalarType "point"]
+>           (ScalarType "circle")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "float8", ScalarType "float4"]
+>           (ScalarType "float8")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "int8", ScalarType "int8"]
+>           (ScalarType "int8")
 >           False,
 >         CatCreateFunction FunBinary "+"
 >           [ScalarType "path", ScalarType "path"]
@@ -2745,55 +2785,11 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "path")
 >           False,
 >         CatCreateFunction FunBinary "+"
->           [ScalarType "numeric", ScalarType "numeric"]
->           (ScalarType "numeric")
+>           [ScalarType "int4", ScalarType "int8"]
+>           (ScalarType "int8")
 >           False,
 >         CatCreateFunction FunBinary "+"
->           [ScalarType "box", ScalarType "point"]
->           (ScalarType "box")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "money", ScalarType "money"]
->           (ScalarType "money")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "int8", ScalarType "inet"]
->           (ScalarType "inet")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ArrayType (ScalarType "aclitem"), ScalarType "aclitem"]
->           (ArrayType (ScalarType "aclitem"))
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "inet", ScalarType "int8"]
->           (ScalarType "inet")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "interval", ScalarType "date"]
->           (ScalarType "timestamp")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "date", ScalarType "interval"]
->           (ScalarType "timestamp")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "timetz", ScalarType "date"]
->           (ScalarType "timestamptz")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "interval", ScalarType "timetz"]
->           (ScalarType "timetz")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "interval", ScalarType "timestamp"]
->           (ScalarType "timestamp")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "date", ScalarType "int4"]
->           (ScalarType "date")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "interval", ScalarType "timestamptz"]
+>           [ScalarType "date", ScalarType "timetz"]
 >           (ScalarType "timestamptz")
 >           False,
 >         CatCreateFunction FunBinary "+"
@@ -2805,52 +2801,88 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "float8")
 >           False,
 >         CatCreateFunction FunBinary "+"
->           [ScalarType "float8", ScalarType "float4"]
->           (ScalarType "float8")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "float8", ScalarType "float8"]
->           (ScalarType "float8")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "float4", ScalarType "float4"]
->           (ScalarType "float4")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "circle", ScalarType "point"]
->           (ScalarType "circle")
->           False,
->         CatCreateFunction FunBinary "+"
->           [ScalarType "timestamptz", ScalarType "interval"]
+>           [ScalarType "interval", ScalarType "timestamptz"]
 >           (ScalarType "timestamptz")
 >           False,
 >         CatCreateFunction FunBinary "+"
->           [ScalarType "abstime", ScalarType "reltime"]
->           (ScalarType "abstime")
+>           [ScalarType "int4", ScalarType "int2"]
+>           (ScalarType "int4")
 >           False,
 >         CatCreateFunction FunBinary "+"
->           [ScalarType "interval", ScalarType "time"]
->           (ScalarType "time")
+>           [ScalarType "int2", ScalarType "int4"]
+>           (ScalarType "int4")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "int4", ScalarType "int4"]
+>           (ScalarType "int4")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "int2", ScalarType "int2"]
+>           (ScalarType "int2")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "date", ScalarType "time"]
+>           (ScalarType "timestamp")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "timetz", ScalarType "interval"]
+>           (ScalarType "timetz")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "interval", ScalarType "timestamp"]
+>           (ScalarType "timestamp")
+>           False,
+>         CatCreateFunction FunBinary "+"
+>           [ScalarType "time", ScalarType "date"]
+>           (ScalarType "timestamp")
+>           False,
+>         CatCreateFunction FunBinary "*"
+>           [ScalarType "int8", ScalarType "int8"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunBinary "*"
+>           [ScalarType "int8", ScalarType "int4"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunBinary "*"
+>           [ScalarType "int4", ScalarType "int8"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunBinary "*"
+>           [ScalarType "int8", ScalarType "int2"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunBinary "*"
+>           [ScalarType "int2", ScalarType "int8"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunBinary "*"
+>           [ScalarType "float8", ScalarType "float8"]
+>           (ScalarType "float8")
+>           False,
+>         CatCreateFunction FunBinary "*"
+>           [ScalarType "float4", ScalarType "float4"]
+>           (ScalarType "float4")
 >           False,
 >         CatCreateFunction FunBinary "*"
 >           [ScalarType "point", ScalarType "point"]
 >           (ScalarType "point")
 >           False,
 >         CatCreateFunction FunBinary "*"
->           [ScalarType "int2", ScalarType "int2"]
->           (ScalarType "int2")
->           False,
->         CatCreateFunction FunBinary "*"
 >           [ScalarType "path", ScalarType "point"]
 >           (ScalarType "path")
 >           False,
 >         CatCreateFunction FunBinary "*"
->           [ScalarType "numeric", ScalarType "numeric"]
->           (ScalarType "numeric")
+>           [ScalarType "int4", ScalarType "int2"]
+>           (ScalarType "int4")
 >           False,
 >         CatCreateFunction FunBinary "*"
->           [ScalarType "int4", ScalarType "int4"]
+>           [ScalarType "int2", ScalarType "int4"]
 >           (ScalarType "int4")
+>           False,
+>         CatCreateFunction FunBinary "*"
+>           [ScalarType "numeric", ScalarType "numeric"]
+>           (ScalarType "numeric")
 >           False,
 >         CatCreateFunction FunBinary "*"
 >           [ScalarType "box", ScalarType "point"]
@@ -2863,6 +2895,10 @@ from the project root (i.e. where the cabal file is located).
 >         CatCreateFunction FunBinary "*"
 >           [ScalarType "float4", ScalarType "money"]
 >           (ScalarType "money")
+>           False,
+>         CatCreateFunction FunBinary "*"
+>           [ScalarType "int4", ScalarType "int4"]
+>           (ScalarType "int4")
 >           False,
 >         CatCreateFunction FunBinary "*"
 >           [ScalarType "money", ScalarType "float8"]
@@ -2889,14 +2925,6 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "money")
 >           False,
 >         CatCreateFunction FunBinary "*"
->           [ScalarType "circle", ScalarType "point"]
->           (ScalarType "circle")
->           False,
->         CatCreateFunction FunBinary "*"
->           [ScalarType "float4", ScalarType "float4"]
->           (ScalarType "float4")
->           False,
->         CatCreateFunction FunBinary "*"
 >           [ScalarType "float8", ScalarType "interval"]
 >           (ScalarType "interval")
 >           False,
@@ -2905,51 +2933,27 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "interval")
 >           False,
 >         CatCreateFunction FunBinary "*"
->           [ScalarType "float8", ScalarType "float8"]
->           (ScalarType "float8")
->           False,
->         CatCreateFunction FunBinary "*"
->           [ScalarType "int4", ScalarType "int2"]
->           (ScalarType "int4")
->           False,
->         CatCreateFunction FunBinary "*"
->           [ScalarType "int2", ScalarType "int4"]
->           (ScalarType "int4")
->           False,
->         CatCreateFunction FunBinary "*"
->           [ScalarType "int8", ScalarType "int8"]
->           (ScalarType "int8")
->           False,
->         CatCreateFunction FunBinary "*"
->           [ScalarType "int8", ScalarType "int4"]
->           (ScalarType "int8")
->           False,
->         CatCreateFunction FunBinary "*"
 >           [ScalarType "float4", ScalarType "float8"]
 >           (ScalarType "float8")
->           False,
->         CatCreateFunction FunBinary "*"
->           [ScalarType "int4", ScalarType "int8"]
->           (ScalarType "int8")
->           False,
->         CatCreateFunction FunBinary "*"
->           [ScalarType "int8", ScalarType "int2"]
->           (ScalarType "int8")
->           False,
->         CatCreateFunction FunBinary "*"
->           [ScalarType "int2", ScalarType "int8"]
->           (ScalarType "int8")
 >           False,
 >         CatCreateFunction FunBinary "*"
 >           [ScalarType "float8", ScalarType "float4"]
 >           (ScalarType "float8")
 >           False,
->         CatCreateFunction FunBinary "&>"
->           [ScalarType "box", ScalarType "box"]
->           (ScalarType "bool")
+>         CatCreateFunction FunBinary "*"
+>           [ScalarType "circle", ScalarType "point"]
+>           (ScalarType "circle")
+>           False,
+>         CatCreateFunction FunBinary "*"
+>           [ScalarType "int2", ScalarType "int2"]
+>           (ScalarType "int2")
 >           False,
 >         CatCreateFunction FunBinary "&>"
 >           [ScalarType "circle", ScalarType "circle"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "&>"
+>           [ScalarType "box", ScalarType "box"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "&>"
@@ -2961,11 +2965,11 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "&<|"
->           [ScalarType "circle", ScalarType "circle"]
+>           [ScalarType "box", ScalarType "box"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "&<|"
->           [ScalarType "box", ScalarType "box"]
+>           [ScalarType "circle", ScalarType "circle"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "&<"
@@ -2978,6 +2982,10 @@ from the project root (i.e. where the cabal file is located).
 >           False,
 >         CatCreateFunction FunBinary "&<"
 >           [ScalarType "box", ScalarType "box"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "&&"
+>           [ScalarType "polygon", ScalarType "polygon"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "&&" [Pseudo AnyArray, Pseudo AnyArray]
@@ -2988,14 +2996,6 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "&&"
->           [ScalarType "polygon", ScalarType "polygon"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "&&"
->           [ScalarType "circle", ScalarType "circle"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "&&"
 >           [ScalarType "box", ScalarType "box"]
 >           (ScalarType "bool")
 >           False,
@@ -3003,9 +3003,17 @@ from the project root (i.e. where the cabal file is located).
 >           [ScalarType "tsquery", ScalarType "tsquery"]
 >           (ScalarType "tsquery")
 >           False,
+>         CatCreateFunction FunBinary "&&"
+>           [ScalarType "circle", ScalarType "circle"]
+>           (ScalarType "bool")
+>           False,
 >         CatCreateFunction FunBinary "&"
->           [ScalarType "inet", ScalarType "inet"]
->           (ScalarType "inet")
+>           [ScalarType "int2", ScalarType "int2"]
+>           (ScalarType "int2")
+>           False,
+>         CatCreateFunction FunBinary "&"
+>           [ScalarType "int4", ScalarType "int4"]
+>           (ScalarType "int4")
 >           False,
 >         CatCreateFunction FunBinary "&"
 >           [ScalarType "bit", ScalarType "bit"]
@@ -3016,28 +3024,24 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "int8")
 >           False,
 >         CatCreateFunction FunBinary "&"
->           [ScalarType "int4", ScalarType "int4"]
->           (ScalarType "int4")
->           False,
->         CatCreateFunction FunBinary "&"
->           [ScalarType "int2", ScalarType "int2"]
->           (ScalarType "int2")
->           False,
->         CatCreateFunction FunBinary "%"
->           [ScalarType "int2", ScalarType "int2"]
->           (ScalarType "int2")
+>           [ScalarType "inet", ScalarType "inet"]
+>           (ScalarType "inet")
 >           False,
 >         CatCreateFunction FunBinary "%"
 >           [ScalarType "numeric", ScalarType "numeric"]
 >           (ScalarType "numeric")
 >           False,
 >         CatCreateFunction FunBinary "%"
->           [ScalarType "int4", ScalarType "int4"]
->           (ScalarType "int4")
->           False,
->         CatCreateFunction FunBinary "%"
 >           [ScalarType "int8", ScalarType "int8"]
 >           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunBinary "%"
+>           [ScalarType "int2", ScalarType "int2"]
+>           (ScalarType "int2")
+>           False,
+>         CatCreateFunction FunBinary "%"
+>           [ScalarType "int4", ScalarType "int4"]
+>           (ScalarType "int4")
 >           False,
 >         CatCreateFunction FunBinary "#>="
 >           [ScalarType "tinterval", ScalarType "reltime"]
@@ -3068,11 +3072,19 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "point")
 >           False,
 >         CatCreateFunction FunBinary "##"
->           [ScalarType "lseg", ScalarType "line"]
+>           [ScalarType "lseg", ScalarType "lseg"]
 >           (ScalarType "point")
 >           False,
 >         CatCreateFunction FunBinary "##"
 >           [ScalarType "point", ScalarType "box"]
+>           (ScalarType "point")
+>           False,
+>         CatCreateFunction FunBinary "##"
+>           [ScalarType "point", ScalarType "lseg"]
+>           (ScalarType "point")
+>           False,
+>         CatCreateFunction FunBinary "##"
+>           [ScalarType "point", ScalarType "line"]
 >           (ScalarType "point")
 >           False,
 >         CatCreateFunction FunBinary "##"
@@ -3084,23 +3096,7 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "point")
 >           False,
 >         CatCreateFunction FunBinary "##"
->           [ScalarType "point", ScalarType "line"]
->           (ScalarType "point")
->           False,
->         CatCreateFunction FunBinary "##"
->           [ScalarType "point", ScalarType "lseg"]
->           (ScalarType "point")
->           False,
->         CatCreateFunction FunBinary "##"
->           [ScalarType "lseg", ScalarType "lseg"]
->           (ScalarType "point")
->           False,
->         CatCreateFunction FunBinary "#"
->           [ScalarType "bit", ScalarType "bit"]
->           (ScalarType "bit")
->           False,
->         CatCreateFunction FunBinary "#"
->           [ScalarType "line", ScalarType "line"]
+>           [ScalarType "lseg", ScalarType "line"]
 >           (ScalarType "point")
 >           False,
 >         CatCreateFunction FunBinary "#"
@@ -3108,12 +3104,8 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "box")
 >           False,
 >         CatCreateFunction FunBinary "#"
->           [ScalarType "int2", ScalarType "int2"]
->           (ScalarType "int2")
->           False,
->         CatCreateFunction FunBinary "#"
->           [ScalarType "int8", ScalarType "int8"]
->           (ScalarType "int8")
+>           [ScalarType "bit", ScalarType "bit"]
+>           (ScalarType "bit")
 >           False,
 >         CatCreateFunction FunBinary "#"
 >           [ScalarType "int4", ScalarType "int4"]
@@ -3122,6 +3114,18 @@ from the project root (i.e. where the cabal file is located).
 >         CatCreateFunction FunBinary "#"
 >           [ScalarType "lseg", ScalarType "lseg"]
 >           (ScalarType "point")
+>           False,
+>         CatCreateFunction FunBinary "#"
+>           [ScalarType "int2", ScalarType "int2"]
+>           (ScalarType "int2")
+>           False,
+>         CatCreateFunction FunBinary "#"
+>           [ScalarType "line", ScalarType "line"]
+>           (ScalarType "point")
+>           False,
+>         CatCreateFunction FunBinary "#"
+>           [ScalarType "int8", ScalarType "int8"]
+>           (ScalarType "int8")
 >           False,
 >         CatCreateFunction FunBinary "!~~*"
 >           [ScalarType "text", ScalarType "text"]
@@ -3132,6 +3136,10 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "!~~*"
+>           [ScalarType "name", ScalarType "text"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "!~~"
 >           [ScalarType "name", ScalarType "text"]
 >           (ScalarType "bool")
 >           False,
@@ -3147,7 +3155,7 @@ from the project root (i.e. where the cabal file is located).
 >           [ScalarType "text", ScalarType "text"]
 >           (ScalarType "bool")
 >           False,
->         CatCreateFunction FunBinary "!~~"
+>         CatCreateFunction FunBinary "!~*"
 >           [ScalarType "name", ScalarType "text"]
 >           (ScalarType "bool")
 >           False,
@@ -3156,23 +3164,19 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "!~*"
->           [ScalarType "name", ScalarType "text"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "!~*"
 >           [ScalarType "text", ScalarType "text"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "!~"
->           [ScalarType "text", ScalarType "text"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "!~"
->           [ScalarType "name", ScalarType "text"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "!~"
 >           [ScalarType "bpchar", ScalarType "text"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "!~"
+>           [ScalarType "text", ScalarType "text"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "!~"
+>           [ScalarType "name", ScalarType "text"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunName "RI_FKey_cascade_del" [] (Pseudo Trigger)
@@ -3274,6 +3278,10 @@ from the project root (i.e. where the cabal file is located).
 >         CatCreateFunction FunName "aclcontains"
 >           [ArrayType (ScalarType "aclitem"), ScalarType "aclitem"]
 >           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunName "aclexplode"
+>           [ArrayType (ScalarType "aclitem")]
+>           (SetOfType (Pseudo Record))
 >           False,
 >         CatCreateFunction FunName "aclinsert"
 >           [ArrayType (ScalarType "aclitem"), ScalarType "aclitem"]
@@ -3695,6 +3703,10 @@ from the project root (i.e. where the cabal file is located).
 >           False,
 >         CatCreateFunction FunName "box_contain"
 >           [ScalarType "box", ScalarType "box"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunName "box_contain_pt"
+>           [ScalarType "box", ScalarType "point"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunName "box_contained"
@@ -5026,9 +5038,6 @@ from the project root (i.e. where the cabal file is located).
 >         CatCreateFunction FunName "family" [ScalarType "inet"]
 >           (ScalarType "int4")
 >           False,
->         CatCreateFunction FunName "flatfile_update_trigger" []
->           (Pseudo Trigger)
->           False,
 >         CatCreateFunction FunName "float4" [ScalarType "int8"]
 >           (ScalarType "float4")
 >           False,
@@ -5430,6 +5439,10 @@ from the project root (i.e. where the cabal file is located).
 >           [ScalarType "bytea", ScalarType "int4"]
 >           (ScalarType "int4")
 >           False,
+>         CatCreateFunction FunName "get_bit"
+>           [ScalarType "bit", ScalarType "int4"]
+>           (ScalarType "int4")
+>           False,
 >         CatCreateFunction FunName "get_byte"
 >           [ScalarType "bytea", ScalarType "int4"]
 >           (ScalarType "int4")
@@ -5560,6 +5573,14 @@ from the project root (i.e. where the cabal file is located).
 >           False,
 >         CatCreateFunction FunName "gist_circle_consistent"
 >           [Pseudo Internal, ScalarType "circle", ScalarType "int4",
+>            ScalarType "oid", Pseudo Internal]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunName "gist_point_compress" [Pseudo Internal]
+>           (Pseudo Internal)
+>           False,
+>         CatCreateFunction FunName "gist_point_consistent"
+>           [Pseudo Internal, ScalarType "box", ScalarType "int4",
 >            ScalarType "oid", Pseudo Internal]
 >           (ScalarType "bool")
 >           False,
@@ -5881,6 +5902,30 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunName "has_schema_privilege"
+>           [ScalarType "oid", ScalarType "oid", ScalarType "text"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunName "has_sequence_privilege"
+>           [ScalarType "text", ScalarType "text"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunName "has_sequence_privilege"
+>           [ScalarType "oid", ScalarType "text"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunName "has_sequence_privilege"
+>           [ScalarType "name", ScalarType "text", ScalarType "text"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunName "has_sequence_privilege"
+>           [ScalarType "name", ScalarType "oid", ScalarType "text"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunName "has_sequence_privilege"
+>           [ScalarType "oid", ScalarType "text", ScalarType "text"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunName "has_sequence_privilege"
 >           [ScalarType "oid", ScalarType "oid", ScalarType "text"]
 >           (ScalarType "bool")
 >           False,
@@ -8086,13 +8131,31 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunName "overlay"
+>           [ScalarType "bytea", ScalarType "bytea", ScalarType "int4"]
+>           (ScalarType "bytea")
+>           False,
+>         CatCreateFunction FunName "overlay"
 >           [ScalarType "text", ScalarType "text", ScalarType "int4"]
 >           (ScalarType "text")
+>           False,
+>         CatCreateFunction FunName "overlay"
+>           [ScalarType "bit", ScalarType "bit", ScalarType "int4"]
+>           (ScalarType "bit")
+>           False,
+>         CatCreateFunction FunName "overlay"
+>           [ScalarType "bytea", ScalarType "bytea", ScalarType "int4",
+>            ScalarType "int4"]
+>           (ScalarType "bytea")
 >           False,
 >         CatCreateFunction FunName "overlay"
 >           [ScalarType "text", ScalarType "text", ScalarType "int4",
 >            ScalarType "int4"]
 >           (ScalarType "text")
+>           False,
+>         CatCreateFunction FunName "overlay"
+>           [ScalarType "bit", ScalarType "bit", ScalarType "int4",
+>            ScalarType "int4"]
+>           (ScalarType "bit")
 >           False,
 >         CatCreateFunction FunName "path" [ScalarType "polygon"]
 >           (ScalarType "path")
@@ -8241,6 +8304,10 @@ from the project root (i.e. where the cabal file is located).
 >         CatCreateFunction FunName "pg_database_size" [ScalarType "oid"]
 >           (ScalarType "int8")
 >           False,
+>         CatCreateFunction FunName "pg_encoding_max_length"
+>           [ScalarType "int4"]
+>           (ScalarType "int4")
+>           False,
 >         CatCreateFunction FunName "pg_encoding_to_char" [ScalarType "int4"]
 >           (ScalarType "name")
 >           False,
@@ -8302,6 +8369,10 @@ from the project root (i.e. where the cabal file is located).
 >         CatCreateFunction FunName "pg_get_triggerdef" [ScalarType "oid"]
 >           (ScalarType "text")
 >           False,
+>         CatCreateFunction FunName "pg_get_triggerdef"
+>           [ScalarType "oid", ScalarType "bool"]
+>           (ScalarType "text")
+>           False,
 >         CatCreateFunction FunName "pg_get_userbyid" [ScalarType "oid"]
 >           (ScalarType "name")
 >           False,
@@ -8343,9 +8414,24 @@ from the project root (i.e. where the cabal file is located).
 >           [ScalarType "oid", ScalarType "oid", ScalarType "text"]
 >           (ScalarType "bool")
 >           False,
+>         CatCreateFunction FunName "pg_indexes_size" [ScalarType "regclass"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunName "pg_is_in_recovery" []
+>           (ScalarType "bool")
+>           False,
 >         CatCreateFunction FunName "pg_is_other_temp_schema"
 >           [ScalarType "oid"]
 >           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunName "pg_last_xlog_receive_location" []
+>           (ScalarType "text")
+>           False,
+>         CatCreateFunction FunName "pg_last_xlog_replay_location" []
+>           (ScalarType "text")
+>           False,
+>         CatCreateFunction FunName "pg_listening_channels" []
+>           (SetOfType (ScalarType "text"))
 >           False,
 >         CatCreateFunction FunName "pg_lock_status" []
 >           (SetOfType (Pseudo Record))
@@ -8354,6 +8440,10 @@ from the project root (i.e. where the cabal file is located).
 >           (SetOfType (ScalarType "text"))
 >           False,
 >         CatCreateFunction FunName "pg_my_temp_schema" [] (ScalarType "oid")
+>           False,
+>         CatCreateFunction FunName "pg_notify"
+>           [ScalarType "text", ScalarType "text"]
+>           (Pseudo Void)
 >           False,
 >         CatCreateFunction FunName "pg_opclass_is_visible"
 >           [ScalarType "oid"]
@@ -8378,6 +8468,14 @@ from the project root (i.e. where the cabal file is located).
 >           False,
 >         CatCreateFunction FunName "pg_read_file"
 >           [ScalarType "text", ScalarType "int8", ScalarType "int8"]
+>           (ScalarType "text")
+>           False,
+>         CatCreateFunction FunName "pg_relation_filenode"
+>           [ScalarType "regclass"]
+>           (ScalarType "oid")
+>           False,
+>         CatCreateFunction FunName "pg_relation_filepath"
+>           [ScalarType "regclass"]
 >           (ScalarType "text")
 >           False,
 >         CatCreateFunction FunName "pg_relation_size"
@@ -8598,12 +8696,27 @@ from the project root (i.e. where the cabal file is located).
 >           (ScalarType "int8")
 >           False,
 >         CatCreateFunction FunName "pg_stat_reset" [] (Pseudo Void) False,
+>         CatCreateFunction FunName "pg_stat_reset_shared"
+>           [ScalarType "text"]
+>           (Pseudo Void)
+>           False,
+>         CatCreateFunction FunName "pg_stat_reset_single_function_counters"
+>           [ScalarType "oid"]
+>           (Pseudo Void)
+>           False,
+>         CatCreateFunction FunName "pg_stat_reset_single_table_counters"
+>           [ScalarType "oid"]
+>           (Pseudo Void)
+>           False,
 >         CatCreateFunction FunName "pg_stop_backup" [] (ScalarType "text")
 >           False,
 >         CatCreateFunction FunName "pg_switch_xlog" [] (ScalarType "text")
 >           False,
 >         CatCreateFunction FunName "pg_table_is_visible" [ScalarType "oid"]
 >           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunName "pg_table_size" [ScalarType "regclass"]
+>           (ScalarType "int8")
 >           False,
 >         CatCreateFunction FunName "pg_tablespace_databases"
 >           [ScalarType "oid"]
@@ -8681,6 +8794,16 @@ from the project root (i.e. where the cabal file is located).
 >         CatCreateFunction FunName "plainto_tsquery"
 >           [ScalarType "regconfig", ScalarType "text"]
 >           (ScalarType "tsquery")
+>           False,
+>         CatCreateFunction FunName "plpgsql_call_handler" []
+>           (Pseudo LanguageHandler)
+>           False,
+>         CatCreateFunction FunName "plpgsql_inline_handler"
+>           [Pseudo Internal]
+>           (Pseudo Void)
+>           False,
+>         CatCreateFunction FunName "plpgsql_validator" [ScalarType "oid"]
+>           (Pseudo Void)
 >           False,
 >         CatCreateFunction FunName "point" [ScalarType "lseg"]
 >           (ScalarType "point")
@@ -9272,6 +9395,10 @@ from the project root (i.e. where the cabal file is located).
 >           [ScalarType "bytea", ScalarType "int4", ScalarType "int4"]
 >           (ScalarType "bytea")
 >           False,
+>         CatCreateFunction FunName "set_bit"
+>           [ScalarType "bit", ScalarType "int4", ScalarType "int4"]
+>           (ScalarType "bit")
+>           False,
 >         CatCreateFunction FunName "set_byte"
 >           [ScalarType "bytea", ScalarType "int4", ScalarType "int4"]
 >           (ScalarType "bytea")
@@ -9381,6 +9508,13 @@ from the project root (i.e. where the cabal file is located).
 >           False,
 >         CatCreateFunction FunName "statement_timestamp" []
 >           (ScalarType "timestamptz")
+>           False,
+>         CatCreateFunction FunName "string_agg_finalfn" [Pseudo Internal]
+>           (ScalarType "text")
+>           False,
+>         CatCreateFunction FunName "string_agg_transfn"
+>           [Pseudo Internal, ScalarType "text", ScalarType "text"]
+>           (Pseudo Internal)
 >           False,
 >         CatCreateFunction FunName "string_to_array"
 >           [ScalarType "text", ScalarType "text"]
@@ -10601,6 +10735,8 @@ from the project root (i.e. where the cabal file is located).
 >            Pseudo Internal, ScalarType "int4"]
 >           (Pseudo Void)
 >           False,
+>         CatCreateFunction FunName "unique_key_recheck" [] (Pseudo Trigger)
+>           False,
 >         CatCreateFunction FunName "unknownin" [Pseudo Cstring]
 >           (ScalarType "unknown")
 >           False,
@@ -11239,6 +11375,10 @@ from the project root (i.e. where the cabal file is located).
 >         CatCreateFunction FunAgg "stddev_samp" [ScalarType "numeric"]
 >           (ScalarType "numeric")
 >           False,
+>         CatCreateFunction FunAgg "string_agg"
+>           [ScalarType "text", ScalarType "text"]
+>           (ScalarType "text")
+>           False,
 >         CatCreateFunction FunAgg "sum" [ScalarType "int8"]
 >           (ScalarType "numeric")
 >           False,
@@ -11445,7 +11585,8 @@ from the project root (i.e. where the cabal file is located).
 >            ("attisdropped", ScalarType "bool"),
 >            ("attislocal", ScalarType "bool"),
 >            ("attinhcount", ScalarType "int4"),
->            ("attacl", ArrayType (ScalarType "aclitem"))]
+>            ("attacl", ArrayType (ScalarType "aclitem")),
+>            ("attoptions", ArrayType (ScalarType "text"))]
 >           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
 >            ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
 >            ("xmin", ScalarType "xid"), ("ctid", ScalarType "tid")],
@@ -11464,8 +11605,7 @@ from the project root (i.e. where the cabal file is located).
 >            ("rolcanlogin", ScalarType "bool"),
 >            ("rolconnlimit", ScalarType "int4"),
 >            ("rolpassword", ScalarType "text"),
->            ("rolvaliduntil", ScalarType "timestamptz"),
->            ("rolconfig", ArrayType (ScalarType "text"))]
+>            ("rolvaliduntil", ScalarType "timestamptz")]
 >           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
 >            ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
 >            ("xmin", ScalarType "xid"), ("oid", ScalarType "oid"),
@@ -11482,8 +11622,8 @@ from the project root (i.e. where the cabal file is located).
 >         CatCreateTable "pg_class"
 >           [("relname", ScalarType "name"),
 >            ("relnamespace", ScalarType "oid"), ("reltype", ScalarType "oid"),
->            ("relowner", ScalarType "oid"), ("relam", ScalarType "oid"),
->            ("relfilenode", ScalarType "oid"),
+>            ("reloftype", ScalarType "oid"), ("relowner", ScalarType "oid"),
+>            ("relam", ScalarType "oid"), ("relfilenode", ScalarType "oid"),
 >            ("reltablespace", ScalarType "oid"),
 >            ("relpages", ScalarType "int4"),
 >            ("reltuples", ScalarType "float4"),
@@ -11495,6 +11635,7 @@ from the project root (i.e. where the cabal file is located).
 >            ("relnatts", ScalarType "int2"), ("relchecks", ScalarType "int2"),
 >            ("relhasoids", ScalarType "bool"),
 >            ("relhaspkey", ScalarType "bool"),
+>            ("relhasexclusion", ScalarType "bool"),
 >            ("relhasrules", ScalarType "bool"),
 >            ("relhastriggers", ScalarType "bool"),
 >            ("relhassubclass", ScalarType "bool"),
@@ -11510,7 +11651,8 @@ from the project root (i.e. where the cabal file is located).
 >            ("connamespace", ScalarType "oid"), ("contype", ScalarType "char"),
 >            ("condeferrable", ScalarType "bool"),
 >            ("condeferred", ScalarType "bool"), ("conrelid", ScalarType "oid"),
->            ("contypid", ScalarType "oid"), ("confrelid", ScalarType "oid"),
+>            ("contypid", ScalarType "oid"), ("conindid", ScalarType "oid"),
+>            ("confrelid", ScalarType "oid"),
 >            ("confupdtype", ScalarType "char"),
 >            ("confdeltype", ScalarType "char"),
 >            ("confmatchtype", ScalarType "char"),
@@ -11521,6 +11663,7 @@ from the project root (i.e. where the cabal file is located).
 >            ("conpfeqop", ArrayType (ScalarType "oid")),
 >            ("conppeqop", ArrayType (ScalarType "oid")),
 >            ("conffeqop", ArrayType (ScalarType "oid")),
+>            ("conexclop", ArrayType (ScalarType "oid")),
 >            ("conbin", ScalarType "text"), ("consrc", ScalarType "text")]
 >           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
 >            ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
@@ -11547,8 +11690,22 @@ from the project root (i.e. where the cabal file is located).
 >            ("datlastsysoid", ScalarType "oid"),
 >            ("datfrozenxid", ScalarType "xid"),
 >            ("dattablespace", ScalarType "oid"),
->            ("datconfig", ArrayType (ScalarType "text")),
 >            ("datacl", ArrayType (ScalarType "aclitem"))]
+>           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
+>            ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
+>            ("xmin", ScalarType "xid"), ("oid", ScalarType "oid"),
+>            ("ctid", ScalarType "tid")],
+>         CatCreateTable "pg_db_role_setting"
+>           [("setdatabase", ScalarType "oid"), ("setrole", ScalarType "oid"),
+>            ("setconfig", ArrayType (ScalarType "text"))]
+>           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
+>            ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
+>            ("xmin", ScalarType "xid"), ("ctid", ScalarType "tid")],
+>         CatCreateTable "pg_default_acl"
+>           [("defaclrole", ScalarType "oid"),
+>            ("defaclnamespace", ScalarType "oid"),
+>            ("defaclobjtype", ScalarType "char"),
+>            ("defaclacl", ArrayType (ScalarType "aclitem"))]
 >           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
 >            ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
 >            ("xmin", ScalarType "xid"), ("oid", ScalarType "oid"),
@@ -11598,6 +11755,7 @@ from the project root (i.e. where the cabal file is located).
 >            ("indnatts", ScalarType "int2"),
 >            ("indisunique", ScalarType "bool"),
 >            ("indisprimary", ScalarType "bool"),
+>            ("indimmediate", ScalarType "bool"),
 >            ("indisclustered", ScalarType "bool"),
 >            ("indisvalid", ScalarType "bool"),
 >            ("indcheckxmin", ScalarType "bool"),
@@ -11620,6 +11778,7 @@ from the project root (i.e. where the cabal file is located).
 >            ("lanispl", ScalarType "bool"),
 >            ("lanpltrusted", ScalarType "bool"),
 >            ("lanplcallfoid", ScalarType "oid"),
+>            ("laninline", ScalarType "oid"),
 >            ("lanvalidator", ScalarType "oid"),
 >            ("lanacl", ArrayType (ScalarType "aclitem"))]
 >           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
@@ -11632,13 +11791,13 @@ from the project root (i.e. where the cabal file is located).
 >           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
 >            ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
 >            ("xmin", ScalarType "xid"), ("ctid", ScalarType "tid")],
->         CatCreateTable "pg_listener"
->           [("relname", ScalarType "name"),
->            ("listenerpid", ScalarType "int4"),
->            ("notification", ScalarType "int4")]
+>         CatCreateTable "pg_largeobject_metadata"
+>           [("lomowner", ScalarType "oid"),
+>            ("lomacl", ArrayType (ScalarType "aclitem"))]
 >           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
 >            ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
->            ("xmin", ScalarType "xid"), ("ctid", ScalarType "tid")],
+>            ("xmin", ScalarType "xid"), ("oid", ScalarType "oid"),
+>            ("ctid", ScalarType "tid")],
 >         CatCreateTable "pg_namespace"
 >           [("nspname", ScalarType "name"), ("nspowner", ScalarType "oid"),
 >            ("nspacl", ArrayType (ScalarType "aclitem"))]
@@ -11682,6 +11841,7 @@ from the project root (i.e. where the cabal file is located).
 >            ("tmpltrusted", ScalarType "bool"),
 >            ("tmpldbacreate", ScalarType "bool"),
 >            ("tmplhandler", ScalarType "text"),
+>            ("tmplinline", ScalarType "text"),
 >            ("tmplvalidator", ScalarType "text"),
 >            ("tmpllibrary", ScalarType "text"),
 >            ("tmplacl", ArrayType (ScalarType "aclitem"))]
@@ -11707,7 +11867,7 @@ from the project root (i.e. where the cabal file is located).
 >            ("proargmodes", ArrayType (ScalarType "char")),
 >            ("proargnames", ArrayType (ScalarType "text")),
 >            ("proargdefaults", ScalarType "text"),
->            ("prosrc", ScalarType "text"), ("probin", ScalarType "bytea"),
+>            ("prosrc", ScalarType "text"), ("probin", ScalarType "text"),
 >            ("proconfig", ArrayType (ScalarType "text")),
 >            ("proacl", ArrayType (ScalarType "aclitem"))]
 >           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
@@ -11740,6 +11900,7 @@ from the project root (i.e. where the cabal file is located).
 >            ("xmin", ScalarType "xid"), ("ctid", ScalarType "tid")],
 >         CatCreateTable "pg_statistic"
 >           [("starelid", ScalarType "oid"), ("staattnum", ScalarType "int2"),
+>            ("stainherit", ScalarType "bool"),
 >            ("stanullfrac", ScalarType "float4"),
 >            ("stawidth", ScalarType "int4"),
 >            ("stadistinct", ScalarType "float4"),
@@ -11759,7 +11920,8 @@ from the project root (i.e. where the cabal file is located).
 >         CatCreateTable "pg_tablespace"
 >           [("spcname", ScalarType "name"), ("spcowner", ScalarType "oid"),
 >            ("spclocation", ScalarType "text"),
->            ("spcacl", ArrayType (ScalarType "aclitem"))]
+>            ("spcacl", ArrayType (ScalarType "aclitem")),
+>            ("spcoptions", ArrayType (ScalarType "text"))]
 >           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
 >            ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
 >            ("xmin", ScalarType "xid"), ("oid", ScalarType "oid"),
@@ -11768,15 +11930,15 @@ from the project root (i.e. where the cabal file is located).
 >           [("tgrelid", ScalarType "oid"), ("tgname", ScalarType "name"),
 >            ("tgfoid", ScalarType "oid"), ("tgtype", ScalarType "int2"),
 >            ("tgenabled", ScalarType "char"),
->            ("tgisconstraint", ScalarType "bool"),
->            ("tgconstrname", ScalarType "name"),
+>            ("tgisinternal", ScalarType "bool"),
 >            ("tgconstrrelid", ScalarType "oid"),
+>            ("tgconstrindid", ScalarType "oid"),
 >            ("tgconstraint", ScalarType "oid"),
 >            ("tgdeferrable", ScalarType "bool"),
 >            ("tginitdeferred", ScalarType "bool"),
 >            ("tgnargs", ScalarType "int2"),
 >            ("tgattr", ScalarType "int2vector"),
->            ("tgargs", ScalarType "bytea")]
+>            ("tgargs", ScalarType "bytea"), ("tgqual", ScalarType "text")]
 >           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
 >            ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
 >            ("xmin", ScalarType "xid"), ("oid", ScalarType "oid"),
@@ -11865,7 +12027,7 @@ from the project root (i.e. where the cabal file is located).
 >            ("sub_feature_id", DomainType "information_schema.character_data"),
 >            ("sub_feature_name",
 >             DomainType "information_schema.character_data"),
->            ("is_supported", DomainType "information_schema.character_data"),
+>            ("is_supported", DomainType "information_schema.yes_or_no"),
 >            ("is_verified_by", DomainType "information_schema.character_data"),
 >            ("comments", DomainType "information_schema.character_data")]
 >           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
@@ -11904,7 +12066,7 @@ from the project root (i.e. where the cabal file is located).
 >         CatCreateTable "information_schema.sql_packages"
 >           [("feature_id", DomainType "information_schema.character_data"),
 >            ("feature_name", DomainType "information_schema.character_data"),
->            ("is_supported", DomainType "information_schema.character_data"),
+>            ("is_supported", DomainType "information_schema.yes_or_no"),
 >            ("is_verified_by", DomainType "information_schema.character_data"),
 >            ("comments", DomainType "information_schema.character_data")]
 >           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
@@ -11913,7 +12075,7 @@ from the project root (i.e. where the cabal file is located).
 >         CatCreateTable "information_schema.sql_parts"
 >           [("feature_id", DomainType "information_schema.character_data"),
 >            ("feature_name", DomainType "information_schema.character_data"),
->            ("is_supported", DomainType "information_schema.character_data"),
+>            ("is_supported", DomainType "information_schema.yes_or_no"),
 >            ("is_verified_by", DomainType "information_schema.character_data"),
 >            ("comments", DomainType "information_schema.character_data")]
 >           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
@@ -11981,11 +12143,11 @@ from the project root (i.e. where the cabal file is located).
 >           "information_schema.administrable_role_authorizations"
 >           [("grantee", DomainType "information_schema.sql_identifier"),
 >            ("role_name", DomainType "information_schema.sql_identifier"),
->            ("is_grantable", DomainType "information_schema.character_data")],
+>            ("is_grantable", DomainType "information_schema.yes_or_no")],
 >         CatCreateView "information_schema.applicable_roles"
 >           [("grantee", DomainType "information_schema.sql_identifier"),
 >            ("role_name", DomainType "information_schema.sql_identifier"),
->            ("is_grantable", DomainType "information_schema.character_data")],
+>            ("is_grantable", DomainType "information_schema.yes_or_no")],
 >         CatCreateView "information_schema.attributes"
 >           [("udt_catalog", DomainType "information_schema.sql_identifier"),
 >            ("udt_schema", DomainType "information_schema.sql_identifier"),
@@ -11995,7 +12157,7 @@ from the project root (i.e. where the cabal file is located).
 >             DomainType "information_schema.cardinal_number"),
 >            ("attribute_default",
 >             DomainType "information_schema.character_data"),
->            ("is_nullable", DomainType "information_schema.character_data"),
+>            ("is_nullable", DomainType "information_schema.yes_or_no"),
 >            ("data_type", DomainType "information_schema.character_data"),
 >            ("character_maximum_length",
 >             DomainType "information_schema.cardinal_number"),
@@ -12035,7 +12197,7 @@ from the project root (i.e. where the cabal file is located).
 >             DomainType "information_schema.cardinal_number"),
 >            ("dtd_identifier", DomainType "information_schema.sql_identifier"),
 >            ("is_derived_reference_attribute",
->             DomainType "information_schema.character_data")],
+>             DomainType "information_schema.yes_or_no")],
 >         CatCreateView "information_schema.check_constraint_routine_usage"
 >           [("constraint_catalog",
 >             DomainType "information_schema.sql_identifier"),
@@ -12073,7 +12235,7 @@ from the project root (i.e. where the cabal file is located).
 >            ("table_name", DomainType "information_schema.sql_identifier"),
 >            ("column_name", DomainType "information_schema.sql_identifier"),
 >            ("privilege_type", DomainType "information_schema.character_data"),
->            ("is_grantable", DomainType "information_schema.character_data")],
+>            ("is_grantable", DomainType "information_schema.yes_or_no")],
 >         CatCreateView "information_schema.column_udt_usage"
 >           [("udt_catalog", DomainType "information_schema.sql_identifier"),
 >            ("udt_schema", DomainType "information_schema.sql_identifier"),
@@ -12090,7 +12252,7 @@ from the project root (i.e. where the cabal file is located).
 >            ("ordinal_position",
 >             DomainType "information_schema.cardinal_number"),
 >            ("column_default", DomainType "information_schema.character_data"),
->            ("is_nullable", DomainType "information_schema.character_data"),
+>            ("is_nullable", DomainType "information_schema.yes_or_no"),
 >            ("data_type", DomainType "information_schema.character_data"),
 >            ("character_maximum_length",
 >             DomainType "information_schema.cardinal_number"),
@@ -12129,9 +12291,8 @@ from the project root (i.e. where the cabal file is located).
 >            ("maximum_cardinality",
 >             DomainType "information_schema.cardinal_number"),
 >            ("dtd_identifier", DomainType "information_schema.sql_identifier"),
->            ("is_self_referencing",
->             DomainType "information_schema.character_data"),
->            ("is_identity", DomainType "information_schema.character_data"),
+>            ("is_self_referencing", DomainType "information_schema.yes_or_no"),
+>            ("is_identity", DomainType "information_schema.yes_or_no"),
 >            ("identity_generation",
 >             DomainType "information_schema.character_data"),
 >            ("identity_start", DomainType "information_schema.character_data"),
@@ -12141,11 +12302,11 @@ from the project root (i.e. where the cabal file is located).
 >             DomainType "information_schema.character_data"),
 >            ("identity_minimum",
 >             DomainType "information_schema.character_data"),
->            ("identity_cycle", DomainType "information_schema.character_data"),
+>            ("identity_cycle", DomainType "information_schema.yes_or_no"),
 >            ("is_generated", DomainType "information_schema.character_data"),
 >            ("generation_expression",
 >             DomainType "information_schema.character_data"),
->            ("is_updatable", DomainType "information_schema.character_data")],
+>            ("is_updatable", DomainType "information_schema.yes_or_no")],
 >         CatCreateView "information_schema.constraint_column_usage"
 >           [("table_catalog", DomainType "information_schema.sql_identifier"),
 >            ("table_schema", DomainType "information_schema.sql_identifier"),
@@ -12185,9 +12346,8 @@ from the project root (i.e. where the cabal file is located).
 >            ("domain_catalog", DomainType "information_schema.sql_identifier"),
 >            ("domain_schema", DomainType "information_schema.sql_identifier"),
 >            ("domain_name", DomainType "information_schema.sql_identifier"),
->            ("is_deferrable", DomainType "information_schema.character_data"),
->            ("initially_deferred",
->             DomainType "information_schema.character_data")],
+>            ("is_deferrable", DomainType "information_schema.yes_or_no"),
+>            ("initially_deferred", DomainType "information_schema.yes_or_no")],
 >         CatCreateView "information_schema.domain_udt_usage"
 >           [("udt_catalog", DomainType "information_schema.sql_identifier"),
 >            ("udt_schema", DomainType "information_schema.sql_identifier"),
@@ -12349,8 +12509,8 @@ from the project root (i.e. where the cabal file is located).
 >            ("ordinal_position",
 >             DomainType "information_schema.cardinal_number"),
 >            ("parameter_mode", DomainType "information_schema.character_data"),
->            ("is_result", DomainType "information_schema.character_data"),
->            ("as_locator", DomainType "information_schema.character_data"),
+>            ("is_result", DomainType "information_schema.yes_or_no"),
+>            ("as_locator", DomainType "information_schema.yes_or_no"),
 >            ("parameter_name", DomainType "information_schema.sql_identifier"),
 >            ("data_type", DomainType "information_schema.character_data"),
 >            ("character_maximum_length",
@@ -12457,13 +12617,14 @@ from the project root (i.e. where the cabal file is located).
 >           [("datid", ScalarType "oid"), ("datname", ScalarType "name"),
 >            ("procpid", ScalarType "int4"), ("usesysid", ScalarType "oid"),
 >            ("usename", ScalarType "name"),
->            ("current_query", ScalarType "text"),
->            ("waiting", ScalarType "bool"),
+>            ("application_name", ScalarType "text"),
+>            ("client_addr", ScalarType "inet"),
+>            ("client_port", ScalarType "int4"),
+>            ("backend_start", ScalarType "timestamptz"),
 >            ("xact_start", ScalarType "timestamptz"),
 >            ("query_start", ScalarType "timestamptz"),
->            ("backend_start", ScalarType "timestamptz"),
->            ("client_addr", ScalarType "inet"),
->            ("client_port", ScalarType "int4")],
+>            ("waiting", ScalarType "bool"),
+>            ("current_query", ScalarType "text")],
 >         CatCreateView "pg_stat_all_indexes"
 >           [("relid", ScalarType "oid"), ("indexrelid", ScalarType "oid"),
 >            ("schemaname", ScalarType "name"), ("relname", ScalarType "name"),
@@ -12620,6 +12781,7 @@ from the project root (i.e. where the cabal file is located).
 >         CatCreateView "pg_stats"
 >           [("schemaname", ScalarType "name"),
 >            ("tablename", ScalarType "name"), ("attname", ScalarType "name"),
+>            ("inherited", ScalarType "bool"),
 >            ("null_frac", ScalarType "float4"),
 >            ("avg_width", ScalarType "int4"),
 >            ("n_distinct", ScalarType "float4"),
@@ -12681,7 +12843,7 @@ from the project root (i.e. where the cabal file is located).
 >            ("table_name", DomainType "information_schema.sql_identifier"),
 >            ("column_name", DomainType "information_schema.sql_identifier"),
 >            ("privilege_type", DomainType "information_schema.character_data"),
->            ("is_grantable", DomainType "information_schema.character_data")],
+>            ("is_grantable", DomainType "information_schema.yes_or_no")],
 >         CatCreateView "information_schema.role_routine_grants"
 >           [("grantor", DomainType "information_schema.sql_identifier"),
 >            ("grantee", DomainType "information_schema.sql_identifier"),
@@ -12695,7 +12857,7 @@ from the project root (i.e. where the cabal file is located).
 >            ("routine_schema", DomainType "information_schema.sql_identifier"),
 >            ("routine_name", DomainType "information_schema.sql_identifier"),
 >            ("privilege_type", DomainType "information_schema.character_data"),
->            ("is_grantable", DomainType "information_schema.character_data")],
+>            ("is_grantable", DomainType "information_schema.yes_or_no")],
 >         CatCreateView "information_schema.role_table_grants"
 >           [("grantor", DomainType "information_schema.sql_identifier"),
 >            ("grantee", DomainType "information_schema.sql_identifier"),
@@ -12703,9 +12865,8 @@ from the project root (i.e. where the cabal file is located).
 >            ("table_schema", DomainType "information_schema.sql_identifier"),
 >            ("table_name", DomainType "information_schema.sql_identifier"),
 >            ("privilege_type", DomainType "information_schema.character_data"),
->            ("is_grantable", DomainType "information_schema.character_data"),
->            ("with_hierarchy",
->             DomainType "information_schema.character_data")],
+>            ("is_grantable", DomainType "information_schema.yes_or_no"),
+>            ("with_hierarchy", DomainType "information_schema.yes_or_no")],
 >         CatCreateView "information_schema.role_usage_grants"
 >           [("grantor", DomainType "information_schema.sql_identifier"),
 >            ("grantee", DomainType "information_schema.sql_identifier"),
@@ -12714,7 +12875,7 @@ from the project root (i.e. where the cabal file is located).
 >            ("object_name", DomainType "information_schema.sql_identifier"),
 >            ("object_type", DomainType "information_schema.character_data"),
 >            ("privilege_type", DomainType "information_schema.character_data"),
->            ("is_grantable", DomainType "information_schema.character_data")],
+>            ("is_grantable", DomainType "information_schema.yes_or_no")],
 >         CatCreateView "information_schema.routine_privileges"
 >           [("grantor", DomainType "information_schema.sql_identifier"),
 >            ("grantee", DomainType "information_schema.sql_identifier"),
@@ -12728,7 +12889,7 @@ from the project root (i.e. where the cabal file is located).
 >            ("routine_schema", DomainType "information_schema.sql_identifier"),
 >            ("routine_name", DomainType "information_schema.sql_identifier"),
 >            ("privilege_type", DomainType "information_schema.character_data"),
->            ("is_grantable", DomainType "information_schema.character_data")],
+>            ("is_grantable", DomainType "information_schema.yes_or_no")],
 >         CatCreateView "information_schema.routines"
 >           [("specific_catalog",
 >             DomainType "information_schema.sql_identifier"),
@@ -12791,20 +12952,19 @@ from the project root (i.e. where the cabal file is located).
 >             DomainType "information_schema.character_data"),
 >            ("parameter_style",
 >             DomainType "information_schema.character_data"),
->            ("is_deterministic",
->             DomainType "information_schema.character_data"),
+>            ("is_deterministic", DomainType "information_schema.yes_or_no"),
 >            ("sql_data_access",
 >             DomainType "information_schema.character_data"),
->            ("is_null_call", DomainType "information_schema.character_data"),
+>            ("is_null_call", DomainType "information_schema.yes_or_no"),
 >            ("sql_path", DomainType "information_schema.character_data"),
 >            ("schema_level_routine",
->             DomainType "information_schema.character_data"),
+>             DomainType "information_schema.yes_or_no"),
 >            ("max_dynamic_result_sets",
 >             DomainType "information_schema.cardinal_number"),
 >            ("is_user_defined_cast",
->             DomainType "information_schema.character_data"),
+>             DomainType "information_schema.yes_or_no"),
 >            ("is_implicitly_invocable",
->             DomainType "information_schema.character_data"),
+>             DomainType "information_schema.yes_or_no"),
 >            ("security_type", DomainType "information_schema.character_data"),
 >            ("to_sql_specific_catalog",
 >             DomainType "information_schema.sql_identifier"),
@@ -12812,17 +12972,15 @@ from the project root (i.e. where the cabal file is located).
 >             DomainType "information_schema.sql_identifier"),
 >            ("to_sql_specific_name",
 >             DomainType "information_schema.sql_identifier"),
->            ("as_locator", DomainType "information_schema.character_data"),
+>            ("as_locator", DomainType "information_schema.yes_or_no"),
 >            ("created", DomainType "information_schema.time_stamp"),
 >            ("last_altered", DomainType "information_schema.time_stamp"),
->            ("new_savepoint_level",
->             DomainType "information_schema.character_data"),
->            ("is_udt_dependent",
->             DomainType "information_schema.character_data"),
+>            ("new_savepoint_level", DomainType "information_schema.yes_or_no"),
+>            ("is_udt_dependent", DomainType "information_schema.yes_or_no"),
 >            ("result_cast_from_data_type",
 >             DomainType "information_schema.character_data"),
 >            ("result_cast_as_locator",
->             DomainType "information_schema.character_data"),
+>             DomainType "information_schema.yes_or_no"),
 >            ("result_cast_char_max_length",
 >             DomainType "information_schema.cardinal_number"),
 >            ("result_cast_char_octet_length",
@@ -12893,7 +13051,7 @@ from the project root (i.e. where the cabal file is located).
 >            ("maximum_value", DomainType "information_schema.cardinal_number"),
 >            ("minimum_value", DomainType "information_schema.cardinal_number"),
 >            ("increment", DomainType "information_schema.cardinal_number"),
->            ("cycle_option", DomainType "information_schema.character_data")],
+>            ("cycle_option", DomainType "information_schema.yes_or_no")],
 >         CatCreateView "information_schema.table_constraints"
 >           [("constraint_catalog",
 >             DomainType "information_schema.sql_identifier"),
@@ -12906,9 +13064,8 @@ from the project root (i.e. where the cabal file is located).
 >            ("table_name", DomainType "information_schema.sql_identifier"),
 >            ("constraint_type",
 >             DomainType "information_schema.character_data"),
->            ("is_deferrable", DomainType "information_schema.character_data"),
->            ("initially_deferred",
->             DomainType "information_schema.character_data")],
+>            ("is_deferrable", DomainType "information_schema.yes_or_no"),
+>            ("initially_deferred", DomainType "information_schema.yes_or_no")],
 >         CatCreateView "information_schema.table_privileges"
 >           [("grantor", DomainType "information_schema.sql_identifier"),
 >            ("grantee", DomainType "information_schema.sql_identifier"),
@@ -12916,9 +13073,8 @@ from the project root (i.e. where the cabal file is located).
 >            ("table_schema", DomainType "information_schema.sql_identifier"),
 >            ("table_name", DomainType "information_schema.sql_identifier"),
 >            ("privilege_type", DomainType "information_schema.character_data"),
->            ("is_grantable", DomainType "information_schema.character_data"),
->            ("with_hierarchy",
->             DomainType "information_schema.character_data")],
+>            ("is_grantable", DomainType "information_schema.yes_or_no"),
+>            ("with_hierarchy", DomainType "information_schema.yes_or_no")],
 >         CatCreateView "information_schema.tables"
 >           [("table_catalog", DomainType "information_schema.sql_identifier"),
 >            ("table_schema", DomainType "information_schema.sql_identifier"),
@@ -12934,9 +13090,8 @@ from the project root (i.e. where the cabal file is located).
 >             DomainType "information_schema.sql_identifier"),
 >            ("user_defined_type_name",
 >             DomainType "information_schema.sql_identifier"),
->            ("is_insertable_into",
->             DomainType "information_schema.character_data"),
->            ("is_typed", DomainType "information_schema.character_data"),
+>            ("is_insertable_into", DomainType "information_schema.yes_or_no"),
+>            ("is_typed", DomainType "information_schema.yes_or_no"),
 >            ("commit_action", DomainType "information_schema.character_data")],
 >         CatCreateView "information_schema.triggered_update_columns"
 >           [("trigger_catalog",
@@ -12990,7 +13145,7 @@ from the project root (i.e. where the cabal file is located).
 >            ("object_name", DomainType "information_schema.sql_identifier"),
 >            ("object_type", DomainType "information_schema.character_data"),
 >            ("privilege_type", DomainType "information_schema.character_data"),
->            ("is_grantable", DomainType "information_schema.character_data")],
+>            ("is_grantable", DomainType "information_schema.yes_or_no")],
 >         CatCreateView "information_schema.user_mapping_options"
 >           [("authorization_identifier",
 >             DomainType "information_schema.sql_identifier"),
@@ -13038,7 +13193,12 @@ from the project root (i.e. where the cabal file is located).
 >            ("view_definition",
 >             DomainType "information_schema.character_data"),
 >            ("check_option", DomainType "information_schema.character_data"),
->            ("is_updatable", DomainType "information_schema.character_data"),
->            ("is_insertable_into",
->             DomainType "information_schema.character_data")]]
+>            ("is_updatable", DomainType "information_schema.yes_or_no"),
+>            ("is_insertable_into", DomainType "information_schema.yes_or_no"),
+>            ("is_trigger_updatable",
+>             DomainType "information_schema.yes_or_no"),
+>            ("is_trigger_deletable",
+>             DomainType "information_schema.yes_or_no"),
+>            ("is_trigger_insertable_into",
+>             DomainType "information_schema.yes_or_no")]]
 

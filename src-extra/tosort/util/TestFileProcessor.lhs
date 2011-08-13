@@ -10,7 +10,7 @@ examples.
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Utils.Here
 > import Text.Groom
-> import Database.HsSqlPpp.Tests.ParserTests as PT
+> import Database.HsSqlPpp.Tests.Parsing.ParserTests as PT
 > import Database.HsSqlPpp.Tests.TypeCheckTests as TT
 > import Language.Haskell.Exts hiding (String)
 > import qualified Language.Haskell.Exts as Exts

@@ -1,0 +1,73 @@
+> module Database.HsSqlPpp.Tests.Parsing.MiscDdl (miscDdlParsingTestData) where
+>
+> --import Test.HUnit
+> --import Test.Framework
+> --import Test.Framework.Providers.HUnit
+> --import Data.Generics
+>
+> --import Database.HsSqlPpp.Utils.Here
+>
+> import Database.HsSqlPpp.Ast
+> --import Database.HsSqlPpp.Annotation
+> --import Database.HsSqlPpp.Parser
+> --import Database.HsSqlPpp.Pretty
+
+> import Database.HsSqlPpp.Tests.Parsing.Utils
+
+> miscDdlParsingTestData:: Item
+> miscDdlParsingTestData =
+>   Group "misc ddl" [
+>     Group "misc create" [
+>       s "create view v1 as\n\
+>         \select a,b from t;"
+>       [CreateView ea
+>        "v1" Nothing
+>        (selectFrom [selI "a", selI "b"] (Tref ea (i "t") (NoAlias ea)))]
+>      ,s "create view v1(c,d) as\n\
+>         \select a,b from t;"
+>       [CreateView ea
+>        "v1" (Just ["c","d"])
+>        (selectFrom [selI "a", selI "b"] (Tref ea (i "t") (NoAlias ea)))]
+>      ,s "create domain td as text check (value in ('t1', 't2'));"
+>       [CreateDomain ea "td" (SimpleTypeName ea "text") ""
+>        (Just (InPredicate ea (Identifier ea "value") True
+>               (InList ea [stringQ "t1" ,stringQ "t2"])))]
+>      ,s "create type tp1 as (\n\
+>         \  f1 text,\n\
+>         \  f2 text\n\
+>         \);"
+>       [CreateType ea "tp1" [TypeAttDef ea "f1" (SimpleTypeName ea "text")
+>                         ,TypeAttDef ea "f2" (SimpleTypeName ea "text")]]
+>
+>      ,s "create sequence s start with 5 increment by 4 no maxvalue no minvalue cache 1;"
+>         [CreateSequence ea "s" 4 1 ((2::Integer) ^ (63::Integer) - 1) 5 1]
+>
+>      ,s "alter sequence s owned by a.b;"
+>         [AlterSequence ea "s" $ qi "a" "b"]
+>
+>      ,s "create trigger tr\n\
+>          \after insert or delete on tb\n\
+>          \for each statement\n\
+>          \execute procedure fb();"
+>         [CreateTrigger ea "tr" TriggerAfter [TInsert,TDelete] "tb" EachStatement "fb" []]
+>      ]
+>
+>     ,Group "drops" [
+>       s "drop domain t;"
+>       [DropSomething ea Domain Require ["t"] Restrict]
+>      ,s "drop domain if exists t,u cascade;"
+>       [DropSomething ea Domain IfExists ["t", "u"] Cascade]
+>      ,s "drop domain t restrict;"
+>       [DropSomething ea Domain Require ["t"] Restrict]
+>
+>      ,s "drop type t;"
+>       [DropSomething ea Type Require ["t"] Restrict]
+>      ,s "drop table t;"
+>       [DropSomething ea Table Require ["t"] Restrict]
+>      ,s "drop view t;"
+>       [DropSomething ea View Require ["t"] Restrict]
+>      ]]
+>  where
+>    --e = Expr
+>    s = Stmt
+>    --f = PgSqlStmt

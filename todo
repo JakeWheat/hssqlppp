@@ -2,10 +2,6 @@
 
 == next
 
-program to generate defaultTemplate1Catalog, etc.
-
-developer docs: overhaul overview of files plus review the other docs
-
 parameterized queries get tests working again
 
 typesafe haskell wrappers
