@@ -42,8 +42,7 @@ the tests:
 Installation
 ============
 
-This project is currently developed on GHC 7.0.4. I think it should
-work with any 7.0.x.
+This project is currently developed on GHC 7.0.4.
 
 To install use
 
