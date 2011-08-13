@@ -33,13 +33,13 @@ examples
 > transitionConstraintExamples = [
 >    ExtensionTest "TransitionConstraint insert"
 >     transitionConstraints
->     [$sqlStmts|
+>     [sqlStmts|
 >
 >      select create_insert_transition_tuple_constraint(
 >         'relvar', 'relvar_insert', 'NEW.x>10');
 >
 >      |]
->     [$sqlStmts|
+>     [sqlStmts|
 >
 >      create function check_relvar_insert() returns trigger as $a$
 >      begin
@@ -58,13 +58,13 @@ examples
 >      |]
 >   ,ExtensionTest "TransitionConstraint update"
 >     transitionConstraints
->     [$sqlStmts|
+>     [sqlStmts|
 >
 >      select create_update_transition_tuple_constraint(
 >         'relvar', 'relvar_update', 'NEW.x=OLD.y');
 >
 >      |]
->     [$sqlStmts|
+>     [sqlStmts|
 >
 >      create function check_relvar_update() returns trigger as $a$
 >      begin
@@ -83,13 +83,13 @@ examples
 >      |]
 >   ,ExtensionTest "TransitionConstraint delete"
 >     transitionConstraints
->     [$sqlStmts|
+>     [sqlStmts|
 >
 >      select create_delete_transition_tuple_constraint(
 >         'relvar', 'relvar_delete', 'OLD.y > 0');
 >
 >      |]
->     [$sqlStmts|
+>     [sqlStmts|
 >
 >      create function check_relvar_delete() returns trigger as $a$
 >      begin
@@ -116,7 +116,7 @@ implementation
 > transitionConstraints =
 >     transformBi $ \x ->
 >       case x of
->         s@[$sqlStmt| select $(fn)($s(tablename)
+>         s@[sqlStmt| select $(fn)($s(tablename)
 >                                ,$s(constraintname)
 >                                ,$s(expressiontext));|] : tl
 >             | fn == "create_insert_transition_tuple_constraint" ->
@@ -141,11 +141,11 @@ implementation
 >                        " violates transition constraint " ++ constraintName
 >               spliceTriggerName = tablename ++ "_" ++ ttname ++ "_transition_trigger"
 >               ret = if tct == TDelete
->                     then [$sqlExpr| null |]
->                     else [$sqlExpr| OLD |]
+>                     then [sqlExpr| null |]
+>                     else [sqlExpr| OLD |]
 >               expr = either (error . show) id
 >                             $ parseScalarExpr "" expressionText
->           in [$sqlStmts|
+>           in [sqlStmts|
 
 \begin{code}
 

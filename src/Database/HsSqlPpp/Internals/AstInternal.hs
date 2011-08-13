@@ -40,6 +40,7 @@ module Database.HsSqlPpp.Internals.AstInternal(
    ,RestartIdentity (..)
    ,ScalarExpr (..)
    ,SQIdentifier(..)
+   ,IntoIdentifier(..)
    ,IntervalField(..)
    ,ExtractField(..)
    ,FrameClause(..)
@@ -107,12 +108,6 @@ import Database.HsSqlPpp.Internals.TypeChecking.LocalBindings
 import Database.HsSqlPpp.Internals.TypeChecking.ErrorUtils
 import Database.HsSqlPpp.Utils.Utils
 
-
-
-
-
--- used for schema qualified identifiers
--- should be used in more places in the ast
 
 
 data JoinType = Inner | LeftOuter| RightOuter | FullOuter | Cross
@@ -2066,7 +2061,7 @@ sem_InList_InQueryExpr ann_ sel_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 120, column 19)
               _selOcsql =
                   emptyBindings
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 173, column 19)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 172, column 19)
               _selOexpectedTypes =
                   []
               -- self rule
@@ -2099,6 +2094,75 @@ sem_InList_InQueryExpr ann_ sel_  =
               ( _selIannotatedTree,_selIcidenv,_selIfixedUpIdentifiersTree,_selIlibUpdates,_selIoriginalTree,_selIuType) =
                   sel_ _selOcat _selOcsql _selOexpectedTypes _selOidenv _selOlib 
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOlistType,_lhsOoriginalTree)))
+-- IntoIdentifier ----------------------------------------------
+{-
+   visit 0:
+      inherited attributes:
+         cat                  : Catalog
+         idenv                : IDEnv
+         lib                  : LocalBindings
+      synthesized attributes:
+         annotatedTree        : SELF 
+         fixedUpIdentifiersTree : SELF 
+         originalTree         : SELF 
+   alternatives:
+      alternative IntoIdentifier:
+         child ann            : {Annotation}
+         child is             : {[String]}
+         visit 0:
+            local annotatedTree : _
+            local fixedUpIdentifiersTree : _
+            local originalTree : _
+-}
+data IntoIdentifier  = IntoIdentifier (Annotation) (([String])) 
+                     deriving ( Data,Eq,Show,Typeable)
+-- cata
+sem_IntoIdentifier :: IntoIdentifier  ->
+                      T_IntoIdentifier 
+sem_IntoIdentifier (IntoIdentifier _ann _is )  =
+    (sem_IntoIdentifier_IntoIdentifier _ann _is )
+-- semantic domain
+type T_IntoIdentifier  = Catalog ->
+                         IDEnv ->
+                         LocalBindings ->
+                         ( IntoIdentifier ,IntoIdentifier ,IntoIdentifier )
+data Inh_IntoIdentifier  = Inh_IntoIdentifier {cat_Inh_IntoIdentifier :: Catalog,idenv_Inh_IntoIdentifier :: IDEnv,lib_Inh_IntoIdentifier :: LocalBindings}
+data Syn_IntoIdentifier  = Syn_IntoIdentifier {annotatedTree_Syn_IntoIdentifier :: IntoIdentifier ,fixedUpIdentifiersTree_Syn_IntoIdentifier :: IntoIdentifier ,originalTree_Syn_IntoIdentifier :: IntoIdentifier }
+wrap_IntoIdentifier :: T_IntoIdentifier  ->
+                       Inh_IntoIdentifier  ->
+                       Syn_IntoIdentifier 
+wrap_IntoIdentifier sem (Inh_IntoIdentifier _lhsIcat _lhsIidenv _lhsIlib )  =
+    (let ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree) = sem _lhsIcat _lhsIidenv _lhsIlib 
+     in  (Syn_IntoIdentifier _lhsOannotatedTree _lhsOfixedUpIdentifiersTree _lhsOoriginalTree ))
+sem_IntoIdentifier_IntoIdentifier :: Annotation ->
+                                     ([String]) ->
+                                     T_IntoIdentifier 
+sem_IntoIdentifier_IntoIdentifier ann_ is_  =
+    (\ _lhsIcat
+       _lhsIidenv
+       _lhsIlib ->
+         (let _lhsOannotatedTree :: IntoIdentifier 
+              _lhsOfixedUpIdentifiersTree :: IntoIdentifier 
+              _lhsOoriginalTree :: IntoIdentifier 
+              -- self rule
+              _annotatedTree =
+                  IntoIdentifier ann_ is_
+              -- self rule
+              _fixedUpIdentifiersTree =
+                  IntoIdentifier ann_ is_
+              -- self rule
+              _originalTree =
+                  IntoIdentifier ann_ is_
+              -- self rule
+              _lhsOannotatedTree =
+                  _annotatedTree
+              -- self rule
+              _lhsOfixedUpIdentifiersTree =
+                  _fixedUpIdentifiersTree
+              -- self rule
+              _lhsOoriginalTree =
+                  _originalTree
+          in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree)))
 -- JoinExpr ----------------------------------------------------
 {-
    visit 0:
@@ -3434,7 +3498,7 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 185, column 9)
               _lhsOuType =
                   etmt (_tpe     >>= unwrapSetOfComposite)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 150, column 14)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 149, column 14)
               _selGroupByOexpectedTypes =
                   []
               -- self rule
@@ -3552,7 +3616,7 @@ sem_QueryExpr_Values ann_ vll_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 185, column 9)
               _lhsOuType =
                   etmt (_tpe     >>= unwrapSetOfComposite)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 164, column 14)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 163, column 14)
               _vllOexpectedTypes =
                   _lhsIexpectedTypes
               -- self rule
@@ -5036,7 +5100,7 @@ sem_ScalarExpr_Exists ann_ sel_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 379, column 9)
               _selOcsql =
                   _lhsIlib
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 171, column 29)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 170, column 29)
               _selOexpectedTypes =
                   []
               -- self rule
@@ -5194,7 +5258,7 @@ sem_ScalarExpr_FunCall ann_ funName_ args_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 206, column 9)
               _backTree =
                   FunCall ann_ funName_ _argsIannotatedTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 130, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 129, column 9)
               _argsOexpectedTypes =
                   maybe [] id $
                   case (funName_,_lhsIexpectedType) of
@@ -5501,7 +5565,7 @@ sem_ScalarExpr_LiftOperator ann_ oper_ flav_ args_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 243, column 9)
               _backTree =
                   LiftOperator ann_ oper_ flav_ _argsIannotatedTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 138, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 137, column 9)
               _argsOexpectedTypes =
                   []
               -- self rule
@@ -5873,7 +5937,7 @@ sem_ScalarExpr_ScalarSubQuery ann_ sel_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 377, column 9)
               _selOcsql =
                   _lhsIlib
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 171, column 29)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 170, column 29)
               _selOexpectedTypes =
                   []
               -- self rule
@@ -6089,10 +6153,10 @@ sem_ScalarExpr_WindowFn ann_ fn_ partitionBy_ orderBy_ dir_ frm_  =
                            _orderByIannotatedTree
                            dir_
                            frm_
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 140, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 139, column 9)
               _partitionByOexpectedTypes =
                   []
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 141, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 140, column 9)
               _orderByOexpectedTypes =
                   []
               -- self rule
@@ -6610,10 +6674,10 @@ sem_ScalarExprListList_Cons hd_ tl_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 117, column 12)
               _lhsOuType =
                   _hdIuType : _tlIuType
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 167, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 166, column 12)
               _hdOexpectedTypes =
                   _lhsIexpectedTypes
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 168, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 167, column 12)
               _tlOexpectedTypes =
                   _lhsIexpectedTypes
               -- self rule
@@ -6762,7 +6826,7 @@ sem_ScalarExprListStatementListPair_Tuple x1_ x2_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Statements.ag"(line 122, column 9)
               _x2OlibUpdates =
                   []
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 144, column 13)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 143, column 13)
               _x1OexpectedTypes =
                   []
               -- self rule
@@ -6996,7 +7060,7 @@ sem_ScalarExprRoot_ScalarExprRoot expr_  =
               _exprIfixedUpIdentifiersTree :: ScalarExpr 
               _exprIoriginalTree :: ScalarExpr 
               _exprIuType :: (Maybe Type)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 123, column 22)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 122, column 22)
               _exprOexpectedType =
                   Nothing
               -- self rule
@@ -7102,7 +7166,7 @@ sem_ScalarExprStatementListPair_Tuple x1_ x2_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Statements.ag"(line 126, column 9)
               _x2OlibUpdates =
                   []
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 126, column 13)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 125, column 13)
               _x1OexpectedType =
                   Nothing
               -- self rule
@@ -8048,7 +8112,7 @@ sem_SelectList_SelectList ann_ items_  =
       alternative Into:
          child ann            : {Annotation}
          child strict         : {Bool}
-         child into           : ScalarExprList 
+         child into           : {[IntoIdentifier]}
          child stmt           : Statement 
          visit 0:
             local annotatedTree : _
@@ -8202,7 +8266,7 @@ data Statement  = AlterSequence (Annotation) (String) (SQIdentifier )
                 | ForQueryStatement (Annotation) ((Maybe String)) (ScalarExpr ) (QueryExpr ) (StatementList ) 
                 | If (Annotation) (ScalarExprStatementListPairList ) (StatementList ) 
                 | Insert (Annotation) (SQIdentifier ) (([String])) (QueryExpr ) (MaybeSelectList ) 
-                | Into (Annotation) (Bool) (ScalarExprList ) (Statement ) 
+                | Into (Annotation) (Bool) (([IntoIdentifier])) (Statement ) 
                 | LoopStatement (Annotation) ((Maybe String)) (StatementList ) 
                 | Notify (Annotation) (String) 
                 | NullStatement (Annotation) 
@@ -8275,7 +8339,7 @@ sem_Statement (If _ann _cases _els )  =
 sem_Statement (Insert _ann _table _targetCols _insData _returning )  =
     (sem_Statement_Insert _ann (sem_SQIdentifier _table ) _targetCols (sem_QueryExpr _insData ) (sem_MaybeSelectList _returning ) )
 sem_Statement (Into _ann _strict _into _stmt )  =
-    (sem_Statement_Into _ann _strict (sem_ScalarExprList _into ) (sem_Statement _stmt ) )
+    (sem_Statement_Into _ann _strict _into (sem_Statement _stmt ) )
 sem_Statement (LoopStatement _ann _lb _sts )  =
     (sem_Statement_LoopStatement _ann _lb (sem_StatementList _sts ) )
 sem_Statement (Notify _ann _name )  =
@@ -9475,7 +9539,7 @@ sem_Statement_CreateTableAs ann_ name_ expr_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/CreateTable.ag"(line 74, column 9)
               _statementType =
                   Nothing
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 175, column 32)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 174, column 32)
               _exprOexpectedTypes =
                   []
               -- self rule
@@ -9538,7 +9602,7 @@ sem_Statement_CreateTrigger ann_ name_ wh_ events_ tbl_ firing_ fnName_ fnArgs_ 
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 153, column 21)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 152, column 21)
               _fnArgsOexpectedTypes =
                   []
               -- self rule
@@ -9714,7 +9778,7 @@ sem_Statement_CreateView ann_ name_ colNames_ expr_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/MiscCreates.ag"(line 19, column 9)
               _statementType =
                   Nothing
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 175, column 32)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 174, column 32)
               _exprOexpectedTypes =
                   []
               -- self rule
@@ -10389,7 +10453,7 @@ sem_Statement_ForQueryStatement ann_ lb_ var_ sel_ sts_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 116, column 45)
               _varOexpectedType =
                   Nothing
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 177, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 176, column 9)
               _selOexpectedTypes =
                   []
               -- self rule
@@ -10675,7 +10739,7 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
 sem_Statement_Into :: Annotation ->
                       Bool ->
-                      T_ScalarExprList  ->
+                      ([IntoIdentifier]) ->
                       T_Statement  ->
                       T_Statement 
 sem_Statement_Into ann_ strict_ into_ stmt_  =
@@ -10685,21 +10749,13 @@ sem_Statement_Into ann_ strict_ into_ stmt_  =
        _lhsIlib ->
          (let _lhsOcatUpdates :: ([CatalogUpdate])
               _lhsOlibUpdates :: ([LocalBindingsUpdate])
-              _intoOexpectedTypes :: ([Maybe Type])
               _lhsOannotatedTree :: Statement 
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
-              _intoOcat :: Catalog
-              _intoOidenv :: IDEnv
-              _intoOlib :: LocalBindings
               _stmtOcat :: Catalog
               _stmtOidenv :: IDEnv
               _stmtOinProducedCat :: Catalog
               _stmtOlib :: LocalBindings
-              _intoIannotatedTree :: ScalarExprList 
-              _intoIfixedUpIdentifiersTree :: ScalarExprList 
-              _intoIoriginalTree :: ScalarExprList 
-              _intoIuType :: ([Maybe Type])
               _stmtIannotatedTree :: Statement 
               _stmtIcatUpdates :: ([CatalogUpdate])
               _stmtIfixedUpIdentifiersTree :: Statement 
@@ -10711,18 +10767,15 @@ sem_Statement_Into ann_ strict_ into_ stmt_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 117, column 12)
-              _intoOexpectedTypes =
-                  []
               -- self rule
               _annotatedTree =
-                  Into ann_ strict_ _intoIannotatedTree _stmtIannotatedTree
+                  Into ann_ strict_ into_ _stmtIannotatedTree
               -- self rule
               _fixedUpIdentifiersTree =
-                  Into ann_ strict_ _intoIfixedUpIdentifiersTree _stmtIfixedUpIdentifiersTree
+                  Into ann_ strict_ into_ _stmtIfixedUpIdentifiersTree
               -- self rule
               _originalTree =
-                  Into ann_ strict_ _intoIoriginalTree _stmtIoriginalTree
+                  Into ann_ strict_ into_ _stmtIoriginalTree
               -- self rule
               _lhsOannotatedTree =
                   _annotatedTree
@@ -10732,15 +10785,6 @@ sem_Statement_Into ann_ strict_ into_ stmt_  =
               -- self rule
               _lhsOoriginalTree =
                   _originalTree
-              -- copy rule (down)
-              _intoOcat =
-                  _lhsIcat
-              -- copy rule (down)
-              _intoOidenv =
-                  _lhsIidenv
-              -- copy rule (down)
-              _intoOlib =
-                  _lhsIlib
               -- copy rule (down)
               _stmtOcat =
                   _lhsIcat
@@ -10753,8 +10797,6 @@ sem_Statement_Into ann_ strict_ into_ stmt_  =
               -- copy rule (down)
               _stmtOlib =
                   _lhsIlib
-              ( _intoIannotatedTree,_intoIfixedUpIdentifiersTree,_intoIoriginalTree,_intoIuType) =
-                  into_ _intoOcat _intoOexpectedTypes _intoOidenv _intoOlib 
               ( _stmtIannotatedTree,_stmtIcatUpdates,_stmtIfixedUpIdentifiersTree,_stmtIlibUpdates,_stmtIoriginalTree) =
                   stmt_ _stmtOcat _stmtOidenv _stmtOinProducedCat _stmtOlib 
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
@@ -11025,7 +11067,7 @@ sem_Statement_QueryStatement ann_ ex_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 137, column 9)
               _libUpdates =
                   _exIlibUpdates
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 178, column 22)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 177, column 22)
               _exOexpectedTypes =
                   []
               -- self rule
@@ -11084,7 +11126,7 @@ sem_Statement_Raise ann_ level_ message_ args_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 154, column 13)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 153, column 13)
               _argsOexpectedTypes =
                   []
               -- self rule
@@ -11287,7 +11329,7 @@ sem_Statement_ReturnQuery ann_ sel_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 127, column 19)
               _selOcsql =
                   emptyBindings
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 177, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 176, column 9)
               _selOexpectedTypes =
                   []
               -- self rule
@@ -11509,7 +11551,7 @@ sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Update.ag"(line 41, column 9)
               _returningOlib =
                   _lib
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 155, column 14)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 154, column 14)
               _assignsOexpectedTypes =
                   []
               -- self rule
@@ -12443,7 +12485,7 @@ sem_TableRef_FunTref ann_ fn_ alias_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 281, column 9)
               _aliasOexpectedNumCols =
                   Nothing
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 120, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 119, column 15)
               _fnOexpectedType =
                   Nothing
               -- self rule
@@ -12742,7 +12784,7 @@ sem_TableRef_SubTref ann_ sel_ alias_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 281, column 9)
               _aliasOexpectedNumCols =
                   Nothing
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 180, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 179, column 15)
               _selOexpectedTypes =
                   []
               -- self rule
@@ -14201,7 +14243,7 @@ sem_WithQuery_WithQuery ann_ name_ colAliases_ ex_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 276, column 9)
               _statementType =
                   Nothing
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 182, column 17)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 181, column 17)
               _exOexpectedTypes =
                   []
               -- self rule

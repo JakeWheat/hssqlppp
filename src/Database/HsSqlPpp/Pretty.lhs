@@ -308,8 +308,10 @@ Conversion routines - convert Sql asts into Docs
 >   <> (if str
 >       then empty <+> text "strict"
 >       else empty)
->   <+> sepCsvMap (convExp nice) into
+>   <+> sepCsvMap ii into
 >   <> statementEnd se
+>   where
+>     ii (IntoIdentifier _ is) = hcat $ punctuate (text ".") $ map text is
 >   --fixme, should be insert,update,delete,execute
 
 > convStatement nice se ca (Assignment ann name val) =
@@ -640,7 +642,7 @@ Statement components
 >                        | otherwise -> True
 >                    where
 >                      okChar x =isAlphaNum x || x `elem` "*_."
-> convExp nice (QIdentifier a i1@(Identifier _ _) i) = convExp nice i1 <> text "." <> convExp nice (Identifier a i)
+> convExp nice (QIdentifier a i1@(Identifier _ _) i) = parens (convExp nice i1) <> text "." <> convExp nice (Identifier a i)
 > convExp nice (QIdentifier a e i) = parens (convExp nice e) <> text "." <> convExp nice (Identifier a i)
 
 > --convExp (PIdentifier _ i) = parens $ convExp i
@@ -673,7 +675,7 @@ Statement components
 >      "!rowctor" -> text "row" <> parens (sepCsvMap (convExp nice) es)
 >      "."   -- special case to avoid ws around '.'. Don't know if this is important
 >            -- or just cosmetic
->          | [a,b] <- es -> convExp nice a <> text "." <> convExp nice b
+>          | [a,b] <- es -> parens (convExp nice a) <> text "." <> convExp nice b
 >      _ | isOperatorName n ->
 >         case forceRight (getOperatorType defaultTemplate1Catalog n) of
 >                           BinaryOp ->

@@ -309,8 +309,12 @@ this recursion needs refactoring cos it's a mess
 > into = do
 >   p <- pos <* keyword "into"
 >   st <- option False (True <$ keyword "strict")
->   is <- commaSep1 qName
+>   is <- commaSep1 ii
 >   return $ \s -> Into p st is s
+>   where
+>     ii = IntoIdentifier
+>          <$> pos
+>          <*> sepBy1 idString (symbol ".")
 
 > intoQueryStatement :: SParser Statement
 > intoQueryStatement = do

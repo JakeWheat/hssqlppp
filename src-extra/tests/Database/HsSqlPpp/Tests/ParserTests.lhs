@@ -1204,14 +1204,14 @@ quick sanity check
 >        [Tref ea (i "e") (NoAlias ea)] Nothing [] Nothing [] Nothing Nothing]-}
 >      ,f "update pieces\n\
 >         \set a=b returning tag into r.tag;"
->       [Into ea False [eqi "r" "tag"]
+>       [Into ea False [IntoIdentifier ea ["r","tag"]]
 >          $ Update ea (dqi "pieces") [FunCall ea "=" [Identifier ea "a"
 >                                                     ,Identifier ea "b"]]
 >            []
 >            Nothing (Just (SelectList ea
 >                           [SelExp ea (Identifier ea "tag")]))]
 >      ,f "insert into t(a) values (1) returning id into x;"
->       [Into ea False [ei "x"]
+>       [Into ea False [IntoIdentifier ea ["x"]]
 >        $ Insert ea
 >         (dqi "t")
 >         ["a"]
@@ -1220,14 +1220,14 @@ quick sanity check
 
 >      ,f "update t\n\
 >         \  set x = 1 returning id into z;"
->       [Into ea False [ei "z"]
+>       [Into ea False [IntoIdentifier ea ["z"]]
 >       $ Update ea (dqi "t") [FunCall ea "=" [Identifier ea "x", NumberLit ea "1"]]
 >         [] Nothing (Just $ sl [selI "id"])]
 
 >      ,f "execute s;"
 >       [Execute ea (Identifier ea "s")]
 >      ,f "execute s into r;"
->       [Into ea False [ei "r"] (Execute ea (Identifier ea "s"))]
+>       [Into ea False [IntoIdentifier ea ["r"]] (Execute ea (Identifier ea "s"))]
 >     ,f "continue;" [ContinueStatement ea Nothing]
 >     ]
 >

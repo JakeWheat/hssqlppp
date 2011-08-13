@@ -13,7 +13,7 @@ module system to develop a bit.
 */
 select module('Chaos.Server.Metadata');
 
-create language plpgsql;
+--create language plpgsql;
 
 create table base_relvar_metadata (
   relvar_name text unique, -- references base_relvars, fk to view

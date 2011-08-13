@@ -166,7 +166,7 @@ to make it work right.
 > createAssertion ast = reverse $
 >  (\f -> evalState (transformBiM f (reverse ast)) ([] :: ConstraintRecord)) $ \x ->
 >       case x of
->         s@[$sqlStmt| select create_assertion($s(name)
+>         s@[sqlStmt| select create_assertion($s(name)
 >                                           ,$s(exprtext));|] : tl -> do
 >             existing <- get
 >             let (new, rast) = makeConstraintDdl existing name exprtext
@@ -198,7 +198,7 @@ to make it work right.
 > makeCheckFn :: String -> ScalarExpr -> Statement
 > makeCheckFn name expr =
 >     let checkfn = "check_con_" ++ name
->     in [$sqlStmt|
+>     in [sqlStmt|
 >              create function $(checkfn)() returns bool as $xxx$
 >              begin
 >                return $(expr);
@@ -212,7 +212,7 @@ to make it work right.
 >       ifs :: [Statement]
 >       ifs = map makeIf nms
 >       -- using template approach cos can't get antistatement -> [statement] working
->       template = [$sqlStmt|
+>       template = [sqlStmt|
 >                   create function $(trigopname)() returns trigger as $xxx$
 >                   begin
 >                     null;
@@ -233,7 +233,7 @@ to make it work right.
 >   where
 >     makeIf nm = let chk = "check_con_" ++ nm
 >                     errMsg = "update violates database constraint " ++ nm
->                 in [$pgsqlStmt|
+>                 in [pgsqlStmt|
 >                    if not $(chk)() then
 >                       raise exception '$(errMsg)';
 >                    end if;
@@ -242,7 +242,7 @@ to make it work right.
 > makeTrigger :: String -> Statement
 > makeTrigger tn = let trigname = tn ++ "_constraint_trigger"
 >                      opname = tn ++ "_constraint_trigger_operator"
->                  in [$sqlStmt|
+>                  in [sqlStmt|
 >   create trigger $(trigname)
 >     after insert or update or delete on $(tn)
 >     for each statement

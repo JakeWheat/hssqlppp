@@ -39,7 +39,7 @@ tests
 > data ParseTest = ParseTest String (Either String [D6nfStatement])
 >
 > tests :: [ParseTest]
-> tests = [ParseTest [$here|
+> tests = [ParseTest [here|
 >         pieces (
 >           ptype text primary key
 >         );
@@ -49,7 +49,7 @@ tests
 >                         (SimpleTypeName ea "text")
 >                         Nothing
 >                         [RowPrimaryKeyConstraint ea ""]]]
->          ,ParseTest [$here|
+>          ,ParseTest [here|
 >         creatures : pieces (
 >           speed int,
 >           agility int
@@ -59,11 +59,11 @@ tests
 >                         (SimpleTypeName ea "int") Nothing []
 >                        ,AttributeDef ea "agility"
 >                         (SimpleTypeName ea "int") Nothing []]]
->          ,ParseTest [$here|
+>          ,ParseTest [here|
 >         mutually_exclusive(attackers,creatures);
 >         |] $ Right [ MutualExclusion "attackers" "creatures"]
 >
->          ,ParseTest [$here|
+>          ,ParseTest [here|
 >         monsters : creatures, attackers (
 >           resistance int,
 >           armour int
@@ -73,7 +73,7 @@ tests
 >                         (SimpleTypeName ea "int") Nothing []
 >                        ,AttributeDef ea "armour"
 >                         (SimpleTypeName ea "int") Nothing []]]
->          ,ParseTest [$here|
+>          ,ParseTest [here|
 >         attacking_creatures : pieces,attackers;
 >         |] $ Right [ DTable "attacking_creatures" ["pieces","attackers"] []]
 >         ]

@@ -15,10 +15,11 @@ module Database.HsSqlPpp.Internals.AstAnti
         CombineType(..), Volatility(..), Language(..), TypeName(..),
         DropType(..), Cascade(..), Direction(..), Distinct(..),
         Natural(..), IfExists(..), Replace(..), RestartIdentity(..),
-        ScalarExpr(..), SQIdentifier(..), IntervalField(..),
-        ExtractField(..), FrameClause(..), InList(..), LiftFlavour(..),
-        TriggerWhen(..), TriggerEvent(..), TriggerFire(..), SetValue(..),
-        WithQueryList, StatementList, ScalarExprListStatementListPairList,
+        ScalarExpr(..), SQIdentifier(..), IntoIdentifier(..),
+        IntervalField(..), ExtractField(..), FrameClause(..), InList(..),
+        LiftFlavour(..), TriggerWhen(..), TriggerEvent(..),
+        TriggerFire(..), SetValue(..), WithQueryList, StatementList,
+        ScalarExprListStatementListPairList,
         ScalarExprListStatementListPair, ScalarExprList, ParamDefList,
         AttributeDefList, ConstraintList, TypeAttributeDefList,
         TypeNameList, StringTypeNameListPair, StringTypeNameListPairList,
@@ -194,6 +195,9 @@ data InList = InList Annotation ScalarExprList
             | InQueryExpr Annotation QueryExpr
             deriving (Data, Eq, Show, Typeable)
  
+data IntoIdentifier = IntoIdentifier Annotation [String]
+                    deriving (Data, Eq, Show, Typeable)
+ 
 data JoinExpr = JoinOn Annotation ScalarExpr
               | JoinUsing Annotation [String]
               deriving (Data, Eq, Show, Typeable)
@@ -292,7 +296,7 @@ data Statement = AlterSequence Annotation String SQIdentifier
                                    StatementList
                | If Annotation ScalarExprStatementListPairList StatementList
                | Insert Annotation SQIdentifier [String] QueryExpr MaybeSelectList
-               | Into Annotation Bool ScalarExprList Statement
+               | Into Annotation Bool [IntoIdentifier] Statement
                | LoopStatement Annotation (Maybe String) StatementList
                | Notify Annotation String
                | NullStatement Annotation
@@ -618,6 +622,11 @@ inList x
         InList a1 a2 -> A.InList a1 (scalarExprList a2)
         InQueryExpr a1 a2 -> A.InQueryExpr a1 (queryExpr a2)
  
+intoIdentifier :: IntoIdentifier -> A.IntoIdentifier
+intoIdentifier x
+  = case x of
+        IntoIdentifier a1 a2 -> A.IntoIdentifier a1 a2
+ 
 joinExpr :: JoinExpr -> A.JoinExpr
 joinExpr x
   = case x of
@@ -789,7 +798,8 @@ statement x
         Insert a1 a2 a3 a4 a5 -> A.Insert a1 (sQIdentifier a2) a3
                                    (queryExpr a4)
                                    (maybeSelectList a5)
-        Into a1 a2 a3 a4 -> A.Into a1 a2 (scalarExprList a3) (statement a4)
+        Into a1 a2 a3 a4 -> A.Into a1 a2 (fmap intoIdentifier a3)
+                              (statement a4)
         LoopStatement a1 a2 a3 -> A.LoopStatement a1 a2 (statementList a3)
         Notify a1 a2 -> A.Notify a1 a2
         NullStatement a1 -> A.NullStatement a1

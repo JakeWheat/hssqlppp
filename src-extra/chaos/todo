@@ -9,3 +9,20 @@ src-extra/chaos:
 ./tests/ automated tests for chaos
 ./gui/ simple gui which can run ai battles to show the code actually works
        (no animation, no sounds for now)
+
+milestones:
+
+output sql in format that goes in database ok
+
+get automated tests running again
+
+adjust h7c so info is not hardcoded
+
+add simple chaos gui - use hssqlppp typesafe access, not haskelldb
+
+typecheck chaos code successfully -> no type errors plus matching
+  catalog
+
+loader which loads straight into pglib without psql
+
+

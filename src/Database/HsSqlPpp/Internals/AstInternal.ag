@@ -83,6 +83,7 @@ MODULE {Database.HsSqlPpp.Internals.AstInternal}
    ,RestartIdentity (..)
    ,ScalarExpr (..)
    ,SQIdentifier(..)
+   ,IntoIdentifier(..)
    ,IntervalField(..)
    ,ExtractField(..)
    ,FrameClause(..)
@@ -278,7 +279,7 @@ DATA Statement
                    stmt:Statement -}
     | Into ann:Annotation
            strict:Bool
-           into : ScalarExprList
+           into : {[IntoIdentifier]}
            stmt : Statement
     | Assignment ann:Annotation
                  target : ScalarExpr
@@ -338,15 +339,14 @@ DATA Statement
 
 --Statement components
 
-{
-
-
 -- used for schema qualified identifiers
 -- should be used in more places in the ast
-}
 
 DATA SQIdentifier | SQIdentifier ann:Annotation is:{[String]}
 
+-- into identifiers for the targets in into expressions
+
+DATA IntoIdentifier | IntoIdentifier ann:Annotation is:{[String]}
 
 
 DATA QueryExpr
@@ -798,7 +798,7 @@ SET AllNodes = Statement QueryExpr FnBody TableRef
                AlterTableAction
                ScalarExprDirectionPair
                ScalarExprDirectionPairList AlterTableActionList
-               WithQueryList WithQuery SQIdentifier
+               WithQueryList WithQuery SQIdentifier IntoIdentifier
                TableAlias
 
 

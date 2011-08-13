@@ -36,6 +36,7 @@
 >     ,IntervalField(..)
 >     ,ExtractField(..)
 >     ,SQIdentifier(..)
+>     ,IntoIdentifier(..)
 >      -- ** dml
 >     ,CopySource (..)
 >     ,RestartIdentity (..)

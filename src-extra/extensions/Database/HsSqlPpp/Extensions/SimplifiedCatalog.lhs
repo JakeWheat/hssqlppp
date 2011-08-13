@@ -15,7 +15,7 @@ Prepend view definitions for a simplified catalog.
 >
 > simplifiedCatalogSt :: [Statement]
 > simplifiedCatalogSt =
->     [$sqlStmts|
+>     [sqlStmts|
 
 \begin{code}
 
@@ -128,7 +128,7 @@ create view triggers as
     inner join pg_class on (tgrelid = pg_class.oid)
     inner join pg_proc on (tgfoid = pg_proc.oid)
     inner join base_relvars on (relname = base_relvars.relvar_name)
-    where not tgisconstraint; -- eliminate pg internal triggers
+    where tgconstraint = 0; -- eliminate pg internal triggers
 
 create view views as
   select viewname as view_name, definition

@@ -85,7 +85,7 @@ to deal with nulls/ maybe types?
 > denormalized6nf =
 >   transformBi $ \x ->
 >       case x of
->         st@[$sqlStmt| select create6nf($(stuff)); |] : tl
+>         st@[sqlStmt| select create6nf($(stuff)); |] : tl
 >             -> let (f,l,c) = fromMaybe ("",1,1) $ asrc $ getAnnotation stuff
 >                    (StringLit _ s) = stuff
 >                in replaceSourcePos st (createStatements f l c s) ++ tl
@@ -150,7 +150,7 @@ to deal with nulls/ maybe types?
 >              if noNewFields || null allFields || null (tail allFields)
 >              then Nothing
 >              else Just $ CheckConstraint ea (tn ++ "_fields")
->                           [$sqlExpr| ($(nulls)) or ($(nots)) |]
+>                           [sqlExpr| ($(nulls)) or ($(nots)) |]
 >         makeView :: (String,[(String,[ScalarExpr])]) -> Statement
 >         makeView (tn, flds) =
 >           let allFields = nub $ concatMap snd flds
@@ -161,11 +161,11 @@ to deal with nulls/ maybe types?
 >                      andTogether $ map makeNotNull allFirstFields
 >                      --makeNotNull $ head allFields
 >           in fixSelectList (baseAttrIds ++ allFields)
->                [$sqlStmt| create view $(tn) as
+>                [sqlStmt| create view $(tn) as
 >                           select selectList from $(bottomTableName)
 >                             where $(expr); |]
 >     in (mapMaybe makeConstraint (getExtraFields subt)
->        ,fixSelectList baseAttrIds [$sqlStmt| create view $(baseName) as
+>        ,fixSelectList baseAttrIds [sqlStmt| create view $(baseName) as
 >                                  select selectList from $(bottomTableName);|] :
 >         map makeView (getExtraFields subt))
 >     where
@@ -189,17 +189,17 @@ first.
 
 >
 > makeNotNull :: ScalarExpr -> ScalarExpr
-> makeNotNull x = [$sqlExpr| $(x) is not null |]
+> makeNotNull x = [sqlExpr| $(x) is not null |]
 >
 > makeNull :: ScalarExpr -> ScalarExpr
-> makeNull x = [$sqlExpr| $(x) is null |]
+> makeNull x = [sqlExpr| $(x) is null |]
 
 > andTogether :: [ScalarExpr] -> ScalarExpr
-> andTogether = let t = [$sqlExpr| True |]
+> andTogether = let t = [sqlExpr| True |]
 >               in foldr (\a b ->
 >                          if b == t
 >                          then a
->                          else [$sqlExpr| $(a) and $(b) |]) t
+>                          else [sqlExpr| $(a) and $(b) |]) t
 
 > ea :: Annotation
 > ea = emptyAnnotation

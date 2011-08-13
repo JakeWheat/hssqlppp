@@ -114,7 +114,6 @@ SEM Statement
                           to.expectedType = Nothing
     | Assignment target.expectedType = Nothing
     | ForIntegerStatement ForQueryStatement var.expectedType = Nothing
-    | Into into.expectedTypes = []
 
 SEM TableRef
     | FunTref fn.expectedType = Nothing

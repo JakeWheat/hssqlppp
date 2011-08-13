@@ -30,14 +30,14 @@ select restrict_cardinality('tablename', '>=5 && <= 10');
 > cardinalityRestrictExample = ExtensionTest
 >   "cardinalityRestrict"
 >   (createAssertion . cardinalityRestrict)
->   [$sqlStmts|
+>   [sqlStmts|
 >
 >      create table tablename (
 >        varname vartype
 >      );
 >
 >      select restrict_cardinality('tablename', 1); |]
->   (createAssertion [$sqlStmts|
+>   (createAssertion [sqlStmts|
 >
 >      create table tablename (
 >        varname vartype
@@ -52,14 +52,14 @@ select restrict_cardinality('tablename', '>=5 && <= 10');
 > cardinalityRestrict =
 >     transformBi $ \x ->
 >       case x of
->         s@[$sqlStmt|
+>         s@[sqlStmt|
 >           select restrict_cardinality($s(tablename), $(num)); |]
 >             -> let --i = [$sqlExpr| $(num) |]
 >                    expr = printScalarExpr
->                             [$sqlExpr| (select count(*) from $(tablename))
+>                             [sqlExpr| (select count(*) from $(tablename))
 >                                         <= $(num) |]
 >                    conname = tablename ++ "_card"
->                in replaceSourcePos1 s [$sqlStmt|
+>                in replaceSourcePos1 s [sqlStmt|
 >
 >                   select create_assertion($s(conname), $s(expr));
 >

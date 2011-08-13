@@ -73,10 +73,10 @@ lookup table. TODO: rewrite this paragraph in english.
 >   ExtensionTest
 >     "clientActionWrapper"
 >     clientActionWrapper
->     [$sqlStmts|
+>     [sqlStmts|
 >         select create_client_action_wrapper('move_cursor_down'
 >                                            ,$$move_cursor('down')$$);|]
->     [$sqlStmts|
+>     [sqlStmts|
 >         create function action_move_cursor_down() returns void as $$
 >         begin
 >           perform action_move_cursor('down');
@@ -88,14 +88,14 @@ lookup table. TODO: rewrite this paragraph in english.
 > clientActionWrapper =
 >     transformBi $ \x ->
 >       case x of
->         s@[$sqlStmt|
+>         s@[sqlStmt|
 >            select create_client_action_wrapper($s(actname)
 >                                               ,$s(actcall)); |]
 >             -> let actionname = "action_" ++ actname
 >                    expr = case parseScalarExpr "" ("action_" ++ actcall) of
 >                             Left e -> error $ show e
 >                             Right e1 -> e1
->                in replaceSourcePos1 s [$sqlStmt|
+>                in replaceSourcePos1 s [sqlStmt|
 >                    create function $(actionname)() returns void as $$
 >                    begin
 >                      perform $(expr);
@@ -119,10 +119,10 @@ multiple updates.
 >   ExtensionTest
 >     "noDelIns"
 >     (transitionConstraints . noDelIns)
->     [$sqlStmts|
+>     [sqlStmts|
 >         select no_deletes_inserts_except_new_game('relvar');
 >      |]
->     (transitionConstraints [$sqlStmts|
+>     (transitionConstraints [sqlStmts|
 >         select create_insert_transition_tuple_constraint
 >                    ('relvar'
 >                    ,'relvar_no_insert'
@@ -139,12 +139,12 @@ multiple updates.
 > noDelIns =
 >     transformBi $ \x ->
 >       case x of
->         s@[$sqlStmt| select no_deletes_inserts_except_new_game($s(table));|] : tl ->
+>         s@[sqlStmt| select no_deletes_inserts_except_new_game($s(table));|] : tl ->
 >           let icn = table ++ "_no_insert"
 >               dcn = table ++ "_no_delete"
 >               exprt = "exists(select 1 from creating_new_game_table\n\
 >                       \       where creating_new_game = true)"
->           in replaceSourcePos s [$sqlStmts|
+>           in replaceSourcePos s [sqlStmts|
 >               select create_insert_transition_tuple_constraint
 >                    ($s(table),$s(icn),$s(exprt));
 >               select create_delete_transition_tuple_constraint
@@ -177,8 +177,8 @@ readonly tables/ compile time constant relations stuff
 >   ExtensionTest
 >     "spellChoiceActions"
 >     (generateSpellChoiceActionsRun ["horse"])
->     [$sqlStmts| select generate_spell_choice_actions(); |]
->     [$sqlStmts|
+>     [sqlStmts| select generate_spell_choice_actions(); |]
+>     [sqlStmts|
 >
 > CREATE FUNCTION action_choose_horse_spell() RETURNS void
 >     LANGUAGE plpgsql
@@ -255,11 +255,11 @@ readonly tables/ compile time constant relations stuff
 > generateSpellChoiceActionsRun spells =
 >     transformBi $ \x ->
 >       case x of
->         s@[$sqlStmt| select generate_spell_choice_actions(); |] : tl
+>         s@[sqlStmt| select generate_spell_choice_actions(); |] : tl
 >             -> flip map spells (\spell ->
 >                let actionname = "choose_" ++ spell ++ "_spell"
 >                    wrappername = "action_" ++ actionname
->                in replaceSourcePos1 s [$sqlStmt|
+>                in replaceSourcePos1 s [sqlStmt|
 >
 > create function $(wrappername)() returns void as $$
 > begin
@@ -289,12 +289,12 @@ nulls and ignore them when checking for nullable attributes.
 >   ExtensionTest
 >     "notNull1"
 >     notNull
->     [$sqlStmts|
+>     [sqlStmts|
 >      create table t1 (
 >        a text,
 >        b int
 >      ); |]
->     [$sqlStmts|
+>     [sqlStmts|
 >      create table t1 (
 >        a text not null,
 >        b int not null
@@ -306,12 +306,12 @@ nulls and ignore them when checking for nullable attributes.
 >   ExtensionTest
 >     "notNull2"
 >     notNull
->     [$sqlStmts|
+>     [sqlStmts|
 >      create table t1_mr (
 >        a text,
 >        b int
 >      ); |]
->     [$sqlStmts|
+>     [sqlStmts|
 >      create table t1_mr (
 >        a text,
 >        b int
@@ -340,7 +340,7 @@ nulls and ignore them when checking for nullable attributes.
 >   ExtensionTest
 >     "makeFKsCascade1"
 >     makeFKsCascade
->     [$sqlStmts|
+>     [sqlStmts|
 >      create table t1 (
 >        a text primary key
 >      );
@@ -348,7 +348,7 @@ nulls and ignore them when checking for nullable attributes.
 >        a text primary key references t1
 >      );
 >     |]
->     [$sqlStmts|
+>     [sqlStmts|
 >      create table t1 (
 >        a text primary key
 >      );
@@ -362,7 +362,7 @@ nulls and ignore them when checking for nullable attributes.
 >   ExtensionTest
 >     "makeFKsCascade2"
 >     makeFKsCascade
->     [$sqlStmts|
+>     [sqlStmts|
 >      create table t1 (
 >        a text primary key
 >      );
@@ -371,7 +371,7 @@ nulls and ignore them when checking for nullable attributes.
 >        foreign key (a) references t1
 >      );
 >     |]
->     [$sqlStmts|
+>     [sqlStmts|
 >      create table t1 (
 >        a text primary key
 >      );

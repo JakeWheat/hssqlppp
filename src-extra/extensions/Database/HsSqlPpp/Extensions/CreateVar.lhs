@@ -23,8 +23,8 @@ database.
 > createVarExample = ExtensionTest
 >   "CreateVar"
 >   (createAssertion . createVar)
->   [$sqlStmts| select create_var('varname', 'vartype'); |]
->   (createAssertion [$sqlStmts|
+>   [sqlStmts| select create_var('varname', 'vartype'); |]
+>   (createAssertion [sqlStmts|
 >
 >   create table varname_table (
 >     varname vartype primary key
@@ -43,14 +43,14 @@ database.
 > createVar =
 >     transformBi $ \x ->
 >       case x of
->         s@[$sqlStmt| select "create_var"($s(varname)
+>         s@[sqlStmt| select "create_var"($s(varname)
 >                                       ,$s(typename)); |] : tl
 >             -> let tablename = varname ++ "_table"
 >                    fnname = "get_" ++ varname
 >                    conname = varname ++ "_table_01_tuple"
 >                    expr = printScalarExpr
->                              [$sqlExpr| (select count(*) from $(tablename)) <= 1 |]
->                in replaceSourcePos s [$sqlStmts|
+>                              [sqlExpr| (select count(*) from $(tablename)) <= 1 |]
+>                in replaceSourcePos s [sqlStmts|
 >
 >   create table $(tablename) (
 >    $(varname) $(typename) primary key
