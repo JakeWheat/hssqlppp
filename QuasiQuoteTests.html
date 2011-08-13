@@ -1,0 +1,156 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >HsSqlPpp quasiquotation examples</title
+    ><link href="main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="index.html"
+      >HsSqlPpp-0.3.1</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><p
+    >Pretty rough presentation, each example is a lets, with a pair of sql quasiquotes: one with antiquotes, and one with the resultant sql without antiquotes.</p
+    >
+The source this file is generated from is here: <a href="https://github.com/JakeWheat/hssqlppp/blob/master/src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs"
+    >QuasiQuoteTests.lhs</a
+    >
+<table><tr><td style='width:100%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="Keyword">let</span> <span class="VarId">tablename</span> <span class="Symbol">=</span> <span class="String">&quot;my_table&quot;</span>
+    <span class="VarId">varname</span> <span class="Symbol">=</span> <span class="String">&quot;my_field&quot;</span>
+    <span class="VarId">typename</span> <span class="Symbol">=</span> <span class="String">&quot;text&quot;</span>
+  <span class="Keyword">in</span>
+  <span class="ConId">Stmt</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+
+       <span class="VarId">create</span> <span class="VarId">table</span> <span class="Symbol">$(</span><span class="VarId">tablename</span><span class="Symbol">)</span> <span class="Symbol">(</span>
+         <span class="Symbol">$(</span><span class="VarId">varname</span><span class="Symbol">)</span> <span class="Symbol">$(</span><span class="VarId">typename</span><span class="Symbol">)</span>
+       <span class="Symbol">);</span>
+
+       <span class="Symbol">|]</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+       <span class="VarId">create</span> <span class="VarId">table</span> <span class="VarId">my_table</span> <span class="Symbol">(</span>
+         <span class="VarId">my_field</span> <span class="VarId">text</span>
+       <span class="Symbol">);</span>
+       <span class="Symbol">|]</span></pre></div>
+</td></tr><tr><td style='width:100%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="Keyword">let</span> <span class="VarId">fnname</span> <span class="Symbol">=</span> <span class="String">&quot;my_function&quot;</span>
+    <span class="VarId">tablename</span> <span class="Symbol">=</span> <span class="String">&quot;my_table&quot;</span>
+    <span class="VarId">typename</span> <span class="Symbol">=</span> <span class="String">&quot;int&quot;</span>
+  <span class="Keyword">in</span>
+  <span class="ConId">Stmt</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+
+    <span class="VarId">create</span> <span class="VarId">function</span> <span class="Symbol">$(</span><span class="VarId">fnname</span><span class="Symbol">)()</span> <span class="VarId">returns</span> <span class="Symbol">$(</span><span class="VarId">typename</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="Symbol">$</span><span class="VarId">a</span><span class="Symbol">$</span>
+      <span class="VarId">select</span> <span class="Symbol">*</span> <span class="VarId">from</span> <span class="Symbol">$(</span><span class="VarId">tablename</span><span class="Symbol">);</span>
+    <span class="Symbol">$</span><span class="VarId">a</span><span class="Symbol">$</span> <span class="VarId">language</span> <span class="VarId">sql</span> <span class="VarId">stable</span><span class="Symbol">;</span>
+
+       <span class="Symbol">|]</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+    <span class="VarId">create</span> <span class="VarId">function</span> <span class="VarId">my_function</span><span class="Symbol">()</span> <span class="VarId">returns</span> <span class="VarId">int</span> <span class="Keyword">as</span> <span class="Symbol">$</span><span class="VarId">a</span><span class="Symbol">$</span>
+      <span class="VarId">select</span> <span class="Symbol">*</span> <span class="VarId">from</span> <span class="VarId">my_table</span><span class="Symbol">;</span>
+    <span class="Symbol">$</span><span class="VarId">a</span><span class="Symbol">$</span> <span class="VarId">language</span> <span class="VarId">sql</span> <span class="VarId">stable</span><span class="Symbol">;</span>
+       <span class="Symbol">|]</span></pre></div>
+</td></tr><tr><td style='width:100%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="Keyword">let</span> <span class="VarId">fnname</span> <span class="Symbol">=</span> <span class="String">&quot;my_function&quot;</span> <span class="Keyword">in</span>
+  <span class="ConId">Stmt</span> <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span> <span class="VarId">drop</span> <span class="VarId">function</span> <span class="Symbol">$(</span><span class="VarId">fnname</span><span class="Symbol">)();|]</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span> <span class="VarId">drop</span> <span class="VarId">function</span> <span class="VarId">my_function</span><span class="Symbol">();|]</span></pre></div>
+</td></tr><tr><td style='width:100%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="Keyword">let</span> <span class="VarId">expr</span> <span class="Symbol">=</span> <span class="ConId">Identifier</span> <span class="VarId">ea</span> <span class="String">&quot;testing&quot;</span> <span class="Keyword">in</span>
+  <span class="ConId">PgSqlStmt</span> <span class="Symbol">[$</span><span class="VarId">pgsqlStmt</span><span class="Symbol">|</span> <span class="VarId">return</span> <span class="Symbol">$(</span><span class="VarId">expr</span><span class="Symbol">);</span> <span class="Symbol">|]</span>
+    <span class="Symbol">[$</span><span class="VarId">pgsqlStmt</span><span class="Symbol">|</span> <span class="VarId">return</span> <span class="String">&quot;testing&quot;</span><span class="Symbol">;</span> <span class="Symbol">|]</span></pre></div>
+</td></tr><tr><td style='width:100%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="Keyword">let</span> <span class="VarId">expr</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="ConId">FunCall</span> <span class="VarId">ea</span> <span class="String">&quot;+&quot;</span> <span class="Symbol">[</span><span class="ConId">NumberLit</span> <span class="VarId">ea</span> <span class="String">&quot;3&quot;</span><span class="Symbol">,</span> <span class="ConId">NumberLit</span> <span class="VarId">ea</span> <span class="String">&quot;4&quot;</span><span class="Symbol">])</span> <span class="Keyword">in</span>
+  <span class="ConId">PgSqlStmt</span> <span class="Symbol">[$</span><span class="VarId">pgsqlStmt</span><span class="Symbol">|</span> <span class="VarId">return</span> <span class="Symbol">$(</span><span class="VarId">expr</span><span class="Symbol">);</span> <span class="Symbol">|]</span>
+    <span class="Symbol">[$</span><span class="VarId">pgsqlStmt</span><span class="Symbol">|</span> <span class="VarId">return</span> <span class="Number">3</span> <span class="Symbol">+</span> <span class="Number">4</span><span class="Symbol">;</span> <span class="Symbol">|]</span></pre></div>
+</td></tr><tr><td style='width:100%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="Keyword">let</span> <span class="VarId">errMsg</span> <span class="Symbol">=</span> <span class="String">&quot;this splice is slighty dodgy&quot;</span> <span class="Keyword">in</span>
+  <span class="ConId">PgSqlStmt</span>
+    <span class="Symbol">[$</span><span class="VarId">pgsqlStmt</span><span class="Symbol">|</span>
+       <span class="Keyword">if</span> <span class="VarId">true</span> <span class="Keyword">then</span>
+         <span class="VarId">raise</span> <span class="VarId">exception</span> '<span class="Symbol">$(</span><span class="VarId">errMsg</span><span class="Symbol">)</span>'<span class="Symbol">;</span>
+       <span class="VarId">end</span> <span class="Keyword">if</span><span class="Symbol">;|]</span>
+    <span class="Symbol">[$</span><span class="VarId">pgsqlStmt</span><span class="Symbol">|</span>
+       <span class="Keyword">if</span> <span class="VarId">true</span> <span class="Keyword">then</span>
+         <span class="VarId">raise</span> <span class="VarId">exception</span> '<span class="VarId">this</span> <span class="VarId">splice</span> <span class="VarId">is</span> <span class="VarId">slighty</span> <span class="VarId">dodgy'</span><span class="Symbol">;</span>
+       <span class="VarId">end</span> <span class="Keyword">if</span><span class="Symbol">;|]</span></pre></div>
+</td></tr><tr><td style='width:100%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="Keyword">let</span> <span class="VarId">triggername</span> <span class="Symbol">=</span> <span class="String">&quot;my_trigger&quot;</span>
+    <span class="VarId">tablename</span> <span class="Symbol">=</span> <span class="String">&quot;my_table&quot;</span>
+    <span class="VarId">opname</span> <span class="Symbol">=</span> <span class="String">&quot;my_function&quot;</span>
+  <span class="Keyword">in</span>
+  <span class="ConId">Stmt</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+    <span class="VarId">create</span> <span class="VarId">trigger</span> <span class="Symbol">$(</span><span class="VarId">triggername</span><span class="Symbol">)</span>
+      <span class="VarId">after</span> <span class="VarId">insert</span> <span class="VarId">or</span> <span class="VarId">update</span> <span class="VarId">or</span> <span class="VarId">delete</span> <span class="VarId">on</span> <span class="Symbol">$(</span><span class="VarId">tablename</span><span class="Symbol">)</span>
+      <span class="VarId">for</span> <span class="VarId">each</span> <span class="VarId">statement</span>
+      <span class="VarId">execute</span> <span class="VarId">procedure</span> <span class="Symbol">$(</span><span class="VarId">opname</span><span class="Symbol">)();</span>
+              <span class="Symbol">|]</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+    <span class="VarId">create</span> <span class="VarId">trigger</span> <span class="VarId">my_trigger</span>
+      <span class="VarId">after</span> <span class="VarId">insert</span> <span class="VarId">or</span> <span class="VarId">update</span> <span class="VarId">or</span> <span class="VarId">delete</span> <span class="VarId">on</span> <span class="VarId">my_table</span>
+      <span class="VarId">for</span> <span class="VarId">each</span> <span class="VarId">statement</span>
+      <span class="VarId">execute</span> <span class="VarId">procedure</span> <span class="VarId">my_function</span><span class="Symbol">();</span>
+              <span class="Symbol">|]</span></pre></div>
+</td></tr><tr><td style='width:100%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="Keyword">let</span> <span class="VarId">tablename</span> <span class="Symbol">=</span> <span class="String">&quot;lotsastuff&quot;</span> <span class="Keyword">in</span>
+  <span class="ConId">Expr</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|(</span><span class="VarId">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="VarId">from</span> <span class="Symbol">$(</span><span class="VarId">tablename</span><span class="Symbol">))|]</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|(</span><span class="VarId">select</span> <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="VarId">from</span> <span class="VarId">lotsastuff</span><span class="Symbol">)|]</span></pre></div>
+</td></tr><tr><td style='width:100%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="Keyword">let</span> <span class="VarId">trigname</span> <span class="Symbol">=</span> <span class="String">&quot;tbl_trig1&quot;</span>
+    <span class="VarId">tablename</span> <span class="Symbol">=</span> <span class="String">&quot;tbl&quot;</span>
+    <span class="VarId">tevent</span> <span class="Symbol">=</span> <span class="ConId">TUpdate</span>
+    <span class="VarId">fn</span> <span class="Symbol">=</span> <span class="String">&quot;checkit&quot;</span>
+  <span class="Keyword">in</span>
+  <span class="ConId">Stmt</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+       <span class="VarId">create</span> <span class="VarId">trigger</span> <span class="Symbol">$(</span><span class="VarId">trigname</span><span class="Symbol">)</span>
+          <span class="VarId">after</span> <span class="Symbol">$(</span><span class="VarId">tevent</span><span class="Symbol">)</span> <span class="VarId">on</span> <span class="Symbol">$(</span><span class="VarId">tablename</span><span class="Symbol">)</span>
+          <span class="VarId">for</span> <span class="VarId">each</span> <span class="VarId">row</span>
+          <span class="VarId">execute</span> <span class="VarId">procedure</span> <span class="Symbol">$(</span><span class="VarId">fn</span><span class="Symbol">)();</span>
+              <span class="Symbol">|]</span>
+    <span class="Symbol">[$</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+       <span class="VarId">create</span> <span class="VarId">trigger</span> <span class="VarId">tbl_trig1</span>
+          <span class="VarId">after</span> <span class="VarId">update</span> <span class="VarId">on</span> <span class="VarId">tbl</span>
+          <span class="VarId">for</span> <span class="VarId">each</span> <span class="VarId">row</span>
+          <span class="VarId">execute</span> <span class="VarId">procedure</span> <span class="VarId">checkit</span><span class="Symbol">();</span>
+              <span class="Symbol">|]</span></pre></div>
+</td></tr><tr><td style='width:100%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="Keyword">let</span> <span class="VarId">x</span> <span class="Symbol">=</span> <span class="String">&quot;fnname&quot;</span> <span class="Keyword">in</span>
+  <span class="ConId">Expr</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="Symbol">$(</span><span class="VarId">x</span><span class="Symbol">)(</span><span class="Char">'a'</span><span class="Symbol">)</span> <span class="Symbol">|]</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="VarId">fnname</span><span class="Symbol">(</span><span class="Char">'a'</span><span class="Symbol">)</span> <span class="Symbol">|]</span></pre></div>
+</td></tr><tr><td style='width:100%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="Keyword">let</span> <span class="VarId">x</span> <span class="Symbol">=</span> <span class="String">&quot;splicedstring&quot;</span> <span class="Keyword">in</span>
+  <span class="ConId">Expr</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="Symbol">$</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">x</span><span class="Symbol">)</span> <span class="Symbol">|]</span> <span class="Symbol">(</span><span class="ConId">StringLit</span> <span class="VarId">ea</span> <span class="String">&quot;splicedstring&quot;</span><span class="Symbol">)</span></pre></div>
+</td></tr><tr><td style='width:100%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="Keyword">let</span> <span class="VarId">x</span> <span class="Symbol">=</span> <span class="String">&quot;splicedIdentifier&quot;</span> <span class="Keyword">in</span>
+  <span class="ConId">Expr</span> <span class="Symbol">[$</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="Symbol">$</span><span class="VarId">i</span><span class="Symbol">(</span><span class="VarId">x</span><span class="Symbol">)</span> <span class="Symbol">|]</span> <span class="Symbol">(</span><span class="ConId">Identifier</span> <span class="VarId">ea</span> <span class="String">&quot;splicedIdentifier&quot;</span><span class="Symbol">)</span></pre></div>
+</td></tr><tr><td style='width:100%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="Keyword">let</span> <span class="VarId">errMsg</span> <span class="Symbol">=</span> <span class="String">&quot;this splice isn't too dodgy&quot;</span> <span class="Keyword">in</span>
+  <span class="ConId">PgSqlStmt</span> <span class="Symbol">[$</span><span class="VarId">pgsqlStmt</span><span class="Symbol">|</span> <span class="VarId">raise</span> <span class="VarId">exception</span> <span class="Symbol">$</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">errMsg</span><span class="Symbol">);</span> <span class="Symbol">|]</span>
+    <span class="Symbol">[$</span><span class="VarId">pgsqlStmt</span><span class="Symbol">|</span> <span class="VarId">raise</span> <span class="VarId">exception</span> '<span class="VarId">this</span> <span class="VarId">splice</span> <span class="VarId">isn''t</span> <span class="VarId">too</span> <span class="VarId">dodgy'</span><span class="Symbol">;</span> <span class="Symbol">|]</span></pre></div>
+</td></tr></table>
+<br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 08/13/11 13:03:26, hssqlppp-0.3.1</div
+    ></body
+  ></html
+>

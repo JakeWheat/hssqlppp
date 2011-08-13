@@ -8,7 +8,7 @@
   ><body
   ><div class="header"
     ><a href="index.html"
-      >HsSqlPpp-0.3.0</a
+      >HsSqlPpp-0.3.1</a
       ></div
     ><br
      /><br
@@ -20,7 +20,7 @@
     >Purpose</h1
     >
 <p
-    >Possible future uses of this library include:</p
+    >Possible uses of this library include:</p
     >
 <ul
     >
@@ -31,7 +31,7 @@
       >lint checking SQL code</li
       >
 <li
-      >type-checker can help with SQL development: e.g. change the name of a view, type-check, and you can see which functions you need to update with the new name</li
+      >type-checker can help with SQL development and catch bugs which aren't statically detected by PostgreSQL</li
       >
 <li
       >generating SQL code programmatically/ generating SQL from some other source</li
@@ -43,10 +43,10 @@
       >viewing the catalog produced by some SQL code</li
       >
 <li
-      >helping with typesafe database access from haskell</li
+      >typesafe database access from haskell</li
       >
 <li
-      >generating documentation for SQL</li
+      >generating documentation for SQL code</li
       >
 </ul
     >
@@ -54,7 +54,7 @@
     >Status</h1
     >
 <p
-    >Pre-alpha. Support for parsing SQL is patchy, but not too bad. Here is an extract from the parsing tests which gives a bunch of examples of what kind of SQL can currently be parsed:</p
+    >Pre-alpha. Support for parsing SQL is patchy, but not too bad. Supports queries/DML and DDL. Here is an extract from the parsing tests which gives some examples of what can currently be parsed:</p
     >
 <ul
     >
@@ -80,11 +80,23 @@
       >
 </ul
     >
+<p
+    >Currently limited support for quasiquoting, here are the extracts from the tests:</p
+    >
+<ul
+    >
+<li
+      ><a href="QuasiQuoteTests.html"
+	>Quasiquotation examples</a
+	></li
+      >
+</ul
+    >
 <h1 id="installation"
     >Installation</h1
     >
 <p
-    >This project is currently developed on GHC 7.0.4. I think it should work with any 7.0.x.</p
+    >This project is currently developed on GHC 7.0.4.</p
     >
 <p
     >To install use</p
@@ -99,195 +111,44 @@
       ></p
     >
 <p
-    >Here is a program to parse some SQL from a file and print the ast:</p
-    >
-<div class='haskell'><pre class="sourceCode"><span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">System.Environment</span>
-
-<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Parser</span>
-
-<span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">::</span> <span class="ConId">IO</span> <span class="Symbol">()</span>
-<span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
-<span class="Symbol">&gt;</span>   <span class="Symbol">[</span><span class="VarId">f</span><span class="Symbol">]</span> <span class="Symbol">&lt;-</span> <span class="VarId">getArgs</span>
-<span class="Symbol">&gt;</span>   <span class="VarId">ast</span> <span class="Symbol">&lt;-</span> <span class="VarId">parseStatementsFromFile</span> <span class="VarId">f</span>
-<span class="Symbol">&gt;</span>   <span class="VarId">print</span> <span class="VarId">ast</span></pre></div>
-<p
-    >Given the SQL file x.sql:</p
-    >
-<div class='sql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="VarId">t</span><span class="Symbol">;</span></pre></div>
-<p
-    >the result is something like:</p
-    >
-<pre
-    ><code
-      >$ Parse x.sql
-Right [QueryStatement (Annotation {asrc = Just (&quot;x.sql&quot;,1,1), atype =
-Nothing, errs = [], stType = Nothing, catUpd = [], fnProt = Nothing,
-infType = Nothing}) (Select (Annotation {asrc = Just (&quot;x.sql&quot;,1,1),
-atype = Nothing, errs = [], stType = Nothing, catUpd = [], fnProt =
-Nothing, infType = Nothing}) Dupes (SelectList (Annotation {asrc =
-Just (&quot;x.sql&quot;,1,8), atype = Nothing, errs = [], stType = Nothing,
-catUpd = [], fnProt = Nothing, infType = Nothing}) [SelExp (Annotation
-{asrc = Just (&quot;x.sql&quot;,1,8), atype = Nothing, errs = [], stType =
-Nothing, catUpd = [], fnProt = Nothing, infType = Nothing})
-(Identifier (Annotation {asrc = Just (&quot;x.sql&quot;,1,8), atype = Nothing,
-errs = [], stType = Nothing, catUpd = [], fnProt = Nothing, infType =
-Nothing}) &quot;*&quot;)]) [Tref (Annotation {asrc = Just (&quot;x.sql&quot;,1,15), atype
-= Nothing, errs = [], stType = Nothing, catUpd = [], fnProt = Nothing,
-infType = Nothing}) (SQIdentifier (Annotation {asrc = Just
-(&quot;x.sql&quot;,1,15), atype = Nothing, errs = [], stType = Nothing, catUpd =
-[], fnProt = Nothing, infType = Nothing}) [&quot;t&quot;]) (NoAlias (Annotation
-{asrc = Just (&quot;x.sql&quot;,1,16), atype = Nothing, errs = [], stType =
-Nothing, catUpd = [], fnProt = Nothing, infType = Nothing}))] Nothing
-[] Nothing [] Nothing Nothing)]
-</code
-      ></pre
-    >
-<p
-    >More readable output from this variation:</p
-    >
-<div class='haskell'><pre class="sourceCode"><span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">System.Environment</span>
-
-<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Language.Haskell.Exts</span>
-<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Data.Generics.Uniplate.Data</span>
-
-<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Parser</span>
-
-<span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">::</span> <span class="ConId">IO</span> <span class="Symbol">()</span>
-<span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
-<span class="Symbol">&gt;</span>   <span class="Symbol">[</span><span class="VarId">f</span><span class="Symbol">]</span> <span class="Symbol">&lt;-</span> <span class="VarId">getArgs</span>
-<span class="Symbol">&gt;</span>   <span class="VarId">ast</span> <span class="Symbol">&lt;-</span> <span class="VarId">parseStatementsFromFile</span> <span class="VarId">f</span>
-<span class="Symbol">&gt;</span>   <span class="VarId">putStrLn</span> <span class="Symbol">$</span> <span class="VarId">showNoAnns</span> <span class="VarId">ast</span>
-
-<span class="Symbol">&gt;</span> <span class="VarId">showNoAnns</span> <span class="Symbol">::</span> <span class="ConId">Show</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
-<span class="Symbol">&gt;</span> <span class="VarId">showNoAnns</span> <span class="Symbol">=</span> <span class="VarId">p</span> <span class="VarId">stripA</span>
-<span class="Symbol">&gt;</span>   <span class="Keyword">where</span>
-<span class="Symbol">&gt;</span>     <span class="VarId">stripA</span> <span class="Symbol">::</span> <span class="ConId">Exp</span> <span class="Symbol">-&gt;</span> <span class="ConId">Exp</span>
-<span class="Symbol">&gt;</span>     <span class="VarId">stripA</span> <span class="Symbol">=</span> <span class="VarId">transformBi</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span>
-<span class="Symbol">&gt;</span>                <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
-<span class="Symbol">&gt;</span>                  <span class="Symbol">(</span><span class="ConId">Paren</span> <span class="Symbol">(</span><span class="ConId">RecConstr</span> <span class="Symbol">(</span><span class="ConId">UnQual</span> <span class="Symbol">(</span><span class="ConId">Ident</span> <span class="String">&quot;Annotation&quot;</span><span class="Symbol">))</span> <span class="VarId">_</span><span class="Symbol">))</span> <span class="Symbol">-&gt;</span>
-<span class="Symbol">&gt;</span>                           <span class="ConId">Con</span> <span class="Symbol">$</span> <span class="ConId">UnQual</span> <span class="Symbol">$</span> <span class="ConId">Ident</span> <span class="String">&quot;Ann&quot;</span>
-<span class="Symbol">&gt;</span>                  <span class="VarId">x1</span> <span class="Symbol">-&gt;</span> <span class="VarId">x1</span>
-<span class="Symbol">&gt;</span>     <span class="VarId">p</span> <span class="VarId">f</span> <span class="VarId">s</span> <span class="Symbol">=</span>
-<span class="Symbol">&gt;</span>         <span class="Keyword">case</span> <span class="VarId">parseExp</span> <span class="Symbol">(</span><span class="VarId">show</span> <span class="VarId">s</span><span class="Symbol">)</span> <span class="Keyword">of</span>
-<span class="Symbol">&gt;</span>           <span class="ConId">ParseOk</span> <span class="VarId">ast</span> <span class="Symbol">-&gt;</span> <span class="VarId">prettyPrint</span> <span class="Symbol">(</span><span class="VarId">f</span> <span class="VarId">ast</span><span class="Symbol">)</span>
-<span class="Symbol">&gt;</span>           <span class="VarId">x</span> <span class="Symbol">-&gt;</span> <span class="VarId">error</span> <span class="Symbol">$</span> <span class="VarId">show</span> <span class="VarId">x</span></pre></div>
-<p
-    >The annotation values have been replace with the string 'Ann', and the output indented using haskell-src-exts:</p
-    >
-<pre
-    ><code
-      >$ Parse2 x.sql
-Right
-  [QueryStatement Ann
-     (Select Ann Dupes
-        (SelectList Ann [SelExp Ann (Identifier Ann &quot;*&quot;)])
-        [Tref Ann (SQIdentifier Ann [&quot;t&quot;]) (NoAlias Ann)]
-        Nothing
-        []
-        Nothing
-        []
-        Nothing
-        Nothing)]
-</code
-      ></pre
-    >
-<p
-    >You can see the various parsing functions in the haddock docs here: <a href="haddock/Database-HsSqlPpp-Parser.html"
-      >Database.HsSqlPpp.Parser</a
+    ><a href="examples.txt.html"
+      >Examples</a
       ></p
     >
 <p
-    >Here is a program which parses and typechecks a query and outputs the result type:</p
-    >
-<div class='haskell'><pre class="sourceCode"><span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Parser</span>
-<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.TypeChecker</span>
-<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Catalog</span>
-<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Types</span>
-<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Annotation</span>
-<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Ast</span>
-
-<span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">::</span> <span class="ConId">IO</span> <span class="Symbol">()</span>
-<span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
-<span class="Symbol">&gt;</span>   <span class="Keyword">let</span> <span class="VarId">query</span> <span class="Symbol">=</span> <span class="String">&quot;select * from t&quot;</span>
-<span class="Symbol">&gt;</span>       <span class="VarId">ast</span> <span class="Symbol">::</span> <span class="ConId">QueryExpr</span>
-<span class="Symbol">&gt;</span>       <span class="ConId">Right</span> <span class="VarId">ast</span> <span class="Symbol">=</span> <span class="VarId">parseQueryExpr</span> <span class="String">&quot;&quot;</span> <span class="VarId">query</span>
-<span class="Symbol">&gt;</span>       <span class="VarId">aast</span> <span class="Symbol">::</span> <span class="ConId">QueryExpr</span>
-<span class="Symbol">&gt;</span>       <span class="VarId">aast</span> <span class="Symbol">=</span> <span class="VarId">typeCheckQueryExpr</span> <span class="VarId">cat</span> <span class="VarId">ast</span>
-<span class="Symbol">&gt;</span>       <span class="VarId">ann</span> <span class="Symbol">::</span> <span class="ConId">Annotation</span>
-<span class="Symbol">&gt;</span>       <span class="VarId">ann</span> <span class="Symbol">=</span> <span class="VarId">getAnnotation</span> <span class="VarId">aast</span>
-<span class="Symbol">&gt;</span>       <span class="VarId">ty</span> <span class="Symbol">::</span> <span class="ConId">Maybe</span> <span class="ConId">Type</span>
-<span class="Symbol">&gt;</span>       <span class="VarId">ty</span> <span class="Symbol">=</span> <span class="VarId">atype</span> <span class="VarId">ann</span>
-<span class="Symbol">&gt;</span>   <span class="VarId">print</span> <span class="VarId">ty</span>
-<span class="Symbol">&gt;</span>   <span class="Keyword">where</span>
-<span class="Symbol">&gt;</span>     <span class="ConId">Right</span> <span class="VarId">cat</span> <span class="Symbol">=</span> <span class="VarId">updateCatalog</span> <span class="VarId">defaultTemplate1Catalog</span>
-<span class="Symbol">&gt;</span>                   <span class="Symbol">[</span><span class="ConId">CatCreateTable</span> <span class="String">&quot;t&quot;</span> <span class="Symbol">[(</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="VarId">typeInt</span><span class="Symbol">)</span>
-<span class="Symbol">&gt;</span>                                       <span class="Symbol">,(</span><span class="String">&quot;b&quot;</span><span class="Symbol">,</span> <span class="VarId">typeInt</span><span class="Symbol">)</span>
-<span class="Symbol">&gt;</span>                                       <span class="Symbol">]</span> <span class="Symbol">[]]</span></pre></div>
-<p
-    >Running gives:</p
-    >
-<pre
-    ><code
-      >$ src-extra/examples/TypeCheck
-Just (SetOfType (CompositeType [(&quot;a&quot;,ScalarType &quot;int4&quot;),(&quot;b&quot;,ScalarType &quot;int4&quot;)]))
-</code
-      ></pre
-    >
-<p
-    >Here is a program which generates SQL:</p
-    >
-<div class='haskell'><pre class="sourceCode"><span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Annotation</span>
-<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Ast</span>
-<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Pretty</span>
-
-
-<span class="Symbol">&gt;</span> <span class="Keyword">data</span> <span class="ConId">MakeSelect</span> <span class="Symbol">=</span> <span class="ConId">MakeSelect</span> <span class="Symbol">[</span><span class="ConId">String</span><span class="Symbol">]</span> <span class="ConId">String</span>
-
-<span class="Symbol">&gt;</span> <span class="VarId">sqlGen</span> <span class="Symbol">::</span> <span class="ConId">MakeSelect</span> <span class="Symbol">-&gt;</span> <span class="ConId">QueryExpr</span>
-<span class="Symbol">&gt;</span> <span class="VarId">sqlGen</span> <span class="Symbol">(</span><span class="ConId">MakeSelect</span> <span class="VarId">cols</span> <span class="VarId">tb</span><span class="Symbol">)</span> <span class="Symbol">=</span>
-<span class="Symbol">&gt;</span>   <span class="ConId">Select</span> <span class="VarId">emptyAnnotation</span> <span class="ConId">Dupes</span>
-<span class="Symbol">&gt;</span>          <span class="VarId">sl</span> <span class="VarId">tr</span>
-<span class="Symbol">&gt;</span>          <span class="ConId">Nothing</span> <span class="Symbol">[]</span> <span class="ConId">Nothing</span> <span class="Symbol">[]</span> <span class="ConId">Nothing</span> <span class="ConId">Nothing</span>
-<span class="Symbol">&gt;</span>   <span class="Keyword">where</span>
-<span class="Symbol">&gt;</span>     <span class="VarId">sl</span> <span class="Symbol">=</span> <span class="ConId">SelectList</span> <span class="VarId">emptyAnnotation</span>
-<span class="Symbol">&gt;</span>                     <span class="Symbol">(</span><span class="VarId">map</span> <span class="VarId">si</span> <span class="VarId">cols</span><span class="Symbol">)</span>
-<span class="Symbol">&gt;</span>     <span class="VarId">tr</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">Tref</span> <span class="VarId">emptyAnnotation</span>
-<span class="Symbol">&gt;</span>                <span class="Symbol">(</span><span class="ConId">SQIdentifier</span> <span class="VarId">emptyAnnotation</span> <span class="Symbol">[</span><span class="VarId">tb</span><span class="Symbol">])</span>
-<span class="Symbol">&gt;</span>                <span class="Symbol">(</span><span class="ConId">NoAlias</span> <span class="VarId">emptyAnnotation</span><span class="Symbol">)]</span>
-<span class="Symbol">&gt;</span>     <span class="VarId">si</span> <span class="VarId">i</span> <span class="Symbol">=</span> <span class="ConId">SelExp</span> <span class="VarId">emptyAnnotation</span>
-<span class="Symbol">&gt;</span>                   <span class="Symbol">(</span><span class="ConId">Identifier</span> <span class="VarId">emptyAnnotation</span>
-<span class="Symbol">&gt;</span>                               <span class="VarId">i</span><span class="Symbol">)</span>
-
-<span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">::</span> <span class="ConId">IO</span> <span class="Symbol">()</span>
-<span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
-<span class="Symbol">&gt;</span>   <span class="Keyword">let</span> <span class="VarId">s</span> <span class="Symbol">=</span> <span class="ConId">MakeSelect</span> <span class="Symbol">[</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="String">&quot;b&quot;</span><span class="Symbol">]</span> <span class="String">&quot;t&quot;</span>
-<span class="Symbol">&gt;</span>   <span class="VarId">putStrLn</span> <span class="Symbol">$</span> <span class="VarId">printQueryExpr</span> <span class="Symbol">$</span> <span class="VarId">sqlGen</span> <span class="VarId">s</span></pre></div>
-<pre
-    ><code
-      >$ MakeSelect
-select
-    a, b
-  from
-    t;
-</code
-      ></pre
+    ><a href="devel.txt.html"
+      >Some notes on hacking on hssqlppp itself</a
+      ></p
     >
 <h1 id="useful-links"
     >Useful links</h1
     >
 <p
     >Homepage: <a href="http://jakewheat.github.com/hssqlppp/"
-      >http://jakewheat.github.com/hssqlppp/</a
+      ><code class="url"
+	>http://jakewheat.github.com/hssqlppp/</code
+	></a
       ></p
     >
 <p
     >Hackage: <a href="http://hackage.haskell.org/package/hssqlppp"
-      >http://hackage.haskell.org/package/hssqlppp</a
+      ><code class="url"
+	>http://hackage.haskell.org/package/hssqlppp</code
+	></a
       ></p
     >
 <p
     >Repository: <a href="https://github.com/JakeWheat/hssqlppp"
-      >https://github.com/JakeWheat/hssqlppp</a
+      ><code class="url"
+	>https://github.com/JakeWheat/hssqlppp</code
+	></a
+      ></p
+    >
+<p
+    >Changes: <a href="https://github.com/JakeWheat/hssqlppp/blob/master/CHANGES"
+      ><code class="url"
+	>https://github.com/JakeWheat/hssqlppp/blob/master/CHANGES</code
+	></a
       ></p
     >
 <h1 id="reporting-issues-and-feature-requests"
@@ -298,31 +159,36 @@ select
     >
 <p
     ><a href="https://github.com/JakeWheat/hssqlppp/issues"
-      >https://github.com/JakeWheat/hssqlppp/issues</a
+      ><code class="url"
+	>https://github.com/JakeWheat/hssqlppp/issues</code
+	></a
       ></p
     >
 <h1 id="provisional-future-plans"
-    >Provisional Future Plans</h1
+    >Provisional future plans</h1
     >
 <ul
     >
 <li
+      >parameterized statements/typesafe haskell access</li
+      >
+<li
+      >some simple syntax extension support for SQL</li
+      >
+<li
+      >a 'compiler' command to help developing SQL</li
+      >
+<li
       >parse most PostgreSQL syntax, possibly other SQL dialects as well</li
       >
 <li
-      >improve the typechecker</li
+      >improve the typechecker - fix current regressions, get more sql type checking correctly</li
       >
 <li
-      >improve the catalog</li
+      >improve the catalog - add more checking, more item types</li
       >
 <li
-      >quasi-quoting</li
-      >
-<li
-      >some simple syntax extension support</li
-      >
-<li
-      >parameterized statements/typesafe haskell access</li
+      >improve the quasi-quoting - is a bit ad hoc and limited at the moment</li
       >
 <li
       >documentation generator for SQL codebases</li
@@ -341,7 +207,7 @@ select
      /><br
      /><br
      /><div class="footer"
-    >generated on 08/11/11 15:58:41, hssqlppp-0.3.0</div
+    >generated on 08/13/11 13:03:26, hssqlppp-0.3.1</div
     ></body
   ></html
 >

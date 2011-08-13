@@ -1,0 +1,413 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+><head
+  ><title
+    >examples</title
+    ><link href="main.css" rel="stylesheet" type="text/css"
+     /></head
+  ><body
+  ><div class="header"
+    ><a href="index.html"
+      >HsSqlPpp-0.3.1</a
+      ></div
+    ><br
+     /><br
+     /><br
+     /><h1 id="parsing"
+    >Parsing</h1
+    >
+<p
+    >Here is a program to parse some SQL from a file and print the ast:</p
+    >
+<div class='haskell'><pre class="sourceCode"><span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">System.Environment</span>
+
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Parser</span>
+
+<span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">::</span> <span class="ConId">IO</span> <span class="Symbol">()</span>
+<span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+<span class="Symbol">&gt;</span>   <span class="Symbol">[</span><span class="VarId">f</span><span class="Symbol">]</span> <span class="Symbol">&lt;-</span> <span class="VarId">getArgs</span>
+<span class="Symbol">&gt;</span>   <span class="VarId">ast</span> <span class="Symbol">&lt;-</span> <span class="VarId">parseStatementsFromFile</span> <span class="VarId">f</span>
+<span class="Symbol">&gt;</span>   <span class="VarId">print</span> <span class="VarId">ast</span></pre></div>
+<p
+    >Given the SQL file x.sql:</p
+    >
+<div class='sql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="VarId">t</span><span class="Symbol">;</span></pre></div>
+<p
+    >the result is something like:</p
+    >
+<pre
+    ><code
+      >$ Parse x.sql
+Right [QueryStatement (Annotation {asrc = Just (&quot;x.sql&quot;,1,1), atype =
+Nothing, errs = [], stType = Nothing, catUpd = [], fnProt = Nothing,
+infType = Nothing}) (Select (Annotation {asrc = Just (&quot;x.sql&quot;,1,1),
+atype = Nothing, errs = [], stType = Nothing, catUpd = [], fnProt =
+Nothing, infType = Nothing}) Dupes (SelectList (Annotation {asrc =
+Just (&quot;x.sql&quot;,1,8), atype = Nothing, errs = [], stType = Nothing,
+catUpd = [], fnProt = Nothing, infType = Nothing}) [SelExp (Annotation
+{asrc = Just (&quot;x.sql&quot;,1,8), atype = Nothing, errs = [], stType =
+Nothing, catUpd = [], fnProt = Nothing, infType = Nothing})
+(Identifier (Annotation {asrc = Just (&quot;x.sql&quot;,1,8), atype = Nothing,
+errs = [], stType = Nothing, catUpd = [], fnProt = Nothing, infType =
+Nothing}) &quot;*&quot;)]) [Tref (Annotation {asrc = Just (&quot;x.sql&quot;,1,15), atype
+= Nothing, errs = [], stType = Nothing, catUpd = [], fnProt = Nothing,
+infType = Nothing}) (SQIdentifier (Annotation {asrc = Just
+(&quot;x.sql&quot;,1,15), atype = Nothing, errs = [], stType = Nothing, catUpd =
+[], fnProt = Nothing, infType = Nothing}) [&quot;t&quot;]) (NoAlias (Annotation
+{asrc = Just (&quot;x.sql&quot;,1,16), atype = Nothing, errs = [], stType =
+Nothing, catUpd = [], fnProt = Nothing, infType = Nothing}))] Nothing
+[] Nothing [] Nothing Nothing)]
+</code
+      ></pre
+    >
+<p
+    >More readable output from this variation:</p
+    >
+<div class='haskell'><pre class="sourceCode"><span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">System.Environment</span>
+
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Language.Haskell.Exts</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Data.Generics.Uniplate.Data</span>
+
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Parser</span>
+
+<span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">::</span> <span class="ConId">IO</span> <span class="Symbol">()</span>
+<span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+<span class="Symbol">&gt;</span>   <span class="Symbol">[</span><span class="VarId">f</span><span class="Symbol">]</span> <span class="Symbol">&lt;-</span> <span class="VarId">getArgs</span>
+<span class="Symbol">&gt;</span>   <span class="VarId">ast</span> <span class="Symbol">&lt;-</span> <span class="VarId">parseStatementsFromFile</span> <span class="VarId">f</span>
+<span class="Symbol">&gt;</span>   <span class="VarId">putStrLn</span> <span class="Symbol">$</span> <span class="VarId">showNoAnns</span> <span class="VarId">ast</span>
+
+<span class="Symbol">&gt;</span> <span class="VarId">showNoAnns</span> <span class="Symbol">::</span> <span class="ConId">Show</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+<span class="Symbol">&gt;</span> <span class="VarId">showNoAnns</span> <span class="Symbol">=</span> <span class="VarId">p</span> <span class="VarId">stripA</span>
+<span class="Symbol">&gt;</span>   <span class="Keyword">where</span>
+<span class="Symbol">&gt;</span>     <span class="VarId">stripA</span> <span class="Symbol">::</span> <span class="ConId">Exp</span> <span class="Symbol">-&gt;</span> <span class="ConId">Exp</span>
+<span class="Symbol">&gt;</span>     <span class="VarId">stripA</span> <span class="Symbol">=</span> <span class="VarId">transformBi</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span>
+<span class="Symbol">&gt;</span>                <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+<span class="Symbol">&gt;</span>                  <span class="Symbol">(</span><span class="ConId">Paren</span> <span class="Symbol">(</span><span class="ConId">RecConstr</span> <span class="Symbol">(</span><span class="ConId">UnQual</span> <span class="Symbol">(</span><span class="ConId">Ident</span> <span class="String">&quot;Annotation&quot;</span><span class="Symbol">))</span> <span class="VarId">_</span><span class="Symbol">))</span> <span class="Symbol">-&gt;</span>
+<span class="Symbol">&gt;</span>                           <span class="ConId">Con</span> <span class="Symbol">$</span> <span class="ConId">UnQual</span> <span class="Symbol">$</span> <span class="ConId">Ident</span> <span class="String">&quot;Ann&quot;</span>
+<span class="Symbol">&gt;</span>                  <span class="VarId">x1</span> <span class="Symbol">-&gt;</span> <span class="VarId">x1</span>
+<span class="Symbol">&gt;</span>     <span class="VarId">p</span> <span class="VarId">f</span> <span class="VarId">s</span> <span class="Symbol">=</span>
+<span class="Symbol">&gt;</span>         <span class="Keyword">case</span> <span class="VarId">parseExp</span> <span class="Symbol">(</span><span class="VarId">show</span> <span class="VarId">s</span><span class="Symbol">)</span> <span class="Keyword">of</span>
+<span class="Symbol">&gt;</span>           <span class="ConId">ParseOk</span> <span class="VarId">ast</span> <span class="Symbol">-&gt;</span> <span class="VarId">prettyPrint</span> <span class="Symbol">(</span><span class="VarId">f</span> <span class="VarId">ast</span><span class="Symbol">)</span>
+<span class="Symbol">&gt;</span>           <span class="VarId">x</span> <span class="Symbol">-&gt;</span> <span class="VarId">error</span> <span class="Symbol">$</span> <span class="VarId">show</span> <span class="VarId">x</span></pre></div>
+<p
+    >The annotation values have been replace with the string 'Ann', and the output indented using haskell-src-exts:</p
+    >
+<pre
+    ><code
+      >$ Parse2 x.sql
+Right
+  [QueryStatement Ann
+     (Select Ann Dupes
+        (SelectList Ann [SelExp Ann (Identifier Ann &quot;*&quot;)])
+        [Tref Ann (SQIdentifier Ann [&quot;t&quot;]) (NoAlias Ann)]
+        Nothing
+        []
+        Nothing
+        []
+        Nothing
+        Nothing)]
+</code
+      ></pre
+    >
+<p
+    >You can see the various parsing functions in the haddock docs here: <a href="haddock/Database-HsSqlPpp-Parser.html"
+      >Database.HsSqlPpp.Parser</a
+      ></p
+    >
+<h1 id="typechecking"
+    >Typechecking</h1
+    >
+<p
+    >Here is a program which parses and typechecks a query and outputs the result type:</p
+    >
+<div class='haskell'><pre class="sourceCode"><span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Parser</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.TypeChecker</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Catalog</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Types</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Annotation</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Ast</span>
+
+<span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">::</span> <span class="ConId">IO</span> <span class="Symbol">()</span>
+<span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+<span class="Symbol">&gt;</span>   <span class="Keyword">let</span> <span class="VarId">query</span> <span class="Symbol">=</span> <span class="String">&quot;select * from t&quot;</span>
+<span class="Symbol">&gt;</span>       <span class="VarId">ast</span> <span class="Symbol">::</span> <span class="ConId">QueryExpr</span>
+<span class="Symbol">&gt;</span>       <span class="ConId">Right</span> <span class="VarId">ast</span> <span class="Symbol">=</span> <span class="VarId">parseQueryExpr</span> <span class="String">&quot;&quot;</span> <span class="VarId">query</span>
+<span class="Symbol">&gt;</span>       <span class="VarId">aast</span> <span class="Symbol">::</span> <span class="ConId">QueryExpr</span>
+<span class="Symbol">&gt;</span>       <span class="VarId">aast</span> <span class="Symbol">=</span> <span class="VarId">typeCheckQueryExpr</span> <span class="VarId">cat</span> <span class="VarId">ast</span>
+<span class="Symbol">&gt;</span>       <span class="VarId">ann</span> <span class="Symbol">::</span> <span class="ConId">Annotation</span>
+<span class="Symbol">&gt;</span>       <span class="VarId">ann</span> <span class="Symbol">=</span> <span class="VarId">getAnnotation</span> <span class="VarId">aast</span>
+<span class="Symbol">&gt;</span>       <span class="VarId">ty</span> <span class="Symbol">::</span> <span class="ConId">Maybe</span> <span class="ConId">Type</span>
+<span class="Symbol">&gt;</span>       <span class="VarId">ty</span> <span class="Symbol">=</span> <span class="VarId">atype</span> <span class="VarId">ann</span>
+<span class="Symbol">&gt;</span>   <span class="VarId">print</span> <span class="VarId">ty</span>
+<span class="Symbol">&gt;</span>   <span class="Keyword">where</span>
+<span class="Symbol">&gt;</span>     <span class="ConId">Right</span> <span class="VarId">cat</span> <span class="Symbol">=</span> <span class="VarId">updateCatalog</span> <span class="VarId">defaultTemplate1Catalog</span>
+<span class="Symbol">&gt;</span>                   <span class="Symbol">[</span><span class="ConId">CatCreateTable</span> <span class="String">&quot;t&quot;</span> <span class="Symbol">[(</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="VarId">typeInt</span><span class="Symbol">)</span>
+<span class="Symbol">&gt;</span>                                       <span class="Symbol">,(</span><span class="String">&quot;b&quot;</span><span class="Symbol">,</span> <span class="VarId">typeInt</span><span class="Symbol">)</span>
+<span class="Symbol">&gt;</span>                                       <span class="Symbol">]</span> <span class="Symbol">[]]</span></pre></div>
+<p
+    >Running gives:</p
+    >
+<pre
+    ><code
+      >$ src-extra/examples/TypeCheck
+Just (SetOfType (CompositeType [(&quot;a&quot;,ScalarType &quot;int4&quot;),(&quot;b&quot;,ScalarType &quot;int4&quot;)]))
+</code
+      ></pre
+    >
+<p
+    >Typecheck against an existing database:</p
+    >
+<div class='haskell'><pre class="sourceCode"><span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">System.Environment</span>
+
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Parser</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.TypeChecker</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Catalog</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Types</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Annotation</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Ast</span>
+
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Utils.CatalogReader</span>
+
+<span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">::</span> <span class="ConId">IO</span> <span class="Symbol">()</span>
+<span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+<span class="Symbol">&gt;</span>   <span class="Symbol">[</span><span class="VarId">cs</span><span class="Symbol">]</span> <span class="Symbol">&lt;-</span> <span class="VarId">getArgs</span>
+<span class="Symbol">&gt;</span>   <span class="VarId">cus</span> <span class="Symbol">&lt;-</span> <span class="VarId">readCatalogFromDatabase</span> <span class="VarId">cs</span>
+<span class="Symbol">&gt;</span>   <span class="Keyword">let</span> <span class="ConId">Right</span> <span class="VarId">cat</span> <span class="Symbol">=</span> <span class="VarId">updateCatalog</span> <span class="VarId">defaultCatalog</span> <span class="VarId">cus</span>
+<span class="Symbol">&gt;</span>       <span class="VarId">query</span> <span class="Symbol">=</span> <span class="String">&quot;select * from t&quot;</span>
+<span class="Symbol">&gt;</span>       <span class="VarId">ast</span> <span class="Symbol">::</span> <span class="ConId">QueryExpr</span>
+<span class="Symbol">&gt;</span>       <span class="ConId">Right</span> <span class="VarId">ast</span> <span class="Symbol">=</span> <span class="VarId">parseQueryExpr</span> <span class="String">&quot;&quot;</span> <span class="VarId">query</span>
+<span class="Symbol">&gt;</span>       <span class="VarId">aast</span> <span class="Symbol">::</span> <span class="ConId">QueryExpr</span>
+<span class="Symbol">&gt;</span>       <span class="VarId">aast</span> <span class="Symbol">=</span> <span class="VarId">typeCheckQueryExpr</span> <span class="VarId">cat</span> <span class="VarId">ast</span>
+<span class="Symbol">&gt;</span>       <span class="VarId">ann</span> <span class="Symbol">::</span> <span class="ConId">Annotation</span>
+<span class="Symbol">&gt;</span>       <span class="VarId">ann</span> <span class="Symbol">=</span> <span class="VarId">getAnnotation</span> <span class="VarId">aast</span>
+<span class="Symbol">&gt;</span>       <span class="VarId">ty</span> <span class="Symbol">::</span> <span class="ConId">Maybe</span> <span class="ConId">Type</span>
+<span class="Symbol">&gt;</span>       <span class="VarId">ty</span> <span class="Symbol">=</span> <span class="VarId">atype</span> <span class="VarId">ann</span>
+<span class="Symbol">&gt;</span>   <span class="VarId">print</span> <span class="VarId">ty</span></pre></div>
+<p
+    >Assume the database 'db' has the following table:</p
+    >
+<div class='sql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">t</span> <span class="Symbol">(</span><span class="VarId">a</span> <span class="Type">int</span><span class="Symbol">,</span> <span class="VarId">b</span> <span class="Type">float</span><span class="Symbol">);</span></pre></div>
+<pre
+    ><code
+      >$ TypeCheckDB &quot;dbname=db&quot;
+Just (SetOfType (CompositeType [(&quot;a&quot;,ScalarType &quot;int4&quot;),(&quot;b&quot;,ScalarType &quot;float8&quot;)]))
+</code
+      ></pre
+    >
+<p
+    >This uses some extra utils which are only available in the repo at the moment: <a href="https://github.com/JakeWheat/hssqlppp/blob/master/src-extra/util/Database/HsSqlPpp/Utils/CatalogReader.lhs"
+      >CatalogReader</a
+      ></p
+    >
+<h1 id="generating-sql"
+    >Generating SQL</h1
+    >
+<p
+    >Here is a program which generates SQL:</p
+    >
+<div class='haskell'><pre class="sourceCode"><span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Annotation</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Ast</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Pretty</span>
+
+
+<span class="Symbol">&gt;</span> <span class="Keyword">data</span> <span class="ConId">MakeSelect</span> <span class="Symbol">=</span> <span class="ConId">MakeSelect</span> <span class="Symbol">[</span><span class="ConId">String</span><span class="Symbol">]</span> <span class="ConId">String</span>
+
+<span class="Symbol">&gt;</span> <span class="VarId">sqlGen</span> <span class="Symbol">::</span> <span class="ConId">MakeSelect</span> <span class="Symbol">-&gt;</span> <span class="ConId">QueryExpr</span>
+<span class="Symbol">&gt;</span> <span class="VarId">sqlGen</span> <span class="Symbol">(</span><span class="ConId">MakeSelect</span> <span class="VarId">cols</span> <span class="VarId">tb</span><span class="Symbol">)</span> <span class="Symbol">=</span>
+<span class="Symbol">&gt;</span>   <span class="ConId">Select</span> <span class="VarId">emptyAnnotation</span> <span class="ConId">Dupes</span>
+<span class="Symbol">&gt;</span>          <span class="VarId">sl</span> <span class="VarId">tr</span>
+<span class="Symbol">&gt;</span>          <span class="ConId">Nothing</span> <span class="Symbol">[]</span> <span class="ConId">Nothing</span> <span class="Symbol">[]</span> <span class="ConId">Nothing</span> <span class="ConId">Nothing</span>
+<span class="Symbol">&gt;</span>   <span class="Keyword">where</span>
+<span class="Symbol">&gt;</span>     <span class="VarId">sl</span> <span class="Symbol">=</span> <span class="ConId">SelectList</span> <span class="VarId">emptyAnnotation</span>
+<span class="Symbol">&gt;</span>                     <span class="Symbol">(</span><span class="VarId">map</span> <span class="VarId">si</span> <span class="VarId">cols</span><span class="Symbol">)</span>
+<span class="Symbol">&gt;</span>     <span class="VarId">tr</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">Tref</span> <span class="VarId">emptyAnnotation</span>
+<span class="Symbol">&gt;</span>                <span class="Symbol">(</span><span class="ConId">SQIdentifier</span> <span class="VarId">emptyAnnotation</span> <span class="Symbol">[</span><span class="VarId">tb</span><span class="Symbol">])</span>
+<span class="Symbol">&gt;</span>                <span class="Symbol">(</span><span class="ConId">NoAlias</span> <span class="VarId">emptyAnnotation</span><span class="Symbol">)]</span>
+<span class="Symbol">&gt;</span>     <span class="VarId">si</span> <span class="VarId">i</span> <span class="Symbol">=</span> <span class="ConId">SelExp</span> <span class="VarId">emptyAnnotation</span>
+<span class="Symbol">&gt;</span>                   <span class="Symbol">(</span><span class="ConId">Identifier</span> <span class="VarId">emptyAnnotation</span>
+<span class="Symbol">&gt;</span>                               <span class="VarId">i</span><span class="Symbol">)</span>
+
+<span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">::</span> <span class="ConId">IO</span> <span class="Symbol">()</span>
+<span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+<span class="Symbol">&gt;</span>   <span class="Keyword">let</span> <span class="VarId">s</span> <span class="Symbol">=</span> <span class="ConId">MakeSelect</span> <span class="Symbol">[</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="String">&quot;b&quot;</span><span class="Symbol">]</span> <span class="String">&quot;t&quot;</span>
+<span class="Symbol">&gt;</span>   <span class="VarId">putStrLn</span> <span class="Symbol">$</span> <span class="VarId">printQueryExpr</span> <span class="Symbol">$</span> <span class="VarId">sqlGen</span> <span class="VarId">s</span></pre></div>
+<pre
+    ><code
+      >$ MakeSelect
+select
+    a, b
+  from
+    t;
+</code
+      ></pre
+    >
+<h1 id="using-quasiquotes"
+    >Using quasiquotes</h1
+    >
+<div class='haskell'><pre class="sourceCode"><span class="Symbol">&gt;</span> <span class="Comment">{-# LANGUAGE QuasiQuotes #-}</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Ast</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Quote</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Annotation</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Pretty</span>
+
+<span class="Symbol">&gt;</span> <span class="VarId">test</span> <span class="Symbol">::</span> <span class="ConId">Statement</span>
+<span class="Symbol">&gt;</span> <span class="VarId">test</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="VarId">sqlStmt</span><span class="Symbol">|</span>
+<span class="Symbol">&gt;</span>
+<span class="Symbol">&gt;</span>   <span class="VarId">create</span> <span class="VarId">table</span> <span class="Symbol">$(</span><span class="VarId">tablename</span><span class="Symbol">)</span> <span class="Symbol">(</span>
+<span class="Symbol">&gt;</span>    <span class="Symbol">$(</span><span class="VarId">varname</span><span class="Symbol">)</span> <span class="Symbol">$(</span><span class="VarId">typename</span><span class="Symbol">)</span>
+<span class="Symbol">&gt;</span>   <span class="Symbol">);</span>
+<span class="Symbol">&gt;</span>
+<span class="Symbol">&gt;</span>         <span class="Symbol">|]</span>
+<span class="Symbol">&gt;</span>   <span class="Keyword">where</span>
+<span class="Symbol">&gt;</span>     <span class="VarId">tablename</span> <span class="Symbol">=</span> <span class="String">&quot;my_table&quot;</span>
+<span class="Symbol">&gt;</span>     <span class="VarId">varname</span> <span class="Symbol">=</span> <span class="String">&quot;my_field&quot;</span>
+<span class="Symbol">&gt;</span>     <span class="VarId">typename</span> <span class="Symbol">=</span> <span class="String">&quot;text&quot;</span>
+
+<span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">::</span> <span class="ConId">IO</span> <span class="Symbol">()</span>
+<span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">=</span> <span class="VarId">putStrLn</span> <span class="Symbol">$</span> <span class="VarId">printStatements</span> <span class="Symbol">[</span><span class="VarId">test</span><span class="Symbol">]</span>
+</pre></div>
+<p
+    >The output is:</p
+    >
+<pre
+    ><code
+      >$ QQ
+create table my_table (
+  my_field text
+);
+</code
+      ></pre
+    >
+<h1 id="transforming-sql"
+    >Transforming SQL</h1
+    >
+<p
+    >The TPC-H qgen program generates the SQL queries for the TPC-H benchmarks and includes an option for SQL Server. For some reason, it doesn't output the queries in syntax which SQL Server recognises. Here is a short program to take the qgen output and convert it into a format which SQL Server understands. (I haven't checked carefully to see if this code is correct.)</p
+    >
+<div class='haskell'><pre class="sourceCode">
+<span class="ConId">Convert</span> <span class="VarId">qgen</span> <span class="VarId">output</span> <span class="VarId">into</span> <span class="VarId">sql</span> <span class="VarId">server</span> <span class="VarId">format</span>
+
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Data.Generics.Uniplate.Data</span>
+
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">System.Environment</span>
+
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Parser</span>
+
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Ast</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Pretty</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Data.Data</span>
+
+<span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">::</span> <span class="ConId">IO</span> <span class="Symbol">()</span>
+<span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+<span class="Symbol">&gt;</span>   <span class="Symbol">[</span><span class="VarId">fn</span><span class="Symbol">]</span> <span class="Symbol">&lt;-</span> <span class="VarId">getArgs</span>
+<span class="Symbol">&gt;</span>   <span class="VarId">f</span> <span class="Symbol">&lt;-</span> <span class="VarId">readFile</span> <span class="VarId">fn</span>
+<span class="Symbol">&gt;</span>   <span class="VarId">putStrLn</span> <span class="Symbol">$</span> <span class="VarId">fixSql</span> <span class="VarId">f</span>
+
+<span class="Symbol">&gt;</span> <span class="VarId">fixSql</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
+<span class="Symbol">&gt;</span> <span class="VarId">fixSql</span> <span class="VarId">sql</span> <span class="Symbol">=</span>
+<span class="Symbol">&gt;</span>   <span class="Keyword">let</span> <span class="ConId">Right</span> <span class="VarId">qe</span> <span class="Symbol">=</span> <span class="VarId">parseStatements</span> <span class="String">&quot;&quot;</span> <span class="VarId">sql</span>
+<span class="Symbol">&gt;</span>       <span class="VarId">qe'</span> <span class="Symbol">=</span> <span class="VarId">fixSqlAst</span> <span class="VarId">qe</span>
+<span class="Symbol">&gt;</span>   <span class="Keyword">in</span> <span class="VarId">printStatements</span> <span class="VarId">qe'</span>
+
+<span class="Symbol">&gt;</span> <span class="VarId">fixSqlAst</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
+<span class="Symbol">&gt;</span> <span class="VarId">fixSqlAst</span> <span class="Symbol">=</span> <span class="VarId">fixDate</span> <span class="Symbol">.</span> <span class="VarId">fixSubstring</span> <span class="Symbol">.</span> <span class="VarId">fixExtract</span> <span class="Symbol">.</span> <span class="VarId">fixIntervals</span>
+
+ <span class="VarId">dateadd</span><span class="Symbol">(</span><span class="VarId">day</span><span class="Symbol">,</span> <span class="Symbol">-</span><span class="Number">90</span><span class="Symbol">,</span> &#8216;<span class="Number">1998</span><span class="Symbol">-</span><span class="Number">12</span><span class="Symbol">-</span><span class="Number">01</span>&#8217;<span class="Symbol">)</span>
+<span class="ConId">Instead</span> <span class="Keyword">of</span><span class="Symbol">:</span>
+ <span class="VarId">date</span> &#8216;<span class="Number">1998</span><span class="Symbol">-</span><span class="Number">12</span><span class="Symbol">-</span><span class="Number">01</span>&#8217; <span class="Symbol">-</span> <span class="VarId">interval</span> &#8216;<span class="Number">90</span>&#8217; <span class="VarId">day</span>
+
+<span class="Symbol">&gt;</span> <span class="VarId">fixIntervals</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
+<span class="Symbol">&gt;</span> <span class="VarId">fixIntervals</span> <span class="Symbol">=</span> <span class="VarId">transformBi</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span> <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+<span class="Symbol">&gt;</span>   <span class="ConId">FunCall</span> <span class="VarId">a</span> <span class="VarId">f</span> <span class="Symbol">[</span><span class="ConId">TypedStringLit</span> <span class="VarId">_</span> <span class="Symbol">(</span><span class="ConId">SimpleTypeName</span> <span class="VarId">_</span> <span class="String">&quot;date&quot;</span><span class="Symbol">)</span> <span class="VarId">d</span>
+<span class="Symbol">&gt;</span>                 <span class="Symbol">,</span><span class="ConId">Interval</span> <span class="VarId">_</span> <span class="VarId">v</span> <span class="VarId">i</span> <span class="VarId">_</span><span class="Symbol">]</span>
+<span class="Symbol">&gt;</span>     <span class="Symbol">|</span> <span class="VarId">f</span> <span class="Symbol">`</span><span class="VarId">elem</span><span class="Symbol">`</span> <span class="Symbol">[</span><span class="String">&quot;+&quot;</span><span class="Symbol">,</span><span class="String">&quot;-&quot;</span><span class="Symbol">]</span>
+<span class="Symbol">&gt;</span>     <span class="Symbol">,</span> <span class="ConId">Just</span> <span class="VarId">i'</span> <span class="Symbol">&lt;-</span> <span class="VarId">lookup</span> <span class="VarId">i</span> <span class="Symbol">[(</span><span class="ConId">IntervalDay</span><span class="Symbol">,</span><span class="String">&quot;day&quot;</span><span class="Symbol">)</span>
+<span class="Symbol">&gt;</span>                           <span class="Symbol">,(</span><span class="ConId">IntervalMonth</span><span class="Symbol">,</span><span class="String">&quot;month&quot;</span><span class="Symbol">)</span>
+<span class="Symbol">&gt;</span>                           <span class="Symbol">,(</span><span class="ConId">IntervalYear</span><span class="Symbol">,</span><span class="String">&quot;year&quot;</span><span class="Symbol">)]</span>
+<span class="Symbol">&gt;</span>     <span class="Symbol">-&gt;</span> <span class="ConId">FunCall</span> <span class="VarId">a</span> <span class="String">&quot;dateAdd&quot;</span> <span class="Symbol">[</span><span class="ConId">Identifier</span> <span class="VarId">a</span> <span class="VarId">i'</span>
+<span class="Symbol">&gt;</span>                            <span class="Symbol">,</span><span class="Keyword">case</span> <span class="VarId">f</span> <span class="Keyword">of</span>
+<span class="Symbol">&gt;</span>                               <span class="String">&quot;-&quot;</span> <span class="Symbol">-&gt;</span> <span class="ConId">FunCall</span> <span class="VarId">a</span> <span class="String">&quot;u-&quot;</span> <span class="Symbol">[</span><span class="ConId">NumberLit</span> <span class="VarId">a</span> <span class="VarId">v</span><span class="Symbol">]</span>
+<span class="Symbol">&gt;</span>                               <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">NumberLit</span> <span class="VarId">a</span> <span class="VarId">v</span>
+<span class="Symbol">&gt;</span>                            <span class="Symbol">,</span><span class="ConId">StringLit</span> <span class="VarId">a</span> <span class="VarId">d</span><span class="Symbol">]</span>
+<span class="Symbol">&gt;</span>   <span class="VarId">x'</span> <span class="Symbol">-&gt;</span> <span class="VarId">x'</span>
+
+ <span class="VarId">datepart</span><span class="Symbol">(</span><span class="VarId">year</span><span class="Symbol">,</span><span class="VarId">l_shipdate</span><span class="Symbol">)</span>
+<span class="ConId">Instead</span> <span class="Keyword">of</span><span class="Symbol">:</span>
+ <span class="VarId">extract</span><span class="Symbol">(</span><span class="VarId">year</span> <span class="VarId">from</span> <span class="VarId">l_shipdate</span><span class="Symbol">)</span>
+
+<span class="Symbol">&gt;</span> <span class="VarId">fixExtract</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
+<span class="Symbol">&gt;</span> <span class="VarId">fixExtract</span> <span class="Symbol">=</span> <span class="VarId">transformBi</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span> <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+<span class="Symbol">&gt;</span>   <span class="ConId">Extract</span> <span class="VarId">a</span> <span class="ConId">ExtractYear</span> <span class="VarId">e</span> <span class="Symbol">-&gt;</span> <span class="ConId">FunCall</span> <span class="VarId">a</span> <span class="String">&quot;datepart&quot;</span> <span class="Symbol">[</span><span class="ConId">Identifier</span> <span class="VarId">a</span> <span class="String">&quot;year&quot;</span><span class="Symbol">,</span> <span class="VarId">e</span><span class="Symbol">]</span>
+<span class="Symbol">&gt;</span>   <span class="VarId">x'</span> <span class="Symbol">-&gt;</span> <span class="VarId">x'</span>
+
+
+ <span class="VarId">substring</span><span class="Symbol">(</span><span class="VarId">c_phone</span><span class="Symbol">,</span><span class="Number">1</span><span class="Symbol">,</span><span class="Number">2</span><span class="Symbol">)</span>
+<span class="ConId">Instead</span> <span class="Keyword">of</span><span class="Symbol">:</span>
+ <span class="VarId">substring</span><span class="Symbol">(</span><span class="VarId">c_phone</span> <span class="VarId">from</span> <span class="Number">1</span> <span class="VarId">for</span> <span class="Number">2</span><span class="Symbol">)</span>
+
+<span class="Symbol">&gt;</span> <span class="VarId">fixSubstring</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
+<span class="Symbol">&gt;</span> <span class="VarId">fixSubstring</span> <span class="Symbol">=</span> <span class="VarId">transformBi</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span> <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+<span class="Symbol">&gt;</span>   <span class="ConId">FunCall</span> <span class="VarId">a</span> <span class="String">&quot;!substring&quot;</span> <span class="Symbol">[</span><span class="VarId">e</span><span class="Symbol">,</span><span class="VarId">fr</span><span class="Symbol">,</span><span class="VarId">fo</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">FunCall</span> <span class="VarId">a</span> <span class="String">&quot;substring&quot;</span> <span class="Symbol">[</span><span class="VarId">e</span><span class="Symbol">,</span><span class="VarId">fr</span><span class="Symbol">,</span><span class="VarId">fo</span><span class="Symbol">]</span>
+<span class="Symbol">&gt;</span>   <span class="VarId">x'</span> <span class="Symbol">-&gt;</span> <span class="VarId">x'</span>
+
+ &#8216;<span class="Number">1998</span><span class="Symbol">-</span><span class="Number">12</span><span class="Symbol">-</span><span class="Number">01</span>&#8217;
+<span class="ConId">Instead</span> <span class="Keyword">of</span><span class="Symbol">:</span>
+ <span class="VarId">date</span> &#8216;<span class="Number">1998</span><span class="Symbol">-</span><span class="Number">12</span><span class="Symbol">-</span><span class="Number">01</span>&#8217;
+
+<span class="Symbol">&gt;</span> <span class="VarId">fixDate</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
+<span class="Symbol">&gt;</span> <span class="VarId">fixDate</span> <span class="Symbol">=</span> <span class="VarId">transformBi</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span> <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
+<span class="Symbol">&gt;</span>    <span class="ConId">TypedStringLit</span> <span class="VarId">a</span> <span class="Symbol">(</span><span class="ConId">SimpleTypeName</span> <span class="VarId">_</span> <span class="String">&quot;date&quot;</span><span class="Symbol">)</span> <span class="VarId">d</span> <span class="Symbol">-&gt;</span> <span class="ConId">StringLit</span> <span class="VarId">a</span> <span class="VarId">d</span>
+<span class="Symbol">&gt;</span>    <span class="VarId">x'</span> <span class="Symbol">-&gt;</span> <span class="VarId">x'</span></pre></div>
+<p
+    >Example, a Q1 query:</p
+    >
+<div class='sql'><pre class="sourceCode"><span class="VarId">select</span>
+        <span class="VarId">l_returnflag</span><span class="Symbol">,</span>
+        <span class="VarId">l_linestatus</span><span class="Symbol">,</span>
+        <span class="VarId">sum</span><span class="Symbol">(</span><span class="VarId">l_quantity</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">sum_qty</span><span class="Symbol">,</span>
+        <span class="VarId">sum</span><span class="Symbol">(</span><span class="VarId">l_extendedprice</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">sum_base_price</span><span class="Symbol">,</span>
+        <span class="VarId">sum</span><span class="Symbol">(</span><span class="VarId">l_extendedprice</span> <span class="Symbol">*</span> <span class="Symbol">(</span><span class="Number">1</span> <span class="Symbol">-</span> <span class="VarId">l_discount</span><span class="Symbol">))</span> <span class="Keyword">as</span> <span class="VarId">sum_disc_price</span><span class="Symbol">,</span>
+        <span class="VarId">sum</span><span class="Symbol">(</span><span class="VarId">l_extendedprice</span> <span class="Symbol">*</span> <span class="Symbol">(</span><span class="Number">1</span> <span class="Symbol">-</span> <span class="VarId">l_discount</span><span class="Symbol">)</span> <span class="Symbol">*</span> <span class="Symbol">(</span><span class="Number">1</span> <span class="Symbol">+</span> <span class="VarId">l_tax</span><span class="Symbol">))</span> <span class="Keyword">as</span> <span class="VarId">sum_charge</span><span class="Symbol">,</span>
+        <span class="VarId">avg</span><span class="Symbol">(</span><span class="VarId">l_quantity</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">avg_qty</span><span class="Symbol">,</span>
+        <span class="VarId">avg</span><span class="Symbol">(</span><span class="VarId">l_extendedprice</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">avg_price</span><span class="Symbol">,</span>
+        <span class="VarId">avg</span><span class="Symbol">(</span><span class="VarId">l_discount</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">avg_disc</span><span class="Symbol">,</span>
+        <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="Keyword">as</span> <span class="VarId">count_order</span>
+<span class="VarId">from</span>
+        <span class="VarId">lineitem</span>
+<span class="VarId">where</span>
+        <span class="VarId">l_shipdate</span> <span class="Symbol">&lt;=</span> <span class="VarId">date</span> <span class="Char">'1998-12-01'</span> <span class="Symbol">-</span> <span class="VarId">interval</span> <span class="Char">'63'</span> <span class="VarId">day</span> <span class="Symbol">(</span><span class="Number">3</span><span class="Symbol">)</span>
+<span class="Keyword">group</span> <span class="VarId">by</span>
+        <span class="VarId">l_returnflag</span><span class="Symbol">,</span>
+        <span class="VarId">l_linestatus</span>
+<span class="Keyword">order</span> <span class="VarId">by</span>
+        <span class="VarId">l_returnflag</span><span class="Symbol">,</span>
+        <span class="VarId">l_linestatus</span><span class="Symbol">;</span></pre></div>
+<p
+    >Output from running the program on this sql:</p
+    >
+<div class='sql'><pre class="sourceCode"><span class="VarId">select</span>
+    <span class="VarId">l_returnflag</span><span class="Symbol">,</span>
+    <span class="VarId">l_linestatus</span><span class="Symbol">,</span>
+    <span class="VarId">sum</span><span class="Symbol">(</span><span class="VarId">l_quantity</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">sum_qty</span><span class="Symbol">,</span>
+    <span class="VarId">sum</span><span class="Symbol">(</span><span class="VarId">l_extendedprice</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">sum_base_price</span><span class="Symbol">,</span>
+    <span class="VarId">sum</span><span class="Symbol">((</span><span class="VarId">l_extendedprice</span> <span class="Symbol">*</span> <span class="Symbol">(</span><span class="Number">1</span> <span class="Symbol">-</span> <span class="VarId">l_discount</span><span class="Symbol">)))</span> <span class="Keyword">as</span> <span class="VarId">sum_disc_price</span><span class="Symbol">,</span>
+    <span class="VarId">sum</span><span class="Symbol">(((</span><span class="VarId">l_extendedprice</span> <span class="Symbol">*</span> <span class="Symbol">(</span><span class="Number">1</span> <span class="Symbol">-</span> <span class="VarId">l_discount</span><span class="Symbol">))</span> <span class="Symbol">*</span> <span class="Symbol">(</span><span class="Number">1</span> <span class="Symbol">+</span> <span class="VarId">l_tax</span><span class="Symbol">)))</span> <span class="Keyword">as</span> <span class="VarId">sum_charge</span><span class="Symbol">,</span>
+    <span class="VarId">avg</span><span class="Symbol">(</span><span class="VarId">l_quantity</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">avg_qty</span><span class="Symbol">,</span>
+    <span class="VarId">avg</span><span class="Symbol">(</span><span class="VarId">l_extendedprice</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">avg_price</span><span class="Symbol">,</span>
+    <span class="VarId">avg</span><span class="Symbol">(</span><span class="VarId">l_discount</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">avg_disc</span><span class="Symbol">,</span>
+    <span class="VarId">count</span><span class="Symbol">(*)</span> <span class="Keyword">as</span> <span class="VarId">count_order</span>
+  <span class="VarId">from</span>
+    <span class="VarId">lineitem</span>
+  <span class="VarId">where</span>
+    <span class="Symbol">(</span><span class="VarId">l_shipdate</span> <span class="Symbol">&lt;=</span> <span class="VarId">dateAdd</span><span class="Symbol">(</span><span class="VarId">day</span><span class="Symbol">,(-</span> <span class="Symbol">(</span><span class="Number">63</span><span class="Symbol">)),</span><span class="Char">'1998-12-01'</span><span class="Symbol">))</span>
+  <span class="Keyword">group</span> <span class="VarId">by</span>
+    <span class="VarId">l_returnflag</span><span class="Symbol">,</span> <span class="VarId">l_linestatus</span>
+  <span class="Keyword">order</span> <span class="VarId">by</span>
+    <span class="VarId">l_returnflag</span> <span class="Keyword">asc</span><span class="Symbol">,</span> <span class="VarId">l_linestatus</span> <span class="Keyword">asc</span><span class="Symbol">;</span></pre></div><br
+     /><br
+     /><br
+     /><div class="footer"
+    >generated on 08/13/11 13:03:26, hssqlppp-0.3.1</div
+    ></body
+  ></html
+>
