@@ -1,17 +1,17 @@
 
 > module Database.HsSqlPpp.Tests.Parsing.Utils where
 
-> import Test.HUnit
-> import Test.Framework
-> import Test.Framework.Providers.HUnit
-> import Data.Generics
+> --import Test.HUnit
+> --import Test.Framework
+> --import Test.Framework.Providers.HUnit
+> --import Data.Generics
 >
-> import Database.HsSqlPpp.Utils.Here
+> --import Database.HsSqlPpp.Utils.Here
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.Parser
-> import Database.HsSqlPpp.Pretty
+> --import Database.HsSqlPpp.Parser
+> --import Database.HsSqlPpp.Pretty
 
 > data Item = Expr String ScalarExpr
 >           | Stmt String [Statement]

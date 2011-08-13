@@ -3,8 +3,9 @@ and test the produced simple select lists
 
 > module Database.HsSqlPpp.Tests.TypeChecking.TableRefTests
 >     (tableRefTests
->     ,tableRefTestData
->     ,Item(..)) where
+>     --,tableRefTestData
+>     --,Item(..)
+>     ) where
 >
 > import Test.HUnit
 > import Test.Framework

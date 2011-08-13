@@ -2,7 +2,7 @@
 Tests using the tpch queries. Just tests the result type at the
 moment.
 
-> module Database.HsSqlPpp.Tests.ExplicitCasts
+> module Database.HsSqlPpp.Tests.FixTree.ExplicitCasts
 >     (explicitCastTests) where
 >
 > import Test.HUnit

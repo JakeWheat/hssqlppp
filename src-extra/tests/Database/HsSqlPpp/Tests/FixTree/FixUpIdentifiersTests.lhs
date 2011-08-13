@@ -1,7 +1,7 @@
 
 cd /home/jake/wd/hssqlppp/trunk/src/lib/Database/HsSqlPpp/Internals && uuagc --genlinepragmas -dcfwsp AstInternal.ag && cd /home/jake/wd/hssqlppp/trunk/ && cabal build
 
-> module Database.HsSqlPpp.Tests.FixUpIdentifiersTests
+> module Database.HsSqlPpp.Tests.FixTree.FixUpIdentifiersTests
 >     (fixUpIdentifiersTests) where
 >
 > import Test.HUnit

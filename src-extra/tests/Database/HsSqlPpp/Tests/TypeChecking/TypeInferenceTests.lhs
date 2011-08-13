@@ -1,6 +1,6 @@
 
 > {-# LANGUAGE QuasiQuotes #-}
-> module Database.HsSqlPpp.Tests.TypeInferenceTests (typeInferenceTests) where
+> module Database.HsSqlPpp.Tests.TypeChecking.TypeInferenceTests (typeInferenceTests) where
 
 > import Test.HUnit
 > import Test.Framework

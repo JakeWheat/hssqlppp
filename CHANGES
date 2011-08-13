@@ -4,6 +4,7 @@ fix bug when parsing 'for 1..10' without spaces
 fix bug for pretty printing (x).y member reference in scalar
   expressions (was missing parens before)
 change ast for into statements
+add script for regenerating defaultTemplate1Catalog
 
 0.3.1
 Released 13/08/2011

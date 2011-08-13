@@ -8,7 +8,7 @@
 > --import Test.Framework.Providers.HUnit
 > --import Data.Generics
 >
-> import Database.HsSqlPpp.Utils.Here
+> --import Database.HsSqlPpp.Utils.Here
 >
 > import Database.HsSqlPpp.Ast
 > --import Database.HsSqlPpp.Annotation
