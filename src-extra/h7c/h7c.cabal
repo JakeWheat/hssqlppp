@@ -1,6 +1,6 @@
-Name:                hssqlppp-extra
+Name:                h7c
 Version:             0.3.1
-Synopsis:            extras for hssqlppp
+Synopsis:            compiler and library for hssqlppp
 License:             BSD3
 Author:              Jake Wheat
 Maintainer:          jakewheatmail@gmail.com
@@ -12,12 +12,13 @@ homepage:            http://jakewheat.github.com/hssqlppp/
 bug-reports:         https://github.com/JakeWheat/hssqlppp/issues
 category:            Database
 Description:
-    extras for hssqlppp package
+    library for using hssqlppp as compiler for sql, plus command line
+    front end
 
 
-Executable Tests
-  Main-Is:           Tests.lhs
-  hs-source-dirs:    util,examples,tests
+Executable h7c
+  Main-Is:           h7c.lhs
+  hs-source-dirs:    .,../util,../examples,../extensions,../chaos/extensions
   Build-Depends:     base >= 4 && < 5,
                      mtl >= 2.0.1.0 && < 2.1,
                      containers >= 0.3.0.0 && < 0.5,

@@ -36,7 +36,7 @@ Build and run the tests
 To build and run the tests, use:
 
 ~~~~~
-cd src-extra
+cd src-extra/tests
 cabal configure && cabal build
 dist/build/Tests/Tests
 ~~~~~

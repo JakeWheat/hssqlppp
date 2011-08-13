@@ -21,11 +21,11 @@ File to parse the denormalized6nf syntax
 > --import Control.Monad.Error
 >
 > import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.Internals.AstAnti (attributeDef)
-> import Database.HsSqlPpp.Parsing.ParserInternal
-> import Database.HsSqlPpp.Parsing.Lexer
+> --import Database.HsSqlPpp.Internals.AstAnti (attributeDef)
+> --import Database.HsSqlPpp.Parsing.ParserInternal
+> --import Database.HsSqlPpp.Parsing.Lexer
 > import Database.HsSqlPpp.Utils.Here
-> import Database.HsSqlPpp.Utils.Utils
+> --import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Annotation
 >
 > data D6nfStatement = DTable String [String] [AttributeDef]

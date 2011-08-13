@@ -3,7 +3,7 @@ Here are a few Chaos2000 specific extensions, written just to get
 chaos working again then will review approach.
 
 > {-# LANGUAGE QuasiQuotes #-}
-> module Database.HsSqlPpp.Chaos.ChaosExtensions
+> module ChaosExtensions
 >     (
 >      chaosExtensions
 >     ,chaosExtensionsExamples

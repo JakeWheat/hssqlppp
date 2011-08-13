@@ -57,7 +57,7 @@ e "245.1::numeric(5,3)" (Cast ea (FloatLit ea 245.1) (PrecTypeName ea "numeric" 
 Now check the test fails.
 
 ~~~~
-$ cd src-extra
+$ cd src-extra/tests
 $ cabal configure
 $ cabal build
 $ dist/build/Tests/Tests -t "numeric"

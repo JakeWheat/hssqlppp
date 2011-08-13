@@ -1,0 +1,11 @@
+
+adding full chaos to the project:
+h7c hardcoded to chaos at the moment, want to remove this when basics
+  are working
+add generic extensions to src-extra/extensions folder
+src-extra/chaos:
+./sql/ sql files
+./extensions/ chaos specific extensions
+./tests/ automated tests for chaos
+./gui/ simple gui which can run ai battles to show the code actually works
+       (no animation, no sounds for now)
