@@ -244,12 +244,17 @@ I'm sure the implementation can be simpler than this
 >           suff <- choice [-- complete fractional part
 >                           try fracPart
 >                          ,-- dot followed by optional exp
->                           do
->                           _ <- char '.'
->                           e <- optionMaybe expn
->                           return $ concat $ catMaybes
->                             [Just "."
->                             ,e]
+>                           -- check for .. symbol
+>                           choice [try $ do
+>                                         lookAhead $ string ".."
+>                                         return []
+>                                  ,do
+>                                   _ <- char '.'
+>                                   e <- optionMaybe expn
+>                                   return $ concat $ catMaybes
+>                                     [Just "."
+>                                     ,e]
+>                                   ]
 >                          ,--no dot then expn
 >                           expn
 >                           -- just an integer

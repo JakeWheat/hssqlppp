@@ -20,12 +20,12 @@
 >     parserTests
 >     : fixUpIdentifiersTests
 >     : tableRefTests
->     : typeCheckTests
->     : tpchTests
+>     -- : typeCheckTests
+>     -- : tpchTests
 >     : explicitCastTests
->     : quasiQuoteTests
->     : typeInferenceTests
->     : parameterizedStatementTests
+>     -- : quasiQuoteTests
+>     -- : typeInferenceTests
+>     -- : parameterizedStatementTests
 >     -- : extensionTests
 >     -- : roundtripTests
 >     : []

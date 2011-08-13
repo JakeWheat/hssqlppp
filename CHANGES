@@ -1,4 +1,10 @@
+0.3.2
+
+fix bug when parsing 'for 1..10' without spaces
+
+
 0.3.1
+Released 13/08/2011
 
 add quasiquotation support back in
 add build script which handles the two ast generated files (but not

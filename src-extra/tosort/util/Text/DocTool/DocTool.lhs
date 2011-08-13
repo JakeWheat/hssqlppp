@@ -26,7 +26,7 @@
 >   t <- getCurrentTime
 >   let tm = formatDateTime "%D %T" t
 >   children <- (newMVar [])
->   mapM_ (\f -> forkChild children (process "0.3.1" tm b f >> putStrLn (showOf f))) ofs
+>   mapM_ (\f -> forkChild children (process "0.3." tm b f >> putStrLn (showOf f))) ofs
 >   waitForChildren children
 >          where
 >            showOf (OutputFile (Text _) _ fp _) = fp

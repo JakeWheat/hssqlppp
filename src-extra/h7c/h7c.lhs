@@ -59,6 +59,7 @@ tpch conversion util
 
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Pretty
 
 
 > import ChaosExtensions
@@ -83,7 +84,7 @@ one or more precompiled dlls
 > options = Options
 >           {connectionString = "dbname=chaos"
 >           ,sourceFiles =
->            map ("examples/chaos/sql/" ++)
+>            map ("src-extra/chaos/sql/" ++)
 >                    ["chaos/server/Metadata.sql"
 >                    ,"chaos/server/PiecePrototypes.sql"
 >                    ,"chaos/server/Spells.sql"
@@ -118,12 +119,14 @@ one or more precompiled dlls
 
 > main :: IO ()
 > main = do
->   files <- getArgs
->   eas <- mapM parseStatementsFromFile files
+>   --files <- getArgs
+>   eas <- mapM parseStatementsFromFile $ sourceFiles options
 >   let east :: Either ParseErrorExtra [Statement]
 >       east = do
 >              as <- sequence eas
 >              return $ concat as
->   either (\e -> print e >> exitFailure)
->          (const $ return ())
->          east
+>   ast <- either (\e -> print e >> exitFailure)
+>                 return
+>                 east
+>   let tast = (extensions options) ast
+>   putStrLn $ printStatements tast

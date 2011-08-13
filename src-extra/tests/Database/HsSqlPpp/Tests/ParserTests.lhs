@@ -1249,6 +1249,14 @@ quick sanity check
 >       [ForIntegerStatement ea Nothing (ei "r")
 >        (NumberLit ea "1") (NumberLit ea "10")
 >        [NullStatement ea]]
+>       -- catch a bug in lexing where 1..10 is parsed as
+>       -- num "1.", num ".10", instead of num 1, symbol "..", num 10
+>      ,f "for r in 1..10 loop\n\
+>         \null;\n\
+>         \end loop;"
+>       [ForIntegerStatement ea Nothing (ei "r")
+>        (NumberLit ea "1") (NumberLit ea "10")
+>        [NullStatement ea]]
 >
 >      ,f "if a=b then\n\
 >         \  update c set d = e;\n\
