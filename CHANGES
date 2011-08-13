@@ -1,12 +1,12 @@
 0.3.1
 
-add quasiquotation back in
+add quasiquotation support back in
 add build script which handles the two ast generated files (but not
   the defaultTemplate1Catalog file yet)
 add cabal file to compile the automated tests
 add example to typecheck against existing database in postgresql
-get cabal haddock working without any extra work
-get rid of unused cpp dependency and some other extensions
+get cabal haddock working
+get rid of unused cpp dependency and some other unused extensions
 add some limited docs for hacking hssqlppp
 
 0.3.0
