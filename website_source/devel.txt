@@ -33,7 +33,8 @@ rebuild this at the moment.
 Build and run the tests
 =======================
 
-To build and run the tests, use:
+To build and run the tests, first install the hssqlppp library, then
+use:
 
 ~~~~~
 cd src-extra/tests

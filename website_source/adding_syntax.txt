@@ -54,9 +54,13 @@ edit the abstract syntax types. The code added to ParserTests.lhs:
 e "245.1::numeric(5,3)" (Cast ea (FloatLit ea 245.1) (PrecTypeName ea "numeric" 5))
 ~~~~
 
-Now check the test fails.
+Now check the test fails. The tests use the ghc installed version of
+hssqlppp, so you need to reinstall the library before running the
+tests.
 
 ~~~~
+$ cd $PROJ_ROOT
+$ cabal install
 $ cd src-extra/tests
 $ cabal configure
 $ cabal build
