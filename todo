@@ -1,6 +1,17 @@
 
 = next release
 
+typechecking test fixes todo for this release:
+
+with fixupidentifiers, get tpch 15 working, plus some other tests with
+  with
+ids in where in delete
+oid issues? MiscSelects
+funtref issues: selectfrom
+updates broken - fix ids in set clause
+joins: bunch of issues - type compatibility, result fields
+
+
 review test source manually and add in fixme comments to track
  - lots of stuff already commented out
 get most/all of the query/dml stuff working again inc. fixup

@@ -45,8 +45,5 @@
 >      ]
 
 >  where
->    --e = Expr
 >    s = StmtType
->    --c = CatStmtType
->    --d = Ddl
 

@@ -24,7 +24,7 @@ check casts from unknown string lits
 >       e "3 + '4'" $ Right typeInt
 >      ,e "3.0 + '4'" $ Right typeNumeric
 >      ,e "'3' + '4'" $ Left [NoMatchingOperator "+" [UnknownType
->                                               ,UnknownType]]
+>                                                    ,UnknownType]]
 >      ]
 >   ,Group "exists expressions" [
 >       e "exists (select 1 from pg_type)" $ Right typeBool

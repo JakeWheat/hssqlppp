@@ -35,34 +35,35 @@
 
 TODO: check identifier stacking working, then remove the pg_namespace
 qualifier before oid and this should still work
-FIXME: subqueries and stuff
 
->   {-,Group "subqueries" [
->       s "select relname as relvar_name\n\
+>   ,Group "subqueries" [
+>               --fixme: needs oid?
+>       {-s "select relname as relvar_name\n\
 >         \    from pg_class\n\
 >         \    where ((relnamespace =\n\
 >         \           (select oid\n\
 >         \              from pg_namespace\n\
 >         \              where (nspname = 'public'))) and (relkind = 'r'));"
 >         $ Right [Just ([], [("relvar_name",ScalarType "name")])]
->      ,s "select relname from pg_class where relkind in ('r', 'v');"
+>      ,-}s "select relname from pg_class where relkind in ('r', 'v');"
 >         $ Right [Just ([], [("relname",ScalarType "name")])]
->      ,s "select * from generate_series(1,7) g\n\
+>      -- fixme: needs funtrefs?
+>      {-,s "select * from generate_series(1,7) g\n\
 >         \where g not in (select * from generate_series(3,5));"
->         $ Right [Just ([], [("g",typeInt)])]
+>         $ Right [Just ([], [("g",typeInt)])]-}
 >      ,s "select 3 = any(array[1,2,3]);"
 >         $ Right [Just ([], [("?column?",typeBool)])]
->      ]-}]
+>      ]
 >
 >  -- identifiers in select parts
->
-> {-    ,testGroup "select part identifiers"
->     (mapStatementTypes [
->       p "select relname,attname from pg_class\n\
+>   --fixme: needs oid?
+>     {-,Group "select part identifiers" [
+>       s "select relname,attname from pg_class\n\
 >         \inner join pg_attribute\n\
 >         \on pg_attribute.attrelid = pg_class.oid;"
->         $ Right [Just ([], [("relvar_name",ScalarType "name")]]
->      ])-}
+>         $ Right [Just ([], [("relvar_name",ScalarType "name")])]
+>      ]-}
+>   ]
 
 
 >  where

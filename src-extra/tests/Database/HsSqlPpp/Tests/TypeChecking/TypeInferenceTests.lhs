@@ -33,26 +33,26 @@
 >                           ,Just typeInt
 >                           ,Just typeInt]
 >    ,e [sqlExpr| (3,4) = ('2','3')|] [Just typeBool
->                                      ,Just $ AnonymousRecordType [typeInt,typeInt]
->                                      ,Just typeInt
->                                      ,Just typeInt
->                                      ,Just $ AnonymousRecordType [typeInt,typeInt]
->                                      ,Just typeInt
->                                      ,Just typeInt]
+>                                     ,Just $ AnonymousRecordType [typeInt,typeInt]
+>                                     ,Just typeInt
+>                                     ,Just typeInt
+>                                     ,Just $ AnonymousRecordType [typeInt,typeInt]
+>                                     ,Just typeInt
+>                                     ,Just typeInt]
 >    ,e [sqlExpr| ('2','3') = (3,4)|] [Just typeBool
->                                      ,Just $ AnonymousRecordType [typeInt,typeInt]
->                                      ,Just typeInt
->                                      ,Just typeInt
->                                      ,Just $ AnonymousRecordType [typeInt,typeInt]
->                                      ,Just typeInt
->                                      ,Just typeInt]
+>                                     ,Just $ AnonymousRecordType [typeInt,typeInt]
+>                                     ,Just typeInt
+>                                     ,Just typeInt
+>                                     ,Just $ AnonymousRecordType [typeInt,typeInt]
+>                                     ,Just typeInt
+>                                     ,Just typeInt]
 >    ,e [sqlExpr| ('2',3) = (3,'4')|] [Just typeBool
->                                      ,Just $ AnonymousRecordType [typeInt,typeInt]
->                                      ,Just typeInt
->                                      ,Just typeInt
->                                      ,Just $ AnonymousRecordType [typeInt,typeInt]
->                                      ,Just typeInt
->                                      ,Just typeInt]
+>                                     ,Just $ AnonymousRecordType [typeInt,typeInt]
+>                                     ,Just typeInt
+>                                     ,Just typeInt
+>                                     ,Just $ AnonymousRecordType [typeInt,typeInt]
+>                                     ,Just typeInt
+>                                     ,Just typeInt]
 >   ]
 >   where
 >     e = Expr
