@@ -30,8 +30,8 @@
 > typeInferenceTestData =
 >   Group "typeInferenceTests" [
 >     e [sqlExpr| 1 = '2'|] [Just typeBool
->                            ,Just typeInt
->                            ,Just typeInt]
+>                           ,Just typeInt
+>                           ,Just typeInt]
 >    ,e [sqlExpr| (3,4) = ('2','3')|] [Just typeBool
 >                                      ,Just $ AnonymousRecordType [typeInt,typeInt]
 >                                      ,Just typeInt

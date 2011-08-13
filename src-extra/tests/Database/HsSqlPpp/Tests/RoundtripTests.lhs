@@ -150,7 +150,7 @@ use create view to run through select variations
 >     adjTree = canonicalizeTypeNames . resetAnnotations
 >     failIfTypeErrors xast = do
 >       let te :: [TypeError]
->           te = [x | x <- universeBi xast]
+>           te = universeBi xast
 >       unless (null te) $ throwError $ show te
 
 take the parse tree and change the type names to the canonical versions
@@ -210,8 +210,9 @@ brackets which we can use to check these things
 >               ,Set ea "client_min_messages" [SetId ea "warning"]
 >               ,Set ea "escape_string_warning" [SetId ea "off"]]
 >               -- if there are no statements, pg_dump doesn't spit out the search path
->               ++ if null noDml then [] else
->                      [Set ea "search_path" [SetId ea "public", SetId ea "pg_catalog"]]
+>               ++ (if null noDml
+>                   then []
+>                   else [Set ea "search_path" [SetId ea "public", SetId ea "pg_catalog"]])
 >               -- these two sets get added if there are create tables
 >               ++ case flip find ast (\s ->
 >                                   case s of

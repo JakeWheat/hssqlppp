@@ -1,8 +1,6 @@
 Test the type checking and errors within tablerefs
 and test the produced simple select lists
 
-
-> {-# LANGUAGE QuasiQuotes #-}
 > module Database.HsSqlPpp.Tests.TypeChecking.TableRefTests
 >     (tableRefTests
 >     ,tableRefTestData
@@ -119,7 +117,7 @@ missing join attribute
 >       aast = typeCheckQueryExpr cat ast
 >       ty = atype $ getAnnotation aast
 >       er :: [TypeError]
->       er = [x | x <- universeBi aast]
+>       er = universeBi aast
 >       res = if null er
 >             then case ty of
 >                    Nothing -> Left []

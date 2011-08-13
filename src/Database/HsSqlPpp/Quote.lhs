@@ -82,8 +82,8 @@ boilerplate utils to hook everything together
 >
 > makeQQ :: (Show e, Data a) =>
 >           Parser e a -> QuasiQuoter
-> makeQQ p = QuasiQuoter {quoteExp = (parseExprExp p)
->                        ,quotePat = (parseExprPat p)
+> makeQQ p = QuasiQuoter {quoteExp = parseExprExp p
+>                        ,quotePat = parseExprPat p
 >                        ,quoteType = undefined
 >                        ,quoteDec = undefined}
 
@@ -187,13 +187,14 @@ nodes and my generics skills aren't up to the task.
 > antiStr v =
 >   fmap mkName $ getSpliceName v
 >   where
->     getSpliceName s | isPrefixOf "$(" s && last s == ')' =
->       Just $ drop 2 $ take (length s - 1) s
->                     | isPrefixOf "$s(" s && last s == ')' =
->       Just $ drop 3 $ take (length s - 1) s
->                     | isPrefixOf "$i(" s && last s == ')' =
->       Just $ drop 3 $ take (length s - 1) s
->                     | otherwise = Nothing
+>     getSpliceName s
+>       | isPrefixOf "$(" s && last s == ')' =
+>           Just $ drop 2 $ init s
+>       | isPrefixOf "$s(" s && last s == ')' =
+>           Just $ drop 3 $ init s
+>       | isPrefixOf "$i(" s && last s == ')' =
+>           Just $ drop 3 $ init s
+>       | otherwise = Nothing
 
 >
 > antiTriggerEventE :: TriggerEvent -> Maybe ExpQ

@@ -71,7 +71,6 @@ implicit int in for loop
 
 
 
-> {-# LANGUAGE QuasiQuotes #-}
 > module Database.HsSqlPpp.Tests.BindingsTests
 >     (bindingsTests) where
 >
@@ -113,48 +112,48 @@ implicit int in for loop
 single columns, including system columns
 
 >     [StmtType ct "select a from t;"
->      $ Right [Just $ ([], [("a",typeInt)])]
+>      $ Right [Just ([], [("a",typeInt)])]
 >     ,StmtType ct "select b from t;"
->      $ Right [Just $ ([], [("b", ScalarType "text")])]
+>      $ Right [Just ([], [("b", ScalarType "text")])]
 >     ,StmtType ct "select oid from t;"
->      $ Right [Just $ ([], [("oid", typeInt)])]
+>      $ Right [Just ([], [("oid", typeInt)])]
 
 multiple columns
 
 >     ,StmtType ct "select a,b from t;"
->      $ Right [Just $ ([], cols)]
+>      $ Right [Just ([], cols)]
 >     ,StmtType ct "select a,b,oid from t;"
->      $ Right [Just $ ([], cols ++ [("oid", typeInt)])]
+>      $ Right [Just ([], cols ++ [("oid", typeInt)])]
 
 aliased columns
 
 >     ,StmtType ct "select a as c, b as d from t;"
->      $ Right [Just $ ([], [("c",typeInt)
->                           ,("d", ScalarType "text")])]
+>      $ Right [Just ([], [("c",typeInt)
+>                         ,("d", ScalarType "text")])]
 >     ,StmtType ct "select a as x,b as y,oid as z from t;"
->      $ Right [Just $ ([], [("x",typeInt)
->                           ,("y", ScalarType "text")
->                           ,("z", typeInt)])]
+>      $ Right [Just ([], [("x",typeInt)
+>                         ,("y", ScalarType "text")
+>                         ,("z", typeInt)])]
 
 qualified column references
 
 >     ,StmtType ct "select t.a from t;"
->      $ Right [Just $ ([], [("a",typeInt)])]
+>      $ Right [Just ([], [("a",typeInt)])]
 >     ,StmtType ct "select t.b from t;"
->      $ Right [Just $ ([], [("b", ScalarType "text")])]
+>      $ Right [Just ([], [("b", ScalarType "text")])]
 >     ,StmtType ct "select t.oid from t;"
->      $ Right [Just $ ([], [("oid", typeInt)])]
+>      $ Right [Just ([], [("oid", typeInt)])]
 
 star variations
 
 >     ,StmtType ct "/*cunt*/select * from t;"
->      $ Right [Just $ ([], cols)]
+>      $ Right [Just ([], cols)]
 >     ,StmtType ct "/*cunt*/select t.* from t;"
->      $ Right [Just $ ([], cols)]
+>      $ Right [Just ([], cols)]
 >     ,StmtType ct "select *, a as c from t;"
->      $ Right [Just $ ([], [("a",typeInt)
->                           ,("b", ScalarType "text")
->                           ,("c",typeInt)])]
+>      $ Right [Just ([], [("a",typeInt)
+>                         ,("b", ScalarType "text")
+>                         ,("c",typeInt)])]
 
 errors: unrecognised column, unrecognised correlation name, unrecognised table
 
@@ -179,18 +178,18 @@ errors: unrecognised column, unrecognised correlation name, unrecognised table
 qualified column references
 
 >     [StmtType ct "select u.a from t u;"
->      $ Right [Just $ ([], [("a",typeInt)])]
+>      $ Right [Just ([], [("a",typeInt)])]
 >     ,StmtType ct "select t.a from t u;"
 >      $ Left [UnrecognisedCorrelationName "t"]
 >     ,StmtType ct "select u.oid from t u;"
->      $ Right [Just $ ([], [("oid", typeInt)])]
+>      $ Right [Just ([], [("oid", typeInt)])]
 >     ,StmtType ct "select t.oid from t u;"
 >      $ Left [UnrecognisedCorrelationName "t"]
 
 star variations
 
 >     ,StmtType ct "select t.* from t;"
->      $ Right [Just $ ([], cols)]
+>      $ Right [Just ([], cols)]
 >     ,StmtType ct "select u.* from t;"
 >      $ Left [UnrecognisedCorrelationName "u"]
 >     ]
@@ -365,7 +364,7 @@ trigger old and new hack
 >       aast = snd $ typeCheckStatements makeCat ast
 >       is = map (stType . getAnnotation) aast
 >       er :: [TypeError]
->       er = [x | x <- universeBi aast]
+>       er = x <- universeBi aast
 >   in case (length er, length is) of
 >        (0,0) -> assertFailure "didn't get any infos?"
 >        (0,_) -> assertTrace (ppExpr is) ("typecheck " ++ src) sis $ Right is

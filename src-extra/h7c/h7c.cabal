@@ -1,6 +1,6 @@
 Name:                h7c
 Version:             0.3.2
-Synopsis:            compiler and library for hssqlppp
+Synopsis:            SQL 'compiler' utility using hssqlppp
 License:             BSD3
 Author:              Jake Wheat
 Maintainer:          jakewheatmail@gmail.com
@@ -10,15 +10,16 @@ copyright:           Copyright 2009-2011 Jake Wheat
 stability:           pre-alpha
 homepage:            http://jakewheat.github.com/hssqlppp/
 bug-reports:         https://github.com/JakeWheat/hssqlppp/issues
-category:            Database
+category:            Database,Compiler
 Description:
-    library for using hssqlppp as compiler for sql, plus command line
-    front end
+    Library for using hssqlppp as compiler for SQL.
+
+source-repository head
+  type:     git
+  location: https://github.com/JakeWheat/hssqlppp.git
 
 
-Executable h7c
-  Main-Is:           h7c.lhs
-  hs-source-dirs:    .,../../src,../util,../examples,../extensions,../chaos/extensions
+Library
   Build-Depends:     base >= 4 && < 5,
                      mtl >= 2.0.1.0 && < 2.1,
                      containers >= 0.3.0.0 && < 0.5,
@@ -31,7 +32,10 @@ Executable h7c
                      test-framework >= 0.4.1.1 && < 0.5,
                      groom >= 0.1 && < 0.2,
                      test-framework-hunit >= 0.2.6 && < 0.3,
-                     HUnit >= 1.2.2.3 && < 1.3
+                     HUnit >= 1.2.2.3 && < 1.3,
+                     filepath >= 1.2.0 && < 1.3,
+                     hssqlppp == 0.3.2
+  exposed-modules:   Database.HsSqlPpp.H7c
 
   extensions:        TupleSections
                      DeriveDataTypeable,

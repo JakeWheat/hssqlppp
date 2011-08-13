@@ -1,6 +1,20 @@
 
 compiler library and command line access/ build tool
 
+What is the basic scenario to support?
+
+1) set of sql source files
+2) set of 'extensions' which transform this sql -> haskell source code
+   (or .so?)
+
+want to load the source files
+transform them using the extensions
+either output the transformed sql, or load straight into pg
+
+
+
+
+
 change the typecheckdb example to use this library
 use the cmd to generate defaultTemplate1Catalog
 
@@ -130,3 +144,22 @@ one or more precompiled dlls
 >                 east
 >   let tast = (extensions options) ast
 >   putStrLn $ printStatements tast
+
+
+new:
+
+parse configuration file:
+
+ > data Config = Config
+ >     {connectionString :: String
+ >     ,sqlSourceFiles :: [String]
+ >     ,sqlSourceDir :: String
+ >     ,extensionSourceDirs :: [String]
+ >     ,extensions :: String}
+
+
+
+
+To use this, want to compile the source in extension-source-dirs to
+dll then dlopen the dll to get the function mentioned in extensions
+or/ some other approach to load the code at compile time?

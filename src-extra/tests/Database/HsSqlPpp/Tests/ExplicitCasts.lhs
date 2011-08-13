@@ -2,7 +2,6 @@
 Tests using the tpch queries. Just tests the result type at the
 moment.
 
-> {-# LANGUAGE QuasiQuotes #-}
 > module Database.HsSqlPpp.Tests.ExplicitCasts
 >     (explicitCastTests) where
 >

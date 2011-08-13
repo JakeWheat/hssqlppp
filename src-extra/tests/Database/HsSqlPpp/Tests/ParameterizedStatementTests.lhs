@@ -142,7 +142,7 @@ inpredicate
 >                                 -- _ -> assertFailure ("expected onne statementinfo, got " ++ show is)
 >   where
 >     getTypeErrors :: Data a => a -> [TypeError]
->     getTypeErrors a = [t | t <- universeBi a]
+>     getTypeErrors a = universeBi a
 >     getTopLevelInfo a = stType $ getAnnotation a
 >     makeCat = case updateCatalog defaultTemplate1Catalog eu of
 >                         Left x -> error $ show x

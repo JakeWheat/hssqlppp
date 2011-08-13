@@ -99,7 +99,7 @@ time examples/chaos/Chaos2010 sql > chaos1.sql && time examples/chaos/Chaos2010 
 >              "-" -> getContents
 >              _ | length f >= 2 &&
 >                  head f == '"' && last f == '"'
->                    -> return $ drop 1 $ take (length f - 1) f
+>                    -> return $ drop 1 $ init f
 >                | otherwise -> readFile f
 
 > -- | Pretty print list of type errors with optional source position

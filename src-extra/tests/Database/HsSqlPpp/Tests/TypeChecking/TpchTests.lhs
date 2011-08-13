@@ -2,7 +2,6 @@
 Tests using the tpch queries. Just tests the result type at the
 moment.
 
-> {-# LANGUAGE QuasiQuotes #-}
 > module Database.HsSqlPpp.Tests.TypeChecking.TpchTests
 >     (tpchTests) where
 >
@@ -145,7 +144,7 @@ moment.
 >       aast = typeCheckQueryExpr cat ast
 >       ty = atype $ getAnnotation aast
 >       er :: [TypeError]
->       er = [x | x <- universeBi aast]
+>       er = universeBi aast
 >       res = if null er
 >             then case ty of
 >                    Nothing -> Left []
