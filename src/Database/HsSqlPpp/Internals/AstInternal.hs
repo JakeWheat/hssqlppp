@@ -96,7 +96,7 @@ import Control.Monad.State
 import Control.Arrow
 
 import Data.Generics.Uniplate.Data
-import Debug.Trace
+--import Debug.Trace
 
 
 import Database.HsSqlPpp.Internals.TypeType

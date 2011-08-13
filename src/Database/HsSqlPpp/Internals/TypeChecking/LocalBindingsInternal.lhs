@@ -59,7 +59,7 @@ in scope, and one for an unqualified star.
 > --import Control.Monad as M
 > --import Control.Applicative
 > --import Debug.Trace
-> import Data.List
+> --import Data.List
 > --import Data.Maybe
 > --import Data.Char
 > --import Data.Either

@@ -64,13 +64,13 @@ hidden, without having to create a separate module.
 >   ExtensionTest
 >     "modules"
 >     modules
->     [$sqlStmts| select module('Chaos.Server.Metadata');
+>     [sqlStmts| select module('Chaos.Server.Metadata');
 >      create table t1 (
 >        a text
 >      );
 >      select 2;
 >      |]
->     [$sqlStmts|
+>     [sqlStmts|
 >      create table modules (
 >        module_name text,
 >        module_order serial
@@ -91,7 +91,7 @@ hidden, without having to create a separate module.
 >
 > modules :: [Statement] -> [Statement]
 > modules st =
->     (replaceSourcePos (head st) [$sqlStmts|
+>     (replaceSourcePos (head st) [sqlStmts|
 >      create table modules (
 >       module_name text,
 >       module_order serial
@@ -103,10 +103,10 @@ hidden, without having to create a separate module.
 >     ); |])
 >     ++ reverse (((\f -> evalState (transformBiM f (reverse st)) "no_module") $ \x ->
 >             case x of
->                s@[$sqlStmt| select module($s(modname)); |] : tl
+>                s@[sqlStmt| select module($s(modname)); |] : tl
 >                    -> do
 >                       put modname
->                       return $ replaceSourcePos1 s [$sqlStmt|
+>                       return $ replaceSourcePos1 s [sqlStmt|
 >                                 insert into modules (module_name)
 >                                 values ($s(modname));|] : tl
 >                s@(CreateTable _ n _ _) : tl -> insertIt s tl n "table"
@@ -119,6 +119,6 @@ hidden, without having to create a separate module.
 >     where
 >       insertIt s tl nm ty = do
 >          m <- get
->          return $ replaceSourcePos1 s ([$sqlStmt|
+>          return $ replaceSourcePos1 s ([sqlStmt|
 >                    insert into all_module_objects (object_name,object_type,module_name)
 >                    values ($s(nm),$s(ty), $s(m));|]) : s : tl

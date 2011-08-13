@@ -15,6 +15,7 @@ added.
 TODO: add test for recursive function, to make sure this code catches
 it and quits.
 
+> {-# LANGUAGE NoQuasiQuotes #-}
 > module Database.HsSqlPpp.Extensions.AstUtils
 >     (getAstInfo
 >     ,getReferencedTableList

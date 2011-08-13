@@ -77,7 +77,7 @@ one or more precompiled dlls
 > data Options = Options
 >     {connectionString :: String
 >     ,sourceFiles :: [String]
->     ,extensions :: [[Statement] -> [Statement]]}
+>     ,extensions :: [Statement] -> [Statement]}
 
 > options :: Options
 > options = Options
