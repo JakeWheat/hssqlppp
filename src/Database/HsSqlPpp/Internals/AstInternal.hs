@@ -98,7 +98,7 @@ import Control.Monad.State
 import Control.Arrow
 
 import Data.Generics.Uniplate.Data
---import Debug.Trace
+import Debug.Trace
 
 
 import Database.HsSqlPpp.Internals.TypeType
@@ -12821,9 +12821,9 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
     (\ _lhsIcat
        _lhsIidenv
        _lhsIlib ->
-         (let _lhsOfixedUpIdentifiersTree :: TableRef 
-              _lhsOtrefIDs :: ([(String,[String])])
+         (let _lhsOtrefIDs :: ([(String,[String])])
               _onExprOidenv :: IDEnv
+              _lhsOfixedUpIdentifiersTree :: TableRef 
               _lhsOannotatedTree :: TableRef 
               _lhsOlibUpdates :: ([LocalBindingsUpdate])
               _newLib :: (Either [TypeError] LocalBindings)
@@ -12860,23 +12860,38 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
               _aliasIfixedUpIdentifiersTree :: TableAlias 
               _aliasIoriginalTree :: TableAlias 
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 388, column 9)
+              _lhsOtrefIDs =
+                  _trefIDs
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 389, column 9)
+              _onExprOidenv =
+                  IDEnv _trefIDs
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 406, column 9)
               __tup3 =
-                  let (trs,al) = doAlias _aliasIannotatedTree $ _tblItrefIDs ++ _tbl1ItrefIDs
+                  let
+                      jids = case (nat_,_onExprIfixedUpIdentifiersTree) of
+                               (Natural,_) -> intersect (concatMap snd _tblItrefIDs)
+                                                        (concatMap snd _tbl1ItrefIDs)
+                               (_,Just (JoinUsing _ fs)) -> fs
+                               _ -> []
+                      qjids = filter (not . null . snd)
+                              $ flip map _tblItrefIDs
+                              $ \(a,b) -> (a, filter (`elem` jids) b)
+                      njtblids = filter (not . null . snd)
+                                 $ flip map _tblItrefIDs
+                                 $ \(a,b) -> (a, filter (`notElem` jids) b)
+                      njtbl1ids = filter (not . null . snd)
+                                  $ flip map _tbl1ItrefIDs
+                                  $ \(a,b) -> (a, filter (`notElem` jids) b)
+                      (trs,al) = doAlias _aliasIannotatedTree $ qjids ++ njtblids ++ njtbl1ids
                   in (trs, JoinTref ann_ _tblIfixedUpIdentifiersTree
                                     nat_ joinType_ _tbl1IfixedUpIdentifiersTree
                                     _onExprIfixedUpIdentifiersTree al)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 388, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 406, column 9)
               (_trefIDs,_) =
                   __tup3
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 388, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 406, column 9)
               (_,_lhsOfixedUpIdentifiersTree) =
                   __tup3
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 394, column 9)
-              _lhsOtrefIDs =
-                  _trefIDs
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 395, column 9)
-              _onExprOidenv =
-                  IDEnv _trefIDs
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
               _lhsOannotatedTree =
                   addTypeErrors _errs     _backTree

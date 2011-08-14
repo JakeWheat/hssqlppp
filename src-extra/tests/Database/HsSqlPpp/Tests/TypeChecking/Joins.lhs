@@ -21,25 +21,22 @@
 >                            ,("b", typeInt)
 >                            ,("c", typeBool)
 >                            ,("d", typeNumeric)])]
->         --fixme: adding column a twice
->      {-,s "select * from (select 1 as a, 2 as b) a\n\
+>      ,s "select * from (select 1 as a, 2 as b) a\n\
 >         \  inner join (select 1 as a, 4.5 as d) b using(a);"
 >         $ Right [Just ([], [("a", typeInt)
 >                            ,("b", typeInt)
->                            ,("d", typeNumeric)])]-}
->         --fixme: adding column a twice
->      {-,s "select * from (select 1 as a, 2 as b) a\n\
+>                            ,("d", typeNumeric)])]
+>      ,s "select * from (select 1 as a, 2 as b) a\n\
 >         \ natural inner join (select 1 as a, 4.5 as d) b;"
 >         $ Right [Just ([], [("a", typeInt)
 >                            ,("b", typeInt)
->                            ,("d", typeNumeric)])]-}
+>                            ,("d", typeNumeric)])]
 >         --check the attribute order
->         --fixme: adding column a twice
->      {-,s "select * from (select 2 as b, 1 as a) a\n\
+>      ,s "select * from (select 2 as b, 1 as a) a\n\
 >         \ natural inner join (select 4.5 as d, 1 as a) b;"
 >         $ Right [Just ([], [("a", typeInt)
 >                            ,("b", typeInt)
->                            ,("d", typeNumeric)])]-}
+>                            ,("d", typeNumeric)])]
 >       --fixme: result set compatilibity check
 >      {-,s "select * from (select 1 as a1, 2 as b) a\n\
 >         \ natural inner join (select true as a1, 4.5 as d) b;"

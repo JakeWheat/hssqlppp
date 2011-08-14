@@ -110,6 +110,16 @@ cd /home/jake/wd/hssqlppp/trunk/src/lib/Database/HsSqlPpp/Internals && uuagc --g
 >     [Item db1 "select a,b,f(a),a::int,a+b,row_number() over (order by a), a as c from t;"
 >               "select t.a as a,t.b as b,f(t.a) as f,t.a::int as \"int\",t.a+t.b as \"?column?\",row_number() over (order by t.a) as row_number, t.a as c from t as t(a,b);"
 >     ]
+>   ,Group "joins"
+>     [Item db1 "select * from t natural inner join t1;"
+>               "select t.a as a,t.b as b,t1.c as c \
+>               \from t as t(a,b) natural inner join t1 as t1(a,c);"
+>     ,Item db1 "select * from t inner join t1 using (a);"
+>               "select t.a as a,t.b as b,t1.c as c \
+>               \from t as t(a,b) inner join t1 as t1(a,c) using (a);"
+>     ,Item db1 "select * from t cross join t1;"
+>               "select t.a as a,t.b as b,t1.a as a,t1.c as c \
+>               \from t as t(a,b) cross join t1 as t1(a,c);"]
 >   ]
 
 qualifier and column name the same
@@ -120,7 +130,10 @@ qualifier and column name the same
 >                           ,("b", typeInt)] []
 >       ,CatCreateTable "u" [("c",typeInt)
 >                           ,("d", typeInt)] []
->       ,CatCreateTable "v" [("v",typeInt)] []]
+>       ,CatCreateTable "v" [("v",typeInt)] []
+>       ,CatCreateTable "t1" [("a",typeInt)
+>                            ,("c", typeInt)] []
+>       ]
 
 
 ------------------------

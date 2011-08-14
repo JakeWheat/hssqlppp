@@ -3,6 +3,9 @@
 
 typechecking test fixes todo for this release:
 
+fixup identifiers tests in where in update and delete
+fix typechecking for insert, update, delete
+
 with fixupidentifiers, get tpch 15 working, plus some other tests with
   with
 ids in where in delete
@@ -11,6 +14,7 @@ funtref issues: selectfrom
 updates broken - fix ids in set clause
 joins: bunch of issues - type compatibility, result fields
 
+review ag code (and other code?) add fixme notes
 
 review test source manually and add in fixme comments to track
  - lots of stuff already commented out

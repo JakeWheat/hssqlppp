@@ -385,14 +385,48 @@ SEM TableRef
         in (trs,FunTref @ann @fn.fixedUpIdentifiersTree al)
 
     | JoinTref
+        lhs.trefIDs = @loc.trefIDs
+        onExpr.idenv = IDEnv @loc.trefIDs
+{-
+got two lists of trefids from the two tables in the join
+[(qualified,[ids])]
+step one:
+get the join ids:
+if natural, then this is the intersection of the ids from the first and second
+not going to worry about error checking for now
+
+step two:
+to create the qualification lookups and star expansions:
+want the join keys with the qualifiers from the first table
+then the non join keys from the first table
+then the non join keys from the second table
+
+-}
+
         (loc.trefIDs,lhs.fixedUpIdentifiersTree) =
-          -- temp - needs fixing for natural joins
-          let (trs,al) = doAlias @alias.annotatedTree $ @tbl.trefIDs ++ @tbl1.trefIDs
+          let -- create a list of unqualified join id names
+              jids = case (@nat,@onExpr.fixedUpIdentifiersTree) of
+                       (Natural,_) -> intersect (concatMap snd @tbl.trefIDs)
+                                                (concatMap snd @tbl1.trefIDs)
+                       (_,Just (JoinUsing _ fs)) -> fs
+                       _ -> []
+              -- qualify these ids using the qualifiers from the first table
+              qjids = filter (not . null . snd)
+                      $ flip map @tbl.trefIDs
+                      $ \(a,b) -> (a, filter (`elem` jids) b)
+              -- get the non join ids from the first table
+              -- want to filter out empty lists e.g for semi joins
+              njtblids = filter (not . null . snd)
+                         $ flip map @tbl.trefIDs
+                         $ \(a,b) -> (a, filter (`notElem` jids) b)
+              -- non join ids for second table
+              njtbl1ids = filter (not . null . snd)
+                          $ flip map @tbl1.trefIDs
+                          $ \(a,b) -> (a, filter (`notElem` jids) b)
+              (trs,al) = doAlias @alias.annotatedTree $ qjids ++ njtblids ++ njtbl1ids
           in (trs, JoinTref @ann @tbl.fixedUpIdentifiersTree
                             @nat @joinType @tbl1.fixedUpIdentifiersTree
                             @onExpr.fixedUpIdentifiersTree al)
-        lhs.trefIDs = @loc.trefIDs
-        onExpr.idenv = IDEnv @loc.trefIDs
 {
 doAlias :: TableAlias -> [(String,[String])] -> ([(String,[String])],TableAlias)
 doAlias (NoAlias a) [] = ([],NoAlias a)
