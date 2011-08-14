@@ -76,6 +76,7 @@ in scope, and one for an unqualified star.
 
 > data LocalBindings = LocalBindingsError
 >                    | LocalBindings [((String,String),Maybe Type)]
+>                      deriving Show
 
 > createLocalBindings :: Maybe [(String,[(String,Maybe Type)])] -> LocalBindings
 > createLocalBindings i =

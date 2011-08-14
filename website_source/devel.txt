@@ -33,13 +33,21 @@ rebuild this at the moment.
 Build and run the tests
 =======================
 
-To build and run the tests, first install the hssqlppp library, then
-use:
+To build and run the tests using the cabal file for the test
+executable, first install the hssqlppp library, then use:
 
 ~~~~~
 cd src-extra/tests
 cabal configure && cabal build
 dist/build/Tests/Tests
+~~~~~
+
+To run the tests more quickly during development, you can try
+something like this:
+
+~~~~~
+cd src-extra/tests
+ghc -XTupleSections -XScopedTypeVariables -XDeriveDataTypeable -i../../src:../util Tests.lhs
 ~~~~~
 
 There are a lot of regressions which haven't been fixed, so expect

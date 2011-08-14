@@ -60,29 +60,28 @@ insert from select
 >     ,Group "update" [
 >       s "update tb\n\
 >         \  set x = 1, y = 2;"
->       [Update ea (dqi "tb") [FunCall ea "=" [Identifier ea "x", NumberLit ea "1"]
->                       ,FunCall ea "=" [Identifier ea "y", NumberLit ea "2"]]
+>       [Update ea (dqi "tb") [SetClause ea "x" $ NumberLit ea "1"
+>                             ,SetClause ea "y" $ NumberLit ea "2"]
 >        [] Nothing Nothing]
 >      ,s "update tb\n\
 >         \  set x = 1, y = 2 where z = true;"
->       [Update ea (dqi "tb") [FunCall ea "=" [Identifier ea "x", NumberLit ea "1"]
->                       ,FunCall ea "=" [Identifier ea "y", NumberLit ea "2"]]
+>       [Update ea (dqi "tb") [SetClause ea "x" $ NumberLit ea "1"
+>                             ,SetClause ea "y" $ NumberLit ea "2"]
 >        []
 >        (Just $ FunCall ea "="
 >         [Identifier ea "z", BooleanLit ea True])
 >        Nothing]
 >      ,s "update tb\n\
 >         \  set x = 1, y = 2 returning id;"
->       [Update ea (dqi "tb") [FunCall ea "=" [Identifier ea "x", NumberLit ea "1"]
->                       ,FunCall ea "=" [Identifier ea "y", NumberLit ea "2"]]
+>       [Update ea (dqi "tb") [SetClause ea "x" $ NumberLit ea "1"
+>                             ,SetClause ea "y" $ NumberLit ea "2"]
 >        [] Nothing (Just $ sl [selI "id"])]
 >      ,s "update tb\n\
 >         \  set (x,y) = (1,2);"
->       [Update ea (dqi "tb") [FunCall ea "="
->                        [FunCall ea "!rowctor" [Identifier ea "x"
->                                               ,Identifier ea "y"]
->                        ,FunCall ea "!rowctor" [NumberLit ea "1"
->                                               ,NumberLit ea "2"]]]
+>       [Update ea (dqi "tb")
+>        [MultiSetClause ea ["x","y"]
+>         $ FunCall ea "!rowctor" [NumberLit ea "1"
+>                                 ,NumberLit ea "2"]]
 >        []
 >        Nothing Nothing]
 >      ]

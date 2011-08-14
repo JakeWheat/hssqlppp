@@ -831,14 +831,19 @@ Statement components
 > convExpSl nice x = convExp nice x
 
 >
-> convSet :: Bool -> ScalarExpr -> Doc
-> convSet nice (FunCall _ "=" [Identifier _ a, e]) =
+> convSet :: Bool -> SetClause -> Doc
+> convSet nice (SetClause _ a e) =
+>    -- (FunCall _ "=" [Identifier _ a, e]) =
 >   text a <+> text "=" <+> convExp nice e
-> convSet nice (FunCall _ "=" [a, b]) | (FunCall _ "!rowctor" is1) <- a
->                                 ,(FunCall _ "!rowctor" is2) <- b =
+> {-convSet nice (FunCall _ "=" [a, b]) | (FunCall _ "!rowctor" is1) <- a
+>                                      ,(FunCall _ "!rowctor" is2) <- b =
 >   rsNoRow is1 <+> text "=" <+> rsNoRow is2
 >   where
 >     rsNoRow is = parens (sepCsvMap (convExp nice) is)
+> convSet _ a = error $ "bad expression in set in update: " ++ show a-}
+> convSet nice (MultiSetClause _ is (FunCall _ "!rowctor" es)) =
+>   parens (sepCsvMap text is) <+> text "="
+>   <+> parens (sepCsvMap (convExp nice) es)
 > convSet _ a = error $ "bad expression in set in update: " ++ show a
 >
 > --utils

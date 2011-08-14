@@ -40,6 +40,7 @@
 >      -- ** dml
 >     ,CopySource (..)
 >     ,RestartIdentity (..)
+>     ,SetClause(..)
 >      -- ** ddl
 >     ,AttributeDef (..)
 >     ,RowConstraint (..)
@@ -92,6 +93,7 @@
 >     ,ScalarExprDirectionPair
 >     ,ScalarExprDirectionPairList
 >     ,AlterTableActionList
+>     ,SetClauseList
 >     ) where
 >
 > import Database.HsSqlPpp.Internals.AstInternal

@@ -90,6 +90,10 @@ SEM ScalarExprList
                                (_:ts) -> ts
                                _ -> []
 
+SEM SetClause
+    | MultiSetClause ex.expectedType = Nothing --FIXME
+    | SetClause ex.expectedType = Nothing --FIXME
+
 SEM JoinExpr
     | JoinOn expr.expectedType = Just typeBool
 
@@ -151,7 +155,7 @@ SEM QueryExpr
 SEM Statement
     | CreateTrigger fnArgs.expectedTypes = []
     | Raise args.expectedTypes = []
-    | Update assigns.expectedTypes = []
+    --  | Update assigns.expectedTypes = []
 
 -- inferred types in the select expresssion
 

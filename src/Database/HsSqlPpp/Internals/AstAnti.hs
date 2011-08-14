@@ -8,18 +8,18 @@ n-}
 module Database.HsSqlPpp.Internals.AstAnti
        (convertStatements, convertScalarExpr, attributeDef, queryExpr,
         Statement(..), QueryExpr(..), WithQuery(..), FnBody(..),
-        TableRef(..), TableAlias(..), JoinExpr(..), JoinType(..),
-        SelectList(..), SelectItem(..), CopySource(..), AttributeDef(..),
-        RowConstraint(..), AlterTableAction(..), Constraint(..),
-        TypeAttributeDef(..), ParamDef(..), VarDef(..), RaiseType(..),
-        CombineType(..), Volatility(..), Language(..), TypeName(..),
-        DropType(..), Cascade(..), Direction(..), Distinct(..),
-        Natural(..), IfExists(..), Replace(..), RestartIdentity(..),
-        ScalarExpr(..), SQIdentifier(..), IntoIdentifier(..),
-        IntervalField(..), ExtractField(..), FrameClause(..), InList(..),
-        LiftFlavour(..), TriggerWhen(..), TriggerEvent(..),
-        TriggerFire(..), SetValue(..), WithQueryList, StatementList,
-        ScalarExprListStatementListPairList,
+        SetClause(..), TableRef(..), TableAlias(..), JoinExpr(..),
+        JoinType(..), SelectList(..), SelectItem(..), CopySource(..),
+        AttributeDef(..), RowConstraint(..), AlterTableAction(..),
+        Constraint(..), TypeAttributeDef(..), ParamDef(..), VarDef(..),
+        RaiseType(..), CombineType(..), Volatility(..), Language(..),
+        TypeName(..), DropType(..), Cascade(..), Direction(..),
+        Distinct(..), Natural(..), IfExists(..), Replace(..),
+        RestartIdentity(..), ScalarExpr(..), SQIdentifier(..),
+        IntoIdentifier(..), IntervalField(..), ExtractField(..),
+        FrameClause(..), InList(..), LiftFlavour(..), TriggerWhen(..),
+        TriggerEvent(..), TriggerFire(..), SetValue(..), WithQueryList,
+        SetClauseList, StatementList, ScalarExprListStatementListPairList,
         ScalarExprListStatementListPair, ScalarExprList, ParamDefList,
         AttributeDefList, ConstraintList, TypeAttributeDefList,
         TypeNameList, StringTypeNameListPair, StringTypeNameListPairList,
@@ -260,6 +260,10 @@ data SelectItem = SelExp Annotation ScalarExpr
 data SelectList = SelectList Annotation SelectItemList
                 deriving (Data, Eq, Show, Typeable)
  
+data SetClause = MultiSetClause Annotation [String] ScalarExpr
+               | SetClause Annotation String ScalarExpr
+               deriving (Data, Eq, Show, Typeable)
+ 
 data Statement = AlterSequence Annotation String SQIdentifier
                | AlterTable Annotation String AlterTableActionList
                | Assignment Annotation ScalarExpr ScalarExpr
@@ -308,7 +312,7 @@ data Statement = AlterSequence Annotation String SQIdentifier
                | ReturnQuery Annotation QueryExpr
                | Set Annotation String [SetValue]
                | Truncate Annotation [String] RestartIdentity Cascade
-               | Update Annotation SQIdentifier ScalarExprList TableRefList
+               | Update Annotation SQIdentifier SetClauseList TableRefList
                         MaybeBoolExpr MaybeSelectList
                | WhileStatement Annotation (Maybe String) ScalarExpr StatementList
                | AntiStatement String
@@ -389,6 +393,8 @@ type ScalarExprStatementListPairList =
      [ScalarExprStatementListPair]
  
 type SelectItemList = [SelectItem]
+ 
+type SetClauseList = [SetClause]
  
 type StatementList = [Statement]
  
@@ -723,6 +729,12 @@ selectList x
   = case x of
         SelectList a1 a2 -> A.SelectList a1 (selectItemList a2)
  
+setClause :: SetClause -> A.SetClause
+setClause x
+  = case x of
+        MultiSetClause a1 a2 a3 -> A.MultiSetClause a1 a2 (scalarExpr a3)
+        SetClause a1 a2 a3 -> A.SetClause a1 a2 (scalarExpr a3)
+ 
 statement :: Statement -> A.Statement
 statement x
   = case x of
@@ -814,7 +826,7 @@ statement x
         Truncate a1 a2 a3 a4 -> A.Truncate a1 a2 (restartIdentity a3)
                                   (cascade a4)
         Update a1 a2 a3 a4 a5 a6 -> A.Update a1 (sQIdentifier a2)
-                                      (scalarExprList a3)
+                                      (setClauseList a3)
                                       (tableRefList a4)
                                       (maybeBoolExpr a5)
                                       (maybeSelectList a6)
@@ -948,6 +960,9 @@ scalarExprStatementListPairList = fmap scalarExprStatementListPair
  
 selectItemList :: SelectItemList -> A.SelectItemList
 selectItemList = fmap selectItem
+ 
+setClauseList :: SetClauseList -> A.SetClauseList
+setClauseList = fmap setClause
  
 statementList :: StatementList -> A.StatementList
 statementList = fmap statement

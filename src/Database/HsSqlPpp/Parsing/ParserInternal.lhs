@@ -515,14 +515,13 @@ multiple rows to insert and insert from select statements
 >           l <- parens (commaSep1 idString)
 >           symbol "="
 >           r <- parens (commaSep1 expr)
->           return $ FunCall p "=" [FunCall p "!rowctor" $ map (Identifier p) l
->                                  ,FunCall p "!rowctor" r]
+>           return $ MultiSetClause p l $ FunCall p "!rowctor" r
 >         ,do
 >           p <- pos
 >           l <- idString
 >           symbol "="
 >           r <- expr
->           return $ FunCall p "=" [Identifier p l,r]]
+>           return $ SetClause p l r]
 
 > delete :: SParser Statement
 > delete = Delete

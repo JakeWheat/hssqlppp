@@ -53,7 +53,8 @@ MODULE {Database.HsSqlPpp.Internals.AstInternal}
    ,WithQueryList
    ,WithQuery(..)
    ,FnBody (..)
-   --,SetClause (..)
+   ,SetClause (..)
+   ,SetClauseList
    ,TableRef (..)
    ,TableAlias(..)
    ,JoinExpr (..)
@@ -180,7 +181,7 @@ DATA Statement
     --tablename setitems where returning
     | Update ann:Annotation
              table : SQIdentifier
-             assigns : ScalarExprList --SetClauseList
+             assigns : SetClauseList
              fromList : TableRefList
              whr : MaybeBoolExpr
              returning : MaybeSelectList
@@ -345,6 +346,8 @@ DATA Statement
 DATA SQIdentifier | SQIdentifier ann:Annotation is:{[String]}
 
 -- into identifiers for the targets in into expressions
+-- syntactically the same is sqidentifier, should this
+-- use separate syntax?
 
 DATA IntoIdentifier | IntoIdentifier ann:Annotation is:{[String]}
 
@@ -420,6 +423,14 @@ data CopySource = CopyFilename String
                 | Stdin
                   deriving (Show,Eq,Typeable,Data)
 }
+
+DATA SetClause | MultiSetClause ann:Annotation
+                                setTargets:{[String]}
+                                ex:ScalarExpr
+               | SetClause ann:Annotation
+                           setTarget:String
+                           ex:ScalarExpr
+
 --name type default null constraint
 
 DATA AttributeDef | AttributeDef ann:Annotation
@@ -737,7 +748,7 @@ TYPE MaybeBoolExpr = MAYBE ScalarExpr
 TYPE ScalarExprList = [ScalarExpr]
 TYPE ScalarExprListList = [ScalarExprList]
 
--- TYPE SetClauseList = [SetClause]
+TYPE SetClauseList = [SetClause]
 TYPE AttributeDefList = [AttributeDef]
 TYPE ConstraintList = [Constraint]
 TYPE TypeAttributeDefList = [TypeAttributeDef]
@@ -800,6 +811,7 @@ SET AllNodes = Statement QueryExpr FnBody TableRef
                ScalarExprDirectionPairList AlterTableActionList
                WithQueryList WithQuery SQIdentifier IntoIdentifier
                TableAlias
+               SetClause SetClauseList
 
 
 DERIVING AllNodes: Show,Eq,Typeable,Data

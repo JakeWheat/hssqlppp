@@ -27,5 +27,4 @@ type inference tests
 > main :: IO()
 > main = defaultMain allTests
 
-
-ghc -XTupleSections -XScopedTypeVariables -XDeriveDataTypeable -i/home/jake/wd/hssqlppp/trunk/src:/home/jake/wd/hssqlppp/trunk/src-extra/examples:/home/jake/wd/hssqlppp/trunk/src-extra/postgresql:/home/jake/wd/hssqlppp/trunk/src-extra/qq:/home/jake/wd/hssqlppp/trunk/src-extra/tests:/home/jake/wd/hssqlppp/trunk/src-extra/util /home/jake/wd/hssqlppp/trunk/src-extra/tests/Tests.lhs
+cd /home/jake/wd/hssqlppp/trunk/src-extra/tests && ghc -XTupleSections -XScopedTypeVariables -XDeriveDataTypeable -i../../src:../util Tests.lhs
