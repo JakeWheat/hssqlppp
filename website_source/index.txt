@@ -16,6 +16,7 @@ Possible uses of this library include:
 * viewing the catalog produced by some SQL code
 * typesafe database access from haskell
 * generating documentation for SQL code
+* middleware to support running one dialect of SQL on a different DBMS
 
 Status
 ======

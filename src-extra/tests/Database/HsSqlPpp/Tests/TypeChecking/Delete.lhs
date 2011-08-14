@@ -15,9 +15,8 @@
 >         $ Right [Just ([], [])]
 >      ,s "delete from pg_attrdef where 1;"
 >         $ Left [ExpressionMustBeBool]
->         -- FIXME: ids in where expressions in delete
->      {-,s "delete from pg_attrdef where adsrc='';"
->         $ Right [Just $ ([], [])]-}
+>      ,s "delete from pg_attrdef where adsrc='';"
+>         $ Right [Just $ ([], [])]
 >      ]
 
 >  where

@@ -134,6 +134,7 @@ MODULE {Database.HsSqlPpp.Internals.AstInternal}
 
 {
 import Data.Maybe
+import Data.Either
 import Data.List
 import Control.Applicative
 import Data.Data
@@ -142,7 +143,7 @@ import Control.Monad.State
 import Control.Arrow
 
 import Data.Generics.Uniplate.Data
---import Debug.Trace
+import Debug.Trace
 
 
 import Database.HsSqlPpp.Internals.TypeType
@@ -424,12 +425,12 @@ data CopySource = CopyFilename String
                   deriving (Show,Eq,Typeable,Data)
 }
 
-DATA SetClause | MultiSetClause ann:Annotation
-                                setTargets:{[String]}
-                                ex:ScalarExpr
-               | SetClause ann:Annotation
+DATA SetClause | SetClause ann:Annotation
                            setTarget:String
                            ex:ScalarExpr
+               | MultiSetClause ann:Annotation
+                                setTargets:{[String]}
+                                ex:ScalarExpr
 
 --name type default null constraint
 

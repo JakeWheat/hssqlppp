@@ -90,6 +90,7 @@ module Database.HsSqlPpp.Internals.AstInternal(
 ) where
 
 import Data.Maybe
+import Data.Either
 import Data.List
 import Control.Applicative
 import Data.Data
@@ -98,7 +99,7 @@ import Control.Monad.State
 import Control.Arrow
 
 import Data.Generics.Uniplate.Data
---import Debug.Trace
+import Debug.Trace
 
 
 import Database.HsSqlPpp.Internals.TypeType
@@ -535,6 +536,19 @@ getAlias def alias =
 unwrapSetof :: Type -> Type
 unwrapSetof (SetOfType u) = u
 unwrapSetof v = v
+
+
+
+makeTrefLib :: Catalog
+            -> SQIdentifier
+            -> Maybe ([(String,Type)],[(String,Type)])
+            -> E LocalBindings
+makeTrefLib cat si tbUType = Right $ createLocalBindings $ do
+             let n = getTName si
+             -- public and pg internal fields
+             (pu,pr) <- tbUType
+             return [(n,map (second Just) pu)
+                    ,(n,map (second Just) pr)]
 
 
 
@@ -7792,6 +7806,7 @@ sem_SelectList_SelectList ann_ items_  =
          cat                  : Catalog
          idenv                : IDEnv
          lib                  : LocalBindings
+         tbName               : String
       synthesized attributes:
          annotatedTree        : SELF 
          fixedUpIdentifiersTree : SELF 
@@ -7802,6 +7817,8 @@ sem_SelectList_SelectList ann_ items_  =
          child setTargets     : {[String]}
          child ex             : ScalarExpr 
          visit 0:
+            local e           : _
+            local backTree    : _
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
             local originalTree : _
@@ -7810,6 +7827,8 @@ sem_SelectList_SelectList ann_ items_  =
          child setTarget      : {String}
          child ex             : ScalarExpr 
          visit 0:
+            local e           : {E ()}
+            local backTree    : _
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
             local originalTree : _
@@ -7828,14 +7847,15 @@ sem_SetClause (SetClause _ann _setTarget _ex )  =
 type T_SetClause  = Catalog ->
                     IDEnv ->
                     LocalBindings ->
+                    String ->
                     ( SetClause ,SetClause ,SetClause )
-data Inh_SetClause  = Inh_SetClause {cat_Inh_SetClause :: Catalog,idenv_Inh_SetClause :: IDEnv,lib_Inh_SetClause :: LocalBindings}
+data Inh_SetClause  = Inh_SetClause {cat_Inh_SetClause :: Catalog,idenv_Inh_SetClause :: IDEnv,lib_Inh_SetClause :: LocalBindings,tbName_Inh_SetClause :: String}
 data Syn_SetClause  = Syn_SetClause {annotatedTree_Syn_SetClause :: SetClause ,fixedUpIdentifiersTree_Syn_SetClause :: SetClause ,originalTree_Syn_SetClause :: SetClause }
 wrap_SetClause :: T_SetClause  ->
                   Inh_SetClause  ->
                   Syn_SetClause 
-wrap_SetClause sem (Inh_SetClause _lhsIcat _lhsIidenv _lhsIlib )  =
-    (let ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree) = sem _lhsIcat _lhsIidenv _lhsIlib 
+wrap_SetClause sem (Inh_SetClause _lhsIcat _lhsIidenv _lhsIlib _lhsItbName )  =
+    (let ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree) = sem _lhsIcat _lhsIidenv _lhsIlib _lhsItbName 
      in  (Syn_SetClause _lhsOannotatedTree _lhsOfixedUpIdentifiersTree _lhsOoriginalTree ))
 sem_SetClause_MultiSetClause :: Annotation ->
                                 ([String]) ->
@@ -7844,9 +7864,10 @@ sem_SetClause_MultiSetClause :: Annotation ->
 sem_SetClause_MultiSetClause ann_ setTargets_ ex_  =
     (\ _lhsIcat
        _lhsIidenv
-       _lhsIlib ->
-         (let _exOexpectedType :: (Maybe Type)
-              _lhsOannotatedTree :: SetClause 
+       _lhsIlib
+       _lhsItbName ->
+         (let _lhsOannotatedTree :: SetClause 
+              _exOexpectedType :: (Maybe Type)
               _lhsOfixedUpIdentifiersTree :: SetClause 
               _lhsOoriginalTree :: SetClause 
               _exOcat :: Catalog
@@ -7856,6 +7877,24 @@ sem_SetClause_MultiSetClause ann_ setTargets_ ex_  =
               _exIfixedUpIdentifiersTree :: ScalarExpr 
               _exIoriginalTree :: ScalarExpr 
               _exIuType :: (Maybe Type)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Update.ag"(line 73, column 9)
+              _e =
+                  do
+                  let etargTypes :: [E (Maybe Type)]
+                      etargTypes = map (lookupLocalBinding _lhsIlib _lhsItbName) setTargets_
+                  concatLefts etargTypes
+                  targTypes <- lmt $ sequence $ rights etargTypes
+                  let targType = AnonymousRecordType targTypes
+                  exType <- lmt _exIuType
+                  checkAssignmentValid _lhsIcat exType targType
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Update.ag"(line 81, column 9)
+              _backTree =
+                  MultiSetClause ann_ setTargets_ _exIannotatedTree
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Update.ag"(line 85, column 9)
+              _lhsOannotatedTree =
+                  updateAnnotation
+                      (\a -> a {errs = errs a ++ tes _e    })
+                      _backTree
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 94, column 22)
               _exOexpectedType =
                   Nothing
@@ -7868,9 +7907,6 @@ sem_SetClause_MultiSetClause ann_ setTargets_ ex_  =
               -- self rule
               _originalTree =
                   MultiSetClause ann_ setTargets_ _exIoriginalTree
-              -- self rule
-              _lhsOannotatedTree =
-                  _annotatedTree
               -- self rule
               _lhsOfixedUpIdentifiersTree =
                   _fixedUpIdentifiersTree
@@ -7896,9 +7932,11 @@ sem_SetClause_SetClause :: Annotation ->
 sem_SetClause_SetClause ann_ setTarget_ ex_  =
     (\ _lhsIcat
        _lhsIidenv
-       _lhsIlib ->
-         (let _exOexpectedType :: (Maybe Type)
+       _lhsIlib
+       _lhsItbName ->
+         (let _e :: (E ())
               _lhsOannotatedTree :: SetClause 
+              _exOexpectedType :: (Maybe Type)
               _lhsOfixedUpIdentifiersTree :: SetClause 
               _lhsOoriginalTree :: SetClause 
               _exOcat :: Catalog
@@ -7908,6 +7946,23 @@ sem_SetClause_SetClause ann_ setTarget_ ex_  =
               _exIfixedUpIdentifiersTree :: ScalarExpr 
               _exIoriginalTree :: ScalarExpr 
               _exIuType :: (Maybe Type)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Update.ag"(line 64, column 9)
+              _e =
+                  do
+                  targType <- case lookupLocalBinding _lhsIlib _lhsItbName setTarget_ of
+                                Right Nothing -> Left []
+                                Right (Just t) -> Right t
+                                Left e -> Left e
+                  exType <- lmt _exIuType
+                  checkAssignmentValid _lhsIcat exType targType
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Update.ag"(line 71, column 9)
+              _backTree =
+                  SetClause ann_ setTarget_ _exIannotatedTree
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Update.ag"(line 85, column 9)
+              _lhsOannotatedTree =
+                  updateAnnotation
+                      (\a -> a {errs = errs a ++ tes _e    })
+                      _backTree
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 95, column 17)
               _exOexpectedType =
                   Nothing
@@ -7920,9 +7975,6 @@ sem_SetClause_SetClause ann_ setTarget_ ex_  =
               -- self rule
               _originalTree =
                   SetClause ann_ setTarget_ _exIoriginalTree
-              -- self rule
-              _lhsOannotatedTree =
-                  _annotatedTree
               -- self rule
               _lhsOfixedUpIdentifiersTree =
                   _fixedUpIdentifiersTree
@@ -7948,6 +8000,7 @@ sem_SetClause_SetClause ann_ setTarget_ ex_  =
          cat                  : Catalog
          idenv                : IDEnv
          lib                  : LocalBindings
+         tbName               : String
       synthesized attributes:
          annotatedTree        : SELF 
          fixedUpIdentifiersTree : SELF 
@@ -7976,14 +8029,15 @@ sem_SetClauseList list  =
 type T_SetClauseList  = Catalog ->
                         IDEnv ->
                         LocalBindings ->
+                        String ->
                         ( SetClauseList ,SetClauseList ,SetClauseList )
-data Inh_SetClauseList  = Inh_SetClauseList {cat_Inh_SetClauseList :: Catalog,idenv_Inh_SetClauseList :: IDEnv,lib_Inh_SetClauseList :: LocalBindings}
+data Inh_SetClauseList  = Inh_SetClauseList {cat_Inh_SetClauseList :: Catalog,idenv_Inh_SetClauseList :: IDEnv,lib_Inh_SetClauseList :: LocalBindings,tbName_Inh_SetClauseList :: String}
 data Syn_SetClauseList  = Syn_SetClauseList {annotatedTree_Syn_SetClauseList :: SetClauseList ,fixedUpIdentifiersTree_Syn_SetClauseList :: SetClauseList ,originalTree_Syn_SetClauseList :: SetClauseList }
 wrap_SetClauseList :: T_SetClauseList  ->
                       Inh_SetClauseList  ->
                       Syn_SetClauseList 
-wrap_SetClauseList sem (Inh_SetClauseList _lhsIcat _lhsIidenv _lhsIlib )  =
-    (let ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree) = sem _lhsIcat _lhsIidenv _lhsIlib 
+wrap_SetClauseList sem (Inh_SetClauseList _lhsIcat _lhsIidenv _lhsIlib _lhsItbName )  =
+    (let ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree) = sem _lhsIcat _lhsIidenv _lhsIlib _lhsItbName 
      in  (Syn_SetClauseList _lhsOannotatedTree _lhsOfixedUpIdentifiersTree _lhsOoriginalTree ))
 sem_SetClauseList_Cons :: T_SetClause  ->
                           T_SetClauseList  ->
@@ -7991,16 +8045,19 @@ sem_SetClauseList_Cons :: T_SetClause  ->
 sem_SetClauseList_Cons hd_ tl_  =
     (\ _lhsIcat
        _lhsIidenv
-       _lhsIlib ->
+       _lhsIlib
+       _lhsItbName ->
          (let _lhsOannotatedTree :: SetClauseList 
               _lhsOfixedUpIdentifiersTree :: SetClauseList 
               _lhsOoriginalTree :: SetClauseList 
               _hdOcat :: Catalog
               _hdOidenv :: IDEnv
               _hdOlib :: LocalBindings
+              _hdOtbName :: String
               _tlOcat :: Catalog
               _tlOidenv :: IDEnv
               _tlOlib :: LocalBindings
+              _tlOtbName :: String
               _hdIannotatedTree :: SetClause 
               _hdIfixedUpIdentifiersTree :: SetClause 
               _hdIoriginalTree :: SetClause 
@@ -8035,6 +8092,9 @@ sem_SetClauseList_Cons hd_ tl_  =
               _hdOlib =
                   _lhsIlib
               -- copy rule (down)
+              _hdOtbName =
+                  _lhsItbName
+              -- copy rule (down)
               _tlOcat =
                   _lhsIcat
               -- copy rule (down)
@@ -8043,16 +8103,20 @@ sem_SetClauseList_Cons hd_ tl_  =
               -- copy rule (down)
               _tlOlib =
                   _lhsIlib
+              -- copy rule (down)
+              _tlOtbName =
+                  _lhsItbName
               ( _hdIannotatedTree,_hdIfixedUpIdentifiersTree,_hdIoriginalTree) =
-                  hd_ _hdOcat _hdOidenv _hdOlib 
+                  hd_ _hdOcat _hdOidenv _hdOlib _hdOtbName 
               ( _tlIannotatedTree,_tlIfixedUpIdentifiersTree,_tlIoriginalTree) =
-                  tl_ _tlOcat _tlOidenv _tlOlib 
+                  tl_ _tlOcat _tlOidenv _tlOlib _tlOtbName 
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree)))
 sem_SetClauseList_Nil :: T_SetClauseList 
 sem_SetClauseList_Nil  =
     (\ _lhsIcat
        _lhsIidenv
-       _lhsIlib ->
+       _lhsIlib
+       _lhsItbName ->
          (let _lhsOannotatedTree :: SetClauseList 
               _lhsOfixedUpIdentifiersTree :: SetClauseList 
               _lhsOoriginalTree :: SetClauseList 
@@ -10204,12 +10268,11 @@ sem_Statement_Delete ann_ table_ using_ whr_ returning_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Delete.ag"(line 22, column 9)
               _lib =
                   either (const _lhsIlib) id $ do
-                  a <- lmt (allAtts <$> _tableItbUType)
-                  lbUpdate _lhsIcat (LBIds "delete table attrs" (Just $ getTName _tableIannotatedTree) a) _lhsIlib
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Delete.ag"(line 26, column 9)
+                     makeTrefLib _lhsIcat _tableIannotatedTree _tableItbUType
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Delete.ag"(line 25, column 9)
               _whrOlib =
                   _lib
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Delete.ag"(line 27, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Delete.ag"(line 26, column 9)
               _returningOlib =
                   _lib
               -- self rule
@@ -11776,6 +11839,7 @@ sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
               _whrOlib :: LocalBindings
               _assignsOlib :: LocalBindings
               _returningOlib :: LocalBindings
+              _assignsOtbName :: String
               _lhsOoriginalTree :: Statement 
               _tableOcat :: Catalog
               _tableOidenv :: IDEnv
@@ -11840,16 +11904,16 @@ sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
                   []
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Update.ag"(line 13, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Update.ag"(line 25, column 9)
               _tpe =
                   Right $ Pseudo Void
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Update.ag"(line 18, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Update.ag"(line 30, column 9)
               _statementType =
                   do
                   pt <- sequence $ getPlaceholderTypes _assignsIannotatedTree
                                    ++ getPlaceholderTypes _whrIannotatedTree
                   return (pt,fromMaybe [] $ liftList _returningIlistType)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Update.ag"(line 24, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Update.ag"(line 36, column 9)
               _backTree =
                   Update ann_
                          _tableItbAnnotatedTree
@@ -11857,23 +11921,25 @@ sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
                          _fromListIannotatedTree
                          _whrIannotatedTree
                          _returningIannotatedTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Update.ag"(line 30, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Update.ag"(line 42, column 9)
               _catUpdates =
                   []
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Update.ag"(line 35, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Update.ag"(line 47, column 9)
               _lib =
                   either (const _lhsIlib) id $ do
-                  a <- lmt (allAtts <$> _tableItbUType)
-                  lbUpdate _lhsIcat (LBIds "updated table attrs" (Just $ getTName _tableIannotatedTree) a) _lhsIlib
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Update.ag"(line 39, column 9)
+                    makeTrefLib _lhsIcat _tableIannotatedTree _tableItbUType
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Update.ag"(line 50, column 9)
               _whrOlib =
                   _lib
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Update.ag"(line 40, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Update.ag"(line 51, column 9)
               _assignsOlib =
                   _lib
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Update.ag"(line 41, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Update.ag"(line 52, column 9)
               _returningOlib =
                   _lib
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Update.ag"(line 59, column 9)
+              _assignsOtbName =
+                  getTName _tableIannotatedTree
               -- self rule
               _annotatedTree =
                   Update ann_ _tableIannotatedTree _assignsIannotatedTree _fromListIannotatedTree _whrIannotatedTree _returningIannotatedTree
@@ -11919,7 +11985,7 @@ sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
               ( _tableIannotatedTree,_tableIfixedUpIdentifiersTree,_tableIoriginalTree,_tableItbAnnotatedTree,_tableItbUType) =
                   table_ _tableOcat _tableOidenv _tableOlib 
               ( _assignsIannotatedTree,_assignsIfixedUpIdentifiersTree,_assignsIoriginalTree) =
-                  assigns_ _assignsOcat _assignsOidenv _assignsOlib 
+                  assigns_ _assignsOcat _assignsOidenv _assignsOlib _assignsOtbName 
               ( _fromListIannotatedTree,_fromListIfixedUpIdentifiersTree,_fromListIlibUpdates,_fromListInewLib2,_fromListIoriginalTree,_fromListItrefIDs) =
                   fromList_ _fromListOcat _fromListOidenv _fromListOlib 
               ( _whrIannotatedTree,_whrIfixedUpIdentifiersTree,_whrIoriginalTree) =

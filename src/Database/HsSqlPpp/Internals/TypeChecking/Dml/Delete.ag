@@ -21,7 +21,6 @@ SEM Statement
 
         loc.lib =
             either (const @lhs.lib) id $ do
-            a <- lmt (allAtts <$> @table.tbUType)
-            lbUpdate @lhs.cat (LBIds "delete table attrs" (Just $ getTName @table.annotatedTree) a) @lhs.lib
+               makeTrefLib @lhs.cat @table.annotatedTree @table.tbUType
         whr.lib = @loc.lib
         returning.lib = @loc.lib
