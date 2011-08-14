@@ -98,7 +98,7 @@ import Control.Monad.State
 import Control.Arrow
 
 import Data.Generics.Uniplate.Data
-import Debug.Trace
+--import Debug.Trace
 
 
 import Database.HsSqlPpp.Internals.TypeType
@@ -393,6 +393,14 @@ doAlias (NoAlias a) cs@((t,_):ts) = if all (==t) $ map fst ts
 doAlias (TableAlias a t) cs = let cs' = concatMap snd cs
                               in ([(t, cs')], FullAlias a t cs')
 doAlias f@(FullAlias _ t cs) _ = ([(t,cs)], f)
+
+
+makeTrefIDs :: Catalog -> SQIdentifier -> [(String,[String])]
+makeTrefIDs cat i =
+  let tn = getTName i
+  in case catCompositePublicAttrs cat relationComposites tn of
+                     Right attrs -> [(tn, map fst attrs)]
+                     Left _ -> [(tn,[])]
 
 
 
@@ -8297,6 +8305,7 @@ sem_SetClauseList_Nil  =
          child whr            : MaybeBoolExpr 
          child returning      : MaybeSelectList 
          visit 0:
+            local trefEnv     : _
             local libUpdates  : _
             local tpe         : {Either [TypeError] Type}
             local statementType : {Maybe StatementType}
@@ -8511,6 +8520,7 @@ sem_SetClauseList_Nil  =
          child whr            : MaybeBoolExpr 
          child returning      : MaybeSelectList 
          visit 0:
+            local trefEnv     : _
             local libUpdates  : _
             local tpe         : {Either [TypeError] Type}
             local statementType : {Maybe StatementType}
@@ -10110,7 +10120,9 @@ sem_Statement_Delete ann_ table_ using_ whr_ returning_  =
        _lhsIidenv
        _lhsIinProducedCat
        _lhsIlib ->
-         (let _lhsOannotatedTree :: Statement 
+         (let _whrOidenv :: IDEnv
+              _lhsOfixedUpIdentifiersTree :: Statement 
+              _lhsOannotatedTree :: Statement 
               _lhsOcatUpdates :: ([CatalogUpdate])
               _lhsOlibUpdates :: ([LocalBindingsUpdate])
               _tpe :: (Either [TypeError] Type)
@@ -10118,7 +10130,6 @@ sem_Statement_Delete ann_ table_ using_ whr_ returning_  =
               _catUpdates :: ([CatalogUpdate])
               _whrOlib :: LocalBindings
               _returningOlib :: LocalBindings
-              _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
               _tableOcat :: Catalog
               _tableOidenv :: IDEnv
@@ -10127,7 +10138,6 @@ sem_Statement_Delete ann_ table_ using_ whr_ returning_  =
               _usingOidenv :: IDEnv
               _usingOlib :: LocalBindings
               _whrOcat :: Catalog
-              _whrOidenv :: IDEnv
               _returningOcat :: Catalog
               _returningOidenv :: IDEnv
               _tableIannotatedTree :: SQIdentifier 
@@ -10148,6 +10158,19 @@ sem_Statement_Delete ann_ table_ using_ whr_ returning_  =
               _returningIfixedUpIdentifiersTree :: MaybeSelectList 
               _returningIlistType :: ([(String,Maybe Type)])
               _returningIoriginalTree :: MaybeSelectList 
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 470, column 9)
+              _trefEnv =
+                  makeIDEnvP $ makeTrefIDs _lhsIcat _tableIfixedUpIdentifiersTree
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 471, column 9)
+              _whrOidenv =
+                  _trefEnv
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 472, column 9)
+              _lhsOfixedUpIdentifiersTree =
+                  Delete ann_
+                         _tableIfixedUpIdentifiersTree
+                         _usingIfixedUpIdentifiersTree
+                         _whrIfixedUpIdentifiersTree
+                         _returningIfixedUpIdentifiersTree
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Statements.ag"(line 82, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
@@ -10199,9 +10222,6 @@ sem_Statement_Delete ann_ table_ using_ whr_ returning_  =
               _originalTree =
                   Delete ann_ _tableIoriginalTree _usingIoriginalTree _whrIoriginalTree _returningIoriginalTree
               -- self rule
-              _lhsOfixedUpIdentifiersTree =
-                  _fixedUpIdentifiersTree
-              -- self rule
               _lhsOoriginalTree =
                   _originalTree
               -- copy rule (down)
@@ -10225,9 +10245,6 @@ sem_Statement_Delete ann_ table_ using_ whr_ returning_  =
               -- copy rule (down)
               _whrOcat =
                   _lhsIcat
-              -- copy rule (down)
-              _whrOidenv =
-                  _lhsIidenv
               -- copy rule (down)
               _returningOcat =
                   _lhsIcat
@@ -11747,7 +11764,10 @@ sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
        _lhsIidenv
        _lhsIinProducedCat
        _lhsIlib ->
-         (let _lhsOannotatedTree :: Statement 
+         (let _whrOidenv :: IDEnv
+              _assignsOidenv :: IDEnv
+              _lhsOfixedUpIdentifiersTree :: Statement 
+              _lhsOannotatedTree :: Statement 
               _lhsOcatUpdates :: ([CatalogUpdate])
               _lhsOlibUpdates :: ([LocalBindingsUpdate])
               _tpe :: (Either [TypeError] Type)
@@ -11756,18 +11776,15 @@ sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
               _whrOlib :: LocalBindings
               _assignsOlib :: LocalBindings
               _returningOlib :: LocalBindings
-              _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
               _tableOcat :: Catalog
               _tableOidenv :: IDEnv
               _tableOlib :: LocalBindings
               _assignsOcat :: Catalog
-              _assignsOidenv :: IDEnv
               _fromListOcat :: Catalog
               _fromListOidenv :: IDEnv
               _fromListOlib :: LocalBindings
               _whrOcat :: Catalog
-              _whrOidenv :: IDEnv
               _returningOcat :: Catalog
               _returningOidenv :: IDEnv
               _tableIannotatedTree :: SQIdentifier 
@@ -11791,6 +11808,23 @@ sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
               _returningIfixedUpIdentifiersTree :: MaybeSelectList 
               _returningIlistType :: ([(String,Maybe Type)])
               _returningIoriginalTree :: MaybeSelectList 
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 459, column 9)
+              _trefEnv =
+                  makeIDEnvP $ makeTrefIDs _lhsIcat _tableIfixedUpIdentifiersTree
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 460, column 9)
+              _whrOidenv =
+                  _trefEnv
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 461, column 9)
+              _assignsOidenv =
+                  _trefEnv
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 462, column 9)
+              _lhsOfixedUpIdentifiersTree =
+                  Update ann_
+                         _tableIfixedUpIdentifiersTree
+                         _assignsIfixedUpIdentifiersTree
+                         _fromListIfixedUpIdentifiersTree
+                         _whrIfixedUpIdentifiersTree
+                         _returningIfixedUpIdentifiersTree
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Statements.ag"(line 82, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
@@ -11850,9 +11884,6 @@ sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
               _originalTree =
                   Update ann_ _tableIoriginalTree _assignsIoriginalTree _fromListIoriginalTree _whrIoriginalTree _returningIoriginalTree
               -- self rule
-              _lhsOfixedUpIdentifiersTree =
-                  _fixedUpIdentifiersTree
-              -- self rule
               _lhsOoriginalTree =
                   _originalTree
               -- copy rule (down)
@@ -11868,9 +11899,6 @@ sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
               _assignsOcat =
                   _lhsIcat
               -- copy rule (down)
-              _assignsOidenv =
-                  _lhsIidenv
-              -- copy rule (down)
               _fromListOcat =
                   _lhsIcat
               -- copy rule (down)
@@ -11882,9 +11910,6 @@ sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
               -- copy rule (down)
               _whrOcat =
                   _lhsIcat
-              -- copy rule (down)
-              _whrOidenv =
-                  _lhsIidenv
               -- copy rule (down)
               _returningOcat =
                   _lhsIcat
@@ -12731,15 +12756,15 @@ sem_TableRef_FunTref ann_ fn_ alias_  =
               _aliasIannotatedTree :: TableAlias 
               _aliasIfixedUpIdentifiersTree :: TableAlias 
               _aliasIoriginalTree :: TableAlias 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 382, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 383, column 15)
               __tup2 =
                   let (FunCall _ f _) = _fnIfixedUpIdentifiersTree
                       (trs,al) = doAlias _aliasIannotatedTree [(f,[f])]
                   in (trs,FunTref ann_ _fnIfixedUpIdentifiersTree al)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 382, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 383, column 15)
               (_lhsOtrefIDs,_) =
                   __tup2
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 382, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 383, column 15)
               (_,_lhsOfixedUpIdentifiersTree) =
                   __tup2
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
@@ -12859,13 +12884,13 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
               _aliasIannotatedTree :: TableAlias 
               _aliasIfixedUpIdentifiersTree :: TableAlias 
               _aliasIoriginalTree :: TableAlias 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 388, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 389, column 9)
               _lhsOtrefIDs =
                   _trefIDs
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 389, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 390, column 9)
               _onExprOidenv =
                   IDEnv _trefIDs
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 406, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 407, column 9)
               __tup3 =
                   let
                       jids = case (nat_,_onExprIfixedUpIdentifiersTree) of
@@ -12886,10 +12911,10 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
                   in (trs, JoinTref ann_ _tblIfixedUpIdentifiersTree
                                     nat_ joinType_ _tbl1IfixedUpIdentifiersTree
                                     _onExprIfixedUpIdentifiersTree al)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 406, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 407, column 9)
               (_trefIDs,_) =
                   __tup3
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 406, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 407, column 9)
               (_,_lhsOfixedUpIdentifiersTree) =
                   __tup3
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
@@ -13042,15 +13067,15 @@ sem_TableRef_SubTref ann_ sel_ alias_  =
               _aliasIannotatedTree :: TableAlias 
               _aliasIfixedUpIdentifiersTree :: TableAlias 
               _aliasIoriginalTree :: TableAlias 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 377, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 378, column 15)
               __tup4 =
                   let IDEnv x = _selIcidenv
                       (trs,al) = doAlias _aliasIannotatedTree x
                   in (trs, SubTref ann_ _selIfixedUpIdentifiersTree al)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 377, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 378, column 15)
               (_lhsOtrefIDs,_) =
                   __tup4
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 377, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 378, column 15)
               (_,_lhsOfixedUpIdentifiersTree) =
                   __tup4
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 129, column 15)
@@ -13153,7 +13178,7 @@ sem_TableRef_Tref ann_ tbl_ alias_  =
               _aliasIannotatedTree :: TableAlias 
               _aliasIfixedUpIdentifiersTree :: TableAlias 
               _aliasIoriginalTree :: TableAlias 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 369, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 370, column 12)
               __tup5 =
                   let tn = getTName _tblIfixedUpIdentifiersTree
                       ids = case catCompositePublicAttrs _lhsIcat relationComposites tn of
@@ -13161,10 +13186,10 @@ sem_TableRef_Tref ann_ tbl_ alias_  =
                                Left _ -> [(tn,[])]
                       (trs,al) = doAlias _aliasIannotatedTree ids
                   in (trs,Tref ann_ _tblIfixedUpIdentifiersTree al)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 369, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 370, column 12)
               (_lhsOtrefIDs,_) =
                   __tup5
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 369, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 370, column 12)
               (_,_lhsOfixedUpIdentifiersTree) =
                   __tup5
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)

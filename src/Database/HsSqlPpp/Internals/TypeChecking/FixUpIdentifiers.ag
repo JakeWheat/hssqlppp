@@ -365,6 +365,7 @@ SEM TableRefList
     | Cons lhs.trefIDs = @hd.trefIDs ++ @tl.trefIDs
     | Nil lhs.trefIDs = []
 
+
 SEM TableRef
     | Tref (lhs.trefIDs,lhs.fixedUpIdentifiersTree) =
         let tn = getTName @tbl.fixedUpIdentifiersTree
@@ -437,3 +438,40 @@ doAlias (TableAlias a t) cs = let cs' = concatMap snd cs
                               in ([(t, cs')], FullAlias a t cs')
 doAlias f@(FullAlias _ t cs) _ = ([(t,cs)], f)
 }
+{-
+
+code to qualify the ids in the scalar expressions in update and delete
+  statements
+
+-}
+{
+makeTrefIDs :: Catalog -> SQIdentifier -> [(String,[String])]
+makeTrefIDs cat i =
+  let tn = getTName i
+  in case catCompositePublicAttrs cat relationComposites tn of
+                     Right attrs -> [(tn, map fst attrs)]
+                     Left _ -> [(tn,[])]
+}
+
+
+SEM Statement
+    | Update
+        loc.trefEnv = makeIDEnvP $ makeTrefIDs @lhs.cat @table.fixedUpIdentifiersTree
+        whr.idenv = @loc.trefEnv
+        assigns.idenv = @loc.trefEnv
+        lhs.fixedUpIdentifiersTree =
+          Update @ann
+                 @table.fixedUpIdentifiersTree
+                 @assigns.fixedUpIdentifiersTree
+                 @fromList.fixedUpIdentifiersTree
+                 @whr.fixedUpIdentifiersTree
+                 @returning.fixedUpIdentifiersTree
+    | Delete
+        loc.trefEnv = makeIDEnvP $ makeTrefIDs @lhs.cat @table.fixedUpIdentifiersTree
+        whr.idenv = @loc.trefEnv
+        lhs.fixedUpIdentifiersTree =
+          Delete @ann
+                 @table.fixedUpIdentifiersTree
+                 @using.fixedUpIdentifiersTree
+                 @whr.fixedUpIdentifiersTree
+                 @returning.fixedUpIdentifiersTree

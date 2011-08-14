@@ -1,12 +1,14 @@
 0.4.0
 
-fix bug when parsing 'for 1..10' without spaces
-fix bug for pretty printing (x).y member reference in scalar
-  expressions (was missing parens before)
 change ast for into statements
 add script for regenerating defaultTemplate1Catalog
 change ast for update statements
-improve typechecking for joins
+bug fixes:
+fix parsing 'for 1..10' without spaces
+fix pretty printing (x).y member reference in scalar
+  expressions (was missing parens before)
+fix typechecking for update and insert statements
+fix typechecking for natural joins
 
 0.3.1
 Released 13/08/2011

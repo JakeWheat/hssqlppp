@@ -50,9 +50,6 @@ cd src-extra/tests
 ghc -XTupleSections -XScopedTypeVariables -XDeriveDataTypeable -i../../src:../util Tests.lhs
 ~~~~~
 
-There are a lot of regressions which haven't been fixed, so expect
-lots of failures (~50). These should all be typechecking failures.
-
 Background reading
 ==================
 

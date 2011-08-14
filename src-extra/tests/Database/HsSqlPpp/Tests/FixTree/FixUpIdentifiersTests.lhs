@@ -24,6 +24,7 @@ cd /home/jake/wd/hssqlppp/trunk/src/lib/Database/HsSqlPpp/Internals && uuagc --g
 
 > data Item = Group String [Item]
 >           | Item [CatalogUpdate] String String
+>           | SItem [CatalogUpdate] String String
 >           | MSItem [CatalogUpdate] String String
 >
 > fixUpIdentifiersTests :: Test.Framework.Test
@@ -119,7 +120,20 @@ cd /home/jake/wd/hssqlppp/trunk/src/lib/Database/HsSqlPpp/Internals && uuagc --g
 >               \from t as t(a,b) inner join t1 as t1(a,c) using (a);"
 >     ,Item db1 "select * from t cross join t1;"
 >               "select t.a as a,t.b as b,t1.a as a,t1.c as c \
->               \from t as t(a,b) cross join t1 as t1(a,c);"]
+>               \from t as t(a,b) cross join t1 as t1(a,c);"
+>      --fixme
+>     {-,Item db1 "select t.* from t natural inner join t1;"
+>               "select t.a as a,t.b as b \
+>               \from t as t(a,b) natural inner join t1 as t1(a,c);"
+>     ,Item db1 "select t1.* from t natural inner join t1;"
+>               "select t1.a as a,t1.c as c \
+>               \from t as t(a,b) natural inner join t1 as t1(a,c);"-}
+>     ]
+>   ,Group "dml"
+>     [SItem db1 "update t set a = b where a = 5;"
+>               "update t set a = t.b where t.a = 5;"
+>     ,SItem db1 "delete from t where a = 0;"
+>               "delete from t where t.a = 0;"]
 >   ]
 
 qualifier and column name the same
@@ -140,19 +154,27 @@ qualifier and column name the same
 
 > itemToTft :: Item -> Test.Framework.Test
 > itemToTft (Group s is) = testGroup s $ map itemToTft is
-> itemToTft (Item eu sql esql) = itemToTft' parseQueryExpr eu sql esql
-> itemToTft (MSItem eu sql esql) = itemToTft' parseSqlServerQueryExpr eu sql esql
+> itemToTft (Item eu sql esql) =
+>   itemToTft' parseStatement eu sql esql
+> --itemToTft (MSItem eu sql esql) = itemToTft' parseSqlServerQueryExpr eu sql esql
+> itemToTft (SItem eu sql esql) = itemToTft' parseStatement eu sql esql
 
-> type P =  String -> String -> Either ParseErrorExtra QueryExpr
+> parseStatement :: String -> String -> Either ParseErrorExtra Statement
+> parseStatement f s =
+>   let p = parseStatements f s
+>   in case p of
+>        Left e -> Left e
+>        Right [a] -> Right a
+>        Right _ -> error "wrong number of statements parsed"
+
+> type P = String -> String -> Either ParseErrorExtra Statement
 
 > itemToTft' :: P -> [CatalogUpdate] -> String -> String -> Test.Framework.Test
 > itemToTft' p eu sql esql = testCase sql $ do
->   let eAst = [QueryStatement emptyAnnotation
->               $ case p "" esql of
+>   let eAst = [case p "" esql of
 >                              Left e -> error $ show e
 >                              Right l -> resetAnnotations l]
->       ast = [QueryStatement emptyAnnotation
->              $ case p "" sql of
+>       ast = [case p "" sql of
 >                            Left e -> error $ show e
 >                            Right l -> resetAnnotations l]
 >       cAst = fixUpIdentifiers makeCat ast
