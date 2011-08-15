@@ -464,6 +464,7 @@ SEM Statement
         loc.trefEnv = makeIDEnvP $ makeTrefIDs @lhs.cat @table.originalTree
         whr.idenv = @loc.trefEnv
         assigns.idenv = @loc.trefEnv
+        returning.idenv = @loc.trefEnv
         lhs.fixedUpIdentifiersTree =
           Update @ann
                  @table.fixedUpIdentifiersTree
@@ -474,9 +475,19 @@ SEM Statement
     | Delete
         loc.trefEnv = makeIDEnvP $ makeTrefIDs @lhs.cat @table.originalTree
         whr.idenv = @loc.trefEnv
+        returning.idenv = @loc.trefEnv
         lhs.fixedUpIdentifiersTree =
           Delete @ann
                  @table.fixedUpIdentifiersTree
                  @using.fixedUpIdentifiersTree
                  @whr.fixedUpIdentifiersTree
+                 @returning.fixedUpIdentifiersTree
+    | Insert
+        loc.trefEnv = makeIDEnvP $ makeTrefIDs @lhs.cat @table.originalTree
+        returning.idenv = @loc.trefEnv
+        lhs.fixedUpIdentifiersTree =
+          Insert @ann
+                 @table.fixedUpIdentifiersTree
+                 @targetCols
+                 @insData.fixedUpIdentifiersTree
                  @returning.fixedUpIdentifiersTree

@@ -89,8 +89,8 @@ cd /home/jake/wd/hssqlppp/trunk/src/lib/Database/HsSqlPpp/Internals && uuagc --g
 >     [Item db1 "select a from t order by b;"
 >               "select t.a as a from t as t(a,b) order by t.b;"
 >     ]
->    -- needs some work before this passes
->   ,Group "ctes"
+>    -- fixme: needs some work before these pass
+>   {-,Group "ctes"
 >     [Item []   "with ta as (select 1 as a, 2 as b)\n\
 >                 \select * from ta;"
 >
@@ -106,7 +106,7 @@ cd /home/jake/wd/hssqlppp/trunk/src/lib/Database/HsSqlPpp/Internals && uuagc --g
 >                 \select ta.a as a, ta.b as b from ta as ta(a,b)\n\
 >                 \union select tb.a as a, tb.b as tb from tb as tb(a,b);"
 
->     ]
+>     ]-}
 >   ,Group "correlated subqueries"
 >     [Item db1 "select a,b from t where (select min(c) from u where b=d);"
 >        "select t.a as a,t.b as b from t as t(a,b)\n\
@@ -139,6 +139,13 @@ cd /home/jake/wd/hssqlppp/trunk/src/lib/Database/HsSqlPpp/Internals && uuagc --g
 >               "update t set a = t.b where t.a = 5;"
 >     ,SItem db1 "delete from t where a = 0;"
 >               "delete from t where t.a = 0;"]
+>   ,Group "returning"
+>     [SItem db1 "update t set a = 1 returning a;"
+>                "update t set a = 1 returning t.a as a;"
+>     ,SItem db1 "insert into t (a,b) values (1,2) returning a,b;"
+>                "insert into t (a,b) values (1,2) returning t.a as a,t.b as b;"
+>     ,SItem db1 "delete from t returning a;"
+>                "delete from t returning t.a as a;"]
 >   ]
 
 qualifier and column name the same

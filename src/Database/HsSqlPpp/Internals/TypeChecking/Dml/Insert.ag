@@ -43,6 +43,5 @@ SEM Statement
                                 return $ map (Just . snd) ts
 
         returning.lib =
-            either (const @lhs.lib) id $ do
-              atts <- lmt (allAtts <$> @table.tbUType)
-              lbUpdate @lhs.cat (LBIds "insert target table" (Just $ getTName @table.annotatedTree) atts) @lhs.lib
+             either (const @lhs.lib) id $ do
+               makeTrefLib @lhs.cat @table.annotatedTree @table.tbUType

@@ -16,10 +16,6 @@ review test source manually and add in fixme comments to track
 get most/all of the query/dml stuff working again inc. fixup
   identifiers for with
 
-parameterized queries get tests working again
-issues: 1) returning not typing properly
-2) 'inferred' types not going into rhs of set in update
-
 typesafe haskell wrappers
 
 devel tools?

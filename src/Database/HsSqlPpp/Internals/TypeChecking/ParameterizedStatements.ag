@@ -90,10 +90,6 @@ SEM ScalarExprList
                                (_:ts) -> ts
                                _ -> []
 
-SEM SetClause
-    | MultiSetClause ex.expectedType = Nothing --FIXME
-    | SetClause ex.expectedType = Nothing --FIXME
-
 SEM JoinExpr
     | JoinOn expr.expectedType = Just typeBool
 
