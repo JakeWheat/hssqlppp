@@ -38,10 +38,10 @@ type checking tests.
 >        ,[]
 >        ,Just ([],[("adnum", ScalarType "int2")
 >             ,("adbin", ScalarType "text")]))
->       ,("select adnum,adbin from pg_attrdef where oid= ?;"
+>       ,("select adnum,adbin from pg_attrdef where adnum= ?;"
 >        ,[]
->        ,Just ([ScalarType "oid"],[("adnum", ScalarType "int2")
->                             ,("adbin", ScalarType "text")]))
+>        ,Just ([ScalarType "int2"],[("adnum", ScalarType "int2")
+>                                  ,("adbin", ScalarType "text")]))
 >       ,("select count(1) from pg_attrdef;"
 >        ,[]
 >        ,Just ([],[("count", ScalarType "int8")]))

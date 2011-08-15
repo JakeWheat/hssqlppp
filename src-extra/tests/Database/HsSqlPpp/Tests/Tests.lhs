@@ -13,7 +13,7 @@
 > import Database.HsSqlPpp.Tests.QuasiQuoteTests
 
 > --import Database.HsSqlPpp.Tests.ExtensionTests
-
+> import Database.HsSqlPpp.Tests.ParameterizedStatementTests
 >
 > allTests :: [Test]
 > allTests =
@@ -22,6 +22,7 @@
 >     : explicitCastTests
 >     : quasiQuoteTests
 >     : typeCheckTests
+>     : parameterizedStatementTests
 >     -- : extensionTests
 >     : []
 

@@ -90,18 +90,23 @@ cd /home/jake/wd/hssqlppp/trunk/src/lib/Database/HsSqlPpp/Internals && uuagc --g
 >               "select t.a as a from t as t(a,b) order by t.b;"
 >     ]
 >    -- needs some work before this passes
->   {-,Group "ctes"
->     [Item db1   "with a as (select 1 as a, 2 as b),\n\
->                 \     b as (select * from t)\n\
->                 \select * from a\n\
->                 \union select * from b;"
+>   ,Group "ctes"
+>     [Item []   "with ta as (select 1 as a, 2 as b)\n\
+>                 \select * from ta;"
 >
->                 "with a(a,b) as (select 1 as a, 2 as b),\n\
->                 \     b(a,b) as (select t.a as a, t.b as b from t as t(a,b))\n\
->                 \select a.a as a, a.b as b from a as a(a,b)\n\
->                 \union select b.a as a, b.b as b from b as b(a,b);"
+>                 "with ta(a,b) as (select 1 as a, 2 as b)\n\
+>                 \select ta.a as a, ta.b as b from ta as ta(a,b);"
+>     ,Item db1   "/*66642*/with ta as (select 1 as a, 2 as b),\n\
+>                 \     tb as (select * from t)\n\
+>                 \select * from ta\n\
+>                 \union select * from tb;"
+>
+>                 "with ta(a,b) as (select 1 as a, 2 as b),\n\
+>                 \     tb(a,b) as (select t.a as a, t.b as b from t as t(a,b))\n\
+>                 \select ta.a as a, ta.b as b from ta as ta(a,b)\n\
+>                 \union select tb.a as a, tb.b as tb from tb as tb(a,b);"
 
->     ]-}
+>     ]
 >   ,Group "correlated subqueries"
 >     [Item db1 "select a,b from t where (select min(c) from u where b=d);"
 >        "select t.a as a,t.b as b from t as t(a,b)\n\

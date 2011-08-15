@@ -17,10 +17,21 @@ get most/all of the query/dml stuff working again inc. fixup
   identifiers for with
 
 parameterized queries get tests working again
+issues: 1) returning not typing properly
+2) 'inferred' types not going into rhs of set in update
 
 typesafe haskell wrappers
 
 devel tools?
+
+change annotation type to have public and private part (private is
+nested abstract struct). Then can fill private part with junk to help
+with typechecker without changing the api.
+
+rethink and refactor idenv stuff for fixupidentifiers
+  and also the 'type inference' attr and sem
+  this should get rid of the cycles in the ag code
+  -> these are all related to 'inference' and fixupidentifiers?
 
 = next + 2
 

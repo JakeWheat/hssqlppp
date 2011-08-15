@@ -96,11 +96,10 @@ joinIDEnvs (IDEnv a) (IDEnv b) = IDEnv $ a ++ b
 
 expandStar :: IDEnv -> Maybe String --qualifier
            -> [(String,String)]
-expandStar (IDEnv es) Nothing =
+expandStar (IDEnv es) Nothing = --trace ("ex star 1 " ++ show es) $
   flip concatMap es $ \(t,cs) -> map (t,) cs
-expandStar (IDEnv es) (Just t) =
+expandStar (IDEnv es) (Just t) = --trace ("ex star 2 " ++ show es ++ " " ++ t) $
   maybe [(t,"*")] (map (t,)) $ lookup t es
-
 
 }
 
@@ -219,7 +218,7 @@ Passing up:
 * from select lists -> select -> wrapping subtref
 -}
 
-ATTR QueryExpr --  WithQuery WithQueryList
+ATTR QueryExpr WithQuery WithQueryList
          [
          |
          | cidenv : IDEnv
@@ -230,18 +229,21 @@ SEM QueryExpr
     | CombineQueryExpr lhs.cidenv = @sel1.cidenv
     | Values lhs.cidenv = unimplementedIDEnv
     | WithQueryExpr lhs.cidenv = @ex.cidenv
-
-{-SEM QueryExpr
-    | WithSelect ex.idenv = showIt "****withsidenv****" @withs.cidenv
-
-SEM WithQueryList
-    | Cons lhs.cidenv = joinIDEnvs @hd.cidenv @tl.cidenv
-    | Nil lhs.cidenv = emptyIDEnv
+                    ex.idenv = @ex.cidenv
 
 SEM WithQuery
-    | WithQuery lhs.cidenv = let IDEnv x = @ex.cidenv
-                             in IDEnv $ flip map x $ \(_,cs) -> (@name,cs)
--}
+    | WithQuery
+        lhs.fixedUpIdentifiersTree =
+          case (@ex.cidenv,@colAliases) of
+            (IDEnv [(_,ns)],Nothing) ->
+                WithQuery @ann @name (Just ns) @ex.fixedUpIdentifiersTree
+            _ -> WithQuery @ann @name @colAliases @ex.fixedUpIdentifiersTree
+
+SEM WithQueryList
+    | Cons lhs.cidenv = let IDEnv a = @hd.cidenv
+                            IDEnv b = @tl.cidenv
+                        in IDEnv $ a ++ b
+    | Nil lhs.cidenv = emptyIDEnv
 
 
 {-
@@ -365,24 +367,27 @@ SEM TableRefList
     | Cons lhs.trefIDs = @hd.trefIDs ++ @tl.trefIDs
     | Nil lhs.trefIDs = []
 
+{
+
+}
 
 SEM TableRef
     | Tref (lhs.trefIDs,lhs.fixedUpIdentifiersTree) =
-        let tn = getTName @tbl.fixedUpIdentifiersTree
+        let tn = getTName @tbl.originalTree
             ids = case catCompositePublicAttrs @lhs.cat relationComposites tn of
                      Right attrs -> [(tn, map fst attrs)]
                      Left _ -> [(tn,[])]
-            (trs,al) = doAlias @alias.annotatedTree ids
+            (trs,al) = doAlias @alias.originalTree ids
         in (trs,Tref @ann @tbl.fixedUpIdentifiersTree al)
 
     | SubTref (lhs.trefIDs,lhs.fixedUpIdentifiersTree) =
         let IDEnv x = @sel.cidenv
-            (trs,al) = doAlias @alias.annotatedTree x
+            (trs,al) = doAlias @alias.originalTree x
         in (trs, SubTref @ann @sel.fixedUpIdentifiersTree al)
 
     | FunTref (lhs.trefIDs,lhs.fixedUpIdentifiersTree) =
-        let (FunCall _ f _) = @fn.fixedUpIdentifiersTree
-            (trs,al) = doAlias @alias.annotatedTree [(f,[f])] -- needs fixing for table returning functions
+        let (FunCall _ f _) = @fn.originalTree
+            (trs,al) = doAlias @alias.originalTree [(f,[f])] -- needs fixing for table returning functions
         in (trs,FunTref @ann @fn.fixedUpIdentifiersTree al)
 
     | JoinTref
@@ -406,7 +411,7 @@ then the non join keys from the second table
 
         (loc.trefIDs,lhs.fixedUpIdentifiersTree) =
           let -- create a list of unqualified join id names
-              jids = case (@nat,@onExpr.fixedUpIdentifiersTree) of
+              jids = case (@nat,@onExpr.originalTree) of
                        (Natural,_) -> intersect (concatMap snd @tbl.trefIDs)
                                                 (concatMap snd @tbl1.trefIDs)
                        (_,Just (JoinUsing _ fs)) -> fs
@@ -424,7 +429,7 @@ then the non join keys from the second table
               njtbl1ids = filter (not . null . snd)
                           $ flip map @tbl1.trefIDs
                           $ \(a,b) -> (a, filter (`notElem` jids) b)
-              (trs,al) = doAlias @alias.annotatedTree $ qjids ++ njtblids ++ njtbl1ids
+              (trs,al) = doAlias @alias.originalTree $ qjids ++ njtblids ++ njtbl1ids
           in (trs, JoinTref @ann @tbl.fixedUpIdentifiersTree
                             @nat @joinType @tbl1.fixedUpIdentifiersTree
                             @onExpr.fixedUpIdentifiersTree al)
@@ -456,7 +461,7 @@ makeTrefIDs cat i =
 
 SEM Statement
     | Update
-        loc.trefEnv = makeIDEnvP $ makeTrefIDs @lhs.cat @table.fixedUpIdentifiersTree
+        loc.trefEnv = makeIDEnvP $ makeTrefIDs @lhs.cat @table.originalTree
         whr.idenv = @loc.trefEnv
         assigns.idenv = @loc.trefEnv
         lhs.fixedUpIdentifiersTree =
@@ -467,7 +472,7 @@ SEM Statement
                  @whr.fixedUpIdentifiersTree
                  @returning.fixedUpIdentifiersTree
     | Delete
-        loc.trefEnv = makeIDEnvP $ makeTrefIDs @lhs.cat @table.fixedUpIdentifiersTree
+        loc.trefEnv = makeIDEnvP $ makeTrefIDs @lhs.cat @table.originalTree
         whr.idenv = @loc.trefEnv
         lhs.fixedUpIdentifiersTree =
           Delete @ann

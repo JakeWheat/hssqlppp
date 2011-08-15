@@ -318,11 +318,10 @@ joinIDEnvs (IDEnv a) (IDEnv b) = IDEnv $ a ++ b
 
 expandStar :: IDEnv -> Maybe String --qualifier
            -> [(String,String)]
-expandStar (IDEnv es) Nothing =
+expandStar (IDEnv es) Nothing = --trace ("ex star 1 " ++ show es) $
   flip concatMap es $ \(t,cs) -> map (t,) cs
-expandStar (IDEnv es) (Just t) =
+expandStar (IDEnv es) (Just t) = --trace ("ex star 2 " ++ show es ++ " " ++ t) $
   maybe [(t,"*")] (map (t,)) $ lookup t es
-
 
 
 
@@ -383,6 +382,9 @@ countHack = transformBi $ \x -> case x of
               FunCall a "count" [Identifier ia "*"] ->
                 FunCall a "count" [BooleanLit ia True]
               x1 -> x1
+
+
+
 
 
 
@@ -3284,7 +3286,7 @@ sem_QueryExpr_CombineQueryExpr ann_ ctype_ sel1_ sel2_  =
               _sel2IlibUpdates :: ([LocalBindingsUpdate])
               _sel2IoriginalTree :: QueryExpr 
               _sel2IuType :: (Maybe [(String,Type)])
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 230, column 24)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 229, column 24)
               _lhsOcidenv =
                   _sel1Icidenv
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 29, column 9)
@@ -3440,7 +3442,7 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
               _selOffsetIfixedUpIdentifiersTree :: MaybeScalarExpr 
               _selOffsetIoriginalTree :: MaybeScalarExpr 
               _selOffsetIuType :: (Maybe Type)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 187, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 186, column 9)
               _lhsOfixedUpIdentifiersTree =
                   Select ann_
                          selDistinct_
@@ -3452,28 +3454,28 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
                          _selOrderByIfixedUpIdentifiersTree
                          _selLimitIfixedUpIdentifiersTree
                          _selOffsetIfixedUpIdentifiersTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 229, column 14)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 228, column 14)
               _lhsOcidenv =
                   _selSelectListIcidenv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 270, column 14)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 272, column 14)
               _trefEnv =
                   makeIDEnvP _selTrefItrefIDs
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 271, column 14)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 273, column 14)
               _includeCorrelations =
                   joinIDEnvs _lhsIidenv _trefEnv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 272, column 14)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 274, column 14)
               _selSelectListOidenv =
                   _trefEnv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 273, column 14)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 275, column 14)
               _selWhereOidenv =
                   _includeCorrelations
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 274, column 14)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 276, column 14)
               _selGroupByOidenv =
                   _trefEnv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 275, column 14)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 277, column 14)
               _selHavingOidenv =
                   _includeCorrelations
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 276, column 14)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 278, column 14)
               _selOrderByOidenv =
                   _trefEnv
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 29, column 9)
@@ -3619,7 +3621,7 @@ sem_QueryExpr_Values ann_ vll_  =
               _vllIfixedUpIdentifiersTree :: ScalarExprListList 
               _vllIoriginalTree :: ScalarExprListList 
               _vllIuType :: ([[Maybe Type]])
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 231, column 14)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 230, column 14)
               _lhsOcidenv =
                   unimplementedIDEnv
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 29, column 9)
@@ -3680,6 +3682,7 @@ sem_QueryExpr_WithQueryExpr ann_ withs_ ex_  =
        _lhsIidenv
        _lhsIlib ->
          (let _lhsOcidenv :: IDEnv
+              _exOidenv :: IDEnv
               _lhsOannotatedTree :: QueryExpr 
               _lhsOlibUpdates :: ([LocalBindingsUpdate])
               _tpe :: Et
@@ -3693,9 +3696,9 @@ sem_QueryExpr_WithQueryExpr ann_ withs_ ex_  =
               _withsOlib :: LocalBindings
               _exOcsql :: LocalBindings
               _exOexpectedTypes :: ([Maybe Type])
-              _exOidenv :: IDEnv
               _exOlib :: LocalBindings
               _withsIannotatedTree :: WithQueryList 
+              _withsIcidenv :: IDEnv
               _withsIfixedUpIdentifiersTree :: WithQueryList 
               _withsIoriginalTree :: WithQueryList 
               _withsIproducedCat :: Catalog
@@ -3705,8 +3708,11 @@ sem_QueryExpr_WithQueryExpr ann_ withs_ ex_  =
               _exIlibUpdates :: ([LocalBindingsUpdate])
               _exIoriginalTree :: QueryExpr 
               _exIuType :: (Maybe [(String,Type)])
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 232, column 21)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 231, column 21)
               _lhsOcidenv =
+                  _exIcidenv
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 232, column 21)
+              _exOidenv =
                   _exIcidenv
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 29, column 9)
               _lhsOannotatedTree =
@@ -3760,12 +3766,9 @@ sem_QueryExpr_WithQueryExpr ann_ withs_ ex_  =
               _exOexpectedTypes =
                   _lhsIexpectedTypes
               -- copy rule (down)
-              _exOidenv =
-                  _lhsIidenv
-              -- copy rule (down)
               _exOlib =
                   _lhsIlib
-              ( _withsIannotatedTree,_withsIfixedUpIdentifiersTree,_withsIoriginalTree,_withsIproducedCat) =
+              ( _withsIannotatedTree,_withsIcidenv,_withsIfixedUpIdentifiersTree,_withsIoriginalTree,_withsIproducedCat) =
                   withs_ _withsOcat _withsOcatUpdates _withsOidenv _withsOlib 
               ( _exIannotatedTree,_exIcidenv,_exIfixedUpIdentifiersTree,_exIlibUpdates,_exIoriginalTree,_exIuType) =
                   ex_ _exOcat _exOcsql _exOexpectedTypes _exOidenv _exOlib 
@@ -5330,7 +5333,7 @@ sem_ScalarExpr_Identifier ann_ i_  =
               _lhsOuType :: (Maybe Type)
               _tpe :: Et
               _lhsOoriginalTree :: ScalarExpr 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 131, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 130, column 9)
               _lhsOfixedUpIdentifiersTree =
                   case qualifyID _lhsIidenv i_ of
                     Nothing -> Identifier ann_ i_
@@ -5844,7 +5847,7 @@ sem_ScalarExpr_QIdentifier ann_ qual_ i_  =
               _qualIfixedUpIdentifiersTree :: ScalarExpr 
               _qualIoriginalTree :: ScalarExpr 
               _qualIuType :: (Maybe Type)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 137, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 136, column 9)
               _lhsOfixedUpIdentifiersTree =
                   QIdentifier ann_ _qualIoriginalTree i_
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 24, column 9)
@@ -7440,7 +7443,7 @@ sem_SelectItem_SelExp ann_ ex_  =
               _exIfixedUpIdentifiersTree :: ScalarExpr 
               _exIoriginalTree :: ScalarExpr 
               _exIuType :: (Maybe Type)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 150, column 14)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 149, column 14)
               _lhsOseIdTree =
                   case _exIfixedUpIdentifiersTree of
                     Identifier a "*" -> let s = expandStar _lhsIidenv Nothing
@@ -7510,7 +7513,7 @@ sem_SelectItem_SelectItem ann_ ex_ name_  =
               _exIfixedUpIdentifiersTree :: ScalarExpr 
               _exIoriginalTree :: ScalarExpr 
               _exIuType :: (Maybe Type)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 163, column 18)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 162, column 18)
               _lhsOseIdTree =
                   [SelectItem ann_ _exIfixedUpIdentifiersTree name_]
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag"(line 34, column 9)
@@ -7620,7 +7623,7 @@ sem_SelectItemList_Cons hd_ tl_  =
               _tlIfixedUpIdentifiersTree :: SelectItemList 
               _tlIlistType :: ([(String,Maybe Type)])
               _tlIoriginalTree :: SelectItemList 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 141, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 140, column 12)
               _lhsOfixedUpIdentifiersTree =
                   _hdIseIdTree ++ _tlIfixedUpIdentifiersTree
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag"(line 42, column 12)
@@ -7673,7 +7676,7 @@ sem_SelectItemList_Nil  =
               _lhsOlistType :: ([(String,Maybe Type)])
               _lhsOannotatedTree :: SelectItemList 
               _lhsOoriginalTree :: SelectItemList 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 142, column 11)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 141, column 11)
               _lhsOfixedUpIdentifiersTree =
                   []
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag"(line 43, column 11)
@@ -7758,7 +7761,7 @@ sem_SelectList_SelectList ann_ items_  =
               _itemsIfixedUpIdentifiersTree :: SelectItemList 
               _itemsIlistType :: ([(String,Maybe Type)])
               _itemsIoriginalTree :: SelectItemList 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 124, column 18)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 123, column 18)
               _lhsOcidenv =
                   makeIDEnv "" $ flip map _itemsIfixedUpIdentifiersTree
                                    $ \(SelectItem _ _ n) -> n
@@ -10222,13 +10225,13 @@ sem_Statement_Delete ann_ table_ using_ whr_ returning_  =
               _returningIfixedUpIdentifiersTree :: MaybeSelectList 
               _returningIlistType :: ([(String,Maybe Type)])
               _returningIoriginalTree :: MaybeSelectList 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 470, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 475, column 9)
               _trefEnv =
-                  makeIDEnvP $ makeTrefIDs _lhsIcat _tableIfixedUpIdentifiersTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 471, column 9)
+                  makeIDEnvP $ makeTrefIDs _lhsIcat _tableIoriginalTree
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 476, column 9)
               _whrOidenv =
                   _trefEnv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 472, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 477, column 9)
               _lhsOfixedUpIdentifiersTree =
                   Delete ann_
                          _tableIfixedUpIdentifiersTree
@@ -11872,16 +11875,16 @@ sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
               _returningIfixedUpIdentifiersTree :: MaybeSelectList 
               _returningIlistType :: ([(String,Maybe Type)])
               _returningIoriginalTree :: MaybeSelectList 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 459, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 464, column 9)
               _trefEnv =
-                  makeIDEnvP $ makeTrefIDs _lhsIcat _tableIfixedUpIdentifiersTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 460, column 9)
+                  makeIDEnvP $ makeTrefIDs _lhsIcat _tableIoriginalTree
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 465, column 9)
               _whrOidenv =
                   _trefEnv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 461, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 466, column 9)
               _assignsOidenv =
                   _trefEnv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 462, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 467, column 9)
               _lhsOfixedUpIdentifiersTree =
                   Update ann_
                          _tableIfixedUpIdentifiersTree
@@ -12822,15 +12825,15 @@ sem_TableRef_FunTref ann_ fn_ alias_  =
               _aliasIannotatedTree :: TableAlias 
               _aliasIfixedUpIdentifiersTree :: TableAlias 
               _aliasIoriginalTree :: TableAlias 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 383, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 388, column 15)
               __tup2 =
-                  let (FunCall _ f _) = _fnIfixedUpIdentifiersTree
-                      (trs,al) = doAlias _aliasIannotatedTree [(f,[f])]
+                  let (FunCall _ f _) = _fnIoriginalTree
+                      (trs,al) = doAlias _aliasIoriginalTree [(f,[f])]
                   in (trs,FunTref ann_ _fnIfixedUpIdentifiersTree al)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 383, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 388, column 15)
               (_lhsOtrefIDs,_) =
                   __tup2
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 383, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 388, column 15)
               (_,_lhsOfixedUpIdentifiersTree) =
                   __tup2
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
@@ -12950,16 +12953,16 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
               _aliasIannotatedTree :: TableAlias 
               _aliasIfixedUpIdentifiersTree :: TableAlias 
               _aliasIoriginalTree :: TableAlias 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 389, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 394, column 9)
               _lhsOtrefIDs =
                   _trefIDs
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 390, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 395, column 9)
               _onExprOidenv =
                   IDEnv _trefIDs
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 407, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 412, column 9)
               __tup3 =
                   let
-                      jids = case (nat_,_onExprIfixedUpIdentifiersTree) of
+                      jids = case (nat_,_onExprIoriginalTree) of
                                (Natural,_) -> intersect (concatMap snd _tblItrefIDs)
                                                         (concatMap snd _tbl1ItrefIDs)
                                (_,Just (JoinUsing _ fs)) -> fs
@@ -12973,14 +12976,14 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
                       njtbl1ids = filter (not . null . snd)
                                   $ flip map _tbl1ItrefIDs
                                   $ \(a,b) -> (a, filter (`notElem` jids) b)
-                      (trs,al) = doAlias _aliasIannotatedTree $ qjids ++ njtblids ++ njtbl1ids
+                      (trs,al) = doAlias _aliasIoriginalTree $ qjids ++ njtblids ++ njtbl1ids
                   in (trs, JoinTref ann_ _tblIfixedUpIdentifiersTree
                                     nat_ joinType_ _tbl1IfixedUpIdentifiersTree
                                     _onExprIfixedUpIdentifiersTree al)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 407, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 412, column 9)
               (_trefIDs,_) =
                   __tup3
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 407, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 412, column 9)
               (_,_lhsOfixedUpIdentifiersTree) =
                   __tup3
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
@@ -13133,15 +13136,15 @@ sem_TableRef_SubTref ann_ sel_ alias_  =
               _aliasIannotatedTree :: TableAlias 
               _aliasIfixedUpIdentifiersTree :: TableAlias 
               _aliasIoriginalTree :: TableAlias 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 378, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 383, column 15)
               __tup4 =
                   let IDEnv x = _selIcidenv
-                      (trs,al) = doAlias _aliasIannotatedTree x
+                      (trs,al) = doAlias _aliasIoriginalTree x
                   in (trs, SubTref ann_ _selIfixedUpIdentifiersTree al)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 378, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 383, column 15)
               (_lhsOtrefIDs,_) =
                   __tup4
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 378, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 383, column 15)
               (_,_lhsOfixedUpIdentifiersTree) =
                   __tup4
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 129, column 15)
@@ -13244,18 +13247,18 @@ sem_TableRef_Tref ann_ tbl_ alias_  =
               _aliasIannotatedTree :: TableAlias 
               _aliasIfixedUpIdentifiersTree :: TableAlias 
               _aliasIoriginalTree :: TableAlias 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 370, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 375, column 12)
               __tup5 =
-                  let tn = getTName _tblIfixedUpIdentifiersTree
+                  let tn = getTName _tblIoriginalTree
                       ids = case catCompositePublicAttrs _lhsIcat relationComposites tn of
                                Right attrs -> [(tn, map fst attrs)]
                                Left _ -> [(tn,[])]
-                      (trs,al) = doAlias _aliasIannotatedTree ids
+                      (trs,al) = doAlias _aliasIoriginalTree ids
                   in (trs,Tref ann_ _tblIfixedUpIdentifiersTree al)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 370, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 375, column 12)
               (_lhsOtrefIDs,_) =
                   __tup5
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 370, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 375, column 12)
               (_,_lhsOfixedUpIdentifiersTree) =
                   __tup5
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
@@ -13405,7 +13408,7 @@ sem_TableRefList_Cons hd_ tl_  =
               _tlInewLib2 :: LocalBindings
               _tlIoriginalTree :: TableRefList 
               _tlItrefIDs :: ([(String,[String])])
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 365, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 367, column 12)
               _lhsOtrefIDs =
                   _hdItrefIDs ++ _tlItrefIDs
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 61, column 9)
@@ -13466,7 +13469,7 @@ sem_TableRefList_Nil  =
               _lhsOannotatedTree :: TableRefList 
               _lhsOfixedUpIdentifiersTree :: TableRefList 
               _lhsOoriginalTree :: TableRefList 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 366, column 11)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 368, column 11)
               _lhsOtrefIDs =
                   []
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 59, column 9)
@@ -14555,6 +14558,7 @@ sem_VarDefList_Nil  =
       synthesized attributes:
          annotatedTree        : SELF 
          catUpdates           : [CatalogUpdate]
+         cidenv               : IDEnv
          fixedUpIdentifiersTree : SELF 
          originalTree         : SELF 
    alternatives:
@@ -14584,15 +14588,15 @@ sem_WithQuery (WithQuery _ann _name _colAliases _ex )  =
 type T_WithQuery  = Catalog ->
                     IDEnv ->
                     LocalBindings ->
-                    ( WithQuery ,([CatalogUpdate]),WithQuery ,WithQuery )
+                    ( WithQuery ,([CatalogUpdate]),IDEnv,WithQuery ,WithQuery )
 data Inh_WithQuery  = Inh_WithQuery {cat_Inh_WithQuery :: Catalog,idenv_Inh_WithQuery :: IDEnv,lib_Inh_WithQuery :: LocalBindings}
-data Syn_WithQuery  = Syn_WithQuery {annotatedTree_Syn_WithQuery :: WithQuery ,catUpdates_Syn_WithQuery :: ([CatalogUpdate]),fixedUpIdentifiersTree_Syn_WithQuery :: WithQuery ,originalTree_Syn_WithQuery :: WithQuery }
+data Syn_WithQuery  = Syn_WithQuery {annotatedTree_Syn_WithQuery :: WithQuery ,catUpdates_Syn_WithQuery :: ([CatalogUpdate]),cidenv_Syn_WithQuery :: IDEnv,fixedUpIdentifiersTree_Syn_WithQuery :: WithQuery ,originalTree_Syn_WithQuery :: WithQuery }
 wrap_WithQuery :: T_WithQuery  ->
                   Inh_WithQuery  ->
                   Syn_WithQuery 
 wrap_WithQuery sem (Inh_WithQuery _lhsIcat _lhsIidenv _lhsIlib )  =
-    (let ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree) = sem _lhsIcat _lhsIidenv _lhsIlib 
-     in  (Syn_WithQuery _lhsOannotatedTree _lhsOcatUpdates _lhsOfixedUpIdentifiersTree _lhsOoriginalTree ))
+    (let ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOcidenv,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree) = sem _lhsIcat _lhsIidenv _lhsIlib 
+     in  (Syn_WithQuery _lhsOannotatedTree _lhsOcatUpdates _lhsOcidenv _lhsOfixedUpIdentifiersTree _lhsOoriginalTree ))
 sem_WithQuery_WithQuery :: Annotation ->
                            String ->
                            (Maybe [String]) ->
@@ -14602,12 +14606,13 @@ sem_WithQuery_WithQuery ann_ name_ colAliases_ ex_  =
     (\ _lhsIcat
        _lhsIidenv
        _lhsIlib ->
-         (let _exOcsql :: LocalBindings
+         (let _lhsOfixedUpIdentifiersTree :: WithQuery 
+              _exOcsql :: LocalBindings
               _exOexpectedTypes :: ([Maybe Type])
               _lhsOannotatedTree :: WithQuery 
-              _lhsOfixedUpIdentifiersTree :: WithQuery 
               _lhsOoriginalTree :: WithQuery 
               _lhsOcatUpdates :: ([CatalogUpdate])
+              _lhsOcidenv :: IDEnv
               _exOcat :: Catalog
               _exOidenv :: IDEnv
               _exOlib :: LocalBindings
@@ -14617,6 +14622,12 @@ sem_WithQuery_WithQuery ann_ name_ colAliases_ ex_  =
               _exIlibUpdates :: ([LocalBindingsUpdate])
               _exIoriginalTree :: QueryExpr 
               _exIuType :: (Maybe [(String,Type)])
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 236, column 9)
+              _lhsOfixedUpIdentifiersTree =
+                  case (_exIcidenv,colAliases_) of
+                    (IDEnv [(_,ns)],Nothing) ->
+                        WithQuery ann_ name_ (Just ns) _exIfixedUpIdentifiersTree
+                    _ -> WithQuery ann_ name_ colAliases_ _exIfixedUpIdentifiersTree
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 131, column 17)
               _exOcsql =
                   emptyBindings
@@ -14651,14 +14662,14 @@ sem_WithQuery_WithQuery ann_ name_ colAliases_ ex_  =
               _lhsOannotatedTree =
                   _annotatedTree
               -- self rule
-              _lhsOfixedUpIdentifiersTree =
-                  _fixedUpIdentifiersTree
-              -- self rule
               _lhsOoriginalTree =
                   _originalTree
               -- copy rule (from local)
               _lhsOcatUpdates =
                   _catUpdates
+              -- copy rule (up)
+              _lhsOcidenv =
+                  _exIcidenv
               -- copy rule (down)
               _exOcat =
                   _lhsIcat
@@ -14670,7 +14681,7 @@ sem_WithQuery_WithQuery ann_ name_ colAliases_ ex_  =
                   _lhsIlib
               ( _exIannotatedTree,_exIcidenv,_exIfixedUpIdentifiersTree,_exIlibUpdates,_exIoriginalTree,_exIuType) =
                   ex_ _exOcat _exOcsql _exOexpectedTypes _exOidenv _exOlib 
-          in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree)))
+          in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOcidenv,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree)))
 -- WithQueryList -----------------------------------------------
 {-
    visit 0:
@@ -14681,6 +14692,7 @@ sem_WithQuery_WithQuery ann_ name_ colAliases_ ex_  =
          lib                  : LocalBindings
       synthesized attributes:
          annotatedTree        : SELF 
+         cidenv               : IDEnv
          fixedUpIdentifiersTree : SELF 
          originalTree         : SELF 
          producedCat          : Catalog
@@ -14711,15 +14723,15 @@ type T_WithQueryList  = Catalog ->
                         ([CatalogUpdate]) ->
                         IDEnv ->
                         LocalBindings ->
-                        ( WithQueryList ,WithQueryList ,WithQueryList ,Catalog)
+                        ( WithQueryList ,IDEnv,WithQueryList ,WithQueryList ,Catalog)
 data Inh_WithQueryList  = Inh_WithQueryList {cat_Inh_WithQueryList :: Catalog,catUpdates_Inh_WithQueryList :: ([CatalogUpdate]),idenv_Inh_WithQueryList :: IDEnv,lib_Inh_WithQueryList :: LocalBindings}
-data Syn_WithQueryList  = Syn_WithQueryList {annotatedTree_Syn_WithQueryList :: WithQueryList ,fixedUpIdentifiersTree_Syn_WithQueryList :: WithQueryList ,originalTree_Syn_WithQueryList :: WithQueryList ,producedCat_Syn_WithQueryList :: Catalog}
+data Syn_WithQueryList  = Syn_WithQueryList {annotatedTree_Syn_WithQueryList :: WithQueryList ,cidenv_Syn_WithQueryList :: IDEnv,fixedUpIdentifiersTree_Syn_WithQueryList :: WithQueryList ,originalTree_Syn_WithQueryList :: WithQueryList ,producedCat_Syn_WithQueryList :: Catalog}
 wrap_WithQueryList :: T_WithQueryList  ->
                       Inh_WithQueryList  ->
                       Syn_WithQueryList 
 wrap_WithQueryList sem (Inh_WithQueryList _lhsIcat _lhsIcatUpdates _lhsIidenv _lhsIlib )  =
-    (let ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree,_lhsOproducedCat) = sem _lhsIcat _lhsIcatUpdates _lhsIidenv _lhsIlib 
-     in  (Syn_WithQueryList _lhsOannotatedTree _lhsOfixedUpIdentifiersTree _lhsOoriginalTree _lhsOproducedCat ))
+    (let ( _lhsOannotatedTree,_lhsOcidenv,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree,_lhsOproducedCat) = sem _lhsIcat _lhsIcatUpdates _lhsIidenv _lhsIlib 
+     in  (Syn_WithQueryList _lhsOannotatedTree _lhsOcidenv _lhsOfixedUpIdentifiersTree _lhsOoriginalTree _lhsOproducedCat ))
 sem_WithQueryList_Cons :: T_WithQuery  ->
                           T_WithQueryList  ->
                           T_WithQueryList 
@@ -14728,7 +14740,8 @@ sem_WithQueryList_Cons hd_ tl_  =
        _lhsIcatUpdates
        _lhsIidenv
        _lhsIlib ->
-         (let _hdOcat :: Catalog
+         (let _lhsOcidenv :: IDEnv
+              _hdOcat :: Catalog
               _tlOcat :: Catalog
               _lhsOproducedCat :: Catalog
               _tlOcatUpdates :: ([CatalogUpdate])
@@ -14741,12 +14754,19 @@ sem_WithQueryList_Cons hd_ tl_  =
               _tlOlib :: LocalBindings
               _hdIannotatedTree :: WithQuery 
               _hdIcatUpdates :: ([CatalogUpdate])
+              _hdIcidenv :: IDEnv
               _hdIfixedUpIdentifiersTree :: WithQuery 
               _hdIoriginalTree :: WithQuery 
               _tlIannotatedTree :: WithQueryList 
+              _tlIcidenv :: IDEnv
               _tlIfixedUpIdentifiersTree :: WithQueryList 
               _tlIoriginalTree :: WithQueryList 
               _tlIproducedCat :: Catalog
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 243, column 12)
+              _lhsOcidenv =
+                  let IDEnv a = _hdIcidenv
+                      IDEnv b = _tlIcidenv
+                  in IDEnv $ a ++ b
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 256, column 9)
               _newCat =
                   fromRight _lhsIcat $ updateCatalog _lhsIcat _lhsIcatUpdates
@@ -14792,21 +14812,25 @@ sem_WithQueryList_Cons hd_ tl_  =
               -- copy rule (down)
               _tlOlib =
                   _lhsIlib
-              ( _hdIannotatedTree,_hdIcatUpdates,_hdIfixedUpIdentifiersTree,_hdIoriginalTree) =
+              ( _hdIannotatedTree,_hdIcatUpdates,_hdIcidenv,_hdIfixedUpIdentifiersTree,_hdIoriginalTree) =
                   hd_ _hdOcat _hdOidenv _hdOlib 
-              ( _tlIannotatedTree,_tlIfixedUpIdentifiersTree,_tlIoriginalTree,_tlIproducedCat) =
+              ( _tlIannotatedTree,_tlIcidenv,_tlIfixedUpIdentifiersTree,_tlIoriginalTree,_tlIproducedCat) =
                   tl_ _tlOcat _tlOcatUpdates _tlOidenv _tlOlib 
-          in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree,_lhsOproducedCat)))
+          in  ( _lhsOannotatedTree,_lhsOcidenv,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree,_lhsOproducedCat)))
 sem_WithQueryList_Nil :: T_WithQueryList 
 sem_WithQueryList_Nil  =
     (\ _lhsIcat
        _lhsIcatUpdates
        _lhsIidenv
        _lhsIlib ->
-         (let _lhsOproducedCat :: Catalog
+         (let _lhsOcidenv :: IDEnv
+              _lhsOproducedCat :: Catalog
               _lhsOannotatedTree :: WithQueryList 
               _lhsOfixedUpIdentifiersTree :: WithQueryList 
               _lhsOoriginalTree :: WithQueryList 
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 246, column 11)
+              _lhsOcidenv =
+                  emptyIDEnv
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 256, column 9)
               _newCat =
                   fromRight _lhsIcat $ updateCatalog _lhsIcat _lhsIcatUpdates
@@ -14831,4 +14855,4 @@ sem_WithQueryList_Nil  =
               -- self rule
               _lhsOoriginalTree =
                   _originalTree
-          in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree,_lhsOproducedCat)))
+          in  ( _lhsOannotatedTree,_lhsOcidenv,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree,_lhsOproducedCat)))
