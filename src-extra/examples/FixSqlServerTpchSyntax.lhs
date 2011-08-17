@@ -1,15 +1,17 @@
 
 Convert qgen output into sql server format
 
+> {-# LANGUAGE QuasiQuotes #-}
 > import Data.Generics.Uniplate.Data
 
 > import System.Environment
+> import Data.Data
 
 > import Database.HsSqlPpp.Parser
-
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Pretty
-> import Data.Data
+> import Database.HsSqlPpp.Quote
+> import Database.HsSqlPpp.Annotation
 
 > main :: IO ()
 > main = do
@@ -19,7 +21,7 @@ Convert qgen output into sql server format
 
 > fixSql :: String -> String
 > fixSql sql =
->   let Right qe = parseStatements "" sql
+>   let qe = either (error . show) id $ parseStatements "" sql
 >       qe' = fixSqlAst qe
 >   in printStatements qe'
 
@@ -32,18 +34,19 @@ Instead of:
 
 > fixIntervals :: Data a => a -> a
 > fixIntervals = transformBi $ \x -> case x of
->   FunCall a f [TypedStringLit _ (SimpleTypeName _ "date") d
->                 ,Interval _ v i _]
->     | f `elem` ["+","-"]
->     , Just i' <- lookup i [(IntervalDay,"day")
->                           ,(IntervalMonth,"month")
->                           ,(IntervalYear,"year")]
->     -> FunCall a "dateAdd" [Identifier a i'
->                            ,case f of
->                               "-" -> FunCall a "u-" [NumberLit a v]
->                               _ -> NumberLit a v
->                            ,StringLit a d]
+>   [sqlExpr| $(a) + $(b) |] | Just (i,v,d) <- dateInfo a b ->
+>      [sqlExpr| dateAdd($i(i),$(v),$s(d))|]
+>   [sqlExpr| $(a) - $(b) |]| Just (i,v,d) <- dateInfo a b ->
+>      [sqlExpr| dateAdd($i(i),-$(v),$s(d))|]
 >   x' -> x'
+>   where
+>     dateInfo (TypedStringLit _ (SimpleTypeName _ "date") d)
+>              (Interval _ v i _)
+>              | Just i' <- lookup i [(IntervalDay,"day")
+>                                    ,(IntervalMonth,"month")
+>                                    ,(IntervalYear,"year")]
+>              = Just (i',NumberLit emptyAnnotation v,d)
+>     dateInfo _ _ = Nothing
 
  datepart(year,l_shipdate)
 Instead of:
@@ -51,7 +54,8 @@ Instead of:
 
 > fixExtract :: Data a => a -> a
 > fixExtract = transformBi $ \x -> case x of
->   Extract a ExtractYear e -> FunCall a "datepart" [Identifier a "year", e]
+>   [sqlExpr| extract(year from $(expr) ) |] ->
+>       [sqlExpr| datepart(year,$(expr)) |]
 >   x' -> x'
 
 
@@ -61,7 +65,8 @@ Instead of:
 
 > fixSubstring :: Data a => a -> a
 > fixSubstring = transformBi $ \x -> case x of
->   FunCall a "!substring" [e,fr,fo] -> FunCall a "substring" [e,fr,fo]
+>   [sqlExpr| substring($(i) from $(a) for $(b)) |] ->
+>       [sqlExpr| substring($(i),$(a),$(b)) |]
 >   x' -> x'
 
  ‘1998-12-01’

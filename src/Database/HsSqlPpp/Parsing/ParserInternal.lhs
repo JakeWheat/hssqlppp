@@ -1205,7 +1205,7 @@ with a function, so we don't try an parse a keyword as a function name
 >       ,nullLit
 >       ,arrayLit
 >       ,castKeyword
->       ,substring
+>       ,try substring -- use try cos there is also a regular function called substring
 >       ,extract
 
 now do identifiers, functions, and window functions (each is a prefix

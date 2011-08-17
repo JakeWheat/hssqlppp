@@ -10,6 +10,8 @@ fix pretty printing (x).y member reference in scalar
 fix typechecking for update and insert statements
 fix typechecking for natural joins
 fix typechecking for parameterized queries/dml
+fix parsing of substring when it uses regular function call syntax
+  (i.e. substring(a,b,c) rather than substring(a from b for c)
 
 0.3.1
 Released 13/08/2011

@@ -376,7 +376,7 @@
 >                   (TableAlias ea "x"))]
 >      ]
 >      ]
->    ,Group "some mis stuff" [
+>    ,Group "some misc stuff" [
 >       s "select (p).x, (p).y from pos;"
 >         [QueryStatement ea $ selectFrom (selEL [eqi "p" "x"
 >                                                ,eqi "p" "y"])

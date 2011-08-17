@@ -1,35 +1,33 @@
 
 = next release
 
-typechecking test fixes todo for this release:
+fixupidentifiers for ctes
+fix trefs/fixup wrt funs, private fields, select y.* from x join y
 
-with fixupidentifiers, get tpch 15 working, plus some other tests with
-  with
-oid issues? MiscSelects
-funtref issues: selectfrom
-joins: some errors not caught, some issues with x.* semi join
+= next + 1: refactoring, fix regressions, small features
+
+refactor the type attibutes to fix cycles and duplicate for 'type
+inference'
 
 review ag code (and other code?) add fixme notes
 
 review test source manually and add in fixme comments to track
  - lots of stuff already commented out
-get most/all of the query/dml stuff working again inc. fixup
-  identifiers for with
+get most/all of the query/dml stuff working again
 
-typesafe haskell wrappers
+typesafe haskell wrappers example
+
+big ag refactor
+big syntax refactor
 
 devel tools?
 
-change annotation type to have public and private part (private is
-nested abstract struct). Then can fill private part with junk to help
-with typechecker without changing the api.
+find a way to start using some of the quickcheck stuff to:
+* test the typechecker against postgresql
+* test roundtrip through postgresql parsing
 
-rethink and refactor idenv stuff for fixupidentifiers
-  and also the 'type inference' attr and sem
-  this should get rid of the cycles in the ag code
-  -> these are all related to 'inference' and fixupidentifiers?
-
-= next + 2
+change the tpch conversion example to use quasiquoting, extend the
+quasi quoting to make this happen.
 
 finish off existing typechecking fixes
 

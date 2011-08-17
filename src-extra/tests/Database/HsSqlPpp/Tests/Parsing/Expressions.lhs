@@ -96,6 +96,10 @@ test some more really basic expressions
 >      ,e "substring(a from 0 for (5 - 3))"
 >         (FunCall ea "!substring" [Identifier ea "a",NumberLit ea "0",
 >          FunCall ea "-" [NumberLit ea "5",NumberLit ea "3"]])
+>      ,e "substring(a,b,c)"
+>         (FunCall ea "substring" [Identifier ea "a"
+>                                 ,Identifier ea "b"
+>                                 ,Identifier ea "c"])
 >      ,e "a like b"
 >         (FunCall ea "!like" [Identifier ea "a", Identifier ea "b"])
 >      ,e "a not like b"
