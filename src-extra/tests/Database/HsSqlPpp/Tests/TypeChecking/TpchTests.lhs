@@ -142,7 +142,7 @@ moment.
 
 > itemToTft :: Item -> Test.Framework.Test
 > itemToTft (Group s is) = testGroup s $ map itemToTft is
-> itemToTft (Query n sql t) = testCase ("typecheck tpch " ++ n) $ do
+> itemToTft (Query n sql t) = testCase ("typecheck tpch " ++ n ++ ":") $ do
 >   let ast = case parseQueryExpr "" sql of
 >               Left e -> error $ show e
 >               Right l -> l
@@ -155,9 +155,10 @@ moment.
 >                    Nothing -> Left []
 >                    Just ty' -> Right ty'
 >             else Left er
->   when (Right t /= res) $ putStrLn $ "bad sql: " ++ printQueryExpr aast
->        ++ "\n" ++ groom aast
->   assertEqual "" (Right t) res
+>       ok = Right t == res
+>   unless ok $ putStrLn $ "bad sql: " ++ printQueryExpr aast
+>        -- ++ "\n" ++ groom aast
+>   assertBool "" ok
 >   where
 >     cat = case updateCatalog defaultTemplate1Catalog tpchCatalog of
 >                         Left x -> error $ show x

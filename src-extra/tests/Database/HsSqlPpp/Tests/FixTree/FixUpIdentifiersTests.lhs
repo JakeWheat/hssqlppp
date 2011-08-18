@@ -108,9 +108,15 @@ cd /home/jake/wd/hssqlppp/trunk/src/lib/Database/HsSqlPpp/Internals && uuagc --g
 
 >     ]-}
 >   ,Group "correlated subqueries"
->     [Item db1 "select a,b from t where (select min(c) from u where b=d);"
->        "select t.a as a,t.b as b from t as t(a,b)\n\
->        \where (select min(u.c) as min from u as u(c,d) where t.b=u.d);"
+>     [Item db1
+>           "select a,b,c,d from t,u where a = c and d =\n\
+>           \           (select min(d) from u where a = c);"
+>           "select t.a as a,t.b as b,\n\
+>           \       u.c as c, u.d as d\n\
+>           \   from t as t(a,b),u as u(c,d)\n\
+>           \   where t.a = u.c and u.d =\n\
+>           \           (select min(u.d) as min from u as u(c,d) where t.a = u.c);"
+
 >     ]
 >   ,Group "funtrefs"
 >     [Item [] "select * from generate_series(1,7) g\n\

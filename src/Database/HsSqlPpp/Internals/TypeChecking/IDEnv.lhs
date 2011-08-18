@@ -13,6 +13,7 @@ bindings code
 
 > import Data.List
 > --import Debug.Trace
+> import Control.Monad
 
 > data IDEnv =
 
@@ -39,38 +40,46 @@ first element is the alias, used for joins
 >              | EmptyIDEnv String
 >              | TableAliasEnv String IDEnv
 >              | FullAliasEnv String [String] IDEnv
+>              | CorrelatedEnv IDEnv IDEnv -- normal env, extra correlated env
 >                deriving Show
 
 > emptyIDEnv :: String -> IDEnv
 > emptyIDEnv = EmptyIDEnv
 
 > qualifyID :: IDEnv -> String -> Maybe (String,String)
-> qualifyID (TrefEnv s pus pvs) i = if i `elem` pus || i `elem` pvs
+> qualifyID idenv s =
+>   {-(if s == "c"
+>    then showit ("qualifyID " ++ show idenv ++ " " ++ show s ++ ": ")
+>    else id) $ -} qualifyID' idenv s
+> qualifyID' :: IDEnv -> String -> Maybe (String,String)
+> qualifyID' (CorrelatedEnv ids cids) i =
+>    msum [qualifyID ids i, qualifyID cids i]
+> qualifyID' (TrefEnv s pus pvs) i = if i `elem` pus || i `elem` pvs
 >                                   then Just (s,i)
 >                                   else Nothing
-> qualifyID (FunTrefEnv f c) i = if c == i
+> qualifyID' (FunTrefEnv f c) i = if c == i
 >                                then Just (f,i)
 >                                else Nothing
-> qualifyID (CompFunTrefEnv f cs) i = case () of
+> qualifyID' (CompFunTrefEnv f cs) i = case () of
 >                                       _ | i == f -> Nothing
 >                                         | i `elem` cs -> Just (f,i)
 >                                         | otherwise -> Nothing
-> qualifyID (JoinTrefEnv js Nothing t0 t1) i =
+> qualifyID' (JoinTrefEnv js Nothing t0 t1) i =
 >   case (qualifyID t0 i,qualifyID t1 i) of
 >     (Just q, _) | i `elem` js -> Just q
 >     (Just q, Nothing) -> Just q
 >     (Nothing, Just q) -> Just q
 >     _ -> Nothing
-> qualifyID (JoinTrefEnv js (Just (t,Nothing)) t0 t1) i =
+> qualifyID' (JoinTrefEnv js (Just (t,Nothing)) t0 t1) i =
 >   case (qualifyID t0 i,qualifyID t1 i) of
 >     (Just (_q,i'), _) | i `elem` js -> Just (t,i')
 >     (Just (_q,i'), Nothing) -> Just (t,i')
 >     (Nothing, Just (_q,i')) -> Just (t,i')
 >     _ -> Nothing
-> qualifyID (JoinTrefEnv _ (Just (t,Just cs)) _ _) i =
+> qualifyID' (JoinTrefEnv _ (Just (t,Just cs)) _ _) i =
 >   if i `elem` cs then Just  (t,i) else Nothing
 
-> qualifyID (EmptyIDEnv _) _ = Nothing -- error $ "qualify: " ++ show x ++ " " ++ show y
+> qualifyID' (EmptyIDEnv _) _ = Nothing -- error $ "qualify: " ++ show x ++ " " ++ show y
 
 private ids. When can a private column be referenced without a
 qualifying name?
@@ -80,21 +89,21 @@ in an aliased trefenv
 
 > -- special cases for aliased private ids
 
-> qualifyID (TableAliasEnv t (TrefEnv _ _ pvs)) i | i `elem` pvs = Just (t,i)
-> qualifyID (FullAliasEnv t _ (TrefEnv _ _ pvs)) i | i `elem` pvs = Just (t,i)
+> qualifyID' (TableAliasEnv t (TrefEnv _ _ pvs)) i | i `elem` pvs = Just (t,i)
+> qualifyID' (FullAliasEnv t _ (TrefEnv _ _ pvs)) i | i `elem` pvs = Just (t,i)
 
 special case for aliased funtrefs
 
-> qualifyID (TableAliasEnv t (FunTrefEnv _ _)) i =
+> qualifyID' (TableAliasEnv t (FunTrefEnv _ _)) i =
 >   if t == i
 >   then Just (t,t)
 >   else Nothing
 
 
-> qualifyID (FullAliasEnv t cs _) i | i `elem` cs = Just (t,i)
+> qualifyID' (FullAliasEnv t cs _) i | i `elem` cs = Just (t,i)
 >                                   | otherwise = Nothing
 
-> qualifyID (TableAliasEnv t ids) i =
+> qualifyID' (TableAliasEnv t ids) i =
 >   fmap (\x -> (t,snd x)) $ qualifyID ids i
 
 > --showit :: Show a => String -> a -> a
@@ -105,6 +114,7 @@ special case for aliased funtrefs
 >                  $ showit "esresult: " $ -} expandStar' i s
 
 > expandStar' :: IDEnv -> (Maybe String) -> Maybe [(String,String)]
+> expandStar' (CorrelatedEnv ids _) i = expandStar ids i
 > expandStar' (TrefEnv s pus _) Nothing = Just $ zip (repeat s) pus
 > expandStar' (TrefEnv s pus _) (Just s1) | s == s1 = Just $ zip (repeat s) pus
 >                                         | otherwise = Nothing

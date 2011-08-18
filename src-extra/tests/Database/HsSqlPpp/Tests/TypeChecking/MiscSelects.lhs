@@ -5,6 +5,7 @@
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
 
 > import Database.HsSqlPpp.Types
+> import Database.HsSqlPpp.Catalog
 
 > tcMiscSelectTestData :: Item
 > tcMiscSelectTestData =
@@ -52,6 +53,13 @@ qualifier before oid and this should still work
 >         $ Right [Just ([], [("g",typeInt)])]-}
 >      ,s "select 3 = any(array[1,2,3]);"
 >         $ Right [Just ([], [("?column?",typeBool)])]
+>      ,c "select b.t,b.u from a,b where a.t = b.t\n\
+>         \ and b.u = (select min(b.u) from b where a.t = b.t);"
+>         [CatCreateTable "a" [("t", typeInt)] []
+>         ,CatCreateTable "b" [("t", typeInt)
+>                             ,("u", typeNumeric)] []]
+>         $ Right [Just ([], [("t", typeInt)
+>                            ,("u", typeNumeric)])]
 >      ]
 >
 >  -- identifiers in select parts
@@ -67,4 +75,4 @@ qualifier before oid and this should still work
 
 >  where
 >    s = StmtType
-
+>    c = CatStmtType
