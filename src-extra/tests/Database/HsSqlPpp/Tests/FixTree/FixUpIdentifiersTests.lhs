@@ -60,8 +60,8 @@ cd /home/jake/wd/hssqlppp/trunk/src/lib/Database/HsSqlPpp/Internals && uuagc --g
 >     ]
 >   ,Group "trefs"
 >     [Item db1 "select * from generate_series(1,5) g;"
->               "select g.generate_series as generate_series\n\
->               \from generate_series(1,5) as g(generate_series);"
+>               "select g.g as g\n\
+>               \from generate_series(1,5) as g(g);"
 >     ,Item db1 "select a from t as x;"
 >               "select x.a as a from t as x(a,b);"
 >     ,Item db1 "select * from t as x(f,g);"
@@ -112,6 +112,24 @@ cd /home/jake/wd/hssqlppp/trunk/src/lib/Database/HsSqlPpp/Internals && uuagc --g
 >        "select t.a as a,t.b as b from t as t(a,b)\n\
 >        \where (select min(u.c) as min from u as u(c,d) where t.b=u.d);"
 >     ]
+>   ,Group "funtrefs"
+>     [Item [] "select * from generate_series(1,7) g\n\
+>              \where g not in (select * from generate_series(3,5));"
+>              "select g.g as g from generate_series(1,7) g(g)\n\
+>              \where g.g not in (select generate_series.generate_series as generate_series\n\
+>              \                  from generate_series(3,5) as generate_series(generate_series));"
+>     ,Item [] "select g from generate_series(1,7) g\n\
+>              \where g not in (select * from generate_series(3,5));"
+>              "select g.g as g from generate_series(1,7) g(g)\n\
+>              \where g.g not in (select generate_series.generate_series as generate_series\n\
+>              \                  from generate_series(3,5) as generate_series(generate_series));"
+>     ,Item [] "select g.* from generate_series(1,7) g\n\
+>              \where g not in (select * from generate_series(3,5));"
+>              "select g.g as g from generate_series(1,7) g(g)\n\
+>              \where g.g not in (select generate_series.generate_series as generate_series\n\
+>              \                  from generate_series(3,5) as generate_series(generate_series));"
+
+>     ]
 >   ,Group "select lists"
 >     [Item db1 "select a,b,f(a),a::int,a+b,row_number() over (order by a), a as c from t;"
 >               "select t.a as a,t.b as b,f(t.a) as f,t.a::int as \"int\",t.a+t.b as \"?column?\",row_number() over (order by t.a) as row_number, t.a as c from t as t(a,b);"
@@ -126,13 +144,12 @@ cd /home/jake/wd/hssqlppp/trunk/src/lib/Database/HsSqlPpp/Internals && uuagc --g
 >     ,Item db1 "select * from t cross join t1;"
 >               "select t.a as a,t.b as b,t1.a as a,t1.c as c \
 >               \from t as t(a,b) cross join t1 as t1(a,c);"
->      --fixme
->     {-,Item db1 "select t.* from t natural inner join t1;"
+>     ,Item db1 "select t.* from t natural inner join t1;"
 >               "select t.a as a,t.b as b \
 >               \from t as t(a,b) natural inner join t1 as t1(a,c);"
 >     ,Item db1 "select t1.* from t natural inner join t1;"
 >               "select t1.a as a,t1.c as c \
->               \from t as t(a,b) natural inner join t1 as t1(a,c);"-}
+>               \from t as t(a,b) natural inner join t1 as t1(a,c);"
 >     ]
 >   ,Group "dml"
 >     [SItem db1 "update t set a = b where a = 5;"

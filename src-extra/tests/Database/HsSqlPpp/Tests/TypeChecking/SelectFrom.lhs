@@ -21,8 +21,8 @@
 >      ,s "select typlen from pg_type;"
 >         $ Right [Just ([], [("typlen", typeSmallInt)])]
 >      -- fixme: oid?
->      {-,s "select oid from pg_type;"
->         $ Right [Just ([], [("oid", ScalarType "oid")])]-}
+>      ,s "select oid from pg_type;"
+>         $ Right [Just ([], [("oid", ScalarType "oid")])]
 >      ,s "select p.oid from pg_type p;"
 >         $ Right [Just ([], [("oid", ScalarType "oid")])]
 >      ,s "select typlen from nope;"

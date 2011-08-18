@@ -83,6 +83,14 @@ in an aliased trefenv
 > qualifyID (TableAliasEnv t (TrefEnv _ _ pvs)) i | i `elem` pvs = Just (t,i)
 > qualifyID (FullAliasEnv t _ (TrefEnv _ _ pvs)) i | i `elem` pvs = Just (t,i)
 
+special case for aliased funtrefs
+
+> qualifyID (TableAliasEnv t (FunTrefEnv _ _)) i =
+>   if t == i
+>   then Just (t,t)
+>   else Nothing
+
+
 > qualifyID (FullAliasEnv t cs _) i | i `elem` cs = Just (t,i)
 >                                   | otherwise = Nothing
 
@@ -104,15 +112,36 @@ in an aliased trefenv
 > expandStar' (CompFunTrefEnv f cs) (Just f1) | f == f1 = Just $ zip (repeat f) cs
 > expandStar' (FunTrefEnv f c) Nothing = Just [(f,c)]
 > expandStar' (FunTrefEnv f c) (Just f1) | f == f1 = Just [(f,c)]
+>                                        | otherwise = Nothing
 
-> expandStar' (JoinTrefEnv js Nothing t0 t1) i =
+special case for a table alias on a non table valued funtref
+
+> expandStar' (TableAliasEnv t (FunTrefEnv _ _)) Nothing = Just [(t,t)]
+> expandStar' (TableAliasEnv t (FunTrefEnv _ _)) (Just f1)
+>     | t == f1 = Just [(t,t)]
+>     | otherwise = Nothing
+
+
+
+> expandStar' (JoinTrefEnv js Nothing t0 t1) Nothing =
 >   let isJ = (`elem` js) . snd
->       (jis,t0is) = partition isJ $ maybe [] id (expandStar t0 i)
+>       (jis,t0is) = partition isJ $ maybe [] id (expandStar t0 Nothing)
 >              -- remove join columns from second list
->       t1is = filter (not . isJ) $ maybe [] id (expandStar t1 i)
+>       t1is = filter (not . isJ) $ maybe [] id (expandStar t1 Nothing)
 >   in case jis ++ t0is ++ t1is of -- check for duplicates?
 >     [] -> Nothing
 >     x -> Just x
+
+expand actual alias, assume that there is no overlap so don't have to eliminate js
+
+> expandStar' (JoinTrefEnv _js Nothing t0 t1) i =
+>   let t0is = maybe [] id (expandStar t0 i)
+>       t1is = maybe [] id (expandStar t1 i)
+>   in case t0is ++ t1is of -- check for duplicates?
+>     [] -> Nothing
+>     x -> Just x
+
+
 > expandStar' (JoinTrefEnv js (Just (t,Nothing)) t0 t1) i =
 >   let isJ = (`elem` js) . snd
 >       (jis,t0is) = partition isJ $ maybe [] id (expandStar t0 i)
@@ -121,6 +150,7 @@ in an aliased trefenv
 >   in case map (\j -> (t,snd j)) $ jis ++ t0is ++ t1is of -- check for duplicates?
 >     [] -> Nothing
 >     x -> Just x
+
 > expandStar' (JoinTrefEnv _ (Just (t,Just cs)) _ _) i
 >   | maybe True (==t) i = Just $ map (t,) cs
 >   | otherwise = Nothing
