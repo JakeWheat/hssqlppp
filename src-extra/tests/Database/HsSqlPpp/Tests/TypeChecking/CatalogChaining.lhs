@@ -29,23 +29,6 @@
 >         \end;\n\
 >         \$$ language plpgsql stable;"
 >         (Left [NoMatchingOperator "t1" []])
->      ]
->   -- FIXME
->   {-,Group "check catalog chaining2" [ StatementTypes [
->       p ["create function t1() returns void as $$\n\
->          \begin\n\
->          \  null;\n\
->          \end;\n\
->          \$$ language plpgsql stable;"
->         ,"select t1();"]
->         (Right [Just (SelectInfo (Pseudo Void))])
->      ,p ["select t1();"
->         ,"create function t1() returns void as $$\n\
->          \begin\n\
->          \  null;\n\
->          \end;\n\
->          \$$ language plpgsql stable;"]
->         (Left [NoMatchingOperator "t1" []])
->      ]]-}
+>   ]
 >  where
 >    s = StmtType

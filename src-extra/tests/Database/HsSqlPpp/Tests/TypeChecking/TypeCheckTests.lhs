@@ -110,6 +110,6 @@ check errors: select into wrong number of vars, wrong types, and into
 > typeCheckTests =
 >   testGroup "typeChecking" $
 >                 [tableRefTests
->                 ,tpchTests
+>                 --,tpchTests
 >                 ,typeInferenceTests]
 >                 ++ map itemToTft typeCheckTestList

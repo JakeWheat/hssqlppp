@@ -64,7 +64,7 @@ replaced with these.
 -}
 
 {
-
+{-
 data IDEnv = IDEnv [(String, [String])]
              deriving Show
 emptyIDEnv :: IDEnv
@@ -100,8 +100,202 @@ expandStar (IDEnv es) Nothing = --trace ("ex star 1 " ++ show es) $
   flip concatMap es $ \(t,cs) -> map (t,) cs
 expandStar (IDEnv es) (Just t) = --trace ("ex star 2 " ++ show es ++ " " ++ t) $
   maybe [(t,"*")] (map (t,)) $ lookup t es
+-}
+
+---------------------------------------------
+
+-- new stuff:
+{-
+data IDEnv =
+
+{-
+table name, public ids, private ids aliases already folded in
+used for tref and subtref
+-}
+
+               TrefEnv String [String] [String]
+
+{-
+a funtref which returns either a scalar or a composite, with/out
+setof aliases already folded in, the bool says whether the function
+returns a composite or not. For composites g() returning g(x) - select
+g from g() gives select g from g(), for non composites, it gives
+select g.g from g().
+-}
+             | FunTrefEnv String String
+             | CompFunTrefEnv String [String]
+{-
+first element is the alias, used for joins
+-}
+             | JoinTrefEnv [String] -- join ids for natural/using equijoins
+                  (Maybe (String, Maybe [String])) -- alias for the whole join
+                  IDEnv IDEnv
+             | EmptyIDEnv String
+             | TableAliasEnv String IDEnv
+             | FullAliasEnv String [String] IDEnv
+               deriving Show
+
+emptyIDEnv :: String -> IDEnv
+emptyIDEnv = EmptyIDEnv
+
+qualifyID :: IDEnv -> String -> Maybe (String,String)
+qualifyID (TrefEnv s pus pvs) i = if i `elem` pus || i `elem` pvs
+                                  then Just (s,i)
+                                  else Nothing
+qualifyID (FunTrefEnv f c) i = if c == i
+                               then Just (f,i)
+                               else Nothing
+qualifyID (CompFunTrefEnv f cs) i = case () of
+                                      _ | i == f -> Nothing
+                                        | i `elem` cs -> Just (f,i)
+                                        | otherwise -> Nothing
+qualifyID (JoinTrefEnv js Nothing t0 t1) i =
+  case (qualifyID t0 i,qualifyID t1 i) of
+    (Just q, _) | i `elem` js -> Just q
+    (Just q, Nothing) -> Just q
+    (Nothing, Just q) -> Just q
+    _ -> Nothing
+qualifyID (JoinTrefEnv js (Just (t,Nothing)) t0 t1) i =
+  case (qualifyID t0 i,qualifyID t1 i) of
+    (Just (_q,i'), _) | i `elem` js -> Just (t,i')
+    (Just (_q,i'), Nothing) -> Just (t,i')
+    (Nothing, Just (_q,i')) -> Just (t,i')
+    _ -> Nothing
+qualifyID (JoinTrefEnv _ (Just (t,Just cs)) _ _) i =
+  if i `elem` cs then Just  (t,i) else Nothing
+
+qualifyID (EmptyIDEnv _) _ = Nothing -- error $ "qualify: " ++ show x ++ " " ++ show y
+{-
+private ids. When can a private column be referenced without a
+qualifying name?
+a straight tref env
+in a join when the private column is joined on? FIXME
+in an aliased trefenv
+-}
+
+-- special cases for aliased private ids
+
+qualifyID (TableAliasEnv t (TrefEnv _ _ pvs)) i | i `elem` pvs = Just (t,i)
+qualifyID (FullAliasEnv t _ (TrefEnv _ _ pvs)) i | i `elem` pvs = Just (t,i)
+
+qualifyID (FullAliasEnv t cs _) i | i `elem` cs = Just (t,i)
+                                  | otherwise = Nothing
+
+qualifyID (TableAliasEnv t ids) i =
+  fmap (\x -> (t,snd x)) $ qualifyID ids i
+
+
+expandStar :: IDEnv -> (Maybe String) -> Maybe [(String,String)]
+expandStar i s = {-trace ("expandStar: " ++ show i ++ "\n" ++ show s ++ "\n\n")
+                 $ showit "the fucking result: " $ -} expandStar' i s
+
+expandStar' :: IDEnv -> (Maybe String) -> Maybe [(String,String)]
+expandStar' (TrefEnv s pus _) Nothing = Just $ zip (repeat s) pus
+expandStar' (TrefEnv s pus _) (Just s1) | s == s1 = Just $ zip (repeat s) pus
+                                       | otherwise = Nothing
+expandStar' (CompFunTrefEnv f _cs) Nothing = Just [(f,f)]
+expandStar' (CompFunTrefEnv f cs) (Just f1) | f == f1 = Just $ zip (repeat f) cs
+expandStar' (FunTrefEnv f c) Nothing = Just [(f,c)]
+expandStar' (FunTrefEnv f c) (Just f1) | f == f1 = Just [(f,c)]
+
+expandStar' (JoinTrefEnv js Nothing t0 t1) i =
+  let isJ = (`elem` js) . snd
+      (jis,t0is) = partition isJ $ maybe [] id (expandStar t0 i)
+             -- remove join columns from second list
+      t1is = filter (not . isJ) $ maybe [] id (expandStar t1 i)
+  in case jis ++ t0is ++ t1is of -- check for duplicates?
+    [] -> Nothing
+    x -> Just x
+expandStar' (JoinTrefEnv js (Just (t,Nothing)) t0 t1) i =
+  let isJ = (`elem` js) . snd
+      (jis,t0is) = partition isJ $ maybe [] id (expandStar t0 i)
+             -- remove join columns from second list
+      t1is = filter (not . isJ) $ maybe [] id (expandStar t1 i)
+  in case map (\i -> (t,snd i)) $ jis ++ t0is ++ t1is of -- check for duplicates?
+    [] -> Nothing
+    x -> Just x
+expandStar' (JoinTrefEnv _ (Just (t,Just cs)) _ _) i
+  | maybe True (==t) i = Just $ map (t,) cs
+  | otherwise = Nothing
+
+
+expandStar' (TableAliasEnv t ids) i
+    | maybe True (==t) i = fmap (map (\x -> (t,snd x))) $ expandStar ids i
+    | otherwise = Nothing
+expandStar' (FullAliasEnv t cs _) i
+    | maybe True (==t) i = Just $ map (t,) cs
+    | otherwise = Nothing
+
+expandStar' (EmptyIDEnv _) _ = Nothing
+
+
+
+{-
+apply alias:
+cases:
+1) just a qualifier -> override the qualifier for all the ids
+2) a qualifier with too many column names: error
+3) a qualifier with not enough column names: rename the first n columns
+   keep the others the same. The private columns keep their names but take the new qualifier
+FIXME: add tests for not enough and for private in this case
+4) correct number of cols, as shown
+-}
+{-applyAlias :: TableAlias -> IDEnv -> (IDEnv,TableAlias)
+applyAlias (NoAlias a) (TrefEnv tn pus pvs) =
+  (TrefEnv tn pus pvs,FullAlias a tn pus)
+applyAlias (TableAlias a t) (TrefEnv _tn pus pvs) =
+  (TrefEnv t pus pvs,FullAlias a t pus)
+applyAlias (FullAlias a t cs) (TrefEnv _tn _pus pvs) =
+  (TrefEnv t cs pvs,FullAlias a t cs)
+applyAlias (NoAlias a) (FunTrefEnv tn fn) =
+  (FunTrefEnv tn fn,FullAlias a tn [fn])
+applyAlias (TableAlias a t) (FunTrefEnv _ fn) =
+  (FunTrefEnv t fn,FullAlias a t [fn])
+applyAlias (FullAlias a tn [cn]) (FunTrefEnv _tn _fn) =
+  (FunTrefEnv tn cn,FullAlias a tn [cn])
+
+applyAlias a x@(EmptyIDEnv _) = (x,a)
+
+
+applyAlias (NoAlias a) (JoinTrefEnv tn t0 t1) =
+  (JoinTrefEnv tn t0 t1, NoAlias a)
+applyAlias (TableAlias a t) (JoinTrefEnv _tn t0 t1) =
+  (JoinTrefEnv t pus pvs,FullAlias a t pus)
+applyAlias (FullAlias a t cs) (TrefEnv _tn _pus pvs) =
+  (TrefEnv t cs pvs,FullAlias a t cs)-}
+
+{-
+
+get alias: want to return the fullest alias possible at each stage
+if all the columns have the same qualifier, then this is a full alias
+if they don't, then has to be no alias
+
+-}
+-}
+getEnvAlias :: IDEnv -> TableAlias
+getEnvAlias i =
+  let is = {-showit "is: " $ -} expandStar i Nothing
+  in case is of
+       Just is'@((q,_):_) | all (==q) $ map fst is' ->
+            FullAlias emptyAnnotation q $ map snd is'
+       _ -> NoAlias emptyAnnotation
+
+
+aliasEnv :: TableAlias -> IDEnv -> IDEnv
+aliasEnv (NoAlias _) ids = ids
+aliasEnv (TableAlias _ t) ids = TableAliasEnv t ids
+aliasEnv (FullAlias _ t cs) ids = FullAliasEnv t cs ids
+
+
+getTableTrefEnv :: Catalog -> SQIdentifier -> IDEnv
+getTableTrefEnv cat si =
+    let tn = getTName si
+        (pus,pvs) = either (const ([],[])) id
+                    $ catCompositeAttrsPair cat relationComposites tn
+    in TrefEnv tn (map fst pus) (map fst pvs)
 
 }
+
 
 {-
 
@@ -117,12 +311,19 @@ ATTR SelectList
          [
          |
          | cidenv : IDEnv
+           --fieldNames : {Maybe [String]}
          ]
 
 SEM SelectList
-    | SelectList lhs.cidenv =
-        makeIDEnv "" $ flip map @items.fixedUpIdentifiersTree
-                         $ \(SelectItem _ _ n) -> n
+    | SelectList
+       {- lhs.cidenv =
+          makeIDEnv "" $ flip map @items.fixedUpIdentifiersTree
+                         $ \(SelectItem _ _ n) -> n-}
+        lhs.cidenv = TrefEnv "" (map (\(SelectItem _ _ n) -> n)
+                                     @items.fixedUpIdentifiersTree)
+                                []
+  {-TrefEnv "" $ flip map @items.fixedUpIdentifiersTree
+                                     $ \(SelectItem _ _ n) -> n-}
 
 
 SEM ScalarExpr
@@ -147,16 +348,24 @@ ATTR SelectItem [
 
 SEM SelectItem
     | SelExp lhs.seIdTree
-        = case @ex.fixedUpIdentifiersTree of
-            Identifier a "*" -> let s = expandStar @lhs.idenv Nothing
-                                    in if null s
+        = case @ex.fixedUpIdentifiersTree of -- use original tree here?
+            Identifier a "*" ->
+               maybe [SelExp @ann @ex.fixedUpIdentifiersTree]
+                     (makeSelExps @ann a a)
+                     $ expandStar @lhs.idenv Nothing
+
+                                {-    in if null s
                                        then [addSIAlias $ SelExp @ann @ex.fixedUpIdentifiersTree]
-                                       else makeSelExps @ann a a s
+                                       else makeSelExps @ann a a s-}
             QIdentifier a0 (Identifier a1 q) "*" ->
+               maybe [SelExp @ann @ex.fixedUpIdentifiersTree]
+                     (makeSelExps @ann a0 a1)
+                     $ expandStar @lhs.idenv $ Just q
+               {-
                let s = expandStar @lhs.idenv $ Just q
                in if null s
                   then [addSIAlias $ SelExp @ann @ex.fixedUpIdentifiersTree]
-                  else makeSelExps @ann a0 a1 s
+                  else makeSelExps @ann a0 a1 s-}
             _ -> [addSIAlias $ SelExp @ann @ex.fixedUpIdentifiersTree]
 
     | SelectItem lhs.seIdTree
@@ -227,23 +436,25 @@ ATTR QueryExpr WithQuery WithQueryList
 SEM QueryExpr
     | Select lhs.cidenv = @selSelectList.cidenv
     | CombineQueryExpr lhs.cidenv = @sel1.cidenv
-    | Values lhs.cidenv = unimplementedIDEnv
+    | Values lhs.cidenv = emptyIDEnv "values" -- unimplementedIDEnv
     | WithQueryExpr lhs.cidenv = @ex.cidenv
                     ex.idenv = @ex.cidenv
+
 
 SEM WithQuery
     | WithQuery
         lhs.fixedUpIdentifiersTree =
+          undefined {-
           case (@ex.cidenv,@colAliases) of
             (IDEnv [(_,ns)],Nothing) ->
                 WithQuery @ann @name (Just ns) @ex.fixedUpIdentifiersTree
-            _ -> WithQuery @ann @name @colAliases @ex.fixedUpIdentifiersTree
+            _ -> WithQuery @ann @name @colAliases @ex.fixedUpIdentifiersTree-}
 
 SEM WithQueryList
-    | Cons lhs.cidenv = let IDEnv a = @hd.cidenv
+    | Cons lhs.cidenv = undefined {-let IDEnv a = @hd.cidenv
                             IDEnv b = @tl.cidenv
-                        in IDEnv $ a ++ b
-    | Nil lhs.cidenv = emptyIDEnv
+                        in IDEnv $ a ++ b-}
+    | Nil lhs.cidenv = emptyIDEnv "empty with query list"
 
 
 {-
@@ -269,8 +480,12 @@ SEM QueryExpr
     | Select -- source the ids from the tref and the surrounding env
              -- this is to support correlated subqueries
              -- can only access correlated ids in where or having
-             loc.trefEnv = makeIDEnvP @selTref.trefIDs
-             loc.includeCorrelations = joinIDEnvs @lhs.idenv @loc.trefEnv
+             loc.trefEnv = @selTref.trefIDs
+             loc.includeCorrelations = --FIXME: probably need a new IDEnv type
+                                       -- since this doesn't follow join conbine rules
+                                       -- but the local tref should shadow the correlated
+                                       -- ones
+                                       JoinTrefEnv [] Nothing @loc.trefEnv @lhs.idenv
              selSelectList.idenv = @loc.trefEnv
              selWhere.idenv = @loc.includeCorrelations
              selGroupBy.idenv = @loc.trefEnv
@@ -322,7 +537,7 @@ fixUpIdentifiers cat sts =
     let t = sem_Root (Root sts)
         ta = wrap_Root t Inh_Root {cat_Inh_Root = cat
                                   ,lib_Inh_Root = emptyBindings
-                                  ,idenv_Inh_Root = emptyIDEnv}
+                                  ,idenv_Inh_Root = emptyIDEnv "fixupidentifiers [st]"}
         tl = fixedUpIdentifiersTree_Syn_Root ta
     in case tl of
          Root r -> countHack r
@@ -332,7 +547,7 @@ fixUpIdentifiersSE cat sts =
     let t = sem_ScalarExprRoot (ScalarExprRoot sts)
         ta = wrap_ScalarExprRoot t Inh_ScalarExprRoot {cat_Inh_ScalarExprRoot = cat
                                   ,lib_Inh_ScalarExprRoot = emptyBindings
-                                  ,idenv_Inh_ScalarExprRoot = emptyIDEnv}
+                                  ,idenv_Inh_ScalarExprRoot = emptyIDEnv "fixupidentifiers se"}
         tl = fixedUpIdentifiersTree_Syn_ScalarExprRoot ta
     in case tl of
          ScalarExprRoot r -> countHack r
@@ -361,38 +576,67 @@ tref ids and aliases
 
 -}
 
-ATTR TableRef TableRefList [|| trefIDs : {[(String,[String])]}]
+ATTR TableRef TableRefList [|| trefIDs : IDEnv]
 
 SEM TableRefList
-    | Cons lhs.trefIDs = @hd.trefIDs ++ @tl.trefIDs
-    | Nil lhs.trefIDs = []
+    | Cons lhs.trefIDs = JoinTrefEnv [] Nothing @hd.trefIDs @tl.trefIDs
+    | Nil lhs.trefIDs = emptyIDEnv "empty tref list"
+
+{-makeTrefIDs :: Catalog -> SQIdentifier -> IDEnv
+makeTrefIDs cat i =
+  let tn = getTName i
+      (pus,pvs) = either (const ([],[])) id
+                  $ catCompositeAttrsPair cat relationComposites tn
+  in fst $ applyAlias (NoAlias emptyAnnotation) tn (map fst pus) (map fst pvs)-}
 
 {
-
+showit :: Show a => String -> a -> a
+showit a t = trace (a ++ show t ++ "\n\n") t
 }
 
 SEM TableRef
     | Tref (lhs.trefIDs,lhs.fixedUpIdentifiersTree) =
-        let tn = getTName @tbl.originalTree
+        let iea = aliasEnv @alias.originalTree $ getTableTrefEnv @lhs.cat @tbl.originalTree
+            al = getEnvAlias iea
+        in (iea,Tref @ann @tbl.fixedUpIdentifiersTree al)
+        {-let (ie,newAlias) = applyAlias @alias.originalTree
+                                       $ getTableTrefEnv @lhs.cat @tbl.originalTree
+        in (ie,Tref @ann @tbl.fixedUpIdentifiersTree newAlias)-}
+        {-let tn = getTName @tbl.originalTree
             ids = case catCompositePublicAttrs @lhs.cat relationComposites tn of
                      Right attrs -> [(tn, map fst attrs)]
                      Left _ -> [(tn,[])]
             (trs,al) = doAlias @alias.originalTree ids
-        in (trs,Tref @ann @tbl.fixedUpIdentifiersTree al)
-
+        in (trs,Tref @ann @tbl.fixedUpIdentifiersTree al)-}
     | SubTref (lhs.trefIDs,lhs.fixedUpIdentifiersTree) =
-        let IDEnv x = @sel.cidenv
+        let iea = aliasEnv @alias.originalTree  @sel.cidenv
+            al = getEnvAlias iea
+        in (iea, SubTref @ann @sel.fixedUpIdentifiersTree al)
+        {-
+        let ie' = @sel.cidenv
+            (ie,newAlias) = applyAlias @alias.originalTree ie'
+        in (ie, SubTref @ann @sel.fixedUpIdentifiersTree newAlias) -}
+        {-let IDEnv x = @sel.cidenv
             (trs,al) = doAlias @alias.originalTree x
-        in (trs, SubTref @ann @sel.fixedUpIdentifiersTree al)
+        in (trs, SubTref @ann @sel.fixedUpIdentifiersTree al)-}
 
     | FunTref (lhs.trefIDs,lhs.fixedUpIdentifiersTree) =
         let (FunCall _ f _) = @fn.originalTree
+            iea = aliasEnv @alias.originalTree $ FunTrefEnv f f
+            al = getEnvAlias iea
+        in (iea, FunTref @ann @fn.fixedUpIdentifiersTree al)
+         {-
+        let (FunCall _ f _) = @fn.originalTree
+            -- needs fixing for table returning functions
+            (ie,al) = applyAlias @alias.originalTree $ FunTrefEnv f f
+        in (ie,FunTref @ann @fn.fixedUpIdentifiersTree al) -}
+        {-let (FunCall _ f _) = @fn.originalTree
             (trs,al) = doAlias @alias.originalTree [(f,[f])] -- needs fixing for table returning functions
-        in (trs,FunTref @ann @fn.fixedUpIdentifiersTree al)
+        in (trs,FunTref @ann @fn.fixedUpIdentifiersTree al)-}
 
     | JoinTref
         lhs.trefIDs = @loc.trefIDs
-        onExpr.idenv = IDEnv @loc.trefIDs
+        onExpr.idenv = @loc.trefIDs
 {-
 got two lists of trefids from the two tables in the join
 [(qualified,[ids])]
@@ -410,7 +654,27 @@ then the non join keys from the second table
 -}
 
         (loc.trefIDs,lhs.fixedUpIdentifiersTree) =
-          let -- create a list of unqualified join id names
+          let t0ids = maybe [] id $ fmap (map snd) $ expandStar @tbl.trefIDs Nothing
+              t1ids = maybe [] id $ fmap (map snd) $ expandStar @tbl1.trefIDs Nothing
+              jids :: [String]
+              jids = case (@nat,@onExpr.originalTree) of
+                       (Natural,_) -> intersect t0ids t1ids
+                       (_,Just (JoinUsing _ fs)) -> fs
+                       _ -> []
+              iea = aliasEnv @alias.originalTree
+                    $ JoinTrefEnv jids Nothing @tbl.trefIDs @tbl1.trefIDs
+              al = getEnvAlias iea
+          in (iea, JoinTref @ann @tbl.fixedUpIdentifiersTree
+                            @nat @joinType @tbl1.fixedUpIdentifiersTree
+                            @onExpr.fixedUpIdentifiersTree al)
+           {-let t0env = @tbl.trefIDs
+               t1env = @tbl1.trefIDs
+               (ie,al) = applyAlias @alias.originalTree $ JoinTrefEnv Nothing t0env t1env
+           in (ie, JoinTref @ann @tbl.fixedUpIdentifiersTree
+                            @nat @joinType @tbl1.fixedUpIdentifiersTree
+                            @onExpr.fixedUpIdentifiersTree al)-}
+{-
+            let -- create a list of unqualified join id names
               jids = case (@nat,@onExpr.originalTree) of
                        (Natural,_) -> intersect (concatMap snd @tbl.trefIDs)
                                                 (concatMap snd @tbl1.trefIDs)
@@ -432,36 +696,47 @@ then the non join keys from the second table
               (trs,al) = doAlias @alias.originalTree $ qjids ++ njtblids ++ njtbl1ids
           in (trs, JoinTref @ann @tbl.fixedUpIdentifiersTree
                             @nat @joinType @tbl1.fixedUpIdentifiersTree
-                            @onExpr.fixedUpIdentifiersTree al)
-{
-doAlias :: TableAlias -> [(String,[String])] -> ([(String,[String])],TableAlias)
+                            @onExpr.fixedUpIdentifiersTree al)-}
+
+{-doAlias :: TableAlias -> [(String,[String])] -> ([(String,[String])],TableAlias)
 doAlias (NoAlias a) [] = ([],NoAlias a)
 doAlias (NoAlias a) cs@((t,_):ts) = if all (==t) $ map fst ts
-                                then (cs,FullAlias a t $ concatMap snd cs)
-                                else (cs,NoAlias a)
+                                    then (cs,FullAlias a t $ concatMap snd cs)
+                                    else (cs,NoAlias a)
 doAlias (TableAlias a t) cs = let cs' = concatMap snd cs
                               in ([(t, cs')], FullAlias a t cs')
 doAlias f@(FullAlias _ t cs) _ = ([(t,cs)], f)
-}
+-}
+
+
+
 {-
 
 code to qualify the ids in the scalar expressions in update and delete
   statements
 
 -}
-{
-makeTrefIDs :: Catalog -> SQIdentifier -> [(String,[String])]
+
+{-makeTrefIDs :: Catalog -> SQIdentifier -> [(String,[String])]
 makeTrefIDs cat i =
   let tn = getTName i
   in case catCompositePublicAttrs cat relationComposites tn of
                      Right attrs -> [(tn, map fst attrs)]
-                     Left _ -> [(tn,[])]
-}
+                     Left _ -> [(tn,[])]-}
+{-
+makeTrefIDs :: Catalog -> SQIdentifier -> IDEnv
+makeTrefIDs cat i =
+  let tn = getTName i
+      (pus,pvs) = either (const ([],[])) id
+                  $ catCompositeAttrsPair cat relationComposites tn
+  in fst $ applyAlias (NoAlias emptyAnnotation) tn (map fst pus) (map fst pvs)
+-}
+
 
 
 SEM Statement
     | Update
-        loc.trefEnv = makeIDEnvP $ makeTrefIDs @lhs.cat @table.originalTree
+        loc.trefEnv = getTableTrefEnv @lhs.cat @table.originalTree
         whr.idenv = @loc.trefEnv
         assigns.idenv = @loc.trefEnv
         returning.idenv = @loc.trefEnv
@@ -473,7 +748,7 @@ SEM Statement
                  @whr.fixedUpIdentifiersTree
                  @returning.fixedUpIdentifiersTree
     | Delete
-        loc.trefEnv = makeIDEnvP $ makeTrefIDs @lhs.cat @table.originalTree
+        loc.trefEnv = getTableTrefEnv @lhs.cat @table.originalTree
         whr.idenv = @loc.trefEnv
         returning.idenv = @loc.trefEnv
         lhs.fixedUpIdentifiersTree =
@@ -483,7 +758,7 @@ SEM Statement
                  @whr.fixedUpIdentifiersTree
                  @returning.fixedUpIdentifiersTree
     | Insert
-        loc.trefEnv = makeIDEnvP $ makeTrefIDs @lhs.cat @table.originalTree
+        loc.trefEnv = getTableTrefEnv @lhs.cat @table.originalTree
         returning.idenv = @loc.trefEnv
         lhs.fixedUpIdentifiersTree =
           Insert @ann

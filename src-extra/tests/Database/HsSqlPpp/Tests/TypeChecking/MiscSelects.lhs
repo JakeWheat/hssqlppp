@@ -37,15 +37,14 @@ TODO: check identifier stacking working, then remove the pg_namespace
 qualifier before oid and this should still work
 
 >   ,Group "subqueries" [
->               --fixme: needs oid?
->       {-s "select relname as relvar_name\n\
+>       s "select relname as relvar_name\n\
 >         \    from pg_class\n\
 >         \    where ((relnamespace =\n\
 >         \           (select oid\n\
 >         \              from pg_namespace\n\
 >         \              where (nspname = 'public'))) and (relkind = 'r'));"
 >         $ Right [Just ([], [("relvar_name",ScalarType "name")])]
->      ,-}s "select relname from pg_class where relkind in ('r', 'v');"
+>      ,s "select relname from pg_class where relkind in ('r', 'v');"
 >         $ Right [Just ([], [("relname",ScalarType "name")])]
 >      -- fixme: needs funtrefs?
 >      {-,s "select * from generate_series(1,7) g\n\
@@ -56,13 +55,13 @@ qualifier before oid and this should still work
 >      ]
 >
 >  -- identifiers in select parts
->   --fixme: needs oid?
->     {-,Group "select part identifiers" [
->       s "select relname,attname from pg_class\n\
+>     ,Group "select part identifiers" [
+>       s "select relname as relvar_name,attname as name from pg_class\n\
 >         \inner join pg_attribute\n\
 >         \on pg_attribute.attrelid = pg_class.oid;"
->         $ Right [Just ([], [("relvar_name",ScalarType "name")])]
->      ]-}
+>         $ Right [Just ([], [("relvar_name",ScalarType "name")
+>                            ,("name",ScalarType "name")])]
+>      ]
 >   ]
 
 

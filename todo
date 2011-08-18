@@ -4,10 +4,10 @@
 fixupidentifiers for ctes
 fix trefs/fixup wrt funs, private fields, select y.* from x join y
 
-= next + 1: refactoring, fix regressions, small features
+= next + 1s: refactoring, fix regressions, small features
 
-refactor the type attibutes to fix cycles and duplicate for 'type
-inference'
+refactor the type attibutes to fix cycles and duplicate annots for
+'type inference'
 
 review ag code (and other code?) add fixme notes
 

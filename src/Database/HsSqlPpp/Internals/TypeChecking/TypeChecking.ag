@@ -99,7 +99,7 @@ typeCheckStatements cat sts =
     let t = sem_Root (Root $ fixUpIdentifiers cat sts)
         ta = wrap_Root t Inh_Root {cat_Inh_Root = cat
                                   ,lib_Inh_Root = emptyBindings
-                                  ,idenv_Inh_Root = emptyIDEnv}
+                                  ,idenv_Inh_Root = emptyIDEnv "tcs"}
         tl = annotatedTree_Syn_Root ta
         cat1 = producedCat_Syn_Root ta
     in case tl of
@@ -128,7 +128,7 @@ typeCheckParameterizedStatement cat st =
       tc = let t = sem_Root (Root $ fixUpIdentifiers cat [st])
                ta = wrap_Root t Inh_Root {cat_Inh_Root = cat
                                          ,lib_Inh_Root = emptyBindings
-                                         ,idenv_Inh_Root = emptyIDEnv}
+                                         ,idenv_Inh_Root = emptyIDEnv "tsps"}
                tl = annotatedTree_Syn_Root ta
                --cat1 = producedCat_Syn_Root ta
            in case tl of
@@ -144,7 +144,7 @@ typeCheckScalarExpr cat ex =
         rt = (annotatedTree_Syn_ScalarExprRoot
               (wrap_ScalarExprRoot t Inh_ScalarExprRoot {cat_Inh_ScalarExprRoot = cat
                                                         ,lib_Inh_ScalarExprRoot = emptyBindings
-                                                        ,idenv_Inh_ScalarExprRoot = emptyIDEnv}))
+                                                        ,idenv_Inh_ScalarExprRoot = emptyIDEnv "tcse"}))
     in case rt of
          ScalarExprRoot e -> e
 
