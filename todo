@@ -2,73 +2,174 @@
 = next release
 
 fixupidentifiers for ctes
-fix trefs/fixup wrt funs, private fields, select y.* from x join y
+fix typechecking for composite function table references
 
-= next + 1s: refactoring, fix regressions, small features
+= 'arcs'
 
-refactor the type attibutes to fix cycles and duplicate annots for
-'type inference'
+== api
+review api names, docs and other aspects
 
+== website nav
+
+== localenv
+
+New approach to fixupidentifiers in IDEnv. Want to use this approach
+for typechecking local identifiers. Also can have more control over
+rewriting the syntax. At the moment, it always adds in aliases and
+correlation names all over the place. Want to make this optional, and
+the ability to only add correlation names and not aliases. Want to
+also get rid of the separate fixupidentifiers pass.
+
+== examples
+
+add compilation of examples to automated tests, also add tests in the
+documentation
+
+== syntax refactoring
+
+lots of messy bits in the syntax:
+
+some renames - try to follow the sql standard reference better
+
+split out the plpgsql statements to separate ast node
+
+the quasiquoting uses a crazy system of automatically generating the
+anticonstructors, want to change this so these are explicit and
+visible to the user. This will make understanding and editing the
+source much easier, and make it sensible to expose the internals of
+the parser to help with writing syntax extensions.
+
+have parens explicit in the ast?
+
+more faithful representation of source code? This is mainly for
+defaults, e.g. can't tell after parsing if an order by element was
+explicitly asc, or implicitly asc. This might be useful for lint
+checking e.g..
+
+== ag - review code add fixmes
 review ag code (and other code?) add fixme notes
 
-review test source manually and add in fixme comments to track
- - lots of stuff already commented out
-get most/all of the query/dml stuff working again
+== ag - literal source and haskell syntax
 
-typesafe haskell wrappers example
+change the ag code to use .lag, and to use the haskell syntax
+option. This should make understanding the code much more simple. One
+possible goal to work towards is to make the main ast source file look
+just like haskell, and to be able to edit it as if it was
+haskell. This may need an additional codegenerator for compiling to
+add in the ag boilerplate.
 
-big ag refactor
-big syntax refactor
+== ag - typechecking flow
 
-devel tools?
+the ag attributes and flow between sem rules is a bit confused at the
+moment. In particular want to remove the extra 'inferred type'
+annotation, also want to remove the cycles reported by uuagc by being
+a bit more regular and disciplined (the cycles don't seem to have
+caused any real issues however).
 
-find a way to start using some of the quickcheck stuff to:
-* test the typechecker against postgresql
-* test roundtrip through postgresql parsing
+== typechecking regressions fix
+lots of disabled tests, get them all passing again
 
-change the tpch conversion example to use quasiquoting, extend the
-quasi quoting to make this happen.
+== chaos
 
-finish off existing typechecking fixes
+work on the chaos example
+* get it typechecking OK again - lots of work on typechecker needed
+* get the unit tests running again: maybe quickest is to port to new haskelldb
+* get the ui running again so you can actually see it running
+* maybe port these over to hssqlppp typesafe access for dogfooding
+* fix the documentation generator which shows the translated sql -
+  fair few prerequisites to this
+* use new custom syntax stuff
+* use the sql documentation generator (from the catalog)
 
-typechecking fixup, refactoring? -> tests working again
-chaos typecheck ok
+add parsing and typechecking chaos (+ others?) to automated tests
 
-syntax refactor? - follow sql standard better, split sql and plpgsql
-  statements, get rid of separate astanti?
+== doctool
 
-chaos: get parsing, typechecking again, add simple ui which allows ai
-  battles + the crazy transformed sql docs
-  loaded via compiler tool
-  later on: use custom syntax plugins, generate documentation
+get the standalone doctool working. Get the website documentation
+generator working again
 
-doctool + website working again?
+== h7c
 
-add extension tests back in ... - ?
+work on the functionality. want to get it working as a library to
+compile chaos without needing to look at the hssqlppp lib
+internals. The main blocker is fixing the syntax and then exposing the
+parser internals for extension use.
 
-= future features
-custom syntax plugins for parser
-docgen for sql codebase
-catalog work - better checking, more items in catalog
-fuller parsing: work through pg manual
-better quasi quotes
-consider adding explicit parens to ast?
+== catalog work
 
-fix expression parsing and custom operators: stage one is to do a hack
-which supplies the parser with the operator details at run time
+the catalog holds pretty limited information at the moment, and
+doesn't use that information to type check ddl very well (e.g. reject
+drop on non existant objects, don't allow two tables with same name,
+etc.)
+so
+* add much better error checking
+* add much more information to support error checking
+* track more types of objects, e.g. triggers, indexes
+* add more information to support documentation generator, e.g. view
+  source, function source
 
+== quasiquote work
 
-reconsider parse tree and ast
-good documentation and plenty of examples, fix up website + nav
-big reorganisation of tests - split into multiple files
-review and fix api + names
-report generator
-better automated testing of extras: chaos sql, example programs/code
-build system for syntax extended sql projects
-nullability inference in type checker
-rewrite typeconversion.lhs
+in addition to fixing the anticonstructor hiding above, want to add a
+lot more quasiquotes. Good start would be to review all the
+extensions, and translation examples, codegen, etc.. and make sure you
+never need to write asts out explicitly, and can always use
+quasiquotes.
+Another thing to add is full haskell syntax inside quasiquotes.
 
-report generator:
+== refactoring
+
+review the code and refactor the crufty bits. Also want much better
+documentation in the .lhs. Main code to completely rewrite is
+TypeConversion.lhs which was written when I didn't know haskell very
+well.
+
+== error handling
+
+review to eliminate any errors being hidden, or calls to 'error'
+
+== custom syntax plugins
+
+want to be able to plugin new syntax into parser - so alter syntax
+tree as well. maybe start with the ability to add new statement types,
+and new expressions types only.
+
+== work through pg manual to get more complete coverage of sql syntax
+
+== typesafe wrapper
+
+write typesafe wrapper for haskell accessing database big question is
+which record system to use: haskell records, hlists, haskelldb
+records, maybe fc-labels?
+
+nullability inference would be useful here, also possibly single
+column in result specialisation, and static check of single tuple in
+result (e.g. where on key, or non grouped aggregates).
+
+== roundtrip testing
+
+use postgresql to help with testing:
+
+parse ddl, get catalog
+load sql into postgresql, read catalog from pg
+compare
+dump database, parse dump and check catalog from hssqlppp is the same
+
+parse sql
+load into postgresql
+dump
+parse again
+check is equivalent (might be very hard in general case)
+
+some quickcheck style testing:
+generate random ast
+(maybe stick to scalar expression to start with?)
+typecheck with hssqlppp
+load into postgresql and get type out
+check types are the same
+
+== report generator
+
 the idea is to have the following for experimentation, evaluate how
    well hssqlppp supports some existing sql, support while developing
    sql (possibly with syntax extensions), and generating
@@ -84,18 +185,34 @@ generate documentation, catalog
 load into postgresql and double check catalog from typechecker
 load and dump postgresql, reparse and typecheck for changes
 
-============
 
-future:
-profiling, maybe switch parsing library
-definitely fix operator parsing - one approach is to adjust parse tree
-   after parsing to take into account custom operators and precedence
-heavily cross linked docs + diagrams
-materialized view extension
-temporal data extension
-generalised inclusions syntax
-order independent ddl source
-show used catalog, work with module extension as well
-better annotation approach
-lint tool
-modules extension
+== nullablity inference in type checker
+
+
+== documentation generator for sql codebases
+
+== fix operator parsing
+fix expression parsing and custom operators: stage one is to do a hack
+which supplies the parser with the operator details at run time so
+there is some flexibility
+
+full dynamic support: e.g. create operators in sql then able to parse
+use of them ... standard way of dealing with operator precendence is
+to parse them all as left associative then adjust the tree after, not
+sure this will be enough
+
+== write extensions?
+
+materialized vie, temporal data, generalized inclusions, order
+independent ddl source, show used catalog, modules for sql source
+
+== lint
+
+lint tool framework - so want to make it easy to add new rules
+
+== separate parse tree?
+consider having separate parse tree to the ast
+
+== better annotation approach?
+
+maybe try to parameterize on annotation type? lots of other techniques

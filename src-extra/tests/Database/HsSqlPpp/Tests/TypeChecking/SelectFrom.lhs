@@ -28,25 +28,25 @@
 >      ,s "select typlen from nope;"
 >         $ Left [UnrecognisedRelation "nope"]
 >      -- fixme funtref alias?
->      {-,s "select generate_series from generate_series(1,7);"
->         $ Right [Just ([], [("generate_series", typeInt)])]-}
+>      ,s "select generate_series from generate_series(1,7);"
+>         $ Right [Just ([], [("generate_series", typeInt)])]
 >
 >      -- check aliasing
 >      -- fixme funtref alias?
->      {-,s "select generate_series.generate_series from generate_series(1,7);"
->         $ Right [Just ([], [("generate_series", typeInt)])]-}
+>      ,s "select generate_series.generate_series from generate_series(1,7);"
+>         $ Right [Just ([], [("generate_series", typeInt)])]
 >      -- fixme funtref alias?
->      {-,s "select g from generate_series(1,7) g;"
->         $ Right [Just ([], [("g", typeInt)])]-}
+>      ,s "select g from generate_series(1,7) g;"
+>         $ Right [Just ([], [("g", typeInt)])]
 >      -- fixme funtref alias?
->      {-,s "select g.g from generate_series(1,7) g;"
->         $ Right [Just ([], [("g", typeInt)])]-}
+>      ,s "select g.g from generate_series(1,7) g;"
+>         $ Right [Just ([], [("g", typeInt)])]
 >      --fixme:funtref?
 >      ,s "select generate_series.g from generate_series(1,7) g;"
 >         $ Left [UnrecognisedCorrelationName "generate_series"]
 >      -- fixme funtref?
->      {-,s "select g.generate_series from generate_series(1,7) g;"
->         $ Left [UnrecognisedIdentifier "g.generate_series"]-}
+>      ,s "select g.generate_series from generate_series(1,7) g;"
+>         $ Left [UnrecognisedIdentifier "generate_series"]
 >
 >      ,s "select * from pg_attrdef;"
 >         $ Right [Just ([],
@@ -55,8 +55,8 @@
 >          ,("adbin",ScalarType "text")
 >          ,("adsrc",ScalarType "text")])]
 >         -- fixme: needs funtref
->      {-,s "select abs from abs(3);"
->         $ Right [Just ([], [("abs", typeInt)])]-}
+>      ,s "select abs from abs(3);"
+>         $ Right [Just ([], [("abs", typeInt)])]
 >         --todo: these are both valid,
 >         --the second one means select 3+generate_series from generate_series(1,7)
 >         --  select generate_series(1,7);
@@ -64,7 +64,7 @@
 >      ]
 
 >   ,Group "simple selects from 2" [
->       -- fixme: needs funtref?
+>       -- fixme: needs compfuntref?
 >       {-c "select a,b from testfunc();"
 >         [CatCreateComposite "testType" [("a", ScalarType "text")
 >                                        ,("b", typeInt)

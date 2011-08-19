@@ -61,6 +61,10 @@ SEM TableRefList
         lhs.libUpdates = @hd.libUpdates -- todo, combine properly
 
 
+{-
+MOST OF THIS CODE IS UNUSED. the local bindings stuff is due a big rewrite.
+-}
+
 SEM TableRef
     | SubTref
 {-
@@ -105,7 +109,7 @@ column names and types - see that function for how this works
 
 
         loc.eqfunIdens : {Either [TypeError] (String,[(String,Type)])}
-        loc.eqfunIdens = funIdens @lhs.cat (getAlias "" @alias.originalTree) @fn.annotatedTree @fn.uType
+        loc.eqfunIdens = funIdens @lhs.cat @alias.originalTree @fn.annotatedTree @fn.uType
         lhs.libUpdates = [LBTref "fn"
                                          (fst @loc.qfunIdens)
                                          (snd @loc.qfunIdens)
@@ -163,23 +167,36 @@ then relation, using the function name for the attribute name
 need to check to see what should happen with arrayof
 
 -}
-funIdens :: Catalog -> String -> ScalarExpr -> Maybe Type -> Either [TypeError] (String,[(String,Type)])
-funIdens cat alias fnVal ft = do
-   errorWhen (case fnVal of
+
+ -- @lhs.cat @alias.originalTree @fn.annotatedTree @fn.uType
+-- should always get full alias
+
+funIdens :: Catalog -> TableAlias -> ScalarExpr -> Maybe Type -> Either [TypeError] (String,[(String,Type)])
+funIdens cat (FullAlias _ t cs) (FunCall _ fnName _) ft = do
+   {-errorWhen (case fnVal of
                 FunCall _ _ _ -> False
                 _ -> True)
              [ContextError "FunCall"]
    let (FunCall _ fnName _) = fnVal
        cn = if alias /= ""
                            then alias
-                           else fnName
+                           else fnName-}
    attrs <- do
      fnt <- lmt ft
      case fnt of
-       SetOfType (NamedCompositeType t) -> catCompositePublicAttrs cat [] t
-       SetOfType x -> return [(cn,x)]
-       y -> return [(cn,y)]
-   return (cn, attrs)
+       SetOfType (NamedCompositeType t) -> do
+          x <- catCompositePublicAttrs cat [] t
+          let aliaslen = length cs
+              gotlen = length x
+          if aliaslen == gotlen
+            then return $ zip cs $ map snd x
+            else Left [WrongNumberOfAliasCols gotlen aliaslen]
+
+       SetOfType x | [c] <- cs -> return [(c,x)]
+                   | otherwise -> Left [WrongNumberOfAliasCols 1 $ length cs]
+       x | [c] <- cs -> return [(c,x)]
+         | otherwise -> Left [WrongNumberOfAliasCols 1 $ length cs]
+   return (t, attrs)
 
 getAlias :: String -> TableAlias -> String
 getAlias def alias =
@@ -243,9 +260,11 @@ SEM TableRef
                             _ -> (n, []) --todo:fix, shouldn't ever not have full alias but does
              return [(n,zip cs $ map (Just . snd) pu)]
     | FunTref
-      -- todo
-        lhs.newLib2 = emptyBindings
-
+        lhs.newLib2 =
+          createLocalBindings $ do
+            -- fixme: ignoring errors?
+          (t,cs) <- etmt $ funIdens @lhs.cat @alias.originalTree @fn.annotatedTree @fn.uType
+          return [(t,map (second Just) cs)]
 
 -------------------------------------------------------------
 

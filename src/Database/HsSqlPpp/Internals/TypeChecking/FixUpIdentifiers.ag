@@ -80,8 +80,8 @@ getEnvAlias i =
 
 aliasEnv :: TableAlias -> IDEnv -> IDEnv
 aliasEnv (NoAlias _) ids = ids
-aliasEnv (TableAlias _ t) ids = TableAliasEnv t ids
-aliasEnv (FullAlias _ t cs) ids = FullAliasEnv t cs ids
+aliasEnv (TableAlias _ t) ids = TableAliasIDEnv t ids
+aliasEnv (FullAlias _ t cs) ids = FullAliasIDEnv t cs ids
 
 
 getTableTrefEnv :: Catalog -> SQIdentifier -> IDEnv
@@ -89,7 +89,7 @@ getTableTrefEnv cat si =
     let tn = getTName si
         (pus,pvs) = either (const ([],[])) id
                     $ catCompositeAttrsPair cat relationComposites tn
-    in TrefEnv tn (map fst pus) (map fst pvs)
+    in TrefIDEnv tn (map fst pus) (map fst pvs)
 
 }
 
@@ -116,7 +116,7 @@ SEM SelectList
        {- lhs.cidenv =
           makeIDEnv "" $ flip map @items.fixedUpIdentifiersTree
                          $ \(SelectItem _ _ n) -> n-}
-        lhs.cidenv = TrefEnv "" (map (\(SelectItem _ _ n) -> n)
+        lhs.cidenv = TrefIDEnv "" (map (\(SelectItem _ _ n) -> n)
                                      @items.fixedUpIdentifiersTree)
                                 []
   {-TrefEnv "" $ flip map @items.fixedUpIdentifiersTree
@@ -278,7 +278,7 @@ SEM QueryExpr
              -- this is to support correlated subqueries
              -- can only access correlated ids in where or having
              loc.trefEnv = @selTref.trefIDs
-             loc.includeCorrelations = CorrelatedEnv @loc.trefEnv @lhs.idenv
+             loc.includeCorrelations = CorrelatedIDEnv @loc.trefEnv @lhs.idenv
              selSelectList.idenv = @loc.trefEnv
              selWhere.idenv = @loc.includeCorrelations
              selGroupBy.idenv = @loc.trefEnv
@@ -372,7 +372,7 @@ tref ids and aliases
 ATTR TableRef TableRefList [|| trefIDs : IDEnv]
 
 SEM TableRefList
-    | Cons lhs.trefIDs = JoinTrefEnv [] Nothing @hd.trefIDs @tl.trefIDs
+    | Cons lhs.trefIDs = JoinTrefIDEnv [] @hd.trefIDs @tl.trefIDs
     | Nil lhs.trefIDs = emptyIDEnv "empty tref list"
 
 {-makeTrefIDs :: Catalog -> SQIdentifier -> IDEnv
@@ -415,7 +415,7 @@ SEM TableRef
 
     | FunTref (lhs.trefIDs,lhs.fixedUpIdentifiersTree) =
         let (FunCall _ f _) = @fn.originalTree
-            iea = aliasEnv @alias.originalTree $ FunTrefEnv f f
+            iea = aliasEnv @alias.originalTree $ FunTrefIDEnv f
             al = getEnvAlias iea
         in (iea, FunTref @ann @fn.fixedUpIdentifiersTree al)
          {-
@@ -455,7 +455,7 @@ then the non join keys from the second table
                        (_,Just (JoinUsing _ fs)) -> fs
                        _ -> []
               iea = aliasEnv @alias.originalTree
-                    $ JoinTrefEnv jids Nothing @tbl.trefIDs @tbl1.trefIDs
+                    $ JoinTrefIDEnv jids @tbl.trefIDs @tbl1.trefIDs
               al = getEnvAlias iea
           in (iea, JoinTref @ann @tbl.fixedUpIdentifiersTree
                             @nat @joinType @tbl1.fixedUpIdentifiersTree

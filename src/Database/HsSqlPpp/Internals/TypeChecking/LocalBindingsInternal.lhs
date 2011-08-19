@@ -72,7 +72,7 @@ in scope, and one for an unqualified star.
 > import Database.HsSqlPpp.Internals.TypeChecking.ErrorUtils
 >
 
-
+> --import Debug.Trace
 
 > data LocalBindings = LocalBindingsError
 >                    | LocalBindings [((String,String),Maybe Type)]
@@ -99,12 +99,15 @@ in scope, and one for an unqualified star.
 
 > lookupLocalBinding :: LocalBindings -> String -> String -> E (Maybe Type)
 > lookupLocalBinding LocalBindingsError _ _ = Right Nothing
-> lookupLocalBinding (LocalBindings lb) q i =
+> lookupLocalBinding (LocalBindings lb) q i = {-trace ("lookupLocalBinding " ++ show lb ++ "\n" ++ show q ++ " " ++ i) $ showit "result: " $ -}
 >   case lookup (q,i) lb of
 >     Just t -> Right t
 >     Nothing -> if (q == "") || any (==q) (map (fst . fst) lb)
 >                then Left [UnrecognisedIdentifier i]
 >                else Left [UnrecognisedCorrelationName q]
+
+> --showit :: Show a => String -> a -> a
+> --showit s a = trace (s ++ show a) a
 
 
 

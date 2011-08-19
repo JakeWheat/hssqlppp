@@ -303,8 +303,8 @@ getEnvAlias i =
 
 aliasEnv :: TableAlias -> IDEnv -> IDEnv
 aliasEnv (NoAlias _) ids = ids
-aliasEnv (TableAlias _ t) ids = TableAliasEnv t ids
-aliasEnv (FullAlias _ t cs) ids = FullAliasEnv t cs ids
+aliasEnv (TableAlias _ t) ids = TableAliasIDEnv t ids
+aliasEnv (FullAlias _ t cs) ids = FullAliasIDEnv t cs ids
 
 
 getTableTrefEnv :: Catalog -> SQIdentifier -> IDEnv
@@ -312,7 +312,7 @@ getTableTrefEnv cat si =
     let tn = getTName si
         (pus,pvs) = either (const ([],[])) id
                     $ catCompositeAttrsPair cat relationComposites tn
-    in TrefEnv tn (map fst pus) (map fst pvs)
+    in TrefIDEnv tn (map fst pus) (map fst pvs)
 
 
 
@@ -475,23 +475,36 @@ then relation, using the function name for the attribute name
 need to check to see what should happen with arrayof
 
 -}
-funIdens :: Catalog -> String -> ScalarExpr -> Maybe Type -> Either [TypeError] (String,[(String,Type)])
-funIdens cat alias fnVal ft = do
-   errorWhen (case fnVal of
+
+ -- @lhs.cat @alias.originalTree @fn.annotatedTree @fn.uType
+-- should always get full alias
+
+funIdens :: Catalog -> TableAlias -> ScalarExpr -> Maybe Type -> Either [TypeError] (String,[(String,Type)])
+funIdens cat (FullAlias _ t cs) (FunCall _ fnName _) ft = do
+   {-errorWhen (case fnVal of
                 FunCall _ _ _ -> False
                 _ -> True)
              [ContextError "FunCall"]
    let (FunCall _ fnName _) = fnVal
        cn = if alias /= ""
                            then alias
-                           else fnName
+                           else fnName-}
    attrs <- do
      fnt <- lmt ft
      case fnt of
-       SetOfType (NamedCompositeType t) -> catCompositePublicAttrs cat [] t
-       SetOfType x -> return [(cn,x)]
-       y -> return [(cn,y)]
-   return (cn, attrs)
+       SetOfType (NamedCompositeType t) -> do
+          x <- catCompositePublicAttrs cat [] t
+          let aliaslen = length cs
+              gotlen = length x
+          if aliaslen == gotlen
+            then return $ zip cs $ map snd x
+            else Left [WrongNumberOfAliasCols gotlen aliaslen]
+
+       SetOfType x | [c] <- cs -> return [(c,x)]
+                   | otherwise -> Left [WrongNumberOfAliasCols 1 $ length cs]
+       x | [c] <- cs -> return [(c,x)]
+         | otherwise -> Left [WrongNumberOfAliasCols 1 $ length cs]
+   return (t, attrs)
 
 getAlias :: String -> TableAlias -> String
 getAlias def alias =
@@ -3436,7 +3449,7 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
                   _selTrefItrefIDs
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 281, column 14)
               _includeCorrelations =
-                  CorrelatedEnv _trefEnv     _lhsIidenv
+                  CorrelatedIDEnv _trefEnv     _lhsIidenv
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 282, column 14)
               _selSelectListOidenv =
                   _trefEnv
@@ -7736,7 +7749,7 @@ sem_SelectList_SelectList ann_ items_  =
               _itemsIoriginalTree :: SelectItemList 
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 119, column 9)
               _lhsOcidenv =
-                  TrefEnv "" (map (\(SelectItem _ _ n) -> n)
+                  TrefIDEnv "" (map (\(SelectItem _ _ n) -> n)
                                   _itemsIfixedUpIdentifiersTree)
                              []
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag"(line 77, column 9)
@@ -12585,17 +12598,17 @@ sem_TableAlias_FullAlias ann_ tb_ cols_  =
          (let _lhsOannotatedTree :: TableAlias 
               _lhsOfixedUpIdentifiersTree :: TableAlias 
               _lhsOoriginalTree :: TableAlias 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 286, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 305, column 9)
               _lhsOannotatedTree =
                   addTypeErrors _errs     _backTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 288, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 307, column 9)
               _errs =
                   case _lhsIexpectedNumCols of
                         Nothing -> []
                         Just n -> if n == length cols_
                                   then []
                                   else [WrongNumberOfAliasCols n $ length cols_]
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 293, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 312, column 9)
               _backTree =
                   FullAlias ann_ tb_ cols_
               -- self rule
@@ -12624,13 +12637,13 @@ sem_TableAlias_NoAlias ann_  =
          (let _lhsOannotatedTree :: TableAlias 
               _lhsOfixedUpIdentifiersTree :: TableAlias 
               _lhsOoriginalTree :: TableAlias 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 286, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 305, column 9)
               _lhsOannotatedTree =
                   addTypeErrors _errs     _backTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 296, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 315, column 15)
               _backTree =
                   NoAlias ann_
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 297, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 316, column 15)
               _errs =
                   []
               -- self rule
@@ -12660,13 +12673,13 @@ sem_TableAlias_TableAlias ann_ tb_  =
          (let _lhsOannotatedTree :: TableAlias 
               _lhsOfixedUpIdentifiersTree :: TableAlias 
               _lhsOoriginalTree :: TableAlias 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 286, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 305, column 9)
               _lhsOannotatedTree =
                   addTypeErrors _errs     _backTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 294, column 18)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 313, column 18)
               _backTree =
                   TableAlias ann_ tb_
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 295, column 18)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 314, column 18)
               _errs =
                   []
               -- self rule
@@ -12820,7 +12833,7 @@ sem_TableRef_FunTref ann_ fn_ alias_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 416, column 15)
               __tup2 =
                   let (FunCall _ f _) = _fnIoriginalTree
-                      iea = aliasEnv _aliasIoriginalTree $ FunTrefEnv f f
+                      iea = aliasEnv _aliasIoriginalTree $ FunTrefIDEnv f
                       al = getEnvAlias iea
                   in (iea, FunTref ann_ _fnIfixedUpIdentifiersTree al)
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 416, column 15)
@@ -12832,30 +12845,32 @@ sem_TableRef_FunTref ann_ fn_ alias_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
               _lhsOannotatedTree =
                   addTypeErrors _errs     _backTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 102, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 106, column 9)
               _errs =
                   case _eqfunIdens of
                     Left e -> e
                     Right _ -> []
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 108, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 112, column 9)
               _eqfunIdens =
-                  funIdens _lhsIcat (getAlias "" _aliasIoriginalTree) _fnIannotatedTree _fnIuType
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 109, column 9)
+                  funIdens _lhsIcat _aliasIoriginalTree _fnIannotatedTree _fnIuType
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 113, column 9)
               _lhsOlibUpdates =
                   [LBTref "fn"
                                   (fst _qfunIdens    )
                                   (snd _qfunIdens    )
                                   []]
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 113, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 117, column 9)
               _qfunIdens =
                   fromRight ("",[]) _eqfunIdens
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 247, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 263, column 9)
               _lhsOnewLib2 =
-                  emptyBindings
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 260, column 9)
+                  createLocalBindings $ do
+                  (t,cs) <- etmt $ funIdens _lhsIcat _aliasIoriginalTree _fnIannotatedTree _fnIuType
+                  return [(t,map (second Just) cs)]
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 279, column 9)
               _backTree =
                   FunTref ann_ _fnIannotatedTree _aliasIannotatedTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 281, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 300, column 9)
               _aliasOexpectedNumCols =
                   Nothing
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 119, column 15)
@@ -12962,7 +12977,7 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
                                (_,Just (JoinUsing _ fs)) -> fs
                                _ -> []
                       iea = aliasEnv _aliasIoriginalTree
-                            $ JoinTrefEnv jids Nothing _tblItrefIDs _tbl1ItrefIDs
+                            $ JoinTrefIDEnv jids _tblItrefIDs _tbl1ItrefIDs
                       al = getEnvAlias iea
                   in (iea, JoinTref ann_ _tblIfixedUpIdentifiersTree
                                     nat_ joinType_ _tbl1IfixedUpIdentifiersTree
@@ -12976,19 +12991,19 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
               _lhsOannotatedTree =
                   addTypeErrors _errs     _backTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 118, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 122, column 9)
               _errs =
                   fromLeft [] _newLib
                   ++ _joinErrors
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 120, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 124, column 9)
               _lhsOlibUpdates =
                   if _joinErrors     == []
                   then _libUpdates
                   else []
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 125, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 129, column 9)
               _joinErrors =
                   fromLeft [] (foldM (flip $ lbUpdate _lhsIcat) _lhsIlib _libUpdates    )
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 126, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 130, column 9)
               _libUpdates =
                   case (_tblIlibUpdates, _tbl1IlibUpdates) of
                     ([u1], [u2]) -> [LBJoinTref "join" u1 u2 jids
@@ -13002,13 +13017,13 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
                                 (Natural, _) -> Left ()
                                 (_,Just (JoinUsing _ s)) -> Right s
                                 _ -> Right []
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 140, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 144, column 9)
               _newLib =
                   case (_tblIlibUpdates, _tbl1IlibUpdates) of
                     ([u1],[u2]) -> lbUpdate _lhsIcat
                                      (LBJoinTref "join" u1 u2 (Right []) Nothing) _lhsIlib
                     _ -> Right _lhsIlib
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 220, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 237, column 9)
               _newLib2 =
                   let t0t :: [(String,Maybe Type)]
                       t0t = getUnqualifiedBindings _tblInewLib2
@@ -13020,13 +13035,13 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
                         createLocalBindings $ Just [(n, t0t ++ t1t)]
                     NoAlias _ ->
                         joinBindings _tblInewLib2 _tbl1InewLib2
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 233, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 250, column 9)
               _lhsOnewLib2 =
                   _newLib2
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 234, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 251, column 9)
               _onExprOlib =
                   _newLib2
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 262, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 281, column 9)
               _backTree =
                   JoinTref ann_
                              _tblIannotatedTree
@@ -13035,7 +13050,7 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
                              _tbl1IannotatedTree
                              _onExprIannotatedTree
                              _aliasIannotatedTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 281, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 300, column 9)
               _aliasOexpectedNumCols =
                   Nothing
               -- self rule
@@ -13140,19 +13155,19 @@ sem_TableRef_SubTref ann_ sel_ alias_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
               _lhsOannotatedTree =
                   addTypeErrors _errs     _backTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 72, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 76, column 9)
               _errs =
                   case _selectAttrs     of
                           Left e -> e
                           Right _ -> []
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 76, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 80, column 9)
               _selectAttrs =
                   lmt _selIuType
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 77, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 81, column 9)
               _lhsOlibUpdates =
                   [LBTref "sub query" (getAlias "" _aliasIoriginalTree)
                                   (fromRight [] _selectAttrs    ) []]
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 237, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 254, column 9)
               _lhsOnewLib2 =
                   createLocalBindings $ do
                   pu <- _selIuType
@@ -13160,10 +13175,10 @@ sem_TableRef_SubTref ann_ sel_ alias_  =
                                  (FullAlias _ n cs) -> (n,cs)
                                  _ -> (n, [])
                   return [(n,zip cs $ map (Just . snd) pu)]
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 256, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 275, column 9)
               _backTree =
                   SubTref ann_ _selIannotatedTree _aliasIannotatedTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 281, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 300, column 9)
               _aliasOexpectedNumCols =
                   Nothing
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 179, column 15)
@@ -13248,10 +13263,10 @@ sem_TableRef_Tref ann_ tbl_ alias_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
               _lhsOannotatedTree =
                   addTypeErrors _errs     _backTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 85, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 89, column 9)
               _errs =
                   []
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 86, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 90, column 9)
               _lhsOlibUpdates =
                   maybe [] id $ do
                   let n = getTName _tblIannotatedTree
@@ -13260,7 +13275,7 @@ sem_TableRef_Tref ann_ tbl_ alias_  =
                             (getAlias n _aliasIoriginalTree)
                             pu
                             pr]
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 208, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 225, column 9)
               _lhsOnewLib2 =
                   createLocalBindings $ do
                   let n = getTName _tblIannotatedTree
@@ -13270,10 +13285,10 @@ sem_TableRef_Tref ann_ tbl_ alias_  =
                                  _ -> (n, [])
                   return [(n,zip cs $ map (Just . snd) pu)
                          ,(n,map (second Just) pr)]
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 258, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 277, column 9)
               _backTree =
                   Tref ann_ _tblItbAnnotatedTree _aliasIannotatedTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 275, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 294, column 9)
               _aliasOexpectedNumCols =
                   do
                   let n = getTName _tblIannotatedTree
@@ -13394,11 +13409,11 @@ sem_TableRefList_Cons hd_ tl_  =
               _tlItrefIDs :: IDEnv
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 375, column 12)
               _lhsOtrefIDs =
-                  JoinTrefEnv [] Nothing _hdItrefIDs _tlItrefIDs
+                  JoinTrefIDEnv [] _hdItrefIDs _tlItrefIDs
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 61, column 9)
               _lhsOlibUpdates =
                   _hdIlibUpdates
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 204, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 221, column 9)
               _lhsOnewLib2 =
                   joinBindings _hdInewLib2 _tlInewLib2
               -- self rule
@@ -13459,7 +13474,7 @@ sem_TableRefList_Nil  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 59, column 9)
               _lhsOlibUpdates =
                   []
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 202, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 219, column 9)
               _lhsOnewLib2 =
                   createLocalBindings $ Just []
               -- self rule

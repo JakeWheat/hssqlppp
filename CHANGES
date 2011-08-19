@@ -3,7 +3,7 @@
 change ast for into statements
 add script for regenerating defaultTemplate1Catalog
 change ast for update statements
-bug fixes:
+bug/regression fixes:
 fix parsing 'for 1..10' without spaces
 fix pretty printing (x).y member reference in scalar
   expressions (was missing parens before)
@@ -12,6 +12,8 @@ fix typechecking for natural joins
 fix typechecking for parameterized queries/dml
 fix parsing of substring when it uses regular function call syntax
   (i.e. substring(a,b,c) rather than substring(a from b for c)
+fix typechecking for most joins
+fix typechecking for non composite function table refs
 
 0.3.1
 Released 13/08/2011

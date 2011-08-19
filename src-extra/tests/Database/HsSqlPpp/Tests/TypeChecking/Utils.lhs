@@ -13,7 +13,8 @@
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Types
-> import Text.Groom
+> import Database.HsSqlPpp.Pretty
+> --import Text.Groom
 > import Database.HsSqlPpp.Tests.TestUtils
 
 
@@ -48,8 +49,8 @@
 >       er = universeBi aast
 >   in case (length er, length is) of
 >        (0,0) -> assertFailure "didn't get any infos?"
->        (0,_) -> assertTrace (groom aast) ("typecheck " ++ src) sis $ Right is
->        _ -> assertTrace (groom aast) ("typecheck " ++ src) sis $ Left er
+>        (0,_) -> assertTrace (printStatements aast) ("typecheck " ++ src) sis $ Right is
+>        _ -> assertTrace (printStatements aast) ("typecheck " ++ src) sis $ Left er
 
 > testCatUpStatementType :: String
 >                        -> [CatalogUpdate]
@@ -65,8 +66,8 @@
 >       er = universeBi aast
 >   in {-trace (show aast) $-} case (length er, length is) of
 >        (0,0) -> assertFailure "didn't get any infos?"
->        (0,_) -> assertEqual ("typecheck " ++ src) sis $ Right is
->        _ -> assertEqual ("typecheck " ++ src) sis $ Left er
+>        (0,_) -> assertTrace (printStatements aast) ("typecheck " ++ src) sis $ Right is
+>        _ -> assertTrace (printStatements aast) ("typecheck " ++ src) sis $ Left er
 >   where
 >     makeCat = case updateCatalog defaultTemplate1Catalog eu of
 >                         Left x -> error $ show x
