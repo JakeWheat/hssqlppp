@@ -6,11 +6,6 @@ fix typechecking for composite function table references
 
 = 'arcs'
 
-== api
-review api names, docs and other aspects
-
-== website nav
-
 == localenv
 
 New approach to fixupidentifiers in IDEnv. Want to use this approach
@@ -20,10 +15,28 @@ correlation names all over the place. Want to make this optional, and
 the ability to only add correlation names and not aliases. Want to
 also get rid of the separate fixupidentifiers pass.
 
+== typesafe wrapper
+
+write typesafe wrapper for haskell accessing database big question is
+which record system to use: haskell records, hlists, haskelldb
+records, maybe fc-labels?
+
+nullability inference would be useful here, also possibly single
+column in result specialisation, and static check of single tuple in
+result (e.g. where on key, or non grouped aggregates).
+
+
+== api
+review api names, docs and other aspects
+
+== website nav
+
 == examples
 
 add compilation of examples to automated tests, also add tests in the
 documentation
+
+== nullablity inference in type checker
 
 == syntax refactoring
 
@@ -136,16 +149,6 @@ and new expressions types only.
 
 == work through pg manual to get more complete coverage of sql syntax
 
-== typesafe wrapper
-
-write typesafe wrapper for haskell accessing database big question is
-which record system to use: haskell records, hlists, haskelldb
-records, maybe fc-labels?
-
-nullability inference would be useful here, also possibly single
-column in result specialisation, and static check of single tuple in
-result (e.g. where on key, or non grouped aggregates).
-
 == roundtrip testing
 
 use postgresql to help with testing:
@@ -184,10 +187,6 @@ parse, pretty print, reparse and check
 generate documentation, catalog
 load into postgresql and double check catalog from typechecker
 load and dump postgresql, reparse and typecheck for changes
-
-
-== nullablity inference in type checker
-
 
 == documentation generator for sql codebases
 

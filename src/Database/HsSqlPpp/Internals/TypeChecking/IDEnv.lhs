@@ -53,8 +53,8 @@ first element is the alias, used for joins
 >                                 then Just (f,i)
 >                                 else Nothing
 > qualifyID' (CompFunTrefIDEnv f cs) i = case () of
->                                       _ | i == f -> Nothing
->                                         | i `elem` cs -> Just (f,i)
+>                                       _ | i `elem` cs -> Just (f,i)
+>                                         | i == f -> Nothing --slighly hacky, this should be left alone
 >                                         | otherwise -> Nothing
 > qualifyID' (JoinTrefIDEnv js t0 t1) i =
 >   case (qualifyID t0 i,qualifyID t1 i) of
@@ -102,8 +102,9 @@ special case for aliased funtrefs
 > expandStar' (TrefIDEnv s pus _) Nothing = Just $ zip (repeat s) pus
 > expandStar' (TrefIDEnv s pus _) (Just s1) | s == s1 = Just $ zip (repeat s) pus
 >                                         | otherwise = Nothing
-> expandStar' (CompFunTrefIDEnv f _cs) Nothing = Just [(f,f)]
+> expandStar' (CompFunTrefIDEnv f cs) Nothing = Just $ zip (repeat f) cs
 > expandStar' (CompFunTrefIDEnv f cs) (Just f1) | f == f1 = Just $ zip (repeat f) cs
+>                                               | otherwise = Nothing
 > expandStar' (FunTrefIDEnv f) Nothing = Just [(f,f)]
 > expandStar' (FunTrefIDEnv f) (Just f1) | f == f1 = Just [(f,f)]
 >                                        | otherwise = Nothing

@@ -7,7 +7,7 @@
 > import Database.HsSqlPpp.Types
 
 > tcJoinsTestData :: Item
-> tcJoinsTestData = -- FIXME: joins: some of these fail
+> tcJoinsTestData =
 >     Group "simple join selects" [
 >       s "select * from (select 1 as a, 2 as b) a\n\
 >         \  cross join (select true as c, 4.5 as d) b;"

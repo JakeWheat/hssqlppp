@@ -47,7 +47,6 @@ qualifier before oid and this should still work
 >         $ Right [Just ([], [("relvar_name",ScalarType "name")])]
 >      ,s "select relname from pg_class where relkind in ('r', 'v');"
 >         $ Right [Just ([], [("relname",ScalarType "name")])]
->      -- fixme: needs funtrefs?
 >      ,s "select * from generate_series(1,7) g\n\
 >         \where g not in (select * from generate_series(3,5));"
 >         $ Right [Just ([], [("g",typeInt)])]

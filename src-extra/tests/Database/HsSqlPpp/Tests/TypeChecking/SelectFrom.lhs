@@ -9,7 +9,7 @@
 > import Database.HsSqlPpp.Catalog
 
 > tcSelectFromTestData :: Item
-> tcSelectFromTestData = -- FIXME: some of these fail
+> tcSelectFromTestData =
 >   Group "selects from" [
 >   Group "simple selects from" [
 >       s "select a from (select 1 as a, 2 as b) x;"
@@ -20,31 +20,24 @@
 >         $ Left [UnrecognisedIdentifier "c"]
 >      ,s "select typlen from pg_type;"
 >         $ Right [Just ([], [("typlen", typeSmallInt)])]
->      -- fixme: oid?
 >      ,s "select oid from pg_type;"
 >         $ Right [Just ([], [("oid", ScalarType "oid")])]
 >      ,s "select p.oid from pg_type p;"
 >         $ Right [Just ([], [("oid", ScalarType "oid")])]
 >      ,s "select typlen from nope;"
 >         $ Left [UnrecognisedRelation "nope"]
->      -- fixme funtref alias?
 >      ,s "select generate_series from generate_series(1,7);"
 >         $ Right [Just ([], [("generate_series", typeInt)])]
 >
 >      -- check aliasing
->      -- fixme funtref alias?
 >      ,s "select generate_series.generate_series from generate_series(1,7);"
 >         $ Right [Just ([], [("generate_series", typeInt)])]
->      -- fixme funtref alias?
 >      ,s "select g from generate_series(1,7) g;"
 >         $ Right [Just ([], [("g", typeInt)])]
->      -- fixme funtref alias?
 >      ,s "select g.g from generate_series(1,7) g;"
 >         $ Right [Just ([], [("g", typeInt)])]
->      --fixme:funtref?
 >      ,s "select generate_series.g from generate_series(1,7) g;"
 >         $ Left [UnrecognisedCorrelationName "generate_series"]
->      -- fixme funtref?
 >      ,s "select g.generate_series from generate_series(1,7) g;"
 >         $ Left [UnrecognisedIdentifier "generate_series"]
 >
@@ -54,7 +47,6 @@
 >          ,("adnum",ScalarType "int2")
 >          ,("adbin",ScalarType "text")
 >          ,("adsrc",ScalarType "text")])]
->         -- fixme: needs funtref
 >      ,s "select abs from abs(3);"
 >         $ Right [Just ([], [("abs", typeInt)])]
 >         --todo: these are both valid,

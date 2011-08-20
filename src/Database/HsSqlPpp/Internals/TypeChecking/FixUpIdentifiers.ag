@@ -415,7 +415,10 @@ SEM TableRef
 
     | FunTref (lhs.trefIDs,lhs.fixedUpIdentifiersTree) =
         let (FunCall _ f _) = @fn.originalTree
-            iea = aliasEnv @alias.originalTree $ FunTrefIDEnv f
+            -- fixme: composite returning functions
+            -- problem: need typechecking to choose the correct function!
+            -- so this approach cannot work
+            iea = aliasEnv @alias.originalTree f
             al = getEnvAlias iea
         in (iea, FunTref @ann @fn.fixedUpIdentifiersTree al)
          {-
