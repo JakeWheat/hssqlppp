@@ -62,6 +62,7 @@ Library
                      Database.HsSqlPpp.Internals.TypeChecking.ErrorUtils
                      Database.HsSqlPpp.Internals.TypeChecking.LocalBindings
                      Database.HsSqlPpp.Internals.TypeChecking.Utils
+                     Database.HsSqlPpp.Internals.TypeChecking.IDEnv
                      Database.HsSqlPpp.Internals.TypeChecking.LocalBindingsInternal
                      Database.HsSqlPpp.Internals.AstAnnotation
                      Database.HsSqlPpp.Internals.AnnotationUtils
