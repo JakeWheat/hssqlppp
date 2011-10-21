@@ -4,6 +4,16 @@
 fixupidentifiers for ctes
 fix typechecking for composite function table references
 
+sort out quoting identifiers:
+fix the lexer to distinguish
+then fix the syntax to add a quoted bool
+  to the Identifier and QIdentifier ctors in scalarexpr
+and fix the sqidentifier to be [(Bool,String)] instead of [String]
+-> fix the parser and pretty printer, and add tests?
+leave the typechecker as broken wrt case at the moment
+
+
+
 = 'arcs'
 
 == localenv

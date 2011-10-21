@@ -7,16 +7,19 @@ Purpose
 Possible uses of this library include:
 
 * parsing SQL
-* lint checking SQL code
 * type-checker can help with SQL development and catch bugs which
   aren't statically detected by PostgreSQL
 * generating SQL code programmatically/ generating SQL from some other
   source
 * transforming SQL code using quasiquoting
 * viewing the catalog produced by some SQL code
-* typesafe database access from haskell
+
+With some extra work:
+
 * generating documentation for SQL code
 * middleware to support running one dialect of SQL on a different DBMS
+* typesafe database access from haskell
+* lint checking SQL code
 
 Status
 ======
@@ -40,10 +43,19 @@ the tests:
 
 * [Quasiquotation examples](QuasiQuoteTests.html)
 
+The pretty printer should support everything the parser supports
+(i.e. it pretty prints code which both the parser and PostgreSQL
+understand).
+
+Catalog information is limited, supports the type checking. Some
+information is collected on: scalar types, domains, composite types,
+casts, tables, views and functions currently.
+
 Installation
 ============
 
-This project is currently developed on GHC 7.0.4.
+This project is currently developed on GHC 7.2.1. 7.0.x should be
+fine, 6.12.x might take a small amount of work.
 
 To install use
 

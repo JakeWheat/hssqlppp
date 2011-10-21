@@ -418,14 +418,14 @@ SEM TableRef
             -- fixme: composite returning functions
             -- problem: need typechecking to choose the correct function!
             -- so this approach cannot work
-            iea = aliasEnv @alias.originalTree f
+            iea = aliasEnv @alias.originalTree $ FunTrefIDEnv f
             al = getEnvAlias iea
         in (iea, FunTref @ann @fn.fixedUpIdentifiersTree al)
-         {-
-        let (FunCall _ f _) = @fn.originalTree
+
+        {-let (FunCall _ f _) = @fn.originalTree
             -- needs fixing for table returning functions
             (ie,al) = applyAlias @alias.originalTree $ FunTrefEnv f f
-        in (ie,FunTref @ann @fn.fixedUpIdentifiersTree al) -}
+        in (ie,FunTref @ann @fn.fixedUpIdentifiersTree al)-}
         {-let (FunCall _ f _) = @fn.originalTree
             (trs,al) = doAlias @alias.originalTree [(f,[f])] -- needs fixing for table returning functions
         in (trs,FunTref @ann @fn.fixedUpIdentifiersTree al)-}

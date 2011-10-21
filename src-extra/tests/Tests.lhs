@@ -24,7 +24,7 @@ type inference tests
 > import Database.HsSqlPpp.Tests.Tests
 > import Test.Framework
 
-> main :: IO()
+> main :: IO ()
 > main = defaultMain allTests
 
 cd /home/jake/wd/hssqlppp/trunk/src-extra/tests && ghc -Wall -XTupleSections -XScopedTypeVariables -XDeriveDataTypeable -O -i../../src:../util Tests.lhs

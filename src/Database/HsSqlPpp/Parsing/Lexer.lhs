@@ -47,6 +47,7 @@ copy payload (used to lex copy from stdin data)
 >                                    --', $$, $[stuff]$
 
 >          | IdStringTok String -- either a identifier component (without .) or a *
+>          | QIdStringTok String -- same as IdStringTok with quotes
 
 >          | SymbolTok String -- operators, and ()[],;: and also .
 >                             -- '*' is currently always lexed as an id
