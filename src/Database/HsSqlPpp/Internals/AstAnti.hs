@@ -248,8 +248,8 @@ data ScalarExpr = BooleanLit Annotation Bool
                 | ScalarSubQuery Annotation QueryExpr
                 | StringLit Annotation String
                 | TypedStringLit Annotation TypeName String
-                | WindowFn Annotation ScalarExpr ScalarExprList ScalarExprList
-                           Direction FrameClause
+                | WindowFn Annotation ScalarExpr ScalarExprList
+                           ScalarExprDirectionPairList FrameClause
                 | AntiScalarExpr String
                 deriving (Data, Eq, Show, Typeable)
  
@@ -711,11 +711,10 @@ scalarExpr x
         ScalarSubQuery a1 a2 -> A.ScalarSubQuery a1 (queryExpr a2)
         StringLit a1 a2 -> A.StringLit a1 a2
         TypedStringLit a1 a2 a3 -> A.TypedStringLit a1 (typeName a2) a3
-        WindowFn a1 a2 a3 a4 a5 a6 -> A.WindowFn a1 (scalarExpr a2)
-                                        (scalarExprList a3)
-                                        (scalarExprList a4)
-                                        (direction a5)
-                                        (frameClause a6)
+        WindowFn a1 a2 a3 a4 a5 -> A.WindowFn a1 (scalarExpr a2)
+                                     (scalarExprList a3)
+                                     (scalarExprDirectionPairList a4)
+                                     (frameClause a5)
         AntiScalarExpr _ -> error "can't convert anti scalarExpr"
  
 selectItem :: SelectItem -> A.SelectItem

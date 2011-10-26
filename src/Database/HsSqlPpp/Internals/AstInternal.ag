@@ -610,11 +610,16 @@ DATA ScalarExpr | NumberLit ann:Annotation d:String
                               expr:ScalarExpr
                               i:Bool
                               list:InList
+               {- | AggregateFn ann:Annotation
+                                aggDistinct : Distinct
+                                fn : ScalarExpr
+                                orderBy : ScalarExprDirectionPairList
+-}
+
                 | WindowFn ann:Annotation
                            fn : ScalarExpr
                            partitionBy : ScalarExprList
-                           orderBy : ScalarExprList
-                           dir : Direction
+                           orderBy : ScalarExprDirectionPairList
                            frm : FrameClause
                 | ScalarSubQuery ann:Annotation -- scalar meaning scalar context not scalar valued...
                                  sel : QueryExpr

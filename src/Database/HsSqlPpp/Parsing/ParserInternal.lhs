@@ -360,23 +360,27 @@ this recursion needs refactoring cos it's a mess
 >                    <*> optionMaybe whereClause
 >                    <*> option [] groupBy
 >                    <*> optionMaybe having
->                    <*> option [] orderBy
+>                    <*> orderBy
 >                    <*> optionMaybe limit
 >                    <*> optionMaybe offset
 >         from = keyword "from" *> commaSep1 tableRef
 >         groupBy = keyword "group" *> keyword "by"
 >                   *> commaSep1 expr
 >         having = keyword "having" *> expr
->         orderBy = keyword "order" *> keyword "by"
->                     *> commaSep1 oneOrder
->         oneOrder = (,) <$> expr
->                        <*> option Asc (choice [
->                                         Asc <$ keyword "asc"
->                                        ,Desc <$ keyword "desc"])
 >         limit = keyword "limit" *> expr
 >         offset = keyword "offset" *> expr
 >         values = Values <$> (pos <* keyword "values")
 >                         <*> commaSep1 (parens $ commaSep1 expr)
+
+> orderBy :: SParser [(ScalarExpr,Direction)]
+> orderBy = option []
+>             (keyword "order" *> keyword "by"
+>                              *> commaSep1 oneOrder)
+>           where
+>             oneOrder = (,) <$> expr
+>                        <*> option Asc (choice [
+>                                         Asc <$ keyword "asc"
+>                                        ,Desc <$ keyword "desc"])
 
 
 table refs
@@ -1451,14 +1455,10 @@ row ctor: one of
 > windowFnSuffix e = WindowFn <$> pos <*> return e
 >                    <*> (keyword "over"
 >                         *> (symbol "(" *> option [] partitionBy))
->                    <*> option [] orderBy1
->                    <*> option Asc (try $ choice [
->                                             Asc <$ keyword "asc"
->                                            ,Desc <$ keyword "desc"])
+>                    <*> orderBy
 >                    <*> frm
 >                    <* symbol ")"
 >   where
->     orderBy1 = keyword "order" *> keyword "by" *> commaSep1 expr
 >     partitionBy = keyword "partition" *> keyword "by" *> commaSep1 expr
 >     frm = option FrameUnboundedPreceding $ choice
 >                                          $ map (\(a,b) -> a <$ try (ks b)) [

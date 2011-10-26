@@ -474,11 +474,7 @@ Statement components
 >      [] -> Nothing
 >      g -> Just $ text "group by" $+$ nest 2 (sepCsvMap (convExp nice) g)
 >   ,flip fmap hav $ \h -> text "having" $+$ nest 2 (convExp nice h)
->   ,case order of
->      [] -> Nothing
->      o -> Just $ text "order by"
->                   $+$ nest 2 (sepCsvMap (\(oe,od) -> convExp nice oe
->                                               <+> convDir od) o)
+>   ,Just $ convOrderBy nice order
 >   ,flip fmap lim $ \lm -> text "limit" <+> convExp nice lm
 >   ,flip fmap off $ \offs -> text "offset" <+> convExp nice offs
 >   ])
@@ -725,16 +721,13 @@ Statement components
 >   <+> parens (convExp nice $ head $ tail args)
 > convExp nice (ScalarSubQuery _ s) = parens (convQueryExpr nice True True s)
 > convExp _ (NullLit _) = text "null"
-> convExp nice (WindowFn _ fn part order asc frm) =
+> convExp nice (WindowFn _ fn part order frm) =
 >   convExp nice fn <+> text "over"
 >   <+> parens (if hp || ho
 >               then (if hp
 >                     then text "partition by" <+> csvExp nice part
 >                     else empty)
->                     <+> (if ho
->                          then text "order by" <+> csvExp nice order
->                               <+> convDir asc
->                          else empty)
+>                     <+> convOrderBy nice order
 >                     <+> convFrm
 >               else empty)
 >   where
@@ -877,7 +870,12 @@ Statement components
 > sepCsvMap :: (a -> Doc) -> [a] -> Doc
 > sepCsvMap ex = sepCsv . map ex
 
-
+> convOrderBy :: Bool -> [(ScalarExpr,Direction)] -> Doc
+> convOrderBy _ [] = empty
+> convOrderBy nice os =
+>   text "order by"
+>   $+$ nest 2 (sepCsvMap (\(oe,od) -> convExp nice oe
+>                                      <+> convDir od) os)
 
 > --vcatCsvMap :: (a -> Doc) -> [a] -> Doc
 > --vcatCsvMap ex = vcat . csv . map ex

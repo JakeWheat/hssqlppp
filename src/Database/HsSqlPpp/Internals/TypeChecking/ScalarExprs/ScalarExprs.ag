@@ -212,7 +212,6 @@ SEM ScalarExpr
                                 @fn.annotatedTree
                                 @partitionBy.annotatedTree
                                 @orderBy.annotatedTree
-                                @dir
                                 @frm
 {-
 lifted operator:

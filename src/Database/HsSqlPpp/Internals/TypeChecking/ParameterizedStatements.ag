@@ -137,7 +137,6 @@ SEM ScalarExpr
         args.expectedTypes = []
     | WindowFn
         partitionBy.expectedTypes = []
-        orderBy.expectedTypes = []
 
 SEM ScalarExprListStatementListPair
     | Tuple x1.expectedTypes = []

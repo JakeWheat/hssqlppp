@@ -247,7 +247,7 @@ I'm sure the implementation can be simpler than this
 >                          ,-- dot followed by optional exp
 >                           -- check for .. symbol
 >                           choice [try $ do
->                                         lookAhead $ string ".."
+>                                         _ <- lookAhead $ string ".."
 >                                         return []
 >                                  ,do
 >                                   _ <- char '.'

@@ -271,7 +271,7 @@
 >                    (WindowFn ea
 >                     (FunCall ea "row_number" [])
 >                     []
->                     [Identifier ea "a"] Asc FrameUnboundedPreceding)
+>                     [(Identifier ea "a", Asc)] FrameUnboundedPreceding)
 >                    "place"]
 >        (Tref ea (i "tbl") (NoAlias ea))]
 >      ,s "select row_number() over(order by a asc) as place from tbl;"
@@ -279,7 +279,7 @@
 >                    (WindowFn ea
 >                     (FunCall ea "row_number" [])
 >                     []
->                     [Identifier ea "a"] Asc FrameUnboundedPreceding)
+>                     [(Identifier ea "a",Asc)] FrameUnboundedPreceding)
 >                    "place"]
 >        (Tref ea (i "tbl") (NoAlias ea))]
 >      ,s "select row_number() over(order by a desc) as place from tbl;"
@@ -287,7 +287,7 @@
 >                    (WindowFn ea
 >                     (FunCall ea "row_number" [])
 >                     []
->                     [Identifier ea "a"] Desc FrameUnboundedPreceding)
+>                     [(Identifier ea "a", Desc)] FrameUnboundedPreceding)
 >                    "place"]
 >        (Tref ea (i "tbl") (NoAlias ea))]
 >      ,s "select row_number()\n\
@@ -297,7 +297,7 @@
 >                    (WindowFn ea
 >                     (FunCall ea "row_number" [])
 >                     [FunCall ea "!rowctor" [Identifier ea "a",Identifier ea "b"]]
->                     [Identifier ea "c"] Asc FrameUnboundedPreceding)
+>                     [(Identifier ea "c", Asc)] FrameUnboundedPreceding)
 >                    "place"]
 >        (Tref ea (i "tbl") (NoAlias ea))]
 >      ,s "select * from a natural inner join (select * from b) as a;"
@@ -391,7 +391,7 @@
 >                     (WindowFn ea
 >                     (FunCall ea "row_number" [])
 >                     []
->                     [] Asc FrameUnboundedPreceding)
+>                     [] FrameUnboundedPreceding)
 >        , selI "x"]
 >        (Tref ea (i "tb") (NoAlias ea))]
 >      ]]

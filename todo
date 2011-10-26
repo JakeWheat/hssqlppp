@@ -4,6 +4,13 @@
 fixupidentifiers for ctes
 fix typechecking for composite function table references
 
+-> see new localenv below
+
+The current approach of first qualifying the ids then typechecking
+cannot work in general, both of these steps must be done at the same
+time. This will fix the inability to typecheck composite returning
+functions.
+
 sort out quoting identifiers:
 fix the lexer to distinguish
 then fix the syntax to add a quoted bool
