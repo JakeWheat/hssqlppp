@@ -1503,13 +1503,20 @@ row ctor: one of
 >   c <- b_expr
 >   return $ FunCall p "!between" [a,b,c]
 
+handles aggregate business as well
 
 > functionCallSuffix :: ScalarExpr -> SParser ScalarExpr
-> functionCallSuffix (Identifier _ fnName) =
->   pos >>= \p -> FunCall p fnName
->                 <$> parens (optional (keyword "all"
->                                       <|> keyword "distinct")
->                             *> commaSep expr)
+> functionCallSuffix (Identifier _ fnName) = do
+>   p <- pos
+>   (di,as,ob) <- parens $ (,,)
+>                          <$> optionMaybe
+>                              (choice [Distinct <$ keyword "distinct"
+>                                      ,Dupes <$ keyword "all"])
+>                          <*> commaSep expr
+>                          <*> orderBy
+>   return $ case (di,ob) of
+>     (Nothing,[]) -> FunCall p fnName as
+>     (d,o) -> AggregateFn p (fromMaybe Dupes d) (FunCall p fnName as) o
 > functionCallSuffix s =
 >   fail $ "cannot make functioncall from " ++ show s
 >

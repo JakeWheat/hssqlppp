@@ -738,6 +738,13 @@ Statement components
 >                 FrameUnboundedFull -> text "range between unbounded preceding and unbounded following"
 >                 FrameRowsUnboundedPreceding -> text "rows unbounded preceding"
 >
+> convExp nice (AggregateFn _ d (FunCall _ fn es) o) =
+>   text fn <> parens ((case d of
+>                         Dupes -> text "all"
+>                         Distinct -> text "distinct")
+>                      <+> csvExp nice es
+>                      <+> convOrderBy nice o)
+> convExp _ (AggregateFn _ _ _ _) = error $ "bad syntax for aggregate function"
 > convExp nice (Case _ whens els) =
 >   text "case"
 >   $+$ nest 2 (vcat (map convWhen whens)

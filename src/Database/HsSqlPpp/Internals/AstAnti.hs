@@ -227,7 +227,9 @@ data RowConstraint = NotNullConstraint Annotation String
 data SQIdentifier = SQIdentifier Annotation [String]
                   deriving (Data, Eq, Show, Typeable)
  
-data ScalarExpr = BooleanLit Annotation Bool
+data ScalarExpr = AggregateFn Annotation Distinct ScalarExpr
+                              ScalarExprDirectionPairList
+                | BooleanLit Annotation Bool
                 | Case Annotation CaseScalarExprListScalarExprPairList
                        MaybeScalarExpr
                 | CaseSimple Annotation ScalarExpr
@@ -686,6 +688,9 @@ sQIdentifier x
 scalarExpr :: ScalarExpr -> A.ScalarExpr
 scalarExpr x
   = case x of
+        AggregateFn a1 a2 a3 a4 -> A.AggregateFn a1 (distinct a2)
+                                     (scalarExpr a3)
+                                     (scalarExprDirectionPairList a4)
         BooleanLit a1 a2 -> A.BooleanLit a1 a2
         Case a1 a2 a3 -> A.Case a1
                            (caseScalarExprListScalarExprPairList a2)

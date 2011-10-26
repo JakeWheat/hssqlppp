@@ -356,6 +356,28 @@
 >       [QueryStatement ea $ selectFrom
 >        (selIL ["*"])
 >        (FunTref ea (FunCall ea "gen" [])(TableAlias ea  "t"))]
+>      ,s "select count(distinct b) from c;"
+>         [QueryStatement ea $ Select ea Dupes
+>          (sl [SelExp ea (AggregateFn ea Distinct
+>                          (FunCall ea "count" [Identifier ea "b"])
+>                          [])])
+>          [Tref ea (i "c") (NoAlias ea)] Nothing []
+>          Nothing [] Nothing Nothing]
+>      ,s "select count(all b) from c;"
+>         [QueryStatement ea $ Select ea Dupes
+>          (sl [SelExp ea (AggregateFn ea Dupes
+>                          (FunCall ea "count" [Identifier ea "b"])
+>                          [])])
+>          [Tref ea (i "c") (NoAlias ea)] Nothing []
+>          Nothing [] Nothing Nothing]
+>      ,s "select string_agg(distinct relname,',' order by relname1) from pg_class;"
+>         [QueryStatement ea $ Select ea Dupes
+>          (sl [SelExp ea (AggregateFn ea Distinct
+>                          (FunCall ea "string_agg" [Identifier ea "relname"
+>                                                   ,StringLit ea ","])
+>                          [(Identifier ea "relname1", Asc)])])
+>          [Tref ea (i "pg_class") (NoAlias ea)] Nothing []
+>          Nothing [] Nothing Nothing]
 >      ,s "select a, count(b) from c group by a;"
 >         [QueryStatement ea $ Select ea Dupes
 >          (sl [selI "a", SelExp ea (FunCall ea "count" [Identifier ea "b"])])

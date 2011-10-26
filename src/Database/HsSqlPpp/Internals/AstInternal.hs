@@ -329,7 +329,8 @@ addSIAlias (SelExp ann ex) = SelectItem ann ex $ getColName ex
     getColName (QIdentifier _ _ i) = i
     getColName (FunCall _ f _) | not (isOperatorName f) = f
     getColName (Cast _ _ (SimpleTypeName _ tn)) = tn
-    getColName (WindowFn _ (FunCall _ f _) _ _ _ ) = f
+    getColName (WindowFn _ (FunCall _ f _) _ _ _) = f
+    getColName (AggregateFn _ _ (FunCall _ f _) _) = f
     getColName _ = "?column?"
 
 
@@ -2073,7 +2074,7 @@ sem_InList_InQueryExpr ann_ sel_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 120, column 19)
               _selOcsql =
                   emptyBindings
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 171, column 19)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 173, column 19)
               _selOexpectedTypes =
                   []
               -- self rule
@@ -3273,7 +3274,7 @@ sem_QueryExpr_CombineQueryExpr ann_ ctype_ sel1_ sel2_  =
               _sel2IlibUpdates :: ([LocalBindingsUpdate])
               _sel2IoriginalTree :: QueryExpr 
               _sel2IuType :: (Maybe [(String,Type)])
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 235, column 24)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 236, column 24)
               _lhsOcidenv =
                   _sel1Icidenv
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 29, column 9)
@@ -3429,7 +3430,7 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
               _selOffsetIfixedUpIdentifiersTree :: MaybeScalarExpr 
               _selOffsetIoriginalTree :: MaybeScalarExpr 
               _selOffsetIuType :: (Maybe Type)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 192, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 193, column 9)
               _lhsOfixedUpIdentifiersTree =
                   Select ann_
                          selDistinct_
@@ -3441,28 +3442,28 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
                          _selOrderByIfixedUpIdentifiersTree
                          _selLimitIfixedUpIdentifiersTree
                          _selOffsetIfixedUpIdentifiersTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 234, column 14)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 235, column 14)
               _lhsOcidenv =
                   _selSelectListIcidenv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 280, column 14)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 281, column 14)
               _trefEnv =
                   _selTrefItrefIDs
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 281, column 14)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 282, column 14)
               _includeCorrelations =
                   CorrelatedIDEnv _trefEnv     _lhsIidenv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 282, column 14)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 283, column 14)
               _selSelectListOidenv =
                   _trefEnv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 283, column 14)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 284, column 14)
               _selWhereOidenv =
                   _includeCorrelations
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 284, column 14)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 285, column 14)
               _selGroupByOidenv =
                   _trefEnv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 285, column 14)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 286, column 14)
               _selHavingOidenv =
                   _includeCorrelations
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 286, column 14)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 287, column 14)
               _selOrderByOidenv =
                   _trefEnv
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 29, column 9)
@@ -3510,7 +3511,7 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 185, column 9)
               _lhsOuType =
                   etmt (_tpe     >>= unwrapSetOfComposite)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 148, column 14)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 150, column 14)
               _selGroupByOexpectedTypes =
                   []
               -- self rule
@@ -3608,7 +3609,7 @@ sem_QueryExpr_Values ann_ vll_  =
               _vllIfixedUpIdentifiersTree :: ScalarExprListList 
               _vllIoriginalTree :: ScalarExprListList 
               _vllIuType :: ([[Maybe Type]])
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 236, column 14)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 237, column 14)
               _lhsOcidenv =
                   emptyIDEnv "values"
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 29, column 9)
@@ -3628,7 +3629,7 @@ sem_QueryExpr_Values ann_ vll_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 185, column 9)
               _lhsOuType =
                   etmt (_tpe     >>= unwrapSetOfComposite)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 162, column 14)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 164, column 14)
               _vllOexpectedTypes =
                   _lhsIexpectedTypes
               -- self rule
@@ -3695,10 +3696,10 @@ sem_QueryExpr_WithQueryExpr ann_ withs_ ex_  =
               _exIlibUpdates :: ([LocalBindingsUpdate])
               _exIoriginalTree :: QueryExpr 
               _exIuType :: (Maybe [(String,Type)])
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 237, column 21)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 238, column 21)
               _lhsOcidenv =
                   _exIcidenv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 238, column 21)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 239, column 21)
               _exOidenv =
                   _exIcidenv
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 29, column 9)
@@ -4397,6 +4398,15 @@ sem_SQIdentifier_SQIdentifier ann_ is_  =
          originalTree         : SELF 
          uType                : Maybe Type
    alternatives:
+      alternative AggregateFn:
+         child ann            : {Annotation}
+         child aggDistinct    : {Distinct}
+         child fn             : ScalarExpr 
+         child orderBy        : ScalarExprDirectionPairList 
+         visit 0:
+            local annotatedTree : _
+            local fixedUpIdentifiersTree : _
+            local originalTree : _
       alternative BooleanLit:
          child ann            : {Annotation}
          child b              : {Bool}
@@ -4621,7 +4631,8 @@ sem_SQIdentifier_SQIdentifier ann_ is_  =
             local fixedUpIdentifiersTree : _
             local originalTree : _
 -}
-data ScalarExpr  = BooleanLit (Annotation) (Bool) 
+data ScalarExpr  = AggregateFn (Annotation) (Distinct) (ScalarExpr ) (ScalarExprDirectionPairList ) 
+                 | BooleanLit (Annotation) (Bool) 
                  | Case (Annotation) (CaseScalarExprListScalarExprPairList ) (MaybeScalarExpr ) 
                  | CaseSimple (Annotation) (ScalarExpr ) (CaseScalarExprListScalarExprPairList ) (MaybeScalarExpr ) 
                  | Cast (Annotation) (ScalarExpr ) (TypeName ) 
@@ -4645,6 +4656,8 @@ data ScalarExpr  = BooleanLit (Annotation) (Bool)
 -- cata
 sem_ScalarExpr :: ScalarExpr  ->
                   T_ScalarExpr 
+sem_ScalarExpr (AggregateFn _ann _aggDistinct _fn _orderBy )  =
+    (sem_ScalarExpr_AggregateFn _ann _aggDistinct (sem_ScalarExpr _fn ) (sem_ScalarExprDirectionPairList _orderBy ) )
 sem_ScalarExpr (BooleanLit _ann _b )  =
     (sem_ScalarExpr_BooleanLit _ann _b )
 sem_ScalarExpr (Case _ann _cases _els )  =
@@ -4699,6 +4712,81 @@ wrap_ScalarExpr :: T_ScalarExpr  ->
 wrap_ScalarExpr sem (Inh_ScalarExpr _lhsIcat _lhsIexpectedType _lhsIidenv _lhsIlib )  =
     (let ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree,_lhsOuType) = sem _lhsIcat _lhsIexpectedType _lhsIidenv _lhsIlib 
      in  (Syn_ScalarExpr _lhsOannotatedTree _lhsOfixedUpIdentifiersTree _lhsOoriginalTree _lhsOuType ))
+sem_ScalarExpr_AggregateFn :: Annotation ->
+                              Distinct ->
+                              T_ScalarExpr  ->
+                              T_ScalarExprDirectionPairList  ->
+                              T_ScalarExpr 
+sem_ScalarExpr_AggregateFn ann_ aggDistinct_ fn_ orderBy_  =
+    (\ _lhsIcat
+       _lhsIexpectedType
+       _lhsIidenv
+       _lhsIlib ->
+         (let _lhsOannotatedTree :: ScalarExpr 
+              _lhsOfixedUpIdentifiersTree :: ScalarExpr 
+              _lhsOoriginalTree :: ScalarExpr 
+              _lhsOuType :: (Maybe Type)
+              _fnOcat :: Catalog
+              _fnOexpectedType :: (Maybe Type)
+              _fnOidenv :: IDEnv
+              _fnOlib :: LocalBindings
+              _orderByOcat :: Catalog
+              _orderByOidenv :: IDEnv
+              _orderByOlib :: LocalBindings
+              _fnIannotatedTree :: ScalarExpr 
+              _fnIfixedUpIdentifiersTree :: ScalarExpr 
+              _fnIoriginalTree :: ScalarExpr 
+              _fnIuType :: (Maybe Type)
+              _orderByIannotatedTree :: ScalarExprDirectionPairList 
+              _orderByIfixedUpIdentifiersTree :: ScalarExprDirectionPairList 
+              _orderByIoriginalTree :: ScalarExprDirectionPairList 
+              -- self rule
+              _annotatedTree =
+                  AggregateFn ann_ aggDistinct_ _fnIannotatedTree _orderByIannotatedTree
+              -- self rule
+              _fixedUpIdentifiersTree =
+                  AggregateFn ann_ aggDistinct_ _fnIfixedUpIdentifiersTree _orderByIfixedUpIdentifiersTree
+              -- self rule
+              _originalTree =
+                  AggregateFn ann_ aggDistinct_ _fnIoriginalTree _orderByIoriginalTree
+              -- self rule
+              _lhsOannotatedTree =
+                  _annotatedTree
+              -- self rule
+              _lhsOfixedUpIdentifiersTree =
+                  _fixedUpIdentifiersTree
+              -- self rule
+              _lhsOoriginalTree =
+                  _originalTree
+              -- copy rule (up)
+              _lhsOuType =
+                  _fnIuType
+              -- copy rule (down)
+              _fnOcat =
+                  _lhsIcat
+              -- copy rule (down)
+              _fnOexpectedType =
+                  _lhsIexpectedType
+              -- copy rule (down)
+              _fnOidenv =
+                  _lhsIidenv
+              -- copy rule (down)
+              _fnOlib =
+                  _lhsIlib
+              -- copy rule (down)
+              _orderByOcat =
+                  _lhsIcat
+              -- copy rule (down)
+              _orderByOidenv =
+                  _lhsIidenv
+              -- copy rule (down)
+              _orderByOlib =
+                  _lhsIlib
+              ( _fnIannotatedTree,_fnIfixedUpIdentifiersTree,_fnIoriginalTree,_fnIuType) =
+                  fn_ _fnOcat _fnOexpectedType _fnOidenv _fnOlib 
+              ( _orderByIannotatedTree,_orderByIfixedUpIdentifiersTree,_orderByIoriginalTree) =
+                  orderBy_ _orderByOcat _orderByOidenv _orderByOlib 
+          in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree,_lhsOuType)))
 sem_ScalarExpr_BooleanLit :: Annotation ->
                              Bool ->
                              T_ScalarExpr 
@@ -5112,7 +5200,7 @@ sem_ScalarExpr_Exists ann_ sel_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 378, column 9)
               _selOcsql =
                   _lhsIlib
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 169, column 29)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 171, column 29)
               _selOexpectedTypes =
                   []
               -- self rule
@@ -5949,7 +6037,7 @@ sem_ScalarExpr_ScalarSubQuery ann_ sel_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 376, column 9)
               _selOcsql =
                   _lhsIlib
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 169, column 29)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 171, column 29)
               _selOexpectedTypes =
                   []
               -- self rule
@@ -6679,10 +6767,10 @@ sem_ScalarExprListList_Cons hd_ tl_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 117, column 12)
               _lhsOuType =
                   _hdIuType : _tlIuType
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 165, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 167, column 12)
               _hdOexpectedTypes =
                   _lhsIexpectedTypes
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 166, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 168, column 12)
               _tlOexpectedTypes =
                   _lhsIexpectedTypes
               -- self rule
@@ -6831,7 +6919,7 @@ sem_ScalarExprListStatementListPair_Tuple x1_ x2_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Statements.ag"(line 122, column 9)
               _x2OlibUpdates =
                   []
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 142, column 13)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 144, column 13)
               _x1OexpectedTypes =
                   []
               -- self rule
@@ -9898,7 +9986,7 @@ sem_Statement_CreateTableAs ann_ name_ expr_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/CreateTable.ag"(line 74, column 9)
               _statementType =
                   Nothing
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 173, column 32)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 175, column 32)
               _exprOexpectedTypes =
                   []
               -- self rule
@@ -9961,7 +10049,7 @@ sem_Statement_CreateTrigger ann_ name_ wh_ events_ tbl_ firing_ fnName_ fnArgs_ 
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 151, column 21)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 153, column 21)
               _fnArgsOexpectedTypes =
                   []
               -- self rule
@@ -10137,7 +10225,7 @@ sem_Statement_CreateView ann_ name_ colNames_ expr_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/MiscCreates.ag"(line 19, column 9)
               _statementType =
                   Nothing
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 173, column 32)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 175, column 32)
               _exprOexpectedTypes =
                   []
               -- self rule
@@ -10216,16 +10304,16 @@ sem_Statement_Delete ann_ table_ using_ whr_ returning_  =
               _returningIfixedUpIdentifiersTree :: MaybeSelectList 
               _returningIlistType :: ([(String,Maybe Type)])
               _returningIoriginalTree :: MaybeSelectList 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 547, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 548, column 9)
               _trefEnv =
                   getTableTrefEnv _lhsIcat _tableIoriginalTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 548, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 549, column 9)
               _whrOidenv =
                   _trefEnv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 549, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 550, column 9)
               _returningOidenv =
                   _trefEnv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 550, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 551, column 9)
               _lhsOfixedUpIdentifiersTree =
                   Delete ann_
                          _tableIfixedUpIdentifiersTree
@@ -10818,7 +10906,7 @@ sem_Statement_ForQueryStatement ann_ lb_ var_ sel_ sts_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 116, column 45)
               _varOexpectedType =
                   Nothing
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 175, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 177, column 9)
               _selOexpectedTypes =
                   []
               -- self rule
@@ -10996,13 +11084,13 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
               _returningIfixedUpIdentifiersTree :: MaybeSelectList 
               _returningIlistType :: ([(String,Maybe Type)])
               _returningIoriginalTree :: MaybeSelectList 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 557, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 558, column 9)
               _trefEnv =
                   getTableTrefEnv _lhsIcat _tableIoriginalTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 558, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 559, column 9)
               _returningOidenv =
                   _trefEnv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 559, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 560, column 9)
               _lhsOfixedUpIdentifiersTree =
                   Insert ann_
                          _tableIfixedUpIdentifiersTree
@@ -11438,7 +11526,7 @@ sem_Statement_QueryStatement ann_ ex_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 137, column 9)
               _libUpdates =
                   _exIlibUpdates
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 176, column 22)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 178, column 22)
               _exOexpectedTypes =
                   []
               -- self rule
@@ -11497,7 +11585,7 @@ sem_Statement_Raise ann_ level_ message_ args_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Statements.ag"(line 117, column 9)
               _lhsOlibUpdates =
                   []
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 152, column 13)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 154, column 13)
               _argsOexpectedTypes =
                   []
               -- self rule
@@ -11700,7 +11788,7 @@ sem_Statement_ReturnQuery ann_ sel_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 127, column 19)
               _selOcsql =
                   emptyBindings
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 175, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 177, column 9)
               _selOexpectedTypes =
                   []
               -- self rule
@@ -11872,19 +11960,19 @@ sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
               _returningIfixedUpIdentifiersTree :: MaybeSelectList 
               _returningIlistType :: ([(String,Maybe Type)])
               _returningIoriginalTree :: MaybeSelectList 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 535, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 536, column 9)
               _trefEnv =
                   getTableTrefEnv _lhsIcat _tableIoriginalTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 536, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 537, column 9)
               _whrOidenv =
                   _trefEnv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 537, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 538, column 9)
               _assignsOidenv =
                   _trefEnv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 538, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 539, column 9)
               _returningOidenv =
                   _trefEnv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 539, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 540, column 9)
               _lhsOfixedUpIdentifiersTree =
                   Update ann_
                          _tableIfixedUpIdentifiersTree
@@ -12822,16 +12910,16 @@ sem_TableRef_FunTref ann_ fn_ alias_  =
               _aliasIannotatedTree :: TableAlias 
               _aliasIfixedUpIdentifiersTree :: TableAlias 
               _aliasIoriginalTree :: TableAlias 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 416, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 417, column 15)
               __tup2 =
                   let (FunCall _ f _) = _fnIoriginalTree
                       iea = aliasEnv _aliasIoriginalTree $ FunTrefIDEnv f
                       al = getEnvAlias iea
                   in (iea, FunTref ann_ _fnIfixedUpIdentifiersTree al)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 416, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 417, column 15)
               (_lhsOtrefIDs,_) =
                   __tup2
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 416, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 417, column 15)
               (_,_lhsOfixedUpIdentifiersTree) =
                   __tup2
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
@@ -12953,13 +13041,13 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
               _aliasIannotatedTree :: TableAlias 
               _aliasIfixedUpIdentifiersTree :: TableAlias 
               _aliasIoriginalTree :: TableAlias 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 434, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 435, column 9)
               _lhsOtrefIDs =
                   _trefIDs
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 435, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 436, column 9)
               _onExprOidenv =
                   _trefIDs
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 452, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 453, column 9)
               __tup3 =
                   let t0ids = maybe [] id $ fmap (map snd) $ expandStar _tblItrefIDs Nothing
                       t1ids = maybe [] id $ fmap (map snd) $ expandStar _tbl1ItrefIDs Nothing
@@ -12974,10 +13062,10 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
                   in (iea, JoinTref ann_ _tblIfixedUpIdentifiersTree
                                     nat_ joinType_ _tbl1IfixedUpIdentifiersTree
                                     _onExprIfixedUpIdentifiersTree al)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 452, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 453, column 9)
               (_trefIDs,_) =
                   __tup3
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 452, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 453, column 9)
               (_,_lhsOfixedUpIdentifiersTree) =
                   __tup3
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
@@ -13130,15 +13218,15 @@ sem_TableRef_SubTref ann_ sel_ alias_  =
               _aliasIannotatedTree :: TableAlias 
               _aliasIfixedUpIdentifiersTree :: TableAlias 
               _aliasIoriginalTree :: TableAlias 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 404, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 405, column 15)
               __tup4 =
                   let iea = aliasEnv _aliasIoriginalTree  _selIcidenv
                       al = getEnvAlias iea
                   in (iea, SubTref ann_ _selIfixedUpIdentifiersTree al)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 404, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 405, column 15)
               (_lhsOtrefIDs,_) =
                   __tup4
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 404, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 405, column 15)
               (_,_lhsOfixedUpIdentifiersTree) =
                   __tup4
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 129, column 15)
@@ -13173,7 +13261,7 @@ sem_TableRef_SubTref ann_ sel_ alias_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 300, column 9)
               _aliasOexpectedNumCols =
                   Nothing
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 178, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 180, column 15)
               _selOexpectedTypes =
                   []
               -- self rule
@@ -13241,15 +13329,15 @@ sem_TableRef_Tref ann_ tbl_ alias_  =
               _aliasIannotatedTree :: TableAlias 
               _aliasIfixedUpIdentifiersTree :: TableAlias 
               _aliasIoriginalTree :: TableAlias 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 391, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 392, column 12)
               __tup5 =
                   let iea = aliasEnv _aliasIoriginalTree $ getTableTrefEnv _lhsIcat _tblIoriginalTree
                       al = getEnvAlias iea
                   in (iea,Tref ann_ _tblIfixedUpIdentifiersTree al)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 391, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 392, column 12)
               (_lhsOtrefIDs,_) =
                   __tup5
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 391, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 392, column 12)
               (_,_lhsOfixedUpIdentifiersTree) =
                   __tup5
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
@@ -13399,7 +13487,7 @@ sem_TableRefList_Cons hd_ tl_  =
               _tlInewLib2 :: LocalBindings
               _tlIoriginalTree :: TableRefList 
               _tlItrefIDs :: IDEnv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 375, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 376, column 12)
               _lhsOtrefIDs =
                   JoinTrefIDEnv [] _hdItrefIDs _tlItrefIDs
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 61, column 9)
@@ -13460,7 +13548,7 @@ sem_TableRefList_Nil  =
               _lhsOannotatedTree :: TableRefList 
               _lhsOfixedUpIdentifiersTree :: TableRefList 
               _lhsOoriginalTree :: TableRefList 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 376, column 11)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 377, column 11)
               _lhsOtrefIDs =
                   emptyIDEnv "empty tref list"
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 59, column 9)
@@ -14613,7 +14701,7 @@ sem_WithQuery_WithQuery ann_ name_ colAliases_ ex_  =
               _exIlibUpdates :: ([LocalBindingsUpdate])
               _exIoriginalTree :: QueryExpr 
               _exIuType :: (Maybe [(String,Type)])
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 243, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 244, column 9)
               _lhsOfixedUpIdentifiersTree =
                   undefined
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 131, column 17)
@@ -14634,7 +14722,7 @@ sem_WithQuery_WithQuery ann_ name_ colAliases_ ex_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 276, column 9)
               _statementType =
                   Nothing
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 180, column 17)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 182, column 17)
               _exOexpectedTypes =
                   []
               -- self rule
@@ -14750,7 +14838,7 @@ sem_WithQueryList_Cons hd_ tl_  =
               _tlIfixedUpIdentifiersTree :: WithQueryList 
               _tlIoriginalTree :: WithQueryList 
               _tlIproducedCat :: Catalog
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 251, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 252, column 12)
               _lhsOcidenv =
                   undefined
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 256, column 9)
@@ -14814,7 +14902,7 @@ sem_WithQueryList_Nil  =
               _lhsOannotatedTree :: WithQueryList 
               _lhsOfixedUpIdentifiersTree :: WithQueryList 
               _lhsOoriginalTree :: WithQueryList 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 254, column 11)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 255, column 11)
               _lhsOcidenv =
                   emptyIDEnv "empty with query list"
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 256, column 9)
