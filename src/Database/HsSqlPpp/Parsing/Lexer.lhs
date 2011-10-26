@@ -116,6 +116,7 @@ we read a normal token.
 >                 else try sqlNumber
 >                  <|> try sqlString
 >                  <|> try idString
+>                  <|> try qidString
 >                  <|> try positionalArg
 >                  <|> try sqlSymbol
 >            updateState $ \stt ->
@@ -166,6 +167,11 @@ parse a dollar quoted string
 >
 > idString :: Parser Tok
 > idString = IdStringTok <$> identifierString
+
+> qidString :: Parser Tok
+> qidString = QIdStringTok <$> qidentifierString
+
+
 >
 > positionalArg :: Parser Tok
 > positionalArg = char '$' >> PositionalArgTok <$> integer
@@ -286,19 +292,26 @@ I'm sure the implementation can be simpler than this
 
 additional parser bits and pieces
 
-include dots, * in all identifier strings during lexing. This parser
-is also used for keywords, so identifiers and keywords aren't
-distinguished until during proper parsing, and * and qualifiers aren't
-really examined until type checking
+include * in identifier strings during lexing. This parser is also
+used for keywords, so identifiers and keywords aren't distinguished
+until during proper parsing, and * isn't really examined until type
+checking
 
 > identifierString :: Parser String
 > identifierString = lexeme $ choice [
 >                     "*" <$ symbol "*"
 >                    ,nonStarPart]
 >   where
->     nonStarPart = idpart <|> (char '"' *> many (noneOf "\"") <* char '"')
->                   where idpart = (letter <|> char '_') <:> secondOnwards
+>     nonStarPart = (letter <|> char '_') <:> secondOnwards
 >     secondOnwards = many (alphaNum <|> char '_')
+
+todo:
+select adrelid as "a""a" from pg_attrdef;
+creates a column named: 'a"a' with a double quote in it
+
+> qidentifierString :: Parser String
+> qidentifierString =  char '"' *> many (noneOf "\"") <* char '"'
+
 
 parse the block of inline data for a copy from stdin, ends with \. on
 its own on a line

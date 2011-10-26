@@ -1684,6 +1684,11 @@ identifier which happens to start with a complete keyword
 >     ids = mytoken (\tok -> case tok of
 >                                      IdStringTok "not" -> Nothing
 >                                      IdStringTok i -> Just i
+>                                      -- have to go through and fix every
+>                                      -- use of idString to make this work correctly
+>                                      -- idstring is used LOADS
+>                                      -- lots of places in the ast probably need fixing
+>                                      QIdStringTok i -> Just i
 >                                      _ -> Nothing)
 >
 > spliceD :: SParser String
