@@ -119,7 +119,7 @@ Conversion routines - convert Sql asts into Docs
 >     $+$ rparen <> statementEnd se
 >     where
 >       convAttDef (AttributeDef _ n t def cons) =
->         text n <+> convTypeName t
+>         convNC n <+> convTypeName t
 >         <+> maybeConv (\e -> text "default" <+> convExp nice e) def
 >         <+> hsep (map cCons cons)
 >       cCons (NullConstraint _ cn) =
@@ -493,9 +493,9 @@ Statement components
 >        $+$ convQueryExpr nice True False ex
 >   where
 >     pwq (WithQuery _ nm cs ex1) =
->       text nm <> case cs of
+>       convNC nm <> case cs of
 >                    Nothing -> empty
->                    Just cs' -> parens $ sepCsvMap text cs'
+>                    Just cs' -> parens $ sepCsvMap convNC cs'
 >       <+> text "as"
 >       <+> parens (convQueryExpr nice True False ex1)
 
@@ -547,13 +547,13 @@ Statement components
 >
 > convTrefAlias :: Bool -> TableAlias -> Doc
 > convTrefAlias _ (NoAlias _) = empty
-> convTrefAlias _ (TableAlias _ t) = text t
+> convTrefAlias _ (TableAlias _ t) = convNC t
 > -- hack this out for now. When the type checking is fixed, can try
 > -- to eliminate unneeded aliases?
 > convTrefAlias nice (FullAlias _ t s) =
->   text t <> (if nice
+>   convNC t <> (if nice
 >              then empty
->              else parens (sepCsvMap text s))
+>              else parens (sepCsvMap convNC s))
 
 > convDir :: Direction -> Doc
 > convDir d = text $ case d of
@@ -570,9 +570,9 @@ Statement components
 >   -- <+> ifNotEmpty (\i -> text "into" <+> hcatCsvMap convExp i) into
 >   where
 >     -- try to avoid printing alias if not necessary
->     convSelItem (SelectItem _ ex1@(QIdentifier _ _ i) nm) | nice, i == nm = convExpSl nice ex1
->     convSelItem (SelectItem _ ex1@(Identifier _ i) nm) | nice, i == nm = convExpSl nice ex1
->     convSelItem (SelectItem _ ex1 nm) = convExpSl nice ex1 <+> text "as" <+> text nm
+>     convSelItem (SelectItem _ ex1@(QIdentifier _ _ i) nm) | nice, Nmc i == nm = convExpSl nice ex1
+>     convSelItem (SelectItem _ ex1@(Identifier _ i) nm) | nice, Nmc i == nm = convExpSl nice ex1
+>     convSelItem (SelectItem _ ex1 nm) = convExpSl nice ex1 <+> text "as" <+> convNC nm
 >     convSelItem (SelExp _ e) = convExpSl nice e
 >
 > convCasc :: Cascade -> Doc
@@ -838,7 +838,7 @@ Statement components
 > convSet :: Bool -> SetClause -> Doc
 > convSet nice (SetClause _ a e) =
 >    -- (FunCall _ "=" [Identifier _ a, e]) =
->   text a <+> text "=" <+> convExp nice e
+>   convNC a <+> text "=" <+> convExp nice e
 > {-convSet nice (FunCall _ "=" [a, b]) | (FunCall _ "!rowctor" is1) <- a
 >                                      ,(FunCall _ "!rowctor" is2) <- b =
 >   rsNoRow is1 <+> text "=" <+> rsNoRow is2
@@ -846,7 +846,7 @@ Statement components
 >     rsNoRow is = parens (sepCsvMap (convExp nice) is)
 > convSet _ a = error $ "bad expression in set in update: " ++ show a-}
 > convSet nice (MultiSetClause _ is (FunCall _ "!rowctor" es)) =
->   parens (sepCsvMap text is) <+> text "="
+>   parens (sepCsvMap convNC is) <+> text "="
 >   <+> parens (sepCsvMap (convExp nice) es)
 > convSet _ a = error $ "bad expression in set in update: " ++ show a
 >

@@ -132,8 +132,8 @@ join - most of the hard work is done in local bindings
               ([u1], [u2]) -> [LBJoinTref "join" u1 u2 jids
                                               (case @alias.originalTree of
                                                        NoAlias _ -> Nothing
-                                                       TableAlias _ t -> Just t
-                                                       FullAlias _ t _ -> Just t)]
+                                                       TableAlias _ t -> Just $ ncStr t
+                                                       FullAlias _ t _ -> Just $ ncStr t)]
               _ -> []
             where
               jids = case (@nat, @onExpr.originalTree) of
@@ -196,14 +196,14 @@ funIdens cat (FullAlias _ t cs) (FunCall _ fnName _) ft = do
                    | otherwise -> Left [WrongNumberOfAliasCols 1 $ length cs]
        x | [c] <- cs -> return [(c,x)]
          | otherwise -> Left [WrongNumberOfAliasCols 1 $ length cs]
-   return (t, attrs)
+   return (ncStr t, map (first ncStr) attrs)
 
 getAlias :: String -> TableAlias -> String
 getAlias def alias =
   case alias of
     NoAlias _ -> def
-    TableAlias _ t -> t
-    FullAlias _ t _ -> t
+    TableAlias _ t -> ncStr t
+    FullAlias _ t _ -> ncStr t
 
 }
 
@@ -229,7 +229,7 @@ SEM TableRef
              (pu,pr) <- @tbl.tbUType
              -- factor in alias
              let (n,cs) = case @alias.originalTree of
-                            (FullAlias _ n cs) -> (n,cs)
+                            (FullAlias _ n cs) -> (ncStr n,map ncStr cs)
                             _ -> (n, []) --todo:fix, shouldn't ever not have full alias but does
              return [(n,zip cs $ map (Just . snd) pu)
                     ,(n,map (second Just) pr)]
@@ -242,9 +242,9 @@ SEM TableRef
              in case @alias.originalTree of
                (FullAlias _ n cs) ->
                    -- not sure if this is correct
-                   createLocalBindings $ Just [(n,zip cs $ map snd (t0t ++ t1t))]
+                   createLocalBindings $ Just [(ncStr n,zip (map ncStr cs) $ map snd (t0t ++ t1t))]
                (TableAlias _ n) ->
-                   createLocalBindings $ Just [(n, t0t ++ t1t)]
+                   createLocalBindings $ Just [(ncStr n, t0t ++ t1t)]
                NoAlias _ ->
                    joinBindings @tbl.newLib2 @tbl1.newLib2
         lhs.newLib2 = @loc.newLib2
@@ -256,7 +256,7 @@ SEM TableRef
              pu <- @sel.uType
              -- factor in alias
              let (n,cs) = case @alias.originalTree of
-                            (FullAlias _ n cs) -> (n,cs)
+                            (FullAlias _ n cs) -> (ncStr n,map ncStr cs)
                             _ -> (n, []) --todo:fix, shouldn't ever not have full alias but does
              return [(n,zip cs $ map (Just . snd) pu)]
     | FunTref

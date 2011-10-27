@@ -80,7 +80,7 @@ attribute name and type gathering
 
 SEM AttributeDef
     | AttributeDef
-        lhs.attrName = map toLower @name
+        lhs.attrName = map toLower $ ncStr @name
         lhs.namedType = @typ.namedType
 
 
@@ -99,6 +99,6 @@ SEM AttributeDef
                    t <- lmt @typ.namedType
                    lbUpdate @lhs.cat
                             (LBIds "attribute def" Nothing
-                                   [(@name, t)]) @lhs.lib
+                                   [(ncStr @name, t)]) @lhs.lib
 
 

@@ -74,14 +74,14 @@ getEnvAlias :: IDEnv -> TableAlias
 getEnvAlias i =
   case expandStar i Nothing of
        Just is'@((q,_):_) | all (==q) $ map fst is' ->
-            FullAlias emptyAnnotation q $ map snd is'
+            FullAlias emptyAnnotation (Nmc q) $ map (Nmc . snd) is'
        _ -> NoAlias emptyAnnotation
 
 
 aliasEnv :: TableAlias -> IDEnv -> IDEnv
 aliasEnv (NoAlias _) ids = ids
-aliasEnv (TableAlias _ t) ids = TableAliasIDEnv t ids
-aliasEnv (FullAlias _ t cs) ids = FullAliasIDEnv t cs ids
+aliasEnv (TableAlias _ t) ids = TableAliasIDEnv (ncStr t) ids
+aliasEnv (FullAlias _ t cs) ids = FullAliasIDEnv (ncStr t) (map ncStr cs) ids
 
 
 getTableTrefEnv :: Catalog -> Name -> IDEnv
@@ -116,7 +116,7 @@ SEM SelectList
        {- lhs.cidenv =
           makeIDEnv "" $ flip map @items.fixedUpIdentifiersTree
                          $ \(SelectItem _ _ n) -> n-}
-        lhs.cidenv = TrefIDEnv "" (map (\(SelectItem _ _ n) -> n)
+        lhs.cidenv = TrefIDEnv "" (map (\(SelectItem _ _ n) -> ncStr n)
                                      @items.fixedUpIdentifiersTree)
                                 []
   {-TrefEnv "" $ flip map @items.fixedUpIdentifiersTree
@@ -176,7 +176,7 @@ makeSelExps sea a0 a1 is =
 
 addSIAlias :: SelectItem -> SelectItem
 addSIAlias s@(SelectItem _ _ _) = s
-addSIAlias (SelExp ann ex) = SelectItem ann ex $ getColName ex
+addSIAlias (SelExp ann ex) = SelectItem ann ex $ Nmc $ getColName ex
   where
     getColName (Identifier _ i) = i
     getColName (QIdentifier _ _ i) = i

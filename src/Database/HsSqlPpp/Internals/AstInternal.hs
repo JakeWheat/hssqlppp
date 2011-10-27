@@ -310,14 +310,14 @@ getEnvAlias :: IDEnv -> TableAlias
 getEnvAlias i =
   case expandStar i Nothing of
        Just is'@((q,_):_) | all (==q) $ map fst is' ->
-            FullAlias emptyAnnotation q $ map snd is'
+            FullAlias emptyAnnotation (Nmc q) $ map (Nmc . snd) is'
        _ -> NoAlias emptyAnnotation
 
 
 aliasEnv :: TableAlias -> IDEnv -> IDEnv
 aliasEnv (NoAlias _) ids = ids
-aliasEnv (TableAlias _ t) ids = TableAliasIDEnv t ids
-aliasEnv (FullAlias _ t cs) ids = FullAliasIDEnv t cs ids
+aliasEnv (TableAlias _ t) ids = TableAliasIDEnv (ncStr t) ids
+aliasEnv (FullAlias _ t cs) ids = FullAliasIDEnv (ncStr t) (map ncStr cs) ids
 
 
 getTableTrefEnv :: Catalog -> Name -> IDEnv
@@ -336,7 +336,7 @@ makeSelExps sea a0 a1 is =
 
 addSIAlias :: SelectItem -> SelectItem
 addSIAlias s@(SelectItem _ _ _) = s
-addSIAlias (SelExp ann ex) = SelectItem ann ex $ getColName ex
+addSIAlias (SelExp ann ex) = SelectItem ann ex $ Nmc $ getColName ex
   where
     getColName (Identifier _ i) = i
     getColName (QIdentifier _ _ i) = i
@@ -523,14 +523,14 @@ funIdens cat (FullAlias _ t cs) (FunCall _ fnName _) ft = do
                    | otherwise -> Left [WrongNumberOfAliasCols 1 $ length cs]
        x | [c] <- cs -> return [(c,x)]
          | otherwise -> Left [WrongNumberOfAliasCols 1 $ length cs]
-   return (t, attrs)
+   return (ncStr t, map (first ncStr) attrs)
 
 getAlias :: String -> TableAlias -> String
 getAlias def alias =
   case alias of
     NoAlias _ -> def
-    TableAlias _ t -> t
-    FullAlias _ t _ -> t
+    TableAlias _ t -> ncStr t
+    FullAlias _ t _ -> ncStr t
 
 
 
@@ -882,7 +882,7 @@ sem_AlterTableActionList_Nil  =
    alternatives:
       alternative AttributeDef:
          child ann            : {Annotation}
-         child name           : {String}
+         child name           : {NameComponent}
          child typ            : TypeName 
          child def            : MaybeScalarExpr 
          child cons           : RowConstraintList 
@@ -891,7 +891,7 @@ sem_AlterTableActionList_Nil  =
             local fixedUpIdentifiersTree : _
             local originalTree : _
 -}
-data AttributeDef  = AttributeDef (Annotation) (String) (TypeName ) (MaybeScalarExpr ) (RowConstraintList ) 
+data AttributeDef  = AttributeDef (Annotation) (NameComponent) (TypeName ) (MaybeScalarExpr ) (RowConstraintList ) 
                    deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_AttributeDef :: AttributeDef  ->
@@ -912,7 +912,7 @@ wrap_AttributeDef sem (Inh_AttributeDef _lhsIcat _lhsIidenv _lhsIlib )  =
     (let ( _lhsOannotatedTree,_lhsOattrName,_lhsOfixedUpIdentifiersTree,_lhsOnamedType,_lhsOoriginalTree) = sem _lhsIcat _lhsIidenv _lhsIlib 
      in  (Syn_AttributeDef _lhsOannotatedTree _lhsOattrName _lhsOfixedUpIdentifiersTree _lhsOnamedType _lhsOoriginalTree ))
 sem_AttributeDef_AttributeDef :: Annotation ->
-                                 String ->
+                                 NameComponent ->
                                  T_TypeName  ->
                                  T_MaybeScalarExpr  ->
                                  T_RowConstraintList  ->
@@ -948,7 +948,7 @@ sem_AttributeDef_AttributeDef ann_ name_ typ_ def_ cons_  =
               _consIoriginalTree :: RowConstraintList 
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/CreateTable.ag"(line 83, column 9)
               _lhsOattrName =
-                  map toLower name_
+                  map toLower $ ncStr name_
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/CreateTable.ag"(line 84, column 9)
               _lhsOnamedType =
                   _typInamedType
@@ -958,7 +958,7 @@ sem_AttributeDef_AttributeDef ann_ name_ typ_ def_ cons_  =
                   t <- lmt _typInamedType
                   lbUpdate _lhsIcat
                            (LBIds "attribute def" Nothing
-                                  [(name_, t)]) _lhsIlib
+                                  [(ncStr name_, t)]) _lhsIlib
               -- self rule
               _annotatedTree =
                   AttributeDef ann_ name_ _typIannotatedTree _defIannotatedTree _consIannotatedTree
@@ -7734,14 +7734,14 @@ sem_ScalarExprStatementListPairList_Nil  =
       alternative SelectItem:
          child ann            : {Annotation}
          child ex             : ScalarExpr 
-         child name           : {String}
+         child name           : {NameComponent}
          visit 0:
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
             local originalTree : _
 -}
 data SelectItem  = SelExp (Annotation) (ScalarExpr ) 
-                 | SelectItem (Annotation) (ScalarExpr ) (String) 
+                 | SelectItem (Annotation) (ScalarExpr ) (NameComponent) 
                  deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_SelectItem :: SelectItem  ->
@@ -7833,7 +7833,7 @@ sem_SelectItem_SelExp ann_ ex_  =
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOitemType,_lhsOoriginalTree,_lhsOseIdTree)))
 sem_SelectItem_SelectItem :: Annotation ->
                              T_ScalarExpr  ->
-                             String ->
+                             NameComponent ->
                              T_SelectItem 
 sem_SelectItem_SelectItem ann_ ex_ name_  =
     (\ _lhsIcat
@@ -7860,7 +7860,7 @@ sem_SelectItem_SelectItem ann_ ex_ name_  =
                   SelectItem ann_ _exIannotatedTree name_
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag"(line 62, column 9)
               _lhsOitemType =
-                  (name_, unwrapSetof `fmap` _exIuType)
+                  (ncStr name_, unwrapSetof `fmap` _exIuType)
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 106, column 25)
               _exOexpectedType =
                   Nothing
@@ -8102,7 +8102,7 @@ sem_SelectList_SelectList ann_ items_  =
               _itemsIoriginalTree :: SelectItemList 
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 119, column 9)
               _lhsOcidenv =
-                  TrefIDEnv "" (map (\(SelectItem _ _ n) -> n)
+                  TrefIDEnv "" (map (\(SelectItem _ _ n) -> ncStr n)
                                   _itemsIfixedUpIdentifiersTree)
                              []
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag"(line 77, column 9)
@@ -8157,7 +8157,7 @@ sem_SelectList_SelectList ann_ items_  =
    alternatives:
       alternative MultiSetClause:
          child ann            : {Annotation}
-         child setTargets     : {[String]}
+         child setTargets     : {[NameComponent]}
          child ex             : ScalarExpr 
          visit 0:
             local targType    : {E Type}
@@ -8168,7 +8168,7 @@ sem_SelectList_SelectList ann_ items_  =
             local originalTree : _
       alternative SetClause:
          child ann            : {Annotation}
-         child setTarget      : {String}
+         child setTarget      : {NameComponent}
          child ex             : ScalarExpr 
          visit 0:
             local targType    : {E Type}
@@ -8178,8 +8178,8 @@ sem_SelectList_SelectList ann_ items_  =
             local fixedUpIdentifiersTree : _
             local originalTree : _
 -}
-data SetClause  = MultiSetClause (Annotation) (([String])) (ScalarExpr ) 
-                | SetClause (Annotation) (String) (ScalarExpr ) 
+data SetClause  = MultiSetClause (Annotation) (([NameComponent])) (ScalarExpr ) 
+                | SetClause (Annotation) (NameComponent) (ScalarExpr ) 
                 deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_SetClause :: SetClause  ->
@@ -8203,7 +8203,7 @@ wrap_SetClause sem (Inh_SetClause _lhsIcat _lhsIidenv _lhsIlib _lhsItbName )  =
     (let ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree) = sem _lhsIcat _lhsIidenv _lhsIlib _lhsItbName 
      in  (Syn_SetClause _lhsOannotatedTree _lhsOfixedUpIdentifiersTree _lhsOoriginalTree ))
 sem_SetClause_MultiSetClause :: Annotation ->
-                                ([String]) ->
+                                ([NameComponent]) ->
                                 T_ScalarExpr  ->
                                 T_SetClause 
 sem_SetClause_MultiSetClause ann_ setTargets_ ex_  =
@@ -8227,7 +8227,7 @@ sem_SetClause_MultiSetClause ann_ setTargets_ ex_  =
               _targType =
                   do
                   let etargTypes :: [E (Maybe Type)]
-                      etargTypes = map (lookupLocalBinding _lhsIlib _lhsItbName) setTargets_
+                      etargTypes = map (lookupLocalBinding _lhsIlib _lhsItbName . ncStr) setTargets_
                   concatLefts etargTypes
                   targTypes <- lmt $ sequence $ rights etargTypes
                   return $ AnonymousRecordType targTypes
@@ -8276,7 +8276,7 @@ sem_SetClause_MultiSetClause ann_ setTargets_ ex_  =
                   ex_ _exOcat _exOexpectedType _exOidenv _exOlib 
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree)))
 sem_SetClause_SetClause :: Annotation ->
-                           String ->
+                           NameComponent ->
                            T_ScalarExpr  ->
                            T_SetClause 
 sem_SetClause_SetClause ann_ setTarget_ ex_  =
@@ -8299,7 +8299,7 @@ sem_SetClause_SetClause ann_ setTarget_ ex_  =
               _exIuType :: (Maybe Type)
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Dml/Update.ag"(line 64, column 9)
               _targType =
-                  case lookupLocalBinding _lhsIlib _lhsItbName setTarget_ of
+                  case lookupLocalBinding _lhsIlib _lhsItbName $ ncStr setTarget_ of
                          Right Nothing -> Left []
                          Right (Just t) -> Right t
                          Left e -> Left e
@@ -12859,8 +12859,8 @@ sem_StatementList_Nil  =
    alternatives:
       alternative FullAlias:
          child ann            : {Annotation}
-         child tb             : {String}
-         child cols           : {[String]}
+         child tb             : {NameComponent}
+         child cols           : {[NameComponent]}
          visit 0:
             local errs        : _
             local backTree    : _
@@ -12877,7 +12877,7 @@ sem_StatementList_Nil  =
             local originalTree : _
       alternative TableAlias:
          child ann            : {Annotation}
-         child tb             : {String}
+         child tb             : {NameComponent}
          visit 0:
             local backTree    : _
             local errs        : _
@@ -12885,9 +12885,9 @@ sem_StatementList_Nil  =
             local fixedUpIdentifiersTree : _
             local originalTree : _
 -}
-data TableAlias  = FullAlias (Annotation) (String) (([String])) 
+data TableAlias  = FullAlias (Annotation) (NameComponent) (([NameComponent])) 
                  | NoAlias (Annotation) 
-                 | TableAlias (Annotation) (String) 
+                 | TableAlias (Annotation) (NameComponent) 
                  deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_TableAlias :: TableAlias  ->
@@ -12913,8 +12913,8 @@ wrap_TableAlias sem (Inh_TableAlias _lhsIcat _lhsIexpectedNumCols _lhsIidenv _lh
     (let ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree) = sem _lhsIcat _lhsIexpectedNumCols _lhsIidenv _lhsIlib 
      in  (Syn_TableAlias _lhsOannotatedTree _lhsOfixedUpIdentifiersTree _lhsOoriginalTree ))
 sem_TableAlias_FullAlias :: Annotation ->
-                            String ->
-                            ([String]) ->
+                            NameComponent ->
+                            ([NameComponent]) ->
                             T_TableAlias 
 sem_TableAlias_FullAlias ann_ tb_ cols_  =
     (\ _lhsIcat
@@ -12989,7 +12989,7 @@ sem_TableAlias_NoAlias ann_  =
                   _originalTree
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree)))
 sem_TableAlias_TableAlias :: Annotation ->
-                             String ->
+                             NameComponent ->
                              T_TableAlias 
 sem_TableAlias_TableAlias ann_ tb_  =
     (\ _lhsIcat
@@ -13335,8 +13335,8 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
                     ([u1], [u2]) -> [LBJoinTref "join" u1 u2 jids
                                                     (case _aliasIoriginalTree of
                                                              NoAlias _ -> Nothing
-                                                             TableAlias _ t -> Just t
-                                                             FullAlias _ t _ -> Just t)]
+                                                             TableAlias _ t -> Just $ ncStr t
+                                                             FullAlias _ t _ -> Just $ ncStr t)]
                     _ -> []
                   where
                     jids = case (nat_, _onExprIoriginalTree) of
@@ -13356,9 +13356,9 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
                       t1t = getUnqualifiedBindings _tbl1InewLib2
                   in case _aliasIoriginalTree of
                     (FullAlias _ n cs) ->
-                        createLocalBindings $ Just [(n,zip cs $ map snd (t0t ++ t1t))]
+                        createLocalBindings $ Just [(ncStr n,zip (map ncStr cs) $ map snd (t0t ++ t1t))]
                     (TableAlias _ n) ->
-                        createLocalBindings $ Just [(n, t0t ++ t1t)]
+                        createLocalBindings $ Just [(ncStr n, t0t ++ t1t)]
                     NoAlias _ ->
                         joinBindings _tblInewLib2 _tbl1InewLib2
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 250, column 9)
@@ -13498,7 +13498,7 @@ sem_TableRef_SubTref ann_ sel_ alias_  =
                   createLocalBindings $ do
                   pu <- _selIuType
                   let (n,cs) = case _aliasIoriginalTree of
-                                 (FullAlias _ n cs) -> (n,cs)
+                                 (FullAlias _ n cs) -> (ncStr n,map ncStr cs)
                                  _ -> (n, [])
                   return [(n,zip cs $ map (Just . snd) pu)]
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 275, column 9)
@@ -13607,7 +13607,7 @@ sem_TableRef_Tref ann_ tbl_ alias_  =
                   let n = getTName _tblIannotatedTree
                   (pu,pr) <- _tblItbUType
                   let (n,cs) = case _aliasIoriginalTree of
-                                 (FullAlias _ n cs) -> (n,cs)
+                                 (FullAlias _ n cs) -> (ncStr n,map ncStr cs)
                                  _ -> (n, [])
                   return [(n,zip cs $ map (Just . snd) pu)
                          ,(n,map (second Just) pr)]
@@ -14889,8 +14889,8 @@ sem_VarDefList_Nil  =
    alternatives:
       alternative WithQuery:
          child ann            : {Annotation}
-         child name           : {String}
-         child colAliases     : {Maybe [String]}
+         child name           : {NameComponent}
+         child colAliases     : {Maybe [NameComponent]}
          child ex             : QueryExpr 
          visit 0:
             local tpe         : _
@@ -14902,7 +14902,7 @@ sem_VarDefList_Nil  =
             local fixedUpIdentifiersTree : _
             local originalTree : _
 -}
-data WithQuery  = WithQuery (Annotation) (String) ((Maybe [String])) (QueryExpr ) 
+data WithQuery  = WithQuery (Annotation) (NameComponent) ((Maybe [NameComponent])) (QueryExpr ) 
                 deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_WithQuery :: WithQuery  ->
@@ -14923,8 +14923,8 @@ wrap_WithQuery sem (Inh_WithQuery _lhsIcat _lhsIidenv _lhsIlib )  =
     (let ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOcidenv,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree) = sem _lhsIcat _lhsIidenv _lhsIlib 
      in  (Syn_WithQuery _lhsOannotatedTree _lhsOcatUpdates _lhsOcidenv _lhsOfixedUpIdentifiersTree _lhsOoriginalTree ))
 sem_WithQuery_WithQuery :: Annotation ->
-                           String ->
-                           (Maybe [String]) ->
+                           NameComponent ->
+                           (Maybe [NameComponent]) ->
                            T_QueryExpr  ->
                            T_WithQuery 
 sem_WithQuery_WithQuery ann_ name_ colAliases_ ex_  =
@@ -14964,7 +14964,7 @@ sem_WithQuery_WithQuery ann_ name_ colAliases_ ex_  =
                   maybe [] id $ _exIuType
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 275, column 9)
               _catUpdates =
-                  [CatCreateView name_ _attrs    ]
+                  [CatCreateView (ncStr name_) _attrs    ]
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 276, column 9)
               _statementType =
                   Nothing

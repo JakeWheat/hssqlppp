@@ -22,7 +22,7 @@
 >      ,s "create table tbl (\n\
 >         \  fld boolean default false);"
 >       [CreateTable ea (dqi "tbl")
->        [AttributeDef ea "fld" (SimpleTypeName ea "boolean")
+>        [AttributeDef ea (Nmc "fld") (SimpleTypeName ea "boolean")
 >                          (Just $ BooleanLit ea False) []][]]
 >
 >      ,s "create table tbl as select 1;"
@@ -40,13 +40,13 @@
 >       s "create table t1 (\n\
 >         \ a text null\n\
 >         \);"
->         [CreateTable ea (dqi "t1") [AttributeDef ea "a" (SimpleTypeName ea "text")
+>         [CreateTable ea (dqi "t1") [AttributeDef ea (Nmc "a") (SimpleTypeName ea "text")
 >                            Nothing [NullConstraint ea ""]]
 >          []]
 >      ,s "create table t1 (\n\
 >         \ a text not null\n\
 >         \);"
->         [CreateTable ea (dqi "t1") [AttributeDef ea "a" (SimpleTypeName ea "text")
+>         [CreateTable ea (dqi "t1") [AttributeDef ea (Nmc "a") (SimpleTypeName ea "text")
 >                                                  Nothing [NotNullConstraint ea ""]]
 >          []]
 >      ]
@@ -78,13 +78,13 @@ unique row
 >         \ x int unique\n\
 >         \);"
 >         [CreateTable ea (dqi "t1")
->          [AttributeDef ea "x" (SimpleTypeName ea "int") Nothing
+>          [AttributeDef ea (Nmc "x") (SimpleTypeName ea "int") Nothing
 >           [RowUniqueConstraint ea ""]][]]
 >
 >      ,s "create table t1 (\n\
 >         \ x int unique not null\n\
 >         \);"
->         [CreateTable ea (dqi "t1") [AttributeDef ea "x" (SimpleTypeName ea "int") Nothing
+>         [CreateTable ea (dqi "t1") [AttributeDef ea (Nmc "x") (SimpleTypeName ea "int") Nothing
 >                            [RowUniqueConstraint ea ""
 >                            ,NotNullConstraint ea ""]][]]
 
@@ -93,7 +93,7 @@ quick sanity check
 >      ,s "create table t1 (\n\
 >         \ x int not null unique\n\
 >         \);"
->         [CreateTable ea (dqi "t1") [AttributeDef ea "x" (SimpleTypeName ea "int") Nothing
+>         [CreateTable ea (dqi "t1") [AttributeDef ea (Nmc "x") (SimpleTypeName ea "int") Nothing
 >                            [NotNullConstraint ea ""
 >                            ,RowUniqueConstraint ea ""]][]]
 >      ]
@@ -102,7 +102,7 @@ quick sanity check
 >       s "create table t1 (\n\
 >         \ x int primary key\n\
 >         \);"
->         [CreateTable ea (dqi "t1") [AttributeDef ea "x" (SimpleTypeName ea "int") Nothing
+>         [CreateTable ea (dqi "t1") [AttributeDef ea (Nmc "x") (SimpleTypeName ea "int") Nothing
 >                            [RowPrimaryKeyConstraint ea ""]][]]
 >
 >      ,s "create table t1 (\n\
@@ -120,7 +120,7 @@ quick sanity check
 >         \f text check (f in('a', 'b'))\n\
 >         \);"
 >         [CreateTable ea (dqi "t")
->          [AttributeDef ea "f" (SimpleTypeName ea "text") Nothing
+>          [AttributeDef ea (Nmc "f") (SimpleTypeName ea "text") Nothing
 >           [RowCheckConstraint ea "" (InPredicate ea
 >                                   (Identifier ea "f") True
 >                                   (InList ea [stringQ "a", stringQ "b"]))]] []]
@@ -140,27 +140,27 @@ quick sanity check
 >         \f text not null unique check (f in('a', 'b'))\n\
 >         \);"
 >         [CreateTable ea (dqi "t")
->          [AttributeDef ea "f" (SimpleTypeName ea "text") Nothing
+>          [AttributeDef ea (Nmc "f") (SimpleTypeName ea "text") Nothing
 >           [NotNullConstraint ea ""
 >            ,RowUniqueConstraint ea ""
 >            ,RowCheckConstraint ea "" (InPredicate ea
 >                                    (Identifier ea "f") True
 >                                    (InList ea [stringQ "a"
->                                            ,stringQ "b"]))]] []]
+>                                               ,stringQ "b"]))]] []]
 >      ]
 
 >      ,Group "references" [
 >       s "create table t1 (\n\
 >         \ x int references t2\n\
 >         \);"
->         [CreateTable ea (dqi "t1") [AttributeDef ea "x" (SimpleTypeName ea "int") Nothing
+>         [CreateTable ea (dqi "t1") [AttributeDef ea (Nmc "x") (SimpleTypeName ea "int") Nothing
 >                            [RowReferenceConstraint ea "" "t2" Nothing
 >                             Restrict Restrict]][]]
 >
 >      ,s "create table t1 (\n\
 >         \ x int references t2(y)\n\
 >         \);"
->         [CreateTable ea (dqi "t1") [AttributeDef ea "x" (SimpleTypeName ea "int") Nothing
+>         [CreateTable ea (dqi "t1") [AttributeDef ea (Nmc "x") (SimpleTypeName ea "int") Nothing
 >                            [RowReferenceConstraint ea "" "t2" (Just "y")
 >                             Restrict Restrict]][]]
 >      ,s "create table t1 (\n\
@@ -186,21 +186,21 @@ quick sanity check
 >      ,s "create table t1 (\n\
 >         \ x int references t2 on delete cascade\n\
 >         \);"
->         [CreateTable ea (dqi "t1") [AttributeDef ea "x" (SimpleTypeName ea "int") Nothing
+>         [CreateTable ea (dqi "t1") [AttributeDef ea (Nmc "x") (SimpleTypeName ea "int") Nothing
 >                            [RowReferenceConstraint ea "" "t2" Nothing
 >                             Cascade Restrict]][]]
 >
 >      ,s "create table t1 (\n\
 >         \ x int references t2 on update cascade\n\
 >         \);"
->         [CreateTable ea (dqi "t1") [AttributeDef ea "x" (SimpleTypeName ea "int") Nothing
+>         [CreateTable ea (dqi "t1") [AttributeDef ea (Nmc "x") (SimpleTypeName ea "int") Nothing
 >                            [RowReferenceConstraint ea "" "t2" Nothing
 >                             Restrict Cascade]][]]
 >
 >      ,s "create table t1 (\n\
 >         \ x int references t2 on delete cascade on update cascade\n\
 >         \);"
->         [CreateTable ea (dqi "t1") [AttributeDef ea "x" (SimpleTypeName ea "int") Nothing
+>         [CreateTable ea (dqi "t1") [AttributeDef ea (Nmc "x") (SimpleTypeName ea "int") Nothing
 >                            [RowReferenceConstraint ea "" "t2" Nothing
 >                             Cascade Cascade]][]]
 >
@@ -210,7 +210,7 @@ quick sanity check
 >         \ foreign key (x,y) references t2 on update cascade on delete cascade\n\
 >         \);"
 >         [CreateTable ea (dqi "t1") [att "x" "int"
->                           ,att "y" "int"]
+>                                    ,att "y" "int"]
 >          [ReferenceConstraint ea "" ["x", "y"] "t2" []
 >           Cascade Cascade]]
 >

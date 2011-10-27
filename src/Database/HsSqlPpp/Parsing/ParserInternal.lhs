@@ -331,8 +331,8 @@ this recursion needs refactoring cos it's a mess
 >                              <*> commaSep1 withQuery
 >                              <*> pQueryExpr
 >         withQuery = WithQuery <$> pos
->                               <*> idString
->                               <*> tryOptionMaybe (parens $ commaSep idString)
+>                               <*> nameComponent
+>                               <*> tryOptionMaybe (parens $ commaSep nameComponent)
 >                               <*> (keyword "as" *> parens pQueryExpr)
 >         combTable = [map (\(c,p) -> Infix (CombineQueryExpr
 >                                            <$> pos
@@ -440,10 +440,10 @@ then we combine by seeing if there is a join looking prefix
 >         palias = do
 >            p <- pos
 >            option (NoAlias p)
->                    (optionalSuffix
->                       (TableAlias p) (optional (keyword "as") *> nkwid)
->                       (FullAlias p) () (parens $ commaSep1 idString))
->         badNames = ["as"
+>                    (try $ optionalSuffix
+>                       (TableAlias p) (optional (keyword "as") *> nonKeywordNc)
+>                       (FullAlias p) () (parens $ commaSep1 nameComponent))
+>         {-badNames = ["as"
 >                    ,"where"
 >                    ,"except"
 >                    ,"union"
@@ -480,7 +480,7 @@ then we combine by seeing if there is a join looking prefix
 >                  -- TODO find out what the correct behaviour here is.
 >                  if map toLower x `elem` badNames
 >                    then fail "not keyword"
->                    else return x
+>                    else return x-}
 >
 > optParens :: SParser a
 >           -> SParser a
@@ -513,13 +513,13 @@ multiple rows to insert and insert from select statements
 >       setClause =
 >         choice [do
 >           p <- pos
->           l <- parens (commaSep1 idString)
+>           l <- parens (commaSep1 nameComponent)
 >           symbol "="
 >           r <- parens (commaSep1 expr)
 >           return $ MultiSetClause p l $ FunCall p "!rowctor" r
 >         ,do
 >           p <- pos
->           l <- idString
+>           l <- nameComponent
 >           symbol "="
 >           r <- expr
 >           return $ SetClause p l r]
@@ -615,7 +615,7 @@ ddl
 > tableAttribute :: SParser AttributeDef
 > tableAttribute = AttributeDef
 >                <$> pos
->                <*> idString
+>                <*> nameComponent
 >                <*> typeName
 >                <*> tryOptionMaybe (keyword "default" *> expr)
 >                <*> many rowConstraint
@@ -676,7 +676,7 @@ ddl
 >                                    ,"check"
 >                                    ,"foreign"
 >                                    ,"references"]
->                               then fail "not keyword"
+>                               then fail "not keyword (constraint name)"
 >                               else return x
 >
 > alterTable :: SParser Statement
@@ -927,7 +927,7 @@ or after the whole list
 >     selectItem = pos >>= \p ->
 >                  optionalSuffix
 >                    (SelExp p) expr
->                    (SelectItem p) () (keyword "as" *> idString)
+>                    (SelectItem p) () (keyword "as" *> nameComponent)
 >
 > returning :: SParser SelectList
 > returning = keyword "returning" *> selectList
@@ -1660,11 +1660,40 @@ instead of the full parser which allows keywords. Also not sure if
 keywords used in qualified names should be rejected the same as
 keywords which are unqualified.
 
+> nonKeywordNc :: SParser NameComponent
+> nonKeywordNc = do
+>   x <- nameComponent
+>   if x `elem` badKeywords
+>     then fail "not keyword (NameComponent)"
+>     else return x
+>   where
+>     badKeywords = map Nmc
+>                   ["as"
+>                   ,"where"
+>                   ,"except"
+>                   ,"union"
+>                   ,"intersect"
+>                   ,"loop"
+>                   ,"inner"
+>                   ,"on"
+>                   ,"left"
+>                   ,"right"
+>                   ,"full"
+>                   ,"cross"
+>                   ,"join"
+>                   ,"natural"
+>                   ,"order"
+>                   ,"group"
+>                   ,"limit"
+>                   ,"using"
+>                   ,"from"]
+
+
 > nonKeywordNcs :: SParser [NameComponent]
 > nonKeywordNcs = do
 >   x <- ncs
 >   if any (`elem` badKeywords) x
->     then fail "not keyword"
+>     then fail "not keyword (NameComponent list)"
 >     else return x
 >   where
 >     badKeywords = map Nmc

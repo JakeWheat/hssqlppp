@@ -46,7 +46,7 @@
 >         \set a=b returning tag into r.tag;"
 >       [Into ea False [Name ea [Nmc "r",Nmc "tag"]]
 >          $ Update ea (dqi "pieces")
->              [SetClause  ea "a" $ Identifier ea "b"]
+>              [SetClause ea (Nmc "a") $ Identifier ea "b"]
 >            []
 >            Nothing (Just (SelectList ea
 >                           [SelExp ea (Identifier ea "tag")]))]
@@ -61,7 +61,7 @@
 >      ,f "update t\n\
 >         \  set x = 1 returning id into z;"
 >       [Into ea False [Name ea [Nmc "z"]]
->       $ Update ea (dqi "t") [SetClause ea "x" $ NumberLit ea "1"]
+>       $ Update ea (dqi "t") [SetClause ea (Nmc "x") $ NumberLit ea "1"]
 >         [] Nothing (Just $ sl [selI "id"])]
 
 >      ,f "execute s;"
@@ -102,7 +102,7 @@
 >         \  update c set d = e;\n\
 >         \end if;"
 >       [If ea [(FunCall ea "=" [ei "a", ei "b"]
->               ,[Update ea (dqi "c") [SetClause ea "d"
+>               ,[Update ea (dqi "c") [SetClause ea (Nmc "d")
 >                                     $ ei "e"] [] Nothing Nothing])]
 >        []]
 >      ,f "if true then\n\

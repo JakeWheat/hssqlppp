@@ -59,7 +59,7 @@ SEM SelectItem
     | SelExp
         lhs.itemType = ("", Nothing)
     | SelectItem
-        lhs.itemType = (@name, unwrapSetof `fmap` @ex.uType)
+        lhs.itemType = (ncStr @name, unwrapSetof `fmap` @ex.uType)
 
 {
 --unwrapSetofs :: [(String,Type)] -> [(String,Type)]

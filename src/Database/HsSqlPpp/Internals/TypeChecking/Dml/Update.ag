@@ -61,7 +61,7 @@ SEM Statement
 SEM SetClause
     | SetClause
         loc.targType : {E Type}
-        loc.targType = case lookupLocalBinding @lhs.lib @lhs.tbName @setTarget of
+        loc.targType = case lookupLocalBinding @lhs.lib @lhs.tbName $ ncStr @setTarget of
                               Right Nothing -> Left []
                               Right (Just t) -> Right t
                               Left e -> Left e
@@ -77,7 +77,7 @@ SEM SetClause
         loc.targType =
             do
             let etargTypes :: [E (Maybe Type)]
-                etargTypes = map (lookupLocalBinding @lhs.lib @lhs.tbName) @setTargets
+                etargTypes = map (lookupLocalBinding @lhs.lib @lhs.tbName . ncStr) @setTargets
             concatLefts etargTypes
             targTypes <- lmt $ sequence $ rights etargTypes
             return $ AnonymousRecordType targTypes

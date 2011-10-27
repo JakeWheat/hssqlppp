@@ -179,7 +179,7 @@ data AlterTableAction = AddConstraint Annotation Constraint
                       | AlterColumnDefault Annotation String ScalarExpr
                       deriving (Data, Eq, Show, Typeable)
  
-data AttributeDef = AttributeDef Annotation String TypeName
+data AttributeDef = AttributeDef Annotation NameComponent TypeName
                                  MaybeScalarExpr RowConstraintList
                   deriving (Data, Eq, Show, Typeable)
  
@@ -256,14 +256,15 @@ data ScalarExpr = AggregateFn Annotation Distinct ScalarExpr
                 deriving (Data, Eq, Show, Typeable)
  
 data SelectItem = SelExp Annotation ScalarExpr
-                | SelectItem Annotation ScalarExpr String
+                | SelectItem Annotation ScalarExpr NameComponent
                 deriving (Data, Eq, Show, Typeable)
  
 data SelectList = SelectList Annotation SelectItemList
                 deriving (Data, Eq, Show, Typeable)
  
-data SetClause = MultiSetClause Annotation [String] ScalarExpr
-               | SetClause Annotation String ScalarExpr
+data SetClause = MultiSetClause Annotation [NameComponent]
+                                ScalarExpr
+               | SetClause Annotation NameComponent ScalarExpr
                deriving (Data, Eq, Show, Typeable)
  
 data Statement = AlterSequence Annotation Name Name
@@ -318,9 +319,10 @@ data Statement = AlterSequence Annotation Name Name
                | AntiStatement String
                deriving (Data, Eq, Show, Typeable)
  
-data TableAlias = FullAlias Annotation String [String]
+data TableAlias = FullAlias Annotation NameComponent
+                            [NameComponent]
                 | NoAlias Annotation
-                | TableAlias Annotation String
+                | TableAlias Annotation NameComponent
                 deriving (Data, Eq, Show, Typeable)
  
 data TableRef = FunTref Annotation ScalarExpr TableAlias
@@ -345,8 +347,8 @@ data VarDef = ParamAlias Annotation String Integer
             | VarDef Annotation String TypeName (Maybe ScalarExpr)
             deriving (Data, Eq, Show, Typeable)
  
-data WithQuery = WithQuery Annotation String (Maybe [String])
-                           QueryExpr
+data WithQuery = WithQuery Annotation NameComponent
+                           (Maybe [NameComponent]) QueryExpr
                deriving (Data, Eq, Show, Typeable)
  
 type AlterTableActionList = [AlterTableAction]
@@ -606,7 +608,8 @@ alterTableAction x
 attributeDef :: AttributeDef -> A.AttributeDef
 attributeDef x
   = case x of
-        AttributeDef a1 a2 a3 a4 a5 -> A.AttributeDef a1 a2 (typeName a3)
+        AttributeDef a1 a2 a3 a4 a5 -> A.AttributeDef a1 (nameComponent a2)
+                                         (typeName a3)
                                          (maybeScalarExpr a4)
                                          (rowConstraintList a5)
  
@@ -729,7 +732,8 @@ selectItem :: SelectItem -> A.SelectItem
 selectItem x
   = case x of
         SelExp a1 a2 -> A.SelExp a1 (scalarExpr a2)
-        SelectItem a1 a2 a3 -> A.SelectItem a1 (scalarExpr a2) a3
+        SelectItem a1 a2 a3 -> A.SelectItem a1 (scalarExpr a2)
+                                 (nameComponent a3)
  
 selectList :: SelectList -> A.SelectList
 selectList x
@@ -739,8 +743,11 @@ selectList x
 setClause :: SetClause -> A.SetClause
 setClause x
   = case x of
-        MultiSetClause a1 a2 a3 -> A.MultiSetClause a1 a2 (scalarExpr a3)
-        SetClause a1 a2 a3 -> A.SetClause a1 a2 (scalarExpr a3)
+        MultiSetClause a1 a2 a3 -> A.MultiSetClause a1
+                                     (nameComponentList a2)
+                                     (scalarExpr a3)
+        SetClause a1 a2 a3 -> A.SetClause a1 (nameComponent a2)
+                                (scalarExpr a3)
  
 statement :: Statement -> A.Statement
 statement x
@@ -857,9 +864,10 @@ statement x
 tableAlias :: TableAlias -> A.TableAlias
 tableAlias x
   = case x of
-        FullAlias a1 a2 a3 -> A.FullAlias a1 a2 a3
+        FullAlias a1 a2 a3 -> A.FullAlias a1 (nameComponent a2)
+                                (nameComponentList a3)
         NoAlias a1 -> A.NoAlias a1
-        TableAlias a1 a2 -> A.TableAlias a1 a2
+        TableAlias a1 a2 -> A.TableAlias a1 (nameComponent a2)
  
 tableRef :: TableRef -> A.TableRef
 tableRef x
@@ -899,7 +907,9 @@ varDef x
 withQuery :: WithQuery -> A.WithQuery
 withQuery x
   = case x of
-        WithQuery a1 a2 a3 a4 -> A.WithQuery a1 a2 a3 (queryExpr a4)
+        WithQuery a1 a2 a3 a4 -> A.WithQuery a1 (nameComponent a2)
+                                   (maybeNameComponentList a3)
+                                   (queryExpr a4)
  
 alterTableActionList ::
                      AlterTableActionList -> A.AlterTableActionList

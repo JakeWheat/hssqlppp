@@ -386,8 +386,8 @@ DATA QueryExpr
 
 TYPE WithQueryList = [WithQuery]
 DATA WithQuery | WithQuery ann : Annotation
-                           name : String
-                           colAliases : {Maybe [String]}
+                           name : NameComponent
+                           colAliases : {Maybe [NameComponent]}
                            ex : QueryExpr
 
 DATA FnBody | SqlFnBody ann:Annotation sts : StatementList
@@ -411,8 +411,8 @@ DATA TableRef | Tref ann:Annotation
                         alias : TableAlias
 
 DATA TableAlias | NoAlias ann:Annotation
-                | TableAlias ann:Annotation tb:String
-                | FullAlias ann:Annotation tb:String cols:{[String]}
+                | TableAlias ann:Annotation tb:NameComponent
+                | FullAlias ann:Annotation tb:NameComponent cols:{[NameComponent]}
 
 DATA JoinExpr | JoinOn ann:Annotation expr:ScalarExpr
               | JoinUsing ann:Annotation x:{[NameComponent]}
@@ -427,7 +427,7 @@ data JoinType = Inner | LeftOuter| RightOuter | FullOuter | Cross
 DATA SelectList | SelectList ann:Annotation items:SelectItemList
 
 DATA SelectItem | SelExp ann:Annotation ex:ScalarExpr
-                | SelectItem ann:Annotation ex:ScalarExpr name:String
+                | SelectItem ann:Annotation ex:ScalarExpr name:NameComponent
 
 {
 data CopySource = CopyFilename String
@@ -436,16 +436,16 @@ data CopySource = CopyFilename String
 }
 
 DATA SetClause | SetClause ann:Annotation
-                           setTarget:String
+                           setTarget:NameComponent
                            ex:ScalarExpr
                | MultiSetClause ann:Annotation
-                                setTargets:{[String]}
+                                setTargets:{[NameComponent]}
                                 ex:ScalarExpr
 
 --name type default null constraint
 
 DATA AttributeDef | AttributeDef ann:Annotation
-                                 name : String
+                                 name : NameComponent
                                  typ : TypeName
                                  def: MaybeScalarExpr
                                  cons : RowConstraintList

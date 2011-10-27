@@ -272,7 +272,7 @@ SEM WithQuery
         loc.tpe = Right $ Pseudo Void
         loc.backTree = WithQuery @ann @name @colAliases @ex.annotatedTree
         loc.attrs = maybe [] id $ @ex.uType --TODO: error ignored
-        loc.catUpdates = [CatCreateView @name @loc.attrs]
+        loc.catUpdates = [CatCreateView (ncStr @name) @loc.attrs]
         loc.statementType = Nothing
 
 
