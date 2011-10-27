@@ -13,9 +13,9 @@ pretty simple, just forwards the select expression type
 SEM Statement
     | CreateView
         loc.tpe = Right $ Pseudo Void
-        loc.backTree = CreateView @ann @name @colNames @expr.annotatedTree
+        loc.backTree = CreateView @ann @name.originalTree @colNames @expr.annotatedTree
         loc.catUpdates =
-            maybe [] (\a -> [CatCreateView @name a]) @expr.uType
+            maybe [] (\a -> [CatCreateView (getTName @name.originalTree) a]) @expr.uType
         loc.statementType = Nothing
 
 {-
@@ -50,9 +50,9 @@ SEM Statement
                     where
                       okAt (s, Just t) = Just (s,t)
                       okAt (_,Nothing) = Nothing
-        loc.backTree = CreateType @ann @name @atts.annotatedTree
+        loc.backTree = CreateType @ann @name.originalTree @atts.annotatedTree
         loc.statementType = Nothing
-        loc.catUpdates = [CatCreateComposite @name @loc.attrs]
+        loc.catUpdates = [CatCreateComposite (getTName @name.originalTree) @loc.attrs]
 
 {-
 
@@ -63,9 +63,9 @@ SEM Statement
 SEM Statement
     | CreateDomain
         loc.tpe = Right $ Pseudo Void
-        loc.backTree = CreateDomain @ann @name @typ.annotatedTree @checkName @check.annotatedTree
+        loc.backTree = CreateDomain @ann @name.originalTree @typ.annotatedTree @constraintName @check.annotatedTree
         loc.statementType = Nothing
-        loc.catUpdates = maybe [] (\t -> [CatCreateDomain (DomainType @name) t]) @typ.namedType
+        loc.catUpdates = maybe [] (\t -> [CatCreateDomain (DomainType (getTName @name.originalTree)) t]) @typ.namedType
         --allow refering to value as 'value' in check expression
         check.lib = either (const @lhs.lib) id $ do
                     nt <- lmt @typ.namedType

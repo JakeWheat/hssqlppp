@@ -239,10 +239,13 @@ get the constructor information for a type, in a nice simple format
 >     -- name and hope everything works out.
 >     -- which it does, since the types in astinternal follow this convention
 >     -- and the convname fn helps out as well
+>     -- (I can't really believe it)
 >     aInfo (UnBangedTy (TyList (TyCon (UnQual (Ident m))))) = m ++ "List"
 >     aInfo (UnBangedTy (TyApp (TyCon (UnQual (Ident "Maybe"))) (TyCon (UnQual (Ident m)))))
 >           = "Maybe" ++ m
 >     aInfo (UnBangedTy (TyApp (TyCon (UnQual (Ident "Maybe"))) (TyList (TyCon (UnQual (Ident "String")))))) = "MaybeStringList"
+>     aInfo (UnBangedTy (TyApp (TyCon (UnQual (Ident "Maybe"))) (TyList (TyCon (UnQual (Ident "NameComponent")))))) = "MaybeNameComponentList"
+
 >     aInfo a = error $ "aInfo " ++ show a
 >
 

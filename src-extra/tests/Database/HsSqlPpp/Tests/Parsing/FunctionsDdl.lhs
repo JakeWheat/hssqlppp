@@ -13,7 +13,7 @@
 >       s "create function t1(text) returns text as $$\n\
 >         \select a from t1 where b = $1;\n\
 >         \$$ language sql stable;"
->       [CreateFunction ea "t1" [ParamDefTp ea $ SimpleTypeName ea "text"]
+>       [CreateFunction ea (dqi "t1") [ParamDefTp ea $ SimpleTypeName ea "text"]
 >        (SimpleTypeName ea "text") NoReplace Sql
 >        (SqlFnBody ea
 >         [QueryStatement ea $ selectFromWhere [SelExp ea (Identifier ea "a")] (Tref ea (i "t1") (NoAlias ea))
@@ -28,7 +28,7 @@
 >         \  null;\n\
 >         \end;\n\
 >         \$$ language plpgsql volatile;"
->       [CreateFunction ea "fn" [] (SimpleTypeName ea "void") NoReplace Plpgsql
+>       [CreateFunction ea (dqi "fn") [] (SimpleTypeName ea "void") NoReplace Plpgsql
 >        (PlpgsqlFnBody ea (Block ea Nothing [VarDef ea "a" (SimpleTypeName ea "int") Nothing
 >                                            ,VarDef ea "b" (SimpleTypeName ea "text") Nothing]
 >                           [NullStatement ea]))
@@ -41,7 +41,7 @@
 >         \  null;\n\
 >         \end;\n\
 >         \$$ language plpgsql volatile;"
->       [CreateFunction ea "fn" [] (SimpleTypeName ea "void") NoReplace Plpgsql
+>       [CreateFunction ea (dqi "fn") [] (SimpleTypeName ea "void") NoReplace Plpgsql
 >        (PlpgsqlFnBody ea
 >         (Block ea Nothing [VarDef ea "a" (SimpleTypeName ea "int") Nothing
 >                           ,VarDef ea "b" (SimpleTypeName ea "text") Nothing]
@@ -54,7 +54,7 @@
 >         \  null;\n\
 >         \end;\n\
 >         \$$ language plpgsql immutable;"
->       [CreateFunction ea "fn"
+>       [CreateFunction ea (dqi "fn")
 >        [ParamDef ea "a" $ ArrayTypeName ea $ SimpleTypeName ea "text"]
 >        (ArrayTypeName ea $ SimpleTypeName ea "int") NoReplace Plpgsql
 >        (PlpgsqlFnBody ea
@@ -69,7 +69,7 @@
 >         \  null;\n\
 >         \end;\n\
 >         \' language plpgsql stable;"
->       [CreateFunction ea "fn" [] (SimpleTypeName ea "void") NoReplace Plpgsql
+>       [CreateFunction ea (dqi "fn") [] (SimpleTypeName ea "void") NoReplace Plpgsql
 >        (PlpgsqlFnBody ea
 >         (Block ea Nothing
 >          [VarDef ea "a" (SimpleTypeName ea "int") (Just $ NumberLit ea "3")]
@@ -82,7 +82,7 @@
 >         \  null;\n\
 >         \end;\n\
 >         \' language plpgsql stable;"
->       [CreateFunction ea "fn"
+>       [CreateFunction ea (dqi "fn")
 >        [ParamDefTp ea $ SimpleTypeName ea "int"]
 >        (SimpleTypeName ea "void") NoReplace Plpgsql
 >        (PlpgsqlFnBody ea
@@ -97,7 +97,7 @@
 >         \  null;\n\
 >         \end;\n\
 >         \' language plpgsql stable;"
->       [CreateFunction ea "fn"
+>       [CreateFunction ea (dqi "fn")
 >        [ParamDef ea "b" $ SimpleTypeName ea "int"]
 >        (SimpleTypeName ea "void") NoReplace Plpgsql
 >        (PlpgsqlFnBody ea
@@ -110,7 +110,7 @@
 >         \  null;\n\
 >         \end;\n\
 >         \$$ language plpgsql stable;"
->       [CreateFunction ea "fn" []
+>       [CreateFunction ea (dqi "fn") []
 >        (SetOfTypeName ea $ SimpleTypeName ea "int") NoReplace Plpgsql
 >        (PlpgsqlFnBody ea (Block ea Nothing [] [NullStatement ea]))
 >        Stable]
@@ -119,7 +119,7 @@
 >         \  null;\n\
 >         \end\n\
 >         \$$ language plpgsql stable;"
->       [CreateFunction ea "fn" []
+>       [CreateFunction ea (dqi "fn") []
 >        (SimpleTypeName ea "void") NoReplace Plpgsql
 >        (PlpgsqlFnBody ea (Block ea Nothing [] [NullStatement ea]))
 >        Stable]
@@ -128,18 +128,18 @@
 >         \  null;\n\
 >         \end\n\
 >         \$$ language plpgsql stable;"
->       [CreateFunction ea "fn" []
+>       [CreateFunction ea (dqi "fn") []
 >        (SimpleTypeName ea "void") Replace Plpgsql
 >        (PlpgsqlFnBody ea (Block ea Nothing [] [NullStatement ea]))
 >        Stable]
 >      ,s "drop function test(text);"
->       [DropFunction ea Require [("test",[SimpleTypeName ea "text"])] Restrict]
+>       [DropFunction ea Require [(dqi "test",[SimpleTypeName ea "text"])] Restrict]
 >      ,s "drop function test(int,int);"
->       [DropFunction ea Require [("test",[SimpleTypeName ea "int"
->                                         ,SimpleTypeName ea "int"])] Restrict]
+>       [DropFunction ea Require [(dqi "test",[SimpleTypeName ea "int"
+>                                             ,SimpleTypeName ea "int"])] Restrict]
 >      ,s "drop function if exists a(),test(text) cascade;"
->       [DropFunction ea IfExists [("a",[])
->                           ,("test",[SimpleTypeName ea "text"])] Cascade]
+>       [DropFunction ea IfExists [(dqi "a",[])
+>                                 ,(dqi "test",[SimpleTypeName ea "text"])] Cascade]
 >     ]]
 >  where
 >    s = Stmt

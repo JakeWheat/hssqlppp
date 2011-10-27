@@ -102,7 +102,7 @@ Conversion routines - convert Sql asts into Docs
 > convStatement _nice se ca (Truncate ann names ri casc) =
 >     convPa ca ann <+>
 >     text "truncate"
->     <+> sepCsvMap text names
+>     <+> sepCsvMap convName names
 >     <+> text (case ri of
 >                       RestartIdentity -> "restart identity"
 >                       ContinueIdentity -> "continue identity")
@@ -114,7 +114,7 @@ Conversion routines - convert Sql asts into Docs
 > convStatement nice se ca (CreateTable ann tbl atts cns) =
 >     convPa ca ann <+>
 >     text "create table"
->     <+> text tbl <+> lparen
+>     <+> convName tbl <+> lparen
 >     $+$ nest 2 (vcat (csv (map convAttDef atts ++ map (convCon nice) cns)))
 >     $+$ rparen <> statementEnd se
 >     where
@@ -140,7 +140,7 @@ Conversion routines - convert Sql asts into Docs
 >
 > convStatement nice se ca (AlterTable ann name act) =
 >     convPa ca ann <+>
->     text "alter table" <+> text name
+>     text "alter table" <+> convName name
 >     <+> hcatCsvMap convAct act <> statementEnd se
 >     where
 >       convAct (AlterColumnDefault _ nm def) =
@@ -151,7 +151,7 @@ Conversion routines - convert Sql asts into Docs
 >
 > convStatement _nice se ca (CreateSequence ann nm incr _ _ start cache) =
 >     convPa ca ann <+>
->     text "create sequence" <+> text nm <+>
+>     text "create sequence" <+> convName nm <+>
 >     text "increment" <+> text (show incr) <+>
 >     text "no minvalue" <+>
 >     text "no maxvalue" <+>
@@ -160,13 +160,13 @@ Conversion routines - convert Sql asts into Docs
 >
 > convStatement _nice se ca (AlterSequence ann nm o) =
 >     convPa ca ann <+>
->     text "alter sequence" <+> text nm
+>     text "alter sequence" <+> convName nm
 >     <+> text "owned by" <+> convName o <> statementEnd se
 >
 > convStatement nice se ca (CreateTableAs ann t sel) =
 >     convPa ca ann <+>
 >     text "create table"
->     <+> text t <+> text "as"
+>     <+> convName t <+> text "as"
 >     $+$ convQueryExpr nice True True sel
 >     <> statementEnd se
 >
@@ -175,7 +175,7 @@ Conversion routines - convert Sql asts into Docs
 >     text ("create " ++ (case rep of
 >                          Replace -> "or replace "
 >                          _ -> "") ++ "function")
->     <+> text name
+>     <+> convName name
 >     <+> parens (sepCsvMap convParamDef args)
 >     <+> text "returns" <+> convTypeName retType <+> text "as" <+> text "$$"
 >     $+$ convFnBody body
@@ -218,16 +218,16 @@ Conversion routines - convert Sql asts into Docs
 >
 > convStatement nice se ca (CreateView ann name cols sel) =
 >     convPa ca ann <+>
->     text "create view" <+> text name
+>     text "create view" <+> convName name
 >     <> case cols of
 >          Nothing -> empty
->          Just cs -> parens (sepCsvMap text cs)
+>          Just cs -> parens (sepCsvMap convNC cs)
 >     <+> text "as"
 >     $+$ nest 2 (convQueryExpr nice True True sel) <> statementEnd se
 >
 > convStatement nice se ca (CreateDomain ann name tp n ex) =
 >     convPa ca ann <+>
->     text "create domain" <+> text name <+> text "as"
+>     text "create domain" <+> convName name <+> text "as"
 >     <+> convTypeName tp <+> cname <+> checkExp ex <> statementEnd se
 >     where
 >       checkExp = maybeConv (\e -> text "check" <+> parens (convExp nice e))
@@ -244,7 +244,7 @@ Conversion routines - convert Sql asts into Docs
 >   <> statementEnd se
 >   where
 >     doFunction (name,types) =
->       text name <> parens (sepCsvMap convTypeName types)
+>       convName name <> parens (sepCsvMap convTypeName types)
 >
 > convStatement _nice se ca (DropSomething ann dropType ifExists names casc) =
 >     convPa ca ann <+>
@@ -255,13 +255,13 @@ Conversion routines - convert Sql asts into Docs
 >                 Domain -> "domain"
 >                 Type -> "type")
 >     <+> convIfExists ifExists
->     <+> sepCsvMap text names
+>     <+> sepCsvMap convName names
 >     <+> convCasc casc
 >     <> statementEnd se
 >
 > convStatement _nice se ca (CreateType ann name atts) =
 >     convPa ca ann <+>
->     text "create type" <+> text name <+> text "as" <+> lparen
+>     text "create type" <+> convName name <+> text "as" <+> lparen
 >     $+$ nest 2 (vcat (csv
 >           (map (\(TypeAttDef _ n t) -> text n <+> convTypeName t)  atts)))
 >     $+$ rparen <> statementEnd se
@@ -272,12 +272,12 @@ Conversion routines - convert Sql asts into Docs
 >
 > convStatement nice se ca (CreateTrigger ann name wh events tbl firing fnName fnArgs) =
 >     convPa ca ann <+>
->     text "create trigger" <+> text name
+>     text "create trigger" <+> convNC name
 >     <+> text (case wh of
 >                       TriggerBefore -> "before"
 >                       TriggerAfter -> "after")
 >     <+> evs
->     <+> text "on" <+> text tbl
+>     <+> text "on" <+> convName tbl
 >     <+> text "for" <+> text (case firing of
 >                                         EachRow -> "row"
 >                                         EachStatement -> "statement")

@@ -16,20 +16,20 @@ SEM Statement
               mcu :: (String,[Type]) -> CatalogUpdate
               mcu (nm,args) = CatDropFunction ifE nm args
               ifE = @ifE == IfExists
-              goodSig :: (String,[Maybe Type]) -> Maybe (String,[Type])
+              goodSig :: (Name,[Maybe Type]) -> Maybe (String,[Type])
               goodSig (s, ts) = do
                             ts1 <- sequence ts
-                            return (s,ts1)
+                            return (getTName s,ts1)
         loc.statementType = Nothing
 
-ATTR StringTypeNameListPairList [||fnSigs:{[(String,[Maybe Type])]}]
-SEM StringTypeNameListPairList
+ATTR NameTypeNameListPairList [||fnSigs:{[(Name,[Maybe Type])]}]
+SEM NameTypeNameListPairList
     | Cons lhs.fnSigs = @hd.fnSig : @tl.fnSigs
     | Nil lhs.fnSigs = []
 
-ATTR StringTypeNameListPair [||fnSig:{(String,[Maybe Type])}]
-SEM StringTypeNameListPair
-    | Tuple lhs.fnSig = (@x1, @x2.namedTypes)
+ATTR NameTypeNameListPair [||fnSig:{(Name,[Maybe Type])}]
+SEM NameTypeNameListPair
+    | Tuple lhs.fnSig = (@x1.originalTree, @x2.namedTypes)
 
 ATTR TypeNameList [||namedTypes:{[Maybe Type]}]
 

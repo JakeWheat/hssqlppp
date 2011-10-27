@@ -30,7 +30,7 @@ SEM Statement
     | CreateTable
         loc.tpe = Right $ Pseudo Void
         loc.catUpdates =
-            [CatCreateTable @name @loc.attrs defaultSystemColumns]
+            [CatCreateTable (getTName @name.originalTree) @loc.attrs defaultSystemColumns]
         loc.attrs : {[(String,Type)]}
         loc.attrs = mapMaybe okAt @atts.attrs
                     where
@@ -39,7 +39,7 @@ SEM Statement
 
         loc.statementType = Nothing
         loc.backTree = CreateTable @ann
-                                   @name
+                                   @name.originalTree
                                    @atts.annotatedTree
                                    @cons.annotatedTree
         cons.lib = case lbUpdate @lhs.cat
@@ -65,12 +65,12 @@ SEM Statement
         loc.catUpdates =
            either (const []) id $ do
            ats <- @loc.attrs
-           return [CatCreateTable @name ats defaultSystemColumns]
+           return [CatCreateTable (getTName @name.originalTree) ats defaultSystemColumns]
 
         loc.attrs : {Either [TypeError] [(String,Type)]}
         loc.attrs = lmt @expr.uType
 
-        loc.backTree = CreateTableAs @ann @name @expr.annotatedTree
+        loc.backTree = CreateTableAs @ann @name.originalTree @expr.annotatedTree
         loc.statementType = Nothing
 
 {-

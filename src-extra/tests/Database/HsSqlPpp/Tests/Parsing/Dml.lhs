@@ -103,10 +103,10 @@ FunCall ea "=" [FunCall ea "!rowctor" [Identifier ea "x",Identifier ea "y"],FunC
 >
 >     ,Group "truncate" [
 >       s "truncate test;"
->        [Truncate ea ["test"] ContinueIdentity Restrict]
+>        [Truncate ea [dqi "test"] ContinueIdentity Restrict]
 >
 >      ,s "truncate table test, test2 restart identity cascade;"
->        [Truncate ea ["test","test2"] RestartIdentity Cascade]
+>        [Truncate ea [dqi "test",dqi "test2"] RestartIdentity Cascade]
 >      ]
 
 copy, bit crap at the moment

@@ -60,8 +60,8 @@ module Database.HsSqlPpp.Internals.AstInternal(
    ,ConstraintList
    ,TypeAttributeDefList
    ,TypeNameList
-   ,StringTypeNameListPair
-   ,StringTypeNameListPairList
+   ,NameTypeNameListPair
+   ,NameTypeNameListPairList
    ,ScalarExprStatementListPairList
    --,SetClauseList
    ,CaseScalarExprListScalarExprPairList
@@ -80,6 +80,8 @@ module Database.HsSqlPpp.Internals.AstInternal(
    ,MaybeSelectList
    ,SetValue(..)
    ,AlterTableActionList
+   ,NameComponentList
+   ,MaybeNameComponentList
    -- typechecking
    ,typeCheckStatements
    ,typeCheckParameterizedStatement
@@ -2378,6 +2380,40 @@ sem_MaybeBoolExpr_Nothing  =
               _lhsOoriginalTree =
                   _originalTree
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree)))
+-- MaybeNameComponentList --------------------------------------
+{-
+   alternatives:
+      alternative Just:
+         child just           : NameComponentList 
+      alternative Nothing:
+-}
+type MaybeNameComponentList  = Maybe NameComponentList 
+-- cata
+sem_MaybeNameComponentList :: MaybeNameComponentList  ->
+                              T_MaybeNameComponentList 
+sem_MaybeNameComponentList (Prelude.Just x )  =
+    (sem_MaybeNameComponentList_Just (sem_NameComponentList x ) )
+sem_MaybeNameComponentList Prelude.Nothing  =
+    sem_MaybeNameComponentList_Nothing
+-- semantic domain
+type T_MaybeNameComponentList  = ( )
+data Inh_MaybeNameComponentList  = Inh_MaybeNameComponentList {}
+data Syn_MaybeNameComponentList  = Syn_MaybeNameComponentList {}
+wrap_MaybeNameComponentList :: T_MaybeNameComponentList  ->
+                               Inh_MaybeNameComponentList  ->
+                               Syn_MaybeNameComponentList 
+wrap_MaybeNameComponentList sem (Inh_MaybeNameComponentList )  =
+    (let ( ) = sem 
+     in  (Syn_MaybeNameComponentList ))
+sem_MaybeNameComponentList_Just :: T_NameComponentList  ->
+                                   T_MaybeNameComponentList 
+sem_MaybeNameComponentList_Just just_  =
+    (let 
+     in  ( ))
+sem_MaybeNameComponentList_Nothing :: T_MaybeNameComponentList 
+sem_MaybeNameComponentList_Nothing  =
+    (let 
+     in  ( ))
 -- MaybeScalarExpr ---------------------------------------------
 {-
    visit 0:
@@ -2728,6 +2764,295 @@ sem_Name_Name ann_ is_  =
               _lhsOoriginalTree =
                   _originalTree
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree,_lhsOtbAnnotatedTree,_lhsOtbUType)))
+-- NameComponentList -------------------------------------------
+{-
+   alternatives:
+      alternative Cons:
+         child hd             : {NameComponent}
+         child tl             : NameComponentList 
+      alternative Nil:
+-}
+type NameComponentList  = [(NameComponent)]
+-- cata
+sem_NameComponentList :: NameComponentList  ->
+                         T_NameComponentList 
+sem_NameComponentList list  =
+    (Prelude.foldr sem_NameComponentList_Cons sem_NameComponentList_Nil list )
+-- semantic domain
+type T_NameComponentList  = ( )
+data Inh_NameComponentList  = Inh_NameComponentList {}
+data Syn_NameComponentList  = Syn_NameComponentList {}
+wrap_NameComponentList :: T_NameComponentList  ->
+                          Inh_NameComponentList  ->
+                          Syn_NameComponentList 
+wrap_NameComponentList sem (Inh_NameComponentList )  =
+    (let ( ) = sem 
+     in  (Syn_NameComponentList ))
+sem_NameComponentList_Cons :: NameComponent ->
+                              T_NameComponentList  ->
+                              T_NameComponentList 
+sem_NameComponentList_Cons hd_ tl_  =
+    (let 
+     in  ( ))
+sem_NameComponentList_Nil :: T_NameComponentList 
+sem_NameComponentList_Nil  =
+    (let 
+     in  ( ))
+-- NameTypeNameListPair ----------------------------------------
+{-
+   visit 0:
+      inherited attributes:
+         cat                  : Catalog
+         idenv                : IDEnv
+         lib                  : LocalBindings
+      synthesized attributes:
+         annotatedTree        : SELF 
+         fixedUpIdentifiersTree : SELF 
+         fnSig                : (Name,[Maybe Type])
+         originalTree         : SELF 
+   alternatives:
+      alternative Tuple:
+         child x1             : Name 
+         child x2             : TypeNameList 
+         visit 0:
+            local annotatedTree : _
+            local fixedUpIdentifiersTree : _
+            local originalTree : _
+-}
+type NameTypeNameListPair  = ( Name ,TypeNameList )
+-- cata
+sem_NameTypeNameListPair :: NameTypeNameListPair  ->
+                            T_NameTypeNameListPair 
+sem_NameTypeNameListPair ( x1,x2)  =
+    (sem_NameTypeNameListPair_Tuple (sem_Name x1 ) (sem_TypeNameList x2 ) )
+-- semantic domain
+type T_NameTypeNameListPair  = Catalog ->
+                               IDEnv ->
+                               LocalBindings ->
+                               ( NameTypeNameListPair ,NameTypeNameListPair ,((Name,[Maybe Type])),NameTypeNameListPair )
+data Inh_NameTypeNameListPair  = Inh_NameTypeNameListPair {cat_Inh_NameTypeNameListPair :: Catalog,idenv_Inh_NameTypeNameListPair :: IDEnv,lib_Inh_NameTypeNameListPair :: LocalBindings}
+data Syn_NameTypeNameListPair  = Syn_NameTypeNameListPair {annotatedTree_Syn_NameTypeNameListPair :: NameTypeNameListPair ,fixedUpIdentifiersTree_Syn_NameTypeNameListPair :: NameTypeNameListPair ,fnSig_Syn_NameTypeNameListPair :: ((Name,[Maybe Type])),originalTree_Syn_NameTypeNameListPair :: NameTypeNameListPair }
+wrap_NameTypeNameListPair :: T_NameTypeNameListPair  ->
+                             Inh_NameTypeNameListPair  ->
+                             Syn_NameTypeNameListPair 
+wrap_NameTypeNameListPair sem (Inh_NameTypeNameListPair _lhsIcat _lhsIidenv _lhsIlib )  =
+    (let ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOfnSig,_lhsOoriginalTree) = sem _lhsIcat _lhsIidenv _lhsIlib 
+     in  (Syn_NameTypeNameListPair _lhsOannotatedTree _lhsOfixedUpIdentifiersTree _lhsOfnSig _lhsOoriginalTree ))
+sem_NameTypeNameListPair_Tuple :: T_Name  ->
+                                  T_TypeNameList  ->
+                                  T_NameTypeNameListPair 
+sem_NameTypeNameListPair_Tuple x1_ x2_  =
+    (\ _lhsIcat
+       _lhsIidenv
+       _lhsIlib ->
+         (let _lhsOfnSig :: ((Name,[Maybe Type]))
+              _lhsOannotatedTree :: NameTypeNameListPair 
+              _lhsOfixedUpIdentifiersTree :: NameTypeNameListPair 
+              _lhsOoriginalTree :: NameTypeNameListPair 
+              _x1Ocat :: Catalog
+              _x1Oidenv :: IDEnv
+              _x1Olib :: LocalBindings
+              _x2Ocat :: Catalog
+              _x2Oidenv :: IDEnv
+              _x2Olib :: LocalBindings
+              _x1IannotatedTree :: Name 
+              _x1IfixedUpIdentifiersTree :: Name 
+              _x1IoriginalTree :: Name 
+              _x1ItbAnnotatedTree :: Name 
+              _x1ItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
+              _x2IannotatedTree :: TypeNameList 
+              _x2IfixedUpIdentifiersTree :: TypeNameList 
+              _x2InamedTypes :: ([Maybe Type])
+              _x2IoriginalTree :: TypeNameList 
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/Drops.ag"(line 32, column 13)
+              _lhsOfnSig =
+                  (_x1IoriginalTree, _x2InamedTypes)
+              -- self rule
+              _annotatedTree =
+                  (_x1IannotatedTree,_x2IannotatedTree)
+              -- self rule
+              _fixedUpIdentifiersTree =
+                  (_x1IfixedUpIdentifiersTree,_x2IfixedUpIdentifiersTree)
+              -- self rule
+              _originalTree =
+                  (_x1IoriginalTree,_x2IoriginalTree)
+              -- self rule
+              _lhsOannotatedTree =
+                  _annotatedTree
+              -- self rule
+              _lhsOfixedUpIdentifiersTree =
+                  _fixedUpIdentifiersTree
+              -- self rule
+              _lhsOoriginalTree =
+                  _originalTree
+              -- copy rule (down)
+              _x1Ocat =
+                  _lhsIcat
+              -- copy rule (down)
+              _x1Oidenv =
+                  _lhsIidenv
+              -- copy rule (down)
+              _x1Olib =
+                  _lhsIlib
+              -- copy rule (down)
+              _x2Ocat =
+                  _lhsIcat
+              -- copy rule (down)
+              _x2Oidenv =
+                  _lhsIidenv
+              -- copy rule (down)
+              _x2Olib =
+                  _lhsIlib
+              ( _x1IannotatedTree,_x1IfixedUpIdentifiersTree,_x1IoriginalTree,_x1ItbAnnotatedTree,_x1ItbUType) =
+                  x1_ _x1Ocat _x1Oidenv _x1Olib 
+              ( _x2IannotatedTree,_x2IfixedUpIdentifiersTree,_x2InamedTypes,_x2IoriginalTree) =
+                  x2_ _x2Ocat _x2Oidenv _x2Olib 
+          in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOfnSig,_lhsOoriginalTree)))
+-- NameTypeNameListPairList ------------------------------------
+{-
+   visit 0:
+      inherited attributes:
+         cat                  : Catalog
+         idenv                : IDEnv
+         lib                  : LocalBindings
+      synthesized attributes:
+         annotatedTree        : SELF 
+         fixedUpIdentifiersTree : SELF 
+         fnSigs               : [(Name,[Maybe Type])]
+         originalTree         : SELF 
+   alternatives:
+      alternative Cons:
+         child hd             : NameTypeNameListPair 
+         child tl             : NameTypeNameListPairList 
+         visit 0:
+            local annotatedTree : _
+            local fixedUpIdentifiersTree : _
+            local originalTree : _
+      alternative Nil:
+         visit 0:
+            local annotatedTree : _
+            local fixedUpIdentifiersTree : _
+            local originalTree : _
+-}
+type NameTypeNameListPairList  = [NameTypeNameListPair ]
+-- cata
+sem_NameTypeNameListPairList :: NameTypeNameListPairList  ->
+                                T_NameTypeNameListPairList 
+sem_NameTypeNameListPairList list  =
+    (Prelude.foldr sem_NameTypeNameListPairList_Cons sem_NameTypeNameListPairList_Nil (Prelude.map sem_NameTypeNameListPair list) )
+-- semantic domain
+type T_NameTypeNameListPairList  = Catalog ->
+                                   IDEnv ->
+                                   LocalBindings ->
+                                   ( NameTypeNameListPairList ,NameTypeNameListPairList ,([(Name,[Maybe Type])]),NameTypeNameListPairList )
+data Inh_NameTypeNameListPairList  = Inh_NameTypeNameListPairList {cat_Inh_NameTypeNameListPairList :: Catalog,idenv_Inh_NameTypeNameListPairList :: IDEnv,lib_Inh_NameTypeNameListPairList :: LocalBindings}
+data Syn_NameTypeNameListPairList  = Syn_NameTypeNameListPairList {annotatedTree_Syn_NameTypeNameListPairList :: NameTypeNameListPairList ,fixedUpIdentifiersTree_Syn_NameTypeNameListPairList :: NameTypeNameListPairList ,fnSigs_Syn_NameTypeNameListPairList :: ([(Name,[Maybe Type])]),originalTree_Syn_NameTypeNameListPairList :: NameTypeNameListPairList }
+wrap_NameTypeNameListPairList :: T_NameTypeNameListPairList  ->
+                                 Inh_NameTypeNameListPairList  ->
+                                 Syn_NameTypeNameListPairList 
+wrap_NameTypeNameListPairList sem (Inh_NameTypeNameListPairList _lhsIcat _lhsIidenv _lhsIlib )  =
+    (let ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOfnSigs,_lhsOoriginalTree) = sem _lhsIcat _lhsIidenv _lhsIlib 
+     in  (Syn_NameTypeNameListPairList _lhsOannotatedTree _lhsOfixedUpIdentifiersTree _lhsOfnSigs _lhsOoriginalTree ))
+sem_NameTypeNameListPairList_Cons :: T_NameTypeNameListPair  ->
+                                     T_NameTypeNameListPairList  ->
+                                     T_NameTypeNameListPairList 
+sem_NameTypeNameListPairList_Cons hd_ tl_  =
+    (\ _lhsIcat
+       _lhsIidenv
+       _lhsIlib ->
+         (let _lhsOfnSigs :: ([(Name,[Maybe Type])])
+              _lhsOannotatedTree :: NameTypeNameListPairList 
+              _lhsOfixedUpIdentifiersTree :: NameTypeNameListPairList 
+              _lhsOoriginalTree :: NameTypeNameListPairList 
+              _hdOcat :: Catalog
+              _hdOidenv :: IDEnv
+              _hdOlib :: LocalBindings
+              _tlOcat :: Catalog
+              _tlOidenv :: IDEnv
+              _tlOlib :: LocalBindings
+              _hdIannotatedTree :: NameTypeNameListPair 
+              _hdIfixedUpIdentifiersTree :: NameTypeNameListPair 
+              _hdIfnSig :: ((Name,[Maybe Type]))
+              _hdIoriginalTree :: NameTypeNameListPair 
+              _tlIannotatedTree :: NameTypeNameListPairList 
+              _tlIfixedUpIdentifiersTree :: NameTypeNameListPairList 
+              _tlIfnSigs :: ([(Name,[Maybe Type])])
+              _tlIoriginalTree :: NameTypeNameListPairList 
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/Drops.ag"(line 27, column 12)
+              _lhsOfnSigs =
+                  _hdIfnSig : _tlIfnSigs
+              -- self rule
+              _annotatedTree =
+                  (:) _hdIannotatedTree _tlIannotatedTree
+              -- self rule
+              _fixedUpIdentifiersTree =
+                  (:) _hdIfixedUpIdentifiersTree _tlIfixedUpIdentifiersTree
+              -- self rule
+              _originalTree =
+                  (:) _hdIoriginalTree _tlIoriginalTree
+              -- self rule
+              _lhsOannotatedTree =
+                  _annotatedTree
+              -- self rule
+              _lhsOfixedUpIdentifiersTree =
+                  _fixedUpIdentifiersTree
+              -- self rule
+              _lhsOoriginalTree =
+                  _originalTree
+              -- copy rule (down)
+              _hdOcat =
+                  _lhsIcat
+              -- copy rule (down)
+              _hdOidenv =
+                  _lhsIidenv
+              -- copy rule (down)
+              _hdOlib =
+                  _lhsIlib
+              -- copy rule (down)
+              _tlOcat =
+                  _lhsIcat
+              -- copy rule (down)
+              _tlOidenv =
+                  _lhsIidenv
+              -- copy rule (down)
+              _tlOlib =
+                  _lhsIlib
+              ( _hdIannotatedTree,_hdIfixedUpIdentifiersTree,_hdIfnSig,_hdIoriginalTree) =
+                  hd_ _hdOcat _hdOidenv _hdOlib 
+              ( _tlIannotatedTree,_tlIfixedUpIdentifiersTree,_tlIfnSigs,_tlIoriginalTree) =
+                  tl_ _tlOcat _tlOidenv _tlOlib 
+          in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOfnSigs,_lhsOoriginalTree)))
+sem_NameTypeNameListPairList_Nil :: T_NameTypeNameListPairList 
+sem_NameTypeNameListPairList_Nil  =
+    (\ _lhsIcat
+       _lhsIidenv
+       _lhsIlib ->
+         (let _lhsOfnSigs :: ([(Name,[Maybe Type])])
+              _lhsOannotatedTree :: NameTypeNameListPairList 
+              _lhsOfixedUpIdentifiersTree :: NameTypeNameListPairList 
+              _lhsOoriginalTree :: NameTypeNameListPairList 
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/Drops.ag"(line 28, column 11)
+              _lhsOfnSigs =
+                  []
+              -- self rule
+              _annotatedTree =
+                  []
+              -- self rule
+              _fixedUpIdentifiersTree =
+                  []
+              -- self rule
+              _originalTree =
+                  []
+              -- self rule
+              _lhsOannotatedTree =
+                  _annotatedTree
+              -- self rule
+              _lhsOfixedUpIdentifiersTree =
+                  _fixedUpIdentifiersTree
+              -- self rule
+              _lhsOoriginalTree =
+                  _originalTree
+          in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOfnSigs,_lhsOoriginalTree)))
 -- OnExpr ------------------------------------------------------
 {-
    visit 0:
@@ -8185,7 +8510,7 @@ sem_SetClauseList_Nil  =
    alternatives:
       alternative AlterSequence:
          child ann            : {Annotation}
-         child name           : {String}
+         child name           : Name 
          child ownedBy        : Name 
          visit 0:
             local libUpdates  : _
@@ -8194,7 +8519,7 @@ sem_SetClauseList_Nil  =
             local originalTree : _
       alternative AlterTable:
          child ann            : {Annotation}
-         child name           : {String}
+         child name           : Name 
          child actions        : AlterTableActionList 
          visit 0:
             local annotatedTree : _
@@ -8265,9 +8590,9 @@ sem_SetClauseList_Nil  =
             local originalTree : _
       alternative CreateDomain:
          child ann            : {Annotation}
-         child name           : {String}
+         child name           : Name 
          child typ            : TypeName 
-         child checkName      : {String}
+         child constraintName : {String}
          child check          : MaybeBoolExpr 
          visit 0:
             local libUpdates  : _
@@ -8280,7 +8605,7 @@ sem_SetClauseList_Nil  =
             local originalTree : _
       alternative CreateFunction:
          child ann            : {Annotation}
-         child name           : {String}
+         child name           : Name 
          child params         : ParamDefList 
          child rettype        : TypeName 
          child rep            : {Replace}
@@ -8310,7 +8635,7 @@ sem_SetClauseList_Nil  =
             local originalTree : _
       alternative CreateSequence:
          child ann            : {Annotation}
-         child name           : {String}
+         child name           : Name 
          child incr           : {Integer}
          child min            : {Integer}
          child max            : {Integer}
@@ -8323,7 +8648,7 @@ sem_SetClauseList_Nil  =
             local originalTree : _
       alternative CreateTable:
          child ann            : {Annotation}
-         child name           : {String}
+         child name           : Name 
          child atts           : AttributeDefList 
          child cons           : ConstraintList 
          visit 0:
@@ -8338,7 +8663,7 @@ sem_SetClauseList_Nil  =
             local originalTree : _
       alternative CreateTableAs:
          child ann            : {Annotation}
-         child name           : {String}
+         child name           : Name 
          child expr           : QueryExpr 
          visit 0:
             local libUpdates  : _
@@ -8352,10 +8677,10 @@ sem_SetClauseList_Nil  =
             local originalTree : _
       alternative CreateTrigger:
          child ann            : {Annotation}
-         child name           : {String}
+         child name           : {NameComponent}
          child wh             : {TriggerWhen}
          child events         : {[TriggerEvent]}
-         child tbl            : {String}
+         child tbl            : Name 
          child firing         : {TriggerFire}
          child fnName         : {String}
          child fnArgs         : ScalarExprList 
@@ -8365,7 +8690,7 @@ sem_SetClauseList_Nil  =
             local originalTree : _
       alternative CreateType:
          child ann            : {Annotation}
-         child name           : {String}
+         child name           : Name 
          child atts           : TypeAttributeDefList 
          visit 0:
             local libUpdates  : _
@@ -8379,8 +8704,8 @@ sem_SetClauseList_Nil  =
             local originalTree : _
       alternative CreateView:
          child ann            : {Annotation}
-         child name           : {String}
-         child colNames       : {Maybe [String]}
+         child name           : Name 
+         child colNames       : {MaybeNameComponentList}
          child expr           : QueryExpr 
          visit 0:
             local libUpdates  : _
@@ -8411,7 +8736,7 @@ sem_SetClauseList_Nil  =
       alternative DropFunction:
          child ann            : {Annotation}
          child ifE            : {IfExists}
-         child sigs           : StringTypeNameListPairList 
+         child sigs           : NameTypeNameListPairList 
          child cascade        : {Cascade}
          visit 0:
             local libUpdates  : _
@@ -8426,7 +8751,7 @@ sem_SetClauseList_Nil  =
          child ann            : {Annotation}
          child dropType       : {DropType}
          child ifE            : {IfExists}
-         child names          : {[String]}
+         child names          : {[Name]}
          child cascade        : {Cascade}
          visit 0:
             local annotatedTree : _
@@ -8599,7 +8924,7 @@ sem_SetClauseList_Nil  =
             local originalTree : _
       alternative Truncate:
          child ann            : {Annotation}
-         child tables         : {[String]}
+         child tables         : {[Name]}
          child restartIdentity : {RestartIdentity}
          child cascade        : {Cascade}
          visit 0:
@@ -8634,8 +8959,8 @@ sem_SetClauseList_Nil  =
             local fixedUpIdentifiersTree : _
             local originalTree : _
 -}
-data Statement  = AlterSequence (Annotation) (String) (Name ) 
-                | AlterTable (Annotation) (String) (AlterTableActionList ) 
+data Statement  = AlterSequence (Annotation) (Name ) (Name ) 
+                | AlterTable (Annotation) (Name ) (AlterTableActionList ) 
                 | Assignment (Annotation) (ScalarExpr ) (ScalarExpr ) 
                 | Block (Annotation) ((Maybe String)) (VarDefList ) (StatementList ) 
                 | CaseStatement (Annotation) (ScalarExprListStatementListPairList ) (StatementList ) 
@@ -8643,18 +8968,18 @@ data Statement  = AlterSequence (Annotation) (String) (Name )
                 | ContinueStatement (Annotation) ((Maybe String)) 
                 | Copy (Annotation) (Name ) (([NameComponent])) (CopySource) 
                 | CopyData (Annotation) (String) 
-                | CreateDomain (Annotation) (String) (TypeName ) (String) (MaybeBoolExpr ) 
-                | CreateFunction (Annotation) (String) (ParamDefList ) (TypeName ) (Replace) (Language) (FnBody ) (Volatility) 
+                | CreateDomain (Annotation) (Name ) (TypeName ) (String) (MaybeBoolExpr ) 
+                | CreateFunction (Annotation) (Name ) (ParamDefList ) (TypeName ) (Replace) (Language) (FnBody ) (Volatility) 
                 | CreateLanguage (Annotation) (String) 
-                | CreateSequence (Annotation) (String) (Integer) (Integer) (Integer) (Integer) (Integer) 
-                | CreateTable (Annotation) (String) (AttributeDefList ) (ConstraintList ) 
-                | CreateTableAs (Annotation) (String) (QueryExpr ) 
-                | CreateTrigger (Annotation) (String) (TriggerWhen) (([TriggerEvent])) (String) (TriggerFire) (String) (ScalarExprList ) 
-                | CreateType (Annotation) (String) (TypeAttributeDefList ) 
-                | CreateView (Annotation) (String) ((Maybe [String])) (QueryExpr ) 
+                | CreateSequence (Annotation) (Name ) (Integer) (Integer) (Integer) (Integer) (Integer) 
+                | CreateTable (Annotation) (Name ) (AttributeDefList ) (ConstraintList ) 
+                | CreateTableAs (Annotation) (Name ) (QueryExpr ) 
+                | CreateTrigger (Annotation) (NameComponent) (TriggerWhen) (([TriggerEvent])) (Name ) (TriggerFire) (String) (ScalarExprList ) 
+                | CreateType (Annotation) (Name ) (TypeAttributeDefList ) 
+                | CreateView (Annotation) (Name ) (MaybeNameComponentList) (QueryExpr ) 
                 | Delete (Annotation) (Name ) (TableRefList ) (MaybeBoolExpr ) (MaybeSelectList ) 
-                | DropFunction (Annotation) (IfExists) (StringTypeNameListPairList ) (Cascade) 
-                | DropSomething (Annotation) (DropType) (IfExists) (([String])) (Cascade) 
+                | DropFunction (Annotation) (IfExists) (NameTypeNameListPairList ) (Cascade) 
+                | DropSomething (Annotation) (DropType) (IfExists) (([Name])) (Cascade) 
                 | Execute (Annotation) (ScalarExpr ) 
                 | ExitStatement (Annotation) ((Maybe String)) 
                 | ForIntegerStatement (Annotation) ((Maybe String)) (ScalarExpr ) (ScalarExpr ) (ScalarExpr ) (StatementList ) 
@@ -8672,7 +8997,7 @@ data Statement  = AlterSequence (Annotation) (String) (Name )
                 | ReturnNext (Annotation) (ScalarExpr ) 
                 | ReturnQuery (Annotation) (QueryExpr ) 
                 | Set (Annotation) (String) (([SetValue])) 
-                | Truncate (Annotation) (([String])) (RestartIdentity) (Cascade) 
+                | Truncate (Annotation) (([Name])) (RestartIdentity) (Cascade) 
                 | Update (Annotation) (Name ) (SetClauseList ) (TableRefList ) (MaybeBoolExpr ) (MaybeSelectList ) 
                 | WhileStatement (Annotation) ((Maybe String)) (ScalarExpr ) (StatementList ) 
                 deriving ( Data,Eq,Show,Typeable)
@@ -8680,9 +9005,9 @@ data Statement  = AlterSequence (Annotation) (String) (Name )
 sem_Statement :: Statement  ->
                  T_Statement 
 sem_Statement (AlterSequence _ann _name _ownedBy )  =
-    (sem_Statement_AlterSequence _ann _name (sem_Name _ownedBy ) )
+    (sem_Statement_AlterSequence _ann (sem_Name _name ) (sem_Name _ownedBy ) )
 sem_Statement (AlterTable _ann _name _actions )  =
-    (sem_Statement_AlterTable _ann _name (sem_AlterTableActionList _actions ) )
+    (sem_Statement_AlterTable _ann (sem_Name _name ) (sem_AlterTableActionList _actions ) )
 sem_Statement (Assignment _ann _target _value )  =
     (sem_Statement_Assignment _ann (sem_ScalarExpr _target ) (sem_ScalarExpr _value ) )
 sem_Statement (Block _ann _lb _vars _sts )  =
@@ -8697,28 +9022,28 @@ sem_Statement (Copy _ann _table _targetCols _source )  =
     (sem_Statement_Copy _ann (sem_Name _table ) _targetCols _source )
 sem_Statement (CopyData _ann _insData )  =
     (sem_Statement_CopyData _ann _insData )
-sem_Statement (CreateDomain _ann _name _typ _checkName _check )  =
-    (sem_Statement_CreateDomain _ann _name (sem_TypeName _typ ) _checkName (sem_MaybeBoolExpr _check ) )
+sem_Statement (CreateDomain _ann _name _typ _constraintName _check )  =
+    (sem_Statement_CreateDomain _ann (sem_Name _name ) (sem_TypeName _typ ) _constraintName (sem_MaybeBoolExpr _check ) )
 sem_Statement (CreateFunction _ann _name _params _rettype _rep _lang _body _vol )  =
-    (sem_Statement_CreateFunction _ann _name (sem_ParamDefList _params ) (sem_TypeName _rettype ) _rep _lang (sem_FnBody _body ) _vol )
+    (sem_Statement_CreateFunction _ann (sem_Name _name ) (sem_ParamDefList _params ) (sem_TypeName _rettype ) _rep _lang (sem_FnBody _body ) _vol )
 sem_Statement (CreateLanguage _ann _name )  =
     (sem_Statement_CreateLanguage _ann _name )
 sem_Statement (CreateSequence _ann _name _incr _min _max _start _cache )  =
-    (sem_Statement_CreateSequence _ann _name _incr _min _max _start _cache )
+    (sem_Statement_CreateSequence _ann (sem_Name _name ) _incr _min _max _start _cache )
 sem_Statement (CreateTable _ann _name _atts _cons )  =
-    (sem_Statement_CreateTable _ann _name (sem_AttributeDefList _atts ) (sem_ConstraintList _cons ) )
+    (sem_Statement_CreateTable _ann (sem_Name _name ) (sem_AttributeDefList _atts ) (sem_ConstraintList _cons ) )
 sem_Statement (CreateTableAs _ann _name _expr )  =
-    (sem_Statement_CreateTableAs _ann _name (sem_QueryExpr _expr ) )
+    (sem_Statement_CreateTableAs _ann (sem_Name _name ) (sem_QueryExpr _expr ) )
 sem_Statement (CreateTrigger _ann _name _wh _events _tbl _firing _fnName _fnArgs )  =
-    (sem_Statement_CreateTrigger _ann _name _wh _events _tbl _firing _fnName (sem_ScalarExprList _fnArgs ) )
+    (sem_Statement_CreateTrigger _ann _name _wh _events (sem_Name _tbl ) _firing _fnName (sem_ScalarExprList _fnArgs ) )
 sem_Statement (CreateType _ann _name _atts )  =
-    (sem_Statement_CreateType _ann _name (sem_TypeAttributeDefList _atts ) )
+    (sem_Statement_CreateType _ann (sem_Name _name ) (sem_TypeAttributeDefList _atts ) )
 sem_Statement (CreateView _ann _name _colNames _expr )  =
-    (sem_Statement_CreateView _ann _name _colNames (sem_QueryExpr _expr ) )
+    (sem_Statement_CreateView _ann (sem_Name _name ) _colNames (sem_QueryExpr _expr ) )
 sem_Statement (Delete _ann _table _using _whr _returning )  =
     (sem_Statement_Delete _ann (sem_Name _table ) (sem_TableRefList _using ) (sem_MaybeBoolExpr _whr ) (sem_MaybeSelectList _returning ) )
 sem_Statement (DropFunction _ann _ifE _sigs _cascade )  =
-    (sem_Statement_DropFunction _ann _ifE (sem_StringTypeNameListPairList _sigs ) _cascade )
+    (sem_Statement_DropFunction _ann _ifE (sem_NameTypeNameListPairList _sigs ) _cascade )
 sem_Statement (DropSomething _ann _dropType _ifE _names _cascade )  =
     (sem_Statement_DropSomething _ann _dropType _ifE _names _cascade )
 sem_Statement (Execute _ann _expr )  =
@@ -8776,7 +9101,7 @@ wrap_Statement sem (Inh_Statement _lhsIcat _lhsIidenv _lhsIinProducedCat _lhsIli
     (let ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree) = sem _lhsIcat _lhsIidenv _lhsIinProducedCat _lhsIlib 
      in  (Syn_Statement _lhsOannotatedTree _lhsOcatUpdates _lhsOfixedUpIdentifiersTree _lhsOlibUpdates _lhsOoriginalTree ))
 sem_Statement_AlterSequence :: Annotation ->
-                               String ->
+                               T_Name  ->
                                T_Name  ->
                                T_Statement 
 sem_Statement_AlterSequence ann_ name_ ownedBy_  =
@@ -8789,9 +9114,17 @@ sem_Statement_AlterSequence ann_ name_ ownedBy_  =
               _lhsOannotatedTree :: Statement 
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
+              _nameOcat :: Catalog
+              _nameOidenv :: IDEnv
+              _nameOlib :: LocalBindings
               _ownedByOcat :: Catalog
               _ownedByOidenv :: IDEnv
               _ownedByOlib :: LocalBindings
+              _nameIannotatedTree :: Name 
+              _nameIfixedUpIdentifiersTree :: Name 
+              _nameIoriginalTree :: Name 
+              _nameItbAnnotatedTree :: Name 
+              _nameItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _ownedByIannotatedTree :: Name 
               _ownedByIfixedUpIdentifiersTree :: Name 
               _ownedByIoriginalTree :: Name 
@@ -8808,13 +9141,13 @@ sem_Statement_AlterSequence ann_ name_ ownedBy_  =
                   []
               -- self rule
               _annotatedTree =
-                  AlterSequence ann_ name_ _ownedByIannotatedTree
+                  AlterSequence ann_ _nameIannotatedTree _ownedByIannotatedTree
               -- self rule
               _fixedUpIdentifiersTree =
-                  AlterSequence ann_ name_ _ownedByIfixedUpIdentifiersTree
+                  AlterSequence ann_ _nameIfixedUpIdentifiersTree _ownedByIfixedUpIdentifiersTree
               -- self rule
               _originalTree =
-                  AlterSequence ann_ name_ _ownedByIoriginalTree
+                  AlterSequence ann_ _nameIoriginalTree _ownedByIoriginalTree
               -- self rule
               _lhsOannotatedTree =
                   _annotatedTree
@@ -8825,6 +9158,15 @@ sem_Statement_AlterSequence ann_ name_ ownedBy_  =
               _lhsOoriginalTree =
                   _originalTree
               -- copy rule (down)
+              _nameOcat =
+                  _lhsIcat
+              -- copy rule (down)
+              _nameOidenv =
+                  _lhsIidenv
+              -- copy rule (down)
+              _nameOlib =
+                  _lhsIlib
+              -- copy rule (down)
               _ownedByOcat =
                   _lhsIcat
               -- copy rule (down)
@@ -8833,11 +9175,13 @@ sem_Statement_AlterSequence ann_ name_ ownedBy_  =
               -- copy rule (down)
               _ownedByOlib =
                   _lhsIlib
+              ( _nameIannotatedTree,_nameIfixedUpIdentifiersTree,_nameIoriginalTree,_nameItbAnnotatedTree,_nameItbUType) =
+                  name_ _nameOcat _nameOidenv _nameOlib 
               ( _ownedByIannotatedTree,_ownedByIfixedUpIdentifiersTree,_ownedByIoriginalTree,_ownedByItbAnnotatedTree,_ownedByItbUType) =
                   ownedBy_ _ownedByOcat _ownedByOidenv _ownedByOlib 
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
 sem_Statement_AlterTable :: Annotation ->
-                            String ->
+                            T_Name  ->
                             T_AlterTableActionList  ->
                             T_Statement 
 sem_Statement_AlterTable ann_ name_ actions_  =
@@ -8850,9 +9194,17 @@ sem_Statement_AlterTable ann_ name_ actions_  =
               _lhsOannotatedTree :: Statement 
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
+              _nameOcat :: Catalog
+              _nameOidenv :: IDEnv
+              _nameOlib :: LocalBindings
               _actionsOcat :: Catalog
               _actionsOidenv :: IDEnv
               _actionsOlib :: LocalBindings
+              _nameIannotatedTree :: Name 
+              _nameIfixedUpIdentifiersTree :: Name 
+              _nameIoriginalTree :: Name 
+              _nameItbAnnotatedTree :: Name 
+              _nameItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _actionsIannotatedTree :: AlterTableActionList 
               _actionsIfixedUpIdentifiersTree :: AlterTableActionList 
               _actionsIoriginalTree :: AlterTableActionList 
@@ -8864,13 +9216,13 @@ sem_Statement_AlterTable ann_ name_ actions_  =
                   []
               -- self rule
               _annotatedTree =
-                  AlterTable ann_ name_ _actionsIannotatedTree
+                  AlterTable ann_ _nameIannotatedTree _actionsIannotatedTree
               -- self rule
               _fixedUpIdentifiersTree =
-                  AlterTable ann_ name_ _actionsIfixedUpIdentifiersTree
+                  AlterTable ann_ _nameIfixedUpIdentifiersTree _actionsIfixedUpIdentifiersTree
               -- self rule
               _originalTree =
-                  AlterTable ann_ name_ _actionsIoriginalTree
+                  AlterTable ann_ _nameIoriginalTree _actionsIoriginalTree
               -- self rule
               _lhsOannotatedTree =
                   _annotatedTree
@@ -8881,6 +9233,15 @@ sem_Statement_AlterTable ann_ name_ actions_  =
               _lhsOoriginalTree =
                   _originalTree
               -- copy rule (down)
+              _nameOcat =
+                  _lhsIcat
+              -- copy rule (down)
+              _nameOidenv =
+                  _lhsIidenv
+              -- copy rule (down)
+              _nameOlib =
+                  _lhsIlib
+              -- copy rule (down)
               _actionsOcat =
                   _lhsIcat
               -- copy rule (down)
@@ -8889,6 +9250,8 @@ sem_Statement_AlterTable ann_ name_ actions_  =
               -- copy rule (down)
               _actionsOlib =
                   _lhsIlib
+              ( _nameIannotatedTree,_nameIfixedUpIdentifiersTree,_nameIoriginalTree,_nameItbAnnotatedTree,_nameItbUType) =
+                  name_ _nameOcat _nameOidenv _nameOlib 
               ( _actionsIannotatedTree,_actionsIfixedUpIdentifiersTree,_actionsIoriginalTree) =
                   actions_ _actionsOcat _actionsOidenv _actionsOlib 
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
@@ -9419,12 +9782,12 @@ sem_Statement_CopyData ann_ insData_  =
                   _originalTree
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
 sem_Statement_CreateDomain :: Annotation ->
-                              String ->
+                              T_Name  ->
                               T_TypeName  ->
                               String ->
                               T_MaybeBoolExpr  ->
                               T_Statement 
-sem_Statement_CreateDomain ann_ name_ typ_ checkName_ check_  =
+sem_Statement_CreateDomain ann_ name_ typ_ constraintName_ check_  =
     (\ _lhsIcat
        _lhsIidenv
        _lhsIinProducedCat
@@ -9438,11 +9801,19 @@ sem_Statement_CreateDomain ann_ name_ typ_ checkName_ check_  =
               _checkOlib :: LocalBindings
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
+              _nameOcat :: Catalog
+              _nameOidenv :: IDEnv
+              _nameOlib :: LocalBindings
               _typOcat :: Catalog
               _typOidenv :: IDEnv
               _typOlib :: LocalBindings
               _checkOcat :: Catalog
               _checkOidenv :: IDEnv
+              _nameIannotatedTree :: Name 
+              _nameIfixedUpIdentifiersTree :: Name 
+              _nameIoriginalTree :: Name 
+              _nameItbAnnotatedTree :: Name 
+              _nameItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _typIannotatedTree :: TypeName 
               _typIfixedUpIdentifiersTree :: TypeName 
               _typInamedType :: (Maybe Type)
@@ -9470,13 +9841,13 @@ sem_Statement_CreateDomain ann_ name_ typ_ checkName_ check_  =
                   Right $ Pseudo Void
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/MiscCreates.ag"(line 66, column 9)
               _backTree =
-                  CreateDomain ann_ name_ _typIannotatedTree checkName_ _checkIannotatedTree
+                  CreateDomain ann_ _nameIoriginalTree _typIannotatedTree constraintName_ _checkIannotatedTree
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/MiscCreates.ag"(line 67, column 9)
               _statementType =
                   Nothing
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/MiscCreates.ag"(line 68, column 9)
               _catUpdates =
-                  maybe [] (\t -> [CatCreateDomain (DomainType name_) t]) _typInamedType
+                  maybe [] (\t -> [CatCreateDomain (DomainType (getTName _nameIoriginalTree)) t]) _typInamedType
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/MiscCreates.ag"(line 70, column 9)
               _checkOlib =
                   either (const _lhsIlib) id $ do
@@ -9486,19 +9857,28 @@ sem_Statement_CreateDomain ann_ name_ typ_ checkName_ check_  =
                     _lhsIlib
               -- self rule
               _annotatedTree =
-                  CreateDomain ann_ name_ _typIannotatedTree checkName_ _checkIannotatedTree
+                  CreateDomain ann_ _nameIannotatedTree _typIannotatedTree constraintName_ _checkIannotatedTree
               -- self rule
               _fixedUpIdentifiersTree =
-                  CreateDomain ann_ name_ _typIfixedUpIdentifiersTree checkName_ _checkIfixedUpIdentifiersTree
+                  CreateDomain ann_ _nameIfixedUpIdentifiersTree _typIfixedUpIdentifiersTree constraintName_ _checkIfixedUpIdentifiersTree
               -- self rule
               _originalTree =
-                  CreateDomain ann_ name_ _typIoriginalTree checkName_ _checkIoriginalTree
+                  CreateDomain ann_ _nameIoriginalTree _typIoriginalTree constraintName_ _checkIoriginalTree
               -- self rule
               _lhsOfixedUpIdentifiersTree =
                   _fixedUpIdentifiersTree
               -- self rule
               _lhsOoriginalTree =
                   _originalTree
+              -- copy rule (down)
+              _nameOcat =
+                  _lhsIcat
+              -- copy rule (down)
+              _nameOidenv =
+                  _lhsIidenv
+              -- copy rule (down)
+              _nameOlib =
+                  _lhsIlib
               -- copy rule (down)
               _typOcat =
                   _lhsIcat
@@ -9514,13 +9894,15 @@ sem_Statement_CreateDomain ann_ name_ typ_ checkName_ check_  =
               -- copy rule (down)
               _checkOidenv =
                   _lhsIidenv
+              ( _nameIannotatedTree,_nameIfixedUpIdentifiersTree,_nameIoriginalTree,_nameItbAnnotatedTree,_nameItbUType) =
+                  name_ _nameOcat _nameOidenv _nameOlib 
               ( _typIannotatedTree,_typIfixedUpIdentifiersTree,_typInamedType,_typIoriginalTree) =
                   typ_ _typOcat _typOidenv _typOlib 
               ( _checkIannotatedTree,_checkIfixedUpIdentifiersTree,_checkIoriginalTree) =
                   check_ _checkOcat _checkOidenv _checkOlib 
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
 sem_Statement_CreateFunction :: Annotation ->
-                                String ->
+                                T_Name  ->
                                 T_ParamDefList  ->
                                 T_TypeName  ->
                                 Replace ->
@@ -9544,6 +9926,9 @@ sem_Statement_CreateFunction ann_ name_ params_ rettype_ rep_ lang_ body_ vol_  
               _bodyOcat :: Catalog
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
+              _nameOcat :: Catalog
+              _nameOidenv :: IDEnv
+              _nameOlib :: LocalBindings
               _paramsOcat :: Catalog
               _paramsOidenv :: IDEnv
               _paramsOlib :: LocalBindings
@@ -9551,6 +9936,11 @@ sem_Statement_CreateFunction ann_ name_ params_ rettype_ rep_ lang_ body_ vol_  
               _rettypeOidenv :: IDEnv
               _rettypeOlib :: LocalBindings
               _bodyOidenv :: IDEnv
+              _nameIannotatedTree :: Name 
+              _nameIfixedUpIdentifiersTree :: Name 
+              _nameIoriginalTree :: Name 
+              _nameItbAnnotatedTree :: Name 
+              _nameItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _paramsIannotatedTree :: ParamDefList 
               _paramsIfixedUpIdentifiersTree :: ParamDefList 
               _paramsIoriginalTree :: ParamDefList 
@@ -9581,8 +9971,8 @@ sem_Statement_CreateFunction ann_ name_ params_ rettype_ rep_ lang_ body_ vol_  
               _bodyOlib =
                   either (const _lhsIlib) id $ do
                   _ <- lmt _rettypeInamedType
-                  lbUpdate _lhsIcat (LBIds (name_ ++ " parameters") (Just name_) paramsNoPos) _lhsIlib
-                  >>= lbUpdate _lhsIcat (LBIds (name_ ++ " parameters") Nothing paramsPosOnly)
+                  lbUpdate _lhsIcat (LBIds ((getTName _nameIoriginalTree) ++ " parameters") (Just (getTName _nameIoriginalTree)) paramsNoPos) _lhsIlib
+                  >>= lbUpdate _lhsIcat (LBIds ((getTName _nameIoriginalTree) ++ " parameters") Nothing paramsPosOnly)
                   where
                     paramsPosOnly :: [(String,Type)]
                     paramsPosOnly = mapMaybe prm _paramsIparams
@@ -9607,7 +9997,7 @@ sem_Statement_CreateFunction ann_ name_ params_ rettype_ rep_ lang_ body_ vol_  
                   let ps = mapMaybe lpt _paramsIparams
                   rt <- lmt _rettypeInamedType
                   return [CatCreateFunction FunName
-                                            (map toLower name_)
+                                            (map toLower (getTName _nameIoriginalTree))
                                             ps
                                             rt
                                             False]
@@ -9617,7 +10007,7 @@ sem_Statement_CreateFunction ann_ name_ params_ rettype_ rep_ lang_ body_ vol_  
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/CreateFunction.ag"(line 101, column 9)
               _backTree =
                   CreateFunction ann_
-                                 name_
+                                 _nameIoriginalTree
                                  _paramsIannotatedTree
                                  _rettypeIannotatedTree
                                  rep_
@@ -9632,19 +10022,28 @@ sem_Statement_CreateFunction ann_ name_ params_ rettype_ rep_ lang_ body_ vol_  
                   _lhsIinProducedCat
               -- self rule
               _annotatedTree =
-                  CreateFunction ann_ name_ _paramsIannotatedTree _rettypeIannotatedTree rep_ lang_ _bodyIannotatedTree vol_
+                  CreateFunction ann_ _nameIannotatedTree _paramsIannotatedTree _rettypeIannotatedTree rep_ lang_ _bodyIannotatedTree vol_
               -- self rule
               _fixedUpIdentifiersTree =
-                  CreateFunction ann_ name_ _paramsIfixedUpIdentifiersTree _rettypeIfixedUpIdentifiersTree rep_ lang_ _bodyIfixedUpIdentifiersTree vol_
+                  CreateFunction ann_ _nameIfixedUpIdentifiersTree _paramsIfixedUpIdentifiersTree _rettypeIfixedUpIdentifiersTree rep_ lang_ _bodyIfixedUpIdentifiersTree vol_
               -- self rule
               _originalTree =
-                  CreateFunction ann_ name_ _paramsIoriginalTree _rettypeIoriginalTree rep_ lang_ _bodyIoriginalTree vol_
+                  CreateFunction ann_ _nameIoriginalTree _paramsIoriginalTree _rettypeIoriginalTree rep_ lang_ _bodyIoriginalTree vol_
               -- self rule
               _lhsOfixedUpIdentifiersTree =
                   _fixedUpIdentifiersTree
               -- self rule
               _lhsOoriginalTree =
                   _originalTree
+              -- copy rule (down)
+              _nameOcat =
+                  _lhsIcat
+              -- copy rule (down)
+              _nameOidenv =
+                  _lhsIidenv
+              -- copy rule (down)
+              _nameOlib =
+                  _lhsIlib
               -- copy rule (down)
               _paramsOcat =
                   _lhsIcat
@@ -9666,6 +10065,8 @@ sem_Statement_CreateFunction ann_ name_ params_ rettype_ rep_ lang_ body_ vol_  
               -- copy rule (down)
               _bodyOidenv =
                   _lhsIidenv
+              ( _nameIannotatedTree,_nameIfixedUpIdentifiersTree,_nameIoriginalTree,_nameItbAnnotatedTree,_nameItbUType) =
+                  name_ _nameOcat _nameOidenv _nameOlib 
               ( _paramsIannotatedTree,_paramsIfixedUpIdentifiersTree,_paramsIoriginalTree,_paramsIparams) =
                   params_ _paramsOcat _paramsOidenv _paramsOlib _paramsOpos 
               ( _rettypeIannotatedTree,_rettypeIfixedUpIdentifiersTree,_rettypeInamedType,_rettypeIoriginalTree) =
@@ -9734,7 +10135,7 @@ sem_Statement_CreateLanguage ann_ name_  =
                   _originalTree
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
 sem_Statement_CreateSequence :: Annotation ->
-                                String ->
+                                T_Name  ->
                                 Integer ->
                                 Integer ->
                                 Integer ->
@@ -9751,6 +10152,14 @@ sem_Statement_CreateSequence ann_ name_ incr_ min_ max_ start_ cache_  =
               _lhsOannotatedTree :: Statement 
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
+              _nameOcat :: Catalog
+              _nameOidenv :: IDEnv
+              _nameOlib :: LocalBindings
+              _nameIannotatedTree :: Name 
+              _nameIfixedUpIdentifiersTree :: Name 
+              _nameIoriginalTree :: Name 
+              _nameItbAnnotatedTree :: Name 
+              _nameItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
                   []
@@ -9762,13 +10171,13 @@ sem_Statement_CreateSequence ann_ name_ incr_ min_ max_ start_ cache_  =
                   []
               -- self rule
               _annotatedTree =
-                  CreateSequence ann_ name_ incr_ min_ max_ start_ cache_
+                  CreateSequence ann_ _nameIannotatedTree incr_ min_ max_ start_ cache_
               -- self rule
               _fixedUpIdentifiersTree =
-                  CreateSequence ann_ name_ incr_ min_ max_ start_ cache_
+                  CreateSequence ann_ _nameIfixedUpIdentifiersTree incr_ min_ max_ start_ cache_
               -- self rule
               _originalTree =
-                  CreateSequence ann_ name_ incr_ min_ max_ start_ cache_
+                  CreateSequence ann_ _nameIoriginalTree incr_ min_ max_ start_ cache_
               -- self rule
               _lhsOannotatedTree =
                   _annotatedTree
@@ -9778,9 +10187,20 @@ sem_Statement_CreateSequence ann_ name_ incr_ min_ max_ start_ cache_  =
               -- self rule
               _lhsOoriginalTree =
                   _originalTree
+              -- copy rule (down)
+              _nameOcat =
+                  _lhsIcat
+              -- copy rule (down)
+              _nameOidenv =
+                  _lhsIidenv
+              -- copy rule (down)
+              _nameOlib =
+                  _lhsIlib
+              ( _nameIannotatedTree,_nameIfixedUpIdentifiersTree,_nameIoriginalTree,_nameItbAnnotatedTree,_nameItbUType) =
+                  name_ _nameOcat _nameOidenv _nameOlib 
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
 sem_Statement_CreateTable :: Annotation ->
-                             String ->
+                             T_Name  ->
                              T_AttributeDefList  ->
                              T_ConstraintList  ->
                              T_Statement 
@@ -9799,11 +10219,19 @@ sem_Statement_CreateTable ann_ name_ atts_ cons_  =
               _consOlib :: LocalBindings
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
+              _nameOcat :: Catalog
+              _nameOidenv :: IDEnv
+              _nameOlib :: LocalBindings
               _attsOcat :: Catalog
               _attsOidenv :: IDEnv
               _attsOlib :: LocalBindings
               _consOcat :: Catalog
               _consOidenv :: IDEnv
+              _nameIannotatedTree :: Name 
+              _nameIfixedUpIdentifiersTree :: Name 
+              _nameIoriginalTree :: Name 
+              _nameItbAnnotatedTree :: Name 
+              _nameItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _attsIannotatedTree :: AttributeDefList 
               _attsIattrs :: ([(String, Maybe Type)])
               _attsIfixedUpIdentifiersTree :: AttributeDefList 
@@ -9831,7 +10259,7 @@ sem_Statement_CreateTable ann_ name_ atts_ cons_  =
                   Right $ Pseudo Void
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/CreateTable.ag"(line 32, column 9)
               _catUpdates =
-                  [CatCreateTable name_ _attrs     defaultSystemColumns]
+                  [CatCreateTable (getTName _nameIoriginalTree) _attrs     defaultSystemColumns]
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/CreateTable.ag"(line 35, column 9)
               _attrs =
                   mapMaybe okAt _attsIattrs
@@ -9844,7 +10272,7 @@ sem_Statement_CreateTable ann_ name_ atts_ cons_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/CreateTable.ag"(line 41, column 9)
               _backTree =
                   CreateTable ann_
-                              name_
+                              _nameIoriginalTree
                               _attsIannotatedTree
                               _consIannotatedTree
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/CreateTable.ag"(line 45, column 9)
@@ -9856,19 +10284,28 @@ sem_Statement_CreateTable ann_ name_ atts_ cons_  =
                      Right e -> e
               -- self rule
               _annotatedTree =
-                  CreateTable ann_ name_ _attsIannotatedTree _consIannotatedTree
+                  CreateTable ann_ _nameIannotatedTree _attsIannotatedTree _consIannotatedTree
               -- self rule
               _fixedUpIdentifiersTree =
-                  CreateTable ann_ name_ _attsIfixedUpIdentifiersTree _consIfixedUpIdentifiersTree
+                  CreateTable ann_ _nameIfixedUpIdentifiersTree _attsIfixedUpIdentifiersTree _consIfixedUpIdentifiersTree
               -- self rule
               _originalTree =
-                  CreateTable ann_ name_ _attsIoriginalTree _consIoriginalTree
+                  CreateTable ann_ _nameIoriginalTree _attsIoriginalTree _consIoriginalTree
               -- self rule
               _lhsOfixedUpIdentifiersTree =
                   _fixedUpIdentifiersTree
               -- self rule
               _lhsOoriginalTree =
                   _originalTree
+              -- copy rule (down)
+              _nameOcat =
+                  _lhsIcat
+              -- copy rule (down)
+              _nameOidenv =
+                  _lhsIidenv
+              -- copy rule (down)
+              _nameOlib =
+                  _lhsIlib
               -- copy rule (down)
               _attsOcat =
                   _lhsIcat
@@ -9884,13 +10321,15 @@ sem_Statement_CreateTable ann_ name_ atts_ cons_  =
               -- copy rule (down)
               _consOidenv =
                   _lhsIidenv
+              ( _nameIannotatedTree,_nameIfixedUpIdentifiersTree,_nameIoriginalTree,_nameItbAnnotatedTree,_nameItbUType) =
+                  name_ _nameOcat _nameOidenv _nameOlib 
               ( _attsIannotatedTree,_attsIattrs,_attsIfixedUpIdentifiersTree,_attsIoriginalTree) =
                   atts_ _attsOcat _attsOidenv _attsOlib 
               ( _consIannotatedTree,_consIfixedUpIdentifiersTree,_consIoriginalTree) =
                   cons_ _consOcat _consOidenv _consOlib 
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
 sem_Statement_CreateTableAs :: Annotation ->
-                               String ->
+                               T_Name  ->
                                T_QueryExpr  ->
                                T_Statement 
 sem_Statement_CreateTableAs ann_ name_ expr_  =
@@ -9909,9 +10348,17 @@ sem_Statement_CreateTableAs ann_ name_ expr_  =
               _exprOexpectedTypes :: ([Maybe Type])
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
+              _nameOcat :: Catalog
+              _nameOidenv :: IDEnv
+              _nameOlib :: LocalBindings
               _exprOcat :: Catalog
               _exprOidenv :: IDEnv
               _exprOlib :: LocalBindings
+              _nameIannotatedTree :: Name 
+              _nameIfixedUpIdentifiersTree :: Name 
+              _nameIoriginalTree :: Name 
+              _nameItbAnnotatedTree :: Name 
+              _nameItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _exprIannotatedTree :: QueryExpr 
               _exprIcidenv :: IDEnv
               _exprIfixedUpIdentifiersTree :: QueryExpr 
@@ -9943,13 +10390,13 @@ sem_Statement_CreateTableAs ann_ name_ expr_  =
               _catUpdates =
                   either (const []) id $ do
                   ats <- _attrs
-                  return [CatCreateTable name_ ats defaultSystemColumns]
+                  return [CatCreateTable (getTName _nameIoriginalTree) ats defaultSystemColumns]
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/CreateTable.ag"(line 71, column 9)
               _attrs =
                   lmt _exprIuType
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/CreateTable.ag"(line 73, column 9)
               _backTree =
-                  CreateTableAs ann_ name_ _exprIannotatedTree
+                  CreateTableAs ann_ _nameIoriginalTree _exprIannotatedTree
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/CreateTable.ag"(line 74, column 9)
               _statementType =
                   Nothing
@@ -9958,19 +10405,28 @@ sem_Statement_CreateTableAs ann_ name_ expr_  =
                   []
               -- self rule
               _annotatedTree =
-                  CreateTableAs ann_ name_ _exprIannotatedTree
+                  CreateTableAs ann_ _nameIannotatedTree _exprIannotatedTree
               -- self rule
               _fixedUpIdentifiersTree =
-                  CreateTableAs ann_ name_ _exprIfixedUpIdentifiersTree
+                  CreateTableAs ann_ _nameIfixedUpIdentifiersTree _exprIfixedUpIdentifiersTree
               -- self rule
               _originalTree =
-                  CreateTableAs ann_ name_ _exprIoriginalTree
+                  CreateTableAs ann_ _nameIoriginalTree _exprIoriginalTree
               -- self rule
               _lhsOfixedUpIdentifiersTree =
                   _fixedUpIdentifiersTree
               -- self rule
               _lhsOoriginalTree =
                   _originalTree
+              -- copy rule (down)
+              _nameOcat =
+                  _lhsIcat
+              -- copy rule (down)
+              _nameOidenv =
+                  _lhsIidenv
+              -- copy rule (down)
+              _nameOlib =
+                  _lhsIlib
               -- copy rule (down)
               _exprOcat =
                   _lhsIcat
@@ -9980,14 +10436,16 @@ sem_Statement_CreateTableAs ann_ name_ expr_  =
               -- copy rule (down)
               _exprOlib =
                   _lhsIlib
+              ( _nameIannotatedTree,_nameIfixedUpIdentifiersTree,_nameIoriginalTree,_nameItbAnnotatedTree,_nameItbUType) =
+                  name_ _nameOcat _nameOidenv _nameOlib 
               ( _exprIannotatedTree,_exprIcidenv,_exprIfixedUpIdentifiersTree,_exprIlibUpdates,_exprIoriginalTree,_exprIuType) =
                   expr_ _exprOcat _exprOcsql _exprOexpectedTypes _exprOidenv _exprOlib 
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
 sem_Statement_CreateTrigger :: Annotation ->
-                               String ->
+                               NameComponent ->
                                TriggerWhen ->
                                ([TriggerEvent]) ->
-                               String ->
+                               T_Name  ->
                                TriggerFire ->
                                String ->
                                T_ScalarExprList  ->
@@ -10003,9 +10461,17 @@ sem_Statement_CreateTrigger ann_ name_ wh_ events_ tbl_ firing_ fnName_ fnArgs_ 
               _lhsOannotatedTree :: Statement 
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
+              _tblOcat :: Catalog
+              _tblOidenv :: IDEnv
+              _tblOlib :: LocalBindings
               _fnArgsOcat :: Catalog
               _fnArgsOidenv :: IDEnv
               _fnArgsOlib :: LocalBindings
+              _tblIannotatedTree :: Name 
+              _tblIfixedUpIdentifiersTree :: Name 
+              _tblIoriginalTree :: Name 
+              _tblItbAnnotatedTree :: Name 
+              _tblItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _fnArgsIannotatedTree :: ScalarExprList 
               _fnArgsIfixedUpIdentifiersTree :: ScalarExprList 
               _fnArgsIoriginalTree :: ScalarExprList 
@@ -10021,13 +10487,13 @@ sem_Statement_CreateTrigger ann_ name_ wh_ events_ tbl_ firing_ fnName_ fnArgs_ 
                   []
               -- self rule
               _annotatedTree =
-                  CreateTrigger ann_ name_ wh_ events_ tbl_ firing_ fnName_ _fnArgsIannotatedTree
+                  CreateTrigger ann_ name_ wh_ events_ _tblIannotatedTree firing_ fnName_ _fnArgsIannotatedTree
               -- self rule
               _fixedUpIdentifiersTree =
-                  CreateTrigger ann_ name_ wh_ events_ tbl_ firing_ fnName_ _fnArgsIfixedUpIdentifiersTree
+                  CreateTrigger ann_ name_ wh_ events_ _tblIfixedUpIdentifiersTree firing_ fnName_ _fnArgsIfixedUpIdentifiersTree
               -- self rule
               _originalTree =
-                  CreateTrigger ann_ name_ wh_ events_ tbl_ firing_ fnName_ _fnArgsIoriginalTree
+                  CreateTrigger ann_ name_ wh_ events_ _tblIoriginalTree firing_ fnName_ _fnArgsIoriginalTree
               -- self rule
               _lhsOannotatedTree =
                   _annotatedTree
@@ -10038,6 +10504,15 @@ sem_Statement_CreateTrigger ann_ name_ wh_ events_ tbl_ firing_ fnName_ fnArgs_ 
               _lhsOoriginalTree =
                   _originalTree
               -- copy rule (down)
+              _tblOcat =
+                  _lhsIcat
+              -- copy rule (down)
+              _tblOidenv =
+                  _lhsIidenv
+              -- copy rule (down)
+              _tblOlib =
+                  _lhsIlib
+              -- copy rule (down)
               _fnArgsOcat =
                   _lhsIcat
               -- copy rule (down)
@@ -10046,11 +10521,13 @@ sem_Statement_CreateTrigger ann_ name_ wh_ events_ tbl_ firing_ fnName_ fnArgs_ 
               -- copy rule (down)
               _fnArgsOlib =
                   _lhsIlib
+              ( _tblIannotatedTree,_tblIfixedUpIdentifiersTree,_tblIoriginalTree,_tblItbAnnotatedTree,_tblItbUType) =
+                  tbl_ _tblOcat _tblOidenv _tblOlib 
               ( _fnArgsIannotatedTree,_fnArgsIfixedUpIdentifiersTree,_fnArgsIoriginalTree,_fnArgsIuType) =
                   fnArgs_ _fnArgsOcat _fnArgsOexpectedTypes _fnArgsOidenv _fnArgsOlib 
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
 sem_Statement_CreateType :: Annotation ->
-                            String ->
+                            T_Name  ->
                             T_TypeAttributeDefList  ->
                             T_Statement 
 sem_Statement_CreateType ann_ name_ atts_  =
@@ -10066,9 +10543,17 @@ sem_Statement_CreateType ann_ name_ atts_  =
               _catUpdates :: ([CatalogUpdate])
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
+              _nameOcat :: Catalog
+              _nameOidenv :: IDEnv
+              _nameOlib :: LocalBindings
               _attsOcat :: Catalog
               _attsOidenv :: IDEnv
               _attsOlib :: LocalBindings
+              _nameIannotatedTree :: Name 
+              _nameIfixedUpIdentifiersTree :: Name 
+              _nameIoriginalTree :: Name 
+              _nameItbAnnotatedTree :: Name 
+              _nameItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _attsIannotatedTree :: TypeAttributeDefList 
               _attsIattrs :: ([(String, Maybe Type)])
               _attsIfixedUpIdentifiersTree :: TypeAttributeDefList 
@@ -10099,28 +10584,37 @@ sem_Statement_CreateType ann_ name_ atts_  =
                     okAt (_,Nothing) = Nothing
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/MiscCreates.ag"(line 53, column 9)
               _backTree =
-                  CreateType ann_ name_ _attsIannotatedTree
+                  CreateType ann_ _nameIoriginalTree _attsIannotatedTree
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/MiscCreates.ag"(line 54, column 9)
               _statementType =
                   Nothing
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/MiscCreates.ag"(line 55, column 9)
               _catUpdates =
-                  [CatCreateComposite name_ _attrs    ]
+                  [CatCreateComposite (getTName _nameIoriginalTree) _attrs    ]
               -- self rule
               _annotatedTree =
-                  CreateType ann_ name_ _attsIannotatedTree
+                  CreateType ann_ _nameIannotatedTree _attsIannotatedTree
               -- self rule
               _fixedUpIdentifiersTree =
-                  CreateType ann_ name_ _attsIfixedUpIdentifiersTree
+                  CreateType ann_ _nameIfixedUpIdentifiersTree _attsIfixedUpIdentifiersTree
               -- self rule
               _originalTree =
-                  CreateType ann_ name_ _attsIoriginalTree
+                  CreateType ann_ _nameIoriginalTree _attsIoriginalTree
               -- self rule
               _lhsOfixedUpIdentifiersTree =
                   _fixedUpIdentifiersTree
               -- self rule
               _lhsOoriginalTree =
                   _originalTree
+              -- copy rule (down)
+              _nameOcat =
+                  _lhsIcat
+              -- copy rule (down)
+              _nameOidenv =
+                  _lhsIidenv
+              -- copy rule (down)
+              _nameOlib =
+                  _lhsIlib
               -- copy rule (down)
               _attsOcat =
                   _lhsIcat
@@ -10130,12 +10624,14 @@ sem_Statement_CreateType ann_ name_ atts_  =
               -- copy rule (down)
               _attsOlib =
                   _lhsIlib
+              ( _nameIannotatedTree,_nameIfixedUpIdentifiersTree,_nameIoriginalTree,_nameItbAnnotatedTree,_nameItbUType) =
+                  name_ _nameOcat _nameOidenv _nameOlib 
               ( _attsIannotatedTree,_attsIattrs,_attsIfixedUpIdentifiersTree,_attsIoriginalTree) =
                   atts_ _attsOcat _attsOidenv _attsOlib 
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
 sem_Statement_CreateView :: Annotation ->
-                            String ->
-                            (Maybe [String]) ->
+                            T_Name  ->
+                            MaybeNameComponentList ->
                             T_QueryExpr  ->
                             T_Statement 
 sem_Statement_CreateView ann_ name_ colNames_ expr_  =
@@ -10153,9 +10649,17 @@ sem_Statement_CreateView ann_ name_ colNames_ expr_  =
               _exprOexpectedTypes :: ([Maybe Type])
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
+              _nameOcat :: Catalog
+              _nameOidenv :: IDEnv
+              _nameOlib :: LocalBindings
               _exprOcat :: Catalog
               _exprOidenv :: IDEnv
               _exprOlib :: LocalBindings
+              _nameIannotatedTree :: Name 
+              _nameIfixedUpIdentifiersTree :: Name 
+              _nameIoriginalTree :: Name 
+              _nameItbAnnotatedTree :: Name 
+              _nameItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _exprIannotatedTree :: QueryExpr 
               _exprIcidenv :: IDEnv
               _exprIfixedUpIdentifiersTree :: QueryExpr 
@@ -10185,10 +10689,10 @@ sem_Statement_CreateView ann_ name_ colNames_ expr_  =
                   Right $ Pseudo Void
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/MiscCreates.ag"(line 16, column 9)
               _backTree =
-                  CreateView ann_ name_ colNames_ _exprIannotatedTree
+                  CreateView ann_ _nameIoriginalTree colNames_ _exprIannotatedTree
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/MiscCreates.ag"(line 17, column 9)
               _catUpdates =
-                  maybe [] (\a -> [CatCreateView name_ a]) _exprIuType
+                  maybe [] (\a -> [CatCreateView (getTName _nameIoriginalTree) a]) _exprIuType
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/MiscCreates.ag"(line 19, column 9)
               _statementType =
                   Nothing
@@ -10197,19 +10701,28 @@ sem_Statement_CreateView ann_ name_ colNames_ expr_  =
                   []
               -- self rule
               _annotatedTree =
-                  CreateView ann_ name_ colNames_ _exprIannotatedTree
+                  CreateView ann_ _nameIannotatedTree colNames_ _exprIannotatedTree
               -- self rule
               _fixedUpIdentifiersTree =
-                  CreateView ann_ name_ colNames_ _exprIfixedUpIdentifiersTree
+                  CreateView ann_ _nameIfixedUpIdentifiersTree colNames_ _exprIfixedUpIdentifiersTree
               -- self rule
               _originalTree =
-                  CreateView ann_ name_ colNames_ _exprIoriginalTree
+                  CreateView ann_ _nameIoriginalTree colNames_ _exprIoriginalTree
               -- self rule
               _lhsOfixedUpIdentifiersTree =
                   _fixedUpIdentifiersTree
               -- self rule
               _lhsOoriginalTree =
                   _originalTree
+              -- copy rule (down)
+              _nameOcat =
+                  _lhsIcat
+              -- copy rule (down)
+              _nameOidenv =
+                  _lhsIidenv
+              -- copy rule (down)
+              _nameOlib =
+                  _lhsIlib
               -- copy rule (down)
               _exprOcat =
                   _lhsIcat
@@ -10219,6 +10732,8 @@ sem_Statement_CreateView ann_ name_ colNames_ expr_  =
               -- copy rule (down)
               _exprOlib =
                   _lhsIlib
+              ( _nameIannotatedTree,_nameIfixedUpIdentifiersTree,_nameIoriginalTree,_nameItbAnnotatedTree,_nameItbUType) =
+                  name_ _nameOcat _nameOidenv _nameOlib 
               ( _exprIannotatedTree,_exprIcidenv,_exprIfixedUpIdentifiersTree,_exprIlibUpdates,_exprIoriginalTree,_exprIuType) =
                   expr_ _exprOcat _exprOcsql _exprOexpectedTypes _exprOidenv _exprOlib 
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
@@ -10374,7 +10889,7 @@ sem_Statement_Delete ann_ table_ using_ whr_ returning_  =
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
 sem_Statement_DropFunction :: Annotation ->
                               IfExists ->
-                              T_StringTypeNameListPairList  ->
+                              T_NameTypeNameListPairList  ->
                               Cascade ->
                               T_Statement 
 sem_Statement_DropFunction ann_ ifE_ sigs_ cascade_  =
@@ -10393,10 +10908,10 @@ sem_Statement_DropFunction ann_ ifE_ sigs_ cascade_  =
               _sigsOcat :: Catalog
               _sigsOidenv :: IDEnv
               _sigsOlib :: LocalBindings
-              _sigsIannotatedTree :: StringTypeNameListPairList 
-              _sigsIfixedUpIdentifiersTree :: StringTypeNameListPairList 
-              _sigsIfnSigs :: ([(String,[Maybe Type])])
-              _sigsIoriginalTree :: StringTypeNameListPairList 
+              _sigsIannotatedTree :: NameTypeNameListPairList 
+              _sigsIfixedUpIdentifiersTree :: NameTypeNameListPairList 
+              _sigsIfnSigs :: ([(Name,[Maybe Type])])
+              _sigsIoriginalTree :: NameTypeNameListPairList 
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Statements.ag"(line 82, column 9)
               _lhsOannotatedTree =
                   updateAnnotation
@@ -10426,10 +10941,10 @@ sem_Statement_DropFunction ann_ ifE_ sigs_ cascade_  =
                     mcu :: (String,[Type]) -> CatalogUpdate
                     mcu (nm,args) = CatDropFunction ifE nm args
                     ifE = ifE_ == IfExists
-                    goodSig :: (String,[Maybe Type]) -> Maybe (String,[Type])
+                    goodSig :: (Name,[Maybe Type]) -> Maybe (String,[Type])
                     goodSig (s, ts) = do
                                   ts1 <- sequence ts
-                                  return (s,ts1)
+                                  return (getTName s,ts1)
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/Drops.ag"(line 23, column 9)
               _statementType =
                   Nothing
@@ -10463,7 +10978,7 @@ sem_Statement_DropFunction ann_ ifE_ sigs_ cascade_  =
 sem_Statement_DropSomething :: Annotation ->
                                DropType ->
                                IfExists ->
-                               ([String]) ->
+                               ([Name]) ->
                                Cascade ->
                                T_Statement 
 sem_Statement_DropSomething ann_ dropType_ ifE_ names_ cascade_  =
@@ -11831,7 +12346,7 @@ sem_Statement_Set ann_ name_ values_  =
                   _originalTree
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
 sem_Statement_Truncate :: Annotation ->
-                          ([String]) ->
+                          ([Name]) ->
                           RestartIdentity ->
                           Cascade ->
                           T_Statement 
@@ -12329,242 +12844,6 @@ sem_StatementList_Nil  =
               _lhsOoriginalTree =
                   _originalTree
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree,_lhsOproducedCat,_lhsOproducedLib)))
--- StringTypeNameListPair --------------------------------------
-{-
-   visit 0:
-      inherited attributes:
-         cat                  : Catalog
-         idenv                : IDEnv
-         lib                  : LocalBindings
-      synthesized attributes:
-         annotatedTree        : SELF 
-         fixedUpIdentifiersTree : SELF 
-         fnSig                : (String,[Maybe Type])
-         originalTree         : SELF 
-   alternatives:
-      alternative Tuple:
-         child x1             : {String}
-         child x2             : TypeNameList 
-         visit 0:
-            local annotatedTree : _
-            local fixedUpIdentifiersTree : _
-            local originalTree : _
--}
-type StringTypeNameListPair  = ( (String),TypeNameList )
--- cata
-sem_StringTypeNameListPair :: StringTypeNameListPair  ->
-                              T_StringTypeNameListPair 
-sem_StringTypeNameListPair ( x1,x2)  =
-    (sem_StringTypeNameListPair_Tuple x1 (sem_TypeNameList x2 ) )
--- semantic domain
-type T_StringTypeNameListPair  = Catalog ->
-                                 IDEnv ->
-                                 LocalBindings ->
-                                 ( StringTypeNameListPair ,StringTypeNameListPair ,((String,[Maybe Type])),StringTypeNameListPair )
-data Inh_StringTypeNameListPair  = Inh_StringTypeNameListPair {cat_Inh_StringTypeNameListPair :: Catalog,idenv_Inh_StringTypeNameListPair :: IDEnv,lib_Inh_StringTypeNameListPair :: LocalBindings}
-data Syn_StringTypeNameListPair  = Syn_StringTypeNameListPair {annotatedTree_Syn_StringTypeNameListPair :: StringTypeNameListPair ,fixedUpIdentifiersTree_Syn_StringTypeNameListPair :: StringTypeNameListPair ,fnSig_Syn_StringTypeNameListPair :: ((String,[Maybe Type])),originalTree_Syn_StringTypeNameListPair :: StringTypeNameListPair }
-wrap_StringTypeNameListPair :: T_StringTypeNameListPair  ->
-                               Inh_StringTypeNameListPair  ->
-                               Syn_StringTypeNameListPair 
-wrap_StringTypeNameListPair sem (Inh_StringTypeNameListPair _lhsIcat _lhsIidenv _lhsIlib )  =
-    (let ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOfnSig,_lhsOoriginalTree) = sem _lhsIcat _lhsIidenv _lhsIlib 
-     in  (Syn_StringTypeNameListPair _lhsOannotatedTree _lhsOfixedUpIdentifiersTree _lhsOfnSig _lhsOoriginalTree ))
-sem_StringTypeNameListPair_Tuple :: String ->
-                                    T_TypeNameList  ->
-                                    T_StringTypeNameListPair 
-sem_StringTypeNameListPair_Tuple x1_ x2_  =
-    (\ _lhsIcat
-       _lhsIidenv
-       _lhsIlib ->
-         (let _lhsOfnSig :: ((String,[Maybe Type]))
-              _lhsOannotatedTree :: StringTypeNameListPair 
-              _lhsOfixedUpIdentifiersTree :: StringTypeNameListPair 
-              _lhsOoriginalTree :: StringTypeNameListPair 
-              _x2Ocat :: Catalog
-              _x2Oidenv :: IDEnv
-              _x2Olib :: LocalBindings
-              _x2IannotatedTree :: TypeNameList 
-              _x2IfixedUpIdentifiersTree :: TypeNameList 
-              _x2InamedTypes :: ([Maybe Type])
-              _x2IoriginalTree :: TypeNameList 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/Drops.ag"(line 32, column 13)
-              _lhsOfnSig =
-                  (x1_, _x2InamedTypes)
-              -- self rule
-              _annotatedTree =
-                  (x1_,_x2IannotatedTree)
-              -- self rule
-              _fixedUpIdentifiersTree =
-                  (x1_,_x2IfixedUpIdentifiersTree)
-              -- self rule
-              _originalTree =
-                  (x1_,_x2IoriginalTree)
-              -- self rule
-              _lhsOannotatedTree =
-                  _annotatedTree
-              -- self rule
-              _lhsOfixedUpIdentifiersTree =
-                  _fixedUpIdentifiersTree
-              -- self rule
-              _lhsOoriginalTree =
-                  _originalTree
-              -- copy rule (down)
-              _x2Ocat =
-                  _lhsIcat
-              -- copy rule (down)
-              _x2Oidenv =
-                  _lhsIidenv
-              -- copy rule (down)
-              _x2Olib =
-                  _lhsIlib
-              ( _x2IannotatedTree,_x2IfixedUpIdentifiersTree,_x2InamedTypes,_x2IoriginalTree) =
-                  x2_ _x2Ocat _x2Oidenv _x2Olib 
-          in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOfnSig,_lhsOoriginalTree)))
--- StringTypeNameListPairList ----------------------------------
-{-
-   visit 0:
-      inherited attributes:
-         cat                  : Catalog
-         idenv                : IDEnv
-         lib                  : LocalBindings
-      synthesized attributes:
-         annotatedTree        : SELF 
-         fixedUpIdentifiersTree : SELF 
-         fnSigs               : [(String,[Maybe Type])]
-         originalTree         : SELF 
-   alternatives:
-      alternative Cons:
-         child hd             : StringTypeNameListPair 
-         child tl             : StringTypeNameListPairList 
-         visit 0:
-            local annotatedTree : _
-            local fixedUpIdentifiersTree : _
-            local originalTree : _
-      alternative Nil:
-         visit 0:
-            local annotatedTree : _
-            local fixedUpIdentifiersTree : _
-            local originalTree : _
--}
-type StringTypeNameListPairList  = [StringTypeNameListPair ]
--- cata
-sem_StringTypeNameListPairList :: StringTypeNameListPairList  ->
-                                  T_StringTypeNameListPairList 
-sem_StringTypeNameListPairList list  =
-    (Prelude.foldr sem_StringTypeNameListPairList_Cons sem_StringTypeNameListPairList_Nil (Prelude.map sem_StringTypeNameListPair list) )
--- semantic domain
-type T_StringTypeNameListPairList  = Catalog ->
-                                     IDEnv ->
-                                     LocalBindings ->
-                                     ( StringTypeNameListPairList ,StringTypeNameListPairList ,([(String,[Maybe Type])]),StringTypeNameListPairList )
-data Inh_StringTypeNameListPairList  = Inh_StringTypeNameListPairList {cat_Inh_StringTypeNameListPairList :: Catalog,idenv_Inh_StringTypeNameListPairList :: IDEnv,lib_Inh_StringTypeNameListPairList :: LocalBindings}
-data Syn_StringTypeNameListPairList  = Syn_StringTypeNameListPairList {annotatedTree_Syn_StringTypeNameListPairList :: StringTypeNameListPairList ,fixedUpIdentifiersTree_Syn_StringTypeNameListPairList :: StringTypeNameListPairList ,fnSigs_Syn_StringTypeNameListPairList :: ([(String,[Maybe Type])]),originalTree_Syn_StringTypeNameListPairList :: StringTypeNameListPairList }
-wrap_StringTypeNameListPairList :: T_StringTypeNameListPairList  ->
-                                   Inh_StringTypeNameListPairList  ->
-                                   Syn_StringTypeNameListPairList 
-wrap_StringTypeNameListPairList sem (Inh_StringTypeNameListPairList _lhsIcat _lhsIidenv _lhsIlib )  =
-    (let ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOfnSigs,_lhsOoriginalTree) = sem _lhsIcat _lhsIidenv _lhsIlib 
-     in  (Syn_StringTypeNameListPairList _lhsOannotatedTree _lhsOfixedUpIdentifiersTree _lhsOfnSigs _lhsOoriginalTree ))
-sem_StringTypeNameListPairList_Cons :: T_StringTypeNameListPair  ->
-                                       T_StringTypeNameListPairList  ->
-                                       T_StringTypeNameListPairList 
-sem_StringTypeNameListPairList_Cons hd_ tl_  =
-    (\ _lhsIcat
-       _lhsIidenv
-       _lhsIlib ->
-         (let _lhsOfnSigs :: ([(String,[Maybe Type])])
-              _lhsOannotatedTree :: StringTypeNameListPairList 
-              _lhsOfixedUpIdentifiersTree :: StringTypeNameListPairList 
-              _lhsOoriginalTree :: StringTypeNameListPairList 
-              _hdOcat :: Catalog
-              _hdOidenv :: IDEnv
-              _hdOlib :: LocalBindings
-              _tlOcat :: Catalog
-              _tlOidenv :: IDEnv
-              _tlOlib :: LocalBindings
-              _hdIannotatedTree :: StringTypeNameListPair 
-              _hdIfixedUpIdentifiersTree :: StringTypeNameListPair 
-              _hdIfnSig :: ((String,[Maybe Type]))
-              _hdIoriginalTree :: StringTypeNameListPair 
-              _tlIannotatedTree :: StringTypeNameListPairList 
-              _tlIfixedUpIdentifiersTree :: StringTypeNameListPairList 
-              _tlIfnSigs :: ([(String,[Maybe Type])])
-              _tlIoriginalTree :: StringTypeNameListPairList 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/Drops.ag"(line 27, column 12)
-              _lhsOfnSigs =
-                  _hdIfnSig : _tlIfnSigs
-              -- self rule
-              _annotatedTree =
-                  (:) _hdIannotatedTree _tlIannotatedTree
-              -- self rule
-              _fixedUpIdentifiersTree =
-                  (:) _hdIfixedUpIdentifiersTree _tlIfixedUpIdentifiersTree
-              -- self rule
-              _originalTree =
-                  (:) _hdIoriginalTree _tlIoriginalTree
-              -- self rule
-              _lhsOannotatedTree =
-                  _annotatedTree
-              -- self rule
-              _lhsOfixedUpIdentifiersTree =
-                  _fixedUpIdentifiersTree
-              -- self rule
-              _lhsOoriginalTree =
-                  _originalTree
-              -- copy rule (down)
-              _hdOcat =
-                  _lhsIcat
-              -- copy rule (down)
-              _hdOidenv =
-                  _lhsIidenv
-              -- copy rule (down)
-              _hdOlib =
-                  _lhsIlib
-              -- copy rule (down)
-              _tlOcat =
-                  _lhsIcat
-              -- copy rule (down)
-              _tlOidenv =
-                  _lhsIidenv
-              -- copy rule (down)
-              _tlOlib =
-                  _lhsIlib
-              ( _hdIannotatedTree,_hdIfixedUpIdentifiersTree,_hdIfnSig,_hdIoriginalTree) =
-                  hd_ _hdOcat _hdOidenv _hdOlib 
-              ( _tlIannotatedTree,_tlIfixedUpIdentifiersTree,_tlIfnSigs,_tlIoriginalTree) =
-                  tl_ _tlOcat _tlOidenv _tlOlib 
-          in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOfnSigs,_lhsOoriginalTree)))
-sem_StringTypeNameListPairList_Nil :: T_StringTypeNameListPairList 
-sem_StringTypeNameListPairList_Nil  =
-    (\ _lhsIcat
-       _lhsIidenv
-       _lhsIlib ->
-         (let _lhsOfnSigs :: ([(String,[Maybe Type])])
-              _lhsOannotatedTree :: StringTypeNameListPairList 
-              _lhsOfixedUpIdentifiersTree :: StringTypeNameListPairList 
-              _lhsOoriginalTree :: StringTypeNameListPairList 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/Drops.ag"(line 28, column 11)
-              _lhsOfnSigs =
-                  []
-              -- self rule
-              _annotatedTree =
-                  []
-              -- self rule
-              _fixedUpIdentifiersTree =
-                  []
-              -- self rule
-              _originalTree =
-                  []
-              -- self rule
-              _lhsOannotatedTree =
-                  _annotatedTree
-              -- self rule
-              _lhsOfixedUpIdentifiersTree =
-                  _fixedUpIdentifiersTree
-              -- self rule
-              _lhsOoriginalTree =
-                  _originalTree
-          in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOfnSigs,_lhsOoriginalTree)))
 -- TableAlias --------------------------------------------------
 {-
    visit 0:

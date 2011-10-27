@@ -77,8 +77,8 @@
 >     ,ConstraintList
 >     ,TypeAttributeDefList
 >     ,TypeNameList
->     ,StringTypeNameListPair
->     ,StringTypeNameListPairList
+>     ,NameTypeNameListPair
+>     ,NameTypeNameListPairList
 >     ,ScalarExprStatementListPairList
 >     ,CaseScalarExprListScalarExprPairList
 >     ,MaybeScalarExpr

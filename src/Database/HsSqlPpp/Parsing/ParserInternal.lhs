@@ -540,7 +540,7 @@ other dml-type stuff
 > truncateSt =
 >            Truncate
 >            <$> pos <* keyword "truncate" <* optional (keyword "table")
->            <*> commaSep1 idString
+>            <*> commaSep1 name
 >            <*> option ContinueIdentity (choice [
 >                                 ContinueIdentity <$ (keyword "continue"
 >                                                      <* keyword "identity")
@@ -597,7 +597,7 @@ ddl
 > createTable = do
 >   p <- pos
 >   keyword "table"
->   tname <- idString
+>   tname <- name
 >   choice [
 >      CreateTableAs p tname <$> (keyword "as" *> pQueryExpr)
 >     ,uncurry (CreateTable p tname) <$> readAttsAndCons]
@@ -682,7 +682,7 @@ ddl
 > alterTable :: SParser Statement
 > alterTable = AlterTable <$> (pos <* keyword "table"
 >                              <* optional (keyword "only"))
->                         <*> idString
+>                         <*> name
 >                         <*> many1 action
 >              where action = choice [
 >                              AlterColumnDefault
@@ -696,7 +696,7 @@ ddl
 > createType :: SParser Statement
 > createType = CreateType
 >              <$> pos <* keyword "type"
->              <*> idString
+>              <*> name
 >              <*> (keyword "as" *> parens (commaSep1 typeAtt))
 >   where
 >     typeAtt = TypeAttDef <$> pos <*> idString <*> typeName
@@ -705,7 +705,7 @@ ddl
 > createSequence = do
 >   p <- pos
 >   keyword "sequence"
->   nm <- idString
+>   nm <- name
 >   (stw, incr, mx, mn, c) <-
 >      permute ((,,,,) <$?> (1,startWith)
 >                      <|?> (1,increment)
@@ -723,7 +723,7 @@ ddl
 >
 > alterSequence :: SParser Statement
 > alterSequence = AlterSequence <$> pos
->                               <*> (keyword "sequence" *> idString)
+>                               <*> (keyword "sequence" *> name)
 >                               <*> (keyword "owned"
 >                                    *> keyword "by"
 >                                    *> name)
@@ -738,7 +738,7 @@ rather than just a string.
 >   rep <- choice [NoReplace <$ keyword "function"
 >                 ,Replace <$ mapM_ keyword ["or", "replace", "function"]
 >                 ]
->   fnName <- idString
+>   fnName <- name
 >   params <- parens $ commaSep param
 >   retType <- keyword "returns" *> typeName
 >   ((bodypos,body), lang,vol) <-
@@ -817,15 +817,15 @@ variable declarations in a plpgsql function
 > createView :: SParser Statement
 > createView = CreateView
 >              <$> pos <* keyword "view"
->              <*> idString
->              <*> tryOptionMaybe (parens $ commaSep idString)
+>              <*> name
+>              <*> tryOptionMaybe (parens $ commaSep nameComponent)
 >              <*> (keyword "as" *> pQueryExpr)
 
 >
 > createDomain :: SParser Statement
 > createDomain = CreateDomain
 >                <$> pos <* keyword "domain"
->                <*> idString
+>                <*> name
 >                <*> (tryOptionMaybe (keyword "as") *> typeName)
 >                <*> option "" (keyword "constraint" *> idString)
 >                <*> tryOptionMaybe (keyword "check" *> parens expr)
@@ -839,7 +839,7 @@ variable declarations in a plpgsql function
 >                 ,Table <$ keyword "table"
 >                 ,View <$ keyword "view"
 >             ])
->   (i,e,r) <- parseDrop idString
+>   (i,e,r) <- parseDrop name
 >   return $ DropSomething p x i e r
 >
 > dropFunction :: SParser Statement
@@ -849,7 +849,7 @@ variable declarations in a plpgsql function
 >                (i,e,r) <- parseDrop pFun
 >                return $ DropFunction p i e r
 >                where
->                  pFun = (,) <$> idString
+>                  pFun = (,) <$> name
 >                             <*> parens (commaSep typeName)
 >
 > parseDrop :: SParser a
@@ -873,10 +873,10 @@ variable declarations in a plpgsql function
 > createTrigger :: SParser Statement
 > createTrigger =
 >   CreateTrigger <$> pos
->                 <*> (keyword "trigger" *> idString)
+>                 <*> (keyword "trigger" *> nameComponent)
 >                 <*> twhen
 >                 <*> tevents
->                 <*> (keyword "on" *> idString)
+>                 <*> (keyword "on" *> name)
 >                 <*> tfiring
 >                 <*> (keyword "execute" *> keyword "procedure"
 >                      *> idString)

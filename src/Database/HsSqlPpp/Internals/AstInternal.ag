@@ -103,8 +103,8 @@ MODULE {Database.HsSqlPpp.Internals.AstInternal}
    ,ConstraintList
    ,TypeAttributeDefList
    ,TypeNameList
-   ,StringTypeNameListPair
-   ,StringTypeNameListPairList
+   ,NameTypeNameListPair
+   ,NameTypeNameListPairList
    ,ScalarExprStatementListPairList
    --,SetClauseList
    ,CaseScalarExprListScalarExprPairList
@@ -123,6 +123,8 @@ MODULE {Database.HsSqlPpp.Internals.AstInternal}
    ,MaybeSelectList
    ,SetValue(..)
    ,AlterTableActionList
+   ,NameComponentList
+   ,MaybeNameComponentList
    -- typechecking
    ,typeCheckStatements
    ,typeCheckParameterizedStatement
@@ -201,42 +203,42 @@ DATA Statement
     --represents inline data for copy statement
     | CopyData ann:Annotation insData : String
     | Truncate ann:Annotation
-               tables: {[String]}
+               tables: {[Name]}
                restartIdentity : RestartIdentity
                cascade : Cascade
 
 -- ddl
 
     | CreateTable ann:Annotation
-                  name : String
+                  name : Name
                   atts : AttributeDefList
                   cons : ConstraintList
     | AlterTable ann:Annotation
-                 name : String
+                 name : Name
                  actions : AlterTableActionList
     | CreateSequence ann:Annotation
-                     name:String
+                     name:Name
                      incr:Integer
                      min:Integer
                      max:Integer
                      start:Integer
                      cache:Integer
     | AlterSequence ann:Annotation
-                    name:String
+                    name:Name
                     ownedBy: Name
     | CreateTableAs ann:Annotation
-                    name : String
+                    name : Name
                     expr : QueryExpr
     | CreateView ann:Annotation
-                 name : String
-                 colNames : {Maybe [String]}
+                 name : Name
+                 colNames : {MaybeNameComponentList}
                  expr : QueryExpr
     | CreateType ann:Annotation
-                 name : String
+                 name : Name
                  atts : TypeAttributeDefList
     -- language name args rettype bodyquoteused body vol
     | CreateFunction ann:Annotation
-                     name : String
+                     name : Name
                      params : ParamDefList
                      rettype : TypeName
                      rep : Replace
@@ -245,30 +247,30 @@ DATA Statement
                      vol : Volatility
     -- name type checkexpression
     | CreateDomain ann:Annotation
-                   name : String
+                   name : Name
                    typ : TypeName
-                   checkName: String
+                   constraintName: String
                    check : MaybeBoolExpr
     | CreateLanguage ann:Annotation
                      name:String
     | CreateTrigger ann:Annotation
-                    name:String
+                    name:NameComponent
                     wh : TriggerWhen
                     events: {[TriggerEvent]}
-                    tbl : String
+                    tbl : Name
                     firing : TriggerFire
                     fnName : String
                     fnArgs : ScalarExprList
     -- ifexists (name,argtypes)* cascadeorrestrict
     | DropFunction ann:Annotation
                    ifE : IfExists
-                   sigs : StringTypeNameListPairList
+                   sigs : NameTypeNameListPairList
                    cascade : Cascade
     -- ifexists names cascadeorrestrict
     | DropSomething ann:Annotation
                     dropType : DropType
                     ifE : IfExists
-                    names : {[String]}
+                    names : {[Name]}
                     cascade : Cascade
 
 --misc
@@ -766,8 +768,8 @@ TYPE ConstraintList = [Constraint]
 TYPE TypeAttributeDefList = [TypeAttributeDef]
 TYPE ParamDefList = [ParamDef]
 TYPE TypeNameList = [TypeName]
-TYPE StringTypeNameListPair = (String, TypeNameList)
-TYPE StringTypeNameListPairList = [StringTypeNameListPair]
+TYPE NameTypeNameListPair = (Name, TypeNameList)
+TYPE NameTypeNameListPairList = [NameTypeNameListPair]
 TYPE ScalarExprListStatementListPair = (ScalarExprList,StatementList)
 TYPE ScalarExprListStatementListPairList = [ScalarExprListStatementListPair]
 TYPE ScalarExprStatementListPair = (ScalarExpr, StatementList)
@@ -781,6 +783,9 @@ TYPE StatementList = [Statement]
 TYPE ScalarExprDirectionPair = (ScalarExpr,Direction)
 TYPE ScalarExprDirectionPairList = [ScalarExprDirectionPair]
 TYPE AlterTableActionList = [AlterTableAction]
+TYPE MaybeNameComponentList = MAYBE NameComponentList
+TYPE NameComponentList = [NameComponent]
+
 -- Add a root data type so we can put initial values for inherited
 -- attributes in the section which defines and uses those attributes
 -- rather than in the sem_ calls
@@ -810,8 +815,8 @@ SET AllNodes = Statement QueryExpr FnBody TableRef
                ScalarExpr InList MaybeScalarExpr MaybeBoolExpr
                ScalarExprList ScalarExprListList
                AttributeDefList ConstraintList TypeAttributeDefList
-               ParamDefList TypeNameList StringTypeNameListPair
-               StringTypeNameListPairList
+               ParamDefList TypeNameList NameTypeNameListPair
+               NameTypeNameListPairList
                StatementList ScalarExprListStatementListPair
                ScalarExprListStatementListPairList ScalarExprStatementListPair
                ScalarExprStatementListPairList VarDefList SelectItemList

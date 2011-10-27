@@ -22,14 +22,14 @@ module Database.HsSqlPpp.Internals.AstAnti
         StatementList, ScalarExprListStatementListPairList,
         ScalarExprListStatementListPair, ScalarExprList, ParamDefList,
         AttributeDefList, ConstraintList, TypeAttributeDefList,
-        TypeNameList, StringTypeNameListPair, StringTypeNameListPairList,
+        TypeNameList, NameTypeNameListPair, NameTypeNameListPairList,
         ScalarExprStatementListPairList,
         CaseScalarExprListScalarExprPairList, MaybeScalarExpr,
         TableRefList, ScalarExprListList, SelectItemList, OnExpr,
         RowConstraintList, VarDefList, ScalarExprStatementListPair,
         CaseScalarExprListScalarExprPair, ScalarExprDirectionPair,
         ScalarExprDirectionPairList, MaybeBoolExpr, MaybeSelectList,
-        AlterTableActionList)
+        AlterTableActionList, NameComponentList, MaybeNameComponentList)
        where
 import Data.Data
 import Database.HsSqlPpp.Internals.AstAnnotation
@@ -266,8 +266,8 @@ data SetClause = MultiSetClause Annotation [String] ScalarExpr
                | SetClause Annotation String ScalarExpr
                deriving (Data, Eq, Show, Typeable)
  
-data Statement = AlterSequence Annotation String Name
-               | AlterTable Annotation String AlterTableActionList
+data Statement = AlterSequence Annotation Name Name
+               | AlterTable Annotation Name AlterTableActionList
                | Assignment Annotation ScalarExpr ScalarExpr
                | Block Annotation (Maybe String) VarDefList StatementList
                | CaseStatement Annotation ScalarExprListStatementListPairList
@@ -277,22 +277,21 @@ data Statement = AlterSequence Annotation String Name
                | ContinueStatement Annotation (Maybe String)
                | Copy Annotation Name [NameComponent] CopySource
                | CopyData Annotation String
-               | CreateDomain Annotation String TypeName String MaybeBoolExpr
-               | CreateFunction Annotation String ParamDefList TypeName Replace
+               | CreateDomain Annotation Name TypeName String MaybeBoolExpr
+               | CreateFunction Annotation Name ParamDefList TypeName Replace
                                 Language FnBody Volatility
                | CreateLanguage Annotation String
-               | CreateSequence Annotation String Integer Integer Integer Integer
+               | CreateSequence Annotation Name Integer Integer Integer Integer
                                 Integer
-               | CreateTable Annotation String AttributeDefList ConstraintList
-               | CreateTableAs Annotation String QueryExpr
-               | CreateTrigger Annotation String TriggerWhen [TriggerEvent] String
-                               TriggerFire String ScalarExprList
-               | CreateType Annotation String TypeAttributeDefList
-               | CreateView Annotation String (Maybe [String]) QueryExpr
+               | CreateTable Annotation Name AttributeDefList ConstraintList
+               | CreateTableAs Annotation Name QueryExpr
+               | CreateTrigger Annotation NameComponent TriggerWhen [TriggerEvent]
+                               Name TriggerFire String ScalarExprList
+               | CreateType Annotation Name TypeAttributeDefList
+               | CreateView Annotation Name MaybeNameComponentList QueryExpr
                | Delete Annotation Name TableRefList MaybeBoolExpr MaybeSelectList
-               | DropFunction Annotation IfExists StringTypeNameListPairList
-                              Cascade
-               | DropSomething Annotation DropType IfExists [String] Cascade
+               | DropFunction Annotation IfExists NameTypeNameListPairList Cascade
+               | DropSomething Annotation DropType IfExists [Name] Cascade
                | Execute Annotation ScalarExpr
                | ExitStatement Annotation (Maybe String)
                | ForIntegerStatement Annotation (Maybe String) ScalarExpr
@@ -312,7 +311,7 @@ data Statement = AlterSequence Annotation String Name
                | ReturnNext Annotation ScalarExpr
                | ReturnQuery Annotation QueryExpr
                | Set Annotation String [SetValue]
-               | Truncate Annotation [String] RestartIdentity Cascade
+               | Truncate Annotation [Name] RestartIdentity Cascade
                | Update Annotation Name SetClauseList TableRefList MaybeBoolExpr
                         MaybeSelectList
                | WhileStatement Annotation (Maybe String) ScalarExpr StatementList
@@ -364,9 +363,17 @@ type ConstraintList = [Constraint]
  
 type MaybeBoolExpr = Maybe ScalarExpr
  
+type MaybeNameComponentList = Maybe NameComponentList
+ 
 type MaybeScalarExpr = Maybe ScalarExpr
  
 type MaybeSelectList = Maybe SelectList
+ 
+type NameComponentList = [NameComponent]
+ 
+type NameTypeNameListPair = (Name, TypeNameList)
+ 
+type NameTypeNameListPairList = [NameTypeNameListPair]
  
 type OnExpr = Maybe JoinExpr
  
@@ -398,10 +405,6 @@ type SelectItemList = [SelectItem]
 type SetClauseList = [SetClause]
  
 type StatementList = [Statement]
- 
-type StringTypeNameListPair = (String, TypeNameList)
- 
-type StringTypeNameListPairList = [StringTypeNameListPair]
  
 type TableRefList = [TableRef]
  
@@ -621,7 +624,7 @@ constraint x
                                                       (cascade a6)
                                                       (cascade a7)
         UniqueConstraint a1 a2 a3 -> A.UniqueConstraint a1 a2
-                                       (fmap nameComponent a3)
+                                       (nameComponentList a3)
  
 fnBody :: FnBody -> A.FnBody
 fnBody x
@@ -639,12 +642,12 @@ joinExpr :: JoinExpr -> A.JoinExpr
 joinExpr x
   = case x of
         JoinOn a1 a2 -> A.JoinOn a1 (scalarExpr a2)
-        JoinUsing a1 a2 -> A.JoinUsing a1 (fmap nameComponent a2)
+        JoinUsing a1 a2 -> A.JoinUsing a1 (nameComponentList a2)
  
 name :: Name -> A.Name
 name x
   = case x of
-        Name a1 a2 -> A.Name a1 (fmap nameComponent a2)
+        Name a1 a2 -> A.Name a1 (nameComponentList a2)
  
 paramDef :: ParamDef -> A.ParamDef
 paramDef x
@@ -742,8 +745,9 @@ setClause x
 statement :: Statement -> A.Statement
 statement x
   = case x of
-        AlterSequence a1 a2 a3 -> A.AlterSequence a1 a2 (name a3)
-        AlterTable a1 a2 a3 -> A.AlterTable a1 a2 (alterTableActionList a3)
+        AlterSequence a1 a2 a3 -> A.AlterSequence a1 (name a2) (name a3)
+        AlterTable a1 a2 a3 -> A.AlterTable a1 (name a2)
+                                 (alterTableActionList a3)
         Assignment a1 a2 a3 -> A.Assignment a1 (scalarExpr a2)
                                  (scalarExpr a3)
         Block a1 a2 a3 a4 -> A.Block a1 a2 (varDefList a3)
@@ -756,13 +760,15 @@ statement x
                                              (scalarExprListStatementListPairList a3)
                                              (statementList a4)
         ContinueStatement a1 a2 -> A.ContinueStatement a1 a2
-        Copy a1 a2 a3 a4 -> A.Copy a1 (name a2) (fmap nameComponent a3)
+        Copy a1 a2 a3 a4 -> A.Copy a1 (name a2) (nameComponentList a3)
                               (copySource a4)
         CopyData a1 a2 -> A.CopyData a1 a2
-        CreateDomain a1 a2 a3 a4 a5 -> A.CreateDomain a1 a2 (typeName a3)
+        CreateDomain a1 a2 a3 a4 a5 -> A.CreateDomain a1 (name a2)
+                                         (typeName a3)
                                          a4
                                          (maybeBoolExpr a5)
-        CreateFunction a1 a2 a3 a4 a5 a6 a7 a8 -> A.CreateFunction a1 a2
+        CreateFunction a1 a2 a3 a4 a5 a6 a7 a8 -> A.CreateFunction a1
+                                                    (name a2)
                                                     (paramDefList a3)
                                                     (typeName a4)
                                                     (replace a5)
@@ -770,32 +776,40 @@ statement x
                                                     (fnBody a7)
                                                     (volatility a8)
         CreateLanguage a1 a2 -> A.CreateLanguage a1 a2
-        CreateSequence a1 a2 a3 a4 a5 a6 a7 -> A.CreateSequence a1 a2 a3 a4
+        CreateSequence a1 a2 a3 a4 a5 a6 a7 -> A.CreateSequence a1
+                                                 (name a2)
+                                                 a3
+                                                 a4
                                                  a5
                                                  a6
                                                  a7
-        CreateTable a1 a2 a3 a4 -> A.CreateTable a1 a2
+        CreateTable a1 a2 a3 a4 -> A.CreateTable a1 (name a2)
                                      (attributeDefList a3)
                                      (constraintList a4)
-        CreateTableAs a1 a2 a3 -> A.CreateTableAs a1 a2 (queryExpr a3)
-        CreateTrigger a1 a2 a3 a4 a5 a6 a7 a8 -> A.CreateTrigger a1 a2
+        CreateTableAs a1 a2 a3 -> A.CreateTableAs a1 (name a2)
+                                    (queryExpr a3)
+        CreateTrigger a1 a2 a3 a4 a5 a6 a7 a8 -> A.CreateTrigger a1
+                                                   (nameComponent a2)
                                                    (triggerWhen a3)
                                                    (fmap triggerEvent a4)
-                                                   a5
+                                                   (name a5)
                                                    (triggerFire a6)
                                                    a7
                                                    (scalarExprList a8)
-        CreateType a1 a2 a3 -> A.CreateType a1 a2 (typeAttributeDefList a3)
-        CreateView a1 a2 a3 a4 -> A.CreateView a1 a2 a3 (queryExpr a4)
+        CreateType a1 a2 a3 -> A.CreateType a1 (name a2)
+                                 (typeAttributeDefList a3)
+        CreateView a1 a2 a3 a4 -> A.CreateView a1 (name a2)
+                                    (maybeNameComponentList a3)
+                                    (queryExpr a4)
         Delete a1 a2 a3 a4 a5 -> A.Delete a1 (name a2) (tableRefList a3)
                                    (maybeBoolExpr a4)
                                    (maybeSelectList a5)
         DropFunction a1 a2 a3 a4 -> A.DropFunction a1 (ifExists a2)
-                                      (stringTypeNameListPairList a3)
+                                      (nameTypeNameListPairList a3)
                                       (cascade a4)
         DropSomething a1 a2 a3 a4 a5 -> A.DropSomething a1 (dropType a2)
                                           (ifExists a3)
-                                          a4
+                                          (fmap name a4)
                                           (cascade a5)
         Execute a1 a2 -> A.Execute a1 (scalarExpr a2)
         ExitStatement a1 a2 -> A.ExitStatement a1 a2
@@ -812,7 +826,7 @@ statement x
         If a1 a2 a3 -> A.If a1 (scalarExprStatementListPairList a2)
                          (statementList a3)
         Insert a1 a2 a3 a4 a5 -> A.Insert a1 (name a2)
-                                   (fmap nameComponent a3)
+                                   (nameComponentList a3)
                                    (queryExpr a4)
                                    (maybeSelectList a5)
         Into a1 a2 a3 a4 -> A.Into a1 a2 (fmap name a3) (statement a4)
@@ -827,7 +841,8 @@ statement x
         ReturnNext a1 a2 -> A.ReturnNext a1 (scalarExpr a2)
         ReturnQuery a1 a2 -> A.ReturnQuery a1 (queryExpr a2)
         Set a1 a2 a3 -> A.Set a1 a2 (fmap setValue a3)
-        Truncate a1 a2 a3 a4 -> A.Truncate a1 a2 (restartIdentity a3)
+        Truncate a1 a2 a3 a4 -> A.Truncate a1 (fmap name a2)
+                                  (restartIdentity a3)
                                   (cascade a4)
         Update a1 a2 a3 a4 a5 a6 -> A.Update a1 (name a2)
                                       (setClauseList a3)
@@ -911,11 +926,26 @@ constraintList = fmap constraint
 maybeBoolExpr :: MaybeBoolExpr -> A.MaybeBoolExpr
 maybeBoolExpr = fmap scalarExpr
  
+maybeNameComponentList ::
+                       MaybeNameComponentList -> A.MaybeNameComponentList
+maybeNameComponentList = fmap nameComponentList
+ 
 maybeScalarExpr :: MaybeScalarExpr -> A.MaybeScalarExpr
 maybeScalarExpr = fmap scalarExpr
  
 maybeSelectList :: MaybeSelectList -> A.MaybeSelectList
 maybeSelectList = fmap selectList
+ 
+nameComponentList :: NameComponentList -> A.NameComponentList
+nameComponentList = fmap nameComponent
+ 
+nameTypeNameListPair ::
+                     NameTypeNameListPair -> A.NameTypeNameListPair
+nameTypeNameListPair (a, b) = (name a, typeNameList b)
+ 
+nameTypeNameListPairList ::
+                         NameTypeNameListPairList -> A.NameTypeNameListPairList
+nameTypeNameListPairList = fmap nameTypeNameListPair
  
 onExpr :: OnExpr -> A.OnExpr
 onExpr = fmap joinExpr
@@ -970,14 +1000,6 @@ setClauseList = fmap setClause
  
 statementList :: StatementList -> A.StatementList
 statementList = fmap statement
- 
-stringTypeNameListPair ::
-                       StringTypeNameListPair -> A.StringTypeNameListPair
-stringTypeNameListPair (a, b) = (a, typeNameList b)
- 
-stringTypeNameListPairList ::
-                           StringTypeNameListPairList -> A.StringTypeNameListPairList
-stringTypeNameListPairList = fmap stringTypeNameListPair
  
 tableRefList :: TableRefList -> A.TableRefList
 tableRefList = fmap tableRef

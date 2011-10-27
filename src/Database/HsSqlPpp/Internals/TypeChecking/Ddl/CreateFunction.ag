@@ -62,8 +62,8 @@ SEM Statement
         --add the parameters to the catalog for the contained statements
         body.lib = either (const @lhs.lib) id $ do
                    _ <- lmt @rettype.namedType
-                   lbUpdate @lhs.cat (LBIds (@name ++ " parameters") (Just @name) paramsNoPos) @lhs.lib
-                   >>= lbUpdate @lhs.cat (LBIds (@name ++ " parameters") Nothing paramsPosOnly)
+                   lbUpdate @lhs.cat (LBIds ((getTName @name.originalTree) ++ " parameters") (Just (getTName @name.originalTree)) paramsNoPos) @lhs.lib
+                   >>= lbUpdate @lhs.cat (LBIds ((getTName @name.originalTree) ++ " parameters") Nothing paramsPosOnly)
                    where
                      paramsPosOnly :: [(String,Type)]
                      paramsPosOnly = mapMaybe prm @params.params
@@ -90,7 +90,7 @@ SEM Statement
                          let ps = mapMaybe lpt @params.params
                          rt <- lmt @rettype.namedType
                          return [CatCreateFunction FunName
-                                                   (map toLower @name)
+                                                   (map toLower (getTName @name.originalTree))
                                                    ps
                                                    rt
                                                    False]
@@ -99,7 +99,7 @@ SEM Statement
                            lpt _ = Nothing
 
         loc.backTree = CreateFunction @ann
-                                      @name
+                                      @name.originalTree
                                       @params.annotatedTree
                                       @rettype.annotatedTree
                                       @rep
