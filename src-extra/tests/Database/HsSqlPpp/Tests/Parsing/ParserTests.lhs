@@ -58,7 +58,7 @@ Unit test helpers
 > itemToTft (Expr a b) = testParseScalarExpr a b
 > itemToTft (PgSqlStmt a b) = testParsePlpgsqlStatements a b
 > itemToTft (Stmt a b) = testParseStatements a b
-> itemToTft (MSStmt a b) = testParseMSStatements a b
+> --itemToTft (MSStmt a b) = testParseStatements a b
 > itemToTft (Group s is) = testGroup s $ map itemToTft is
 >
 > testParseScalarExpr :: String -> ScalarExpr -> Test.Framework.Test
@@ -69,14 +69,14 @@ Unit test helpers
 > testParseStatements src ast =
 >   parseUtil src ast (parseStatements "") (parseStatements "") printStatements
 >
-> testParseMSStatements :: String -> [Statement] -> Test.Framework.Test
+> {-testParseMSStatements :: String -> [Statement] -> Test.Framework.Test
 > testParseMSStatements src ast =
 >   parseUtil src ast parseMsQuery (parseStatements "") printStatements
 >   where
 >     parseMsQuery :: String -> Either ParseErrorExtra [Statement]
 >     parseMsQuery s =
 >       (\p' -> [QueryStatement ea p'])
->       `fmap` parseSqlServerQueryExpr "" s
+>       `fmap` parseSqlServerQueryExpr "" s-}
 
 >
 > testParsePlpgsqlStatements :: String -> [Statement] -> Test.Framework.Test

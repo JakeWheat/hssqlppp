@@ -7,7 +7,6 @@
 
 > data Item = Expr String ScalarExpr
 >           | Stmt String [Statement]
->           | MSStmt String [Statement]
 >           | PgSqlStmt String [Statement]
 >           | Group String [Item]
 

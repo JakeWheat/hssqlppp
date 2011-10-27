@@ -8,35 +8,7 @@ the typechecker automatically does this fixup
   ctes and composite function trefs to be fixed
   see new localenv below
 
-sort out quoting identifiers:
-fix the lexer to distinguish
-then fix the syntax to add a quoted bool
-  to the Identifier and QIdentifier ctors in scalarexpr
-and fix the sqidentifier to be [(Bool,String)] instead of [String]
--> fix the parser and pretty printer, and add tests?
-leave the typechecker as broken wrt case at the moment
-This has opened a can of worms, lots of places in the ast, parser and
-typecheck need fixing up, so fix up the syntax and parser, keep the
-typechecker slightly broken wrt to quoted identifiers, but working as
-well as it has been. E.g.: look at how many different lexers, parsers,
-etc. there are for identifiers and identifier like strings.
-
-1. alter intoidentifier
-2. alter stuff that should be sqidentifier
-3. make * lex and parse not as identifier
-4. start transitioning scalarexpr to use namecomponent
-5. finish scalarexpr transition
-6. add quotes to parsing of namecomponent
-
-review and fix some of the other syntax?
-
-add support for sql server top, in the parser only
-(later can start thinking about a pretty printer mode for sql server
-  syntax)
-select top 3 ...
-parses to select ... limit 3
-
-
+review and fix some of the syntax?
 
 = 'arcs'
 

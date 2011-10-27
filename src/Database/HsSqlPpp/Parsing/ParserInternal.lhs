@@ -10,7 +10,6 @@ right choice, but it seems to do the job pretty well at the moment.
 >     ,parseStatementsWithPosition
 >     ,parseStatementsFromFile
 >     ,parseQueryExpr
->     ,parseSqlServerQueryExpr
 >      -- * Testing
 >     ,parseScalarExpr
 >     ,parsePlpgsql
@@ -109,39 +108,6 @@ To support antiquotation, the following approach is used:
 >           _ <- optional (symbol ";")
 >           eof
 >           return q
-
-> -- | Hacky wrapper to parse a query statement in the form:
-> -- | select expr;
-> -- | optionally 'set rowcount N'
-> -- | GO
-> parseSqlServerQueryExpr :: String -- ^ filename to use in errors
->                         -> String -- ^ a string containing the sql to parse
->                         -> Either ParseErrorExtra A.QueryExpr
-> parseSqlServerQueryExpr f s =
->   deQE $ parseIt l pqe f Nothing s startState
->   where
->     l = lexSqlText f s
->     pqe :: SParser QueryExpr
->     pqe = do
->           (QueryStatement _ q) <- queryStatement
->           _ <- optional $ symbol ";"
->           rc <- tryOptionMaybe rowcount
->           keyword "go"
->           eof
->           return $ case rc of
->                      Nothing -> q
->                      Just (-1) -> q
->                      Just n -> updateLimit n q
->     rowcount = --trace "try set" $
->       keyword "set"
->       *> keyword "rowcount"
->       *> choice [
->            symbol "-" *> (((* (-1)) . fromInteger) <$> integer)
->           ,integer]
->     updateLimit n (Select a di sl tr wh gb hv ob _l o) =
->       Select a di sl tr wh gb hv ob (Just $ NumberLit emptyAnnotation (show n)) o
->     updateLimit _ x = error $ "query style not supported for sql server style: " ++ show x
-
 
 > -- | Parse expression fragment, used for testing purposes
 > parseScalarExpr :: String -- ^ filename for error messages
@@ -344,6 +310,10 @@ this recursion needs refactoring cos it's a mess
 >         selQuerySpec = do
 >           p <- pos <* keyword "select"
 >           d <- option Dupes (Distinct <$ keyword "distinct")
+>           -- hacky parsing of sql server 'top n' style select
+>           -- quiz: what happens when you use top n and limit at the same time?
+>           tp <- optionMaybe $ try
+>                 $ keyword "top" *> (NumberLit <$> pos <*> (show <$> integer))
 >           -- todo: work out how to make this work properly - need to return
 >           -- the into
 >           (sl,_intoBit) <- if allowInto
@@ -357,7 +327,7 @@ this recursion needs refactoring cos it's a mess
 >                    <*> option [] groupBy
 >                    <*> optionMaybe having
 >                    <*> orderBy
->                    <*> optionMaybe limit
+>                    <*> option tp (Just <$> limit)
 >                    <*> optionMaybe offset
 >         from = keyword "from" *> commaSep1 tableRef
 >         groupBy = keyword "group" *> keyword "by"

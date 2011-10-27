@@ -39,7 +39,7 @@
 >         (FunCall ea (name "!and")
 >          [FunCall ea (name "=")  [Identifier ea "b", NumberLit ea "2"]
 >          ,FunCall ea (name "=") [Identifier ea "c", NumberLit ea "3"]])]
->      ,MSStmt "select a from t;\ngo"
+>      {-,MSStmt "select a from t;\ngo"
 >          [QueryStatement ea $ selectFrom (selIL ["a"]) (Tref ea (i "t") (NoAlias ea))]
 >      ,MSStmt "select a from t;\nset rowcount -1\ngo"
 >          [QueryStatement ea $ selectFrom (selIL ["a"]) (Tref ea (i "t") (NoAlias ea))]
@@ -47,7 +47,7 @@
 >       [QueryStatement ea $ Select ea Dupes
 >        (sl (selIL ["a"]))
 >        [Tref ea (i "t") (NoAlias ea)]
->        Nothing [] Nothing [] (Just (NumberLit ea "10")) Nothing]
+>        Nothing [] Nothing [] (Just (NumberLit ea "10")) Nothing]-}
 
 >      ]
 >
@@ -338,6 +338,11 @@
 >        (sl (selEL [Star ea]))
 >        [Tref ea (i "a") (NoAlias ea)]
 >        Nothing [] Nothing [(Identifier ea "c",Asc)] (Just (NumberLit ea "1")) Nothing]
+>      ,s "select top 3 * from a order by c;"
+>       [QueryStatement ea $ Select ea Dupes
+>        (sl (selEL [Star ea]))
+>        [Tref ea (i "a") (NoAlias ea)]
+>        Nothing [] Nothing [(Identifier ea "c",Asc)] (Just (NumberLit ea "3")) Nothing]
 >      ,s "select * from a order by c offset 3;"
 >       [QueryStatement ea $ Select ea Dupes
 >        (sl (selEL [Star ea]))
@@ -419,3 +424,4 @@
 >      ]]
 >  where
 >    s = Stmt
+>    

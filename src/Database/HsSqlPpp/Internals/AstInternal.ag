@@ -147,7 +147,7 @@ import Control.Arrow
 
 import Data.Generics.Uniplate.Data
 import Debug.Trace
-import Text.Groom
+--import Text.Groom
 
 
 import Database.HsSqlPpp.Internals.TypeType
