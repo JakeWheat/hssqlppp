@@ -501,9 +501,8 @@ Statement components
 >       <+> text "as"
 >       <+> parens (convQueryExpr nice True False ex1)
 
-> convName :: Name -> Doc
-> convName (Qual _ q n) = text q <> text "." <> convName n
-> convName (UnQual _ n) = text n
+> convName :: [NameComponent] -> Doc
+> convName ns = hcat $ punctuate (text ".") $ map (text . ncStr) ns
 >
 > convTref :: Bool -> TableRef -> Doc
 > {-convTref nice (Tref _ f@(SQIdentifier _ t) (TableAlias _ ta))

@@ -65,17 +65,17 @@ SEM SQIdentifier
     | SQIdentifier
         loc.tpe : {E ([(String,Type)],[(String,Type)])}
         loc.tpe = catCompositeAttrsPair @lhs.cat relationComposites
-                     (getUnqual @is.annotatedTree) -- todo - needs fixing to not ignore qualifiers
+                     (getUnqual @is) -- todo - needs fixing to not ignore qualifiers
         lhs.tbUType = either (const Nothing) Just @loc.tpe
         lhs.tbAnnotatedTree =
               updateAnnotation
                 (\a -> a {errs = errs a ++ tes @loc.tpe}) @loc.backTree
-        loc.backTree = SQIdentifier @ann @is.annotatedTree
+        loc.backTree = SQIdentifier @ann @is
 
 {
-getUnqual :: Name -> String
-getUnqual (UnQual _ n) = n
-getUnqual (Qual _ _ nm) = getUnqual nm
+getUnqual :: [NameComponent] -> String
+getUnqual [] = error $ "empty name component"
+getUnqual x = ncStr $ last x
 }
 
 {-

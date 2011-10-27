@@ -15,11 +15,12 @@ module Database.HsSqlPpp.Internals.AstAnti
         RaiseType(..), CombineType(..), Volatility(..), Language(..),
         TypeName(..), DropType(..), Cascade(..), Direction(..),
         Distinct(..), Natural(..), IfExists(..), Replace(..),
-        RestartIdentity(..), ScalarExpr(..), SQIdentifier(..), Name(..),
-        IntoIdentifier(..), IntervalField(..), ExtractField(..),
-        FrameClause(..), InList(..), LiftFlavour(..), TriggerWhen(..),
-        TriggerEvent(..), TriggerFire(..), SetValue(..), WithQueryList,
-        SetClauseList, StatementList, ScalarExprListStatementListPairList,
+        RestartIdentity(..), ScalarExpr(..), SQIdentifier(..),
+        NameComponent(..), IntoIdentifier(..), IntervalField(..),
+        ExtractField(..), FrameClause(..), InList(..), LiftFlavour(..),
+        TriggerWhen(..), TriggerEvent(..), TriggerFire(..), SetValue(..),
+        WithQueryList, SetClauseList, StatementList,
+        ScalarExprListStatementListPairList,
         ScalarExprListStatementListPair, ScalarExprList, ParamDefList,
         AttributeDefList, ConstraintList, TypeAttributeDefList,
         TypeNameList, StringTypeNameListPair, StringTypeNameListPairList,
@@ -40,6 +41,9 @@ convertStatements = statementList
  
 convertScalarExpr :: ScalarExpr -> A.ScalarExpr
 convertScalarExpr = scalarExpr
+ 
+data NameComponent = Name String
+                   deriving (Data, Eq, Show, Typeable)
  
 data JoinType = Inner
               | LeftOuter
@@ -202,10 +206,6 @@ data JoinExpr = JoinOn Annotation ScalarExpr
               | JoinUsing Annotation [String]
               deriving (Data, Eq, Show, Typeable)
  
-data Name = Qual Annotation String Name
-          | UnQual Annotation String
-          deriving (Data, Eq, Show, Typeable)
- 
 data ParamDef = ParamDef Annotation String TypeName
               | ParamDefTp Annotation TypeName
               deriving (Data, Eq, Show, Typeable)
@@ -228,7 +228,7 @@ data RowConstraint = NotNullConstraint Annotation String
                    | RowUniqueConstraint Annotation String
                    deriving (Data, Eq, Show, Typeable)
  
-data SQIdentifier = SQIdentifier Annotation Name
+data SQIdentifier = SQIdentifier Annotation [NameComponent]
                   deriving (Data, Eq, Show, Typeable)
  
 data ScalarExpr = AggregateFn Annotation Distinct ScalarExpr
@@ -417,6 +417,11 @@ type TypeNameList = [TypeName]
 type VarDefList = [VarDef]
  
 type WithQueryList = [WithQuery]
+ 
+nameComponent :: NameComponent -> A.NameComponent
+nameComponent x
+  = case x of
+        Name a1 -> A.Name a1
  
 joinType :: JoinType -> A.JoinType
 joinType x
@@ -645,12 +650,6 @@ joinExpr x
         JoinOn a1 a2 -> A.JoinOn a1 (scalarExpr a2)
         JoinUsing a1 a2 -> A.JoinUsing a1 a2
  
-name :: Name -> A.Name
-name x
-  = case x of
-        Qual a1 a2 a3 -> A.Qual a1 a2 (name a3)
-        UnQual a1 a2 -> A.UnQual a1 a2
- 
 paramDef :: ParamDef -> A.ParamDef
 paramDef x
   = case x of
@@ -693,7 +692,7 @@ rowConstraint x
 sQIdentifier :: SQIdentifier -> A.SQIdentifier
 sQIdentifier x
   = case x of
-        SQIdentifier a1 a2 -> A.SQIdentifier a1 (name a2)
+        SQIdentifier a1 a2 -> A.SQIdentifier a1 (fmap nameComponent a2)
  
 scalarExpr :: ScalarExpr -> A.ScalarExpr
 scalarExpr x

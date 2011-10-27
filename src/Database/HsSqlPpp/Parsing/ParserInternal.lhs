@@ -1670,12 +1670,13 @@ instead of the full parser which allows keywords. Also not sure if
 keywords used in qualified names should be rejected the same as
 keywords which are unqualified.
 
-> nonKeywordName :: SParser Name
+> ncStr :: NameComponent -> String
+> ncStr (Name n) = n
+
+> nonKeywordName :: SParser [NameComponent]
 > nonKeywordName = do
 >   x <- name
->   let parts (Qual _ nm n) = nm : parts n
->       parts (UnQual _ n) = [n]
->   if any (`elem` badKeywords) $ parts x
+>   if any (`elem` badKeywords) $ map ncStr x
 >     then fail "not keyword"
 >     else return x
 >   where
@@ -1699,26 +1700,26 @@ keywords which are unqualified.
 >                   ,"using"
 >                   ,"from"]
 
-> name :: SParser Name
+> name :: SParser [NameComponent]
 > name = do
->   p <- pos
+>   --p <- pos
 >   i <- idString
 >   choice [do
 >           is <- suffix
->           return $ Qual p i is
->          ,return $ UnQual p i
+>           return $ Name i : is
+>          ,return [Name i]
 >          ]
 >   where
 >     suffix = do
 >         symbol "."
 >         i1 <- idString
 >         choice [do
->                 p <- pos
+>                 --p <- pos
 >                 is <- suffix
->                 return $ Qual p i1 is
+>                 return $ Name i1 : is
 >                ,do
->                 p <- pos
->                 return $ UnQual p i1
+>                 --p <- pos
+>                 return [Name i1]
 >                ]
 
 

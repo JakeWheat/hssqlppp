@@ -33,10 +33,10 @@ shortcuts for constructing test data and asts
 > selEL = map (SelExp ea)
 >
 > i :: String -> SQIdentifier
-> i = SQIdentifier ea . UnQual ea
+> i x = SQIdentifier ea [Name x]
 
 > dqi :: String -> SQIdentifier
-> dqi ii = SQIdentifier ea $ UnQual ea ii
+> dqi x = SQIdentifier ea [Name x]
 
 > eqi :: String -> String -> ScalarExpr
 > eqi c = QIdentifier ea (Identifier ea c)
@@ -45,7 +45,7 @@ shortcuts for constructing test data and asts
 > ei = Identifier ea
 >
 > qi :: String -> String -> SQIdentifier
-> qi c n = SQIdentifier ea $ Qual ea c $ UnQual ea n
+> qi c n = SQIdentifier ea [Name c, Name n]
 >
 > selI :: String -> SelectItem
 > selI = SelExp ea . Identifier ea
