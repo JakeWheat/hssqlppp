@@ -15,7 +15,7 @@ module Database.HsSqlPpp.Internals.AstAnti
         RaiseType(..), CombineType(..), Volatility(..), Language(..),
         TypeName(..), DropType(..), Cascade(..), Direction(..),
         Distinct(..), Natural(..), IfExists(..), Replace(..),
-        RestartIdentity(..), ScalarExpr(..), SQIdentifier(..),
+        RestartIdentity(..), ScalarExpr(..), SQIdentifier(..), Name(..),
         IntoIdentifier(..), IntervalField(..), ExtractField(..),
         FrameClause(..), InList(..), LiftFlavour(..), TriggerWhen(..),
         TriggerEvent(..), TriggerFire(..), SetValue(..), WithQueryList,
@@ -202,6 +202,10 @@ data JoinExpr = JoinOn Annotation ScalarExpr
               | JoinUsing Annotation [String]
               deriving (Data, Eq, Show, Typeable)
  
+data Name = Qual Annotation String Name
+          | UnQual Annotation String
+          deriving (Data, Eq, Show, Typeable)
+ 
 data ParamDef = ParamDef Annotation String TypeName
               | ParamDefTp Annotation TypeName
               deriving (Data, Eq, Show, Typeable)
@@ -224,7 +228,7 @@ data RowConstraint = NotNullConstraint Annotation String
                    | RowUniqueConstraint Annotation String
                    deriving (Data, Eq, Show, Typeable)
  
-data SQIdentifier = SQIdentifier Annotation [String]
+data SQIdentifier = SQIdentifier Annotation Name
                   deriving (Data, Eq, Show, Typeable)
  
 data ScalarExpr = AggregateFn Annotation Distinct ScalarExpr
@@ -641,6 +645,12 @@ joinExpr x
         JoinOn a1 a2 -> A.JoinOn a1 (scalarExpr a2)
         JoinUsing a1 a2 -> A.JoinUsing a1 a2
  
+name :: Name -> A.Name
+name x
+  = case x of
+        Qual a1 a2 a3 -> A.Qual a1 a2 (name a3)
+        UnQual a1 a2 -> A.UnQual a1 a2
+ 
 paramDef :: ParamDef -> A.ParamDef
 paramDef x
   = case x of
@@ -683,7 +693,7 @@ rowConstraint x
 sQIdentifier :: SQIdentifier -> A.SQIdentifier
 sQIdentifier x
   = case x of
-        SQIdentifier a1 a2 -> A.SQIdentifier a1 a2
+        SQIdentifier a1 a2 -> A.SQIdentifier a1 (name a2)
  
 scalarExpr :: ScalarExpr -> A.ScalarExpr
 scalarExpr x

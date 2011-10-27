@@ -64,12 +64,19 @@ ATTR SQIdentifier [||tbUType : {Maybe ([(String,Type)],[(String,Type)])}
 SEM SQIdentifier
     | SQIdentifier
         loc.tpe : {E ([(String,Type)],[(String,Type)])}
-        loc.tpe = catCompositeAttrsPair @lhs.cat relationComposites (last @is)
+        loc.tpe = catCompositeAttrsPair @lhs.cat relationComposites
+                     (getUnqual @is.annotatedTree) -- todo - needs fixing to not ignore qualifiers
         lhs.tbUType = either (const Nothing) Just @loc.tpe
         lhs.tbAnnotatedTree =
               updateAnnotation
                 (\a -> a {errs = errs a ++ tes @loc.tpe}) @loc.backTree
-        loc.backTree = SQIdentifier @ann @is
+        loc.backTree = SQIdentifier @ann @is.annotatedTree
+
+{
+getUnqual :: Name -> String
+getUnqual (UnQual _ n) = n
+getUnqual (Qual _ _ nm) = getUnqual nm
+}
 
 {-
 ================================================================================
@@ -109,7 +116,7 @@ getName (FunCall _ "." [_,a]) = getName a
 getName x = error $ "internal error getName called on: " ++ show x
 
 getTName :: SQIdentifier -> String
-getTName (SQIdentifier _ x@(_:_)) = last x
+getTName (SQIdentifier _ n) = getUnqual n
 getTName x = error $ "internal error getName called on: " ++ show x
 
 

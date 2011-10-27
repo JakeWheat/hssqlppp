@@ -500,13 +500,17 @@ Statement components
 >                    Just cs' -> parens $ sepCsvMap text cs'
 >       <+> text "as"
 >       <+> parens (convQueryExpr nice True False ex1)
+
+> convName :: Name -> Doc
+> convName (Qual _ q n) = text q <> text "." <> convName n
+> convName (UnQual _ n) = text n
 >
 > convTref :: Bool -> TableRef -> Doc
-> convTref nice (Tref _ f@(SQIdentifier _ t) (TableAlias _ ta))
+> {-convTref nice (Tref _ f@(SQIdentifier _ t) (TableAlias _ ta))
 >   | nice, last t == ta = convDqi f
 >   -- slightly bad hack:
 > convTref nice (Tref _ f@(SQIdentifier _ t) (FullAlias _ ta _))
->   | nice, last t == ta = convDqi f
+>   | nice, last t == ta = convDqi f-}
 
 > convTref nice (Tref _ f a) = convDqi f <+> convTrefAlias nice a
 > convTref nice (JoinTref _ t1 nat jt t2 ex a) =
@@ -573,7 +577,7 @@ Statement components
 >                                  Restrict -> "restrict"
 >
 > convDqi :: SQIdentifier -> Doc
-> convDqi (SQIdentifier _ is) = hcat $ punctuate (text ".") $ map text is
+> convDqi (SQIdentifier _ is) = convName is -- hcat $ punctuate (text ".") $ map text is
 
 > -- ddl
 >

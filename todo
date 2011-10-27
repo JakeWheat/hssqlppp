@@ -1,15 +1,12 @@
 
 = next release
 
-fixupidentifiers for ctes
-fix typechecking for composite function table references
-
--> see new localenv below
-
-The current approach of first qualifying the ids then typechecking
-cannot work in general, both of these steps must be done at the same
-time. This will fix the inability to typecheck composite returning
-functions.
+concrete targets for next release:
+get the fixup identifiers combined with the typechecking properly
+fixupidentifiers will no longer exist as separate pass
+the typechecker automatically does this fixup
+  ctes and composite function trefs to be fixed
+  see new localenv below
 
 sort out quoting identifiers:
 fix the lexer to distinguish
@@ -18,6 +15,19 @@ then fix the syntax to add a quoted bool
 and fix the sqidentifier to be [(Bool,String)] instead of [String]
 -> fix the parser and pretty printer, and add tests?
 leave the typechecker as broken wrt case at the moment
+This has opened a can of worms, lots of places in the ast, parser and
+typecheck need fixing up, so fix up the syntax and parser, keep the
+typechecker slightly broken wrt to quoted identifiers, but working as
+well as it has been. E.g.: look at how many different lexers, parsers,
+etc. there are for identifiers and identifier like strings.
+
+review and fix some of the other syntax?
+
+add support for sql server top, in the parser only
+(later can start thinking about a pretty printer mode for sql server
+  syntax)
+select top 3 ...
+parses to select ... limit 3
 
 
 

@@ -47,7 +47,7 @@ transformations which implement syntax extensions to sql
 >
 > import Database.HsSqlPpp.Parsing.ParserInternal
 > import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.Internals.AstAnti
+> import Database.HsSqlPpp.Internals.AstAnti hiding (Name)
 >
 
 public api: the quasiquote functions

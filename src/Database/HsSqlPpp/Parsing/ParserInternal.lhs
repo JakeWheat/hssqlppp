@@ -418,7 +418,7 @@ then we combine by seeing if there is a join looking prefix
 >                          <$> try (identifier >>= functionCallSuffix)
 >                          <*> palias
 >                         ,Tref p2
->                          <$> nkwidn
+>                          <$> nonKeywordSQIdentifier
 >                          <*> palias]
 >         joinKw :: SParser (Natural, JoinType)
 >         joinKw = do
@@ -466,12 +466,12 @@ then we combine by seeing if there is a join looking prefix
 >                    ,"limit"
 >                    ,"using"
 >                    ,"from"]
->         nkwidn = do
+>         {-nkwidn = do
 >                  i <- dqi
 >                  case i of
 >                    SQIdentifier _ [n] | n `elem` badNames
 >                        -> fail "not keyword"
->                    _ -> return i
+>                    _ -> return i-}
 >         nkwid = try $ do
 >                  x <- idString
 >                  --avoid all these keywords as aliases since they can
@@ -490,6 +490,13 @@ then we combine by seeing if there is a join looking prefix
 >           -> SParser a
 > optParens p = try (parens p) <|> p
 
+> sqIdentifier :: SParser SQIdentifier
+> sqIdentifier = SQIdentifier <$> pos <*> name
+
+> nonKeywordSQIdentifier :: SParser SQIdentifier
+> nonKeywordSQIdentifier = SQIdentifier <$> pos <*> nonKeywordName
+
+
 insert, update and delete
 -------------------------
 
@@ -499,7 +506,7 @@ multiple rows to insert and insert from select statements
 > insert :: SParser Statement
 > insert = Insert
 >          <$> pos <* keyword "insert" <* keyword "into"
->          <*> dqi
+>          <*> sqIdentifier
 >          <*> option [] (try columnNameList)
 >          <*> pQueryExpr
 >          <*> tryOptionMaybe returning
@@ -507,7 +514,7 @@ multiple rows to insert and insert from select statements
 > update :: SParser Statement
 > update = Update
 >          <$> pos <* keyword "update"
->          <*> dqi
+>          <*> sqIdentifier
 >          <*> (keyword "set" *> commaSep1 setClause)
 >          <*> option [] (keyword "from" *> commaSep1 tableRef)
 >          <*> tryOptionMaybe whereClause
@@ -530,7 +537,7 @@ multiple rows to insert and insert from select statements
 > delete :: SParser Statement
 > delete = Delete
 >          <$> pos <* keyword "delete" <* keyword "from"
->          <*> dqi
+>          <*> sqIdentifier
 >          <*> option [] (keyword "using" *> commaSep1 tableRef)
 >          <*> tryOptionMaybe whereClause
 >          <*> tryOptionMaybe returning
@@ -729,7 +736,7 @@ ddl
 >                               <*> (keyword "sequence" *> idString)
 >                               <*> (keyword "owned"
 >                                    *> keyword "by"
->                                    *> dqi)
+>                                    *> sqIdentifier)
 
 create function, support sql functions and plpgsql functions. Parses
 the body in both cases and provides a statement list for the body
@@ -1634,8 +1641,12 @@ for that
 >            return $ QIdentifier p i i1
 >          ,return i]
 
-> dqi :: SParser SQIdentifier
-> dqi = do
+> {-dqi :: SParser SQIdentifier
+> dqi =
+>   SQIdentifier
+>   <$> pos
+>   <*> name
+>   
 >   p <- pos
 >   i <- idString
 >   choice [do
@@ -1651,6 +1662,63 @@ for that
 >                 is <- suffix
 >                 return (i1:is)
 >                ,return [i1]
+>                ]-}
+
+bit hacky, avoid a bunch of keywords. Not exactly sure which keywords
+should be in the blacklist, and where this parser should be used
+instead of the full parser which allows keywords. Also not sure if
+keywords used in qualified names should be rejected the same as
+keywords which are unqualified.
+
+> nonKeywordName :: SParser Name
+> nonKeywordName = do
+>   x <- name
+>   let parts (Qual _ nm n) = nm : parts n
+>       parts (UnQual _ n) = [n]
+>   if any (`elem` badKeywords) $ parts x
+>     then fail "not keyword"
+>     else return x
+>   where
+>     badKeywords = ["as"
+>                   ,"where"
+>                   ,"except"
+>                   ,"union"
+>                   ,"intersect"
+>                   ,"loop"
+>                   ,"inner"
+>                   ,"on"
+>                   ,"left"
+>                   ,"right"
+>                   ,"full"
+>                   ,"cross"
+>                   ,"join"
+>                   ,"natural"
+>                   ,"order"
+>                   ,"group"
+>                   ,"limit"
+>                   ,"using"
+>                   ,"from"]
+
+> name :: SParser Name
+> name = do
+>   p <- pos
+>   i <- idString
+>   choice [do
+>           is <- suffix
+>           return $ Qual p i is
+>          ,return $ UnQual p i
+>          ]
+>   where
+>     suffix = do
+>         symbol "."
+>         i1 <- idString
+>         choice [do
+>                 p <- pos
+>                 is <- suffix
+>                 return $ Qual p i1 is
+>                ,do
+>                 p <- pos
+>                 return $ UnQual p i1
 >                ]
 
 

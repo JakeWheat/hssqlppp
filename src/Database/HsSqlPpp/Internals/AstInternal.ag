@@ -84,6 +84,7 @@ MODULE {Database.HsSqlPpp.Internals.AstInternal}
    ,RestartIdentity (..)
    ,ScalarExpr (..)
    ,SQIdentifier(..)
+   ,Name(..)
    ,IntoIdentifier(..)
    ,IntervalField(..)
    ,ExtractField(..)
@@ -344,7 +345,10 @@ DATA Statement
 -- used for schema qualified identifiers
 -- should be used in more places in the ast
 
-DATA SQIdentifier | SQIdentifier ann:Annotation is:{[String]}
+DATA Name | UnQual ann:Annotation String
+          | Qual ann:Annotation String Name
+
+DATA SQIdentifier | SQIdentifier ann:Annotation is:Name
 
 -- into identifiers for the targets in into expressions
 -- syntactically the same is sqidentifier, should this
@@ -813,7 +817,8 @@ SET AllNodes = Statement QueryExpr FnBody TableRef
                AlterTableAction
                ScalarExprDirectionPair
                ScalarExprDirectionPairList AlterTableActionList
-               WithQueryList WithQuery SQIdentifier IntoIdentifier
+               WithQueryList WithQuery
+               Name SQIdentifier IntoIdentifier
                TableAlias
                SetClause SetClauseList
 
