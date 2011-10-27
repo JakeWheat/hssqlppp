@@ -25,7 +25,7 @@
 > --import Data.List
 > import Data.Maybe
 >
-> import Database.HsSqlPpp.Ast hiding (ncStr)
+> import Database.HsSqlPpp.Ast -- hiding (ncStr)
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Utils.Utils
@@ -656,42 +656,42 @@ Statement components
 >
 > convExp nice (FunCall _ n es) =
 >     --check for special operators
->    case n of
->      "!and" | nice, [a,b] <- es -> doLeftAnds a b
->      "!arrayctor" -> text "array" <> brackets (csvExp nice es)
->      "!between" -> convExp nice (head es) <+> text "between"
+>    case getTName n of
+>      Just "!and" | nice, [a,b] <- es -> doLeftAnds a b
+>      Just "!arrayctor" -> text "array" <> brackets (csvExp nice es)
+>      Just "!between" -> convExp nice (head es) <+> text "between"
 >                    <+> parens (convExp nice (es !! 1))
 >                   <+> text "and"
 >                   <+> parens (convExp nice (es !! 2))
->      "!substring" -> text "substring"
+>      Just "!substring" -> text "substring"
 >                      <> parens (convExp nice (head es)
 >                                 <+> text "from" <+> convExp nice (es !! 1)
 >                                 <+> text "for" <+> convExp nice (es !! 2))
->      "!arraysub" -> case es of
+>      Just "!arraysub" -> case es of
 >                        (Identifier _ i : es1) -> text i
 >                                                  <> brackets (csvExp nice es1)
 >                        _ -> parens (convExp nice (head es))
 >                             <> brackets (csvExp nice (tail es))
->      "!rowctor" -> text "row" <> parens (sepCsvMap (convExp nice) es)
->      "."   -- special case to avoid ws around '.'. Don't know if this is important
+>      Just "!rowctor" -> text "row" <> parens (sepCsvMap (convExp nice) es)
+>      Just "."   -- special case to avoid ws around '.'. Don't know if this is important
 >            -- or just cosmetic
 >          | [a,b] <- es -> parens (convExp nice a) <> text "." <> convExp nice b
->      _ | isOperatorName n ->
->         case forceRight (getOperatorType defaultTemplate1Catalog n) of
+>      Just n' | isOperatorName n' ->
+>         case forceRight (getOperatorType defaultTemplate1Catalog n') of
 >                           BinaryOp ->
 >                               let e1d = convExp nice (head es)
->                                   opd = text $ filterKeyword n
+>                                   opd = text $ filterKeyword n'
 >                                   e2d = convExp nice (es !! 1)
->                               in parens (if n `elem` ["!and", "!or"]
+>                               in parens (if n' `elem` ["!and", "!or"]
 >                                          then vcat [e1d, opd <+> e2d]
 >                                          else e1d <+> opd <+> e2d)
->                           PrefixOp -> parens (text (if n == "u-"
->                                                        then "-"
->                                                        else filterKeyword n)
+>                           PrefixOp -> parens (text (if n' == "u-"
+>                                                     then "-"
+>                                                     else filterKeyword n')
 >                                                <+> parens (convExp nice (head es)))
 >                           PostfixOp -> parens (convExp nice (head es)
->                                        <+> text (filterKeyword n))
->        | otherwise -> text n <> parens (csvExp nice es)
+>                                        <+> text (filterKeyword n'))
+>      _ | otherwise -> convName n <> parens (csvExp nice es)
 >    where
 >      filterKeyword t = case t of
 >                          "!and" -> "and"
@@ -708,7 +708,7 @@ Statement components
 >                                 : map (\x -> text "and" <+> convExp nice x) (tail as))
 >                                ++ [text "and" <+> convExp nice b])
 >      and' a = case a of
->                 FunCall _ "!and" [x,y] -> and' x ++ and' y
+>                 FunCall _ f [x,y] | Just "!and" <- getTName f -> and' x ++ and' y
 >                 _ -> [a]
 >
 > convExp _ (BooleanLit _ b) = bool b
@@ -743,7 +743,7 @@ Statement components
 >                 FrameRowsUnboundedPreceding -> text "rows unbounded preceding"
 >
 > convExp nice (AggregateFn _ d (FunCall _ fn es) o) =
->   text fn <> parens ((case d of
+>   convName fn <> parens ((case d of
 >                         Dupes -> text "all"
 >                         Distinct -> text "distinct")
 >                      <+> csvExp nice es
@@ -830,7 +830,8 @@ Statement components
 
 
 > convExpSl :: Bool ->  ScalarExpr -> Doc
-> convExpSl nice (FunCall _ "." es) | [a@(Identifier _ _), b] <- es =
+> convExpSl nice (FunCall _ f es) | Just "." <- getTName f
+>                                 , [a@(Identifier _ _), b] <- es =
 >   parens (convExpSl nice a) <> text "." <> convExpSl nice b
 > convExpSl nice x = convExp nice x
 
@@ -845,7 +846,7 @@ Statement components
 >   where
 >     rsNoRow is = parens (sepCsvMap (convExp nice) is)
 > convSet _ a = error $ "bad expression in set in update: " ++ show a-}
-> convSet nice (MultiSetClause _ is (FunCall _ "!rowctor" es)) =
+> convSet nice (MultiSetClause _ is (FunCall _ f es)) | Just "!rowctor" <- getTName f =
 >   parens (sepCsvMap convNC is) <+> text "="
 >   <+> parens (sepCsvMap (convExp nice) es)
 > convSet _ a = error $ "bad expression in set in update: " ++ show a
@@ -910,3 +911,10 @@ Statement components
 >   maybe empty (\l -> text "<<"
 >                      <+> text l
 >                      <+> text ">>" <> text "\n")
+
+util: to be removed when outputting names is fixed
+
+> getTName :: Name -> Maybe String
+> getTName (Name _ [n]) = Just $ ncStr n
+> getTName _ = Nothing
+

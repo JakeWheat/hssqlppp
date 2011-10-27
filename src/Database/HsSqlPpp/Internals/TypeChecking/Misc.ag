@@ -111,8 +111,8 @@ allJust ts = sequence ts
 -- in a string
 getName :: ScalarExpr -> String
 getName (Identifier _ i) = i
-getName (FunCall _ "." [Identifier _ _,Identifier _ i]) = i
-getName (FunCall _ "." [_,a]) = getName a
+getName (FunCall _ f [Identifier _ _,Identifier _ i]) | getTName f == "." = i
+getName (FunCall _ f [_,a]) | getTName f == "." = getName a
 getName x = error $ "internal error getName called on: " ++ show x
 
 getTName :: Name -> String

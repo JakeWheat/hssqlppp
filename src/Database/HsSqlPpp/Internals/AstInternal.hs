@@ -340,10 +340,10 @@ addSIAlias (SelExp ann ex) = SelectItem ann ex $ Nmc $ getColName ex
   where
     getColName (Identifier _ i) = i
     getColName (QIdentifier _ _ i) = i
-    getColName (FunCall _ f _) | not (isOperatorName f) = f
+    getColName (FunCall _ f _) | not (isOperatorName $ getTName f) = getTName f
     getColName (Cast _ _ (SimpleTypeName _ tn)) = tn
-    getColName (WindowFn _ (FunCall _ f _) _ _ _) = f
-    getColName (AggregateFn _ _ (FunCall _ f _) _) = f
+    getColName (WindowFn _ (FunCall _ f _) _ _ _) = getTName f
+    getColName (AggregateFn _ _ (FunCall _ f _) _) = getTName f
     getColName _ = "?column?"
 
 
@@ -384,8 +384,8 @@ fixUpIdentifiersQE cat qe =
 
 countHack :: Data a => a -> a
 countHack = transformBi $ \x -> case x of
-              FunCall a "count" [Identifier ia "*"] ->
-                FunCall a "count" [BooleanLit ia True]
+              FunCall a f [Identifier ia "*"] | getTName f == "count"->
+                FunCall a f [BooleanLit ia True]
               x1 -> x1
 
 
@@ -425,8 +425,8 @@ allJust ts = sequence ts
 -- in a string
 getName :: ScalarExpr -> String
 getName (Identifier _ i) = i
-getName (FunCall _ "." [Identifier _ _,Identifier _ i]) = i
-getName (FunCall _ "." [_,a]) = getName a
+getName (FunCall _ f [Identifier _ _,Identifier _ i]) | getTName f == "." = i
+getName (FunCall _ f [_,a]) | getTName f == "." = getName a
 getName x = error $ "internal error getName called on: " ++ show x
 
 getTName :: Name -> String
@@ -4789,7 +4789,7 @@ sem_RowConstraintList_Nil  =
             local originalTree : _
       alternative FunCall:
          child ann            : {Annotation}
-         child funName        : {String}
+         child funName        : Name 
          child args           : ScalarExprList 
          visit 0:
             local _tup1       : _
@@ -4949,7 +4949,7 @@ data ScalarExpr  = AggregateFn (Annotation) (Distinct) (ScalarExpr ) (ScalarExpr
                  | Cast (Annotation) (ScalarExpr ) (TypeName ) 
                  | Exists (Annotation) (QueryExpr ) 
                  | Extract (Annotation) (ExtractField) (ScalarExpr ) 
-                 | FunCall (Annotation) (String) (ScalarExprList ) 
+                 | FunCall (Annotation) (Name ) (ScalarExprList ) 
                  | Identifier (Annotation) (String) 
                  | InPredicate (Annotation) (ScalarExpr ) (Bool) (InList ) 
                  | Interval (Annotation) (String) (IntervalField) ((Maybe Int)) 
@@ -4982,7 +4982,7 @@ sem_ScalarExpr (Exists _ann _sel )  =
 sem_ScalarExpr (Extract _ann _field _e )  =
     (sem_ScalarExpr_Extract _ann _field (sem_ScalarExpr _e ) )
 sem_ScalarExpr (FunCall _ann _funName _args )  =
-    (sem_ScalarExpr_FunCall _ann _funName (sem_ScalarExprList _args ) )
+    (sem_ScalarExpr_FunCall _ann (sem_Name _funName ) (sem_ScalarExprList _args ) )
 sem_ScalarExpr (Identifier _ann _i )  =
     (sem_ScalarExpr_Identifier _ann _i )
 sem_ScalarExpr (InPredicate _ann _expr _i _list )  =
@@ -5619,7 +5619,7 @@ sem_ScalarExpr_Extract ann_ field_ e_  =
                   e_ _eOcat _eOexpectedType _eOidenv _eOlib 
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree,_lhsOuType)))
 sem_ScalarExpr_FunCall :: Annotation ->
-                          String ->
+                          T_Name  ->
                           T_ScalarExprList  ->
                           T_ScalarExpr 
 sem_ScalarExpr_FunCall ann_ funName_ args_  =
@@ -5633,9 +5633,17 @@ sem_ScalarExpr_FunCall ann_ funName_ args_  =
               _argsOexpectedTypes :: ([Maybe Type])
               _lhsOfixedUpIdentifiersTree :: ScalarExpr 
               _lhsOoriginalTree :: ScalarExpr 
+              _funNameOcat :: Catalog
+              _funNameOidenv :: IDEnv
+              _funNameOlib :: LocalBindings
               _argsOcat :: Catalog
               _argsOidenv :: IDEnv
               _argsOlib :: LocalBindings
+              _funNameIannotatedTree :: Name 
+              _funNameIfixedUpIdentifiersTree :: Name 
+              _funNameIoriginalTree :: Name 
+              _funNameItbAnnotatedTree :: Name 
+              _funNameItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _argsIannotatedTree :: ScalarExprList 
               _argsIfixedUpIdentifiersTree :: ScalarExprList 
               _argsIoriginalTree :: ScalarExprList 
@@ -5656,7 +5664,7 @@ sem_ScalarExpr_FunCall ann_ funName_ args_  =
                   either (\e -> (Left e, Nothing)) id $ do
                   args <- mapM lmt _argsIuType
                   efp <- findCallMatch _lhsIcat
-                                       funName_
+                                       (getTName _funNameIoriginalTree)
                                        args
                   let (_,_,r,_) = efp
                   return (Right r, Just efp)
@@ -5668,30 +5676,39 @@ sem_ScalarExpr_FunCall ann_ funName_ args_  =
                   __tup1
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 206, column 9)
               _backTree =
-                  FunCall ann_ funName_ _argsIannotatedTree
+                  FunCall ann_ _funNameIoriginalTree _argsIannotatedTree
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 129, column 9)
               _argsOexpectedTypes =
                   maybe [] id $
-                  case (funName_,_lhsIexpectedType) of
+                  case (getTName _funNameIoriginalTree,_lhsIexpectedType) of
                     ("!rowctor", Just (AnonymousRecordType ts)) -> return $ map Just ts
                     _ -> do
                          (_,t,_,_) <- _prototype
                          return $ map Just t
               -- self rule
               _annotatedTree =
-                  FunCall ann_ funName_ _argsIannotatedTree
+                  FunCall ann_ _funNameIannotatedTree _argsIannotatedTree
               -- self rule
               _fixedUpIdentifiersTree =
-                  FunCall ann_ funName_ _argsIfixedUpIdentifiersTree
+                  FunCall ann_ _funNameIfixedUpIdentifiersTree _argsIfixedUpIdentifiersTree
               -- self rule
               _originalTree =
-                  FunCall ann_ funName_ _argsIoriginalTree
+                  FunCall ann_ _funNameIoriginalTree _argsIoriginalTree
               -- self rule
               _lhsOfixedUpIdentifiersTree =
                   _fixedUpIdentifiersTree
               -- self rule
               _lhsOoriginalTree =
                   _originalTree
+              -- copy rule (down)
+              _funNameOcat =
+                  _lhsIcat
+              -- copy rule (down)
+              _funNameOidenv =
+                  _lhsIidenv
+              -- copy rule (down)
+              _funNameOlib =
+                  _lhsIlib
               -- copy rule (down)
               _argsOcat =
                   _lhsIcat
@@ -5701,6 +5718,8 @@ sem_ScalarExpr_FunCall ann_ funName_ args_  =
               -- copy rule (down)
               _argsOlib =
                   _lhsIlib
+              ( _funNameIannotatedTree,_funNameIfixedUpIdentifiersTree,_funNameIoriginalTree,_funNameItbAnnotatedTree,_funNameItbUType) =
+                  funName_ _funNameOcat _funNameOidenv _funNameOlib 
               ( _argsIannotatedTree,_argsIfixedUpIdentifiersTree,_argsIoriginalTree,_argsIuType) =
                   args_ _argsOcat _argsOexpectedTypes _argsOidenv _argsOlib 
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree,_lhsOuType)))
@@ -13216,7 +13235,7 @@ sem_TableRef_FunTref ann_ fn_ alias_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 417, column 15)
               __tup2 =
                   let (FunCall _ f _) = _fnIoriginalTree
-                      iea = aliasEnv _aliasIoriginalTree $ FunTrefIDEnv f
+                      iea = aliasEnv _aliasIoriginalTree $ FunTrefIDEnv $ getTName f
                       al = getEnvAlias iea
                   in (iea, FunTref ann_ _fnIfixedUpIdentifiersTree al)
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 417, column 15)

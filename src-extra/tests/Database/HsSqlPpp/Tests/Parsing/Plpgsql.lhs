@@ -25,12 +25,12 @@
 >      ,f "raise notice 'stuff %', 1;"
 >       [Raise ea RNotice "stuff %" [NumberLit ea "1"]]
 >      ,f "perform test();"
->       [Perform ea $ FunCall ea "test" []]
+>       [Perform ea $ FunCall ea (name "test") []]
 >      ,f "perform test(a,b);"
->       [Perform ea $ FunCall ea "test" [Identifier ea "a", Identifier ea "b"]]
+>       [Perform ea $ FunCall ea (name "test") [Identifier ea "a", Identifier ea "b"]]
 >      ,f "perform test(r.relvar_name || '_and_stuff');"
->       [Perform ea $ FunCall ea "test" [
->                     FunCall ea "||" [eqi "r" "relvar_name"
+>       [Perform ea $ FunCall ea (name "test") [
+>                     FunCall ea (name "||") [eqi "r" "relvar_name"
 >                                     ,stringQ "_and_stuff"]]]
 >       -- FIXME: get into working again
 >       -- This should be in the plpgsql section
@@ -101,7 +101,7 @@
 >      ,f "if a=b then\n\
 >         \  update c set d = e;\n\
 >         \end if;"
->       [If ea [(FunCall ea "=" [ei "a", ei "b"]
+>       [If ea [(FunCall ea (name "=") [ei "a", ei "b"]
 >               ,[Update ea (dqi "c") [SetClause ea (Nmc "d")
 >                                     $ ei "e"] [] Nothing Nothing])]
 >        []]

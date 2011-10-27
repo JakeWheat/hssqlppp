@@ -128,7 +128,7 @@ SEM ScalarExpr
     | FunCall
         args.expectedTypes = maybe [] id $
                              -- hack for anonymousrecordtypes
-                             case (@funName,@lhs.expectedType) of
+                             case (getTName @funName.originalTree,@lhs.expectedType) of
                                ("!rowctor", Just (AnonymousRecordType ts)) -> return $ map Just ts
                                _ -> do
                                     (_,t,_,_) <- @loc.prototype

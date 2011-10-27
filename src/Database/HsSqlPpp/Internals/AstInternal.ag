@@ -614,7 +614,7 @@ DATA ScalarExpr | NumberLit ann:Annotation d:String
                 | Exists ann:Annotation
                          sel : QueryExpr
                 | FunCall ann:Annotation
-                          funName:String
+                          funName:Name
                           args:ScalarExprList
                 | InPredicate ann:Annotation
                               expr:ScalarExpr

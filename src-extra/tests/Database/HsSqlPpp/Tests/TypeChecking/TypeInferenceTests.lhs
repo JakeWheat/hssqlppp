@@ -62,5 +62,5 @@
 
 > itemToTft (Expr e t) = testCase (printScalarExpr e) $
 >     let a = typeCheckScalarExpr defaultTemplate1Catalog e
->         t1 = [infType el | el <- universeBi a]
+>         t1 = filter (/= Nothing) [infType el | el <- universeBi a]
 >     in assertEqual "" t t1

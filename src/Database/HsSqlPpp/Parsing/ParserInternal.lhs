@@ -516,13 +516,16 @@ multiple rows to insert and insert from select statements
 >           l <- parens (commaSep1 nameComponent)
 >           symbol "="
 >           r <- parens (commaSep1 expr)
->           return $ MultiSetClause p l $ FunCall p "!rowctor" r
+>           return $ MultiSetClause p l $ FunCall p (nm p "!rowctor") r
 >         ,do
 >           p <- pos
 >           l <- nameComponent
 >           symbol "="
 >           r <- expr
 >           return $ SetClause p l r]
+
+> nm :: Annotation -> String -> Name
+> nm a s = Name a [Nmc s]
 
 > delete :: SParser Statement
 > delete = Delete
@@ -705,14 +708,14 @@ ddl
 > createSequence = do
 >   p <- pos
 >   keyword "sequence"
->   nm <- name
+>   snm <- name
 >   (stw, incr, mx, mn, c) <-
 >      permute ((,,,,) <$?> (1,startWith)
 >                      <|?> (1,increment)
 >                      <|?> ((2::Integer) ^ (63::Integer) - 1, maxi)
 >                      <|?> (1, mini)
 >                      <|?> (1, cache))
->   return $ CreateSequence p nm incr mn mx stw c
+>   return $ CreateSequence p snm incr mn mx stw c
 >   where
 >     startWith = keyword "start" *> optional (keyword "with") *> integer
 >     increment = keyword "increment" *> optional (keyword "by") *> integer
@@ -1305,11 +1308,11 @@ be used here.
 >       postfixks = unaryCust Postfix . mapM_ keyword
 >       binarycust opParse t =
 >         Infix $ try $ do
->              f <- FunCall <$> pos <*> (t <$ opParse)
+>              f <- FunCall <$> pos <*> (nm emptyAnnotation t <$ opParse)
 >              return (\l m -> f [l,m])
 >       unaryCust ctor opParse t =
 >         ctor $ try $ do
->           f <- FunCall <$> pos <*> (t <$ opParse)
+>           f <- FunCall <$> pos <*> (nm emptyAnnotation t <$ opParse)
 >           return (\l -> f [l])
 >       -- hack - haven't worked out why parsec buildexpression parser won't
 >       -- parse something like "not not EXPR" without parens so hack here
@@ -1319,8 +1322,8 @@ be used here.
 >                       keyword "not"
 >                       p2 <- pos
 >                       keyword "not"
->                       return (\l -> FunCall p1 "!not"
->                                       [FunCall p2 "!not" [l]]))
+>                       return (\l -> FunCall p1 (nm p1 "!not")
+>                                     [FunCall p2 (nm p2 "!not") [l]]))
 
 From postgresql src/backend/parser/gram.y
 
@@ -1389,7 +1392,7 @@ row ctor: one of
 > rowCtor :: SParser ScalarExpr
 > rowCtor = FunCall
 >           <$> pos
->           <*> return "!rowctor"
+>           <*> (nm <$> pos <*> return "!rowctor")
 >           <*> choice [
 >            keyword "row" *> parens (commaSep expr)
 >           ,parens $ commaSep2 expr]
@@ -1437,7 +1440,7 @@ row ctor: one of
 >
 > arrayLit :: SParser ScalarExpr
 > arrayLit = FunCall <$> pos <* keyword "array"
->                    <*> return "!arrayctor"
+>                    <*> (nm <$> pos <*> return "!arrayctor")
 >                    <*> squares (commaSep expr)
 >
 > arraySubSuffix :: ScalarExpr -> SParser ScalarExpr
@@ -1445,7 +1448,7 @@ row ctor: one of
 >                      Identifier _ "array" -> fail "can't use array \
 >                                                   \as identifier name"
 >                      _ -> FunCall <$> pos
->                                   <*> return "!arraysub"
+>                                   <*> (nm <$> pos <*> return "!arraysub")
 >                                   <*> ((e:) <$> squares (commaSep1 expr))
 >
 > windowFnSuffix :: ScalarExpr -> SParser ScalarExpr
@@ -1498,7 +1501,7 @@ row ctor: one of
 >   b <- b_expr
 >   keyword "and"
 >   c <- b_expr
->   return $ FunCall p "!between" [a,b,c]
+>   return $ FunCall p (nm p "!between") [a,b,c]
 
 handles aggregate business as well
 
@@ -1512,8 +1515,8 @@ handles aggregate business as well
 >                          <*> commaSep expr
 >                          <*> orderBy
 >   return $ case (di,ob) of
->     (Nothing,[]) -> FunCall p fnName as
->     (d,o) -> AggregateFn p (fromMaybe Dupes d) (FunCall p fnName as) o
+>     (Nothing,[]) -> FunCall p (nm p fnName) as
+>     (d,o) -> AggregateFn p (fromMaybe Dupes d) (FunCall p (nm p fnName) as) o
 > functionCallSuffix s =
 >   fail $ "cannot make functioncall from " ++ show s
 >
@@ -1599,7 +1602,7 @@ handles aggregate business as well
 >             keyword "for"
 >             c <- expr
 >             symbol ")"
->             return $ FunCall p "!substring" [a,b,c]
+>             return $ FunCall p (nm p "!substring") [a,b,c]
 >
 > identifier :: SParser ScalarExpr
 > identifier = Identifier <$> pos <*> (idString <|> splice)
@@ -2043,15 +2046,16 @@ be an array or subselect, etc)
 > fixupTree =
 >     transformBi $ \x ->
 >       case x of
->              FunCall an op (expr1:FunCall _ nm expr2s:expr3s)
->                | isOperatorName op
->                  && map toLower nm `elem` ["any", "some", "all"]
->                -> LiftOperator an op flav (expr1:expr2s ++ expr3s)
->                   where flav = case map toLower nm of
->                                  "any" -> LiftAny
->                                  "some" -> LiftAny
->                                  "all" -> LiftAll
->                                  z -> error $ "internal error in parsing lift transform: " ++ z
+>              FunCall an op (expr1:FunCall _ fn expr2s:expr3s)
+>                | Name _ [Nmc opnm] <- op
+>                , isOperatorName opnm
+>                , Name _ [Nmc fnm] <- fn
+>                , Just flav <- case map toLower fnm of
+>                                  "any" -> Just LiftAny
+>                                  "some" -> Just LiftAny
+>                                  "all" -> Just LiftAll
+>                                  _ -> Nothing
+>                -> LiftOperator an opnm flav (expr1:expr2s ++ expr3s)
 >              x1 -> x1
 
 --------------------------------------------------------------------------------

@@ -66,3 +66,6 @@ shortcuts for constructing test data and asts
 
 > ea :: Annotation
 > ea = emptyAnnotation
+
+> name :: String -> Name
+> name n = Name ea [Nmc n]

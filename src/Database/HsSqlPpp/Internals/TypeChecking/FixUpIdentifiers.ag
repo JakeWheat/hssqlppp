@@ -180,10 +180,10 @@ addSIAlias (SelExp ann ex) = SelectItem ann ex $ Nmc $ getColName ex
   where
     getColName (Identifier _ i) = i
     getColName (QIdentifier _ _ i) = i
-    getColName (FunCall _ f _) | not (isOperatorName f) = f
+    getColName (FunCall _ f _) | not (isOperatorName $ getTName f) = getTName f
     getColName (Cast _ _ (SimpleTypeName _ tn)) = tn
-    getColName (WindowFn _ (FunCall _ f _) _ _ _) = f
-    getColName (AggregateFn _ _ (FunCall _ f _) _) = f
+    getColName (WindowFn _ (FunCall _ f _) _ _ _) = getTName f
+    getColName (AggregateFn _ _ (FunCall _ f _) _) = getTName f
     getColName _ = "?column?"
 
 }
@@ -356,8 +356,8 @@ fixUpIdentifiersQE cat qe =
 
 countHack :: Data a => a -> a
 countHack = transformBi $ \x -> case x of
-              FunCall a "count" [Identifier ia "*"] ->
-                FunCall a "count" [BooleanLit ia True]
+              FunCall a f [Identifier ia "*"] | getTName f == "count"->
+                FunCall a f [BooleanLit ia True]
               x1 -> x1
 
 }
@@ -419,7 +419,7 @@ SEM TableRef
             -- fixme: composite returning functions
             -- problem: need typechecking to choose the correct function!
             -- so this approach cannot work
-            iea = aliasEnv @alias.originalTree $ FunTrefIDEnv f
+            iea = aliasEnv @alias.originalTree $ FunTrefIDEnv $ getTName f
             al = getEnvAlias iea
         in (iea, FunTref @ann @fn.fixedUpIdentifiersTree al)
 

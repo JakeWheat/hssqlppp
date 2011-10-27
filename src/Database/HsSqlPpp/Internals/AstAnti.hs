@@ -237,7 +237,7 @@ data ScalarExpr = AggregateFn Annotation Distinct ScalarExpr
                 | Cast Annotation ScalarExpr TypeName
                 | Exists Annotation QueryExpr
                 | Extract Annotation ExtractField ScalarExpr
-                | FunCall Annotation String ScalarExprList
+                | FunCall Annotation Name ScalarExprList
                 | Identifier Annotation String
                 | InPredicate Annotation ScalarExpr Bool InList
                 | Interval Annotation String IntervalField (Maybe Int)
@@ -712,7 +712,7 @@ scalarExpr x
         Cast a1 a2 a3 -> A.Cast a1 (scalarExpr a2) (typeName a3)
         Exists a1 a2 -> A.Exists a1 (queryExpr a2)
         Extract a1 a2 a3 -> A.Extract a1 (extractField a2) (scalarExpr a3)
-        FunCall a1 a2 a3 -> A.FunCall a1 a2 (scalarExprList a3)
+        FunCall a1 a2 a3 -> A.FunCall a1 (name a2) (scalarExprList a3)
         Identifier a1 a2 -> A.Identifier a1 a2
         InPredicate a1 a2 a3 a4 -> A.InPredicate a1 (scalarExpr a2) a3
                                      (inList a4)

@@ -197,13 +197,13 @@ SEM ScalarExpr
         ,loc.prototype) = either (\e -> (Left e, Nothing)) id $ do
                           args <- mapM lmt @args.uType
                           efp <- findCallMatch @lhs.cat
-                                               @funName
+                                               (getTName @funName.originalTree)
                                                args
                           let (_,_,r,_) = efp
                           return (Right r, Just efp)
 
 
-        loc.backTree = FunCall @ann @funName @args.annotatedTree
+        loc.backTree = FunCall @ann @funName.originalTree @args.annotatedTree
 
 
    | WindowFn

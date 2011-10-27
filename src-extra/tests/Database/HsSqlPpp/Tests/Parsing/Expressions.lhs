@@ -23,14 +23,15 @@
 >      ]
 >    ,Group "basic expressions" [
 >       e "1" (NumberLit ea "1")
->      ,e "-1" (FunCall ea "u-" [NumberLit ea "1"])
+>      ,e "-1" (FunCall ea (name "u-") [NumberLit ea "1"])
 >      ,e "1.1" (NumberLit ea "1.1")
->      ,e "-1.1" (FunCall ea "u-" [NumberLit ea "1.1"])
->      ,e " 1 + 1 " (FunCall ea "+" [NumberLit ea "1"
->                                   ,NumberLit ea "1"])
->      ,e "1+1+1" (FunCall ea "+" [FunCall ea "+" [NumberLit ea "1"
->                                                 ,NumberLit ea "1"]
->                                 ,NumberLit ea "1"])
+>      ,e "-1.1" (FunCall ea (name "u-") [NumberLit ea "1.1"])
+>      ,e " 1 + 1 " (FunCall ea (name "+") [NumberLit ea "1"
+>                                          ,NumberLit ea "1"])
+>      ,e "1+1+1" (FunCall ea (name "+") [FunCall ea (name "+")
+>                                         [NumberLit ea "1"
+>                                         ,NumberLit ea "1"]
+>                                        ,NumberLit ea "1"])
 >      ]
 >    ,Group "parens" [
 
@@ -38,10 +39,10 @@ check some basic parens use wrt naked values and row constructors
 these tests reflect how pg seems to interpret the variants.
 
 >       e "(1)" (NumberLit ea "1")
->      ,e "row ()" (FunCall ea "!rowctor" [])
->      ,e "row (1)" (FunCall ea "!rowctor" [NumberLit ea "1"])
->      ,e "row (1,2)" (FunCall ea "!rowctor" [NumberLit ea "1",NumberLit ea "2"])
->      ,e "(1,2)" (FunCall ea "!rowctor" [NumberLit ea "1",NumberLit ea "2"])
+>      ,e "row ()" (FunCall ea (name "!rowctor") [])
+>      ,e "row (1)" (FunCall ea (name "!rowctor") [NumberLit ea "1"])
+>      ,e "row (1,2)" (FunCall ea (name "!rowctor") [NumberLit ea "1",NumberLit ea "2"])
+>      ,e "(1,2)" (FunCall ea (name "!rowctor") [NumberLit ea "1",NumberLit ea "2"])
 >      ]
 >    ,Group "more basic expressions" [
 
@@ -59,17 +60,17 @@ test some more really basic expressions
 >      ,e "null" (NullLit ea)
 >      ]
 >    ,Group "array ctor and selector" [
->       e "array[1,2]" (FunCall ea "!arrayctor" [NumberLit ea "1", NumberLit ea "2"])
->      ,e "a[1]" (FunCall ea "!arraysub" [Identifier ea "a", NumberLit ea "1"])
+>       e "array[1,2]" (FunCall ea (name "!arrayctor") [NumberLit ea "1", NumberLit ea "2"])
+>      ,e "a[1]" (FunCall ea (name "!arraysub") [Identifier ea "a", NumberLit ea "1"])
 >      ]
 >    ,Group "simple operators" [
->       e "1 + tst1" (FunCall ea "+" [NumberLit ea "1"
+>       e "1 + tst1" (FunCall ea (name "+") [NumberLit ea "1"
 >                                ,Identifier ea "tst1"])
->      ,e "tst1 + 1" (FunCall ea "+" [Identifier ea "tst1"
+>      ,e "tst1 + 1" (FunCall ea (name "+") [Identifier ea "tst1"
 >                                ,NumberLit ea "1"])
->      ,e "tst + tst1" (FunCall ea "+" [Identifier ea "tst"
+>      ,e "tst + tst1" (FunCall ea (name "+") [Identifier ea "tst"
 >                                  ,Identifier ea "tst1"])
->      ,e "'a' || 'b'" (FunCall ea "||" [stringQ "a"
+>      ,e "'a' || 'b'" (FunCall ea (name "||") [stringQ "a"
 >                                   ,stringQ "b"])
 >      ,e "'stuff'::text" (Cast ea (stringQ "stuff") (SimpleTypeName ea "text"))
 >      ,e "245::float(24)" (Cast ea (NumberLit ea "245") (PrecTypeName ea "float" 24))
@@ -80,57 +81,57 @@ test some more really basic expressions
 >      ,e "interval '63' day (3)" (Interval ea "63" IntervalDay $ Just 3)
 >      ,e "extract(year from a)" (Extract ea ExtractYear $ Identifier ea "a")
 >      ,e "a between 1 and 3"
->         (FunCall ea "!between" [Identifier ea "a", NumberLit ea "1", NumberLit ea "3"])
+>         (FunCall ea (name "!between") [Identifier ea "a", NumberLit ea "1", NumberLit ea "3"])
 >      ,e "a between 7 - 1 and 7 + 1"
->         (FunCall ea "!between" [Identifier ea "a"
->                                ,FunCall ea "-" [NumberLit ea "7"
->                                                ,NumberLit ea "1"]
->                                ,FunCall ea "+" [NumberLit ea "7"
->                                                ,NumberLit ea "1"]])
+>         (FunCall ea (name "!between") [Identifier ea "a"
+>                                       ,FunCall ea (name "-") [NumberLit ea "7"
+>                                                              ,NumberLit ea "1"]
+>                                       ,FunCall ea (name "+") [NumberLit ea "7"
+>                                                              ,NumberLit ea "1"]])
 >      ,e "cast(a as text)"
 >         (Cast ea (Identifier ea "a") (SimpleTypeName ea "text"))
 >      ,e "@ a"
->         (FunCall ea "@" [Identifier ea "a"])
+>         (FunCall ea (name "@") [Identifier ea "a"])
 >      ,e "substring(a from 0 for 3)"
->         (FunCall ea "!substring" [Identifier ea "a", NumberLit ea "0", NumberLit ea "3"])
+>         (FunCall ea (name "!substring") [Identifier ea "a", NumberLit ea "0", NumberLit ea "3"])
 >      ,e "substring(a from 0 for (5 - 3))"
->         (FunCall ea "!substring" [Identifier ea "a",NumberLit ea "0",
->          FunCall ea "-" [NumberLit ea "5",NumberLit ea "3"]])
+>         (FunCall ea (name "!substring") [Identifier ea "a",NumberLit ea "0",
+>          FunCall ea (name "-") [NumberLit ea "5",NumberLit ea "3"]])
 >      ,e "substring(a,b,c)"
->         (FunCall ea "substring" [Identifier ea "a"
+>         (FunCall ea (name "substring") [Identifier ea "a"
 >                                 ,Identifier ea "b"
 >                                 ,Identifier ea "c"])
 >      ,e "a like b"
->         (FunCall ea "!like" [Identifier ea "a", Identifier ea "b"])
+>         (FunCall ea (name "!like") [Identifier ea "a", Identifier ea "b"])
 >      ,e "a not like b"
->         (FunCall ea "!notlike" [Identifier ea "a", Identifier ea "b"])
+>         (FunCall ea (name "!notlike") [Identifier ea "a", Identifier ea "b"])
 >      , e "a and b and c and d"
->         (FunCall ea "!and"
->          [FunCall ea "!and"
->           [FunCall ea "!and" [Identifier ea "a"
+>         (FunCall ea (name "!and")
+>          [FunCall ea (name "!and")
+>           [FunCall ea (name "!and") [Identifier ea "a"
 >                              ,Identifier ea "b"]
 >           ,Identifier ea "c"]
 >          ,Identifier ea "d"])
 >      ]
 >    ,Group "function calls" [
->       e "fn()" (FunCall ea "fn" [])
->      ,e "fn(1)" (FunCall ea "fn" [NumberLit ea "1"])
->      ,e "fn('test')" (FunCall ea "fn" [stringQ "test"])
->      ,e "fn(1,'test')" (FunCall ea "fn" [NumberLit ea "1", stringQ "test"])
->      ,e "fn('test')" (FunCall ea "fn" [stringQ "test"])
+>       e "fn()" (FunCall ea (name "fn") [])
+>      ,e "fn(1)" (FunCall ea (name "fn") [NumberLit ea "1"])
+>      ,e "fn('test')" (FunCall ea (name "fn") [stringQ "test"])
+>      ,e "fn(1,'test')" (FunCall ea (name "fn") [NumberLit ea "1", stringQ "test"])
+>      ,e "fn('test')" (FunCall ea (name "fn") [stringQ "test"])
 >      ]
 >    ,Group "simple whitespace sanity checks" [
->       e "fn (1)" (FunCall ea "fn" [NumberLit ea "1"])
->      ,e "fn( 1)" (FunCall ea "fn" [NumberLit ea "1"])
->      ,e "fn(1 )" (FunCall ea "fn" [NumberLit ea "1"])
->      ,e "fn(1) " (FunCall ea "fn" [NumberLit ea "1"])
+>       e "fn (1)" (FunCall ea (name "fn") [NumberLit ea "1"])
+>      ,e "fn( 1)" (FunCall ea (name "fn") [NumberLit ea "1"])
+>      ,e "fn(1 )" (FunCall ea (name "fn") [NumberLit ea "1"])
+>      ,e "fn(1) " (FunCall ea (name "fn") [NumberLit ea "1"])
 >      ]
 >    ,Group "null stuff" [
->       e "not null" (FunCall ea "!not" [NullLit ea])
->      ,e "a is null" (FunCall ea "!isnull" [Identifier ea "a"])
->      ,e "a is not null" (FunCall ea "!isnotnull" [Identifier ea "a"])
->      ,e "not not true" (FunCall ea "!not"
->                          [FunCall ea "!not"
+>       e "not null" (FunCall ea (name "!not") [NullLit ea])
+>      ,e "a is null" (FunCall ea (name "!isnull") [Identifier ea "a"])
+>      ,e "a is not null" (FunCall ea (name "!isnotnull") [Identifier ea "a"])
+>      ,e "not not true" (FunCall ea (name "!not")
+>                          [FunCall ea (name "!not")
 >                           [BooleanLit ea True]])
 >      ]
 
@@ -156,7 +157,7 @@ test some more really basic expressions
 >    ,Group "positional args" [
 >       e "$1" (PositionalArg ea 1)
 >      ,e "?" (Placeholder ea)
->      ,e "a = ?" (FunCall ea "=" [Identifier ea "a",Placeholder ea])
+>      ,e "a = ?" (FunCall ea (name "=") [Identifier ea "a",Placeholder ea])
 >      ]
 >    ,Group "exists" [
 >       e "exists (select 1 from a)"
@@ -168,25 +169,25 @@ test some more really basic expressions
 >      ,e "t not in (1,2)"
 >       (InPredicate ea (Identifier ea "t") False (InList ea [NumberLit ea "1",NumberLit ea "2"]))
 >      ,e "(t,u) in (1,2)"
->       (InPredicate ea (FunCall ea "!rowctor" [Identifier ea "t",Identifier ea "u"]) True
+>       (InPredicate ea (FunCall ea (name "!rowctor") [Identifier ea "t",Identifier ea "u"]) True
 >        (InList ea [NumberLit ea "1",NumberLit ea "2"]))
 >      ,e "3 = any (array[1,2])"
 >       (LiftOperator ea "=" LiftAny [NumberLit ea "3"
->                                     ,FunCall ea "!arrayctor" [NumberLit ea "1"
+>                                     ,FunCall ea (name "!arrayctor") [NumberLit ea "1"
 >                                                              ,NumberLit ea "2"]])
 >      ,e "3 = all (array[1,2,4])"
 >       (LiftOperator ea "=" LiftAll [NumberLit ea "3"
->                                     ,FunCall ea "!arrayctor" [NumberLit ea "1"
+>                                     ,FunCall ea (name "!arrayctor") [NumberLit ea "1"
 >                                                              ,NumberLit ea "2"
 >                                                              ,NumberLit ea "4"]])
 >      ]
 >    ,Group "comparison operators" [
 >       e "a < b"
->       (FunCall ea "<" [Identifier ea "a", Identifier ea "b"])
+>       (FunCall ea (name "<") [Identifier ea "a", Identifier ea "b"])
 >      ,e "a <> b"
->       (FunCall ea "<>" [Identifier ea "a", Identifier ea "b"])
+>       (FunCall ea (name "<>") [Identifier ea "a", Identifier ea "b"])
 >      ,e "a != b"
->       (FunCall ea "<>" [Identifier ea "a", Identifier ea "b"])
+>       (FunCall ea (name "<>") [Identifier ea "a", Identifier ea "b"])
 >      ]
 
 test some string parsing, want to check single quote behaviour,
@@ -210,8 +211,8 @@ and dollar quoting, including nesting.
 >         (ScalarSubQuery ea
 >          (selectE (sl
 >                    [SelExp ea
->                     (FunCall ea "f" [Cast ea
->                                      (FunCall ea "!rowctor"
+>                     (FunCall ea (name "f") [Cast ea
+>                                      (FunCall ea (name "!rowctor")
 >                                       [eqi "a" "x"
 >                                       ,Identifier ea "y"])
 >                                      (SimpleTypeName ea "z")])])))
