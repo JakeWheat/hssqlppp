@@ -23,7 +23,7 @@ SEM Statement
           pAtts <- lmt (fst <$> @table.tbUType)
           tAtts <- case @targetCols of
                         [] -> return pAtts
-                        _ -> mapM (lkpA atts) @targetCols
+                        _ -> mapM (lkpA atts) (map ncStr @targetCols)
           expAtts <- lmt @insData.uType
           checkAssignmentsValid @lhs.cat (map snd expAtts) (map snd tAtts)
           return tAtts

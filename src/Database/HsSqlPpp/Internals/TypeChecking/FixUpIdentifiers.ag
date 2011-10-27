@@ -456,7 +456,7 @@ then the non join keys from the second table
               jids :: [String]
               jids = case (@nat,@onExpr.originalTree) of
                        (Natural,_) -> intersect t0ids t1ids
-                       (_,Just (JoinUsing _ fs)) -> fs
+                       (_,Just (JoinUsing _ fs)) -> map ncStr fs
                        _ -> []
               iea = aliasEnv @alias.originalTree
                     $ JoinTrefIDEnv jids @tbl.trefIDs @tbl1.trefIDs

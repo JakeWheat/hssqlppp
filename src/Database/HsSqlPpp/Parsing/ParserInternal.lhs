@@ -562,8 +562,8 @@ other dml-type stuff
 > copy = do
 >        p <- pos
 >        keyword "copy"
->        tableName <- idString
->        cols <- option [] (parens $ commaSep1 idString)
+>        tableName <- sqIdentifier
+>        cols <- option [] (parens $ commaSep1 nameComponent)
 >        keyword "from"
 >        src <- choice [
 >                CopyFilename <$> extrStr <$> stringLit
@@ -942,8 +942,8 @@ or after the whole list
 > returning :: SParser SelectList
 > returning = keyword "returning" *> selectList
 >
-> columnNameList :: SParser [String]
-> columnNameList = parens $ commaSep1 idString
+> columnNameList :: SParser [NameComponent]
+> columnNameList = parens $ commaSep1 nameComponent
 >
 > typeName :: SParser TypeName
 > typeName =
@@ -1721,6 +1721,9 @@ keywords which are unqualified.
 >                 --p <- pos
 >                 return [Name i1]
 >                ]
+
+> nameComponent :: SParser NameComponent
+> nameComponent = Name <$> idString
 
 
 --------------------------------------------------------------------------------

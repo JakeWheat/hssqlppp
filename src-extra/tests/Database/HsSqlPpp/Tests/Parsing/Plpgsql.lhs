@@ -54,7 +54,7 @@
 >       [Into ea False [IntoIdentifier ea ["x"]]
 >        $ Insert ea
 >         (dqi "t")
->         ["a"]
+>         [Name "a"]
 >         (Values ea [[NumberLit ea "1"]])
 >         (Just $ sl [selI "id"])]
 

@@ -21,6 +21,13 @@ typechecker slightly broken wrt to quoted identifiers, but working as
 well as it has been. E.g.: look at how many different lexers, parsers,
 etc. there are for identifiers and identifier like strings.
 
+1. alter intoidentifier
+2. alter stuff that should be sqidentifier
+3. make * lex and parse not as identifier
+4. start transitioning scalarexpr to use namecomponent
+5. finish scalarexpr transition
+6. add quotes to parsing of namecomponent
+
 review and fix some of the other syntax?
 
 add support for sql server top, in the parser only

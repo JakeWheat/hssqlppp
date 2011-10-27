@@ -138,7 +138,7 @@ join - most of the hard work is done in local bindings
             where
               jids = case (@nat, @onExpr.originalTree) of
                           (Natural, _) -> Left ()
-                          (_,Just (JoinUsing _ s)) -> Right s
+                          (_,Just (JoinUsing _ s)) -> Right $ map ncStr s
                           _ -> Right []
         loc.newLib : {Either [TypeError] LocalBindings}
         loc.newLib = case (@tbl.libUpdates, @tbl1.libUpdates) of

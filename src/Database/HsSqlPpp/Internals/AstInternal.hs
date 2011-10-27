@@ -114,8 +114,12 @@ import Database.HsSqlPpp.Utils.Utils
 import Database.HsSqlPpp.Internals.TypeChecking.IDEnv
 
 
+
 data NameComponent = Name String
                      deriving (Data,Eq,Show,Typeable)
+-- this is a transition function
+-- it should be removed when ready, since all the code
+-- should be working with NameComponents directly
 ncStr :: NameComponent -> String
 ncStr (Name n) = n
 
@@ -1470,7 +1474,7 @@ sem_CaseScalarExprListScalarExprPairList_Nil  =
       alternative UniqueConstraint:
          child ann            : {Annotation}
          child name           : {String}
-         child x              : {[String]}
+         child x              : {[NameComponent]}
          visit 0:
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
@@ -1479,7 +1483,7 @@ sem_CaseScalarExprListScalarExprPairList_Nil  =
 data Constraint  = CheckConstraint (Annotation) (String) (ScalarExpr ) 
                  | PrimaryKeyConstraint (Annotation) (String) (([String])) 
                  | ReferenceConstraint (Annotation) (String) (([String])) (String) (([String])) (Cascade) (Cascade) 
-                 | UniqueConstraint (Annotation) (String) (([String])) 
+                 | UniqueConstraint (Annotation) (String) (([NameComponent])) 
                  deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_Constraint :: Constraint  ->
@@ -1623,7 +1627,7 @@ sem_Constraint_ReferenceConstraint ann_ name_ atts_ table_ tableAtts_ onUpdate_ 
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree)))
 sem_Constraint_UniqueConstraint :: Annotation ->
                                    String ->
-                                   ([String]) ->
+                                   ([NameComponent]) ->
                                    T_Constraint 
 sem_Constraint_UniqueConstraint ann_ name_ x_  =
     (\ _lhsIcat
@@ -2210,14 +2214,14 @@ sem_IntoIdentifier_IntoIdentifier ann_ is_  =
             local originalTree : _
       alternative JoinUsing:
          child ann            : {Annotation}
-         child x              : {[String]}
+         child x              : {[NameComponent]}
          visit 0:
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
             local originalTree : _
 -}
 data JoinExpr  = JoinOn (Annotation) (ScalarExpr ) 
-               | JoinUsing (Annotation) (([String])) 
+               | JoinUsing (Annotation) (([NameComponent])) 
                deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_JoinExpr :: JoinExpr  ->
@@ -2291,7 +2295,7 @@ sem_JoinExpr_JoinOn ann_ expr_  =
                   expr_ _exprOcat _exprOexpectedType _exprOidenv _exprOlib 
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree)))
 sem_JoinExpr_JoinUsing :: Annotation ->
-                          ([String]) ->
+                          ([NameComponent]) ->
                           T_JoinExpr 
 sem_JoinExpr_JoinUsing ann_ x_  =
     (\ _lhsIcat
@@ -8315,8 +8319,8 @@ sem_SetClauseList_Nil  =
             local originalTree : _
       alternative Copy:
          child ann            : {Annotation}
-         child table          : {String}
-         child targetCols     : {[String]}
+         child table          : SQIdentifier 
+         child targetCols     : {[NameComponent]}
          child source         : {CopySource}
          visit 0:
             local annotatedTree : _
@@ -8555,7 +8559,7 @@ sem_SetClauseList_Nil  =
       alternative Insert:
          child ann            : {Annotation}
          child table          : SQIdentifier 
-         child targetCols     : {[String]}
+         child targetCols     : {[NameComponent]}
          child insData        : QueryExpr 
          child returning      : MaybeSelectList 
          visit 0:
@@ -8707,7 +8711,7 @@ data Statement  = AlterSequence (Annotation) (String) (SQIdentifier )
                 | CaseStatement (Annotation) (ScalarExprListStatementListPairList ) (StatementList ) 
                 | CaseStatementSimple (Annotation) (ScalarExpr ) (ScalarExprListStatementListPairList ) (StatementList ) 
                 | ContinueStatement (Annotation) ((Maybe String)) 
-                | Copy (Annotation) (String) (([String])) (CopySource) 
+                | Copy (Annotation) (SQIdentifier ) (([NameComponent])) (CopySource) 
                 | CopyData (Annotation) (String) 
                 | CreateDomain (Annotation) (String) (TypeName ) (String) (MaybeBoolExpr ) 
                 | CreateFunction (Annotation) (String) (ParamDefList ) (TypeName ) (Replace) (Language) (FnBody ) (Volatility) 
@@ -8726,7 +8730,7 @@ data Statement  = AlterSequence (Annotation) (String) (SQIdentifier )
                 | ForIntegerStatement (Annotation) ((Maybe String)) (ScalarExpr ) (ScalarExpr ) (ScalarExpr ) (StatementList ) 
                 | ForQueryStatement (Annotation) ((Maybe String)) (ScalarExpr ) (QueryExpr ) (StatementList ) 
                 | If (Annotation) (ScalarExprStatementListPairList ) (StatementList ) 
-                | Insert (Annotation) (SQIdentifier ) (([String])) (QueryExpr ) (MaybeSelectList ) 
+                | Insert (Annotation) (SQIdentifier ) (([NameComponent])) (QueryExpr ) (MaybeSelectList ) 
                 | Into (Annotation) (Bool) (([IntoIdentifier])) (Statement ) 
                 | LoopStatement (Annotation) ((Maybe String)) (StatementList ) 
                 | Notify (Annotation) (String) 
@@ -8760,7 +8764,7 @@ sem_Statement (CaseStatementSimple _ann _val _cases _els )  =
 sem_Statement (ContinueStatement _ann _lb )  =
     (sem_Statement_ContinueStatement _ann _lb )
 sem_Statement (Copy _ann _table _targetCols _source )  =
-    (sem_Statement_Copy _ann _table _targetCols _source )
+    (sem_Statement_Copy _ann (sem_SQIdentifier _table ) _targetCols _source )
 sem_Statement (CopyData _ann _insData )  =
     (sem_Statement_CopyData _ann _insData )
 sem_Statement (CreateDomain _ann _name _typ _checkName _check )  =
@@ -9388,8 +9392,8 @@ sem_Statement_ContinueStatement ann_ lb_  =
                   _originalTree
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
 sem_Statement_Copy :: Annotation ->
-                      String ->
-                      ([String]) ->
+                      T_SQIdentifier  ->
+                      ([NameComponent]) ->
                       CopySource ->
                       T_Statement 
 sem_Statement_Copy ann_ table_ targetCols_ source_  =
@@ -9402,6 +9406,14 @@ sem_Statement_Copy ann_ table_ targetCols_ source_  =
               _lhsOannotatedTree :: Statement 
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
+              _tableOcat :: Catalog
+              _tableOidenv :: IDEnv
+              _tableOlib :: LocalBindings
+              _tableIannotatedTree :: SQIdentifier 
+              _tableIfixedUpIdentifiersTree :: SQIdentifier 
+              _tableIoriginalTree :: SQIdentifier 
+              _tableItbAnnotatedTree :: SQIdentifier 
+              _tableItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
                   []
@@ -9410,13 +9422,13 @@ sem_Statement_Copy ann_ table_ targetCols_ source_  =
                   []
               -- self rule
               _annotatedTree =
-                  Copy ann_ table_ targetCols_ source_
+                  Copy ann_ _tableIannotatedTree targetCols_ source_
               -- self rule
               _fixedUpIdentifiersTree =
-                  Copy ann_ table_ targetCols_ source_
+                  Copy ann_ _tableIfixedUpIdentifiersTree targetCols_ source_
               -- self rule
               _originalTree =
-                  Copy ann_ table_ targetCols_ source_
+                  Copy ann_ _tableIoriginalTree targetCols_ source_
               -- self rule
               _lhsOannotatedTree =
                   _annotatedTree
@@ -9426,6 +9438,17 @@ sem_Statement_Copy ann_ table_ targetCols_ source_  =
               -- self rule
               _lhsOoriginalTree =
                   _originalTree
+              -- copy rule (down)
+              _tableOcat =
+                  _lhsIcat
+              -- copy rule (down)
+              _tableOidenv =
+                  _lhsIidenv
+              -- copy rule (down)
+              _tableOlib =
+                  _lhsIlib
+              ( _tableIannotatedTree,_tableIfixedUpIdentifiersTree,_tableIoriginalTree,_tableItbAnnotatedTree,_tableItbUType) =
+                  table_ _tableOcat _tableOidenv _tableOlib 
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
 sem_Statement_CopyData :: Annotation ->
                           String ->
@@ -11054,7 +11077,7 @@ sem_Statement_If ann_ cases_ els_  =
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
 sem_Statement_Insert :: Annotation ->
                         T_SQIdentifier  ->
-                        ([String]) ->
+                        ([NameComponent]) ->
                         T_QueryExpr  ->
                         T_MaybeSelectList  ->
                         T_Statement 
@@ -11143,7 +11166,7 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
                   pAtts <- lmt (fst <$> _tableItbUType)
                   tAtts <- case targetCols_ of
                                 [] -> return pAtts
-                                _ -> mapM (lkpA atts) targetCols_
+                                _ -> mapM (lkpA atts) (map ncStr targetCols_)
                   expAtts <- lmt _insDataIuType
                   checkAssignmentsValid _lhsIcat (map snd expAtts) (map snd tAtts)
                   return tAtts
@@ -13068,7 +13091,7 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
                       jids :: [String]
                       jids = case (nat_,_onExprIoriginalTree) of
                                (Natural,_) -> intersect t0ids t1ids
-                               (_,Just (JoinUsing _ fs)) -> fs
+                               (_,Just (JoinUsing _ fs)) -> map ncStr fs
                                _ -> []
                       iea = aliasEnv _aliasIoriginalTree
                             $ JoinTrefIDEnv jids _tblItrefIDs _tbl1ItrefIDs
@@ -13109,7 +13132,7 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
                   where
                     jids = case (nat_, _onExprIoriginalTree) of
                                 (Natural, _) -> Left ()
-                                (_,Just (JoinUsing _ s)) -> Right s
+                                (_,Just (JoinUsing _ s)) -> Right $ map ncStr s
                                 _ -> Right []
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 144, column 9)
               _newLib =

@@ -188,7 +188,7 @@ data Constraint = CheckConstraint Annotation String ScalarExpr
                 | PrimaryKeyConstraint Annotation String [String]
                 | ReferenceConstraint Annotation String [String] String [String]
                                       Cascade Cascade
-                | UniqueConstraint Annotation String [String]
+                | UniqueConstraint Annotation String [NameComponent]
                 deriving (Data, Eq, Show, Typeable)
  
 data FnBody = PlpgsqlFnBody Annotation Statement
@@ -203,7 +203,7 @@ data IntoIdentifier = IntoIdentifier Annotation [String]
                     deriving (Data, Eq, Show, Typeable)
  
 data JoinExpr = JoinOn Annotation ScalarExpr
-              | JoinUsing Annotation [String]
+              | JoinUsing Annotation [NameComponent]
               deriving (Data, Eq, Show, Typeable)
  
 data ParamDef = ParamDef Annotation String TypeName
@@ -279,7 +279,7 @@ data Statement = AlterSequence Annotation String SQIdentifier
                | CaseStatementSimple Annotation ScalarExpr
                                      ScalarExprListStatementListPairList StatementList
                | ContinueStatement Annotation (Maybe String)
-               | Copy Annotation String [String] CopySource
+               | Copy Annotation SQIdentifier [NameComponent] CopySource
                | CopyData Annotation String
                | CreateDomain Annotation String TypeName String MaybeBoolExpr
                | CreateFunction Annotation String ParamDefList TypeName Replace
@@ -305,7 +305,8 @@ data Statement = AlterSequence Annotation String SQIdentifier
                | ForQueryStatement Annotation (Maybe String) ScalarExpr QueryExpr
                                    StatementList
                | If Annotation ScalarExprStatementListPairList StatementList
-               | Insert Annotation SQIdentifier [String] QueryExpr MaybeSelectList
+               | Insert Annotation SQIdentifier [NameComponent] QueryExpr
+                        MaybeSelectList
                | Into Annotation Bool [IntoIdentifier] Statement
                | LoopStatement Annotation (Maybe String) StatementList
                | Notify Annotation String
@@ -625,7 +626,8 @@ constraint x
                                                       a5
                                                       (cascade a6)
                                                       (cascade a7)
-        UniqueConstraint a1 a2 a3 -> A.UniqueConstraint a1 a2 a3
+        UniqueConstraint a1 a2 a3 -> A.UniqueConstraint a1 a2
+                                       (fmap nameComponent a3)
  
 fnBody :: FnBody -> A.FnBody
 fnBody x
@@ -648,7 +650,7 @@ joinExpr :: JoinExpr -> A.JoinExpr
 joinExpr x
   = case x of
         JoinOn a1 a2 -> A.JoinOn a1 (scalarExpr a2)
-        JoinUsing a1 a2 -> A.JoinUsing a1 a2
+        JoinUsing a1 a2 -> A.JoinUsing a1 (fmap nameComponent a2)
  
 paramDef :: ParamDef -> A.ParamDef
 paramDef x
@@ -765,7 +767,9 @@ statement x
                                              (scalarExprListStatementListPairList a3)
                                              (statementList a4)
         ContinueStatement a1 a2 -> A.ContinueStatement a1 a2
-        Copy a1 a2 a3 a4 -> A.Copy a1 a2 a3 (copySource a4)
+        Copy a1 a2 a3 a4 -> A.Copy a1 (sQIdentifier a2)
+                              (fmap nameComponent a3)
+                              (copySource a4)
         CopyData a1 a2 -> A.CopyData a1 a2
         CreateDomain a1 a2 a3 a4 a5 -> A.CreateDomain a1 a2 (typeName a3)
                                          a4
@@ -820,7 +824,8 @@ statement x
                                               (statementList a5)
         If a1 a2 a3 -> A.If a1 (scalarExprStatementListPairList a2)
                          (statementList a3)
-        Insert a1 a2 a3 a4 a5 -> A.Insert a1 (sQIdentifier a2) a3
+        Insert a1 a2 a3 a4 a5 -> A.Insert a1 (sQIdentifier a2)
+                                   (fmap nameComponent a3)
                                    (queryExpr a4)
                                    (maybeSelectList a5)
         Into a1 a2 a3 a4 -> A.Into a1 a2 (fmap intoIdentifier a3)

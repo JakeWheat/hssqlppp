@@ -25,7 +25,7 @@
 > --import Data.List
 > import Data.Maybe
 >
-> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Ast hiding (ncStr)
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Utils.Utils
@@ -78,7 +78,7 @@ Conversion routines - convert Sql asts into Docs
 > convStatement nice se pa (Insert ann tb atts idata rt) =
 >   convPa pa ann <+>
 >   text "insert into" <+> convDqi tb
->   <+> ifNotEmpty (parens . sepCsvMap text) atts
+>   <+> ifNotEmpty (parens . sepCsvMap convNC) atts
 >   $+$ convQueryExpr nice True True idata
 >   $+$ convReturning nice rt
 >   <> statementEnd se
@@ -382,8 +382,8 @@ Conversion routines - convert Sql asts into Docs
 >
 > convStatement _nice se ca (Copy ann tb cols src) =
 >     convPa ca ann <+>
->     text "copy" <+> text tb
->     <+> ifNotEmpty (parens . sepCsvMap text) cols
+>     text "copy" <+> convDqi tb
+>     <+> ifNotEmpty (parens . sepCsvMap convNC) cols
 >     <+> text "from"
 >     <+> case src of
 >                  CopyFilename s -> quotes $ text s <> statementEnd se
@@ -502,7 +502,11 @@ Statement components
 >       <+> parens (convQueryExpr nice True False ex1)
 
 > convName :: [NameComponent] -> Doc
-> convName ns = hcat $ punctuate (text ".") $ map (text . ncStr) ns
+> convName ns = hcat $ punctuate (text ".") $ map convNC ns
+
+> convNC :: NameComponent -> Doc
+> convNC (Name ns) = text ns
+
 >
 > convTref :: Bool -> TableRef -> Doc
 > {-convTref nice (Tref _ f@(SQIdentifier _ t) (TableAlias _ ta))
@@ -530,7 +534,7 @@ Statement components
 >         where
 >           convJoinScalarExpr (JoinOn _ e) = text "on" <+> convExp nice e
 >           convJoinScalarExpr (JoinUsing _ ids) =
->               text "using" <+> parens (sepCsvMap text ids)
+>               text "using" <+> parens (sepCsvMap convNC ids)
 >
 > convTref nice (SubTref _ sub alias) =
 >         parens (convQueryExpr nice True True sub)
@@ -583,7 +587,7 @@ Statement components
 > convCon :: Bool -> Constraint -> Doc
 > convCon _nice (UniqueConstraint _ n c) =
 >         mname n <+> text "unique"
->         <+> parens (sepCsvMap text c)
+>         <+> parens (sepCsvMap convNC c)
 > convCon _nice (PrimaryKeyConstraint _ n p) =
 >         mname n <+>
 >         text "primary key"

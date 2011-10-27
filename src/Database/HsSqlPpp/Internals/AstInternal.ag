@@ -178,7 +178,7 @@ DATA Statement
     --table targetcolumns insertdata(values or select statement) returning
     | Insert ann:Annotation
              table : SQIdentifier
-             targetCols : {[String]}
+             targetCols : {[NameComponent]}
              insData : QueryExpr
              returning : MaybeSelectList
     --tablename setitems where returning
@@ -196,8 +196,8 @@ DATA Statement
              returning : MaybeSelectList
     --tablename column names, from
     | Copy ann:Annotation
-           table : String
-           targetCols : {[String]}
+           table : SQIdentifier
+           targetCols : {[NameComponent]}
            source : CopySource
     --represents inline data for copy statement
     | CopyData ann:Annotation insData : String
@@ -346,8 +346,12 @@ DATA Statement
 -- used for schema qualified identifiers
 -- should be used in more places in the ast
 {
+
 data NameComponent = Name String
                      deriving (Data,Eq,Show,Typeable)
+-- this is a transition function
+-- it should be removed when ready, since all the code
+-- should be working with NameComponents directly
 ncStr :: NameComponent -> String
 ncStr (Name n) = n
 }
@@ -413,7 +417,7 @@ DATA TableAlias | NoAlias ann:Annotation
                 | FullAlias ann:Annotation tb:String cols:{[String]}
 
 DATA JoinExpr | JoinOn ann:Annotation expr:ScalarExpr
-              | JoinUsing ann:Annotation x:{[String]}
+              | JoinUsing ann:Annotation x:{[NameComponent]}
 
 {
 data JoinType = Inner | LeftOuter| RightOuter | FullOuter | Cross
@@ -463,7 +467,7 @@ DATA RowConstraint | NullConstraint ann:Annotation name:String
 
 --constraints which appear on a separate row in the create table
 
-DATA Constraint | UniqueConstraint ann:Annotation name:String x:{[String]}
+DATA Constraint | UniqueConstraint ann:Annotation name:String x:{[NameComponent]}
                 | PrimaryKeyConstraint ann:Annotation name:String x:{[String]}
                 | CheckConstraint ann:Annotation name:String expr:ScalarExpr
                   -- sourcecols targettable targetcols ondelete onupdate
