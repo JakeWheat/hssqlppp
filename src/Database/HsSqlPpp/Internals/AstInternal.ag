@@ -147,6 +147,7 @@ import Control.Arrow
 
 import Data.Generics.Uniplate.Data
 import Debug.Trace
+import Text.Groom
 
 
 import Database.HsSqlPpp.Internals.TypeType
@@ -594,6 +595,8 @@ DATA ScalarExpr | NumberLit ann:Annotation d:String
                 | Cast ann:Annotation
                        expr:ScalarExpr
                        tn:TypeName
+                | Star ann:Annotation
+                | Q2 ann:Annotation q:NameComponent expr:ScalarExpr
                 | Identifier ann:Annotation
                              i:String
                 | QIdentifier ann:Annotation

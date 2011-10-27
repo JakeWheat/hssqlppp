@@ -629,6 +629,9 @@ Statement components
 > -- expressions
 >
 > convExp :: Bool -> ScalarExpr -> Doc
+> convExp _ (Star _) = text "*"
+> convExp n (Q2 _ nc e) = convNC nc <> text "." <> convExp n e
+
 > convExp _ (Identifier _ i) =
 >   if quotesNeeded
 >      then text $ "\"" ++ i ++ "\""

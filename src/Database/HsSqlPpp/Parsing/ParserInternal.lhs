@@ -929,7 +929,7 @@ or after the whole list
 >     itemList = commaSep1 selectItem
 >     selectItem = pos >>= \p ->
 >                  optionalSuffix
->                    (SelExp p) expr
+>                    (SelExp p) exprWithStar
 >                    (SelectItem p) () (keyword "as" *> nameComponent)
 >
 > returning :: SParser SelectList
@@ -1149,6 +1149,26 @@ work
 > expr :: SParser ScalarExpr
 > expr = buildExpressionParser table factor
 >        <?> "expression"
+
+where should exprWithStar be used?
+when parsing the top level of a select item
+when parsing the top level of arguments to a function (for aggregates)
+
+this is probably really slow and should be fixed
+
+> exprWithStar :: SParser ScalarExpr
+> exprWithStar = try starThing <|> buildExpressionParser table factor
+>                <?> "expression"
+
+> starThing :: SParser ScalarExpr
+> starThing = choice [Star <$> pos <* symbol "*"
+>                    ,do
+>                     p <- pos
+>                     nc <- nameComponent
+>                     s <- try (symbol "." *> starThing)
+>                     return $ Q2 p nc s]
+
+
 >
 > factor :: SParser ScalarExpr
 > factor =
@@ -1512,7 +1532,7 @@ handles aggregate business as well
 >                          <$> optionMaybe
 >                              (choice [Distinct <$ keyword "distinct"
 >                                      ,Dupes <$ keyword "all"])
->                          <*> commaSep expr
+>                          <*> commaSep exprWithStar
 >                          <*> orderBy
 >   return $ case (di,ob) of
 >     (Nothing,[]) -> FunCall p (nm p fnName) as

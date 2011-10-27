@@ -298,12 +298,8 @@ until during proper parsing, and * isn't really examined until type
 checking
 
 > identifierString :: Parser String
-> identifierString = lexeme $ choice [
->                     "*" <$ symbol "*"
->                    ,nonStarPart]
->   where
->     nonStarPart = (letter <|> char '_') <:> secondOnwards
->     secondOnwards = many (alphaNum <|> char '_')
+> identifierString = lexeme $ (letter <|> char '_')
+>                             <:> many (alphaNum <|> char '_')
 
 todo:
 select adrelid as "a""a" from pg_attrdef;

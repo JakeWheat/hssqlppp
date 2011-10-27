@@ -103,6 +103,12 @@ SEM ScalarExpr
       PositionalArg Placeholder WindowFn TypedStringLit Interval Extract
         lhs.uType = etmt @loc.tpe
 
+SEM ScalarExpr
+    | Star
+        lhs.uType = Nothing -- Leetmt @loc.tpe
+        -- loc.tpe = Left [BadStarExpand]
+
+
 SEM ScalarExprList
     | Cons lhs.uType = @hd.uType : @tl.uType
     | Nil lhs.uType = []
@@ -336,6 +342,20 @@ SEM ScalarExpr
         loc.backTree = QIdentifier @ann @loc.qAnnTreeNoUnrec @i
 
         loc.qAnnTreeNoUnrec = updateAnnotation (\a -> a {errs = []}) @qual.annotatedTree
+{-   | Q2
+        loc.tpe = do
+                  i <- case @expr.originalTree of
+                            Identifier _ i -> return i
+                            Star _ -> return "*"
+                            _ -> Left [InternalError "dot selection not implemented"]
+                  trace ("***********q2: " ++ (ncStr @q) ++ "." ++ i)
+                    $ case lookupLocalBinding @lhs.lib (ncStr @q) i of
+                                        Right Nothing -> Left []
+                                        Right (Just t) -> Right t
+                                        Left e -> Left e
+        loc.backTree = Q2 @ann @q @expr.annotatedTree-}
+
+
 
 SEM ScalarExpr
     | PositionalArg

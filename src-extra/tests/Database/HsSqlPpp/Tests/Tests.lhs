@@ -10,7 +10,7 @@
 
 > import Database.HsSqlPpp.Tests.TypeChecking.TypeCheckTests
 
-> import Database.HsSqlPpp.Tests.QuasiQuoteTests
+> -- import Database.HsSqlPpp.Tests.QuasiQuoteTests
 
 > --import Database.HsSqlPpp.Tests.ExtensionTests
 > import Database.HsSqlPpp.Tests.ParameterizedStatementTests
@@ -20,7 +20,7 @@
 >     parserTests
 >     : fixUpIdentifiersTests
 >     : explicitCastTests
->     : quasiQuoteTests
+>     -- : quasiQuoteTests
 >     : typeCheckTests
 >     : parameterizedStatementTests
 >     -- : extensionTests

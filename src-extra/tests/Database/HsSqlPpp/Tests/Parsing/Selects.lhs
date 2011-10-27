@@ -18,13 +18,13 @@
 >      ]
 >    ,Group "select from table" [
 >       s "select * from tbl;"
->       [QueryStatement ea $ selectFrom (selIL ["*"]) (Tref ea (i "tbl") (NoAlias ea))]
+>       [QueryStatement ea $ selectFrom (selEL [Star ea]) (Tref ea (i "tbl") (NoAlias ea))]
 >      ,s "select a,b from tbl;"
 >       [QueryStatement ea $ selectFrom (selIL ["a", "b"]) (Tref ea (i "tbl") (NoAlias ea))]
 >      ,s "select a,b from inf.tbl;"
 >       [QueryStatement ea $ selectFrom (selIL ["a", "b"]) (Tref ea (qi "inf" "tbl") (NoAlias ea))]
 >      ,s "select distinct * from tbl;"
->       [QueryStatement ea $ Select ea Distinct (SelectList ea (selIL ["*"])) [Tref ea (i "tbl") (NoAlias ea)]
+>       [QueryStatement ea $ Select ea Distinct (SelectList ea (selEL [Star ea])) [Tref ea (i "tbl") (NoAlias ea)]
 >        Nothing [] Nothing [] Nothing Nothing]
 >      ,s "select a from tbl where b=2;"
 >       [QueryStatement ea $ selectFromWhere
@@ -99,8 +99,8 @@
 >           (WithQueryExpr ea
 >            [WithQuery ea (Nmc "a") Nothing (selectE $ SelectList ea
 >                                             [SelectItem ea (NumberLit ea "1") (Nmc "a1")])
->            ,WithQuery ea (Nmc "b") Nothing (selectFrom (selIL ["*"]) (Tref ea (i "a") (NoAlias ea)))]
->            (selectFrom (selIL ["*"]) (Tref ea (i "b") (NoAlias ea))))]
+>            ,WithQuery ea (Nmc "b") Nothing (selectFrom (selEL [Star ea]) (Tref ea (i "a") (NoAlias ea)))]
+>            (selectFrom (selEL [Star ea]) (Tref ea (i "b") (NoAlias ea))))]
 >      ,s [here|
 >          with a as (select 1 as a1),
 >               b as (select * from a)
@@ -110,10 +110,10 @@
 >           (WithQueryExpr ea
 >            [WithQuery ea (Nmc "a") Nothing (selectE $ SelectList ea
 >                                             [SelectItem ea (NumberLit ea "1") (Nmc "a1")])
->            ,WithQuery ea (Nmc "b") Nothing (selectFrom (selIL ["*"]) (Tref ea (i "a") (NoAlias ea)))]
+>            ,WithQuery ea (Nmc "b") Nothing (selectFrom (selEL [Star ea]) (Tref ea (i "a") (NoAlias ea)))]
 >            (CombineQueryExpr ea Union
->              (selectFrom (selIL ["*"]) (Tref ea (i "a") (NoAlias ea)))
->              (selectFrom (selIL ["*"]) (Tref ea (i "b") (NoAlias ea)))))]
+>              (selectFrom (selEL [Star ea]) (Tref ea (i "a") (NoAlias ea)))
+>              (selectFrom (selEL [Star ea]) (Tref ea (i "b") (NoAlias ea)))))]
 >      ,s "select a as b from tbl;"
 >       [QueryStatement ea $ selectFrom [SelectItem ea (Identifier ea "a") (Nmc "b")] (Tref ea (i "tbl") (NoAlias ea))]
 >      ,s "select a + b as b from tbl;"
@@ -123,15 +123,15 @@
 >          [Identifier ea "a", Identifier ea "b"]) (Nmc "b")]
 >        (Tref ea (i "tbl") (NoAlias ea))]
 >      ,s "select a.* from tbl a;"
->       [QueryStatement ea $ selectFrom (selEL [eqi "a" "*"]) (Tref ea (i "tbl") (TableAlias ea (Nmc "a")))]
+>       [QueryStatement ea $ selectFrom (selEL [Q2 ea (Nmc "a") $ Star ea]) (Tref ea (i "tbl") (TableAlias ea (Nmc "a")))]
 >      ,s "select a.* from tbl a(b,c);"
->       [QueryStatement ea $ selectFrom (selEL [eqi "a" "*"]) (Tref ea (i "tbl") (FullAlias ea (Nmc "a") [Nmc "b",Nmc "c"]))]
+>       [QueryStatement ea $ selectFrom (selEL [Q2 ea (Nmc "a") $ Star ea]) (Tref ea (i "tbl") (FullAlias ea (Nmc "a") [Nmc "b",Nmc "c"]))]
 
 >      ,s "select * from t1 a, t2 b;"
 >             [QueryStatement ea
 >              (Select ea Dupes
 >               (SelectList ea
->                [SelExp ea (Identifier ea "*")])
+>                [SelExp ea (Star ea)])
 >               [Tref ea (i "t1") (TableAlias ea (Nmc "a")),Tref ea (i "t2") (TableAlias ea (Nmc "b"))]
 >               Nothing [] Nothing [] Nothing Nothing)]
 >      ,s "select a from b inner join c on b.a=c.a;"
@@ -302,45 +302,45 @@
 >        (Tref ea (i "tbl") (NoAlias ea))]
 >      ,s "select * from a natural inner join (select * from b) as a;"
 >       [QueryStatement ea $ selectFrom
->        (selIL ["*"])
+>        (selEL [Star ea])
 >        (JoinTref ea (Tref ea (i "a") (NoAlias ea)) Natural
 >         Inner (SubTref ea (selectFrom
->                         (selIL ["*"])
+>                         (selEL [Star ea])
 >                         (Tref ea (i "b") (NoAlias ea))) (TableAlias ea $ Nmc "a"))
 >         Nothing (NoAlias ea))]
 >      ,s "select * from a order by c;"
 >       [QueryStatement ea $ Select ea  Dupes
->        (sl (selIL ["*"]))
+>        (sl (selEL [Star ea]))
 >        [Tref ea (i "a") (NoAlias ea)]
 >        Nothing [] Nothing [(Identifier ea "c",Asc)] Nothing Nothing]
 >      ,s "select *\n\
 >            \from Adventure\n\
 >            \order by Clicks desc, AdventureID;"
 >       [QueryStatement ea $ Select ea Dupes
->        (sl (selIL ["*"]))
+>        (sl (selEL [Star ea]))
 >        [Tref ea (i "Adventure") (NoAlias ea)]
 >        Nothing [] Nothing [(Identifier ea "Clicks",Desc)
 >                           ,(Identifier ea "AdventureID",Asc)] Nothing Nothing]
 >      ,s "select * from a order by c,d asc;"
 >       [QueryStatement ea $ Select ea Dupes
->        (sl (selIL ["*"]))
+>        (sl (selEL [Star ea]))
 >        [Tref ea (i "a") (NoAlias ea)]
 >        Nothing [] Nothing [(Identifier ea "c", Asc)
 >                           ,(Identifier ea "d", Asc)] Nothing Nothing]
 >      ,s "select * from a order by c,d desc;"
 >       [QueryStatement ea $ Select ea Dupes
->        (sl (selIL ["*"]))
+>        (sl (selEL [Star ea]))
 >        [Tref ea (i "a") (NoAlias ea)]
 >        Nothing [] Nothing [(Identifier ea "c", Asc)
 >                           ,(Identifier ea "d", Desc)] Nothing Nothing]
 >      ,s "select * from a order by c limit 1;"
 >       [QueryStatement ea $ Select ea Dupes
->        (sl (selIL ["*"]))
+>        (sl (selEL [Star ea]))
 >        [Tref ea (i "a") (NoAlias ea)]
 >        Nothing [] Nothing [(Identifier ea "c",Asc)] (Just (NumberLit ea "1")) Nothing]
 >      ,s "select * from a order by c offset 3;"
 >       [QueryStatement ea $ Select ea Dupes
->        (sl (selIL ["*"]))
+>        (sl (selEL [Star ea]))
 >        [Tref ea (i "a") (NoAlias ea)]
 >        Nothing [] Nothing [(Identifier ea "c",Asc)] Nothing (Just $ NumberLit ea "3")]
 >      ,s "select a from (select b from c) as d;"
@@ -351,10 +351,10 @@
 >                    (Tref ea (i "c") (NoAlias ea)))
 >           (TableAlias ea $ Nmc "d"))]
 >      ,s "select * from gen();"
->         [QueryStatement ea $ selectFrom (selIL ["*"]) (FunTref ea (FunCall ea (name "gen") []) (NoAlias ea))]
+>         [QueryStatement ea $ selectFrom (selEL [Star ea]) (FunTref ea (FunCall ea (name "gen") []) (NoAlias ea))]
 >      ,s "select * from gen() as t;"
 >       [QueryStatement ea $ selectFrom
->        (selIL ["*"])
+>        (selEL [Star ea])
 >        (FunTref ea (FunCall ea (name "gen") [])(TableAlias ea $ Nmc "t"))]
 >      ,s "select count(distinct b) from c;"
 >         [QueryStatement ea $ Select ea Dupes

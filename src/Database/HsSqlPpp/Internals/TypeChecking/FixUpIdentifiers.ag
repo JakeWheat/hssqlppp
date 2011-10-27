@@ -146,7 +146,7 @@ ATTR SelectItem [
 SEM SelectItem
     | SelExp lhs.seIdTree
         = case @ex.fixedUpIdentifiersTree of -- use original tree here?
-            Identifier a "*" ->
+            Star a ->
                maybe [SelExp @ann @ex.fixedUpIdentifiersTree]
                      (makeSelExps @ann a a)
                      $ expandStar @lhs.idenv Nothing
@@ -154,9 +154,9 @@ SEM SelectItem
                                 {-    in if null s
                                        then [addSIAlias $ SelExp @ann @ex.fixedUpIdentifiersTree]
                                        else makeSelExps @ann a a s-}
-            QIdentifier a0 (Identifier a1 q) "*" ->
+            Q2 a0 (Nmc q) (Star a) ->
                maybe [SelExp @ann @ex.fixedUpIdentifiersTree]
-                     (makeSelExps @ann a0 a1)
+                     (makeSelExps @ann a0 a0)
                      $ expandStar @lhs.idenv $ Just q
                {-
                let s = expandStar @lhs.idenv $ Just q
@@ -356,7 +356,7 @@ fixUpIdentifiersQE cat qe =
 
 countHack :: Data a => a -> a
 countHack = transformBi $ \x -> case x of
-              FunCall a f [Identifier ia "*"] | getTName f == "count"->
+              FunCall a f [Star ia] | getTName f == "count"->
                 FunCall a f [BooleanLit ia True]
               x1 -> x1
 

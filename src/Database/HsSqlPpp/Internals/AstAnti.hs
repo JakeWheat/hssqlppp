@@ -246,8 +246,10 @@ data ScalarExpr = AggregateFn Annotation Distinct ScalarExpr
                 | NumberLit Annotation String
                 | Placeholder Annotation
                 | PositionalArg Annotation Integer
+                | Q2 Annotation NameComponent ScalarExpr
                 | QIdentifier Annotation ScalarExpr String
                 | ScalarSubQuery Annotation QueryExpr
+                | Star Annotation
                 | StringLit Annotation String
                 | TypedStringLit Annotation TypeName String
                 | WindowFn Annotation ScalarExpr ScalarExprList
@@ -723,8 +725,10 @@ scalarExpr x
         NumberLit a1 a2 -> A.NumberLit a1 a2
         Placeholder a1 -> A.Placeholder a1
         PositionalArg a1 a2 -> A.PositionalArg a1 a2
+        Q2 a1 a2 a3 -> A.Q2 a1 (nameComponent a2) (scalarExpr a3)
         QIdentifier a1 a2 a3 -> A.QIdentifier a1 (scalarExpr a2) a3
         ScalarSubQuery a1 a2 -> A.ScalarSubQuery a1 (queryExpr a2)
+        Star a1 -> A.Star a1
         StringLit a1 a2 -> A.StringLit a1 a2
         TypedStringLit a1 a2 a3 -> A.TypedStringLit a1 (typeName a2) a3
         WindowFn a1 a2 a3 a4 a5 -> A.WindowFn a1 (scalarExpr a2)
