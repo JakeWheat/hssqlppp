@@ -259,7 +259,7 @@ DATA Statement
                     events: {[TriggerEvent]}
                     tbl : Name
                     firing : TriggerFire
-                    fnName : String
+                    fnName : Name
                     fnArgs : ScalarExprList
     -- ifexists (name,argtypes)* cascadeorrestrict
     | DropFunction ann:Annotation
@@ -502,19 +502,19 @@ data TriggerFire = EachRow | EachStatement
                    deriving (Show,Eq,Typeable,Data)
 }
 
-DATA ParamDef | ParamDef ann:Annotation name:String typ:TypeName
+DATA ParamDef | ParamDef ann:Annotation name:NameComponent typ:TypeName
               | ParamDefTp ann:Annotation typ:TypeName
 
 DATA VarDef | VarDef ann:Annotation
-                     name : String
+                     name : NameComponent
                      typ : TypeName
                      value : (Maybe ScalarExpr)
             | ParamAlias ann:Annotation
-                         name : String
+                         name : NameComponent
                          i : Integer
             | VarAlias ann:Annotation
-                       name : String
-                       aliased : String
+                       name : NameComponent
+                       aliased : Name
 {
 data RaiseType = RNotice | RException | RError
                  deriving (Show,Eq,Typeable,Data)

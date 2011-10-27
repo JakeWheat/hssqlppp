@@ -3206,7 +3206,7 @@ sem_OnExpr_Nothing  =
    alternatives:
       alternative ParamDef:
          child ann            : {Annotation}
-         child name           : {String}
+         child name           : {NameComponent}
          child typ            : TypeName 
          visit 0:
             local annotatedTree : _
@@ -3220,7 +3220,7 @@ sem_OnExpr_Nothing  =
             local fixedUpIdentifiersTree : _
             local originalTree : _
 -}
-data ParamDef  = ParamDef (Annotation) (String) (TypeName ) 
+data ParamDef  = ParamDef (Annotation) (NameComponent) (TypeName ) 
                | ParamDefTp (Annotation) (TypeName ) 
                deriving ( Data,Eq,Show,Typeable)
 -- cata
@@ -3245,7 +3245,7 @@ wrap_ParamDef sem (Inh_ParamDef _lhsIcat _lhsIidenv _lhsIlib _lhsIpos )  =
     (let ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOnamedType,_lhsOoriginalTree,_lhsOparamName) = sem _lhsIcat _lhsIidenv _lhsIlib _lhsIpos 
      in  (Syn_ParamDef _lhsOannotatedTree _lhsOfixedUpIdentifiersTree _lhsOnamedType _lhsOoriginalTree _lhsOparamName ))
 sem_ParamDef_ParamDef :: Annotation ->
-                         String ->
+                         NameComponent ->
                          T_TypeName  ->
                          T_ParamDef 
 sem_ParamDef_ParamDef ann_ name_ typ_  =
@@ -3270,7 +3270,7 @@ sem_ParamDef_ParamDef ann_ name_ typ_  =
                   _typInamedType
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/CreateFunction.ag"(line 47, column 9)
               _lhsOparamName =
-                  NamedParam _lhsIpos name_
+                  NamedParam _lhsIpos (ncStr name_)
               -- self rule
               _annotatedTree =
                   ParamDef ann_ name_ _typIannotatedTree
@@ -8720,7 +8720,7 @@ sem_SetClauseList_Nil  =
          child events         : {[TriggerEvent]}
          child tbl            : Name 
          child firing         : {TriggerFire}
-         child fnName         : {String}
+         child fnName         : Name 
          child fnArgs         : ScalarExprList 
          visit 0:
             local annotatedTree : _
@@ -9012,7 +9012,7 @@ data Statement  = AlterSequence (Annotation) (Name ) (Name )
                 | CreateSequence (Annotation) (Name ) (Integer) (Integer) (Integer) (Integer) (Integer) 
                 | CreateTable (Annotation) (Name ) (AttributeDefList ) (ConstraintList ) 
                 | CreateTableAs (Annotation) (Name ) (QueryExpr ) 
-                | CreateTrigger (Annotation) (NameComponent) (TriggerWhen) (([TriggerEvent])) (Name ) (TriggerFire) (String) (ScalarExprList ) 
+                | CreateTrigger (Annotation) (NameComponent) (TriggerWhen) (([TriggerEvent])) (Name ) (TriggerFire) (Name ) (ScalarExprList ) 
                 | CreateType (Annotation) (Name ) (TypeAttributeDefList ) 
                 | CreateView (Annotation) (Name ) (MaybeNameComponentList) (QueryExpr ) 
                 | Delete (Annotation) (Name ) (TableRefList ) (MaybeBoolExpr ) (MaybeSelectList ) 
@@ -9073,7 +9073,7 @@ sem_Statement (CreateTable _ann _name _atts _cons )  =
 sem_Statement (CreateTableAs _ann _name _expr )  =
     (sem_Statement_CreateTableAs _ann (sem_Name _name ) (sem_QueryExpr _expr ) )
 sem_Statement (CreateTrigger _ann _name _wh _events _tbl _firing _fnName _fnArgs )  =
-    (sem_Statement_CreateTrigger _ann _name _wh _events (sem_Name _tbl ) _firing _fnName (sem_ScalarExprList _fnArgs ) )
+    (sem_Statement_CreateTrigger _ann _name _wh _events (sem_Name _tbl ) _firing (sem_Name _fnName ) (sem_ScalarExprList _fnArgs ) )
 sem_Statement (CreateType _ann _name _atts )  =
     (sem_Statement_CreateType _ann (sem_Name _name ) (sem_TypeAttributeDefList _atts ) )
 sem_Statement (CreateView _ann _name _colNames _expr )  =
@@ -10485,7 +10485,7 @@ sem_Statement_CreateTrigger :: Annotation ->
                                ([TriggerEvent]) ->
                                T_Name  ->
                                TriggerFire ->
-                               String ->
+                               T_Name  ->
                                T_ScalarExprList  ->
                                T_Statement 
 sem_Statement_CreateTrigger ann_ name_ wh_ events_ tbl_ firing_ fnName_ fnArgs_  =
@@ -10502,6 +10502,9 @@ sem_Statement_CreateTrigger ann_ name_ wh_ events_ tbl_ firing_ fnName_ fnArgs_ 
               _tblOcat :: Catalog
               _tblOidenv :: IDEnv
               _tblOlib :: LocalBindings
+              _fnNameOcat :: Catalog
+              _fnNameOidenv :: IDEnv
+              _fnNameOlib :: LocalBindings
               _fnArgsOcat :: Catalog
               _fnArgsOidenv :: IDEnv
               _fnArgsOlib :: LocalBindings
@@ -10510,6 +10513,11 @@ sem_Statement_CreateTrigger ann_ name_ wh_ events_ tbl_ firing_ fnName_ fnArgs_ 
               _tblIoriginalTree :: Name 
               _tblItbAnnotatedTree :: Name 
               _tblItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
+              _fnNameIannotatedTree :: Name 
+              _fnNameIfixedUpIdentifiersTree :: Name 
+              _fnNameIoriginalTree :: Name 
+              _fnNameItbAnnotatedTree :: Name 
+              _fnNameItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _fnArgsIannotatedTree :: ScalarExprList 
               _fnArgsIfixedUpIdentifiersTree :: ScalarExprList 
               _fnArgsIoriginalTree :: ScalarExprList 
@@ -10525,13 +10533,13 @@ sem_Statement_CreateTrigger ann_ name_ wh_ events_ tbl_ firing_ fnName_ fnArgs_ 
                   []
               -- self rule
               _annotatedTree =
-                  CreateTrigger ann_ name_ wh_ events_ _tblIannotatedTree firing_ fnName_ _fnArgsIannotatedTree
+                  CreateTrigger ann_ name_ wh_ events_ _tblIannotatedTree firing_ _fnNameIannotatedTree _fnArgsIannotatedTree
               -- self rule
               _fixedUpIdentifiersTree =
-                  CreateTrigger ann_ name_ wh_ events_ _tblIfixedUpIdentifiersTree firing_ fnName_ _fnArgsIfixedUpIdentifiersTree
+                  CreateTrigger ann_ name_ wh_ events_ _tblIfixedUpIdentifiersTree firing_ _fnNameIfixedUpIdentifiersTree _fnArgsIfixedUpIdentifiersTree
               -- self rule
               _originalTree =
-                  CreateTrigger ann_ name_ wh_ events_ _tblIoriginalTree firing_ fnName_ _fnArgsIoriginalTree
+                  CreateTrigger ann_ name_ wh_ events_ _tblIoriginalTree firing_ _fnNameIoriginalTree _fnArgsIoriginalTree
               -- self rule
               _lhsOannotatedTree =
                   _annotatedTree
@@ -10551,6 +10559,15 @@ sem_Statement_CreateTrigger ann_ name_ wh_ events_ tbl_ firing_ fnName_ fnArgs_ 
               _tblOlib =
                   _lhsIlib
               -- copy rule (down)
+              _fnNameOcat =
+                  _lhsIcat
+              -- copy rule (down)
+              _fnNameOidenv =
+                  _lhsIidenv
+              -- copy rule (down)
+              _fnNameOlib =
+                  _lhsIlib
+              -- copy rule (down)
               _fnArgsOcat =
                   _lhsIcat
               -- copy rule (down)
@@ -10561,6 +10578,8 @@ sem_Statement_CreateTrigger ann_ name_ wh_ events_ tbl_ firing_ fnName_ fnArgs_ 
                   _lhsIlib
               ( _tblIannotatedTree,_tblIfixedUpIdentifiersTree,_tblIoriginalTree,_tblItbAnnotatedTree,_tblItbUType) =
                   tbl_ _tblOcat _tblOidenv _tblOlib 
+              ( _fnNameIannotatedTree,_fnNameIfixedUpIdentifiersTree,_fnNameIoriginalTree,_fnNameItbAnnotatedTree,_fnNameItbUType) =
+                  fnName_ _fnNameOcat _fnNameOidenv _fnNameOlib 
               ( _fnArgsIannotatedTree,_fnArgsIfixedUpIdentifiersTree,_fnArgsIoriginalTree,_fnArgsIuType) =
                   fnArgs_ _fnArgsOcat _fnArgsOexpectedTypes _fnArgsOidenv _fnArgsOlib 
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
@@ -14593,7 +14612,7 @@ sem_TypeNameList_Nil  =
    alternatives:
       alternative ParamAlias:
          child ann            : {Annotation}
-         child name           : {String}
+         child name           : {NameComponent}
          child i              : {Integer}
          visit 0:
             local annotatedTree : _
@@ -14601,15 +14620,15 @@ sem_TypeNameList_Nil  =
             local originalTree : _
       alternative VarAlias:
          child ann            : {Annotation}
-         child name           : {String}
-         child aliased        : {String}
+         child name           : {NameComponent}
+         child aliased        : Name 
          visit 0:
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
             local originalTree : _
       alternative VarDef:
          child ann            : {Annotation}
-         child name           : {String}
+         child name           : {NameComponent}
          child typ            : TypeName 
          child value          : {Maybe ScalarExpr}
          visit 0:
@@ -14617,9 +14636,9 @@ sem_TypeNameList_Nil  =
             local fixedUpIdentifiersTree : _
             local originalTree : _
 -}
-data VarDef  = ParamAlias (Annotation) (String) (Integer) 
-             | VarAlias (Annotation) (String) (String) 
-             | VarDef (Annotation) (String) (TypeName ) ((Maybe ScalarExpr)) 
+data VarDef  = ParamAlias (Annotation) (NameComponent) (Integer) 
+             | VarAlias (Annotation) (NameComponent) (Name ) 
+             | VarDef (Annotation) (NameComponent) (TypeName ) ((Maybe ScalarExpr)) 
              deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_VarDef :: VarDef  ->
@@ -14627,7 +14646,7 @@ sem_VarDef :: VarDef  ->
 sem_VarDef (ParamAlias _ann _name _i )  =
     (sem_VarDef_ParamAlias _ann _name _i )
 sem_VarDef (VarAlias _ann _name _aliased )  =
-    (sem_VarDef_VarAlias _ann _name _aliased )
+    (sem_VarDef_VarAlias _ann _name (sem_Name _aliased ) )
 sem_VarDef (VarDef _ann _name _typ _value )  =
     (sem_VarDef_VarDef _ann _name (sem_TypeName _typ ) _value )
 -- semantic domain
@@ -14644,7 +14663,7 @@ wrap_VarDef sem (Inh_VarDef _lhsIcat _lhsIidenv _lhsIlib )  =
     (let ( _lhsOannotatedTree,_lhsOdef,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree) = sem _lhsIcat _lhsIidenv _lhsIlib 
      in  (Syn_VarDef _lhsOannotatedTree _lhsOdef _lhsOfixedUpIdentifiersTree _lhsOoriginalTree ))
 sem_VarDef_ParamAlias :: Annotation ->
-                         String ->
+                         NameComponent ->
                          Integer ->
                          T_VarDef 
 sem_VarDef_ParamAlias ann_ name_ i_  =
@@ -14657,7 +14676,7 @@ sem_VarDef_ParamAlias ann_ name_ i_  =
               _lhsOoriginalTree :: VarDef 
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Plpgsql/Block.ag"(line 14, column 18)
               _lhsOdef =
-                  (name_, Nothing)
+                  (ncStr name_, Nothing)
               -- self rule
               _annotatedTree =
                   ParamAlias ann_ name_ i_
@@ -14678,8 +14697,8 @@ sem_VarDef_ParamAlias ann_ name_ i_  =
                   _originalTree
           in  ( _lhsOannotatedTree,_lhsOdef,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree)))
 sem_VarDef_VarAlias :: Annotation ->
-                       String ->
-                       String ->
+                       NameComponent ->
+                       T_Name  ->
                        T_VarDef 
 sem_VarDef_VarAlias ann_ name_ aliased_  =
     (\ _lhsIcat
@@ -14689,18 +14708,26 @@ sem_VarDef_VarAlias ann_ name_ aliased_  =
               _lhsOannotatedTree :: VarDef 
               _lhsOfixedUpIdentifiersTree :: VarDef 
               _lhsOoriginalTree :: VarDef 
+              _aliasedOcat :: Catalog
+              _aliasedOidenv :: IDEnv
+              _aliasedOlib :: LocalBindings
+              _aliasedIannotatedTree :: Name 
+              _aliasedIfixedUpIdentifiersTree :: Name 
+              _aliasedIoriginalTree :: Name 
+              _aliasedItbAnnotatedTree :: Name 
+              _aliasedItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Plpgsql/Block.ag"(line 13, column 16)
               _lhsOdef =
-                  (name_, Nothing)
+                  (ncStr name_, Nothing)
               -- self rule
               _annotatedTree =
-                  VarAlias ann_ name_ aliased_
+                  VarAlias ann_ name_ _aliasedIannotatedTree
               -- self rule
               _fixedUpIdentifiersTree =
-                  VarAlias ann_ name_ aliased_
+                  VarAlias ann_ name_ _aliasedIfixedUpIdentifiersTree
               -- self rule
               _originalTree =
-                  VarAlias ann_ name_ aliased_
+                  VarAlias ann_ name_ _aliasedIoriginalTree
               -- self rule
               _lhsOannotatedTree =
                   _annotatedTree
@@ -14710,9 +14737,20 @@ sem_VarDef_VarAlias ann_ name_ aliased_  =
               -- self rule
               _lhsOoriginalTree =
                   _originalTree
+              -- copy rule (down)
+              _aliasedOcat =
+                  _lhsIcat
+              -- copy rule (down)
+              _aliasedOidenv =
+                  _lhsIidenv
+              -- copy rule (down)
+              _aliasedOlib =
+                  _lhsIlib
+              ( _aliasedIannotatedTree,_aliasedIfixedUpIdentifiersTree,_aliasedIoriginalTree,_aliasedItbAnnotatedTree,_aliasedItbUType) =
+                  aliased_ _aliasedOcat _aliasedOidenv _aliasedOlib 
           in  ( _lhsOannotatedTree,_lhsOdef,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree)))
 sem_VarDef_VarDef :: Annotation ->
-                     String ->
+                     NameComponent ->
                      T_TypeName  ->
                      (Maybe ScalarExpr) ->
                      T_VarDef 
@@ -14733,9 +14771,9 @@ sem_VarDef_VarDef ann_ name_ typ_ value_  =
               _typIoriginalTree :: TypeName 
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Plpgsql/Block.ag"(line 10, column 14)
               _lhsOdef =
-                  (name_, if _typInamedType == Just (Pseudo Record)
-                          then Just (PgRecord Nothing)
-                          else _typInamedType)
+                  (ncStr name_, if _typInamedType == Just (Pseudo Record)
+                                then Just (PgRecord Nothing)
+                                else _typInamedType)
               -- self rule
               _annotatedTree =
                   VarDef ann_ name_ _typIannotatedTree value_

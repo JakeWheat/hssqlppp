@@ -195,7 +195,7 @@ Conversion routines - convert Sql asts into Docs
 >       convFnBody (PlpgsqlFnBody ann1 blk) =
 >           convPa ca ann1 <+>
 >           convStatement nice True ca blk
->       convParamDef (ParamDef _ n t) = text n <+> convTypeName t
+>       convParamDef (ParamDef _ n t) = convNC n <+> convTypeName t
 >       convParamDef  (ParamDefTp _ t) = convTypeName t
 >
 > convStatement nice se ca (Block ann lb decls sts) =
@@ -208,12 +208,12 @@ Conversion routines - convert Sql asts into Docs
 >   $+$ text "end" <> statementEnd se
 >   where
 >       convVarDef (VarDef _ n t v) =
->         text n <+> convTypeName t
+>         convNC n <+> convTypeName t
 >         <+> maybeConv (\x -> text ":=" <+> convExp nice x) v <> semi
 >       convVarDef (VarAlias _ n n1) =
->         text n <+> text "alias for" <+> text n1 <> semi
+>         convNC n <+> text "alias for" <+> convName n1 <> semi
 >       convVarDef (ParamAlias _ n p) =
->         text n <+> text "alias for $" <> text (show p) <> semi
+>         convNC n <+> text "alias for $" <> text (show p) <> semi
 >
 >
 > convStatement nice se ca (CreateView ann name cols sel) =
@@ -281,7 +281,7 @@ Conversion routines - convert Sql asts into Docs
 >     <+> text "for" <+> text (case firing of
 >                                         EachRow -> "row"
 >                                         EachStatement -> "statement")
->     <+> text "execute procedure" <+> text fnName
+>     <+> text "execute procedure" <+> convName fnName
 >     <> parens (sepCsvMap (convExp nice) fnArgs) <> statementEnd se
 >     where
 >       evs = sep $ punctuate (text " or ") $ map

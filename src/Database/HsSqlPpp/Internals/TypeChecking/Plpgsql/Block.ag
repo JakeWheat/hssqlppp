@@ -7,11 +7,11 @@ ATTR VarDefList [||defs : {[(String,Maybe Type)]}]
 --slightly hacky, should fix this better
 -- this is going to change when plpgsql blocks are supported properly
 SEM VarDef
-    | VarDef lhs.def = (@name, if @typ.namedType == Just (Pseudo Record)
-                               then Just (PgRecord Nothing)
-                               else @typ.namedType)
-    | VarAlias lhs.def = (@name, Nothing)
-    | ParamAlias lhs.def = (@name, Nothing)
+    | VarDef lhs.def = (ncStr @name, if @typ.namedType == Just (Pseudo Record)
+                                     then Just (PgRecord Nothing)
+                                     else @typ.namedType)
+    | VarAlias lhs.def = (ncStr @name, Nothing)
+    | ParamAlias lhs.def = (ncStr @name, Nothing)
 
 SEM VarDefList
     | Cons lhs.defs = @hd.def : @tl.defs

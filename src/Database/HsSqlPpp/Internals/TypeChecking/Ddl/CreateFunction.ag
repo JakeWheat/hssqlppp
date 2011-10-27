@@ -44,7 +44,7 @@ SEM ParamDef
     | ParamDef ParamDefTp
         lhs.namedType = @typ.namedType
     | ParamDef
-        lhs.paramName = NamedParam @lhs.pos @name
+        lhs.paramName = NamedParam @lhs.pos (ncStr @name)
     | ParamDefTp
         lhs.paramName = UnnamedParam @lhs.pos
 

@@ -205,7 +205,7 @@ data JoinExpr = JoinOn Annotation ScalarExpr
 data Name = Name Annotation [NameComponent]
           deriving (Data, Eq, Show, Typeable)
  
-data ParamDef = ParamDef Annotation String TypeName
+data ParamDef = ParamDef Annotation NameComponent TypeName
               | ParamDefTp Annotation TypeName
               deriving (Data, Eq, Show, Typeable)
  
@@ -287,7 +287,7 @@ data Statement = AlterSequence Annotation Name Name
                | CreateTable Annotation Name AttributeDefList ConstraintList
                | CreateTableAs Annotation Name QueryExpr
                | CreateTrigger Annotation NameComponent TriggerWhen [TriggerEvent]
-                               Name TriggerFire String ScalarExprList
+                               Name TriggerFire Name ScalarExprList
                | CreateType Annotation Name TypeAttributeDefList
                | CreateView Annotation Name MaybeNameComponentList QueryExpr
                | Delete Annotation Name TableRefList MaybeBoolExpr MaybeSelectList
@@ -343,9 +343,9 @@ data TypeName = ArrayTypeName Annotation TypeName
               | SimpleTypeName Annotation String
               deriving (Data, Eq, Show, Typeable)
  
-data VarDef = ParamAlias Annotation String Integer
-            | VarAlias Annotation String String
-            | VarDef Annotation String TypeName (Maybe ScalarExpr)
+data VarDef = ParamAlias Annotation NameComponent Integer
+            | VarAlias Annotation NameComponent Name
+            | VarDef Annotation NameComponent TypeName (Maybe ScalarExpr)
             deriving (Data, Eq, Show, Typeable)
  
 data WithQuery = WithQuery Annotation NameComponent
@@ -658,7 +658,7 @@ name x
 paramDef :: ParamDef -> A.ParamDef
 paramDef x
   = case x of
-        ParamDef a1 a2 a3 -> A.ParamDef a1 a2 (typeName a3)
+        ParamDef a1 a2 a3 -> A.ParamDef a1 (nameComponent a2) (typeName a3)
         ParamDefTp a1 a2 -> A.ParamDefTp a1 (typeName a2)
  
 queryExpr :: QueryExpr -> A.QueryExpr
@@ -806,7 +806,7 @@ statement x
                                                    (fmap triggerEvent a4)
                                                    (name a5)
                                                    (triggerFire a6)
-                                                   a7
+                                                   (name a7)
                                                    (scalarExprList a8)
         CreateType a1 a2 a3 -> A.CreateType a1 (name a2)
                                  (typeAttributeDefList a3)
@@ -905,9 +905,9 @@ typeName x
 varDef :: VarDef -> A.VarDef
 varDef x
   = case x of
-        ParamAlias a1 a2 a3 -> A.ParamAlias a1 a2 a3
-        VarAlias a1 a2 a3 -> A.VarAlias a1 a2 a3
-        VarDef a1 a2 a3 a4 -> A.VarDef a1 a2 (typeName a3)
+        ParamAlias a1 a2 a3 -> A.ParamAlias a1 (nameComponent a2) a3
+        VarAlias a1 a2 a3 -> A.VarAlias a1 (nameComponent a2) (name a3)
+        VarDef a1 a2 a3 a4 -> A.VarDef a1 (nameComponent a2) (typeName a3)
                                 (maybeScalarExpr a4)
  
 withQuery :: WithQuery -> A.WithQuery

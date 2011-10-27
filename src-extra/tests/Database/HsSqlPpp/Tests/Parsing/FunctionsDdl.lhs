@@ -29,8 +29,8 @@
 >         \end;\n\
 >         \$$ language plpgsql volatile;"
 >       [CreateFunction ea (dqi "fn") [] (SimpleTypeName ea "void") NoReplace Plpgsql
->        (PlpgsqlFnBody ea (Block ea Nothing [VarDef ea "a" (SimpleTypeName ea "int") Nothing
->                                            ,VarDef ea "b" (SimpleTypeName ea "text") Nothing]
+>        (PlpgsqlFnBody ea (Block ea Nothing [VarDef ea (Nmc "a") (SimpleTypeName ea "int") Nothing
+>                                            ,VarDef ea (Nmc "b") (SimpleTypeName ea "text") Nothing]
 >                           [NullStatement ea]))
 >        Volatile]
 >      ,s "create function fn() returns void as $$\n\
@@ -43,8 +43,8 @@
 >         \$$ language plpgsql volatile;"
 >       [CreateFunction ea (dqi "fn") [] (SimpleTypeName ea "void") NoReplace Plpgsql
 >        (PlpgsqlFnBody ea
->         (Block ea Nothing [VarDef ea "a" (SimpleTypeName ea "int") Nothing
->                           ,VarDef ea "b" (SimpleTypeName ea "text") Nothing]
+>         (Block ea Nothing [VarDef ea (Nmc "a") (SimpleTypeName ea "int") Nothing
+>                           ,VarDef ea (Nmc "b") (SimpleTypeName ea "text") Nothing]
 >         [NullStatement ea]))
 >        Volatile]
 >      ,s "create function fn(a text[]) returns int[] as $$\n\
@@ -55,11 +55,11 @@
 >         \end;\n\
 >         \$$ language plpgsql immutable;"
 >       [CreateFunction ea (dqi "fn")
->        [ParamDef ea "a" $ ArrayTypeName ea $ SimpleTypeName ea "text"]
+>        [ParamDef ea (Nmc "a") $ ArrayTypeName ea $ SimpleTypeName ea "text"]
 >        (ArrayTypeName ea $ SimpleTypeName ea "int") NoReplace Plpgsql
 >        (PlpgsqlFnBody ea
 >         (Block ea Nothing
->          [VarDef ea "b" (ArrayTypeName ea $ SimpleTypeName ea "xtype") (Just $ stringQ "{}")]
+>          [VarDef ea (Nmc "b") (ArrayTypeName ea $ SimpleTypeName ea "xtype") (Just $ stringQ "{}")]
 >          [NullStatement ea]))
 >        Immutable]
 >      ,s "create function fn() returns void as '\n\
@@ -72,7 +72,7 @@
 >       [CreateFunction ea (dqi "fn") [] (SimpleTypeName ea "void") NoReplace Plpgsql
 >        (PlpgsqlFnBody ea
 >         (Block ea Nothing
->          [VarDef ea "a" (SimpleTypeName ea "int") (Just $ NumberLit ea "3")]
+>          [VarDef ea (Nmc "a") (SimpleTypeName ea "int") (Just $ NumberLit ea "3")]
 >          [NullStatement ea]))
 >        Stable]
 >      ,s "create function fn(int) returns void as '\n\
@@ -87,7 +87,7 @@
 >        (SimpleTypeName ea "void") NoReplace Plpgsql
 >        (PlpgsqlFnBody ea
 >         (Block ea Nothing
->          [ParamAlias ea "a" 1]
+>          [ParamAlias ea (Nmc "a") 1]
 >          [NullStatement ea]))
 >        Stable]
 >      ,s "create function fn(b int) returns void as '\n\
@@ -98,11 +98,11 @@
 >         \end;\n\
 >         \' language plpgsql stable;"
 >       [CreateFunction ea (dqi "fn")
->        [ParamDef ea "b" $ SimpleTypeName ea "int"]
+>        [ParamDef ea (Nmc "b") $ SimpleTypeName ea "int"]
 >        (SimpleTypeName ea "void") NoReplace Plpgsql
 >        (PlpgsqlFnBody ea
 >         (Block ea Nothing
->          [VarAlias ea "a" "b"]
+>          [VarAlias ea (Nmc "a") (dqi "b")]
 >          [NullStatement ea]))
 >        Stable]
 >      ,s "create function fn() returns setof int as $$\n\

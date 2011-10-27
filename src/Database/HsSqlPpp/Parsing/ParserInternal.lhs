@@ -793,7 +793,7 @@ params to a function
 
 > param :: SParser ParamDef
 > param = choice [
->          try (ParamDef <$> pos <*> idString <*> typeName)
+>          try (ParamDef <$> pos <*> nameComponent <*> typeName)
 >         ,ParamDefTp <$> pos <*> typeName]
 
 variable declarations in a plpgsql function
@@ -801,12 +801,12 @@ variable declarations in a plpgsql function
 > varDef :: SParser VarDef
 > varDef = do
 >   p <- pos
->   a <- idString
+>   a <- nameComponent
 >   choice [do
 >           keyword "alias"
 >           keyword "for"
 >           choice [
->             VarAlias p a <$> idString
+>             VarAlias p a <$> name
 >            ,ParamAlias p a <$> liftPositionalArgTok]
 >          ,VarDef p a
 >           <$> typeName
@@ -879,7 +879,7 @@ variable declarations in a plpgsql function
 >                 <*> (keyword "on" *> name)
 >                 <*> tfiring
 >                 <*> (keyword "execute" *> keyword "procedure"
->                      *> idString)
+>                      *> name)
 >                 <*> parens (commaSep expr)
 >   where
 >     twhen = choice [TriggerBefore <$ keyword "before"

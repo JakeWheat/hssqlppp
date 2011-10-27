@@ -40,7 +40,7 @@
 >          \after insert or delete on tb\n\
 >          \for each statement\n\
 >          \execute procedure fb();"
->         [CreateTrigger ea (Nmc "tr") TriggerAfter [TInsert,TDelete] (dqi "tb") EachStatement "fb" []]
+>         [CreateTrigger ea (Nmc "tr") TriggerAfter [TInsert,TDelete] (dqi "tb") EachStatement (dqi "fb") []]
 >      ]
 >
 >     ,Group "drops" [
