@@ -182,10 +182,10 @@ addSIAlias (SelExp ann ex) = SelectItem ann ex $ getColName ex
     getColName (Identifier _ i) = i
     getColName (QIdentifier _ is) = last is
     getColName (FunCall _ f@(Name _ ncs) _) | not (isOperatorName $ getTName f) = last ncs
-    getColName (Cast _ _ (SimpleTypeName _ tn)) = Nmc tn
+    getColName (Cast _ _ (SimpleTypeName _ tn)) = QNmc tn
     getColName (WindowFn _ (FunCall _ f@(Name _ ncs) _) _ _ _) = last ncs
     getColName (AggregateFn _ _ (FunCall _ f@(Name _ ncs) _) _) = last ncs
-    getColName _ = Nmc "?column?"
+    getColName _ = QNmc "?column?"
 
 }
 
