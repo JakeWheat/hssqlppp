@@ -84,7 +84,7 @@ aliasEnv (TableAlias _ t) ids = TableAliasIDEnv t ids
 aliasEnv (FullAlias _ t cs) ids = FullAliasIDEnv t cs ids
 
 
-getTableTrefEnv :: Catalog -> SQIdentifier -> IDEnv
+getTableTrefEnv :: Catalog -> Name -> IDEnv
 getTableTrefEnv cat si =
     let tn = getTName si
         (pus,pvs) = either (const ([],[])) id

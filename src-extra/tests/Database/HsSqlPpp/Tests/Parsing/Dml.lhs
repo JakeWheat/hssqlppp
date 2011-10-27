@@ -18,7 +18,7 @@ from in update, using in delete (+ type check these)
 >         \values (1,2);\n"
 >        [Insert ea
 >         (dqi "testtable")
->         [Name "columna", Name "columnb"]
+>         [Nmc "columna", Nmc "columnb"]
 >         (Values ea [[NumberLit ea "1", NumberLit ea "2"]])
 >         Nothing]
 
@@ -34,7 +34,7 @@ that should be in the select section?
 >         \values (1,2), (3,4);\n"
 >       [Insert ea
 >         (dqi "testtable")
->         [Name "columna", Name "columnb"]
+>         [Nmc "columna", Nmc "columnb"]
 >         (Values ea [[NumberLit ea "1", NumberLit ea "2"]
 >                 ,[NumberLit ea "3", NumberLit ea "4"]])
 >         Nothing]
@@ -52,7 +52,7 @@ insert from select
 >         \values (1,2) returning id;\n"
 >       [Insert ea
 >         (dqi "testtable")
->         [Name "columna", Name "columnb"]
+>         [Nmc "columna", Nmc "columnb"]
 >         (Values ea [[NumberLit ea "1", NumberLit ea "2"]])
 >         (Just $ sl [selI "id"])]
 >      ]
@@ -116,7 +116,7 @@ copy, bit crap at the moment
 >         \bat\tt\n\
 >         \bear\tf\n\
 >         \\\.\n"
->       [Copy ea (dqi "tbl") [Name "a", Name "b"] Stdin
+>       [Copy ea (dqi "tbl") [Nmc "a", Nmc "b"] Stdin
 >        ,CopyData ea "\
 >         \bat\tt\n\
 >         \bear\tf\n"]

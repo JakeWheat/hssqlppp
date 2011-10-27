@@ -9,7 +9,7 @@ check the set clause assignments are ok, and inject ids into the where part
 -}
 {
 makeTrefLib :: Catalog
-            -> SQIdentifier
+            -> Name
             -> Maybe ([(String,Type)],[(String,Type)])
             -> E LocalBindings
 makeTrefLib cat si tbUType = Right $ createLocalBindings $ do

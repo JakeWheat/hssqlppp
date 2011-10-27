@@ -309,12 +309,8 @@ this recursion needs refactoring cos it's a mess
 > into = do
 >   p <- pos <* keyword "into"
 >   st <- option False (True <$ keyword "strict")
->   is <- commaSep1 ii
+>   is <- commaSep1 name
 >   return $ \s -> Into p st is s
->   where
->     ii = IntoIdentifier
->          <$> pos
->          <*> sepBy1 idString (symbol ".")
 
 > intoQueryStatement :: SParser Statement
 > intoQueryStatement = do
@@ -418,7 +414,7 @@ then we combine by seeing if there is a join looking prefix
 >                          <$> try (identifier >>= functionCallSuffix)
 >                          <*> palias
 >                         ,Tref p2
->                          <$> nonKeywordSQIdentifier
+>                          <$> nonKeywordName
 >                          <*> palias]
 >         joinKw :: SParser (Natural, JoinType)
 >         joinKw = do
@@ -490,12 +486,6 @@ then we combine by seeing if there is a join looking prefix
 >           -> SParser a
 > optParens p = try (parens p) <|> p
 
-> sqIdentifier :: SParser SQIdentifier
-> sqIdentifier = SQIdentifier <$> pos <*> name
-
-> nonKeywordSQIdentifier :: SParser SQIdentifier
-> nonKeywordSQIdentifier = SQIdentifier <$> pos <*> nonKeywordName
-
 
 insert, update and delete
 -------------------------
@@ -506,7 +496,7 @@ multiple rows to insert and insert from select statements
 > insert :: SParser Statement
 > insert = Insert
 >          <$> pos <* keyword "insert" <* keyword "into"
->          <*> sqIdentifier
+>          <*> name
 >          <*> option [] (try columnNameList)
 >          <*> pQueryExpr
 >          <*> tryOptionMaybe returning
@@ -514,7 +504,7 @@ multiple rows to insert and insert from select statements
 > update :: SParser Statement
 > update = Update
 >          <$> pos <* keyword "update"
->          <*> sqIdentifier
+>          <*> name
 >          <*> (keyword "set" *> commaSep1 setClause)
 >          <*> option [] (keyword "from" *> commaSep1 tableRef)
 >          <*> tryOptionMaybe whereClause
@@ -537,7 +527,7 @@ multiple rows to insert and insert from select statements
 > delete :: SParser Statement
 > delete = Delete
 >          <$> pos <* keyword "delete" <* keyword "from"
->          <*> sqIdentifier
+>          <*> name
 >          <*> option [] (keyword "using" *> commaSep1 tableRef)
 >          <*> tryOptionMaybe whereClause
 >          <*> tryOptionMaybe returning
@@ -562,7 +552,7 @@ other dml-type stuff
 > copy = do
 >        p <- pos
 >        keyword "copy"
->        tableName <- sqIdentifier
+>        tableName <- name
 >        cols <- option [] (parens $ commaSep1 nameComponent)
 >        keyword "from"
 >        src <- choice [
@@ -736,7 +726,7 @@ ddl
 >                               <*> (keyword "sequence" *> idString)
 >                               <*> (keyword "owned"
 >                                    *> keyword "by"
->                                    *> sqIdentifier)
+>                                    *> name)
 
 create function, support sql functions and plpgsql functions. Parses
 the body in both cases and provides a statement list for the body
@@ -1670,17 +1660,15 @@ instead of the full parser which allows keywords. Also not sure if
 keywords used in qualified names should be rejected the same as
 keywords which are unqualified.
 
-> ncStr :: NameComponent -> String
-> ncStr (Name n) = n
-
-> nonKeywordName :: SParser [NameComponent]
-> nonKeywordName = do
->   x <- name
->   if any (`elem` badKeywords) $ map ncStr x
+> nonKeywordNcs :: SParser [NameComponent]
+> nonKeywordNcs = do
+>   x <- ncs
+>   if any (`elem` badKeywords) x
 >     then fail "not keyword"
 >     else return x
 >   where
->     badKeywords = ["as"
+>     badKeywords = map Nmc
+>                   ["as"
 >                   ,"where"
 >                   ,"except"
 >                   ,"union"
@@ -1700,14 +1688,19 @@ keywords which are unqualified.
 >                   ,"using"
 >                   ,"from"]
 
-> name :: SParser [NameComponent]
-> name = do
+todo: these should be the main two parsers for names, name components,
+identifiers, etc. Everything should work through here. These should
+handle quoted identifiers, antiquotes, etc. Then can get rid of the 50
+odd different parsers for ids and id like things.
+
+> ncs :: SParser [NameComponent]
+> ncs = do
 >   --p <- pos
 >   i <- idString
 >   choice [do
 >           is <- suffix
->           return $ Name i : is
->          ,return [Name i]
+>           return $ Nmc i : is
+>          ,return [Nmc i]
 >          ]
 >   where
 >     suffix = do
@@ -1716,14 +1709,20 @@ keywords which are unqualified.
 >         choice [do
 >                 --p <- pos
 >                 is <- suffix
->                 return $ Name i1 : is
+>                 return $ Nmc i1 : is
 >                ,do
 >                 --p <- pos
->                 return [Name i1]
+>                 return [Nmc i1]
 >                ]
 
+> name :: SParser Name
+> name = Name <$> pos <*> ncs
+
+> nonKeywordName :: SParser Name
+> nonKeywordName = Name <$> pos <*> nonKeywordNcs
+
 > nameComponent :: SParser NameComponent
-> nameComponent = Name <$> idString
+> nameComponent = Nmc <$> idString
 
 
 --------------------------------------------------------------------------------

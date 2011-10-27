@@ -83,10 +83,9 @@ MODULE {Database.HsSqlPpp.Internals.AstInternal}
    ,Replace(..)
    ,RestartIdentity (..)
    ,ScalarExpr (..)
-   ,SQIdentifier(..)
+   ,Name(..)
    ,NameComponent(..)
    ,ncStr
-   ,IntoIdentifier(..)
    ,IntervalField(..)
    ,ExtractField(..)
    ,FrameClause(..)
@@ -177,26 +176,26 @@ DATA Statement
 
     --table targetcolumns insertdata(values or select statement) returning
     | Insert ann:Annotation
-             table : SQIdentifier
+             table : Name
              targetCols : {[NameComponent]}
              insData : QueryExpr
              returning : MaybeSelectList
     --tablename setitems where returning
     | Update ann:Annotation
-             table : SQIdentifier
+             table : Name
              assigns : SetClauseList
              fromList : TableRefList
              whr : MaybeBoolExpr
              returning : MaybeSelectList
     --tablename, where, returning
     | Delete ann:Annotation
-             table : SQIdentifier
+             table : Name
              using : TableRefList
              whr : MaybeBoolExpr
              returning : MaybeSelectList
     --tablename column names, from
     | Copy ann:Annotation
-           table : SQIdentifier
+           table : Name
            targetCols : {[NameComponent]}
            source : CopySource
     --represents inline data for copy statement
@@ -224,7 +223,7 @@ DATA Statement
                      cache:Integer
     | AlterSequence ann:Annotation
                     name:String
-                    ownedBy: SQIdentifier
+                    ownedBy: Name
     | CreateTableAs ann:Annotation
                     name : String
                     expr : QueryExpr
@@ -283,7 +282,7 @@ DATA Statement
                    stmt:Statement -}
     | Into ann:Annotation
            strict:Bool
-           into : {[IntoIdentifier]}
+           into : {[Name]}
            stmt : Statement
     | Assignment ann:Annotation
                  target : ScalarExpr
@@ -347,23 +346,20 @@ DATA Statement
 -- should be used in more places in the ast
 {
 
-data NameComponent = Name String
+data NameComponent = Nmc String
                      deriving (Data,Eq,Show,Typeable)
 -- this is a transition function
 -- it should be removed when ready, since all the code
 -- should be working with NameComponents directly
 ncStr :: NameComponent -> String
-ncStr (Name n) = n
+ncStr (Nmc n) = n
 }
 
-DATA SQIdentifier | SQIdentifier ann:Annotation is:{[NameComponent]}
+DATA Name | Name ann:Annotation is:{[NameComponent]}
 
 -- into identifiers for the targets in into expressions
 -- syntactically the same is sqidentifier, should this
 -- use separate syntax?
-
-DATA IntoIdentifier | IntoIdentifier ann:Annotation is:{[String]}
-
 
 DATA QueryExpr
     | Select ann:Annotation
@@ -396,7 +392,7 @@ DATA FnBody | SqlFnBody ann:Annotation sts : StatementList
             | PlpgsqlFnBody ann:Annotation blk : Statement
 
 DATA TableRef | Tref ann:Annotation
-                     tbl:SQIdentifier
+                     tbl:Name
                      alias : TableAlias
               | JoinTref ann:Annotation
                          tbl : TableRef
@@ -826,7 +822,7 @@ SET AllNodes = Statement QueryExpr FnBody TableRef
                ScalarExprDirectionPair
                ScalarExprDirectionPairList AlterTableActionList
                WithQueryList WithQuery
-               SQIdentifier IntoIdentifier
+               Name
                TableAlias
                SetClause SetClauseList
 

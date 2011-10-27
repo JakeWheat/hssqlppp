@@ -43,7 +43,7 @@ SEM TypeName
 = generic node types
 
 
-== SQIdentifier
+== Name
 will be used for all possibly schema qualified strings
 
 Just used for table names atm in the type checking.
@@ -58,11 +58,11 @@ names and types for a recognised table.
 
 
 
-ATTR SQIdentifier [||tbUType : {Maybe ([(String,Type)],[(String,Type)])}
-                     tbAnnotatedTree : SQIdentifier]
+ATTR Name [||tbUType : {Maybe ([(String,Type)],[(String,Type)])}
+                     tbAnnotatedTree : Name]
 
-SEM SQIdentifier
-    | SQIdentifier
+SEM Name
+    | Name
         loc.tpe : {E ([(String,Type)],[(String,Type)])}
         loc.tpe = catCompositeAttrsPair @lhs.cat relationComposites
                      (getUnqual @is) -- todo - needs fixing to not ignore qualifiers
@@ -70,7 +70,7 @@ SEM SQIdentifier
         lhs.tbAnnotatedTree =
               updateAnnotation
                 (\a -> a {errs = errs a ++ tes @loc.tpe}) @loc.backTree
-        loc.backTree = SQIdentifier @ann @is
+        loc.backTree = Name @ann @is
 
 {
 getUnqual :: [NameComponent] -> String
@@ -115,8 +115,8 @@ getName (FunCall _ "." [Identifier _ _,Identifier _ i]) = i
 getName (FunCall _ "." [_,a]) = getName a
 getName x = error $ "internal error getName called on: " ++ show x
 
-getTName :: SQIdentifier -> String
-getTName (SQIdentifier _ n) = getUnqual n
+getTName :: Name -> String
+getTName (Name _ n) = getUnqual n
 getTName x = error $ "internal error getName called on: " ++ show x
 
 

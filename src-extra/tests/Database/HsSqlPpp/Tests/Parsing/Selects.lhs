@@ -150,7 +150,7 @@
 >       [QueryStatement ea $ selectFrom
 >        (selIL ["a"])
 >        (JoinTref ea (Tref ea (i "b") (NoAlias ea)) Unnatural Inner (Tref ea (i "c") (NoAlias ea))
->           (Just (JoinUsing ea [Name "d",Name "e"])) (NoAlias ea))]
+>           (Just (JoinUsing ea [Nmc "d",Nmc "e"])) (NoAlias ea))]
 >      ,s "select a from b natural inner join c;"
 >       [QueryStatement ea $ selectFrom
 >        (selIL ["a"])

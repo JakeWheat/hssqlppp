@@ -40,10 +40,9 @@ module Database.HsSqlPpp.Internals.AstInternal(
    ,Replace(..)
    ,RestartIdentity (..)
    ,ScalarExpr (..)
-   ,SQIdentifier(..)
+   ,Name(..)
    ,NameComponent(..)
    ,ncStr
-   ,IntoIdentifier(..)
    ,IntervalField(..)
    ,ExtractField(..)
    ,FrameClause(..)
@@ -115,13 +114,13 @@ import Database.HsSqlPpp.Internals.TypeChecking.IDEnv
 
 
 
-data NameComponent = Name String
+data NameComponent = Nmc String
                      deriving (Data,Eq,Show,Typeable)
 -- this is a transition function
 -- it should be removed when ready, since all the code
 -- should be working with NameComponents directly
 ncStr :: NameComponent -> String
-ncStr (Name n) = n
+ncStr (Nmc n) = n
 
 
 data JoinType = Inner | LeftOuter| RightOuter | FullOuter | Cross
@@ -319,7 +318,7 @@ aliasEnv (TableAlias _ t) ids = TableAliasIDEnv t ids
 aliasEnv (FullAlias _ t cs) ids = FullAliasIDEnv t cs ids
 
 
-getTableTrefEnv :: Catalog -> SQIdentifier -> IDEnv
+getTableTrefEnv :: Catalog -> Name -> IDEnv
 getTableTrefEnv cat si =
     let tn = getTName si
         (pus,pvs) = either (const ([],[])) id
@@ -428,8 +427,8 @@ getName (FunCall _ "." [Identifier _ _,Identifier _ i]) = i
 getName (FunCall _ "." [_,a]) = getName a
 getName x = error $ "internal error getName called on: " ++ show x
 
-getTName :: SQIdentifier -> String
-getTName (SQIdentifier _ n) = getUnqual n
+getTName :: Name -> String
+getTName (Name _ n) = getUnqual n
 getTName x = error $ "internal error getName called on: " ++ show x
 
 
@@ -547,7 +546,7 @@ unwrapSetof v = v
 
 
 makeTrefLib :: Catalog
-            -> SQIdentifier
+            -> Name
             -> Maybe ([(String,Type)],[(String,Type)])
             -> E LocalBindings
 makeTrefLib cat si tbUType = Right $ createLocalBindings $ do
@@ -2124,75 +2123,6 @@ sem_InList_InQueryExpr ann_ sel_  =
               ( _selIannotatedTree,_selIcidenv,_selIfixedUpIdentifiersTree,_selIlibUpdates,_selIoriginalTree,_selIuType) =
                   sel_ _selOcat _selOcsql _selOexpectedTypes _selOidenv _selOlib 
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOlistType,_lhsOoriginalTree)))
--- IntoIdentifier ----------------------------------------------
-{-
-   visit 0:
-      inherited attributes:
-         cat                  : Catalog
-         idenv                : IDEnv
-         lib                  : LocalBindings
-      synthesized attributes:
-         annotatedTree        : SELF 
-         fixedUpIdentifiersTree : SELF 
-         originalTree         : SELF 
-   alternatives:
-      alternative IntoIdentifier:
-         child ann            : {Annotation}
-         child is             : {[String]}
-         visit 0:
-            local annotatedTree : _
-            local fixedUpIdentifiersTree : _
-            local originalTree : _
--}
-data IntoIdentifier  = IntoIdentifier (Annotation) (([String])) 
-                     deriving ( Data,Eq,Show,Typeable)
--- cata
-sem_IntoIdentifier :: IntoIdentifier  ->
-                      T_IntoIdentifier 
-sem_IntoIdentifier (IntoIdentifier _ann _is )  =
-    (sem_IntoIdentifier_IntoIdentifier _ann _is )
--- semantic domain
-type T_IntoIdentifier  = Catalog ->
-                         IDEnv ->
-                         LocalBindings ->
-                         ( IntoIdentifier ,IntoIdentifier ,IntoIdentifier )
-data Inh_IntoIdentifier  = Inh_IntoIdentifier {cat_Inh_IntoIdentifier :: Catalog,idenv_Inh_IntoIdentifier :: IDEnv,lib_Inh_IntoIdentifier :: LocalBindings}
-data Syn_IntoIdentifier  = Syn_IntoIdentifier {annotatedTree_Syn_IntoIdentifier :: IntoIdentifier ,fixedUpIdentifiersTree_Syn_IntoIdentifier :: IntoIdentifier ,originalTree_Syn_IntoIdentifier :: IntoIdentifier }
-wrap_IntoIdentifier :: T_IntoIdentifier  ->
-                       Inh_IntoIdentifier  ->
-                       Syn_IntoIdentifier 
-wrap_IntoIdentifier sem (Inh_IntoIdentifier _lhsIcat _lhsIidenv _lhsIlib )  =
-    (let ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree) = sem _lhsIcat _lhsIidenv _lhsIlib 
-     in  (Syn_IntoIdentifier _lhsOannotatedTree _lhsOfixedUpIdentifiersTree _lhsOoriginalTree ))
-sem_IntoIdentifier_IntoIdentifier :: Annotation ->
-                                     ([String]) ->
-                                     T_IntoIdentifier 
-sem_IntoIdentifier_IntoIdentifier ann_ is_  =
-    (\ _lhsIcat
-       _lhsIidenv
-       _lhsIlib ->
-         (let _lhsOannotatedTree :: IntoIdentifier 
-              _lhsOfixedUpIdentifiersTree :: IntoIdentifier 
-              _lhsOoriginalTree :: IntoIdentifier 
-              -- self rule
-              _annotatedTree =
-                  IntoIdentifier ann_ is_
-              -- self rule
-              _fixedUpIdentifiersTree =
-                  IntoIdentifier ann_ is_
-              -- self rule
-              _originalTree =
-                  IntoIdentifier ann_ is_
-              -- self rule
-              _lhsOannotatedTree =
-                  _annotatedTree
-              -- self rule
-              _lhsOfixedUpIdentifiersTree =
-                  _fixedUpIdentifiersTree
-              -- self rule
-              _lhsOoriginalTree =
-                  _originalTree
-          in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree)))
 -- JoinExpr ----------------------------------------------------
 {-
    visit 0:
@@ -2708,6 +2638,96 @@ sem_MaybeSelectList_Nothing  =
               _lhsOoriginalTree =
                   _originalTree
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOlistType,_lhsOoriginalTree)))
+-- Name --------------------------------------------------------
+{-
+   visit 0:
+      inherited attributes:
+         cat                  : Catalog
+         idenv                : IDEnv
+         lib                  : LocalBindings
+      synthesized attributes:
+         annotatedTree        : SELF 
+         fixedUpIdentifiersTree : SELF 
+         originalTree         : SELF 
+         tbAnnotatedTree      : Name 
+         tbUType              : Maybe ([(String,Type)],[(String,Type)])
+   alternatives:
+      alternative Name:
+         child ann            : {Annotation}
+         child is             : {[NameComponent]}
+         visit 0:
+            local tpe         : {E ([(String,Type)],[(String,Type)])}
+            local backTree    : _
+            local annotatedTree : _
+            local fixedUpIdentifiersTree : _
+            local originalTree : _
+-}
+data Name  = Name (Annotation) (([NameComponent])) 
+           deriving ( Data,Eq,Show,Typeable)
+-- cata
+sem_Name :: Name  ->
+            T_Name 
+sem_Name (Name _ann _is )  =
+    (sem_Name_Name _ann _is )
+-- semantic domain
+type T_Name  = Catalog ->
+               IDEnv ->
+               LocalBindings ->
+               ( Name ,Name ,Name ,Name ,(Maybe ([(String,Type)],[(String,Type)])))
+data Inh_Name  = Inh_Name {cat_Inh_Name :: Catalog,idenv_Inh_Name :: IDEnv,lib_Inh_Name :: LocalBindings}
+data Syn_Name  = Syn_Name {annotatedTree_Syn_Name :: Name ,fixedUpIdentifiersTree_Syn_Name :: Name ,originalTree_Syn_Name :: Name ,tbAnnotatedTree_Syn_Name :: Name ,tbUType_Syn_Name :: (Maybe ([(String,Type)],[(String,Type)]))}
+wrap_Name :: T_Name  ->
+             Inh_Name  ->
+             Syn_Name 
+wrap_Name sem (Inh_Name _lhsIcat _lhsIidenv _lhsIlib )  =
+    (let ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree,_lhsOtbAnnotatedTree,_lhsOtbUType) = sem _lhsIcat _lhsIidenv _lhsIlib 
+     in  (Syn_Name _lhsOannotatedTree _lhsOfixedUpIdentifiersTree _lhsOoriginalTree _lhsOtbAnnotatedTree _lhsOtbUType ))
+sem_Name_Name :: Annotation ->
+                 ([NameComponent]) ->
+                 T_Name 
+sem_Name_Name ann_ is_  =
+    (\ _lhsIcat
+       _lhsIidenv
+       _lhsIlib ->
+         (let _tpe :: (E ([(String,Type)],[(String,Type)]))
+              _lhsOtbUType :: (Maybe ([(String,Type)],[(String,Type)]))
+              _lhsOtbAnnotatedTree :: Name 
+              _lhsOannotatedTree :: Name 
+              _lhsOfixedUpIdentifiersTree :: Name 
+              _lhsOoriginalTree :: Name 
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag"(line 67, column 9)
+              _tpe =
+                  catCompositeAttrsPair _lhsIcat relationComposites
+                     (getUnqual is_)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag"(line 69, column 9)
+              _lhsOtbUType =
+                  either (const Nothing) Just _tpe
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag"(line 70, column 9)
+              _lhsOtbAnnotatedTree =
+                  updateAnnotation
+                    (\a -> a {errs = errs a ++ tes _tpe    }) _backTree
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag"(line 73, column 9)
+              _backTree =
+                  Name ann_ is_
+              -- self rule
+              _annotatedTree =
+                  Name ann_ is_
+              -- self rule
+              _fixedUpIdentifiersTree =
+                  Name ann_ is_
+              -- self rule
+              _originalTree =
+                  Name ann_ is_
+              -- self rule
+              _lhsOannotatedTree =
+                  _annotatedTree
+              -- self rule
+              _lhsOfixedUpIdentifiersTree =
+                  _fixedUpIdentifiersTree
+              -- self rule
+              _lhsOoriginalTree =
+                  _originalTree
+          in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree,_lhsOtbAnnotatedTree,_lhsOtbUType)))
 -- OnExpr ------------------------------------------------------
 {-
    visit 0:
@@ -4312,96 +4332,6 @@ sem_RowConstraintList_Nil  =
               _lhsOoriginalTree =
                   _originalTree
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree)))
--- SQIdentifier ------------------------------------------------
-{-
-   visit 0:
-      inherited attributes:
-         cat                  : Catalog
-         idenv                : IDEnv
-         lib                  : LocalBindings
-      synthesized attributes:
-         annotatedTree        : SELF 
-         fixedUpIdentifiersTree : SELF 
-         originalTree         : SELF 
-         tbAnnotatedTree      : SQIdentifier 
-         tbUType              : Maybe ([(String,Type)],[(String,Type)])
-   alternatives:
-      alternative SQIdentifier:
-         child ann            : {Annotation}
-         child is             : {[NameComponent]}
-         visit 0:
-            local tpe         : {E ([(String,Type)],[(String,Type)])}
-            local backTree    : _
-            local annotatedTree : _
-            local fixedUpIdentifiersTree : _
-            local originalTree : _
--}
-data SQIdentifier  = SQIdentifier (Annotation) (([NameComponent])) 
-                   deriving ( Data,Eq,Show,Typeable)
--- cata
-sem_SQIdentifier :: SQIdentifier  ->
-                    T_SQIdentifier 
-sem_SQIdentifier (SQIdentifier _ann _is )  =
-    (sem_SQIdentifier_SQIdentifier _ann _is )
--- semantic domain
-type T_SQIdentifier  = Catalog ->
-                       IDEnv ->
-                       LocalBindings ->
-                       ( SQIdentifier ,SQIdentifier ,SQIdentifier ,SQIdentifier ,(Maybe ([(String,Type)],[(String,Type)])))
-data Inh_SQIdentifier  = Inh_SQIdentifier {cat_Inh_SQIdentifier :: Catalog,idenv_Inh_SQIdentifier :: IDEnv,lib_Inh_SQIdentifier :: LocalBindings}
-data Syn_SQIdentifier  = Syn_SQIdentifier {annotatedTree_Syn_SQIdentifier :: SQIdentifier ,fixedUpIdentifiersTree_Syn_SQIdentifier :: SQIdentifier ,originalTree_Syn_SQIdentifier :: SQIdentifier ,tbAnnotatedTree_Syn_SQIdentifier :: SQIdentifier ,tbUType_Syn_SQIdentifier :: (Maybe ([(String,Type)],[(String,Type)]))}
-wrap_SQIdentifier :: T_SQIdentifier  ->
-                     Inh_SQIdentifier  ->
-                     Syn_SQIdentifier 
-wrap_SQIdentifier sem (Inh_SQIdentifier _lhsIcat _lhsIidenv _lhsIlib )  =
-    (let ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree,_lhsOtbAnnotatedTree,_lhsOtbUType) = sem _lhsIcat _lhsIidenv _lhsIlib 
-     in  (Syn_SQIdentifier _lhsOannotatedTree _lhsOfixedUpIdentifiersTree _lhsOoriginalTree _lhsOtbAnnotatedTree _lhsOtbUType ))
-sem_SQIdentifier_SQIdentifier :: Annotation ->
-                                 ([NameComponent]) ->
-                                 T_SQIdentifier 
-sem_SQIdentifier_SQIdentifier ann_ is_  =
-    (\ _lhsIcat
-       _lhsIidenv
-       _lhsIlib ->
-         (let _tpe :: (E ([(String,Type)],[(String,Type)]))
-              _lhsOtbUType :: (Maybe ([(String,Type)],[(String,Type)]))
-              _lhsOtbAnnotatedTree :: SQIdentifier 
-              _lhsOannotatedTree :: SQIdentifier 
-              _lhsOfixedUpIdentifiersTree :: SQIdentifier 
-              _lhsOoriginalTree :: SQIdentifier 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag"(line 67, column 9)
-              _tpe =
-                  catCompositeAttrsPair _lhsIcat relationComposites
-                     (getUnqual is_)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag"(line 69, column 9)
-              _lhsOtbUType =
-                  either (const Nothing) Just _tpe
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag"(line 70, column 9)
-              _lhsOtbAnnotatedTree =
-                  updateAnnotation
-                    (\a -> a {errs = errs a ++ tes _tpe    }) _backTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag"(line 73, column 9)
-              _backTree =
-                  SQIdentifier ann_ is_
-              -- self rule
-              _annotatedTree =
-                  SQIdentifier ann_ is_
-              -- self rule
-              _fixedUpIdentifiersTree =
-                  SQIdentifier ann_ is_
-              -- self rule
-              _originalTree =
-                  SQIdentifier ann_ is_
-              -- self rule
-              _lhsOannotatedTree =
-                  _annotatedTree
-              -- self rule
-              _lhsOfixedUpIdentifiersTree =
-                  _fixedUpIdentifiersTree
-              -- self rule
-              _lhsOoriginalTree =
-                  _originalTree
-          in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree,_lhsOtbAnnotatedTree,_lhsOtbUType)))
 -- ScalarExpr --------------------------------------------------
 {-
    visit 0:
@@ -8256,7 +8186,7 @@ sem_SetClauseList_Nil  =
       alternative AlterSequence:
          child ann            : {Annotation}
          child name           : {String}
-         child ownedBy        : SQIdentifier 
+         child ownedBy        : Name 
          visit 0:
             local libUpdates  : _
             local annotatedTree : _
@@ -8319,7 +8249,7 @@ sem_SetClauseList_Nil  =
             local originalTree : _
       alternative Copy:
          child ann            : {Annotation}
-         child table          : SQIdentifier 
+         child table          : Name 
          child targetCols     : {[NameComponent]}
          child source         : {CopySource}
          visit 0:
@@ -8463,7 +8393,7 @@ sem_SetClauseList_Nil  =
             local originalTree : _
       alternative Delete:
          child ann            : {Annotation}
-         child table          : SQIdentifier 
+         child table          : Name 
          child using          : TableRefList 
          child whr            : MaybeBoolExpr 
          child returning      : MaybeSelectList 
@@ -8558,7 +8488,7 @@ sem_SetClauseList_Nil  =
             local originalTree : _
       alternative Insert:
          child ann            : {Annotation}
-         child table          : SQIdentifier 
+         child table          : Name 
          child targetCols     : {[NameComponent]}
          child insData        : QueryExpr 
          child returning      : MaybeSelectList 
@@ -8576,7 +8506,7 @@ sem_SetClauseList_Nil  =
       alternative Into:
          child ann            : {Annotation}
          child strict         : {Bool}
-         child into           : {[IntoIdentifier]}
+         child into           : {[Name]}
          child stmt           : Statement 
          visit 0:
             local annotatedTree : _
@@ -8678,7 +8608,7 @@ sem_SetClauseList_Nil  =
             local originalTree : _
       alternative Update:
          child ann            : {Annotation}
-         child table          : SQIdentifier 
+         child table          : Name 
          child assigns        : SetClauseList 
          child fromList       : TableRefList 
          child whr            : MaybeBoolExpr 
@@ -8704,14 +8634,14 @@ sem_SetClauseList_Nil  =
             local fixedUpIdentifiersTree : _
             local originalTree : _
 -}
-data Statement  = AlterSequence (Annotation) (String) (SQIdentifier ) 
+data Statement  = AlterSequence (Annotation) (String) (Name ) 
                 | AlterTable (Annotation) (String) (AlterTableActionList ) 
                 | Assignment (Annotation) (ScalarExpr ) (ScalarExpr ) 
                 | Block (Annotation) ((Maybe String)) (VarDefList ) (StatementList ) 
                 | CaseStatement (Annotation) (ScalarExprListStatementListPairList ) (StatementList ) 
                 | CaseStatementSimple (Annotation) (ScalarExpr ) (ScalarExprListStatementListPairList ) (StatementList ) 
                 | ContinueStatement (Annotation) ((Maybe String)) 
-                | Copy (Annotation) (SQIdentifier ) (([NameComponent])) (CopySource) 
+                | Copy (Annotation) (Name ) (([NameComponent])) (CopySource) 
                 | CopyData (Annotation) (String) 
                 | CreateDomain (Annotation) (String) (TypeName ) (String) (MaybeBoolExpr ) 
                 | CreateFunction (Annotation) (String) (ParamDefList ) (TypeName ) (Replace) (Language) (FnBody ) (Volatility) 
@@ -8722,7 +8652,7 @@ data Statement  = AlterSequence (Annotation) (String) (SQIdentifier )
                 | CreateTrigger (Annotation) (String) (TriggerWhen) (([TriggerEvent])) (String) (TriggerFire) (String) (ScalarExprList ) 
                 | CreateType (Annotation) (String) (TypeAttributeDefList ) 
                 | CreateView (Annotation) (String) ((Maybe [String])) (QueryExpr ) 
-                | Delete (Annotation) (SQIdentifier ) (TableRefList ) (MaybeBoolExpr ) (MaybeSelectList ) 
+                | Delete (Annotation) (Name ) (TableRefList ) (MaybeBoolExpr ) (MaybeSelectList ) 
                 | DropFunction (Annotation) (IfExists) (StringTypeNameListPairList ) (Cascade) 
                 | DropSomething (Annotation) (DropType) (IfExists) (([String])) (Cascade) 
                 | Execute (Annotation) (ScalarExpr ) 
@@ -8730,8 +8660,8 @@ data Statement  = AlterSequence (Annotation) (String) (SQIdentifier )
                 | ForIntegerStatement (Annotation) ((Maybe String)) (ScalarExpr ) (ScalarExpr ) (ScalarExpr ) (StatementList ) 
                 | ForQueryStatement (Annotation) ((Maybe String)) (ScalarExpr ) (QueryExpr ) (StatementList ) 
                 | If (Annotation) (ScalarExprStatementListPairList ) (StatementList ) 
-                | Insert (Annotation) (SQIdentifier ) (([NameComponent])) (QueryExpr ) (MaybeSelectList ) 
-                | Into (Annotation) (Bool) (([IntoIdentifier])) (Statement ) 
+                | Insert (Annotation) (Name ) (([NameComponent])) (QueryExpr ) (MaybeSelectList ) 
+                | Into (Annotation) (Bool) (([Name])) (Statement ) 
                 | LoopStatement (Annotation) ((Maybe String)) (StatementList ) 
                 | Notify (Annotation) (String) 
                 | NullStatement (Annotation) 
@@ -8743,14 +8673,14 @@ data Statement  = AlterSequence (Annotation) (String) (SQIdentifier )
                 | ReturnQuery (Annotation) (QueryExpr ) 
                 | Set (Annotation) (String) (([SetValue])) 
                 | Truncate (Annotation) (([String])) (RestartIdentity) (Cascade) 
-                | Update (Annotation) (SQIdentifier ) (SetClauseList ) (TableRefList ) (MaybeBoolExpr ) (MaybeSelectList ) 
+                | Update (Annotation) (Name ) (SetClauseList ) (TableRefList ) (MaybeBoolExpr ) (MaybeSelectList ) 
                 | WhileStatement (Annotation) ((Maybe String)) (ScalarExpr ) (StatementList ) 
                 deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_Statement :: Statement  ->
                  T_Statement 
 sem_Statement (AlterSequence _ann _name _ownedBy )  =
-    (sem_Statement_AlterSequence _ann _name (sem_SQIdentifier _ownedBy ) )
+    (sem_Statement_AlterSequence _ann _name (sem_Name _ownedBy ) )
 sem_Statement (AlterTable _ann _name _actions )  =
     (sem_Statement_AlterTable _ann _name (sem_AlterTableActionList _actions ) )
 sem_Statement (Assignment _ann _target _value )  =
@@ -8764,7 +8694,7 @@ sem_Statement (CaseStatementSimple _ann _val _cases _els )  =
 sem_Statement (ContinueStatement _ann _lb )  =
     (sem_Statement_ContinueStatement _ann _lb )
 sem_Statement (Copy _ann _table _targetCols _source )  =
-    (sem_Statement_Copy _ann (sem_SQIdentifier _table ) _targetCols _source )
+    (sem_Statement_Copy _ann (sem_Name _table ) _targetCols _source )
 sem_Statement (CopyData _ann _insData )  =
     (sem_Statement_CopyData _ann _insData )
 sem_Statement (CreateDomain _ann _name _typ _checkName _check )  =
@@ -8786,7 +8716,7 @@ sem_Statement (CreateType _ann _name _atts )  =
 sem_Statement (CreateView _ann _name _colNames _expr )  =
     (sem_Statement_CreateView _ann _name _colNames (sem_QueryExpr _expr ) )
 sem_Statement (Delete _ann _table _using _whr _returning )  =
-    (sem_Statement_Delete _ann (sem_SQIdentifier _table ) (sem_TableRefList _using ) (sem_MaybeBoolExpr _whr ) (sem_MaybeSelectList _returning ) )
+    (sem_Statement_Delete _ann (sem_Name _table ) (sem_TableRefList _using ) (sem_MaybeBoolExpr _whr ) (sem_MaybeSelectList _returning ) )
 sem_Statement (DropFunction _ann _ifE _sigs _cascade )  =
     (sem_Statement_DropFunction _ann _ifE (sem_StringTypeNameListPairList _sigs ) _cascade )
 sem_Statement (DropSomething _ann _dropType _ifE _names _cascade )  =
@@ -8802,7 +8732,7 @@ sem_Statement (ForQueryStatement _ann _lb _var _sel _sts )  =
 sem_Statement (If _ann _cases _els )  =
     (sem_Statement_If _ann (sem_ScalarExprStatementListPairList _cases ) (sem_StatementList _els ) )
 sem_Statement (Insert _ann _table _targetCols _insData _returning )  =
-    (sem_Statement_Insert _ann (sem_SQIdentifier _table ) _targetCols (sem_QueryExpr _insData ) (sem_MaybeSelectList _returning ) )
+    (sem_Statement_Insert _ann (sem_Name _table ) _targetCols (sem_QueryExpr _insData ) (sem_MaybeSelectList _returning ) )
 sem_Statement (Into _ann _strict _into _stmt )  =
     (sem_Statement_Into _ann _strict _into (sem_Statement _stmt ) )
 sem_Statement (LoopStatement _ann _lb _sts )  =
@@ -8828,7 +8758,7 @@ sem_Statement (Set _ann _name _values )  =
 sem_Statement (Truncate _ann _tables _restartIdentity _cascade )  =
     (sem_Statement_Truncate _ann _tables _restartIdentity _cascade )
 sem_Statement (Update _ann _table _assigns _fromList _whr _returning )  =
-    (sem_Statement_Update _ann (sem_SQIdentifier _table ) (sem_SetClauseList _assigns ) (sem_TableRefList _fromList ) (sem_MaybeBoolExpr _whr ) (sem_MaybeSelectList _returning ) )
+    (sem_Statement_Update _ann (sem_Name _table ) (sem_SetClauseList _assigns ) (sem_TableRefList _fromList ) (sem_MaybeBoolExpr _whr ) (sem_MaybeSelectList _returning ) )
 sem_Statement (WhileStatement _ann _lb _expr _sts )  =
     (sem_Statement_WhileStatement _ann _lb (sem_ScalarExpr _expr ) (sem_StatementList _sts ) )
 -- semantic domain
@@ -8847,7 +8777,7 @@ wrap_Statement sem (Inh_Statement _lhsIcat _lhsIidenv _lhsIinProducedCat _lhsIli
      in  (Syn_Statement _lhsOannotatedTree _lhsOcatUpdates _lhsOfixedUpIdentifiersTree _lhsOlibUpdates _lhsOoriginalTree ))
 sem_Statement_AlterSequence :: Annotation ->
                                String ->
-                               T_SQIdentifier  ->
+                               T_Name  ->
                                T_Statement 
 sem_Statement_AlterSequence ann_ name_ ownedBy_  =
     (\ _lhsIcat
@@ -8862,10 +8792,10 @@ sem_Statement_AlterSequence ann_ name_ ownedBy_  =
               _ownedByOcat :: Catalog
               _ownedByOidenv :: IDEnv
               _ownedByOlib :: LocalBindings
-              _ownedByIannotatedTree :: SQIdentifier 
-              _ownedByIfixedUpIdentifiersTree :: SQIdentifier 
-              _ownedByIoriginalTree :: SQIdentifier 
-              _ownedByItbAnnotatedTree :: SQIdentifier 
+              _ownedByIannotatedTree :: Name 
+              _ownedByIfixedUpIdentifiersTree :: Name 
+              _ownedByIoriginalTree :: Name 
+              _ownedByItbAnnotatedTree :: Name 
               _ownedByItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Statements.ag"(line 94, column 9)
               _libUpdates =
@@ -9392,7 +9322,7 @@ sem_Statement_ContinueStatement ann_ lb_  =
                   _originalTree
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
 sem_Statement_Copy :: Annotation ->
-                      T_SQIdentifier  ->
+                      T_Name  ->
                       ([NameComponent]) ->
                       CopySource ->
                       T_Statement 
@@ -9409,10 +9339,10 @@ sem_Statement_Copy ann_ table_ targetCols_ source_  =
               _tableOcat :: Catalog
               _tableOidenv :: IDEnv
               _tableOlib :: LocalBindings
-              _tableIannotatedTree :: SQIdentifier 
-              _tableIfixedUpIdentifiersTree :: SQIdentifier 
-              _tableIoriginalTree :: SQIdentifier 
-              _tableItbAnnotatedTree :: SQIdentifier 
+              _tableIannotatedTree :: Name 
+              _tableIfixedUpIdentifiersTree :: Name 
+              _tableIoriginalTree :: Name 
+              _tableItbAnnotatedTree :: Name 
               _tableItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Statements.ag"(line 116, column 9)
               _lhsOcatUpdates =
@@ -10293,7 +10223,7 @@ sem_Statement_CreateView ann_ name_ colNames_ expr_  =
                   expr_ _exprOcat _exprOcsql _exprOexpectedTypes _exprOidenv _exprOlib 
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
 sem_Statement_Delete :: Annotation ->
-                        T_SQIdentifier  ->
+                        T_Name  ->
                         T_TableRefList  ->
                         T_MaybeBoolExpr  ->
                         T_MaybeSelectList  ->
@@ -10323,10 +10253,10 @@ sem_Statement_Delete ann_ table_ using_ whr_ returning_  =
               _usingOlib :: LocalBindings
               _whrOcat :: Catalog
               _returningOcat :: Catalog
-              _tableIannotatedTree :: SQIdentifier 
-              _tableIfixedUpIdentifiersTree :: SQIdentifier 
-              _tableIoriginalTree :: SQIdentifier 
-              _tableItbAnnotatedTree :: SQIdentifier 
+              _tableIannotatedTree :: Name 
+              _tableIfixedUpIdentifiersTree :: Name 
+              _tableIoriginalTree :: Name 
+              _tableItbAnnotatedTree :: Name 
               _tableItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _usingIannotatedTree :: TableRefList 
               _usingIfixedUpIdentifiersTree :: TableRefList 
@@ -11076,7 +11006,7 @@ sem_Statement_If ann_ cases_ els_  =
                   els_ _elsOcat _elsOcatUpdates _elsOidenv _elsOlib _elsOlibUpdates 
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
 sem_Statement_Insert :: Annotation ->
-                        T_SQIdentifier  ->
+                        T_Name  ->
                         ([NameComponent]) ->
                         T_QueryExpr  ->
                         T_MaybeSelectList  ->
@@ -11106,10 +11036,10 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
               _insDataOidenv :: IDEnv
               _insDataOlib :: LocalBindings
               _returningOcat :: Catalog
-              _tableIannotatedTree :: SQIdentifier 
-              _tableIfixedUpIdentifiersTree :: SQIdentifier 
-              _tableIoriginalTree :: SQIdentifier 
-              _tableItbAnnotatedTree :: SQIdentifier 
+              _tableIannotatedTree :: Name 
+              _tableIfixedUpIdentifiersTree :: Name 
+              _tableIoriginalTree :: Name 
+              _tableItbAnnotatedTree :: Name 
               _tableItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _insDataIannotatedTree :: QueryExpr 
               _insDataIcidenv :: IDEnv
@@ -11235,7 +11165,7 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
 sem_Statement_Into :: Annotation ->
                       Bool ->
-                      ([IntoIdentifier]) ->
+                      ([Name]) ->
                       T_Statement  ->
                       T_Statement 
 sem_Statement_Into ann_ strict_ into_ stmt_  =
@@ -11941,7 +11871,7 @@ sem_Statement_Truncate ann_ tables_ restartIdentity_ cascade_  =
                   _originalTree
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
 sem_Statement_Update :: Annotation ->
-                        T_SQIdentifier  ->
+                        T_Name  ->
                         T_SetClauseList  ->
                         T_TableRefList  ->
                         T_MaybeBoolExpr  ->
@@ -11976,10 +11906,10 @@ sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
               _fromListOlib :: LocalBindings
               _whrOcat :: Catalog
               _returningOcat :: Catalog
-              _tableIannotatedTree :: SQIdentifier 
-              _tableIfixedUpIdentifiersTree :: SQIdentifier 
-              _tableIoriginalTree :: SQIdentifier 
-              _tableItbAnnotatedTree :: SQIdentifier 
+              _tableIannotatedTree :: Name 
+              _tableIfixedUpIdentifiersTree :: Name 
+              _tableIoriginalTree :: Name 
+              _tableItbAnnotatedTree :: Name 
               _tableItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _assignsIannotatedTree :: SetClauseList 
               _assignsIfixedUpIdentifiersTree :: SetClauseList 
@@ -12877,7 +12807,7 @@ sem_TableAlias_TableAlias ann_ tb_  =
             local originalTree : _
       alternative Tref:
          child ann            : {Annotation}
-         child tbl            : SQIdentifier 
+         child tbl            : Name 
          child alias          : TableAlias 
          visit 0:
             local _tup5       : {(IDEnv,TableRef)}
@@ -12890,7 +12820,7 @@ sem_TableAlias_TableAlias ann_ tb_  =
 data TableRef  = FunTref (Annotation) (ScalarExpr ) (TableAlias ) 
                | JoinTref (Annotation) (TableRef ) (Natural) (JoinType) (TableRef ) (OnExpr ) (TableAlias ) 
                | SubTref (Annotation) (QueryExpr ) (TableAlias ) 
-               | Tref (Annotation) (SQIdentifier ) (TableAlias ) 
+               | Tref (Annotation) (Name ) (TableAlias ) 
                deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_TableRef :: TableRef  ->
@@ -12902,7 +12832,7 @@ sem_TableRef (JoinTref _ann _tbl _nat _joinType _tbl1 _onExpr _alias )  =
 sem_TableRef (SubTref _ann _sel _alias )  =
     (sem_TableRef_SubTref _ann (sem_QueryExpr _sel ) (sem_TableAlias _alias ) )
 sem_TableRef (Tref _ann _tbl _alias )  =
-    (sem_TableRef_Tref _ann (sem_SQIdentifier _tbl ) (sem_TableAlias _alias ) )
+    (sem_TableRef_Tref _ann (sem_Name _tbl ) (sem_TableAlias _alias ) )
 -- semantic domain
 type T_TableRef  = Catalog ->
                    IDEnv ->
@@ -13337,7 +13267,7 @@ sem_TableRef_SubTref ann_ sel_ alias_  =
                   alias_ _aliasOcat _aliasOexpectedNumCols _aliasOidenv _aliasOlib 
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOnewLib2,_lhsOoriginalTree,_lhsOtrefIDs)))
 sem_TableRef_Tref :: Annotation ->
-                     T_SQIdentifier  ->
+                     T_Name  ->
                      T_TableAlias  ->
                      T_TableRef 
 sem_TableRef_Tref ann_ tbl_ alias_  =
@@ -13358,10 +13288,10 @@ sem_TableRef_Tref ann_ tbl_ alias_  =
               _aliasOcat :: Catalog
               _aliasOidenv :: IDEnv
               _aliasOlib :: LocalBindings
-              _tblIannotatedTree :: SQIdentifier 
-              _tblIfixedUpIdentifiersTree :: SQIdentifier 
-              _tblIoriginalTree :: SQIdentifier 
-              _tblItbAnnotatedTree :: SQIdentifier 
+              _tblIannotatedTree :: Name 
+              _tblIfixedUpIdentifiersTree :: Name 
+              _tblIoriginalTree :: Name 
+              _tblItbAnnotatedTree :: Name 
               _tblItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               _aliasIannotatedTree :: TableAlias 
               _aliasIfixedUpIdentifiersTree :: TableAlias 

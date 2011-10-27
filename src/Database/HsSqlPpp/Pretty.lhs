@@ -77,7 +77,7 @@ Conversion routines - convert Sql asts into Docs
 >
 > convStatement nice se pa (Insert ann tb atts idata rt) =
 >   convPa pa ann <+>
->   text "insert into" <+> convDqi tb
+>   text "insert into" <+> convName tb
 >   <+> ifNotEmpty (parens . sepCsvMap convNC) atts
 >   $+$ convQueryExpr nice True True idata
 >   $+$ convReturning nice rt
@@ -85,7 +85,7 @@ Conversion routines - convert Sql asts into Docs
 >
 > convStatement nice se ca (Update ann tb scs fr wh rt) =
 >    convPa ca ann <+>
->    text "update" <+> convDqi tb <+> text "set"
+>    text "update" <+> convName tb <+> text "set"
 >    <+> sepCsvMap (convSet nice) scs
 >    <+> ifNotEmpty (\_ -> text "from" <+> sepCsvMap (convTref nice) fr) fr
 >    <+> convWhere nice wh
@@ -93,7 +93,7 @@ Conversion routines - convert Sql asts into Docs
 >
 > convStatement nice se ca (Delete ann tbl us wh rt) =
 >    convPa ca ann <+>
->    text "delete from" <+> convDqi tbl
+>    text "delete from" <+> convName tbl
 >    <+> ifNotEmpty (\_ -> text "using" <+> sepCsvMap (convTref nice) us) us
 >    <+> convWhere nice wh
 >    $+$ convReturning nice rt
@@ -161,7 +161,7 @@ Conversion routines - convert Sql asts into Docs
 > convStatement _nice se ca (AlterSequence ann nm o) =
 >     convPa ca ann <+>
 >     text "alter sequence" <+> text nm
->     <+> text "owned by" <+> convDqi o <> statementEnd se
+>     <+> text "owned by" <+> convName o <> statementEnd se
 >
 > convStatement nice se ca (CreateTableAs ann t sel) =
 >     convPa ca ann <+>
@@ -308,10 +308,8 @@ Conversion routines - convert Sql asts into Docs
 >   <> (if str
 >       then empty <+> text "strict"
 >       else empty)
->   <+> sepCsvMap ii into
+>   <+> sepCsvMap convName into
 >   <> statementEnd se
->   where
->     ii (IntoIdentifier _ is) = hcat $ punctuate (text ".") $ map text is
 >   --fixme, should be insert,update,delete,execute
 
 > convStatement nice se ca (Assignment ann name val) =
@@ -382,7 +380,7 @@ Conversion routines - convert Sql asts into Docs
 >
 > convStatement _nice se ca (Copy ann tb cols src) =
 >     convPa ca ann <+>
->     text "copy" <+> convDqi tb
+>     text "copy" <+> convName tb
 >     <+> ifNotEmpty (parens . sepCsvMap convNC) cols
 >     <+> text "from"
 >     <+> case src of
@@ -501,21 +499,24 @@ Statement components
 >       <+> text "as"
 >       <+> parens (convQueryExpr nice True False ex1)
 
-> convName :: [NameComponent] -> Doc
-> convName ns = hcat $ punctuate (text ".") $ map convNC ns
+> convName :: Name -> Doc
+> convName (Name _ ns) = convNcs ns
+
+> convNcs :: [NameComponent] -> Doc
+> convNcs ns = hcat $ punctuate (text ".") $ map convNC ns
 
 > convNC :: NameComponent -> Doc
-> convNC (Name ns) = text ns
+> convNC (Nmc ns) = text ns
 
 >
 > convTref :: Bool -> TableRef -> Doc
 > {-convTref nice (Tref _ f@(SQIdentifier _ t) (TableAlias _ ta))
->   | nice, last t == ta = convDqi f
+>   | nice, last t == ta = convName f
 >   -- slightly bad hack:
 > convTref nice (Tref _ f@(SQIdentifier _ t) (FullAlias _ ta _))
->   | nice, last t == ta = convDqi f-}
+>   | nice, last t == ta = convName f-}
 
-> convTref nice (Tref _ f a) = convDqi f <+> convTrefAlias nice a
+> convTref nice (Tref _ f a) = convName f <+> convTrefAlias nice a
 > convTref nice (JoinTref _ t1 nat jt t2 ex a) =
 >         parens (convTref nice t1
 >         $+$ (case nat of
@@ -578,10 +579,6 @@ Statement components
 > convCasc casc = text $ case casc of
 >                                  Cascade -> "cascade"
 >                                  Restrict -> "restrict"
->
-> convDqi :: SQIdentifier -> Doc
-> convDqi (SQIdentifier _ is) = convName is -- hcat $ punctuate (text ".") $ map text is
-
 > -- ddl
 >
 > convCon :: Bool -> Constraint -> Doc

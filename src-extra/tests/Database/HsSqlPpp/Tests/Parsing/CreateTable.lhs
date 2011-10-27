@@ -32,7 +32,7 @@
 >       [AlterTable ea "a" [AlterColumnDefault ea "b" (NumberLit ea "1")]]
 >
 >      ,s "alter table a add constraint unique(b);"
->       [AlterTable ea "a" [AddConstraint ea (UniqueConstraint ea "" [Name "b"])]]
+>       [AlterTable ea "a" [AddConstraint ea (UniqueConstraint ea "" [Nmc "b"])]]
 >      ]
 >     ,Group "constraints" [
 >       Group "nulls" [
@@ -58,7 +58,7 @@
 >         \);"
 >         [CreateTable ea "t1" [att "x" "int"
 >                           ,att "y" "int"]
->          [UniqueConstraint ea "" [Name "x",Name "y"]]]
+>          [UniqueConstraint ea "" [Nmc "x",Nmc "y"]]]
 
 test arbitrary ordering
 
@@ -69,7 +69,7 @@ test arbitrary ordering
 >         \);"
 >         [CreateTable ea "t1" [att "x" "int"
 >                           ,att "y" "int"]
->          [UniqueConstraint ea "" [Name "x"]]]
+>          [UniqueConstraint ea "" [Nmc "x"]]]
 
 unique row
 

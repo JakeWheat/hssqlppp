@@ -44,30 +44,30 @@
 >        [Tref ea (i "e") (NoAlias ea)] Nothing [] Nothing [] Nothing Nothing]-}
 >      ,f "update pieces\n\
 >         \set a=b returning tag into r.tag;"
->       [Into ea False [IntoIdentifier ea ["r","tag"]]
+>       [Into ea False [Name ea [Nmc "r",Nmc "tag"]]
 >          $ Update ea (dqi "pieces")
 >              [SetClause  ea "a" $ Identifier ea "b"]
 >            []
 >            Nothing (Just (SelectList ea
 >                           [SelExp ea (Identifier ea "tag")]))]
 >      ,f "insert into t(a) values (1) returning id into x;"
->       [Into ea False [IntoIdentifier ea ["x"]]
+>       [Into ea False [Name ea [Nmc "x"]]
 >        $ Insert ea
 >         (dqi "t")
->         [Name "a"]
+>         [Nmc "a"]
 >         (Values ea [[NumberLit ea "1"]])
 >         (Just $ sl [selI "id"])]
 
 >      ,f "update t\n\
 >         \  set x = 1 returning id into z;"
->       [Into ea False [IntoIdentifier ea ["z"]]
+>       [Into ea False [Name ea [Nmc "z"]]
 >       $ Update ea (dqi "t") [SetClause ea "x" $ NumberLit ea "1"]
 >         [] Nothing (Just $ sl [selI "id"])]
 
 >      ,f "execute s;"
 >       [Execute ea (Identifier ea "s")]
 >      ,f "execute s into r;"
->       [Into ea False [IntoIdentifier ea ["r"]] (Execute ea (Identifier ea "s"))]
+>       [Into ea False [Name ea [Nmc "r"]] (Execute ea (Identifier ea "s"))]
 >     ,f "continue;" [ContinueStatement ea Nothing]
 >     ]
 >
