@@ -1639,6 +1639,7 @@ keywords which are unqualified.
 
 > nameComponent :: SParser NameComponent
 > nameComponent = choice [Nmc <$> idString
+>                        ,QNmc <$> qidString
 >                        ,Nmc <$> spliceD
 >                        ,Nmc <$> ssplice]
 >                 where
@@ -1680,8 +1681,19 @@ identifier which happens to start with a complete keyword
 >                                      -- use of idString to make this work correctly
 >                                      -- idstring is used LOADS
 >                                      -- lots of places in the ast probably need fixing
+>                                      _ -> Nothing)
+> qidString :: SParser String
+> qidString =
+>     choice [(\l -> "$(" ++ l ++ ")")
+>             <$> (symbol "$(" *> idString <* symbol ")")
+>            ,ids
+>            ]
+>   where
+>     ids = mytoken (\tok -> case tok of
 >                                      QIdStringTok i -> Just i
 >                                      _ -> Nothing)
+
+
 >
 > spliceD :: SParser String
 > spliceD = (\x -> "$(" ++ x ++ ")") <$> splice

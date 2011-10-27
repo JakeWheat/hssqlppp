@@ -118,12 +118,14 @@ import Database.HsSqlPpp.Internals.TypeChecking.IDEnv
 
 
 data NameComponent = Nmc String
+                   | QNmc String -- quoted
                      deriving (Data,Eq,Show,Typeable)
 -- this is a transition function
 -- it should be removed when ready, since all the code
 -- should be working with NameComponents directly
 ncStr :: NameComponent -> String
 ncStr (Nmc n) = n
+ncStr (QNmc n) = n
 
 
 data JoinType = Inner | LeftOuter| RightOuter | FullOuter | Cross

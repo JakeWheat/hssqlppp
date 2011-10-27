@@ -306,7 +306,7 @@ select adrelid as "a""a" from pg_attrdef;
 creates a column named: 'a"a' with a double quote in it
 
 > qidentifierString :: Parser String
-> qidentifierString =  char '"' *> many (noneOf "\"") <* char '"'
+> qidentifierString = lexeme $ char '"' *> many (noneOf "\"") <* char '"'
 
 
 parse the block of inline data for a copy from stdin, ends with \. on
@@ -327,8 +327,8 @@ its own on a line
 
 = parsec pass throughs
 
-> symbol :: String -> Parser String
-> symbol = P.symbol lexer
+> --symbol :: String -> Parser String
+> --symbol = P.symbol lexer
 >
 
 > integer :: Parser Integer

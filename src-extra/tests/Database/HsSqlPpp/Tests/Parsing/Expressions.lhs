@@ -53,7 +53,7 @@ test some more really basic expressions
 >      ,e "hello" (Identifier ea "hello")
 >      ,e "helloTest" (Identifier ea "helloTest")
 >      ,e "hello_test" (Identifier ea "hello_test")
->      ,e "\"this is an identifier\"" (Identifier ea "this is an identifier")
+>      ,e "\"this is an identifier\"" (Identifier ea (QNmc "this is an identifier"))
 >      ,e "hello1234" (Identifier ea "hello1234")
 >      ,e "true" (BooleanLit ea True)
 >      ,e "false" (BooleanLit ea False)

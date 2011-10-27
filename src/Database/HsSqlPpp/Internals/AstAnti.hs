@@ -42,6 +42,7 @@ convertScalarExpr :: ScalarExpr -> A.ScalarExpr
 convertScalarExpr = scalarExpr
  
 data NameComponent = Nmc String
+                   | QNmc String
                    deriving (Data, Eq, Show, Typeable)
  
 data JoinType = Inner
@@ -425,6 +426,7 @@ nameComponent :: NameComponent -> A.NameComponent
 nameComponent x
   = case x of
         Nmc a1 -> A.Nmc a1
+        QNmc a1 -> A.QNmc a1
  
 joinType :: JoinType -> A.JoinType
 joinType x

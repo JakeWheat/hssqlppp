@@ -507,6 +507,7 @@ Statement components
 
 > convNC :: NameComponent -> Doc
 > convNC (Nmc ns) = text ns
+> convNC (QNmc ns) = doubleQuotes $ text ns
 
 >
 > convTref :: Bool -> TableRef -> Doc
@@ -646,6 +647,7 @@ Statement components
 >                    where
 >                      okChar x =isAlphaNum x || x `elem` "*_."-}
 > convExp nice (QIdentifier a [i1, i]) = parens (convNC i1) <> text "." <> convNC i
+> convExp _nice (QIdentifier _a _) = error $ "only supports 2 part qualified identifers atm"
 > --convExp nice (QIdentifier a e i) = parens (convExp nice e) <> text "." <> convExp nice (Identifier a i)
 
 > --convExp (PIdentifier _ i) = parens $ convExp i
