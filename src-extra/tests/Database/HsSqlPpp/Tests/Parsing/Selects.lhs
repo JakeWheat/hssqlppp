@@ -1,5 +1,5 @@
 
-> {-# LANGUAGE QuasiQuotes #-}
+> {-# LANGUAGE QuasiQuotes,OverloadedStrings #-}
 >
 > module Database.HsSqlPpp.Tests.Parsing.Selects (selectParsingTestData) where
 >
@@ -123,9 +123,9 @@
 >          [Identifier ea "a", Identifier ea "b"]) (Nmc "b")]
 >        (Tref ea (i "tbl") (NoAlias ea))]
 >      ,s "select a.* from tbl a;"
->       [QueryStatement ea $ selectFrom (selEL [Q2 ea (Nmc "a") $ Star ea]) (Tref ea (i "tbl") (TableAlias ea (Nmc "a")))]
+>       [QueryStatement ea $ selectFrom (selEL [QStar ea (Nmc "a")]) (Tref ea (i "tbl") (TableAlias ea (Nmc "a")))]
 >      ,s "select a.* from tbl a(b,c);"
->       [QueryStatement ea $ selectFrom (selEL [Q2 ea (Nmc "a") $ Star ea]) (Tref ea (i "tbl") (FullAlias ea (Nmc "a") [Nmc "b",Nmc "c"]))]
+>       [QueryStatement ea $ selectFrom (selEL [QStar ea (Nmc "a")]) (Tref ea (i "tbl") (FullAlias ea (Nmc "a") [Nmc "b",Nmc "c"]))]
 
 >      ,s "select * from t1 a, t2 b;"
 >             [QueryStatement ea
@@ -403,10 +403,10 @@
 >         [QueryStatement ea $ selectFrom (selEL [eqi "p" "x"
 >                                                ,eqi "p" "y"])
 >                                          (Tref ea (i "pos") (NoAlias ea))]
->      ,s "select ($1).x, ($1).y from pos;"
+>      {-,s "select ($1).x, ($1).y from pos;"
 >         [QueryStatement ea $ selectFrom (selEL [QIdentifier ea (PositionalArg ea 1) "x"
 >                                                ,QIdentifier ea (PositionalArg ea 1) "y"])
->                                          (Tref ea (i "pos") (NoAlias ea))]
+>                                          (Tref ea (i "pos") (NoAlias ea))]-}
 >      ,s "select row_number() over(), x from tb;"
 >       [QueryStatement ea $ selectFrom
 >        [SelExp ea

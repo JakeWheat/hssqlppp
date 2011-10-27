@@ -570,8 +570,8 @@ Statement components
 >   -- <+> ifNotEmpty (\i -> text "into" <+> hcatCsvMap convExp i) into
 >   where
 >     -- try to avoid printing alias if not necessary
->     convSelItem (SelectItem _ ex1@(QIdentifier _ _ i) nm) | nice, Nmc i == nm = convExpSl nice ex1
->     convSelItem (SelectItem _ ex1@(Identifier _ i) nm) | nice, Nmc i == nm = convExpSl nice ex1
+>     convSelItem (SelectItem _ ex1@(QIdentifier _ is) nm) | nice, last is == nm = convExpSl nice ex1
+>     convSelItem (SelectItem _ ex1@(Identifier _ i) nm) | nice, i == nm = convExpSl nice ex1
 >     convSelItem (SelectItem _ ex1 nm) = convExpSl nice ex1 <+> text "as" <+> convNC nm
 >     convSelItem (SelExp _ e) = convExpSl nice e
 >
@@ -630,10 +630,10 @@ Statement components
 >
 > convExp :: Bool -> ScalarExpr -> Doc
 > convExp _ (Star _) = text "*"
-> convExp n (Q2 _ nc e) = convNC nc <> text "." <> convExp n e
+> convExp _ (QStar _ i) = convNC i <> text ".*"
 
-> convExp _ (Identifier _ i) =
->   if quotesNeeded
+> convExp _ (Identifier _ i) = convNC i
+>   {-if quotesNeeded
 >      then text $ "\"" ++ i ++ "\""
 >      else text i
 >   where
@@ -644,9 +644,9 @@ Statement components
 >                      _ | all okChar i -> False
 >                        | otherwise -> True
 >                    where
->                      okChar x =isAlphaNum x || x `elem` "*_."
-> convExp nice (QIdentifier a i1@(Identifier _ _) i) = parens (convExp nice i1) <> text "." <> convExp nice (Identifier a i)
-> convExp nice (QIdentifier a e i) = parens (convExp nice e) <> text "." <> convExp nice (Identifier a i)
+>                      okChar x =isAlphaNum x || x `elem` "*_."-}
+> convExp nice (QIdentifier a [i1, i]) = parens (convNC i1) <> text "." <> convNC i
+> --convExp nice (QIdentifier a e i) = parens (convExp nice e) <> text "." <> convExp nice (Identifier a i)
 
 > --convExp (PIdentifier _ i) = parens $ convExp i
 > convExp _ (NumberLit _ n) = text n
@@ -671,7 +671,7 @@ Statement components
 >                                 <+> text "from" <+> convExp nice (es !! 1)
 >                                 <+> text "for" <+> convExp nice (es !! 2))
 >      Just "!arraysub" -> case es of
->                        (Identifier _ i : es1) -> text i
+>                        (Identifier _ i : es1) -> convNC i
 >                                                  <> brackets (csvExp nice es1)
 >                        _ -> parens (convExp nice (head es))
 >                             <> brackets (csvExp nice (tail es))

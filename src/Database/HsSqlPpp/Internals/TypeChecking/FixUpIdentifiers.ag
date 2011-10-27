@@ -126,13 +126,13 @@ SEM SelectList
 SEM ScalarExpr
     | Identifier
         lhs.fixedUpIdentifiersTree =
-            case qualifyID @lhs.idenv @i of
+            case qualifyID @lhs.idenv (ncStr @i) of
               Nothing -> Identifier @ann @i
-              Just (t,i) -> QIdentifier @ann (Identifier @ann t) i
+              Just (t,i) -> QIdentifier @ann [Nmc t, Nmc i]
 
     | QIdentifier
         lhs.fixedUpIdentifiersTree =
-          QIdentifier @ann @qual.originalTree @i
+          QIdentifier @ann @is
 
 SEM SelectItemList
     | Cons lhs.fixedUpIdentifiersTree = @hd.seIdTree ++ @tl.fixedUpIdentifiersTree
@@ -154,7 +154,7 @@ SEM SelectItem
                                 {-    in if null s
                                        then [addSIAlias $ SelExp @ann @ex.fixedUpIdentifiersTree]
                                        else makeSelExps @ann a a s-}
-            Q2 a0 (Nmc q) (Star a) ->
+            QStar a0 (Nmc q) ->
                maybe [SelExp @ann @ex.fixedUpIdentifiersTree]
                      (makeSelExps @ann a0 a0)
                      $ expandStar @lhs.idenv $ Just q
@@ -172,19 +172,20 @@ SEM SelectItem
 
 makeSelExps :: Annotation -> Annotation -> Annotation -> [(String,String)] -> [SelectItem]
 makeSelExps sea a0 a1 is =
-  flip map is $ \(q,c) -> addSIAlias $ SelExp sea $ QIdentifier a0 (Identifier a1 q) c
+  flip map is $ \(q,c) -> addSIAlias $ SelExp sea $ QIdentifier a0 [Nmc q,Nmc c]
 
 addSIAlias :: SelectItem -> SelectItem
 addSIAlias s@(SelectItem _ _ _) = s
-addSIAlias (SelExp ann ex) = SelectItem ann ex $ Nmc $ getColName ex
+addSIAlias (SelExp ann ex) = SelectItem ann ex $ getColName ex
   where
+    getColName :: ScalarExpr -> NameComponent
     getColName (Identifier _ i) = i
-    getColName (QIdentifier _ _ i) = i
-    getColName (FunCall _ f _) | not (isOperatorName $ getTName f) = getTName f
-    getColName (Cast _ _ (SimpleTypeName _ tn)) = tn
-    getColName (WindowFn _ (FunCall _ f _) _ _ _) = getTName f
-    getColName (AggregateFn _ _ (FunCall _ f _) _) = getTName f
-    getColName _ = "?column?"
+    getColName (QIdentifier _ is) = last is
+    getColName (FunCall _ f@(Name _ ncs) _) | not (isOperatorName $ getTName f) = last ncs
+    getColName (Cast _ _ (SimpleTypeName _ tn)) = Nmc tn
+    getColName (WindowFn _ (FunCall _ f@(Name _ ncs) _) _ _ _) = last ncs
+    getColName (AggregateFn _ _ (FunCall _ f@(Name _ ncs) _) _) = last ncs
+    getColName _ = Nmc "?column?"
 
 }
 

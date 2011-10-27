@@ -1,4 +1,5 @@
 
+> {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Tests.Parsing.Dml (dmlParsingTestData) where
 >
 > import Database.HsSqlPpp.Ast

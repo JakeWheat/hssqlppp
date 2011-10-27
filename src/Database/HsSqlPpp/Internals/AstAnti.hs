@@ -238,7 +238,7 @@ data ScalarExpr = AggregateFn Annotation Distinct ScalarExpr
                 | Exists Annotation QueryExpr
                 | Extract Annotation ExtractField ScalarExpr
                 | FunCall Annotation Name ScalarExprList
-                | Identifier Annotation String
+                | Identifier Annotation NameComponent
                 | InPredicate Annotation ScalarExpr Bool InList
                 | Interval Annotation String IntervalField (Maybe Int)
                 | LiftOperator Annotation String LiftFlavour ScalarExprList
@@ -246,8 +246,8 @@ data ScalarExpr = AggregateFn Annotation Distinct ScalarExpr
                 | NumberLit Annotation String
                 | Placeholder Annotation
                 | PositionalArg Annotation Integer
-                | Q2 Annotation NameComponent ScalarExpr
-                | QIdentifier Annotation ScalarExpr String
+                | QIdentifier Annotation [NameComponent]
+                | QStar Annotation NameComponent
                 | ScalarSubQuery Annotation QueryExpr
                 | Star Annotation
                 | StringLit Annotation String
@@ -715,7 +715,7 @@ scalarExpr x
         Exists a1 a2 -> A.Exists a1 (queryExpr a2)
         Extract a1 a2 a3 -> A.Extract a1 (extractField a2) (scalarExpr a3)
         FunCall a1 a2 a3 -> A.FunCall a1 (name a2) (scalarExprList a3)
-        Identifier a1 a2 -> A.Identifier a1 a2
+        Identifier a1 a2 -> A.Identifier a1 (nameComponent a2)
         InPredicate a1 a2 a3 a4 -> A.InPredicate a1 (scalarExpr a2) a3
                                      (inList a4)
         Interval a1 a2 a3 a4 -> A.Interval a1 a2 (intervalField a3) a4
@@ -725,8 +725,8 @@ scalarExpr x
         NumberLit a1 a2 -> A.NumberLit a1 a2
         Placeholder a1 -> A.Placeholder a1
         PositionalArg a1 a2 -> A.PositionalArg a1 a2
-        Q2 a1 a2 a3 -> A.Q2 a1 (nameComponent a2) (scalarExpr a3)
-        QIdentifier a1 a2 a3 -> A.QIdentifier a1 (scalarExpr a2) a3
+        QIdentifier a1 a2 -> A.QIdentifier a1 (nameComponentList a2)
+        QStar a1 a2 -> A.QStar a1 (nameComponent a2)
         ScalarSubQuery a1 a2 -> A.ScalarSubQuery a1 (queryExpr a2)
         Star a1 -> A.Star a1
         StringLit a1 a2 -> A.StringLit a1 a2

@@ -104,7 +104,7 @@ SEM ScalarExpr
         lhs.uType = etmt @loc.tpe
 
 SEM ScalarExpr
-    | Star
+    | QStar Star
         lhs.uType = Nothing -- Leetmt @loc.tpe
         -- loc.tpe = Left [BadStarExpand]
 
@@ -316,32 +316,23 @@ pull id types out of cat for identifiers
 
 SEM ScalarExpr
    | Identifier
-        loc.tpe = case lookupLocalBinding @lhs.lib "" @i of
+        loc.tpe = case lookupLocalBinding @lhs.lib "" (ncStr @i) of
                                         Right Nothing -> Left []
                                         Right (Just t) -> Right t
                                         Left e -> Left e
                      -- unwrapLookup <$> lbLookupID @lhs.lib [@i]
         loc.backTree = Identifier @ann @i
    | QIdentifier
-        loc.tpe = case @loc.qid of
-                            Nothing -> Left [InternalError "dot selection not implemented"] --byT
-                            Just q -> case lookupLocalBinding @lhs.lib q @i of
+        loc.tpe = case @is of
+                    [Nmc q,Nmc i] ->
+                        case lookupLocalBinding @lhs.lib q i of
                                         Right Nothing -> Left []
                                         Right (Just t) -> Right t
                                         Left e -> Left e
+                    _ -> Left [InternalError "dot selection not implemented"]
+        loc.backTree = QIdentifier @ann @is
 
-                            --either (const byT) Right $ unwrapLookup <$> lbLookupID @lhs.lib [q,@i]
-                  {-where
-                    byT = do
-                      (t::Type) <- lmt @qual.uType --unwrapLookup <$> lbLookupID @lhs.lib [q]
-                      unwrapLookup <$> lbLookupIDInType @lhs.cat @lhs.lib t @i-}
-        loc.qid : {Maybe String}
-        loc.qid = case @loc.backTree of
-                     QIdentifier _ (Identifier _ q) _ -> Just q
-                     _ -> Nothing
-        loc.backTree = QIdentifier @ann @loc.qAnnTreeNoUnrec @i
-
-        loc.qAnnTreeNoUnrec = updateAnnotation (\a -> a {errs = []}) @qual.annotatedTree
+--        loc.qAnnTreeNoUnrec = updateAnnotation (\a -> a {errs = []}) @qual.annotatedTree
 {-   | Q2
         loc.tpe = do
                   i <- case @expr.originalTree of

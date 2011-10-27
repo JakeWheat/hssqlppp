@@ -1,5 +1,6 @@
 
 
+> {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Tests.Parsing.Plpgsql (pgplsqlParsingTestData) where
 >
 > import Database.HsSqlPpp.Ast

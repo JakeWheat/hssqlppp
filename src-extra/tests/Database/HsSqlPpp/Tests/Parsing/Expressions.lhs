@@ -1,5 +1,5 @@
 
-> {-# LANGUAGE QuasiQuotes #-}
+> {-# LANGUAGE QuasiQuotes,OverloadedStrings #-}
 >
 > module Database.HsSqlPpp.Tests.Parsing.Expressions (expressionParsingTestData) where
 >

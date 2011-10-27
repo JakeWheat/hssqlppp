@@ -1,4 +1,5 @@
 
+> {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Tests.Parsing.MiscDdl (miscDdlParsingTestData) where
 >
 > import Database.HsSqlPpp.Ast

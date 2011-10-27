@@ -596,12 +596,10 @@ DATA ScalarExpr | NumberLit ann:Annotation d:String
                        expr:ScalarExpr
                        tn:TypeName
                 | Star ann:Annotation
-                | Q2 ann:Annotation q:NameComponent expr:ScalarExpr
+                | QStar ann:Annotation q:NameComponent
                 | Identifier ann:Annotation
-                             i:String
-                | QIdentifier ann:Annotation
-                              qual:ScalarExpr
-                              i:String
+                             i:NameComponent
+                | QIdentifier ann:Annotation is:{[NameComponent]}
                 -- bit hacky, preserve parens when they contain just an identifier
                 -- or positional arg, so we can pretty print this since it is needed
                 -- in some places for the pg parser

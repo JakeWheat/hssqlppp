@@ -3,6 +3,7 @@
 
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
+> import GHC.Exts (IsString(..))
 
 > data Item = Expr String ScalarExpr
 >           | Stmt String [Statement]
@@ -39,16 +40,16 @@ shortcuts for constructing test data and asts
 > dqi x = Name ea [Nmc x]
 
 > eqi :: String -> String -> ScalarExpr
-> eqi c = QIdentifier ea (Identifier ea c)
+> eqi c x = QIdentifier ea [Nmc c, Nmc x]
 
 > ei :: String -> ScalarExpr
-> ei = Identifier ea
+> ei = Identifier ea . Nmc
 >
 > qi :: String -> String -> Name
 > qi c n = Name ea [Nmc c, Nmc n]
 >
 > selI :: String -> SelectItem
-> selI = SelExp ea . Identifier ea
+> selI = SelExp ea . Identifier ea . Nmc
 >
 > sl :: SelectItemList -> SelectList
 > sl = SelectList ea
@@ -69,3 +70,6 @@ shortcuts for constructing test data and asts
 
 > name :: String -> Name
 > name n = Name ea [Nmc n]
+
+> instance IsString NameComponent where
+>     fromString cs = Nmc cs

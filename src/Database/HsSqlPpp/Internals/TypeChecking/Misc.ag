@@ -110,8 +110,8 @@ allJust ts = sequence ts
 -- to construct names, with the old approach which stuck the whole lot
 -- in a string
 getName :: ScalarExpr -> String
-getName (Identifier _ i) = i
-getName (FunCall _ f [Identifier _ _,Identifier _ i]) | getTName f == "." = i
+getName (Identifier _ i) = ncStr i
+getName (FunCall _ f [Identifier _ _,Identifier _ i]) | getTName f == "." = ncStr i
 getName (FunCall _ f [_,a]) | getTName f == "." = getName a
 getName x = error $ "internal error getName called on: " ++ show x
 

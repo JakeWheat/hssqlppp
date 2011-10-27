@@ -1,4 +1,5 @@
 
+> {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Tests.Parsing.CreateTable (createTableParsingTestData) where
 >
 > import Database.HsSqlPpp.Ast

@@ -39,7 +39,7 @@ SEM Statement
             Nothing -> return ()
           return $ Pseudo Void
         loc.implicitVar = case @var.annotatedTree of -- pretty hacky
-                              Identifier a i | errs a == [UnrecognisedIdentifier i] -> True
+                              Identifier a i | errs a == [UnrecognisedIdentifier $ ncStr i] -> True
                               _ -> False
         sts.lib =
             if @loc.implicitVar

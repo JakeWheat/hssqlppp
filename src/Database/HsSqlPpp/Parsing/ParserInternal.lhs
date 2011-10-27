@@ -1162,11 +1162,12 @@ this is probably really slow and should be fixed
 
 > starThing :: SParser ScalarExpr
 > starThing = choice [Star <$> pos <* symbol "*"
->                    ,do
+>                    ,try $ do
 >                     p <- pos
 >                     nc <- nameComponent
->                     s <- try (symbol "." *> starThing)
->                     return $ Q2 p nc s]
+>                     symbol "."
+>                     symbol "*"
+>                     return $ QStar p nc]
 
 
 >
@@ -1465,8 +1466,8 @@ row ctor: one of
 >
 > arraySubSuffix :: ScalarExpr -> SParser ScalarExpr
 > arraySubSuffix e = case e of
->                      Identifier _ "array" -> fail "can't use array \
->                                                   \as identifier name"
+>                      Identifier _ (Nmc "array") -> fail "can't use array \
+>                                                         \as identifier name"
 >                      _ -> FunCall <$> pos
 >                                   <*> (nm <$> pos <*> return "!arraysub")
 >                                   <*> ((e:) <$> squares (commaSep1 expr))
@@ -1526,7 +1527,7 @@ row ctor: one of
 handles aggregate business as well
 
 > functionCallSuffix :: ScalarExpr -> SParser ScalarExpr
-> functionCallSuffix (Identifier _ fnName) = do
+> functionCallSuffix (Identifier _ (Nmc fnName)) = do
 >   p <- pos
 >   (di,as,ob) <- parens $ (,,)
 >                          <$> optionMaybe
@@ -1625,16 +1626,19 @@ handles aggregate business as well
 >             return $ FunCall p (nm p "!substring") [a,b,c]
 >
 > identifier :: SParser ScalarExpr
-> identifier = Identifier <$> pos <*> (idString <|> splice)
+> identifier = Identifier <$> pos <*> (nameComponent <|> (Nmc <$> splice))
 >
 > qualIdSuffix :: ScalarExpr -> SParser ScalarExpr
-> qualIdSuffix ex = pos >>= \p -> QIdentifier p ex <$> (symbol "." *> idString)
+> qualIdSuffix e = do
+>     Identifier p i <- return e
+>     i1 <- symbol "." *> nameComponent
+>     return $ QIdentifier p [i,i1]
 
 > antiIdentifier :: SParser ScalarExpr
-> antiIdentifier = Identifier <$> pos <*> spliceD
+> antiIdentifier = Identifier <$> pos <*> (Nmc <$> spliceD)
 
 > antiIdentifier1 :: SParser ScalarExpr
-> antiIdentifier1 = Identifier <$> pos <*> ssplice
+> antiIdentifier1 = Identifier <$> pos <*> (Nmc <$> ssplice)
 >                   where
 >                     ssplice = (\s -> "$i(" ++ s ++ ")") <$>
 >                               (symbol "$i(" *> idString <* symbol ")")
@@ -1646,13 +1650,13 @@ for that
 
 > qName :: SParser ScalarExpr
 > qName = do
->   i <- identifier
+>   p <- pos
+>   i <- nameComponent
 >   choice [do
->            p <- pos
 >            symbol "."
->            i1 <- idString
->            return $ QIdentifier p i i1
->          ,return i]
+>            i1 <- nameComponent
+>            return $ QIdentifier p [i,i1]
+>          ,return $ Identifier p i]
 
 > {-dqi :: SParser SQIdentifier
 > dqi =
