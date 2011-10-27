@@ -176,7 +176,7 @@ data FrameClause = FrameUnboundedPreceding
                  deriving (Show, Eq, Typeable, Data)
  
 data AlterTableAction = AddConstraint Annotation Constraint
-                      | AlterColumnDefault Annotation String ScalarExpr
+                      | AlterColumnDefault Annotation NameComponent ScalarExpr
                       deriving (Data, Eq, Show, Typeable)
  
 data AttributeDef = AttributeDef Annotation NameComponent TypeName
@@ -184,9 +184,9 @@ data AttributeDef = AttributeDef Annotation NameComponent TypeName
                   deriving (Data, Eq, Show, Typeable)
  
 data Constraint = CheckConstraint Annotation String ScalarExpr
-                | PrimaryKeyConstraint Annotation String [String]
-                | ReferenceConstraint Annotation String [String] String [String]
-                                      Cascade Cascade
+                | PrimaryKeyConstraint Annotation String [NameComponent]
+                | ReferenceConstraint Annotation String [NameComponent] Name
+                                      [NameComponent] Cascade Cascade
                 | UniqueConstraint Annotation String [NameComponent]
                 deriving (Data, Eq, Show, Typeable)
  
@@ -222,8 +222,8 @@ data RowConstraint = NotNullConstraint Annotation String
                    | NullConstraint Annotation String
                    | RowCheckConstraint Annotation String ScalarExpr
                    | RowPrimaryKeyConstraint Annotation String
-                   | RowReferenceConstraint Annotation String String (Maybe String)
-                                            Cascade Cascade
+                   | RowReferenceConstraint Annotation String Name
+                                            (Maybe NameComponent) Cascade Cascade
                    | RowUniqueConstraint Annotation String
                    deriving (Data, Eq, Show, Typeable)
  
@@ -332,7 +332,8 @@ data TableRef = FunTref Annotation ScalarExpr TableAlias
               | Tref Annotation Name TableAlias
               deriving (Data, Eq, Show, Typeable)
  
-data TypeAttributeDef = TypeAttDef Annotation String TypeName
+data TypeAttributeDef = TypeAttDef Annotation NameComponent
+                                   TypeName
                       deriving (Data, Eq, Show, Typeable)
  
 data TypeName = ArrayTypeName Annotation TypeName
@@ -602,7 +603,8 @@ alterTableAction :: AlterTableAction -> A.AlterTableAction
 alterTableAction x
   = case x of
         AddConstraint a1 a2 -> A.AddConstraint a1 (constraint a2)
-        AlterColumnDefault a1 a2 a3 -> A.AlterColumnDefault a1 a2
+        AlterColumnDefault a1 a2 a3 -> A.AlterColumnDefault a1
+                                         (nameComponent a2)
                                          (scalarExpr a3)
  
 attributeDef :: AttributeDef -> A.AttributeDef
@@ -617,13 +619,14 @@ constraint :: Constraint -> A.Constraint
 constraint x
   = case x of
         CheckConstraint a1 a2 a3 -> A.CheckConstraint a1 a2 (scalarExpr a3)
-        PrimaryKeyConstraint a1 a2 a3 -> A.PrimaryKeyConstraint a1 a2 a3
+        PrimaryKeyConstraint a1 a2 a3 -> A.PrimaryKeyConstraint a1 a2
+                                           (nameComponentList a3)
         ReferenceConstraint a1 a2 a3 a4 a5 a6 a7 -> A.ReferenceConstraint
                                                       a1
                                                       a2
-                                                      a3
-                                                      a4
-                                                      a5
+                                                      (nameComponentList a3)
+                                                      (name a4)
+                                                      (nameComponentList a5)
                                                       (cascade a6)
                                                       (cascade a7)
         UniqueConstraint a1 a2 a3 -> A.UniqueConstraint a1 a2
@@ -687,7 +690,9 @@ rowConstraint x
                                          (scalarExpr a3)
         RowPrimaryKeyConstraint a1 a2 -> A.RowPrimaryKeyConstraint a1 a2
         RowReferenceConstraint a1 a2 a3 a4 a5
-          a6 -> A.RowReferenceConstraint a1 a2 a3 a4 (cascade a5)
+          a6 -> A.RowReferenceConstraint a1 a2 (name a3)
+                  (fmap nameComponent a4)
+                  (cascade a5)
                   (cascade a6)
         RowUniqueConstraint a1 a2 -> A.RowUniqueConstraint a1 a2
  
@@ -885,7 +890,8 @@ tableRef x
 typeAttributeDef :: TypeAttributeDef -> A.TypeAttributeDef
 typeAttributeDef x
   = case x of
-        TypeAttDef a1 a2 a3 -> A.TypeAttDef a1 a2 (typeName a3)
+        TypeAttDef a1 a2 a3 -> A.TypeAttDef a1 (nameComponent a2)
+                                 (typeName a3)
  
 typeName :: TypeName -> A.TypeName
 typeName x

@@ -604,7 +604,7 @@ getPlaceholderTypes ex =
             local originalTree : _
       alternative AlterColumnDefault:
          child ann            : {Annotation}
-         child nm             : {String}
+         child nm             : {NameComponent}
          child def            : ScalarExpr 
          visit 0:
             local annotatedTree : _
@@ -612,7 +612,7 @@ getPlaceholderTypes ex =
             local originalTree : _
 -}
 data AlterTableAction  = AddConstraint (Annotation) (Constraint ) 
-                       | AlterColumnDefault (Annotation) (String) (ScalarExpr ) 
+                       | AlterColumnDefault (Annotation) (NameComponent) (ScalarExpr ) 
                        deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_AlterTableAction :: AlterTableAction  ->
@@ -681,7 +681,7 @@ sem_AlterTableAction_AddConstraint ann_ con_  =
                   con_ _conOcat _conOidenv _conOlib 
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree)))
 sem_AlterTableAction_AlterColumnDefault :: Annotation ->
-                                           String ->
+                                           NameComponent ->
                                            T_ScalarExpr  ->
                                            T_AlterTableAction 
 sem_AlterTableAction_AlterColumnDefault ann_ nm_ def_  =
@@ -1455,7 +1455,7 @@ sem_CaseScalarExprListScalarExprPairList_Nil  =
       alternative PrimaryKeyConstraint:
          child ann            : {Annotation}
          child name           : {String}
-         child x              : {[String]}
+         child x              : {[NameComponent]}
          visit 0:
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
@@ -1463,9 +1463,9 @@ sem_CaseScalarExprListScalarExprPairList_Nil  =
       alternative ReferenceConstraint:
          child ann            : {Annotation}
          child name           : {String}
-         child atts           : {[String]}
-         child table          : {String}
-         child tableAtts      : {[String]}
+         child atts           : {[NameComponent]}
+         child table          : Name 
+         child tableAtts      : {[NameComponent]}
          child onUpdate       : {Cascade}
          child onDelete       : {Cascade}
          visit 0:
@@ -1482,8 +1482,8 @@ sem_CaseScalarExprListScalarExprPairList_Nil  =
             local originalTree : _
 -}
 data Constraint  = CheckConstraint (Annotation) (String) (ScalarExpr ) 
-                 | PrimaryKeyConstraint (Annotation) (String) (([String])) 
-                 | ReferenceConstraint (Annotation) (String) (([String])) (String) (([String])) (Cascade) (Cascade) 
+                 | PrimaryKeyConstraint (Annotation) (String) (([NameComponent])) 
+                 | ReferenceConstraint (Annotation) (String) (([NameComponent])) (Name ) (([NameComponent])) (Cascade) (Cascade) 
                  | UniqueConstraint (Annotation) (String) (([NameComponent])) 
                  deriving ( Data,Eq,Show,Typeable)
 -- cata
@@ -1494,7 +1494,7 @@ sem_Constraint (CheckConstraint _ann _name _expr )  =
 sem_Constraint (PrimaryKeyConstraint _ann _name _x )  =
     (sem_Constraint_PrimaryKeyConstraint _ann _name _x )
 sem_Constraint (ReferenceConstraint _ann _name _atts _table _tableAtts _onUpdate _onDelete )  =
-    (sem_Constraint_ReferenceConstraint _ann _name _atts _table _tableAtts _onUpdate _onDelete )
+    (sem_Constraint_ReferenceConstraint _ann _name _atts (sem_Name _table ) _tableAtts _onUpdate _onDelete )
 sem_Constraint (UniqueConstraint _ann _name _x )  =
     (sem_Constraint_UniqueConstraint _ann _name _x )
 -- semantic domain
@@ -1564,7 +1564,7 @@ sem_Constraint_CheckConstraint ann_ name_ expr_  =
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree)))
 sem_Constraint_PrimaryKeyConstraint :: Annotation ->
                                        String ->
-                                       ([String]) ->
+                                       ([NameComponent]) ->
                                        T_Constraint 
 sem_Constraint_PrimaryKeyConstraint ann_ name_ x_  =
     (\ _lhsIcat
@@ -1594,9 +1594,9 @@ sem_Constraint_PrimaryKeyConstraint ann_ name_ x_  =
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree)))
 sem_Constraint_ReferenceConstraint :: Annotation ->
                                       String ->
-                                      ([String]) ->
-                                      String ->
-                                      ([String]) ->
+                                      ([NameComponent]) ->
+                                      T_Name  ->
+                                      ([NameComponent]) ->
                                       Cascade ->
                                       Cascade ->
                                       T_Constraint 
@@ -1607,15 +1607,23 @@ sem_Constraint_ReferenceConstraint ann_ name_ atts_ table_ tableAtts_ onUpdate_ 
          (let _lhsOannotatedTree :: Constraint 
               _lhsOfixedUpIdentifiersTree :: Constraint 
               _lhsOoriginalTree :: Constraint 
+              _tableOcat :: Catalog
+              _tableOidenv :: IDEnv
+              _tableOlib :: LocalBindings
+              _tableIannotatedTree :: Name 
+              _tableIfixedUpIdentifiersTree :: Name 
+              _tableIoriginalTree :: Name 
+              _tableItbAnnotatedTree :: Name 
+              _tableItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               -- self rule
               _annotatedTree =
-                  ReferenceConstraint ann_ name_ atts_ table_ tableAtts_ onUpdate_ onDelete_
+                  ReferenceConstraint ann_ name_ atts_ _tableIannotatedTree tableAtts_ onUpdate_ onDelete_
               -- self rule
               _fixedUpIdentifiersTree =
-                  ReferenceConstraint ann_ name_ atts_ table_ tableAtts_ onUpdate_ onDelete_
+                  ReferenceConstraint ann_ name_ atts_ _tableIfixedUpIdentifiersTree tableAtts_ onUpdate_ onDelete_
               -- self rule
               _originalTree =
-                  ReferenceConstraint ann_ name_ atts_ table_ tableAtts_ onUpdate_ onDelete_
+                  ReferenceConstraint ann_ name_ atts_ _tableIoriginalTree tableAtts_ onUpdate_ onDelete_
               -- self rule
               _lhsOannotatedTree =
                   _annotatedTree
@@ -1625,6 +1633,17 @@ sem_Constraint_ReferenceConstraint ann_ name_ atts_ table_ tableAtts_ onUpdate_ 
               -- self rule
               _lhsOoriginalTree =
                   _originalTree
+              -- copy rule (down)
+              _tableOcat =
+                  _lhsIcat
+              -- copy rule (down)
+              _tableOidenv =
+                  _lhsIidenv
+              -- copy rule (down)
+              _tableOlib =
+                  _lhsIlib
+              ( _tableIannotatedTree,_tableIfixedUpIdentifiersTree,_tableIoriginalTree,_tableItbAnnotatedTree,_tableItbUType) =
+                  table_ _tableOcat _tableOidenv _tableOlib 
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree)))
 sem_Constraint_UniqueConstraint :: Annotation ->
                                    String ->
@@ -4271,8 +4290,8 @@ sem_Root_Root statements_  =
       alternative RowReferenceConstraint:
          child ann            : {Annotation}
          child name           : {String}
-         child table          : {String}
-         child att            : {Maybe String}
+         child table          : Name 
+         child att            : {Maybe NameComponent}
          child onUpdate       : {Cascade}
          child onDelete       : {Cascade}
          visit 0:
@@ -4291,7 +4310,7 @@ data RowConstraint  = NotNullConstraint (Annotation) (String)
                     | NullConstraint (Annotation) (String) 
                     | RowCheckConstraint (Annotation) (String) (ScalarExpr ) 
                     | RowPrimaryKeyConstraint (Annotation) (String) 
-                    | RowReferenceConstraint (Annotation) (String) (String) ((Maybe String)) (Cascade) (Cascade) 
+                    | RowReferenceConstraint (Annotation) (String) (Name ) ((Maybe NameComponent)) (Cascade) (Cascade) 
                     | RowUniqueConstraint (Annotation) (String) 
                     deriving ( Data,Eq,Show,Typeable)
 -- cata
@@ -4306,7 +4325,7 @@ sem_RowConstraint (RowCheckConstraint _ann _name _expr )  =
 sem_RowConstraint (RowPrimaryKeyConstraint _ann _name )  =
     (sem_RowConstraint_RowPrimaryKeyConstraint _ann _name )
 sem_RowConstraint (RowReferenceConstraint _ann _name _table _att _onUpdate _onDelete )  =
-    (sem_RowConstraint_RowReferenceConstraint _ann _name _table _att _onUpdate _onDelete )
+    (sem_RowConstraint_RowReferenceConstraint _ann _name (sem_Name _table ) _att _onUpdate _onDelete )
 sem_RowConstraint (RowUniqueConstraint _ann _name )  =
     (sem_RowConstraint_RowUniqueConstraint _ann _name )
 -- semantic domain
@@ -4463,8 +4482,8 @@ sem_RowConstraint_RowPrimaryKeyConstraint ann_ name_  =
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree)))
 sem_RowConstraint_RowReferenceConstraint :: Annotation ->
                                             String ->
-                                            String ->
-                                            (Maybe String) ->
+                                            T_Name  ->
+                                            (Maybe NameComponent) ->
                                             Cascade ->
                                             Cascade ->
                                             T_RowConstraint 
@@ -4475,15 +4494,23 @@ sem_RowConstraint_RowReferenceConstraint ann_ name_ table_ att_ onUpdate_ onDele
          (let _lhsOannotatedTree :: RowConstraint 
               _lhsOfixedUpIdentifiersTree :: RowConstraint 
               _lhsOoriginalTree :: RowConstraint 
+              _tableOcat :: Catalog
+              _tableOidenv :: IDEnv
+              _tableOlib :: LocalBindings
+              _tableIannotatedTree :: Name 
+              _tableIfixedUpIdentifiersTree :: Name 
+              _tableIoriginalTree :: Name 
+              _tableItbAnnotatedTree :: Name 
+              _tableItbUType :: (Maybe ([(String,Type)],[(String,Type)]))
               -- self rule
               _annotatedTree =
-                  RowReferenceConstraint ann_ name_ table_ att_ onUpdate_ onDelete_
+                  RowReferenceConstraint ann_ name_ _tableIannotatedTree att_ onUpdate_ onDelete_
               -- self rule
               _fixedUpIdentifiersTree =
-                  RowReferenceConstraint ann_ name_ table_ att_ onUpdate_ onDelete_
+                  RowReferenceConstraint ann_ name_ _tableIfixedUpIdentifiersTree att_ onUpdate_ onDelete_
               -- self rule
               _originalTree =
-                  RowReferenceConstraint ann_ name_ table_ att_ onUpdate_ onDelete_
+                  RowReferenceConstraint ann_ name_ _tableIoriginalTree att_ onUpdate_ onDelete_
               -- self rule
               _lhsOannotatedTree =
                   _annotatedTree
@@ -4493,6 +4520,17 @@ sem_RowConstraint_RowReferenceConstraint ann_ name_ table_ att_ onUpdate_ onDele
               -- self rule
               _lhsOoriginalTree =
                   _originalTree
+              -- copy rule (down)
+              _tableOcat =
+                  _lhsIcat
+              -- copy rule (down)
+              _tableOidenv =
+                  _lhsIidenv
+              -- copy rule (down)
+              _tableOlib =
+                  _lhsIlib
+              ( _tableIannotatedTree,_tableIfixedUpIdentifiersTree,_tableIoriginalTree,_tableItbAnnotatedTree,_tableItbUType) =
+                  table_ _tableOcat _tableOidenv _tableOlib 
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree)))
 sem_RowConstraint_RowUniqueConstraint :: Annotation ->
                                          String ->
@@ -13838,14 +13876,14 @@ sem_TableRefList_Nil  =
    alternatives:
       alternative TypeAttDef:
          child ann            : {Annotation}
-         child name           : {String}
+         child name           : {NameComponent}
          child typ            : TypeName 
          visit 0:
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
             local originalTree : _
 -}
-data TypeAttributeDef  = TypeAttDef (Annotation) (String) (TypeName ) 
+data TypeAttributeDef  = TypeAttDef (Annotation) (NameComponent) (TypeName ) 
                        deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_TypeAttributeDef :: TypeAttributeDef  ->
@@ -13866,7 +13904,7 @@ wrap_TypeAttributeDef sem (Inh_TypeAttributeDef _lhsIcat _lhsIidenv _lhsIlib )  
     (let ( _lhsOannotatedTree,_lhsOattrName,_lhsOfixedUpIdentifiersTree,_lhsOnamedType,_lhsOoriginalTree) = sem _lhsIcat _lhsIidenv _lhsIlib 
      in  (Syn_TypeAttributeDef _lhsOannotatedTree _lhsOattrName _lhsOfixedUpIdentifiersTree _lhsOnamedType _lhsOoriginalTree ))
 sem_TypeAttributeDef_TypeAttDef :: Annotation ->
-                                   String ->
+                                   NameComponent ->
                                    T_TypeName  ->
                                    T_TypeAttributeDef 
 sem_TypeAttributeDef_TypeAttDef ann_ name_ typ_  =
@@ -13887,7 +13925,7 @@ sem_TypeAttributeDef_TypeAttDef ann_ name_ typ_  =
               _typIoriginalTree :: TypeName 
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/MiscCreates.ag"(line 37, column 9)
               _lhsOattrName =
-                  name_
+                  ncStr name_
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/Ddl/MiscCreates.ag"(line 38, column 9)
               _lhsOnamedType =
                   _typInamedType

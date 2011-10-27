@@ -34,7 +34,7 @@ ATTR TypeAttributeDef [||attrName : String
 
 SEM TypeAttributeDef
     | TypeAttDef
-        lhs.attrName = @name
+        lhs.attrName = ncStr @name
         lhs.namedType = @typ.namedType
 
 ATTR TypeAttributeDefList [||attrs : {[(String, Maybe Type)]}]

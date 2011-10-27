@@ -458,31 +458,31 @@ DATA RowConstraint | NullConstraint ann:Annotation name:String
                    | RowUniqueConstraint ann:Annotation name:String
                    | RowPrimaryKeyConstraint ann:Annotation name:String
                    | RowReferenceConstraint ann:Annotation name:String
-                                            table : String
-                                            att : (Maybe String)
+                                            table : Name
+                                            att : (Maybe NameComponent)
                                             onUpdate : Cascade
                                             onDelete : Cascade
 
 --constraints which appear on a separate row in the create table
 
 DATA Constraint | UniqueConstraint ann:Annotation name:String x:{[NameComponent]}
-                | PrimaryKeyConstraint ann:Annotation name:String x:{[String]}
+                | PrimaryKeyConstraint ann:Annotation name:String x:{[NameComponent]}
                 | CheckConstraint ann:Annotation name:String expr:ScalarExpr
                   -- sourcecols targettable targetcols ondelete onupdate
                 | ReferenceConstraint ann:Annotation
                                       name:String
-                                      atts : {[String]}
-                                      table : String
-                                      tableAtts : {[String]}
+                                      atts : {[NameComponent]}
+                                      table : Name
+                                      tableAtts : {[NameComponent]}
                                       onUpdate : Cascade
                                       onDelete : Cascade
 
 DATA TypeAttributeDef | TypeAttDef ann:Annotation
-                                   name : String
+                                   name : NameComponent
                                    typ : TypeName
 
 DATA AlterTableAction | AlterColumnDefault ann:Annotation
-                                           nm : String
+                                           nm : NameComponent
                                            def : ScalarExpr
                       | AddConstraint ann: Annotation
                                       con: Constraint

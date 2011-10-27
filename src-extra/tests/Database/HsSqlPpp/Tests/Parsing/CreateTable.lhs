@@ -30,7 +30,7 @@
 >        (selectE (SelectList ea [SelExp ea (NumberLit ea "1")]))]
 >
 >      ,s "alter table a alter column b set default 1;"
->       [AlterTable ea (dqi "a") [AlterColumnDefault ea "b" (NumberLit ea "1")]]
+>       [AlterTable ea (dqi "a") [AlterColumnDefault ea (Nmc "b") (NumberLit ea "1")]]
 >
 >      ,s "alter table a add constraint unique(b);"
 >       [AlterTable ea (dqi "a") [AddConstraint ea (UniqueConstraint ea "" [Nmc "b"])]]
@@ -112,7 +112,7 @@ quick sanity check
 >         \);"
 >         [CreateTable ea (dqi "t1") [att "x" "int"
 >                           ,att "y" "int"]
->          [PrimaryKeyConstraint ea "" ["x", "y"]]]
+>          [PrimaryKeyConstraint ea "" [Nmc "x", Nmc "y"]]]
 >      ]
 >
 >      ,Group "check" [
@@ -154,14 +154,14 @@ quick sanity check
 >         \ x int references t2\n\
 >         \);"
 >         [CreateTable ea (dqi "t1") [AttributeDef ea (Nmc "x") (SimpleTypeName ea "int") Nothing
->                            [RowReferenceConstraint ea "" "t2" Nothing
+>                            [RowReferenceConstraint ea "" (dqi "t2") Nothing
 >                             Restrict Restrict]][]]
 >
 >      ,s "create table t1 (\n\
 >         \ x int references t2(y)\n\
 >         \);"
 >         [CreateTable ea (dqi "t1") [AttributeDef ea (Nmc "x") (SimpleTypeName ea "int") Nothing
->                            [RowReferenceConstraint ea "" "t2" (Just "y")
+>                            [RowReferenceConstraint ea "" (dqi "t2") (Just $ Nmc "y")
 >                             Restrict Restrict]][]]
 >      ,s "create table t1 (\n\
 >         \ x int,\n\
@@ -169,8 +169,8 @@ quick sanity check
 >         \ foreign key (x,y) references t2\n\
 >         \);"
 >         [CreateTable ea (dqi "t1") [att "x" "int"
->                           ,att "y" "int"]
->          [ReferenceConstraint ea "" ["x", "y"] "t2" []
+>                                    ,att "y" "int"]
+>          [ReferenceConstraint ea "" [Nmc "x", Nmc "y"] (dqi "t2") []
 >           Restrict Restrict]]
 >
 >      ,s "create table t1 (\n\
@@ -180,28 +180,28 @@ quick sanity check
 >         \);"
 >         [CreateTable ea (dqi "t1") [att "x" "int"
 >                           ,att "y" "int"]
->          [ReferenceConstraint ea "" ["x", "y"] "t2" ["z", "w"]
+>          [ReferenceConstraint ea "" [Nmc "x", Nmc "y"] (dqi "t2") [Nmc "z", Nmc "w"]
 >           Restrict Restrict]]
 >
 >      ,s "create table t1 (\n\
 >         \ x int references t2 on delete cascade\n\
 >         \);"
 >         [CreateTable ea (dqi "t1") [AttributeDef ea (Nmc "x") (SimpleTypeName ea "int") Nothing
->                            [RowReferenceConstraint ea "" "t2" Nothing
+>                            [RowReferenceConstraint ea "" (dqi "t2") Nothing
 >                             Cascade Restrict]][]]
 >
 >      ,s "create table t1 (\n\
 >         \ x int references t2 on update cascade\n\
 >         \);"
 >         [CreateTable ea (dqi "t1") [AttributeDef ea (Nmc "x") (SimpleTypeName ea "int") Nothing
->                            [RowReferenceConstraint ea "" "t2" Nothing
+>                            [RowReferenceConstraint ea "" (dqi "t2") Nothing
 >                             Restrict Cascade]][]]
 >
 >      ,s "create table t1 (\n\
 >         \ x int references t2 on delete cascade on update cascade\n\
 >         \);"
 >         [CreateTable ea (dqi "t1") [AttributeDef ea (Nmc "x") (SimpleTypeName ea "int") Nothing
->                            [RowReferenceConstraint ea "" "t2" Nothing
+>                            [RowReferenceConstraint ea "" (dqi "t2") Nothing
 >                             Cascade Cascade]][]]
 >
 >      ,s "create table t1 (\n\
@@ -211,7 +211,7 @@ quick sanity check
 >         \);"
 >         [CreateTable ea (dqi "t1") [att "x" "int"
 >                                    ,att "y" "int"]
->          [ReferenceConstraint ea "" ["x", "y"] "t2" []
+>          [ReferenceConstraint ea "" [Nmc "x", Nmc "y"] (dqi "t2") []
 >           Cascade Cascade]]
 >
 >      ]

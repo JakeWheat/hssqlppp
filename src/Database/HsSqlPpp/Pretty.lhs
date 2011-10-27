@@ -133,8 +133,8 @@ Conversion routines - convert Sql asts into Docs
 >       cCons (RowPrimaryKeyConstraint _ cn) =
 >         mname cn <+> text "primary key"
 >       cCons (RowReferenceConstraint _ cn tb att ondel onupd) =
->         mname cn <+> text "references" <+> text tb
->         <+> maybeConv (parens . text) att
+>         mname cn <+> text "references" <+> convName tb
+>         <+> maybeConv (parens . convNC) att
 >         <+> text "on delete" <+> convCasc ondel
 >         <+> text "on update" <+> convCasc onupd
 >
@@ -144,7 +144,7 @@ Conversion routines - convert Sql asts into Docs
 >     <+> hcatCsvMap convAct act <> statementEnd se
 >     where
 >       convAct (AlterColumnDefault _ nm def) =
->           text "alter column" <+> text nm
+>           text "alter column" <+> convNC nm
 >           <+> text "set default" <+> convExp nice def
 >       convAct (AddConstraint _ con) =
 >           text "add " <+> convCon nice con
@@ -263,7 +263,7 @@ Conversion routines - convert Sql asts into Docs
 >     convPa ca ann <+>
 >     text "create type" <+> convName name <+> text "as" <+> lparen
 >     $+$ nest 2 (vcat (csv
->           (map (\(TypeAttDef _ n t) -> text n <+> convTypeName t)  atts)))
+>           (map (\(TypeAttDef _ n t) -> convNC n <+> convTypeName t)  atts)))
 >     $+$ rparen <> statementEnd se
 >
 > convStatement _nice se ca (CreateLanguage ann name) =
@@ -588,14 +588,14 @@ Statement components
 > convCon _nice (PrimaryKeyConstraint _ n p) =
 >         mname n <+>
 >         text "primary key"
->         <+> parens (sepCsvMap text p)
+>         <+> parens (sepCsvMap convNC p)
 > convCon nice (CheckConstraint _ n c) =
 >         mname n <+> text "check" <+> parens (convExp nice c)
 > convCon _nice (ReferenceConstraint _ n at tb rat ondel onupd) =
 >         mname n <+>
->         text "foreign key" <+> parens (sepCsvMap text at)
->         <+> text "references" <+> text tb
->         <+> ifNotEmpty (parens . sepCsvMap text) rat
+>         text "foreign key" <+> parens (sepCsvMap convNC at)
+>         <+> text "references" <+> convName tb
+>         <+> ifNotEmpty (parens . sepCsvMap convNC) rat
 >         <+> text "on update" <+> convCasc onupd
 >         <+> text "on delete" <+> convCasc ondel
 >

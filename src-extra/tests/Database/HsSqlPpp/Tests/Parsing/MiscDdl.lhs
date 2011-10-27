@@ -27,8 +27,8 @@
 >         \  f1 text,\n\
 >         \  f2 text\n\
 >         \);"
->       [CreateType ea (dqi "tp1") [TypeAttDef ea "f1" (SimpleTypeName ea "text")
->                                  ,TypeAttDef ea "f2" (SimpleTypeName ea "text")]]
+>       [CreateType ea (dqi "tp1") [TypeAttDef ea (Nmc "f1") (SimpleTypeName ea "text")
+>                                  ,TypeAttDef ea (Nmc "f2") (SimpleTypeName ea "text")]]
 >
 >      ,s "create sequence s start with 5 increment by 4 no maxvalue no minvalue cache 1;"
 >         [CreateSequence ea (dqi "s") 4 1 ((2::Integer) ^ (63::Integer) - 1) 5 1]

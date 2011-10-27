@@ -630,8 +630,8 @@ ddl
 >          ,NullConstraint p cn <$ keyword "null"
 >          ,NotNullConstraint p cn <$ (keyword "not" <* keyword "null")
 >          ,RowReferenceConstraint p cn
->          <$> (keyword "references" *> idString)
->          <*> option Nothing (try $ parens $ Just <$> idString)
+>          <$> (keyword "references" *> name)
+>          <*> option Nothing (try $ parens $ Just <$> nameComponent)
 >          <*> onDelete
 >          <*> onUpdate
 >          ]
@@ -656,15 +656,15 @@ ddl
 >                    ,PrimaryKeyConstraint p cn
 >                    <$> try (keyword "primary" *> keyword "key"
 >                                     *> choice [
->                                             (:[]) <$> idString
->                                            ,parens (commaSep1 idString)])
+>                                             (:[]) <$> nameComponent
+>                                            ,parens (commaSep1 nameComponent)])
 >                    ,CheckConstraint p cn
 >                    <$>try (keyword "check" *> parens expr)
 >                    ,ReferenceConstraint p cn
 >                    <$> try (keyword "foreign" *> keyword "key"
->                             *> parens (commaSep1 idString))
->                    <*> (keyword "references" *> idString)
->                    <*> option [] (parens $ commaSep1 idString)
+>                             *> parens (commaSep1 nameComponent))
+>                    <*> (keyword "references" *> name)
+>                    <*> option [] (parens $ commaSep1 nameComponent)
 >                    <*> onUpdate
 >                    <*> onDelete]
 >                 where
@@ -687,7 +687,7 @@ ddl
 >              where action = choice [
 >                              AlterColumnDefault
 >                              <$> (pos <* keyword "alter" <* keyword "column")
->                              <*> idString
+>                              <*> nameComponent
 >                              <*> (keyword "set" *> keyword "default" *> expr)
 >                             ,AddConstraint
 >                              <$> (pos <* keyword "add")
@@ -699,7 +699,7 @@ ddl
 >              <*> name
 >              <*> (keyword "as" *> parens (commaSep1 typeAtt))
 >   where
->     typeAtt = TypeAttDef <$> pos <*> idString <*> typeName
+>     typeAtt = TypeAttDef <$> pos <*> nameComponent <*> typeName
 >
 > createSequence :: SParser Statement
 > createSequence = do
