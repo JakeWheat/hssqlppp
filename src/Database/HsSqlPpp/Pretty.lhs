@@ -314,7 +314,7 @@ Conversion routines - convert Sql asts into Docs
 
 > convStatement nice se ca (Assignment ann name val) =
 >     convPa ca ann <+>
->     convExp nice name <+> text ":=" <+> convExp nice val <> statementEnd se
+>     convName name <+> text ":=" <+> convExp nice val <> statementEnd se
 >
 > convStatement nice se ca (Return ann ex) =
 >     convPa ca ann <+>
@@ -343,7 +343,7 @@ Conversion routines - convert Sql asts into Docs
 > convStatement nice se ca (ForQueryStatement ann lb i sel stmts) =
 >     convPa ca ann <+>
 >     convLabel lb <>
->     text "for" <+> convExp nice i <+> text "in"
+>     text "for" <+> convNC i <+> text "in"
 >     <+> convQueryExpr nice True True sel <+> text "loop"
 >     $+$ convNestedStatements nice ca stmts
 >     $+$ text "end loop" <> statementEnd se
@@ -351,7 +351,7 @@ Conversion routines - convert Sql asts into Docs
 > convStatement nice se ca (ForIntegerStatement ann lb var st en stmts) =
 >     convPa ca ann <+>
 >     convLabel lb <>
->     text "for" <+> convExp nice var <+> text "in"
+>     text "for" <+> convNC var <+> text "in"
 >     <+> convExp nice st <+> text ".." <+> convExp nice en <+> text "loop"
 >     $+$ convNestedStatements nice ca stmts
 >     $+$ text "end loop" <> statementEnd se

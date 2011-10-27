@@ -69,13 +69,13 @@ expressions
 >      in Stmt [$sqlStmt| drop function $(fnname)();|]
 >              [$sqlStmt| drop function my_function();|]
 >
->     ,let expr = Identifier ea "testing"
+>     {-,let expr = StringLit ea "testing"
 >      in PgSqlStmt [$pgsqlStmt| return $(expr); |]
->                   [$pgsqlStmt| return "testing"; |]
+>                   [$pgsqlStmt| return "testing"; |]-}
 >
->     ,let expr = (FunCall ea (Name ea [Nmc "+"]) [NumberLit ea "3",NumberLit ea "4"])
+>     {-,let expr = (FunCall ea (Name ea [Nmc "+"]) [NumberLit ea "3",NumberLit ea "4"])
 >      in PgSqlStmt [$pgsqlStmt| return $(expr); |]
->                   [$pgsqlStmt| return 3 + 4; |]
+>                   [$pgsqlStmt| return 3 + 4; |]-}
 >
 >     ,let errMsg = "this splice is slighty dodgy"
 >      in PgSqlStmt [$pgsqlStmt|
@@ -129,7 +129,7 @@ expressions
 >              (StringLit ea "splicedstring")
 >     ,let x = "splicedIdentifier"
 >      in Expr [$sqlExpr| $i(x) |]
->              (Identifier ea "splicedIdentifier")
+>              (Identifier ea $ Nmc "splicedIdentifier")
 >     ,let errMsg = "this splice isn't too dodgy"
 >      in PgSqlStmt [$pgsqlStmt| raise exception $s(errMsg); |]
 >                   [$pgsqlStmt| raise exception 'this splice isn''t too dodgy'; |]

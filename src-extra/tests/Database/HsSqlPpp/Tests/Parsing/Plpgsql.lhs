@@ -12,9 +12,9 @@
 >   Group "plpgsql" [
 >     Group "simple plpgsql statements" [
 >       f "success := true;"
->       [Assignment ea (ei "success") (BooleanLit ea True)]
+>       [Assignment ea (Name ea ["success"]) (BooleanLit ea True)]
 >      ,f "success = true;"
->       [Assignment ea (ei "success") (BooleanLit ea True)]
+>       [Assignment ea (Name ea ["success"]) (BooleanLit ea True)]
 >      ,f "return true;"
 >       [Return ea $ Just (BooleanLit ea True)]
 >      ,f "return;"
@@ -76,18 +76,18 @@
 >       f "for r in select a from tbl loop\n\
 >         \null;\n\
 >         \end loop;"
->       [ForQueryStatement ea Nothing (ei "r") (selectFrom  [selI "a"] (Tref ea (i "tbl") (NoAlias ea)))
+>       [ForQueryStatement ea Nothing (Nmc "r") (selectFrom  [selI "a"] (Tref ea (i "tbl") (NoAlias ea)))
 >        [NullStatement ea]]
 >      ,f "for r in select a from tbl where true loop\n\
 >         \null;\n\
 >         \end loop;"
->       [ForQueryStatement ea Nothing (ei "r")
+>       [ForQueryStatement ea Nothing (Nmc "r")
 >        (selectFromWhere [selI "a"] (Tref ea (i "tbl") (NoAlias ea)) (BooleanLit ea True))
 >        [NullStatement ea]]
 >      ,f "for r in 1 .. 10 loop\n\
 >         \null;\n\
 >         \end loop;"
->       [ForIntegerStatement ea Nothing (ei "r")
+>       [ForIntegerStatement ea Nothing (Nmc "r")
 >        (NumberLit ea "1") (NumberLit ea "10")
 >        [NullStatement ea]]
 >       -- catch a bug in lexing where 1..10 is parsed as
@@ -95,7 +95,7 @@
 >      ,f "for r in 1..10 loop\n\
 >         \null;\n\
 >         \end loop;"
->       [ForIntegerStatement ea Nothing (ei "r")
+>       [ForIntegerStatement ea Nothing (Nmc "r")
 >        (NumberLit ea "1") (NumberLit ea "10")
 >        [NullStatement ea]]
 >

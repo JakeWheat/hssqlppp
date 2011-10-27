@@ -271,7 +271,7 @@ data SetClause = MultiSetClause Annotation [NameComponent]
  
 data Statement = AlterSequence Annotation Name Name
                | AlterTable Annotation Name AlterTableActionList
-               | Assignment Annotation ScalarExpr ScalarExpr
+               | Assignment Annotation Name ScalarExpr
                | Block Annotation (Maybe String) VarDefList StatementList
                | CaseStatement Annotation ScalarExprListStatementListPairList
                                StatementList
@@ -297,10 +297,10 @@ data Statement = AlterSequence Annotation Name Name
                | DropSomething Annotation DropType IfExists [Name] Cascade
                | Execute Annotation ScalarExpr
                | ExitStatement Annotation (Maybe String)
-               | ForIntegerStatement Annotation (Maybe String) ScalarExpr
+               | ForIntegerStatement Annotation (Maybe String) NameComponent
                                      ScalarExpr ScalarExpr StatementList
-               | ForQueryStatement Annotation (Maybe String) ScalarExpr QueryExpr
-                                   StatementList
+               | ForQueryStatement Annotation (Maybe String) NameComponent
+                                   QueryExpr StatementList
                | If Annotation ScalarExprStatementListPairList StatementList
                | Insert Annotation Name [NameComponent] QueryExpr MaybeSelectList
                | Into Annotation Bool [Name] Statement
@@ -764,8 +764,7 @@ statement x
         AlterSequence a1 a2 a3 -> A.AlterSequence a1 (name a2) (name a3)
         AlterTable a1 a2 a3 -> A.AlterTable a1 (name a2)
                                  (alterTableActionList a3)
-        Assignment a1 a2 a3 -> A.Assignment a1 (scalarExpr a2)
-                                 (scalarExpr a3)
+        Assignment a1 a2 a3 -> A.Assignment a1 (name a2) (scalarExpr a3)
         Block a1 a2 a3 a4 -> A.Block a1 a2 (varDefList a3)
                                (statementList a4)
         CaseStatement a1 a2 a3 -> A.CaseStatement a1
@@ -831,12 +830,12 @@ statement x
         ExitStatement a1 a2 -> A.ExitStatement a1 a2
         ForIntegerStatement a1 a2 a3 a4 a5 a6 -> A.ForIntegerStatement a1
                                                    a2
-                                                   (scalarExpr a3)
+                                                   (nameComponent a3)
                                                    (scalarExpr a4)
                                                    (scalarExpr a5)
                                                    (statementList a6)
         ForQueryStatement a1 a2 a3 a4 a5 -> A.ForQueryStatement a1 a2
-                                              (scalarExpr a3)
+                                              (nameComponent a3)
                                               (queryExpr a4)
                                               (statementList a5)
         If a1 a2 a3 -> A.If a1 (scalarExprStatementListPairList a2)

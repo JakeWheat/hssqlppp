@@ -25,7 +25,7 @@ right choice, but it seems to do the job pretty well at the moment.
 >     ,keyword
 >     ,parens
 >     ,symbol
->     ,idString
+>     --,idString
 >     ,commaSep1
 >     ,commaSep
 >     ) where
@@ -443,44 +443,6 @@ then we combine by seeing if there is a join looking prefix
 >                    (try $ optionalSuffix
 >                       (TableAlias p) (optional (keyword "as") *> nonKeywordNc)
 >                       (FullAlias p) () (parens $ commaSep1 nameComponent))
->         {-badNames = ["as"
->                    ,"where"
->                    ,"except"
->                    ,"union"
->                    ,"intersect"
->                    ,"loop"
->                    ,"inner"
->                    ,"on"
->                    ,"left"
->                    ,"right"
->                    ,"full"
->                    ,"cross"
->                    ,"join"
->                    ,"natural"
->                    ,"order"
->                    ,"group"
->                    ,"limit"
->                    ,"using"
->                    ,"from"]
->         {-nkwidn = do
->                  i <- dqi
->                  case i of
->                    SQIdentifier _ [n] | n `elem` badNames
->                        -> fail "not keyword"
->                    _ -> return i-}
->         nkwid = try $ do
->                  x <- idString
->                  --avoid all these keywords as aliases since they can
->                  --appear immediately following a tableref as the next
->                  --part of the statement, if we don't do this then lots
->                  --of things don't parse. Seems a bit inelegant but
->                  --works for the tests and the test sql files don't know
->                  --if these should be allowed as aliases without "" or
->                  --[]
->                  -- TODO find out what the correct behaviour here is.
->                  if map toLower x `elem` badNames
->                    then fail "not keyword"
->                    else return x-}
 >
 > optParens :: SParser a
 >           -> SParser a
@@ -1056,7 +1018,7 @@ plpgsql statements
 >              -- put the := in the first try to attempt to get a
 >              -- better error if the code looks like malformed
 >              -- assignment statement
->              <*> try (qName <* (symbol ":=" <|> symbol "="))
+>              <*> try (name <* (symbol ":=" <|> symbol "="))
 >              <*> expr
 >
 > returnSt :: SParser Statement
@@ -1080,7 +1042,7 @@ plpgsql statements
 > forStatement :: Annotation -> Maybe String -> SParser Statement
 > forStatement p l = do
 >                keyword "for"
->                start <- qName
+>                start <- nameComponent
 >                keyword "in"
 >                choice [ForQueryStatement p l start
 >                        <$> try pQueryExpr <*> theRest
@@ -1233,22 +1195,6 @@ with a function, so we don't try an parse a keyword as a function name
 >       ,try substring -- use try cos there is also a regular function called substring
 >       ,extract
 
-now do identifiers, functions, and window functions (each is a prefix
-to the next one)
-
-want to allow splices in e.g. function calls: $(fnname)(). To do this,
-don't want to parse anti expression above, but need to parse these
-following suffixes starting with a splice, but if there is no suffix,
-want to parse as an antiexpression rather than an antiidentifier
-
->       ,try $ do
->              i <- antiIdentifier
->              choice [inPredicateSuffix i
->                     ,threadOptionalSuffix (functionCallSuffix i)
->                                           windowFnSuffix]
-
->       ,antiScalarExpr
->       ,antiIdentifier1
 >       ,try interval
 >       ,try typedStringLit
 >       ,identifier
@@ -1625,61 +1571,24 @@ handles aggregate business as well
 >             symbol ")"
 >             return $ FunCall p (nm p "!substring") [a,b,c]
 >
-> identifier :: SParser ScalarExpr
-> identifier = Identifier <$> pos <*> (nameComponent <|> (Nmc <$> splice))
->
+
+------------------------------------------------------------
+
+identifier wasteland
+
 > qualIdSuffix :: ScalarExpr -> SParser ScalarExpr
-> qualIdSuffix e = do
->     Identifier p i <- return e
+> qualIdSuffix (Identifier p i) = do
 >     i1 <- symbol "." *> nameComponent
 >     return $ QIdentifier p [i,i1]
+> qualIdSuffix e = do
+>     p <- pos
+>     i1 <- symbol "." *> nameComponent
+>     return $ FunCall p (nm p ".") [e,Identifier p i1]
 
-> antiIdentifier :: SParser ScalarExpr
-> antiIdentifier = Identifier <$> pos <*> (Nmc <$> spliceD)
 
-> antiIdentifier1 :: SParser ScalarExpr
-> antiIdentifier1 = Identifier <$> pos <*> (Nmc <$> ssplice)
->                   where
->                     ssplice = (\s -> "$i(" ++ s ++ ")") <$>
->                               (symbol "$i(" *> idString <* symbol ")")
-
-qualified names are parsed using "." as an operator so they become
-FunCall nodes. But we don't want to parse any expression when we are
-expecting a qualified name only, so create a specialized parser just
-for that
-
-> qName :: SParser ScalarExpr
-> qName = do
->   p <- pos
->   i <- nameComponent
->   choice [do
->            symbol "."
->            i1 <- nameComponent
->            return $ QIdentifier p [i,i1]
->          ,return $ Identifier p i]
-
-> {-dqi :: SParser SQIdentifier
-> dqi =
->   SQIdentifier
->   <$> pos
->   <*> name
->   
->   p <- pos
->   i <- idString
->   choice [do
->           is <- suffix
->           return $ SQIdentifier p (i:is)
->          ,return $ SQIdentifier p [i]
->          ]
->   where
->     suffix = do
->         symbol "."
->         i1 <- idString
->         choice [do
->                 is <- suffix
->                 return (i1:is)
->                ,return [i1]
->                ]-}
+> identifier :: SParser ScalarExpr
+> identifier = Identifier <$> pos <*> nameComponent
+>
 
 bit hacky, avoid a bunch of keywords. Not exactly sure which keywords
 should be in the blacklist, and where this parser should be used
@@ -1717,59 +1626,10 @@ keywords which are unqualified.
 
 
 > nonKeywordNcs :: SParser [NameComponent]
-> nonKeywordNcs = do
->   x <- ncs
->   if any (`elem` badKeywords) x
->     then fail "not keyword (NameComponent list)"
->     else return x
->   where
->     badKeywords = map Nmc
->                   ["as"
->                   ,"where"
->                   ,"except"
->                   ,"union"
->                   ,"intersect"
->                   ,"loop"
->                   ,"inner"
->                   ,"on"
->                   ,"left"
->                   ,"right"
->                   ,"full"
->                   ,"cross"
->                   ,"join"
->                   ,"natural"
->                   ,"order"
->                   ,"group"
->                   ,"limit"
->                   ,"using"
->                   ,"from"]
-
-todo: these should be the main two parsers for names, name components,
-identifiers, etc. Everything should work through here. These should
-handle quoted identifiers, antiquotes, etc. Then can get rid of the 50
-odd different parsers for ids and id like things.
+> nonKeywordNcs = sepBy1 nonKeywordNc (symbol ".")
 
 > ncs :: SParser [NameComponent]
-> ncs = do
->   --p <- pos
->   i <- idString
->   choice [do
->           is <- suffix
->           return $ Nmc i : is
->          ,return [Nmc i]
->          ]
->   where
->     suffix = do
->         symbol "."
->         i1 <- idString
->         choice [do
->                 --p <- pos
->                 is <- suffix
->                 return $ Nmc i1 : is
->                ,do
->                 --p <- pos
->                 return [Nmc i1]
->                ]
+> ncs = sepBy1 nameComponent (symbol ".")
 
 > name :: SParser Name
 > name = Name <$> pos <*> ncs
@@ -1778,7 +1638,12 @@ odd different parsers for ids and id like things.
 > nonKeywordName = Name <$> pos <*> nonKeywordNcs
 
 > nameComponent :: SParser NameComponent
-> nameComponent = Nmc <$> idString
+> nameComponent = choice [Nmc <$> idString
+>                        ,Nmc <$> spliceD
+>                        ,Nmc <$> ssplice]
+>                 where
+>                   ssplice = (\s -> "$i(" ++ s ++ ")") <$>
+>                               (symbol "$i(" *> idString <* symbol ")")
 
 
 --------------------------------------------------------------------------------
@@ -1838,8 +1703,8 @@ identifier which happens to start with a complete keyword
 > positionalArg :: SParser ScalarExpr
 > positionalArg = PositionalArg <$> pos <*> liftPositionalArgTok
 >
-> antiScalarExpr :: SParser ScalarExpr
-> antiScalarExpr = AntiScalarExpr <$> splice
+> --antiScalarExpr :: SParser ScalarExpr
+> --antiScalarExpr = AntiScalarExpr <$> splice
 >
 > placeholder :: SParser ScalarExpr
 > placeholder = (Placeholder <$> pos) <* symbol "?"
@@ -1957,52 +1822,6 @@ theory
 >   x <- p1
 >   option (c1 x) (c2 x <$> try p2)
 
-threadOptionalSuffix
-
-parse the start of something -> parseResultA,
-then parse an optional suffix, passing parseResultA
-  to this parser -> parseResultB
-return parseResultB is it succeeds, else return parseResultA
-
-sort of like a suffix operator parser where the suffixisable part
-is parsed, then if the suffix is there it wraps the suffixisable
-part in an enclosing tree node.
-
-parser1 -> tree1
-(parser2 tree1) -> maybe tree2
-tree2 isnothing ? tree1 : tree2
-
-> threadOptionalSuffix :: ParsecT [tok] st Identity a
->                      -> (a -> GenParser tok st a)
->                      -> ParsecT [tok] st Identity a
-> threadOptionalSuffix p1 p2 = do
->   x <- p1
->   option x (try $ p2 x)
-
-I'm pretty sure this is some standard monad operation but I don't know
-what. It's a bit like the maybe monad but when you get nothing it
-returns the previous result instead of nothing
-- if you take the parsing specific stuff out you get:
-
-p1 :: (Monad m) =>
-      m b -> (b -> m (Maybe b)) -> m b
-p1 = do
-   x <- p1
-   y <- p2 x
-   case y of
-     Nothing -> return x
-     Just z -> return z
-=====
-
-like thread optional suffix, but we pass a list of suffixes in, not
-much of a shorthand
-
-> {- threadOptionalSuffixes :: ParsecT [tok] st Identity a
->                        -> [a -> GenParser tok st a]
->                        -> ParsecT [tok] st Identity a
-> threadOptionalSuffixes p1 p2s = do
->   x <- p1
->   option x (try $ choice (map (\l -> l x) p2s))-}
 
 couldn't work how to to perms so just did this hack instead
 e.g.

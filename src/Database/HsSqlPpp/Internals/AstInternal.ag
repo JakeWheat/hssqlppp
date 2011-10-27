@@ -288,7 +288,7 @@ DATA Statement
            into : {[Name]}
            stmt : Statement
     | Assignment ann:Annotation
-                 target : ScalarExpr
+                 target : Name
                  value : ScalarExpr
     | Return ann:Annotation
              value : MaybeScalarExpr
@@ -307,12 +307,12 @@ DATA Statement
               expr : ScalarExpr
     | ForQueryStatement ann:Annotation
                         lb : {Maybe String}
-                        var : ScalarExpr
+                        var : NameComponent
                         sel : QueryExpr
                         sts : StatementList
     | ForIntegerStatement ann:Annotation
                           lb : {Maybe String}
-                          var : ScalarExpr
+                          var : NameComponent
                           from : ScalarExpr
                           to : ScalarExpr
                           sts : StatementList

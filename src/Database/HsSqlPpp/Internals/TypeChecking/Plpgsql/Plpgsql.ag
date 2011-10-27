@@ -17,19 +17,21 @@ SEM Statement
 
 SEM Statement
     | Assignment
-        loc.tpe =
+        loc.tpe = Left []
+        {-loc.tpe =
             do
             fromType <- lmt @value.uType
             toType <- lmt @target.uType --unwrapLookup <$> lbLookupID @lhs.lib (getName @target.annotatedTree)
             checkAssignmentValid @lhs.cat fromType toType
-            return $ Pseudo Void
+            return $ Pseudo Void-}
         loc.backTree = Assignment @ann @target.annotatedTree @value.annotatedTree
         loc.catUpdates = []
         loc.statementType = Nothing
 
 SEM Statement
     | ForIntegerStatement
-        loc.tpe =
+        loc.tpe = Left []
+        {-loc.tpe =
           do
           fromType <- lmt @from.uType
           toType <- lmt @to.uType
@@ -54,14 +56,16 @@ SEM Statement
                     then let (Identifier a i') = @var.annotatedTree
                          in Identifier a { errs = []} i'
                     else @var.annotatedTree
-            in ForIntegerStatement @ann @lb i @from.annotatedTree @to.annotatedTree @sts.annotatedTree
+            in ForIntegerStatement @ann @lb i @from.annotatedTree @to.annotatedTree @sts.annotatedTree-}
+        loc.backTree = ForIntegerStatement @ann @lb @var @from.annotatedTree @to.annotatedTree @sts.annotatedTree
         loc.catUpdates = []
         loc.statementType = Nothing
 
 
 SEM Statement
     | ForQueryStatement
-        loc.tpe =
+        loc.tpe = Left []
+        {-loc.tpe =
           do
           st <- lmt (CompositeType <$> @sel.uType)
           toType <- lmt @var.uType
@@ -75,9 +79,9 @@ SEM Statement
             either (const @lhs.lib) id $ do
             _ <- @loc.tpe
             st <- lmt (CompositeType <$> @sel.uType)
-            lbUpdate @lhs.cat (LBIds "for loop record type" Nothing [(getName @var.annotatedTree,st)]) @lhs.lib
+            lbUpdate @lhs.cat (LBIds "for loop record type" Nothing [(getName @var.annotatedTree,st)]) @lhs.lib-}
 
-        loc.backTree = ForQueryStatement @ann @lb @var.annotatedTree @sel.annotatedTree @sts.annotatedTree
+        loc.backTree = ForQueryStatement @ann @lb @var @sel.annotatedTree @sts.annotatedTree
         loc.catUpdates = []
         loc.statementType = Nothing
 
