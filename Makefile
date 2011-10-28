@@ -93,7 +93,7 @@ website_haddock :
 	cabal haddock
 	mv dist/doc/html/hssqlppp hssqlppp/haddock
 
-make_exe_deps : src-extra/util/GenerateExeRules.lhs Makefile
+exe_depend : src-extra/util/GenerateExeRules.lhs Makefile
 	ghc -isrc-extra/util src-extra/util/GenerateExeRules.lhs
 	src-extra/util/GenerateExeRules
 

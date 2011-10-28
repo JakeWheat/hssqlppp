@@ -18,7 +18,7 @@ exe : obj_files
 >   exes <- getExes
 >   --mapM_ putStrLn exes
 >   ts <- mapM makeTg exes
->   writeFile "exe_rules.1mk" $ intercalate "\n" ts
+>   writeFile "exe_rules.mk" $ intercalate "\n" ts
 >   return ()
 >   where
 >     makeTg f = trace ("deps for " ++ f) $ do
