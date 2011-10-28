@@ -19,7 +19,7 @@ There are no tests for invalid syntax at the moment.
 > import Data.Generics
 >
 > import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.Annotation
+> --import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.Pretty
 >
@@ -33,6 +33,8 @@ There are no tests for invalid syntax at the moment.
 > import Database.HsSqlPpp.Tests.Parsing.FunctionsDdl
 > import Database.HsSqlPpp.Tests.Parsing.Plpgsql
 > import Database.HsSqlPpp.Tests.Parsing.Misc
+
+> import Database.HsSqlPpp.Tests.TestUtils
 
 > parserTests :: Test.Framework.Test
 > parserTests = itemToTft parserTestData

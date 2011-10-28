@@ -21,6 +21,7 @@ cd /home/jake/wd/hssqlppp/trunk/src/lib/Database/HsSqlPpp/Internals && uuagc --g
 > import Database.HsSqlPpp.Pretty
 > --import Database.HsSqlPpp.Tests.TpchData
 > --import Database.HsSqlPpp.Utils.Here
+> import Database.HsSqlPpp.Tests.TestUtils
 
 > data Item = Group String [Item]
 >           | Item [CatalogUpdate] String String

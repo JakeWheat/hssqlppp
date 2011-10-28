@@ -14,7 +14,7 @@ moment.
 > --import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.TypeChecker
-> import Database.HsSqlPpp.Annotation
+> --import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Types
 > --import Database.HsSqlPpp.Utils.PPExpr
@@ -22,6 +22,7 @@ moment.
 > import Database.HsSqlPpp.Pretty
 > --import Database.HsSqlPpp.Tests.TpchData
 > import Text.Groom
+> import Database.HsSqlPpp.Tests.TestUtils
 
 
 > --import Data.Data

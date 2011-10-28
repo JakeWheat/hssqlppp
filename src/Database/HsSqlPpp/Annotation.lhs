@@ -12,11 +12,11 @@ functions (not including those that depend on the ast data types).
 >     ,SourcePosition
 >     ,StatementType
 >     ,getAnnotation
->     ,updateAnnotations
+>     --,updateAnnotations
 >     ,updateAnnotation
->     ,getAnnotations
+>     --,getAnnotations
 >     ,emptyAnnotation
->     ,resetAnnotations
+>     --,resetAnnotations
 >     ) where
 >
 > import Database.HsSqlPpp.Internals.AstAnnotation

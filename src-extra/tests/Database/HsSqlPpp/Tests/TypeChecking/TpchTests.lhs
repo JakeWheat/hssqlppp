@@ -11,7 +11,7 @@ moment.
 > --import Data.List
 > import Data.Generics.Uniplate.Data
 > import Control.Monad
-> import Text.Groom
+> --import Text.Groom
 >
 > --import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Parser
