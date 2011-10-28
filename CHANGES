@@ -17,9 +17,14 @@ fix typechecking for non composite function table refs
 fix for the syntax of the directions in order by in window functions
 add support for distinct and order by in aggregate calls
 change the syntax for identifiers and similar, much better handling of
-  names, dot qualification and quoted names
-handle asterix in syntax differently
+  names, dot qualification and quoted names in the parser and syntax
+handle asterix in syntax differently - will give syntax error in most places
+  when the asterix isn't valid during parsing
 support parsing sql server select top n syntax
+add makefile which handles all the generated files for building and
+  running the tests, and a bunch of other stuff
+remove the functions from Annotation module which are trivial wrappers
+  around uniplate functions
 
 0.3.1
 Released 13/08/2011

@@ -5,27 +5,9 @@ is pretty involved. Here is a sketch example which may be out of date.
 Please get in touch if you are trying to follow this and have any
 questions.
 
-overview:
-
-add test(s) to the automated tests under src-extra/tests/
-
-compile and run the tests to check the new test fails
-
-add new datatypes to AstInternal.ag
-
-fix any default uuagc rules if needed
-
-run the build script which processes the ag file into haskell files
-
-add code for parsing and pretty printing the new syntax
-
-compile and run the tests to check that the new test(s) now pass
-
-# Example
 
 Worked through example of adding support for parsing data types with
-two precision components. (This is already in the latest version of
-hssqlppp).
+two precision components. (This is already in hssqlppp).
 
 The parser/syntax currently supports the precision of floating point
 types, e.g.
@@ -43,6 +25,22 @@ create table t {
    col numeric(5,3);
 }
 ~~~~
+
+## Outline
+
+add test(s) to the automated tests under src-extra/tests/
+
+compile and run the tests to check the new test fails
+
+add new datatypes to AstInternal.ag
+
+fix any default uuagc rules if needed
+
+run the build script which processes the ag file into haskell files
+
+add code for parsing and pretty printing the new syntax
+
+compile and run the tests to check that the new test(s) now pass
 
 ## Add a test
 
@@ -225,10 +223,9 @@ parser function:
 >                       <|> idString
 ~~~~
 
-Here is the updated version. It could probably be a bit better
-designed but getting a badly written version working and passing tests
-is usually a good first step before trying to make it clean and
-elegant.
+Here is the updated version. It could probably be a bit better written
+- once the tests pass it is easier to can refactor to something clean
+and elegant.
 
 ~~~~{.haskell}
 > typeName :: SParser TypeName
@@ -285,8 +282,8 @@ The pretty printing routines are in
 after the PrecTypeName pretty printer:
 
 ~~~~{.haskell}
-> convTypeName (PrecTypeName _ s i) = text s <> parens(integer i)
-> convTypeName (Prec2TypeName _ s i i1) = text s <> parens (hcatCsv [integer i, integer i1])
+> typeName (PrecTypeName _ s i) = text s <> parens(integer i)
+> typeName (Prec2TypeName _ s i i1) = text s <> parens (hcatCsv [integer i, integer i1])
 ~~~~
 
 ## Finished

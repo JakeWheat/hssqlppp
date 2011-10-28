@@ -13,8 +13,6 @@ exe : obj_files
 > import Debug.Trace
 > import System.FilePath
 
-tcDependencies :: [FilePath] -> FilePath -> IO [(String,FilePath)]
-
 > main :: IO ()
 > main = do
 >   exes <- getExes

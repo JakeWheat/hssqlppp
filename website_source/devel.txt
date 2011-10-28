@@ -31,9 +31,16 @@ make src/Database/HsSqlPpp/Internals/AstAnti.hs
 
 The makefile hasn't been heavily tested yet.
 
+To just rebuild the library in the usual way after editing the ag
+files use:
+
+~~~~~
+make src/Database/HsSqlPpp/Internals/AstAnti.hs
+cabal build
+~~~~~
+
 There is one further generated file, DefaultTemplate1Catalog.lhs. You
-don't usually need to regenerate this, but you can in the following
-way:
+don't usually need to regenerate this:
 
 ~~~~~
 make regenDefaultTemplate1Catalog
@@ -55,24 +62,15 @@ make src-extra/tests/Tests
 src-extra/tests/Tests
 ~~~~~
 
-There is also a cabal file, which shows the package dependencies:
-first install the hssqlppp library using cabal, then use:
-
-~~~~~
-cd src-extra/tests
-cabal configure && cabal build
-dist/build/Tests/Tests
-~~~~~
-
 Background reading
 ==================
 
-The main components used in hssqlppp are: parsec, uuagc, generics,
+The main things used in hssqlppp are: parsec, uuagc, generics,
 quasiquoting, pretty printing.
 
 Parsec is used for parsing:
-Here is a outdated tutorial for parsec which isn't too bad for getting
-started: <http://legacy.cs.uu.nl/daan/parsec.html>
+Here is a tutorial for parsec which is outdated but isn't too bad for
+getting started: <http://legacy.cs.uu.nl/daan/parsec.html>
 
 Chapter in Real World Haskell on parsec:
 <http://book.realworldhaskell.org/read/using-parsec.html>

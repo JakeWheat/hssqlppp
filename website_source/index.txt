@@ -19,7 +19,7 @@ With some extra work:
 * generating documentation for SQL code
 * middleware to support running one dialect of SQL on a different DBMS
 * typesafe database access from haskell
-* lint checking SQL code
+* write a lint for PL/pgSQL
 
 Status
 ======
