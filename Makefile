@@ -36,10 +36,25 @@
 #  add make website command
 #  do the new dependency stuff
 
-CC = please dont use this implicit rule
+# don't try to run CC for an unlisted haskell binary
+%.o : %.c
 
-HC      = ghc
-HC_OPTS = -Wall -XTupleSections -XScopedTypeVariables -XDeriveDataTypeable  -threaded -rtsopts -isrc:src-extra/util:src-extra/tests/:src-extra/devel-util:src-extra/chaos:src-extra/chaos/extensions:src-extra/examples:src-extra/h7c:src-extra/tosort/util/
+HC              = ghc
+HC_BASIC_OPTS   = -Wall -XTupleSections -XScopedTypeVariables -XDeriveDataTypeable \
+		  -threaded -rtsopts
+HC_INCLUDE_DIRS = -isrc:src-extra/util:src-extra/tests/:src-extra/devel-util \
+		  -isrc-extra/chaos:src-extra/chaos/extensions/:src-extra/examples \
+		  -isrc-extra/h7c:src-extra/tosort/util/
+HC_PACKAGES = -package haskell-src-exts -package uniplate -package mtl \
+	-package base -package containers -package parsec -package pretty \
+	-package syb -package transformers -package template-haskell \
+	-package test-framework -package groom -package test-framework-hunit \
+	-package HUnit -package HDBC -package HDBC-postgresql \
+	-package pandoc -package xhtml -package illuminate -package datetime
+
+
+HC_OPTS = $(HC_BASIC_OPTS) $(HC_INCLUDE_DIRS) $(HC_PACKAGES)
+
 
 EXE_FILES = src-extra/tests/Tests \
 	src-extra/devel-util/MakeAntiNodesRunner \
@@ -61,7 +76,7 @@ EXE_FILES = src-extra/tests/Tests \
 # this is all the hs files directly in the src/Database/HsSqlPpp/ folder
 # then it lists the lhs for all the exe files
 SRCS_ROOTS = $(shell find src/Database/HsSqlPpp/ -maxdepth 1 -iname '*hs') \
-	     $(EXE_FILES)
+	     $(addsuffix .lhs,$(EXE_FILES))
 
 AG_FILES = $(shell find src -iname '*ag')
 
@@ -78,9 +93,9 @@ website_haddock :
 	cabal haddock
 	mv dist/doc/html/hssqlppp hssqlppp/haddock
 
-make_exe_deps : i_like_make.lhs Makefile
-	ghc i_like_make.lhs
-	./i_like_make
+make_exe_deps : src-extra/util/GenerateExeRules.lhs Makefile
+	ghc -isrc-extra/util src-extra/util/GenerateExeRules.lhs
+	src-extra/util/GenerateExeRules
 
 all : $(EXE_FILES)
 
@@ -101,19 +116,26 @@ depend :
 
 #specific rules for generated files: astanti.hs and astinternal.hs
 
-src/Database/HsSqlPpp/Internals/AstAnti.hs : src/Database/HsSqlPpp/Internals/AstInternal.hs src-extra/devel-util/MakeAntiNodesRunner
+src/Database/HsSqlPpp/Internals/AstAnti.hs : \
+		src/Database/HsSqlPpp/Internals/AstInternal.hs \
+		src-extra/devel-util/MakeAntiNodesRunner
 	src-extra/devel-util/MakeAntiNodesRunner
 
 src/Database/HsSqlPpp/Internals/AstInternal.hs : $(AG_FILES)
-	uuagc  -dcfwsp -P src/Database/HsSqlPpp/Internals/ src/Database/HsSqlPpp/Internals/AstInternal.ag
+	uuagc  -dcfwsp -P src/Database/HsSqlPpp/Internals/ \
+		src/Database/HsSqlPpp/Internals/AstInternal.ag
 
-#rule for the generated file src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs
-# don't want to automatically keep this up to date though, only regenerate it manually
+#rule for the generated file
+#src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs
+# don't want to automatically keep this up to date though, only
+# regenerate it manually
 
 .PHONY : regenDefaultTemplate1Catalog
 regenDefaultTemplate1Catalog : src-extra/devel-util/MakeDefaultTemplate1Catalog
-	src-extra/devel-util/MakeDefaultTemplate1Catalog > src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs_new
-	mv src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs_new src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs
+	src-extra/devel-util/MakeDefaultTemplate1Catalog > \
+		src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs_new
+	mv src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs_new \
+		src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs
 
 .PHONY : clean
 clean :

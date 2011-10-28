@@ -7,7 +7,6 @@ src/Database/HsSqlPpp/Internals/TypeChecking/IDEnv.o : src/Database/HsSqlPpp/Int
 src/Database/HsSqlPpp/Parsing/ParseErrors.o : src/Database/HsSqlPpp/Parsing/ParseErrors.lhs
 src-extra/util/Database/HsSqlPpp/Utils/Here.o : src-extra/util/Database/HsSqlPpp/Utils/Here.lhs
 src-extra/devel-util/MakeAntiNodes.o : src-extra/devel-util/MakeAntiNodes.lhs
-src-extra/devel-util/MakeAntiNodes.o : src-extra/util/Database/HsSqlPpp/Utils/Here.hi
 src-extra/devel-util/MakeAntiNodesRunner.o : src-extra/devel-util/MakeAntiNodesRunner.lhs
 src-extra/devel-util/MakeAntiNodesRunner.o : src-extra/devel-util/MakeAntiNodes.hi
 src/Database/HsSqlPpp/Internals/TypeType.o : src/Database/HsSqlPpp/Internals/TypeType.lhs
@@ -43,6 +42,9 @@ src-extra/util/Database/HsSqlPpp/Utils/CatalogReader.o : src/Database/HsSqlPpp/T
 src-extra/util/Database/HsSqlPpp/Utils/CatalogReader.o : src/Database/HsSqlPpp/Catalog.hi
 src-extra/util/Database/HsSqlPpp/Utils/CatalogReader.o : src-extra/util/Database/HsSqlPpp/Utils/PgUtils.hi
 src-extra/util/Database/HsSqlPpp/Utils/CatalogReader.o : src-extra/util/Database/HsSqlPpp/Utils/Here.hi
+src-extra/devel-util/MakeDefaultTemplate1Catalog.o : src-extra/devel-util/MakeDefaultTemplate1Catalog.lhs
+src-extra/devel-util/MakeDefaultTemplate1Catalog.o : src-extra/util/Database/HsSqlPpp/Utils/CatalogReader.hi
+src-extra/devel-util/MakeDefaultTemplate1Catalog.o : src-extra/util/Database/HsSqlPpp/Utils/Here.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o : src-extra/tests/Database/HsSqlPpp/Tests/TpchData.lhs
 src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o : src/Database/HsSqlPpp/Types.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o : src/Database/HsSqlPpp/Catalog.hi
@@ -212,15 +214,6 @@ src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TpchTests.o : src/Database/
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TpchTests.o : src/Database/HsSqlPpp/Annotation.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TpchTests.o : src/Database/HsSqlPpp/TypeChecker.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TpchTests.o : src/Database/HsSqlPpp/Parser.hi
-src-extra/devel-util/MakeDefaultTemplate1Catalog.o : src-extra/devel-util/MakeDefaultTemplate1Catalog.lhs
-src-extra/devel-util/MakeDefaultTemplate1Catalog.o : src-extra/util/Database/HsSqlPpp/Utils/CatalogReader.hi
-src-extra/devel-util/MakeDefaultTemplate1Catalog.o : src-extra/util/Database/HsSqlPpp/Utils/Here.hi
-src-extra/devel-util/MakeDefaultTemplate1Catalog.o : src/Database/HsSqlPpp/Ast.hi
-src-extra/devel-util/MakeDefaultTemplate1Catalog.o : src/Database/HsSqlPpp/Annotation.hi
-src-extra/devel-util/MakeDefaultTemplate1Catalog.o : src/Database/HsSqlPpp/Types.hi
-src-extra/devel-util/MakeDefaultTemplate1Catalog.o : src/Database/HsSqlPpp/Catalog.hi
-src-extra/devel-util/MakeDefaultTemplate1Catalog.o : src/Database/HsSqlPpp/TypeChecker.hi
-src-extra/devel-util/MakeDefaultTemplate1Catalog.o : src/Database/HsSqlPpp/Parser.hi
 src-extra/examples/FixSqlServerTpchSyntax.o : src-extra/examples/FixSqlServerTpchSyntax.lhs
 src-extra/examples/FixSqlServerTpchSyntax.o : src/Database/HsSqlPpp/Annotation.hi
 src-extra/examples/FixSqlServerTpchSyntax.o : src/Database/HsSqlPpp/Quote.hi
@@ -256,7 +249,6 @@ src-extra/tests/Database/HsSqlPpp/Tests/FixTree/FixUpIdentifiersTests.o : src-ex
 src-extra/tests/Database/HsSqlPpp/Tests/FixTree/FixUpIdentifiersTests.o : src/Database/HsSqlPpp/Pretty.hi
 src-extra/tests/Database/HsSqlPpp/Tests/FixTree/FixUpIdentifiersTests.o : src/Database/HsSqlPpp/Types.hi
 src-extra/tests/Database/HsSqlPpp/Tests/FixTree/FixUpIdentifiersTests.o : src/Database/HsSqlPpp/Catalog.hi
-src-extra/tests/Database/HsSqlPpp/Tests/FixTree/FixUpIdentifiersTests.o : src/Database/HsSqlPpp/Annotation.hi
 src-extra/tests/Database/HsSqlPpp/Tests/FixTree/FixUpIdentifiersTests.o : src/Database/HsSqlPpp/Ast.hi
 src-extra/tests/Database/HsSqlPpp/Tests/FixTree/FixUpIdentifiersTests.o : src/Database/HsSqlPpp/TypeChecker.hi
 src-extra/tests/Database/HsSqlPpp/Tests/FixTree/FixUpIdentifiersTests.o : src/Database/HsSqlPpp/Parser.hi

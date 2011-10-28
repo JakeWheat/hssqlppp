@@ -22,17 +22,18 @@ cabal configure && cabal build
 Rebuild the generated files for the syntax
 ==========================================
 
-If you edit the ag files, use the makefile
+If you edit the ag files, you need to rebuild the AstInternal.hs and
+the AstAnti.hs. Use the makefile:
 
 ~~~~~
 make src/Database/HsSqlPpp/Internals/AstAnti.hs
 ~~~~~
 
-The makefile doesn't work that well at the moment.
+The makefile hasn't been heavily tested yet.
 
 There is one further generated file, DefaultTemplate1Catalog.lhs. You
 don't usually need to regenerate this, but you can in the following
-way (you will need Postgres installed and HDBC-Postgres).
+way:
 
 ~~~~~
 make regenDefaultTemplate1Catalog
