@@ -1,8 +1,17 @@
 0.4.0
 
 change ast for into statements
-add script for regenerating defaultTemplate1Catalog
 change ast for update statements
+add support for distinct and order by in aggregate calls
+change the syntax for identifiers and similar, much better handling of
+  names, qualification and quoted names in the parser and syntax
+handle asterix in syntax and parser differently - will give syntax
+  error in most places when the asterix isn't valid during parsing
+support parsing sql server select top n syntax
+add makefile which handles all the generated files for building and
+  running the tests, and a bunch of other stuff
+remove the functions from Annotation module which are trivial wrappers
+  around uniplate functions
 bug/regression fixes:
 fix parsing 'for 1..10' without spaces
 fix pretty printing (x).y member reference in scalar
@@ -15,16 +24,6 @@ fix parsing of substring when it uses regular function call syntax
 fix typechecking for most joins
 fix typechecking for non composite function table refs
 fix for the syntax of the directions in order by in window functions
-add support for distinct and order by in aggregate calls
-change the syntax for identifiers and similar, much better handling of
-  names, dot qualification and quoted names in the parser and syntax
-handle asterix in syntax differently - will give syntax error in most places
-  when the asterix isn't valid during parsing
-support parsing sql server select top n syntax
-add makefile which handles all the generated files for building and
-  running the tests, and a bunch of other stuff
-remove the functions from Annotation module which are trivial wrappers
-  around uniplate functions
 
 0.3.1
 Released 13/08/2011

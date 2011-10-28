@@ -163,3 +163,6 @@ parse configuration file:
 To use this, want to compile the source in extension-source-dirs to
 dll then dlopen the dll to get the function mentioned in extensions
 or/ some other approach to load the code at compile time?
+
+
+cd /home/jake/wd/hssqlppp/trunk/ && ghc -Wall -XTupleSections -XScopedTypeVariables -XDeriveDataTypeable -isrc:src-extra/util:src-extra/tests/:src-extra/extensions:src-extra/h7c:src-extra/chaos/extensions src-extra/h7c/h7c

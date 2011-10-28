@@ -24,7 +24,7 @@ right choice, but it seems to do the job pretty well at the moment.
 >     ,keyword
 >     ,parens
 >     ,symbol
->     --,idString
+>     ,idString
 >     ,commaSep1
 >     ,commaSep
 >     ) where

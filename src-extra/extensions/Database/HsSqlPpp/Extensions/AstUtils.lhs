@@ -20,7 +20,10 @@ it and quits.
 >     (getAstInfo
 >     ,getReferencedTableList
 >     ,replaceSourcePos
->     ,replaceSourcePos1) where
+>     ,replaceSourcePos1
+>     ,getTName
+>     ,resetAnnotations
+>     ) where
 >
 > import Data.Generics.Uniplate.Data
 > import Data.Generics
@@ -42,6 +45,9 @@ it and quits.
 >                          (listViews ast)
 >                          (listTables ast)
 >
+> resetAnnotations :: Data a => a -> a
+> resetAnnotations = transformBi (const emptyAnnotation)
+
 > -- won't need this wrapper when the recursion loop detection logic
 > -- is in place
 > getReferencedTableList :: Data a => AstInfo -> a -> [String]
@@ -65,25 +71,24 @@ it and quits.
 > getTrefs :: Data a => a -> [String]
 > getTrefs ast = [getTName tbl| Tref _ tbl _ <- universeBi ast]
 >
-> getTName :: SQIdentifier -> String
-> getTName (SQIdentifier _ x@(_:_)) = last x
-> getTName x = error $ "internal error getName called on: " ++ show x
+> getTName :: Name -> String
+> getTName (Name _ ns) = ncStr $ last ns
 >
 > -- this is wrong because we don't take into account function overloading
 > getFunctionRefs :: Data a => a -> [String]
-> getFunctionRefs ast = [fn | FunCall _ fn _ <- universeBi ast]
+> getFunctionRefs ast = [getTName fn | FunCall _ fn _ <- universeBi ast]
 >
 > listFunctions :: Data a => a -> [(String,Statement)]
 > listFunctions ast =
->   [(fn,f) | f@(CreateFunction _ fn _ _ _ _ _ _) <- universeBi ast]
+>   [(getTName fn,f) | f@(CreateFunction _ fn _ _ _ _ _ _) <- universeBi ast]
 >
 > listViews :: Data a => a -> [(String,Statement)]
 > listViews ast =
->   [(vn,v) | v@(CreateView _ vn _ _) <- universeBi ast]
+>   [(getTName vn,v) | v@(CreateView _ vn _ _) <- universeBi ast]
 >
 > listTables :: Data a => a  -> [(String,Statement)]
 > listTables ast =
->   [(tn,t) | t@(CreateTable  _ tn _ _ ) <- universeBi ast]
+>   [(getTName tn,t) | t@(CreateTable  _ tn _ _ ) <- universeBi ast]
 
 > replaceSourcePos1 :: Statement -> Statement -> Statement
 > replaceSourcePos1 st st1 = head $ replaceSourcePos st [st1]

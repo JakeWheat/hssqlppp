@@ -43,8 +43,8 @@ database.
 > createVar =
 >     transformBi $ \x ->
 >       case x of
->         s@[sqlStmt| select "create_var"($s(varname)
->                                       ,$s(typename)); |] : tl
+>         s@[sqlStmt| select create_var($s(varname)
+>                                      ,$s(typename)); |] : tl
 >             -> let tablename = varname ++ "_table"
 >                    fnname = "get_" ++ varname
 >                    conname = varname ++ "_table_01_tuple"

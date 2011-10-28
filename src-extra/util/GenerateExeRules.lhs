@@ -30,12 +30,19 @@ exe : obj_files
 >                              ,"src-extra/chaos/extensions"
 >                              ,"src-extra/examples"
 >                              ,"src-extra/h7c"
->                              ,"src-extra/tosort/util/"] (f ++ ".lhs")
+>                              ,"src-extra/tosort/util/"
+>                              ,"src-extra/extensions"] (f ++ ".lhs")
 >       let objs = (f `replaceExtension` "o")
 >                  : map ((`replaceExtension` "o") . snd) deps
 >           objstr = intercalate " \\\n" objs
 >       return $ f ++ " : " ++ objstr
 >                 ++ "\n\t$(HC) $(HC_OPTS) -o " ++ f ++ " " ++ objstr
+
+rather than parse the makefile, the makefile could just pass the exes
+along on the command line. that would be less insane. Also, the
+makefile should pass the list of source folders above on the command
+line too
+
 >     getExes :: IO [String]
 >     getExes = do
 >       f <- readFile "Makefile"

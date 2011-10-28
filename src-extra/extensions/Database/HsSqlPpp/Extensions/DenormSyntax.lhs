@@ -27,6 +27,7 @@ File to parse the denormalized6nf syntax
 > import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.Extensions.AstUtils
 >
 > data D6nfStatement = DTable String [String] [AttributeDef]
 >                    | MutualExclusion String String
@@ -45,7 +46,7 @@ tests
 >         );
 >         |] $ Right [ DTable "pieces" []
 >                        [AttributeDef ea
->                         "ptype"
+>                         (Nmc "ptype")
 >                         (SimpleTypeName ea "text")
 >                         Nothing
 >                         [RowPrimaryKeyConstraint ea ""]]]
@@ -55,9 +56,9 @@ tests
 >           agility int
 >         );
 >         |] $ Right [ DTable "creatures" ["pieces"]
->                        [AttributeDef ea "speed"
+>                        [AttributeDef ea (Nmc "speed")
 >                         (SimpleTypeName ea "int") Nothing []
->                        ,AttributeDef ea "agility"
+>                        ,AttributeDef ea (Nmc "agility")
 >                         (SimpleTypeName ea "int") Nothing []]]
 >          ,ParseTest [here|
 >         mutually_exclusive(attackers,creatures);
@@ -69,9 +70,9 @@ tests
 >           armour int
 >         );
 >         |] $ Right [ DTable "monsters" ["creatures", "attackers"]
->                        [AttributeDef ea "resistance"
+>                        [AttributeDef ea (Nmc "resistance")
 >                         (SimpleTypeName ea "int") Nothing []
->                        ,AttributeDef ea "armour"
+>                        ,AttributeDef ea (Nmc "armour")
 >                         (SimpleTypeName ea "int") Nothing []]]
 >          ,ParseTest [here|
 >         attacking_creatures : pieces,attackers;

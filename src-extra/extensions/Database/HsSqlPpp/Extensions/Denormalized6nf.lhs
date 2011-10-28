@@ -101,7 +101,7 @@ to deal with nulls/ maybe types?
 > makeTable cs dss =
 >     let (s2,f2) = head [(s1,f1) | DTable s1 [] f1 <- universeBi dss]
 >         f3 = [f1 | DTable s3 _ f1 <- universeBi dss, s3 /= s2]
->     in CreateTable ea s2 (map notNullify f2 ++ map nullify (concat f3)) cs
+>     in CreateTable ea (Name ea [Nmc s2]) (map notNullify f2 ++ map nullify (concat f3)) cs
 >
 >
 > notNullify :: AttributeDef -> AttributeDef
@@ -120,7 +120,7 @@ to deal with nulls/ maybe types?
 >     AttributeDef a n t d (NullConstraint ea "" : cs)
 
 > attributeName :: AttributeDef -> String
-> attributeName (AttributeDef _ n _ _ _) = n
+> attributeName (AttributeDef _ n _ _ _) = ncStr n
 
 > makeViews :: [D6nfStatement] -> ([Constraint], [Statement])
 > makeViews dss =
@@ -169,7 +169,7 @@ to deal with nulls/ maybe types?
 >                                  select selectList from $(bottomTableName);|] :
 >         map makeView (getExtraFields subt))
 >     where
->       idFromAttr = Identifier ea . attributeName
+>       idFromAttr = Identifier ea . Nmc . attributeName
 >       getExtraFields :: [(String,[String],[AttributeDef])] -> [(String,[(String,[ScalarExpr])])] -- table name, sourcetable,fieldlist
 >       getExtraFields tinfo = let t1 = map gef tinfo
 >                              in map (\a@((tn,_):_) -> (tn, reverse a)) t1 --first reverse here
