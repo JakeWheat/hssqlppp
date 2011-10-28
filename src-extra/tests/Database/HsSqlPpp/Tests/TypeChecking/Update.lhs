@@ -15,7 +15,7 @@
 >         $ Left [ExpressionMustBeBool]
 >      ,s "update pg_attrdef set (adbin,adsrc) = ('a','b','c');"
 >         $ Left [IncompatibleTypes
->                 (AnonymousRecordType [ScalarType "text"
+>                 (AnonymousRecordType [ScalarType "pg_node_tree"
 >                                      ,ScalarType "text"])
 >                 (AnonymousRecordType [UnknownType
 >                                      ,UnknownType

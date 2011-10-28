@@ -15,12 +15,12 @@
 >       s "insert into pg_attrdef (adrelid,adnum,adbin,adsrc)\n\
 >         \values (1,2, 'a', 'b') returning adnum,adbin;"
 >         $ Right [Just ([], [("adnum", ScalarType "int2")
->                                          ,("adbin", ScalarType "text")])]
+>                            ,("adbin", ScalarType "pg_node_tree")])]
 >      ,s "update pg_attrdef set adnum = adnum + 1 returning adnum;"
 >         $ Right [Just ([], [("adnum", ScalarType "int2")])]
 >      ,s "delete from pg_attrdef returning adnum,adbin;"
 >         $ Right [Just ([], [("adnum", ScalarType "int2")
->                                          ,("adbin", ScalarType "text")])]
+>                            ,("adbin", ScalarType "pg_node_tree")])]
 >      ,s "create function t1() returns void as $$\n\
 >         \declare\n\
 >         \  a int;\n\

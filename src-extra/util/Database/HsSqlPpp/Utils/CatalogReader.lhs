@@ -322,6 +322,7 @@ with att1 as (
 >                    "record" -> Record
 >                    "trigger" -> Trigger
 >                    "void" -> Void
+>                    "fdw_handler" -> FdwHandler
 >                    _ -> error $ "internal error: unknown pseudo " ++ t
 
 > split :: Char -> String -> [String]

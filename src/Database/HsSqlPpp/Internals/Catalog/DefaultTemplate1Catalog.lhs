@@ -146,6 +146,14 @@ installed to do this.
 >           ImplicitCastContext,
 >         CatCreateCast (ScalarType "numeric") (ScalarType "float8")
 >           ImplicitCastContext,
+>         CatCreateCast (ScalarType "money") (ScalarType "numeric")
+>           AssignmentCastContext,
+>         CatCreateCast (ScalarType "numeric") (ScalarType "money")
+>           AssignmentCastContext,
+>         CatCreateCast (ScalarType "int4") (ScalarType "money")
+>           AssignmentCastContext,
+>         CatCreateCast (ScalarType "int8") (ScalarType "money")
+>           AssignmentCastContext,
 >         CatCreateCast (ScalarType "int4") (ScalarType "bool")
 >           ExplicitCastContext,
 >         CatCreateCast (ScalarType "bool") (ScalarType "int4")
@@ -324,6 +332,8 @@ installed to do this.
 >           ExplicitCastContext,
 >         CatCreateCast (ScalarType "int4") (ScalarType "char")
 >           ExplicitCastContext,
+>         CatCreateCast (ScalarType "pg_node_tree") (ScalarType "text")
+>           ImplicitCastContext,
 >         CatCreateCast (ScalarType "abstime") (ScalarType "date")
 >           AssignmentCastContext,
 >         CatCreateCast (ScalarType "abstime") (ScalarType "time")
@@ -1533,11 +1543,11 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
->           [ScalarType "int4", ScalarType "int8"]
+>           [ScalarType "circle", ScalarType "circle"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
->           [ScalarType "circle", ScalarType "circle"]
+>           [ScalarType "int4", ScalarType "int8"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "="
@@ -1658,7 +1668,7 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<@"
->           [ScalarType "point", ScalarType "line"]
+>           [ScalarType "point", ScalarType "lseg"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<@"
@@ -1690,7 +1700,7 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<@"
->           [ScalarType "point", ScalarType "lseg"]
+>           [ScalarType "point", ScalarType "line"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<?>"
@@ -1698,7 +1708,7 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
->           [ScalarType "timestamp", ScalarType "date"]
+>           [ScalarType "bool", ScalarType "bool"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
@@ -1718,15 +1728,19 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
->           [ScalarType "tsquery", ScalarType "tsquery"]
+>           [ScalarType "timestamptz", ScalarType "timestamptz"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
->           [ScalarType "inet", ScalarType "inet"]
+>           [ScalarType "timestamp", ScalarType "date"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
 >           [ScalarType "time", ScalarType "time"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>"
+>           [ScalarType "inet", ScalarType "inet"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
@@ -1737,26 +1751,22 @@ installed to do this.
 >           [ScalarType "macaddr", ScalarType "macaddr"]
 >           (ScalarType "bool")
 >           False,
->         CatCreateFunction FunBinary "<>" [Pseudo AnyArray, Pseudo AnyArray]
->           (ScalarType "bool")
->           False,
 >         CatCreateFunction FunBinary "<>"
 >           [ScalarType "timestamp", ScalarType "timestamptz"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>"
->           [ScalarType "timestamptz", ScalarType "timestamptz"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<>" [Pseudo Record, Pseudo Record]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
 >           [ScalarType "tsvector", ScalarType "tsvector"]
 >           (ScalarType "bool")
 >           False,
+>         CatCreateFunction FunBinary "<>" [Pseudo Record, Pseudo Record]
+>           (ScalarType "bool")
+>           False,
 >         CatCreateFunction FunBinary "<>"
->           [ScalarType "timestamptz", ScalarType "date"]
+>           [ScalarType "reltime", ScalarType "reltime"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<>" [Pseudo AnyArray, Pseudo AnyArray]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
@@ -1768,7 +1778,7 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
->           [ScalarType "reltime", ScalarType "reltime"]
+>           [ScalarType "timestamptz", ScalarType "date"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
@@ -1803,7 +1813,7 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
->           [ScalarType "timestamp", ScalarType "timestamp"]
+>           [ScalarType "tsquery", ScalarType "tsquery"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
@@ -1811,11 +1821,11 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
->           [ScalarType "int4", ScalarType "int2"]
+>           [ScalarType "timestamp", ScalarType "timestamp"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
->           [ScalarType "int2", ScalarType "int4"]
+>           [ScalarType "int4", ScalarType "int2"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
@@ -1823,7 +1833,7 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
->           [ScalarType "interval", ScalarType "interval"]
+>           [ScalarType "int2", ScalarType "int4"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
@@ -1851,7 +1861,7 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
->           [ScalarType "date", ScalarType "timestamp"]
+>           [ScalarType "interval", ScalarType "interval"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
@@ -1863,11 +1873,11 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
->           [ScalarType "money", ScalarType "money"]
+>           [ScalarType "date", ScalarType "timestamp"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
->           [ScalarType "int2", ScalarType "int2"]
+>           [ScalarType "money", ScalarType "money"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
@@ -1879,7 +1889,7 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
->           [ScalarType "int4", ScalarType "int4"]
+>           [ScalarType "int2", ScalarType "int2"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
@@ -1891,7 +1901,7 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
->           [ScalarType "bool", ScalarType "bool"]
+>           [ScalarType "int4", ScalarType "int4"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<>"
@@ -1900,6 +1910,10 @@ installed to do this.
 >           False,
 >         CatCreateFunction FunBinary "<>"
 >           [ScalarType "float8", ScalarType "float8"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<="
+>           [ScalarType "text", ScalarType "text"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
@@ -1950,7 +1964,7 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
->           [ScalarType "int8", ScalarType "int8"]
+>           [ScalarType "int8", ScalarType "int2"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
@@ -2012,11 +2026,11 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
->           [ScalarType "int4", ScalarType "int8"]
+>           [ScalarType "interval", ScalarType "interval"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
->           [ScalarType "interval", ScalarType "interval"]
+>           [ScalarType "int4", ScalarType "int8"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
@@ -2044,6 +2058,10 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
+>           [ScalarType "bool", ScalarType "bool"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<="
 >           [ScalarType "timestamp", ScalarType "timestamp"]
 >           (ScalarType "bool")
 >           False,
@@ -2057,10 +2075,6 @@ installed to do this.
 >           False,
 >         CatCreateFunction FunBinary "<="
 >           [ScalarType "int4", ScalarType "int2"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<="
->           [ScalarType "bool", ScalarType "bool"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
@@ -2080,11 +2094,11 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
->           [ScalarType "reltime", ScalarType "reltime"]
+>           [ScalarType "tsquery", ScalarType "tsquery"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
->           [ScalarType "tsquery", ScalarType "tsquery"]
+>           [ScalarType "reltime", ScalarType "reltime"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
@@ -2104,11 +2118,7 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<="
->           [ScalarType "int8", ScalarType "int2"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<="
->           [ScalarType "text", ScalarType "text"]
+>           [ScalarType "int8", ScalarType "int8"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<<|"
@@ -2128,31 +2138,31 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<<"
->           [ScalarType "int4", ScalarType "int4"]
->           (ScalarType "int4")
->           False,
->         CatCreateFunction FunBinary "<<"
->           [ScalarType "bit", ScalarType "int4"]
->           (ScalarType "bit")
->           False,
->         CatCreateFunction FunBinary "<<"
->           [ScalarType "box", ScalarType "box"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<<"
->           [ScalarType "inet", ScalarType "inet"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<<"
 >           [ScalarType "int8", ScalarType "int4"]
 >           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunBinary "<<"
+>           [ScalarType "polygon", ScalarType "polygon"]
+>           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<<"
 >           [ScalarType "point", ScalarType "point"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<<"
->           [ScalarType "tinterval", ScalarType "tinterval"]
+>           [ScalarType "int4", ScalarType "int4"]
+>           (ScalarType "int4")
+>           False,
+>         CatCreateFunction FunBinary "<<"
+>           [ScalarType "box", ScalarType "box"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<<"
+>           [ScalarType "int2", ScalarType "int4"]
+>           (ScalarType "int2")
+>           False,
+>         CatCreateFunction FunBinary "<<"
+>           [ScalarType "inet", ScalarType "inet"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<<"
@@ -2160,12 +2170,36 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<<"
->           [ScalarType "polygon", ScalarType "polygon"]
+>           [ScalarType "tinterval", ScalarType "tinterval"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<<"
->           [ScalarType "int2", ScalarType "int4"]
->           (ScalarType "int2")
+>           [ScalarType "bit", ScalarType "int4"]
+>           (ScalarType "bit")
+>           False,
+>         CatCreateFunction FunBinary "<->"
+>           [ScalarType "line", ScalarType "box"]
+>           (ScalarType "float8")
+>           False,
+>         CatCreateFunction FunBinary "<->"
+>           [ScalarType "circle", ScalarType "polygon"]
+>           (ScalarType "float8")
+>           False,
+>         CatCreateFunction FunBinary "<->"
+>           [ScalarType "polygon", ScalarType "polygon"]
+>           (ScalarType "float8")
+>           False,
+>         CatCreateFunction FunBinary "<->"
+>           [ScalarType "lseg", ScalarType "lseg"]
+>           (ScalarType "float8")
+>           False,
+>         CatCreateFunction FunBinary "<->"
+>           [ScalarType "lseg", ScalarType "line"]
+>           (ScalarType "float8")
+>           False,
+>         CatCreateFunction FunBinary "<->"
+>           [ScalarType "line", ScalarType "line"]
+>           (ScalarType "float8")
 >           False,
 >         CatCreateFunction FunBinary "<->"
 >           [ScalarType "point", ScalarType "line"]
@@ -2176,35 +2210,7 @@ installed to do this.
 >           (ScalarType "float8")
 >           False,
 >         CatCreateFunction FunBinary "<->"
->           [ScalarType "point", ScalarType "box"]
->           (ScalarType "float8")
->           False,
->         CatCreateFunction FunBinary "<->"
->           [ScalarType "circle", ScalarType "polygon"]
->           (ScalarType "float8")
->           False,
->         CatCreateFunction FunBinary "<->"
->           [ScalarType "lseg", ScalarType "lseg"]
->           (ScalarType "float8")
->           False,
->         CatCreateFunction FunBinary "<->"
->           [ScalarType "polygon", ScalarType "polygon"]
->           (ScalarType "float8")
->           False,
->         CatCreateFunction FunBinary "<->"
->           [ScalarType "circle", ScalarType "circle"]
->           (ScalarType "float8")
->           False,
->         CatCreateFunction FunBinary "<->"
->           [ScalarType "lseg", ScalarType "line"]
->           (ScalarType "float8")
->           False,
->         CatCreateFunction FunBinary "<->"
->           [ScalarType "point", ScalarType "path"]
->           (ScalarType "float8")
->           False,
->         CatCreateFunction FunBinary "<->"
->           [ScalarType "line", ScalarType "line"]
+>           [ScalarType "path", ScalarType "path"]
 >           (ScalarType "float8")
 >           False,
 >         CatCreateFunction FunBinary "<->"
@@ -2212,15 +2218,7 @@ installed to do this.
 >           (ScalarType "float8")
 >           False,
 >         CatCreateFunction FunBinary "<->"
->           [ScalarType "path", ScalarType "path"]
->           (ScalarType "float8")
->           False,
->         CatCreateFunction FunBinary "<->"
->           [ScalarType "line", ScalarType "box"]
->           (ScalarType "float8")
->           False,
->         CatCreateFunction FunBinary "<->"
->           [ScalarType "point", ScalarType "circle"]
+>           [ScalarType "box", ScalarType "box"]
 >           (ScalarType "float8")
 >           False,
 >         CatCreateFunction FunBinary "<->"
@@ -2228,7 +2226,19 @@ installed to do this.
 >           (ScalarType "float8")
 >           False,
 >         CatCreateFunction FunBinary "<->"
->           [ScalarType "box", ScalarType "box"]
+>           [ScalarType "point", ScalarType "circle"]
+>           (ScalarType "float8")
+>           False,
+>         CatCreateFunction FunBinary "<->"
+>           [ScalarType "circle", ScalarType "circle"]
+>           (ScalarType "float8")
+>           False,
+>         CatCreateFunction FunBinary "<->"
+>           [ScalarType "point", ScalarType "path"]
+>           (ScalarType "float8")
+>           False,
+>         CatCreateFunction FunBinary "<->"
+>           [ScalarType "point", ScalarType "box"]
 >           (ScalarType "float8")
 >           False,
 >         CatCreateFunction FunBinary "<#>"
@@ -2236,7 +2246,7 @@ installed to do this.
 >           (ScalarType "tinterval")
 >           False,
 >         CatCreateFunction FunBinary "<"
->           [ScalarType "timestamptz", ScalarType "timestamptz"]
+>           [ScalarType "varbit", ScalarType "varbit"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
@@ -2252,10 +2262,6 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
->           [ScalarType "date", ScalarType "date"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
 >           [ScalarType "lseg", ScalarType "lseg"]
 >           (ScalarType "bool")
 >           False,
@@ -2263,11 +2269,11 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
->           [ScalarType "int4", ScalarType "int8"]
+>           [ScalarType "date", ScalarType "date"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
->           [ScalarType "timestamptz", ScalarType "timestamp"]
+>           [ScalarType "int4", ScalarType "int8"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
@@ -2279,7 +2285,7 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
->           [ScalarType "time", ScalarType "time"]
+>           [ScalarType "timestamptz", ScalarType "timestamp"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
@@ -2287,7 +2293,7 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
->           [ScalarType "varbit", ScalarType "varbit"]
+>           [ScalarType "tsquery", ScalarType "tsquery"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
@@ -2295,7 +2301,7 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
->           [ScalarType "timetz", ScalarType "timetz"]
+>           [ScalarType "time", ScalarType "time"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
@@ -2307,19 +2313,11 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
+>           [ScalarType "timetz", ScalarType "timetz"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
 >           [ScalarType "int8", ScalarType "int4"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "tsquery", ScalarType "tsquery"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "oid", ScalarType "oid"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "float4", ScalarType "float8"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
@@ -2335,15 +2333,11 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
+>           [ScalarType "float4", ScalarType "float8"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
 >           [ScalarType "int8", ScalarType "int8"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "int2", ScalarType "int2"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "interval", ScalarType "interval"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
@@ -2383,6 +2377,10 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
+>           [ScalarType "text", ScalarType "text"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
 >           [ScalarType "int4", ScalarType "int2"]
 >           (ScalarType "bool")
 >           False,
@@ -2391,15 +2389,15 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
+>           [ScalarType "timestamptz", ScalarType "timestamptz"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
 >           [ScalarType "timestamp", ScalarType "timestamp"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
 >           [ScalarType "uuid", ScalarType "uuid"]
->           (ScalarType "bool")
->           False,
->         CatCreateFunction FunBinary "<"
->           [ScalarType "text", ScalarType "text"]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
@@ -2441,6 +2439,18 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunBinary "<"
+>           [ScalarType "int2", ScalarType "int2"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "oid", ScalarType "oid"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
+>           [ScalarType "interval", ScalarType "interval"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunBinary "<"
 >           [ScalarType "box", ScalarType "box"]
 >           (ScalarType "bool")
 >           False,
@@ -2459,6 +2469,10 @@ installed to do this.
 >         CatCreateFunction FunBinary "/"
 >           [ScalarType "interval", ScalarType "float8"]
 >           (ScalarType "interval")
+>           False,
+>         CatCreateFunction FunBinary "/"
+>           [ScalarType "money", ScalarType "money"]
+>           (ScalarType "float8")
 >           False,
 >         CatCreateFunction FunBinary "/"
 >           [ScalarType "money", ScalarType "int2"]
@@ -3470,6 +3484,10 @@ installed to do this.
 >           [Pseudo AnyArray, ScalarType "text"]
 >           (ScalarType "text")
 >           False,
+>         CatCreateFunction FunName "array_to_string"
+>           [Pseudo AnyArray, ScalarType "text", ScalarType "text"]
+>           (ScalarType "text")
+>           False,
 >         CatCreateFunction FunName "array_upper"
 >           [Pseudo AnyArray, ScalarType "int4"]
 >           (ScalarType "int4")
@@ -3939,6 +3957,9 @@ installed to do this.
 >           [Pseudo Internal, Pseudo Internal, Pseudo Internal]
 >           (Pseudo Internal)
 >           False,
+>         CatCreateFunction FunName "btbuildempty" [Pseudo Internal]
+>           (Pseudo Void)
+>           False,
 >         CatCreateFunction FunName "btbulkdelete"
 >           [Pseudo Internal, Pseudo Internal, Pseudo Internal,
 >            Pseudo Internal]
@@ -3951,7 +3972,7 @@ installed to do this.
 >         CatCreateFunction FunName "btcostestimate"
 >           [Pseudo Internal, Pseudo Internal, Pseudo Internal,
 >            Pseudo Internal, Pseudo Internal, Pseudo Internal, Pseudo Internal,
->            Pseudo Internal]
+>            Pseudo Internal, Pseudo Internal]
 >           (Pseudo Void)
 >           False,
 >         CatCreateFunction FunName "btendscan" [Pseudo Internal]
@@ -4050,7 +4071,8 @@ installed to do this.
 >           (ScalarType "int4")
 >           False,
 >         CatCreateFunction FunName "btrescan"
->           [Pseudo Internal, Pseudo Internal]
+>           [Pseudo Internal, Pseudo Internal, Pseudo Internal,
+>            Pseudo Internal, Pseudo Internal]
 >           (Pseudo Void)
 >           False,
 >         CatCreateFunction FunName "btrestrpos" [Pseudo Internal]
@@ -4142,6 +4164,10 @@ installed to do this.
 >         CatCreateFunction FunName "cash_cmp"
 >           [ScalarType "money", ScalarType "money"]
 >           (ScalarType "int4")
+>           False,
+>         CatCreateFunction FunName "cash_div_cash"
+>           [ScalarType "money", ScalarType "money"]
+>           (ScalarType "float8")
 >           False,
 >         CatCreateFunction FunName "cash_div_flt4"
 >           [ScalarType "money", ScalarType "float4"]
@@ -5038,6 +5064,12 @@ installed to do this.
 >         CatCreateFunction FunName "family" [ScalarType "inet"]
 >           (ScalarType "int4")
 >           False,
+>         CatCreateFunction FunName "fdw_handler_in" [Pseudo Cstring]
+>           (Pseudo FdwHandler)
+>           False,
+>         CatCreateFunction FunName "fdw_handler_out" [Pseudo FdwHandler]
+>           (Pseudo Cstring)
+>           False,
 >         CatCreateFunction FunName "float4" [ScalarType "int8"]
 >           (ScalarType "float4")
 >           False,
@@ -5387,6 +5419,9 @@ installed to do this.
 >         CatCreateFunction FunName "fmgr_sql_validator" [ScalarType "oid"]
 >           (Pseudo Void)
 >           False,
+>         CatCreateFunction FunName "format" [ScalarType "text"]
+>           (ScalarType "text")
+>           False,
 >         CatCreateFunction FunName "format_type"
 >           [ScalarType "oid", ScalarType "int4"]
 >           (ScalarType "text")
@@ -5469,8 +5504,17 @@ installed to do this.
 >            Pseudo Internal, Pseudo Internal]
 >           (Pseudo Internal)
 >           False,
+>         CatCreateFunction FunName "gin_extract_tsquery"
+>           [ScalarType "tsquery", Pseudo Internal, ScalarType "int2",
+>            Pseudo Internal, Pseudo Internal, Pseudo Internal, Pseudo Internal]
+>           (Pseudo Internal)
+>           False,
 >         CatCreateFunction FunName "gin_extract_tsvector"
 >           [ScalarType "tsvector", Pseudo Internal]
+>           (Pseudo Internal)
+>           False,
+>         CatCreateFunction FunName "gin_extract_tsvector"
+>           [ScalarType "tsvector", Pseudo Internal, Pseudo Internal]
 >           (Pseudo Internal)
 >           False,
 >         CatCreateFunction FunName "gin_tsquery_consistent"
@@ -5478,13 +5522,24 @@ installed to do this.
 >            ScalarType "int4", Pseudo Internal, Pseudo Internal]
 >           (ScalarType "bool")
 >           False,
+>         CatCreateFunction FunName "gin_tsquery_consistent"
+>           [Pseudo Internal, ScalarType "int2", ScalarType "tsquery",
+>            ScalarType "int4", Pseudo Internal, Pseudo Internal,
+>            Pseudo Internal, Pseudo Internal]
+>           (ScalarType "bool")
+>           False,
 >         CatCreateFunction FunName "ginarrayconsistent"
 >           [Pseudo Internal, ScalarType "int2", Pseudo AnyArray,
->            ScalarType "int4", Pseudo Internal, Pseudo Internal]
+>            ScalarType "int4", Pseudo Internal, Pseudo Internal,
+>            Pseudo Internal, Pseudo Internal]
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunName "ginarrayextract"
 >           [Pseudo AnyArray, Pseudo Internal]
+>           (Pseudo Internal)
+>           False,
+>         CatCreateFunction FunName "ginarrayextract"
+>           [Pseudo AnyArray, Pseudo Internal, Pseudo Internal]
 >           (Pseudo Internal)
 >           False,
 >         CatCreateFunction FunName "ginbeginscan"
@@ -5495,6 +5550,9 @@ installed to do this.
 >           [Pseudo Internal, Pseudo Internal, Pseudo Internal]
 >           (Pseudo Internal)
 >           False,
+>         CatCreateFunction FunName "ginbuildempty" [Pseudo Internal]
+>           (Pseudo Void)
+>           False,
 >         CatCreateFunction FunName "ginbulkdelete"
 >           [Pseudo Internal, Pseudo Internal, Pseudo Internal,
 >            Pseudo Internal]
@@ -5503,7 +5561,7 @@ installed to do this.
 >         CatCreateFunction FunName "gincostestimate"
 >           [Pseudo Internal, Pseudo Internal, Pseudo Internal,
 >            Pseudo Internal, Pseudo Internal, Pseudo Internal, Pseudo Internal,
->            Pseudo Internal]
+>            Pseudo Internal, Pseudo Internal]
 >           (Pseudo Void)
 >           False,
 >         CatCreateFunction FunName "ginendscan" [Pseudo Internal]
@@ -5527,11 +5585,12 @@ installed to do this.
 >           False,
 >         CatCreateFunction FunName "ginqueryarrayextract"
 >           [Pseudo AnyArray, Pseudo Internal, ScalarType "int2",
->            Pseudo Internal, Pseudo Internal]
+>            Pseudo Internal, Pseudo Internal, Pseudo Internal, Pseudo Internal]
 >           (Pseudo Internal)
 >           False,
 >         CatCreateFunction FunName "ginrescan"
->           [Pseudo Internal, Pseudo Internal]
+>           [Pseudo Internal, Pseudo Internal, Pseudo Internal,
+>            Pseudo Internal, Pseudo Internal]
 >           (Pseudo Void)
 >           False,
 >         CatCreateFunction FunName "ginrestrpos" [Pseudo Internal]
@@ -5580,9 +5639,14 @@ installed to do this.
 >           (Pseudo Internal)
 >           False,
 >         CatCreateFunction FunName "gist_point_consistent"
->           [Pseudo Internal, ScalarType "box", ScalarType "int4",
+>           [Pseudo Internal, ScalarType "point", ScalarType "int4",
 >            ScalarType "oid", Pseudo Internal]
 >           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunName "gist_point_distance"
+>           [Pseudo Internal, ScalarType "point", ScalarType "int4",
+>            ScalarType "oid"]
+>           (ScalarType "float8")
 >           False,
 >         CatCreateFunction FunName "gist_poly_compress" [Pseudo Internal]
 >           (Pseudo Internal)
@@ -5600,6 +5664,9 @@ installed to do this.
 >           [Pseudo Internal, Pseudo Internal, Pseudo Internal]
 >           (Pseudo Internal)
 >           False,
+>         CatCreateFunction FunName "gistbuildempty" [Pseudo Internal]
+>           (Pseudo Void)
+>           False,
 >         CatCreateFunction FunName "gistbulkdelete"
 >           [Pseudo Internal, Pseudo Internal, Pseudo Internal,
 >            Pseudo Internal]
@@ -5608,7 +5675,7 @@ installed to do this.
 >         CatCreateFunction FunName "gistcostestimate"
 >           [Pseudo Internal, Pseudo Internal, Pseudo Internal,
 >            Pseudo Internal, Pseudo Internal, Pseudo Internal, Pseudo Internal,
->            Pseudo Internal]
+>            Pseudo Internal, Pseudo Internal]
 >           (Pseudo Void)
 >           False,
 >         CatCreateFunction FunName "gistendscan" [Pseudo Internal]
@@ -5635,7 +5702,8 @@ installed to do this.
 >           (ScalarType "bytea")
 >           False,
 >         CatCreateFunction FunName "gistrescan"
->           [Pseudo Internal, Pseudo Internal]
+>           [Pseudo Internal, Pseudo Internal, Pseudo Internal,
+>            Pseudo Internal, Pseudo Internal]
 >           (Pseudo Void)
 >           False,
 >         CatCreateFunction FunName "gistrestrpos" [Pseudo Internal]
@@ -6004,6 +6072,9 @@ installed to do this.
 >         CatCreateFunction FunName "hash_aclitem" [ScalarType "aclitem"]
 >           (ScalarType "int4")
 >           False,
+>         CatCreateFunction FunName "hash_array" [Pseudo AnyArray]
+>           (ScalarType "int4")
+>           False,
 >         CatCreateFunction FunName "hash_numeric" [ScalarType "numeric"]
 >           (ScalarType "int4")
 >           False,
@@ -6018,6 +6089,9 @@ installed to do this.
 >           [Pseudo Internal, Pseudo Internal, Pseudo Internal]
 >           (Pseudo Internal)
 >           False,
+>         CatCreateFunction FunName "hashbuildempty" [Pseudo Internal]
+>           (Pseudo Void)
+>           False,
 >         CatCreateFunction FunName "hashbulkdelete"
 >           [Pseudo Internal, Pseudo Internal, Pseudo Internal,
 >            Pseudo Internal]
@@ -6029,7 +6103,7 @@ installed to do this.
 >         CatCreateFunction FunName "hashcostestimate"
 >           [Pseudo Internal, Pseudo Internal, Pseudo Internal,
 >            Pseudo Internal, Pseudo Internal, Pseudo Internal, Pseudo Internal,
->            Pseudo Internal]
+>            Pseudo Internal, Pseudo Internal]
 >           (Pseudo Void)
 >           False,
 >         CatCreateFunction FunName "hashendscan" [Pseudo Internal]
@@ -6093,7 +6167,8 @@ installed to do this.
 >           (ScalarType "bytea")
 >           False,
 >         CatCreateFunction FunName "hashrescan"
->           [Pseudo Internal, Pseudo Internal]
+>           [Pseudo Internal, Pseudo Internal, Pseudo Internal,
+>            Pseudo Internal, Pseudo Internal]
 >           (Pseudo Void)
 >           False,
 >         CatCreateFunction FunName "hashrestrpos" [Pseudo Internal]
@@ -7183,6 +7258,10 @@ installed to do this.
 >            Pseudo Internal, ScalarType "int4"]
 >           (Pseudo Void)
 >           False,
+>         CatCreateFunction FunName "left"
+>           [ScalarType "text", ScalarType "int4"]
+>           (ScalarType "text")
+>           False,
 >         CatCreateFunction FunName "length" [ScalarType "bytea"]
 >           (ScalarType "int4")
 >           False,
@@ -7593,6 +7672,15 @@ installed to do this.
 >           [ScalarType "numeric", ScalarType "numeric"]
 >           (ScalarType "numeric")
 >           False,
+>         CatCreateFunction FunName "money" [ScalarType "int8"]
+>           (ScalarType "money")
+>           False,
+>         CatCreateFunction FunName "money" [ScalarType "int4"]
+>           (ScalarType "money")
+>           False,
+>         CatCreateFunction FunName "money" [ScalarType "numeric"]
+>           (ScalarType "money")
+>           False,
 >         CatCreateFunction FunName "mul_d_interval"
 >           [ScalarType "float8", ScalarType "interval"]
 >           (ScalarType "interval")
@@ -7780,6 +7868,9 @@ installed to do this.
 >           (ScalarType "numeric")
 >           False,
 >         CatCreateFunction FunName "numeric" [ScalarType "float8"]
+>           (ScalarType "numeric")
+>           False,
+>         CatCreateFunction FunName "numeric" [ScalarType "money"]
 >           (ScalarType "numeric")
 >           False,
 >         CatCreateFunction FunName "numeric"
@@ -8268,6 +8359,28 @@ installed to do this.
 >           [ScalarType "int4", ScalarType "int4"]
 >           (ScalarType "bool")
 >           False,
+>         CatCreateFunction FunName "pg_advisory_xact_lock"
+>           [ScalarType "int8"]
+>           (Pseudo Void)
+>           False,
+>         CatCreateFunction FunName "pg_advisory_xact_lock"
+>           [ScalarType "int4", ScalarType "int4"]
+>           (Pseudo Void)
+>           False,
+>         CatCreateFunction FunName "pg_advisory_xact_lock_shared"
+>           [ScalarType "int8"]
+>           (Pseudo Void)
+>           False,
+>         CatCreateFunction FunName "pg_advisory_xact_lock_shared"
+>           [ScalarType "int4", ScalarType "int4"]
+>           (Pseudo Void)
+>           False,
+>         CatCreateFunction FunName "pg_available_extension_versions" []
+>           (SetOfType (Pseudo Record))
+>           False,
+>         CatCreateFunction FunName "pg_available_extensions" []
+>           (SetOfType (Pseudo Record))
+>           False,
 >         CatCreateFunction FunName "pg_backend_pid" [] (ScalarType "int4")
 >           False,
 >         CatCreateFunction FunName "pg_cancel_backend" [ScalarType "int4"]
@@ -8279,6 +8392,10 @@ installed to do this.
 >         CatCreateFunction FunName "pg_client_encoding" []
 >           (ScalarType "name")
 >           False,
+>         CatCreateFunction FunName "pg_collation_is_visible"
+>           [ScalarType "oid"]
+>           (ScalarType "bool")
+>           False,
 >         CatCreateFunction FunName "pg_column_size" [Pseudo Any]
 >           (ScalarType "int4")
 >           False,
@@ -8288,6 +8405,10 @@ installed to do this.
 >         CatCreateFunction FunName "pg_conversion_is_visible"
 >           [ScalarType "oid"]
 >           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunName "pg_create_restore_point"
+>           [ScalarType "text"]
+>           (ScalarType "text")
 >           False,
 >         CatCreateFunction FunName "pg_current_xlog_insert_location" []
 >           (ScalarType "text")
@@ -8304,12 +8425,24 @@ installed to do this.
 >         CatCreateFunction FunName "pg_database_size" [ScalarType "oid"]
 >           (ScalarType "int8")
 >           False,
+>         CatCreateFunction FunName "pg_describe_object"
+>           [ScalarType "oid", ScalarType "oid", ScalarType "int4"]
+>           (ScalarType "text")
+>           False,
 >         CatCreateFunction FunName "pg_encoding_max_length"
 >           [ScalarType "int4"]
 >           (ScalarType "int4")
 >           False,
 >         CatCreateFunction FunName "pg_encoding_to_char" [ScalarType "int4"]
 >           (ScalarType "name")
+>           False,
+>         CatCreateFunction FunName "pg_extension_config_dump"
+>           [ScalarType "regclass", ScalarType "text"]
+>           (Pseudo Void)
+>           False,
+>         CatCreateFunction FunName "pg_extension_update_paths"
+>           [ScalarType "name"]
+>           (SetOfType (Pseudo Record))
 >           False,
 >         CatCreateFunction FunName "pg_function_is_visible"
 >           [ScalarType "oid"]
@@ -8323,11 +8456,11 @@ installed to do this.
 >           (ScalarType "text")
 >           False,
 >         CatCreateFunction FunName "pg_get_expr"
->           [ScalarType "text", ScalarType "oid"]
+>           [ScalarType "pg_node_tree", ScalarType "oid"]
 >           (ScalarType "text")
 >           False,
 >         CatCreateFunction FunName "pg_get_expr"
->           [ScalarType "text", ScalarType "oid", ScalarType "bool"]
+>           [ScalarType "pg_node_tree", ScalarType "oid", ScalarType "bool"]
 >           (ScalarType "text")
 >           False,
 >         CatCreateFunction FunName "pg_get_function_arguments"
@@ -8424,6 +8557,12 @@ installed to do this.
 >           [ScalarType "oid"]
 >           (ScalarType "bool")
 >           False,
+>         CatCreateFunction FunName "pg_is_xlog_replay_paused" []
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunName "pg_last_xact_replay_timestamp" []
+>           (ScalarType "timestamptz")
+>           False,
 >         CatCreateFunction FunName "pg_last_xlog_receive_location" []
 >           (ScalarType "text")
 >           False,
@@ -8440,6 +8579,20 @@ installed to do this.
 >           (SetOfType (ScalarType "text"))
 >           False,
 >         CatCreateFunction FunName "pg_my_temp_schema" [] (ScalarType "oid")
+>           False,
+>         CatCreateFunction FunName "pg_node_tree_in" [Pseudo Cstring]
+>           (ScalarType "pg_node_tree")
+>           False,
+>         CatCreateFunction FunName "pg_node_tree_out"
+>           [ScalarType "pg_node_tree"]
+>           (Pseudo Cstring)
+>           False,
+>         CatCreateFunction FunName "pg_node_tree_recv" [Pseudo Internal]
+>           (ScalarType "pg_node_tree")
+>           False,
+>         CatCreateFunction FunName "pg_node_tree_send"
+>           [ScalarType "pg_node_tree"]
+>           (ScalarType "bytea")
 >           False,
 >         CatCreateFunction FunName "pg_notify"
 >           [ScalarType "text", ScalarType "text"]
@@ -8466,6 +8619,16 @@ installed to do this.
 >         CatCreateFunction FunName "pg_prepared_xact" []
 >           (SetOfType (Pseudo Record))
 >           False,
+>         CatCreateFunction FunName "pg_read_binary_file" [ScalarType "text"]
+>           (ScalarType "bytea")
+>           False,
+>         CatCreateFunction FunName "pg_read_binary_file"
+>           [ScalarType "text", ScalarType "int8", ScalarType "int8"]
+>           (ScalarType "bytea")
+>           False,
+>         CatCreateFunction FunName "pg_read_file" [ScalarType "text"]
+>           (ScalarType "text")
+>           False,
 >         CatCreateFunction FunName "pg_read_file"
 >           [ScalarType "text", ScalarType "int8", ScalarType "int8"]
 >           (ScalarType "text")
@@ -8491,6 +8654,10 @@ installed to do this.
 >         CatCreateFunction FunName "pg_rotate_logfile" []
 >           (ScalarType "bool")
 >           False,
+>         CatCreateFunction FunName "pg_sequence_parameters"
+>           [ScalarType "oid"]
+>           (Pseudo Record)
+>           False,
 >         CatCreateFunction FunName "pg_show_all_settings" []
 >           (SetOfType (Pseudo Record))
 >           False,
@@ -8512,6 +8679,18 @@ installed to do this.
 >         CatCreateFunction FunName "pg_stat_get_activity"
 >           [ScalarType "int4"]
 >           (SetOfType (Pseudo Record))
+>           False,
+>         CatCreateFunction FunName "pg_stat_get_analyze_count"
+>           [ScalarType "oid"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunName "pg_stat_get_autoanalyze_count"
+>           [ScalarType "oid"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunName "pg_stat_get_autovacuum_count"
+>           [ScalarType "oid"]
+>           (ScalarType "int8")
 >           False,
 >         CatCreateFunction FunName "pg_stat_get_backend_activity"
 >           [ScalarType "int4"]
@@ -8574,6 +8753,9 @@ installed to do this.
 >           []
 >           (ScalarType "int8")
 >           False,
+>         CatCreateFunction FunName "pg_stat_get_bgwriter_stat_reset_time" []
+>           (ScalarType "timestamptz")
+>           False,
 >         CatCreateFunction FunName "pg_stat_get_bgwriter_timed_checkpoints"
 >           []
 >           (ScalarType "int8")
@@ -8589,6 +8771,9 @@ installed to do this.
 >         CatCreateFunction FunName "pg_stat_get_buf_alloc" []
 >           (ScalarType "int8")
 >           False,
+>         CatCreateFunction FunName "pg_stat_get_buf_fsync_backend" []
+>           (ScalarType "int8")
+>           False,
 >         CatCreateFunction FunName "pg_stat_get_buf_written_backend" []
 >           (ScalarType "int8")
 >           False,
@@ -8600,9 +8785,38 @@ installed to do this.
 >           [ScalarType "oid"]
 >           (ScalarType "int8")
 >           False,
+>         CatCreateFunction FunName "pg_stat_get_db_conflict_all"
+>           [ScalarType "oid"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunName "pg_stat_get_db_conflict_bufferpin"
+>           [ScalarType "oid"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunName "pg_stat_get_db_conflict_lock"
+>           [ScalarType "oid"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunName "pg_stat_get_db_conflict_snapshot"
+>           [ScalarType "oid"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunName
+>           "pg_stat_get_db_conflict_startup_deadlock"
+>           [ScalarType "oid"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunName "pg_stat_get_db_conflict_tablespace"
+>           [ScalarType "oid"]
+>           (ScalarType "int8")
+>           False,
 >         CatCreateFunction FunName "pg_stat_get_db_numbackends"
 >           [ScalarType "oid"]
 >           (ScalarType "int4")
+>           False,
+>         CatCreateFunction FunName "pg_stat_get_db_stat_reset_time"
+>           [ScalarType "oid"]
+>           (ScalarType "timestamptz")
 >           False,
 >         CatCreateFunction FunName "pg_stat_get_db_tuples_deleted"
 >           [ScalarType "oid"]
@@ -8695,6 +8909,61 @@ installed to do this.
 >           [ScalarType "oid"]
 >           (ScalarType "int8")
 >           False,
+>         CatCreateFunction FunName "pg_stat_get_vacuum_count"
+>           [ScalarType "oid"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunName "pg_stat_get_wal_senders" []
+>           (SetOfType (Pseudo Record))
+>           False,
+>         CatCreateFunction FunName "pg_stat_get_xact_blocks_fetched"
+>           [ScalarType "oid"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunName "pg_stat_get_xact_blocks_hit"
+>           [ScalarType "oid"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunName "pg_stat_get_xact_function_calls"
+>           [ScalarType "oid"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunName "pg_stat_get_xact_function_self_time"
+>           [ScalarType "oid"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunName "pg_stat_get_xact_function_time"
+>           [ScalarType "oid"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunName "pg_stat_get_xact_numscans"
+>           [ScalarType "oid"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunName "pg_stat_get_xact_tuples_deleted"
+>           [ScalarType "oid"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunName "pg_stat_get_xact_tuples_fetched"
+>           [ScalarType "oid"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunName "pg_stat_get_xact_tuples_hot_updated"
+>           [ScalarType "oid"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunName "pg_stat_get_xact_tuples_inserted"
+>           [ScalarType "oid"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunName "pg_stat_get_xact_tuples_returned"
+>           [ScalarType "oid"]
+>           (ScalarType "int8")
+>           False,
+>         CatCreateFunction FunName "pg_stat_get_xact_tuples_updated"
+>           [ScalarType "oid"]
+>           (ScalarType "int8")
+>           False,
 >         CatCreateFunction FunName "pg_stat_reset" [] (Pseudo Void) False,
 >         CatCreateFunction FunName "pg_stat_reset_shared"
 >           [ScalarType "text"]
@@ -8758,6 +9027,22 @@ installed to do this.
 >           [ScalarType "int4", ScalarType "int4"]
 >           (ScalarType "bool")
 >           False,
+>         CatCreateFunction FunName "pg_try_advisory_xact_lock"
+>           [ScalarType "int8"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunName "pg_try_advisory_xact_lock"
+>           [ScalarType "int4", ScalarType "int4"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunName "pg_try_advisory_xact_lock_shared"
+>           [ScalarType "int8"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunName "pg_try_advisory_xact_lock_shared"
+>           [ScalarType "int4", ScalarType "int4"]
+>           (ScalarType "bool")
+>           False,
 >         CatCreateFunction FunName "pg_ts_config_is_visible"
 >           [ScalarType "oid"]
 >           (ScalarType "bool")
@@ -8779,6 +9064,10 @@ installed to do this.
 >           False,
 >         CatCreateFunction FunName "pg_typeof" [Pseudo Any]
 >           (ScalarType "regtype")
+>           False,
+>         CatCreateFunction FunName "pg_xlog_replay_pause" [] (Pseudo Void)
+>           False,
+>         CatCreateFunction FunName "pg_xlog_replay_resume" [] (Pseudo Void)
 >           False,
 >         CatCreateFunction FunName "pg_xlogfile_name" [ScalarType "text"]
 >           (ScalarType "text")
@@ -9329,6 +9618,13 @@ installed to do this.
 >           [ScalarType "text", ScalarType "text", ScalarType "text"]
 >           (ScalarType "text")
 >           False,
+>         CatCreateFunction FunName "reverse" [ScalarType "text"]
+>           (ScalarType "text")
+>           False,
+>         CatCreateFunction FunName "right"
+>           [ScalarType "text", ScalarType "int4"]
+>           (ScalarType "text")
+>           False,
 >         CatCreateFunction FunName "round" [ScalarType "float8"]
 >           (ScalarType "float8")
 >           False,
@@ -9518,6 +9814,10 @@ installed to do this.
 >           False,
 >         CatCreateFunction FunName "string_to_array"
 >           [ScalarType "text", ScalarType "text"]
+>           (ArrayType (ScalarType "text"))
+>           False,
+>         CatCreateFunction FunName "string_to_array"
+>           [ScalarType "text", ScalarType "text", ScalarType "text"]
 >           (ArrayType (ScalarType "text"))
 >           False,
 >         CatCreateFunction FunName "strip" [ScalarType "tsvector"]
@@ -10974,6 +11274,12 @@ installed to do this.
 >           False,
 >         CatCreateFunction FunName "void_out" [Pseudo Void] (Pseudo Cstring)
 >           False,
+>         CatCreateFunction FunName "void_recv" [Pseudo Internal]
+>           (Pseudo Void)
+>           False,
+>         CatCreateFunction FunName "void_send" [Pseudo Void]
+>           (ScalarType "bytea")
+>           False,
 >         CatCreateFunction FunName "width" [ScalarType "box"]
 >           (ScalarType "float8")
 >           False,
@@ -11068,6 +11374,17 @@ installed to do this.
 >         CatCreateFunction FunName "xml_in" [Pseudo Cstring]
 >           (ScalarType "xml")
 >           False,
+>         CatCreateFunction FunName "xml_is_well_formed" [ScalarType "text"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunName "xml_is_well_formed_content"
+>           [ScalarType "text"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunName "xml_is_well_formed_document"
+>           [ScalarType "text"]
+>           (ScalarType "bool")
+>           False,
 >         CatCreateFunction FunName "xml_out" [ScalarType "xml"]
 >           (Pseudo Cstring)
 >           False,
@@ -11084,6 +11401,10 @@ installed to do this.
 >           [ScalarType "xml", ScalarType "xml"]
 >           (ScalarType "xml")
 >           False,
+>         CatCreateFunction FunName "xmlexists"
+>           [ScalarType "text", ScalarType "xml"]
+>           (ScalarType "bool")
+>           False,
 >         CatCreateFunction FunName "xmlvalidate"
 >           [ScalarType "xml", ScalarType "text"]
 >           (ScalarType "bool")
@@ -11096,6 +11417,15 @@ installed to do this.
 >           [ScalarType "text", ScalarType "xml",
 >            ArrayType (ScalarType "text")]
 >           (ArrayType (ScalarType "xml"))
+>           False,
+>         CatCreateFunction FunName "xpath_exists"
+>           [ScalarType "text", ScalarType "xml"]
+>           (ScalarType "bool")
+>           False,
+>         CatCreateFunction FunName "xpath_exists"
+>           [ScalarType "text", ScalarType "xml",
+>            ArrayType (ScalarType "text")]
+>           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunAgg "array_agg" [Pseudo AnyElement]
 >           (Pseudo AnyArray)
@@ -11519,14 +11849,15 @@ installed to do this.
 >            ("amstrategies", ScalarType "int2"),
 >            ("amsupport", ScalarType "int2"),
 >            ("amcanorder", ScalarType "bool"),
+>            ("amcanorderbyop", ScalarType "bool"),
 >            ("amcanbackward", ScalarType "bool"),
 >            ("amcanunique", ScalarType "bool"),
 >            ("amcanmulticol", ScalarType "bool"),
 >            ("amoptionalkey", ScalarType "bool"),
->            ("amindexnulls", ScalarType "bool"),
 >            ("amsearchnulls", ScalarType "bool"),
 >            ("amstorage", ScalarType "bool"),
 >            ("amclusterable", ScalarType "bool"),
+>            ("ampredlocks", ScalarType "bool"),
 >            ("amkeytype", ScalarType "oid"),
 >            ("aminsert", ScalarType "regproc"),
 >            ("ambeginscan", ScalarType "regproc"),
@@ -11537,6 +11868,7 @@ installed to do this.
 >            ("ammarkpos", ScalarType "regproc"),
 >            ("amrestrpos", ScalarType "regproc"),
 >            ("ambuild", ScalarType "regproc"),
+>            ("ambuildempty", ScalarType "regproc"),
 >            ("ambulkdelete", ScalarType "regproc"),
 >            ("amvacuumcleanup", ScalarType "regproc"),
 >            ("amcostestimate", ScalarType "regproc"),
@@ -11549,8 +11881,10 @@ installed to do this.
 >           [("amopfamily", ScalarType "oid"),
 >            ("amoplefttype", ScalarType "oid"),
 >            ("amoprighttype", ScalarType "oid"),
->            ("amopstrategy", ScalarType "int2"), ("amopopr", ScalarType "oid"),
->            ("amopmethod", ScalarType "oid")]
+>            ("amopstrategy", ScalarType "int2"),
+>            ("amoppurpose", ScalarType "char"), ("amopopr", ScalarType "oid"),
+>            ("amopmethod", ScalarType "oid"),
+>            ("amopsortfamily", ScalarType "oid")]
 >           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
 >            ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
 >            ("xmin", ScalarType "xid"), ("oid", ScalarType "oid"),
@@ -11566,7 +11900,7 @@ installed to do this.
 >            ("ctid", ScalarType "tid")],
 >         CatCreateTable "pg_attrdef"
 >           [("adrelid", ScalarType "oid"), ("adnum", ScalarType "int2"),
->            ("adbin", ScalarType "text"), ("adsrc", ScalarType "text")]
+>            ("adbin", ScalarType "pg_node_tree"), ("adsrc", ScalarType "text")]
 >           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
 >            ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
 >            ("xmin", ScalarType "xid"), ("oid", ScalarType "oid"),
@@ -11585,6 +11919,7 @@ installed to do this.
 >            ("attisdropped", ScalarType "bool"),
 >            ("attislocal", ScalarType "bool"),
 >            ("attinhcount", ScalarType "int4"),
+>            ("attcollation", ScalarType "oid"),
 >            ("attacl", ArrayType (ScalarType "aclitem")),
 >            ("attoptions", ArrayType (ScalarType "text"))]
 >           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
@@ -11603,6 +11938,7 @@ installed to do this.
 >            ("rolcreatedb", ScalarType "bool"),
 >            ("rolcatupdate", ScalarType "bool"),
 >            ("rolcanlogin", ScalarType "bool"),
+>            ("rolreplication", ScalarType "bool"),
 >            ("rolconnlimit", ScalarType "int4"),
 >            ("rolpassword", ScalarType "text"),
 >            ("rolvaliduntil", ScalarType "timestamptz")]
@@ -11631,11 +11967,11 @@ installed to do this.
 >            ("reltoastidxid", ScalarType "oid"),
 >            ("relhasindex", ScalarType "bool"),
 >            ("relisshared", ScalarType "bool"),
->            ("relistemp", ScalarType "bool"), ("relkind", ScalarType "char"),
->            ("relnatts", ScalarType "int2"), ("relchecks", ScalarType "int2"),
+>            ("relpersistence", ScalarType "char"),
+>            ("relkind", ScalarType "char"), ("relnatts", ScalarType "int2"),
+>            ("relchecks", ScalarType "int2"),
 >            ("relhasoids", ScalarType "bool"),
 >            ("relhaspkey", ScalarType "bool"),
->            ("relhasexclusion", ScalarType "bool"),
 >            ("relhasrules", ScalarType "bool"),
 >            ("relhastriggers", ScalarType "bool"),
 >            ("relhassubclass", ScalarType "bool"),
@@ -11646,13 +11982,25 @@ installed to do this.
 >            ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
 >            ("xmin", ScalarType "xid"), ("oid", ScalarType "oid"),
 >            ("ctid", ScalarType "tid")],
+>         CatCreateTable "pg_collation"
+>           [("collname", ScalarType "name"),
+>            ("collnamespace", ScalarType "oid"),
+>            ("collowner", ScalarType "oid"),
+>            ("collencoding", ScalarType "int4"),
+>            ("collcollate", ScalarType "name"),
+>            ("collctype", ScalarType "name")]
+>           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
+>            ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
+>            ("xmin", ScalarType "xid"), ("oid", ScalarType "oid"),
+>            ("ctid", ScalarType "tid")],
 >         CatCreateTable "pg_constraint"
 >           [("conname", ScalarType "name"),
 >            ("connamespace", ScalarType "oid"), ("contype", ScalarType "char"),
 >            ("condeferrable", ScalarType "bool"),
->            ("condeferred", ScalarType "bool"), ("conrelid", ScalarType "oid"),
->            ("contypid", ScalarType "oid"), ("conindid", ScalarType "oid"),
->            ("confrelid", ScalarType "oid"),
+>            ("condeferred", ScalarType "bool"),
+>            ("convalidated", ScalarType "bool"),
+>            ("conrelid", ScalarType "oid"), ("contypid", ScalarType "oid"),
+>            ("conindid", ScalarType "oid"), ("confrelid", ScalarType "oid"),
 >            ("confupdtype", ScalarType "char"),
 >            ("confdeltype", ScalarType "char"),
 >            ("confmatchtype", ScalarType "char"),
@@ -11664,7 +12012,8 @@ installed to do this.
 >            ("conppeqop", ArrayType (ScalarType "oid")),
 >            ("conffeqop", ArrayType (ScalarType "oid")),
 >            ("conexclop", ArrayType (ScalarType "oid")),
->            ("conbin", ScalarType "text"), ("consrc", ScalarType "text")]
+>            ("conbin", ScalarType "pg_node_tree"),
+>            ("consrc", ScalarType "text")]
 >           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
 >            ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
 >            ("xmin", ScalarType "xid"), ("oid", ScalarType "oid"),
@@ -11726,13 +12075,27 @@ installed to do this.
 >            ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
 >            ("xmin", ScalarType "xid"), ("ctid", ScalarType "tid")],
 >         CatCreateTable "pg_enum"
->           [("enumtypid", ScalarType "oid"), ("enumlabel", ScalarType "name")]
+>           [("enumtypid", ScalarType "oid"),
+>            ("enumsortorder", ScalarType "float4"),
+>            ("enumlabel", ScalarType "name")]
+>           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
+>            ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
+>            ("xmin", ScalarType "xid"), ("oid", ScalarType "oid"),
+>            ("ctid", ScalarType "tid")],
+>         CatCreateTable "pg_extension"
+>           [("extname", ScalarType "name"), ("extowner", ScalarType "oid"),
+>            ("extnamespace", ScalarType "oid"),
+>            ("extrelocatable", ScalarType "bool"),
+>            ("extversion", ScalarType "text"),
+>            ("extconfig", ArrayType (ScalarType "oid")),
+>            ("extcondition", ArrayType (ScalarType "text"))]
 >           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
 >            ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
 >            ("xmin", ScalarType "xid"), ("oid", ScalarType "oid"),
 >            ("ctid", ScalarType "tid")],
 >         CatCreateTable "pg_foreign_data_wrapper"
 >           [("fdwname", ScalarType "name"), ("fdwowner", ScalarType "oid"),
+>            ("fdwhandler", ScalarType "oid"),
 >            ("fdwvalidator", ScalarType "oid"),
 >            ("fdwacl", ArrayType (ScalarType "aclitem")),
 >            ("fdwoptions", ArrayType (ScalarType "text"))]
@@ -11750,20 +12113,29 @@ installed to do this.
 >            ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
 >            ("xmin", ScalarType "xid"), ("oid", ScalarType "oid"),
 >            ("ctid", ScalarType "tid")],
+>         CatCreateTable "pg_foreign_table"
+>           [("ftrelid", ScalarType "oid"), ("ftserver", ScalarType "oid"),
+>            ("ftoptions", ArrayType (ScalarType "text"))]
+>           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
+>            ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
+>            ("xmin", ScalarType "xid"), ("ctid", ScalarType "tid")],
 >         CatCreateTable "pg_index"
 >           [("indexrelid", ScalarType "oid"), ("indrelid", ScalarType "oid"),
 >            ("indnatts", ScalarType "int2"),
 >            ("indisunique", ScalarType "bool"),
 >            ("indisprimary", ScalarType "bool"),
+>            ("indisexclusion", ScalarType "bool"),
 >            ("indimmediate", ScalarType "bool"),
 >            ("indisclustered", ScalarType "bool"),
 >            ("indisvalid", ScalarType "bool"),
 >            ("indcheckxmin", ScalarType "bool"),
 >            ("indisready", ScalarType "bool"),
 >            ("indkey", ScalarType "int2vector"),
+>            ("indcollation", ScalarType "oidvector"),
 >            ("indclass", ScalarType "oidvector"),
 >            ("indoption", ScalarType "int2vector"),
->            ("indexprs", ScalarType "text"), ("indpred", ScalarType "text")]
+>            ("indexprs", ScalarType "pg_node_tree"),
+>            ("indpred", ScalarType "pg_node_tree")]
 >           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
 >            ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
 >            ("xmin", ScalarType "xid"), ("ctid", ScalarType "tid")],
@@ -11866,7 +12238,7 @@ installed to do this.
 >            ("proallargtypes", ArrayType (ScalarType "oid")),
 >            ("proargmodes", ArrayType (ScalarType "char")),
 >            ("proargnames", ArrayType (ScalarType "text")),
->            ("proargdefaults", ScalarType "text"),
+>            ("proargdefaults", ScalarType "pg_node_tree"),
 >            ("prosrc", ScalarType "text"), ("probin", ScalarType "text"),
 >            ("proconfig", ArrayType (ScalarType "text")),
 >            ("proacl", ArrayType (ScalarType "aclitem"))]
@@ -11878,12 +12250,20 @@ installed to do this.
 >           [("rulename", ScalarType "name"), ("ev_class", ScalarType "oid"),
 >            ("ev_attr", ScalarType "int2"), ("ev_type", ScalarType "char"),
 >            ("ev_enabled", ScalarType "char"),
->            ("is_instead", ScalarType "bool"), ("ev_qual", ScalarType "text"),
->            ("ev_action", ScalarType "text")]
+>            ("is_instead", ScalarType "bool"),
+>            ("ev_qual", ScalarType "pg_node_tree"),
+>            ("ev_action", ScalarType "pg_node_tree")]
 >           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
 >            ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
 >            ("xmin", ScalarType "xid"), ("oid", ScalarType "oid"),
 >            ("ctid", ScalarType "tid")],
+>         CatCreateTable "pg_seclabel"
+>           [("objoid", ScalarType "oid"), ("classoid", ScalarType "oid"),
+>            ("objsubid", ScalarType "int4"), ("provider", ScalarType "text"),
+>            ("label", ScalarType "text")]
+>           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
+>            ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
+>            ("xmin", ScalarType "xid"), ("ctid", ScalarType "tid")],
 >         CatCreateTable "pg_shdepend"
 >           [("dbid", ScalarType "oid"), ("classid", ScalarType "oid"),
 >            ("objid", ScalarType "oid"), ("objsubid", ScalarType "int4"),
@@ -11938,7 +12318,8 @@ installed to do this.
 >            ("tginitdeferred", ScalarType "bool"),
 >            ("tgnargs", ScalarType "int2"),
 >            ("tgattr", ScalarType "int2vector"),
->            ("tgargs", ScalarType "bytea"), ("tgqual", ScalarType "text")]
+>            ("tgargs", ScalarType "bytea"),
+>            ("tgqual", ScalarType "pg_node_tree")]
 >           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
 >            ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
 >            ("xmin", ScalarType "xid"), ("oid", ScalarType "oid"),
@@ -12008,7 +12389,8 @@ installed to do this.
 >            ("typnotnull", ScalarType "bool"),
 >            ("typbasetype", ScalarType "oid"),
 >            ("typtypmod", ScalarType "int4"), ("typndims", ScalarType "int4"),
->            ("typdefaultbin", ScalarType "text"),
+>            ("typcollation", ScalarType "oid"),
+>            ("typdefaultbin", ScalarType "pg_node_tree"),
 >            ("typdefault", ScalarType "text")]
 >           [("tableoid", ScalarType "oid"), ("cmax", ScalarType "cid"),
 >            ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
@@ -12128,6 +12510,18 @@ installed to do this.
 >             DomainType "information_schema.character_data"),
 >            ("authorization_identifier",
 >             DomainType "information_schema.sql_identifier")],
+>         CatCreateView "information_schema._pg_foreign_tables"
+>           [("foreign_table_catalog",
+>             DomainType "information_schema.sql_identifier"),
+>            ("foreign_table_schema", ScalarType "name"),
+>            ("foreign_table_name", ScalarType "name"),
+>            ("ftoptions", ArrayType (ScalarType "text")),
+>            ("foreign_server_catalog",
+>             DomainType "information_schema.sql_identifier"),
+>            ("foreign_server_name",
+>             DomainType "information_schema.sql_identifier"),
+>            ("authorization_identifier",
+>             DomainType "information_schema.sql_identifier")],
 >         CatCreateView "information_schema._pg_user_mappings"
 >           [("oid", ScalarType "oid"),
 >            ("umoptions", ArrayType (ScalarType "text")),
@@ -12198,6 +12592,22 @@ installed to do this.
 >            ("dtd_identifier", DomainType "information_schema.sql_identifier"),
 >            ("is_derived_reference_attribute",
 >             DomainType "information_schema.yes_or_no")],
+>         CatCreateView "information_schema.character_sets"
+>           [("character_set_catalog",
+>             DomainType "information_schema.sql_identifier"),
+>            ("character_set_schema",
+>             DomainType "information_schema.sql_identifier"),
+>            ("character_set_name",
+>             DomainType "information_schema.sql_identifier"),
+>            ("character_repertoire",
+>             DomainType "information_schema.sql_identifier"),
+>            ("form_of_use", DomainType "information_schema.sql_identifier"),
+>            ("default_collate_catalog",
+>             DomainType "information_schema.sql_identifier"),
+>            ("default_collate_schema",
+>             DomainType "information_schema.sql_identifier"),
+>            ("default_collate_name",
+>             DomainType "information_schema.sql_identifier")],
 >         CatCreateView "information_schema.check_constraint_routine_usage"
 >           [("constraint_catalog",
 >             DomainType "information_schema.sql_identifier"),
@@ -12218,6 +12628,26 @@ installed to do this.
 >            ("constraint_name",
 >             DomainType "information_schema.sql_identifier"),
 >            ("check_clause", DomainType "information_schema.character_data")],
+>         CatCreateView
+>           "information_schema.collation_character_set_applicability"
+>           [("collation_catalog",
+>             DomainType "information_schema.sql_identifier"),
+>            ("collation_schema",
+>             DomainType "information_schema.sql_identifier"),
+>            ("collation_name", DomainType "information_schema.sql_identifier"),
+>            ("character_set_catalog",
+>             DomainType "information_schema.sql_identifier"),
+>            ("character_set_schema",
+>             DomainType "information_schema.sql_identifier"),
+>            ("character_set_name",
+>             DomainType "information_schema.sql_identifier")],
+>         CatCreateView "information_schema.collations"
+>           [("collation_catalog",
+>             DomainType "information_schema.sql_identifier"),
+>            ("collation_schema",
+>             DomainType "information_schema.sql_identifier"),
+>            ("collation_name", DomainType "information_schema.sql_identifier"),
+>            ("pad_attribute", DomainType "information_schema.character_data")],
 >         CatCreateView "information_schema.column_domain_usage"
 >           [("domain_catalog",
 >             DomainType "information_schema.sql_identifier"),
@@ -12483,6 +12913,22 @@ installed to do this.
 >             DomainType "information_schema.character_data"),
 >            ("authorization_identifier",
 >             DomainType "information_schema.sql_identifier")],
+>         CatCreateView "information_schema.foreign_table_options"
+>           [("foreign_table_catalog",
+>             DomainType "information_schema.sql_identifier"),
+>            ("foreign_table_schema", ScalarType "name"),
+>            ("foreign_table_name", ScalarType "name"),
+>            ("option_name", DomainType "information_schema.sql_identifier"),
+>            ("option_value", DomainType "information_schema.character_data")],
+>         CatCreateView "information_schema.foreign_tables"
+>           [("foreign_table_catalog",
+>             DomainType "information_schema.sql_identifier"),
+>            ("foreign_table_schema", ScalarType "name"),
+>            ("foreign_table_name", ScalarType "name"),
+>            ("foreign_server_catalog",
+>             DomainType "information_schema.sql_identifier"),
+>            ("foreign_server_name",
+>             DomainType "information_schema.sql_identifier")],
 >         CatCreateView "information_schema.information_schema_catalog_name"
 >           [("catalog_name", DomainType "information_schema.sql_identifier")],
 >         CatCreateView "information_schema.key_column_usage"
@@ -12548,6 +12994,17 @@ installed to do this.
 >             DomainType "information_schema.cardinal_number"),
 >            ("dtd_identifier",
 >             DomainType "information_schema.sql_identifier")],
+>         CatCreateView "pg_available_extension_versions"
+>           [("name", ScalarType "name"), ("version", ScalarType "text"),
+>            ("installed", ScalarType "bool"), ("superuser", ScalarType "bool"),
+>            ("relocatable", ScalarType "bool"), ("schema", ScalarType "name"),
+>            ("requires", ArrayType (ScalarType "name")),
+>            ("comment", ScalarType "text")],
+>         CatCreateView "pg_available_extensions"
+>           [("name", ScalarType "name"),
+>            ("default_version", ScalarType "text"),
+>            ("installed_version", ScalarType "text"),
+>            ("comment", ScalarType "text")],
 >         CatCreateView "pg_cursors"
 >           [("name", ScalarType "text"), ("statement", ScalarType "text"),
 >            ("is_holdable", ScalarType "bool"),
@@ -12587,6 +13044,7 @@ installed to do this.
 >            ("rolcreatedb", ScalarType "bool"),
 >            ("rolcatupdate", ScalarType "bool"),
 >            ("rolcanlogin", ScalarType "bool"),
+>            ("rolreplication", ScalarType "bool"),
 >            ("rolconnlimit", ScalarType "int4"),
 >            ("rolpassword", ScalarType "text"),
 >            ("rolvaliduntil", ScalarType "timestamptz"),
@@ -12596,6 +13054,11 @@ installed to do this.
 >           [("schemaname", ScalarType "name"),
 >            ("tablename", ScalarType "name"), ("rulename", ScalarType "name"),
 >            ("definition", ScalarType "text")],
+>         CatCreateView "pg_seclabels"
+>           [("objoid", ScalarType "oid"), ("classoid", ScalarType "oid"),
+>            ("objsubid", ScalarType "int4"), ("objtype", ScalarType "text"),
+>            ("objnamespace", ScalarType "oid"), ("objname", ScalarType "text"),
+>            ("provider", ScalarType "text"), ("label", ScalarType "text")],
 >         CatCreateView "pg_settings"
 >           [("name", ScalarType "text"), ("setting", ScalarType "text"),
 >            ("unit", ScalarType "text"), ("category", ScalarType "text"),
@@ -12611,7 +13074,8 @@ installed to do this.
 >           [("usename", ScalarType "name"), ("usesysid", ScalarType "oid"),
 >            ("usecreatedb", ScalarType "bool"),
 >            ("usesuper", ScalarType "bool"), ("usecatupd", ScalarType "bool"),
->            ("passwd", ScalarType "text"), ("valuntil", ScalarType "abstime"),
+>            ("userepl", ScalarType "bool"), ("passwd", ScalarType "text"),
+>            ("valuntil", ScalarType "abstime"),
 >            ("useconfig", ArrayType (ScalarType "text"))],
 >         CatCreateView "pg_stat_activity"
 >           [("datid", ScalarType "oid"), ("datname", ScalarType "name"),
@@ -12619,6 +13083,7 @@ installed to do this.
 >            ("usename", ScalarType "name"),
 >            ("application_name", ScalarType "text"),
 >            ("client_addr", ScalarType "inet"),
+>            ("client_hostname", ScalarType "text"),
 >            ("client_port", ScalarType "int4"),
 >            ("backend_start", ScalarType "timestamptz"),
 >            ("xact_start", ScalarType "timestamptz"),
@@ -12646,7 +13111,11 @@ installed to do this.
 >            ("last_vacuum", ScalarType "timestamptz"),
 >            ("last_autovacuum", ScalarType "timestamptz"),
 >            ("last_analyze", ScalarType "timestamptz"),
->            ("last_autoanalyze", ScalarType "timestamptz")],
+>            ("last_autoanalyze", ScalarType "timestamptz"),
+>            ("vacuum_count", ScalarType "int8"),
+>            ("autovacuum_count", ScalarType "int8"),
+>            ("analyze_count", ScalarType "int8"),
+>            ("autoanalyze_count", ScalarType "int8")],
 >         CatCreateView "pg_stat_bgwriter"
 >           [("checkpoints_timed", ScalarType "int8"),
 >            ("checkpoints_req", ScalarType "int8"),
@@ -12654,7 +13123,9 @@ installed to do this.
 >            ("buffers_clean", ScalarType "int8"),
 >            ("maxwritten_clean", ScalarType "int8"),
 >            ("buffers_backend", ScalarType "int8"),
->            ("buffers_alloc", ScalarType "int8")],
+>            ("buffers_backend_fsync", ScalarType "int8"),
+>            ("buffers_alloc", ScalarType "int8"),
+>            ("stats_reset", ScalarType "timestamptz")],
 >         CatCreateView "pg_stat_database"
 >           [("datid", ScalarType "oid"), ("datname", ScalarType "name"),
 >            ("numbackends", ScalarType "int4"),
@@ -12665,7 +13136,30 @@ installed to do this.
 >            ("tup_fetched", ScalarType "int8"),
 >            ("tup_inserted", ScalarType "int8"),
 >            ("tup_updated", ScalarType "int8"),
->            ("tup_deleted", ScalarType "int8")],
+>            ("tup_deleted", ScalarType "int8"),
+>            ("conflicts", ScalarType "int8"),
+>            ("stats_reset", ScalarType "timestamptz")],
+>         CatCreateView "pg_stat_database_conflicts"
+>           [("datid", ScalarType "oid"), ("datname", ScalarType "name"),
+>            ("confl_tablespace", ScalarType "int8"),
+>            ("confl_lock", ScalarType "int8"),
+>            ("confl_snapshot", ScalarType "int8"),
+>            ("confl_bufferpin", ScalarType "int8"),
+>            ("confl_deadlock", ScalarType "int8")],
+>         CatCreateView "pg_stat_replication"
+>           [("procpid", ScalarType "int4"), ("usesysid", ScalarType "oid"),
+>            ("usename", ScalarType "name"),
+>            ("application_name", ScalarType "text"),
+>            ("client_addr", ScalarType "inet"),
+>            ("client_hostname", ScalarType "text"),
+>            ("client_port", ScalarType "int4"),
+>            ("backend_start", ScalarType "timestamptz"),
+>            ("state", ScalarType "text"), ("sent_location", ScalarType "text"),
+>            ("write_location", ScalarType "text"),
+>            ("flush_location", ScalarType "text"),
+>            ("replay_location", ScalarType "text"),
+>            ("sync_priority", ScalarType "int4"),
+>            ("sync_state", ScalarType "text")],
 >         CatCreateView "pg_stat_sys_indexes"
 >           [("relid", ScalarType "oid"), ("indexrelid", ScalarType "oid"),
 >            ("schemaname", ScalarType "name"), ("relname", ScalarType "name"),
@@ -12687,7 +13181,11 @@ installed to do this.
 >            ("last_vacuum", ScalarType "timestamptz"),
 >            ("last_autovacuum", ScalarType "timestamptz"),
 >            ("last_analyze", ScalarType "timestamptz"),
->            ("last_autoanalyze", ScalarType "timestamptz")],
+>            ("last_autoanalyze", ScalarType "timestamptz"),
+>            ("vacuum_count", ScalarType "int8"),
+>            ("autovacuum_count", ScalarType "int8"),
+>            ("analyze_count", ScalarType "int8"),
+>            ("autoanalyze_count", ScalarType "int8")],
 >         CatCreateView "pg_stat_user_functions"
 >           [("funcid", ScalarType "oid"), ("schemaname", ScalarType "name"),
 >            ("funcname", ScalarType "name"), ("calls", ScalarType "int8"),
@@ -12714,7 +13212,43 @@ installed to do this.
 >            ("last_vacuum", ScalarType "timestamptz"),
 >            ("last_autovacuum", ScalarType "timestamptz"),
 >            ("last_analyze", ScalarType "timestamptz"),
->            ("last_autoanalyze", ScalarType "timestamptz")],
+>            ("last_autoanalyze", ScalarType "timestamptz"),
+>            ("vacuum_count", ScalarType "int8"),
+>            ("autovacuum_count", ScalarType "int8"),
+>            ("analyze_count", ScalarType "int8"),
+>            ("autoanalyze_count", ScalarType "int8")],
+>         CatCreateView "pg_stat_xact_all_tables"
+>           [("relid", ScalarType "oid"), ("schemaname", ScalarType "name"),
+>            ("relname", ScalarType "name"), ("seq_scan", ScalarType "int8"),
+>            ("seq_tup_read", ScalarType "int8"),
+>            ("idx_scan", ScalarType "int8"),
+>            ("idx_tup_fetch", ScalarType "int8"),
+>            ("n_tup_ins", ScalarType "int8"), ("n_tup_upd", ScalarType "int8"),
+>            ("n_tup_del", ScalarType "int8"),
+>            ("n_tup_hot_upd", ScalarType "int8")],
+>         CatCreateView "pg_stat_xact_sys_tables"
+>           [("relid", ScalarType "oid"), ("schemaname", ScalarType "name"),
+>            ("relname", ScalarType "name"), ("seq_scan", ScalarType "int8"),
+>            ("seq_tup_read", ScalarType "int8"),
+>            ("idx_scan", ScalarType "int8"),
+>            ("idx_tup_fetch", ScalarType "int8"),
+>            ("n_tup_ins", ScalarType "int8"), ("n_tup_upd", ScalarType "int8"),
+>            ("n_tup_del", ScalarType "int8"),
+>            ("n_tup_hot_upd", ScalarType "int8")],
+>         CatCreateView "pg_stat_xact_user_functions"
+>           [("funcid", ScalarType "oid"), ("schemaname", ScalarType "name"),
+>            ("funcname", ScalarType "name"), ("calls", ScalarType "int8"),
+>            ("total_time", ScalarType "int8"),
+>            ("self_time", ScalarType "int8")],
+>         CatCreateView "pg_stat_xact_user_tables"
+>           [("relid", ScalarType "oid"), ("schemaname", ScalarType "name"),
+>            ("relname", ScalarType "name"), ("seq_scan", ScalarType "int8"),
+>            ("seq_tup_read", ScalarType "int8"),
+>            ("idx_scan", ScalarType "int8"),
+>            ("idx_tup_fetch", ScalarType "int8"),
+>            ("n_tup_ins", ScalarType "int8"), ("n_tup_upd", ScalarType "int8"),
+>            ("n_tup_del", ScalarType "int8"),
+>            ("n_tup_hot_upd", ScalarType "int8")],
 >         CatCreateView "pg_statio_all_indexes"
 >           [("relid", ScalarType "oid"), ("indexrelid", ScalarType "oid"),
 >            ("schemaname", ScalarType "name"), ("relname", ScalarType "name"),
@@ -12808,7 +13342,8 @@ installed to do this.
 >           [("usename", ScalarType "name"), ("usesysid", ScalarType "oid"),
 >            ("usecreatedb", ScalarType "bool"),
 >            ("usesuper", ScalarType "bool"), ("usecatupd", ScalarType "bool"),
->            ("passwd", ScalarType "text"), ("valuntil", ScalarType "abstime"),
+>            ("userepl", ScalarType "bool"), ("passwd", ScalarType "text"),
+>            ("valuntil", ScalarType "abstime"),
 >            ("useconfig", ArrayType (ScalarType "text"))],
 >         CatCreateView "pg_user_mappings"
 >           [("umid", ScalarType "oid"), ("srvid", ScalarType "oid"),
@@ -13048,9 +13583,10 @@ installed to do this.
 >            ("numeric_precision_radix",
 >             DomainType "information_schema.cardinal_number"),
 >            ("numeric_scale", DomainType "information_schema.cardinal_number"),
->            ("maximum_value", DomainType "information_schema.cardinal_number"),
->            ("minimum_value", DomainType "information_schema.cardinal_number"),
->            ("increment", DomainType "information_schema.cardinal_number"),
+>            ("start_value", DomainType "information_schema.character_data"),
+>            ("minimum_value", DomainType "information_schema.character_data"),
+>            ("maximum_value", DomainType "information_schema.character_data"),
+>            ("increment", DomainType "information_schema.character_data"),
 >            ("cycle_option", DomainType "information_schema.yes_or_no")],
 >         CatCreateView "information_schema.table_constraints"
 >           [("constraint_catalog",
@@ -13126,15 +13662,14 @@ installed to do this.
 >             DomainType "information_schema.character_data"),
 >            ("action_orientation",
 >             DomainType "information_schema.character_data"),
->            ("condition_timing",
->             DomainType "information_schema.character_data"),
->            ("condition_reference_old_table",
+>            ("action_timing", DomainType "information_schema.character_data"),
+>            ("action_reference_old_table",
 >             DomainType "information_schema.sql_identifier"),
->            ("condition_reference_new_table",
+>            ("action_reference_new_table",
 >             DomainType "information_schema.sql_identifier"),
->            ("condition_reference_old_row",
+>            ("action_reference_old_row",
 >             DomainType "information_schema.sql_identifier"),
->            ("condition_reference_new_row",
+>            ("action_reference_new_row",
 >             DomainType "information_schema.sql_identifier"),
 >            ("created", DomainType "information_schema.time_stamp")],
 >         CatCreateView "information_schema.usage_privileges"

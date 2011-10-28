@@ -37,11 +37,11 @@ type checking tests.
 >       ,("select adnum,adbin from pg_attrdef;"
 >        ,[]
 >        ,Just ([],[("adnum", ScalarType "int2")
->             ,("adbin", ScalarType "text")]))
+>                  ,("adbin", ScalarType "pg_node_tree")]))
 >       ,("select adnum,adbin from pg_attrdef where adnum= ?;"
 >        ,[]
 >        ,Just ([ScalarType "int2"],[("adnum", ScalarType "int2")
->                                  ,("adbin", ScalarType "text")]))
+>                                   ,("adbin", ScalarType "pg_node_tree")]))
 >       ,("select count(1) from pg_attrdef;"
 >        ,[]
 >        ,Just ([],[("count", ScalarType "int8")]))

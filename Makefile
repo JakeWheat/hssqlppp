@@ -39,7 +39,7 @@
 CC = please dont use this implicit rule
 
 HC      = ghc
-HC_OPTS = -Wall -XTupleSections -XScopedTypeVariables -XDeriveDataTypeable  -threaded -rtsopts -isrc:src-extra/util:src-extra/tests/:src-extra/devel-util:src-extra/chaos:src-extra/chaos/extensions:src-extra/examples:src-extra/h7c
+HC_OPTS = -Wall -XTupleSections -XScopedTypeVariables -XDeriveDataTypeable  -threaded -rtsopts -isrc:src-extra/util:src-extra/tests/:src-extra/devel-util:src-extra/chaos:src-extra/chaos/extensions:src-extra/examples:src-extra/h7c:src-extra/tosort/util/
 
 EXE_FILES = src-extra/tests/Tests \
 	src-extra/devel-util/MakeAntiNodesRunner \
@@ -51,7 +51,8 @@ EXE_FILES = src-extra/tests/Tests \
 	src-extra/examples/QQ \
 	src-extra/examples/ShowCatalog \
 	src-extra/examples/TypeCheck \
-	src-extra/examples/TypeCheckDB
+	src-extra/examples/TypeCheckDB \
+	src-extra/tosort/util/DevelTool
 
 #	src-extra/chaos/build.lhs
 
@@ -64,28 +65,26 @@ SRCS_ROOTS = $(shell find src/Database/HsSqlPpp/ -maxdepth 1 -iname '*hs') \
 
 AG_FILES = $(shell find src -iname '*ag')
 
-# -include exe_rules.mk
+-include exe_rules.mk
 
-# doesn't work: generated instead
-#$(EXE_FILES) : $(addsuffix .o,$@)
-#	$(HC) $(HC_OPTS) $(addsuffix .lhs,$@)
+tests : src-extra/tests/Tests
+	src-extra/tests/Tests --hide-successes
 
-src-extra/tests/Tests : src-extra/tests/Tests.o
-	$(HC) $(HC_OPTS) $(addsuffix .lhs,$@)
+website : src-extra/tosort/util/DevelTool
+	src-extra/tosort/util/DevelTool makewebsite +RTS -N
 
-src-extra/devel-util/MakeAntiNodesRunner : src-extra/devel-util/MakeAntiNodesRunner.o
-	$(HC) $(HC_OPTS) $(addsuffix .lhs,$@)
-
-src-extra/examples/FixSqlServerTpchSyntax : src-extra/examples/FixSqlServerTpchSyntax.o
-	$(HC) $(HC_OPTS) $(addsuffix .lhs,$@)
-
-
+website_haddock :
+	cabal configure
+	cabal haddock
+	mv dist/doc/html/hssqlppp hssqlppp/haddock
 
 make_exe_deps : i_like_make.lhs Makefile
 	ghc i_like_make.lhs
 	./i_like_make
 
 all : $(EXE_FILES)
+
+more_all : $(EXE_FILES) website website_haddock tests
 
 %.hi : %.o
 	@:

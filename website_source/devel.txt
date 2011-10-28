@@ -3,8 +3,8 @@ Here are some limited notes on working on the source of hssqlppp:
 Get the source
 ==============
 
-Please use the code from git to develop with, one way to get the code
-is to run:
+Please use the code from git to develop with, one way to get it is to
+run:
 
 ~~~~~
 git clone https://github.com/JakeWheat/hssqlppp.git
@@ -13,7 +13,7 @@ git clone https://github.com/JakeWheat/hssqlppp.git
 Build the library
 =================
 
-Once you have the source, build using cabal
+Once you have the source, you can build the library using cabal
 
 ~~~~~
 cabal configure && cabal build
@@ -22,32 +22,45 @@ cabal configure && cabal build
 Rebuild the generated files for the syntax
 ==========================================
 
-If you edit the ag files, use the build.sh script. This rebuilds two
-of the generated files: AstInternal.hs which is generated from the .ag
-files, and AstAnti.hs which is generated from AstInternal.hs.
+If you edit the ag files, use the makefile
 
-There is one further generated file,
-DefaultTemplate1Catalog.lhs. There isn't a straightforward way to
-rebuild this at the moment.
+~~~~~
+make src/Database/HsSqlPpp/Internals/AstAnti.hs
+~~~~~
+
+The makefile doesn't work that well at the moment.
+
+There is one further generated file, DefaultTemplate1Catalog.lhs. You
+don't usually need to regenerate this, but you can in the following
+way (you will need Postgres installed and HDBC-Postgres).
+
+~~~~~
+make regenDefaultTemplate1Catalog
+~~~~~
 
 Build and run the tests
 =======================
 
-To build and run the tests using the cabal file for the test
-executable, first install the hssqlppp library, then use:
+You can build and run the tests using the makefile:
+
+~~~~~
+make tests
+~~~~~
+
+or to just build the tests, then run manually:
+
+~~~~~
+make src-extra/tests/Tests
+src-extra/tests/Tests
+~~~~~
+
+There is also a cabal file, which shows the package dependencies:
+first install the hssqlppp library using cabal, then use:
 
 ~~~~~
 cd src-extra/tests
 cabal configure && cabal build
 dist/build/Tests/Tests
-~~~~~
-
-To run the tests more quickly during development, you can try
-something like this:
-
-~~~~~
-cd src-extra/tests
-ghc -XTupleSections -XScopedTypeVariables -XDeriveDataTypeable -i../../src:../util Tests.lhs
 ~~~~~
 
 Background reading
@@ -89,7 +102,8 @@ weird bits:
 
 * uuagc
 * astanti
-* lexing/parsing split
+* lexing/parsing split (uses parsec to lex, then parsec again to
+  parse)
 * typechecker: fixupidentifiers
 
 TODO: make this less cryptic

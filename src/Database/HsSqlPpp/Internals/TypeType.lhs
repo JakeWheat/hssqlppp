@@ -91,6 +91,7 @@ out. If not, will have to add another type.
 >                 | Internal
 >                 | LanguageHandler
 >                 | Opaque
+>                 | FdwHandler
 >                   deriving (Eq,Show,Ord,Typeable,Data)
 
 this list will need reviewing, probably refactor to a completely

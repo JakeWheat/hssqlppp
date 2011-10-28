@@ -1,6 +1,8 @@
 # DO NOT DELETE: Beginning of Haskell dependencies
+src-extra/tosort/util/Text/DocTool/Parser.o : src-extra/tosort/util/Text/DocTool/Parser.lhs
+src-extra/tosort/util/Text/DocTool/DocTool.o : src-extra/tosort/util/Text/DocTool/DocTool.lhs
+src-extra/tosort/util/Text/DocTool/DocTool.o : src-extra/tosort/util/Text/DocTool/Parser.hi
 src-extra/util/Database/HsSqlPpp/Utils/PgUtils.o : src-extra/util/Database/HsSqlPpp/Utils/PgUtils.lhs
-src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.o : src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.lhs
 src/Database/HsSqlPpp/Internals/TypeChecking/IDEnv.o : src/Database/HsSqlPpp/Internals/TypeChecking/IDEnv.lhs
 src/Database/HsSqlPpp/Parsing/ParseErrors.o : src/Database/HsSqlPpp/Parsing/ParseErrors.lhs
 src-extra/util/Database/HsSqlPpp/Utils/Here.o : src-extra/util/Database/HsSqlPpp/Utils/Here.lhs
@@ -71,6 +73,8 @@ src/Database/HsSqlPpp/TypeChecker.o : src/Database/HsSqlPpp/Internals/AstInterna
 src/Database/HsSqlPpp/Annotation.o : src/Database/HsSqlPpp/Annotation.lhs
 src/Database/HsSqlPpp/Annotation.o : src/Database/HsSqlPpp/Internals/AnnotationUtils.hi
 src/Database/HsSqlPpp/Annotation.o : src/Database/HsSqlPpp/Internals/AstAnnotation.hi
+src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.o : src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.lhs
+src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.o : src/Database/HsSqlPpp/Annotation.hi
 src/Database/HsSqlPpp/Internals/AstAnti.o : src/Database/HsSqlPpp/Internals/AstAnti.hs
 src/Database/HsSqlPpp/Internals/AstAnti.o : src/Database/HsSqlPpp/Internals/AstInternal.hi
 src/Database/HsSqlPpp/Internals/AstAnti.o : src/Database/HsSqlPpp/Internals/AstAnnotation.hi
@@ -110,10 +114,10 @@ src/Database/HsSqlPpp/Pretty.o : src/Database/HsSqlPpp/Catalog.hi
 src/Database/HsSqlPpp/Pretty.o : src/Database/HsSqlPpp/Annotation.hi
 src/Database/HsSqlPpp/Pretty.o : src/Database/HsSqlPpp/Ast.hi
 src-extra/tests/Database/HsSqlPpp/Tests/FixTree/ExplicitCasts.o : src-extra/tests/Database/HsSqlPpp/Tests/FixTree/ExplicitCasts.lhs
+src-extra/tests/Database/HsSqlPpp/Tests/FixTree/ExplicitCasts.o : src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.hi
 src-extra/tests/Database/HsSqlPpp/Tests/FixTree/ExplicitCasts.o : src/Database/HsSqlPpp/Pretty.hi
 src-extra/tests/Database/HsSqlPpp/Tests/FixTree/ExplicitCasts.o : src/Database/HsSqlPpp/Types.hi
 src-extra/tests/Database/HsSqlPpp/Tests/FixTree/ExplicitCasts.o : src/Database/HsSqlPpp/Catalog.hi
-src-extra/tests/Database/HsSqlPpp/Tests/FixTree/ExplicitCasts.o : src/Database/HsSqlPpp/Annotation.hi
 src-extra/tests/Database/HsSqlPpp/Tests/FixTree/ExplicitCasts.o : src/Database/HsSqlPpp/TypeChecker.hi
 src-extra/tests/Database/HsSqlPpp/Tests/FixTree/ExplicitCasts.o : src/Database/HsSqlPpp/Parser.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.lhs
@@ -248,6 +252,7 @@ src-extra/examples/TypeCheckDB.o : src/Database/HsSqlPpp/Catalog.hi
 src-extra/examples/TypeCheckDB.o : src/Database/HsSqlPpp/TypeChecker.hi
 src-extra/examples/TypeCheckDB.o : src/Database/HsSqlPpp/Parser.hi
 src-extra/tests/Database/HsSqlPpp/Tests/FixTree/FixUpIdentifiersTests.o : src-extra/tests/Database/HsSqlPpp/Tests/FixTree/FixUpIdentifiersTests.lhs
+src-extra/tests/Database/HsSqlPpp/Tests/FixTree/FixUpIdentifiersTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.hi
 src-extra/tests/Database/HsSqlPpp/Tests/FixTree/FixUpIdentifiersTests.o : src/Database/HsSqlPpp/Pretty.hi
 src-extra/tests/Database/HsSqlPpp/Tests/FixTree/FixUpIdentifiersTests.o : src/Database/HsSqlPpp/Types.hi
 src-extra/tests/Database/HsSqlPpp/Tests/FixTree/FixUpIdentifiersTests.o : src/Database/HsSqlPpp/Catalog.hi
@@ -256,6 +261,7 @@ src-extra/tests/Database/HsSqlPpp/Tests/FixTree/FixUpIdentifiersTests.o : src/Da
 src-extra/tests/Database/HsSqlPpp/Tests/FixTree/FixUpIdentifiersTests.o : src/Database/HsSqlPpp/TypeChecker.hi
 src-extra/tests/Database/HsSqlPpp/Tests/FixTree/FixUpIdentifiersTests.o : src/Database/HsSqlPpp/Parser.hi
 src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.o : src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs
+src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.hi
 src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.o : src/Database/HsSqlPpp/Quote.hi
 src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.o : src/Database/HsSqlPpp/Pretty.hi
 src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.o : src/Database/HsSqlPpp/Annotation.hi
@@ -325,6 +331,7 @@ src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Misc.o : src-extra/tests/Databas
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Misc.o : src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Utils.hi
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Misc.o : src/Database/HsSqlPpp/Ast.hi
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.o : src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.lhs
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.hi
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.o : src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Misc.hi
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.o : src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Plpgsql.hi
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.o : src-extra/tests/Database/HsSqlPpp/Tests/Parsing/FunctionsDdl.hi
@@ -336,7 +343,6 @@ src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.o : src-extra/tests/
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.o : src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Utils.hi
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.o : src/Database/HsSqlPpp/Pretty.hi
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.o : src/Database/HsSqlPpp/Parser.hi
-src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.o : src/Database/HsSqlPpp/Annotation.hi
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.o : src/Database/HsSqlPpp/Ast.hi
 src-extra/tests/Database/HsSqlPpp/Tests/Tests.o : src-extra/tests/Database/HsSqlPpp/Tests/Tests.lhs
 src-extra/tests/Database/HsSqlPpp/Tests/Tests.o : src-extra/tests/Database/HsSqlPpp/Tests/ParameterizedStatementTests.hi
@@ -347,4 +353,14 @@ src-extra/tests/Database/HsSqlPpp/Tests/Tests.o : src-extra/tests/Database/HsSql
 src-extra/tests/Database/HsSqlPpp/Tests/Tests.o : src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.hi
 src-extra/tests/Tests.o : src-extra/tests/Tests.lhs
 src-extra/tests/Tests.o : src-extra/tests/Database/HsSqlPpp/Tests/Tests.hi
+src-extra/tosort/util/TestFileProcessor.o : src-extra/tosort/util/TestFileProcessor.lhs
+src-extra/tosort/util/TestFileProcessor.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.hi
+src-extra/tosort/util/TestFileProcessor.o : src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.hi
+src-extra/tosort/util/TestFileProcessor.o : src-extra/util/Database/HsSqlPpp/Utils/Here.hi
+src-extra/tosort/util/TestFileProcessor.o : src/Database/HsSqlPpp/Utils/Utils.hi
+src-extra/tosort/util/MakeWebsite.o : src-extra/tosort/util/MakeWebsite.lhs
+src-extra/tosort/util/MakeWebsite.o : src-extra/tosort/util/TestFileProcessor.hi
+src-extra/tosort/util/MakeWebsite.o : src-extra/tosort/util/Text/DocTool/DocTool.hi
+src-extra/tosort/util/DevelTool.o : src-extra/tosort/util/DevelTool.lhs
+src-extra/tosort/util/DevelTool.o : src-extra/tosort/util/MakeWebsite.hi
 # DO NOT DELETE: End of Haskell dependencies

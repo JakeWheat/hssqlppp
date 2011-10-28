@@ -42,7 +42,7 @@
 >      ,d "create view v1 as select * from pg_attrdef;"
 >         [CatCreateView "v1" [("adrelid",ScalarType "oid")
 >                              ,("adnum",ScalarType "int2")
->                              ,("adbin",ScalarType "text")
+>                              ,("adbin",ScalarType "pg_node_tree")
 >                              ,("adsrc",ScalarType "text")]]
 >
 >      ,d "create function t1(text) returns text as $$\n\

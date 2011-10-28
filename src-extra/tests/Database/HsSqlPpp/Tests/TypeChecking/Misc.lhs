@@ -48,7 +48,7 @@ errors for sql which doesn't type check.
 >         $ Right [Just ([],
 >                   [("adrelid",ScalarType "oid")
 >                   ,("adnum",ScalarType "int2")
->                   ,("adbin",ScalarType "text")
+>                   ,("adbin",ScalarType "pg_node_tree")
 >                   ,("adsrc",ScalarType "text")
 >                   ,("row_number",ScalarType "int8")])]
 >      ]

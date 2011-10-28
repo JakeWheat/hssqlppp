@@ -1,7 +1,11 @@
 # Adding new syntax
 
-This is an example of how to add new syntax to the library. One way to
-do it is:
+Adding support for new syntax (even just to add to the ast and parser)
+is pretty involved. Here is a sketch example which may be out of date.
+Please contact me if you are trying to follow this and have any
+questions.
+
+overview:
 
 add test(s) to the automated tests under src-extra/tests/
 
@@ -289,6 +293,3 @@ after the PrecTypeName pretty printer:
 
 Now the test passes and the only thing left is to run all the tests to
 check nothing else has been broken.
-
-This is just a sketch guide, please email me if you are trying to
-follow this and have any questions.

@@ -45,7 +45,7 @@
 >         $ Right [Just ([],
 >          [("adrelid",ScalarType "oid")
 >          ,("adnum",ScalarType "int2")
->          ,("adbin",ScalarType "text")
+>          ,("adbin",ScalarType "pg_node_tree")
 >          ,("adsrc",ScalarType "text")])]
 >      ,s "select abs from abs(3);"
 >         $ Right [Just ([], [("abs", typeInt)])]

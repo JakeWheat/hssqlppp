@@ -8,7 +8,7 @@ Possible uses of this library include:
 
 * parsing SQL
 * type-checker can help with SQL development and catch bugs which
-  aren't statically detected by PostgreSQL
+  aren't statically detected by Postgres
 * generating SQL code programmatically/ generating SQL from some other
   source
 * transforming SQL code using quasiquoting
@@ -44,7 +44,7 @@ the tests:
 * [Quasiquotation examples](QuasiQuoteTests.html)
 
 The pretty printer should support everything the parser supports
-(i.e. it pretty prints code which both the parser and PostgreSQL
+(i.e. it pretty prints code which both the parser and Postgres
 understand).
 
 Catalog information is limited, supports the type checking. Some
@@ -98,7 +98,7 @@ Provisional future plans
 * parameterized statements/typesafe haskell access
 * some simple syntax extension support for SQL
 * a 'compiler' command to help developing SQL
-* parse most PostgreSQL syntax, possibly other SQL dialects as well
+* parse most Postgres syntax, possibly other SQL dialects as well
 * improve the typechecker - fix current regressions, get more sql type
   checking correctly
 * improve the catalog - add more checking, more item types
