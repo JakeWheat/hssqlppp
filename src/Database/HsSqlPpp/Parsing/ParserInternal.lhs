@@ -861,8 +861,21 @@ or after the whole list
 >     itemList = commaSep1 selectItem
 >     selectItem = pos >>= \p ->
 >                  optionalSuffix
->                    (SelExp p) exprWithStar
+>                    (SelExp p) (starExpr <|> expr)
 >                    (SelectItem p) () (keyword "as" *> nameComponent)
+
+should try to factor this into the standard expr parse (use a flag) so
+that can left factor the 'name component . '  part and avoid the try
+
+> starExpr :: SParser ScalarExpr
+> starExpr = choice [Star <$> pos <* symbol "*"
+>                   ,try $ do
+>                          p <- pos
+>                          nc <- nameComponent
+>                          symbol "."
+>                          symbol "*"
+>                          return $ QStar p nc]
+
 >
 > returning :: SParser SelectList
 > returning = keyword "returning" *> selectList
@@ -1081,26 +1094,6 @@ work
 > expr :: SParser ScalarExpr
 > expr = buildExpressionParser table factor
 >        <?> "expression"
-
-where should exprWithStar be used?
-when parsing the top level of a select item
-when parsing the top level of arguments to a function (for aggregates)
-
-this is probably really slow and should be fixed
-
-> exprWithStar :: SParser ScalarExpr
-> exprWithStar = try starThing <|> buildExpressionParser table factor
->                <?> "expression"
-
-> starThing :: SParser ScalarExpr
-> starThing = choice [Star <$> pos <* symbol "*"
->                    ,try $ do
->                     p <- pos
->                     nc <- nameComponent
->                     symbol "."
->                     symbol "*"
->                     return $ QStar p nc]
-
 
 >
 > factor :: SParser ScalarExpr
@@ -1442,15 +1435,39 @@ row ctor: one of
 
 handles aggregate business as well
 
+can use a * in aggregate calls and in window functions.  This
+represents a call to an aggregate which has no parameters, so count(*)
+actually means count():
+
+select count() from pg_attrdef;
+ERROR:  count(*) must be used to call a parameterless aggregate function
+LINE 1: select count() from pg_attrdef;
+
+But you can't write it as count() ... ?
+
+You cannot use * together with either distinct or order by, and it
+cannot be qualified.
+
+This parser is used as the prefix of the window function parser so
+both are handled here. This will parse non aggregate calls containing
+a single * argument without error - this will have to be caught during
+typechecking. It also parses the aggregate extras (distinct and order
+by) for non aggregate calls without error, so this also will need to
+be caught during typechecking. The typechecker doesn't really do much
+checking with aggregates at the moment so should fix it all together.
+
 > functionCallSuffix :: ScalarExpr -> SParser ScalarExpr
 > functionCallSuffix (Identifier _ (Nmc fnName)) = do
 >   p <- pos
->   (di,as,ob) <- parens $ (,,)
->                          <$> optionMaybe
->                              (choice [Distinct <$ keyword "distinct"
->                                      ,Dupes <$ keyword "all"])
->                          <*> commaSep exprWithStar
->                          <*> orderBy
+>   (di,as,ob) <- parens
+>                 $ choice [ -- handle a single *
+>                           (Nothing,,[]) <$> ((:[]) <$> (Star <$> pos <* symbol "*"))
+>                          ,(,,)
+>                           <$> optionMaybe
+>                                (choice [Distinct <$ keyword "distinct"
+>                                        ,Dupes <$ keyword "all"])
+>                           <*> commaSep expr
+>                           <*> orderBy]
 >   return $ case (di,ob) of
 >     (Nothing,[]) -> FunCall p (nm p fnName) as
 >     (d,o) -> AggregateFn p (fromMaybe Dupes d) (FunCall p (nm p fnName) as) o

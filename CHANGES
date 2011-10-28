@@ -19,7 +19,7 @@ add support for distinct and order by in aggregate calls
 change the syntax for identifiers and similar, much better handling of
   names, dot qualification and quoted names
 handle asterix in syntax differently
-
+support parsing sql server select top n syntax
 
 0.3.1
 Released 13/08/2011

@@ -1,0 +1,65 @@
+The big plan for sorting out a lot of the code.
+
+The motivation is: how can the code be rewritten so that it isn't
+embarrassing anymore.
+
+Rough overview:
+
+overhaul the typechecking of identifiers
+
+fix all the typechecking/ identifier/ catalog stuff so that it uses
+names (not planning on respecting case sensitivity or schema
+qualifications yet though).
+
+work through and rewrite the test code, it's all a massive unreadable
+unplanned mess. Want to make the tests much more orthogonal so each
+test is more unit-y.
+
+try to target getting the chaos sql and extensions parsing,
+typechecking (enough to produce the types of most things - not looking
+at adding the missing error checks for a bunch of things yet) and the
+quasiquotes used in the extensions all working.
+
+write the make file properly, so there is one way to do every build,
+can get rid of all the lines for calling ghc in each of the exes, and
+all the different scripts and docs spread out everywhere.
+
+get to the stage of being able to compile and roughly typecheck the
+chaos sql again
+
+
+Details
+
+
+The big ugly bit that is bothering me at the moment is the
+fixupidentifiers/ typechecking. There are limitations to the current
+approach, plus it's a bit weird.
+
+The IDEnv code used for the fixup identifiers shows the way
+forward. This will be extended to support types and typechecking in
+the same style. At this point, the separate fixup identifiers pass can
+be eliminated. The basic concept is that the IDEnv is a cut down tree
+structure which mirrors how the current environment has been
+constructed, and then this can be queried to get the tye/ qualifier/
+star expansion out, and flag ambiguities, etc.
+
+The only tree rewrite that fixup identifiers does that will stay in
+the new system is expanding * in select lists. So the new typechecker
+will rewrite the * in select lists first, then procede with usual
+typechecking.
+
+The other rewrites will be optional during typechecking:
+
+Adding full aliases to trefs where possible (you wouldn't usually want
+this, but it makes some analysis/ transform of the asts easier so is
+useful). And to subqueries - so you get the column names as well as
+the 'table' name for the subquery.
+
+Adding the qualifiers to identifier references explicitly.
+
+does something wrong to handle * in aggregate calls, use a better fix
+which doesn't rewrite the star
+
+adds explicit aliases to select items in a select list
+e.g. 'count(*)' is rewritten to 'count(*) as count'
+

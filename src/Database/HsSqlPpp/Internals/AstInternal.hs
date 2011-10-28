@@ -383,9 +383,15 @@ fixUpIdentifiersQE cat qe =
     let [QueryStatement _ qe'] = fixUpIdentifiers cat [QueryStatement emptyAnnotation qe]
     in countHack qe'
 
--- small hack to convert count(*) into count(True). Should be fixed when
--- a more general approach to aggregates is written
+{-
 
+small hack to convert count(*) into count(True).
+
+The fix is: when typechecking, just use a hack to typecheck an
+aggregate call with a single * as the argument as if it had no
+arguments.
+
+-}
 countHack :: Data a => a -> a
 countHack = transformBi $ \x -> case x of
               FunCall a f [Star ia] | getTName f == "count"->
@@ -10910,16 +10916,16 @@ sem_Statement_Delete ann_ table_ using_ whr_ returning_  =
               _returningIfixedUpIdentifiersTree :: MaybeSelectList 
               _returningIlistType :: ([(String,Maybe Type)])
               _returningIoriginalTree :: MaybeSelectList 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 549, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 555, column 9)
               _trefEnv =
                   getTableTrefEnv _lhsIcat _tableIoriginalTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 550, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 556, column 9)
               _whrOidenv =
                   _trefEnv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 551, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 557, column 9)
               _returningOidenv =
                   _trefEnv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 552, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 558, column 9)
               _lhsOfixedUpIdentifiersTree =
                   Delete ann_
                          _tableIfixedUpIdentifiersTree
@@ -11618,13 +11624,13 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
               _returningIfixedUpIdentifiersTree :: MaybeSelectList 
               _returningIlistType :: ([(String,Maybe Type)])
               _returningIoriginalTree :: MaybeSelectList 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 559, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 565, column 9)
               _trefEnv =
                   getTableTrefEnv _lhsIcat _tableIoriginalTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 560, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 566, column 9)
               _returningOidenv =
                   _trefEnv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 561, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 567, column 9)
               _lhsOfixedUpIdentifiersTree =
                   Insert ann_
                          _tableIfixedUpIdentifiersTree
@@ -12494,19 +12500,19 @@ sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
               _returningIfixedUpIdentifiersTree :: MaybeSelectList 
               _returningIlistType :: ([(String,Maybe Type)])
               _returningIoriginalTree :: MaybeSelectList 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 537, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 543, column 9)
               _trefEnv =
                   getTableTrefEnv _lhsIcat _tableIoriginalTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 538, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 544, column 9)
               _whrOidenv =
                   _trefEnv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 539, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 545, column 9)
               _assignsOidenv =
                   _trefEnv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 540, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 546, column 9)
               _returningOidenv =
                   _trefEnv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 541, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 547, column 9)
               _lhsOfixedUpIdentifiersTree =
                   Update ann_
                          _tableIfixedUpIdentifiersTree
@@ -13208,16 +13214,16 @@ sem_TableRef_FunTref ann_ fn_ alias_  =
               _aliasIannotatedTree :: TableAlias 
               _aliasIfixedUpIdentifiersTree :: TableAlias 
               _aliasIoriginalTree :: TableAlias 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 418, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 424, column 15)
               __tup2 =
                   let (FunCall _ f _) = _fnIoriginalTree
                       iea = aliasEnv _aliasIoriginalTree $ FunTrefIDEnv $ getTName f
                       al = getEnvAlias iea
                   in (iea, FunTref ann_ _fnIfixedUpIdentifiersTree al)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 418, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 424, column 15)
               (_lhsOtrefIDs,_) =
                   __tup2
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 418, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 424, column 15)
               (_,_lhsOfixedUpIdentifiersTree) =
                   __tup2
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
@@ -13339,13 +13345,13 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
               _aliasIannotatedTree :: TableAlias 
               _aliasIfixedUpIdentifiersTree :: TableAlias 
               _aliasIoriginalTree :: TableAlias 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 436, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 442, column 9)
               _lhsOtrefIDs =
                   _trefIDs
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 437, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 443, column 9)
               _onExprOidenv =
                   _trefIDs
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 454, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 460, column 9)
               __tup3 =
                   let t0ids = maybe [] id $ fmap (map snd) $ expandStar _tblItrefIDs Nothing
                       t1ids = maybe [] id $ fmap (map snd) $ expandStar _tbl1ItrefIDs Nothing
@@ -13360,10 +13366,10 @@ sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
                   in (iea, JoinTref ann_ _tblIfixedUpIdentifiersTree
                                     nat_ joinType_ _tbl1IfixedUpIdentifiersTree
                                     _onExprIfixedUpIdentifiersTree al)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 454, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 460, column 9)
               (_trefIDs,_) =
                   __tup3
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 454, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 460, column 9)
               (_,_lhsOfixedUpIdentifiersTree) =
                   __tup3
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
@@ -13516,15 +13522,15 @@ sem_TableRef_SubTref ann_ sel_ alias_  =
               _aliasIannotatedTree :: TableAlias 
               _aliasIfixedUpIdentifiersTree :: TableAlias 
               _aliasIoriginalTree :: TableAlias 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 406, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 412, column 15)
               __tup4 =
                   let iea = aliasEnv _aliasIoriginalTree  _selIcidenv
                       al = getEnvAlias iea
                   in (iea, SubTref ann_ _selIfixedUpIdentifiersTree al)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 406, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 412, column 15)
               (_lhsOtrefIDs,_) =
                   __tup4
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 406, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 412, column 15)
               (_,_lhsOfixedUpIdentifiersTree) =
                   __tup4
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryStatement.ag"(line 129, column 15)
@@ -13627,15 +13633,15 @@ sem_TableRef_Tref ann_ tbl_ alias_  =
               _aliasIannotatedTree :: TableAlias 
               _aliasIfixedUpIdentifiersTree :: TableAlias 
               _aliasIoriginalTree :: TableAlias 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 393, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 399, column 12)
               __tup5 =
                   let iea = aliasEnv _aliasIoriginalTree $ getTableTrefEnv _lhsIcat _tblIoriginalTree
                       al = getEnvAlias iea
                   in (iea,Tref ann_ _tblIfixedUpIdentifiersTree al)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 393, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 399, column 12)
               (_lhsOtrefIDs,_) =
                   __tup5
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 393, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 399, column 12)
               (_,_lhsOfixedUpIdentifiersTree) =
                   __tup5
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 55, column 9)
@@ -13785,7 +13791,7 @@ sem_TableRefList_Cons hd_ tl_  =
               _tlInewLib2 :: LocalBindings
               _tlIoriginalTree :: TableRefList 
               _tlItrefIDs :: IDEnv
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 377, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 383, column 12)
               _lhsOtrefIDs =
                   JoinTrefIDEnv [] _hdItrefIDs _tlItrefIDs
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 61, column 9)
@@ -13846,7 +13852,7 @@ sem_TableRefList_Nil  =
               _lhsOannotatedTree :: TableRefList 
               _lhsOfixedUpIdentifiersTree :: TableRefList 
               _lhsOoriginalTree :: TableRefList 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 378, column 11)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/FixUpIdentifiers.ag"(line 384, column 11)
               _lhsOtrefIDs =
                   emptyIDEnv "empty tref list"
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 59, column 9)

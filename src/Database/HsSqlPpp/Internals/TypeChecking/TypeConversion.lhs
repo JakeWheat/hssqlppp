@@ -1,7 +1,8 @@
 
 
 This file contains the functions for resolving types and
-function/operator resolution. See the pg manual chapter 10:
+function/operator resolution (which is seriously crazy). See the pg
+manual chapter 10:
 
 http://www.postgresql.org/docs/8.4/interactive/typeconv.html
 
@@ -16,6 +17,12 @@ the common type they can all be cast to. (pg manual 10.5)
 checkAssignmentValid - pass in source type and target type, returns
                 typelist[] if ok, otherwise error, pg manual 10.4
                 Value Storage
+
+I wrote this when I was still struggling with haskell basics so it is
+probably the worst bit of code in the codebase (there are a few other
+contenders for this accolade). A rewrite is planned, but it seems to
+do the job reasonably well at the moment so keeps getting put off.
+
 
 > {-# LANGUAGE PatternGuards #-}
 > module Database.HsSqlPpp.Internals.TypeChecking.TypeConversion (

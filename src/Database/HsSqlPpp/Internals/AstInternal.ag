@@ -362,10 +362,6 @@ ncStr (QNmc n) = n
 
 DATA Name | Name ann:Annotation is:{[NameComponent]}
 
--- into identifiers for the targets in into expressions
--- syntactically the same is sqidentifier, should this
--- use separate syntax?
-
 DATA QueryExpr
     | Select ann:Annotation
              selDistinct : Distinct
@@ -598,15 +594,10 @@ DATA ScalarExpr | NumberLit ann:Annotation d:String
                        expr:ScalarExpr
                        tn:TypeName
                 | Star ann:Annotation
-                | QStar ann:Annotation q:NameComponent
-                | Identifier ann:Annotation
+                | QStar ann:Annotation q:NameComponent -- e.g. a.*
+                | Identifier ann:Annotation -- e.g. tbl
                              i:NameComponent
-                | QIdentifier ann:Annotation is:{[NameComponent]}
-                -- bit hacky, preserve parens when they contain just an identifier
-                -- or positional arg, so we can pretty print this since it is needed
-                -- in some places for the pg parser
-                {- | PIdentifier ann:Annotation
-                              ex:ScalarExpr-}
+                | QIdentifier ann:Annotation is:{[NameComponent]} -- e.g. tbl.a
                 | Case ann:Annotation
                        cases : CaseScalarExprListScalarExprPairList
                        els : MaybeScalarExpr

@@ -408,10 +408,11 @@
 >         [QueryStatement ea $ selectFrom (selEL [eqi "p" "x"
 >                                                ,eqi "p" "y"])
 >                                          (Tref ea (i "pos") (NoAlias ea))]
->      {-,s "select ($1).x, ($1).y from pos;"
->         [QueryStatement ea $ selectFrom (selEL [QIdentifier ea (PositionalArg ea 1) "x"
->                                                ,QIdentifier ea (PositionalArg ea 1) "y"])
->                                          (Tref ea (i "pos") (NoAlias ea))]-}
+>      ,s "select ($1).x, ($1).y from pos;"
+>         [QueryStatement ea $ selectFrom
+>          (selEL [member (PositionalArg ea 1) (Identifier ea "x")
+>                 ,member (PositionalArg ea 1) (Identifier ea "y")])
+>          (Tref ea (i "pos") (NoAlias ea))]
 >      ,s "select row_number() over(), x from tb;"
 >       [QueryStatement ea $ selectFrom
 >        [SelExp ea
@@ -424,4 +425,3 @@
 >      ]]
 >  where
 >    s = Stmt
->    

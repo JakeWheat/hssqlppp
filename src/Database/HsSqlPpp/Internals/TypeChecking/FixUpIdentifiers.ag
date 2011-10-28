@@ -352,9 +352,15 @@ fixUpIdentifiersQE cat qe =
     let [QueryStatement _ qe'] = fixUpIdentifiers cat [QueryStatement emptyAnnotation qe]
     in countHack qe'
 
--- small hack to convert count(*) into count(True). Should be fixed when
--- a more general approach to aggregates is written
+{-
 
+small hack to convert count(*) into count(True).
+
+The fix is: when typechecking, just use a hack to typecheck an
+aggregate call with a single * as the argument as if it had no
+arguments.
+
+-}
 countHack :: Data a => a -> a
 countHack = transformBi $ \x -> case x of
               FunCall a f [Star ia] | getTName f == "count"->

@@ -72,3 +72,6 @@ shortcuts for constructing test data and asts
 
 > instance IsString NameComponent where
 >     fromString cs = Nmc cs
+
+> member :: ScalarExpr -> ScalarExpr -> ScalarExpr
+> member a b = FunCall ea (name ".") [a,b]

@@ -3,7 +3,6 @@
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Pretty
 
-
 > data MakeSelect = MakeSelect [String] String
 
 > sqlGen :: MakeSelect -> QueryExpr
@@ -15,11 +14,11 @@
 >     sl = SelectList emptyAnnotation
 >                     (map si cols)
 >     tr = [Tref emptyAnnotation
->                (SQIdentifier emptyAnnotation [tb])
+>                (Name emptyAnnotation [Nmc tb])
 >                (NoAlias emptyAnnotation)]
 >     si i = SelExp emptyAnnotation
 >                   (Identifier emptyAnnotation
->                               i)
+>                               (Nmc i))
 
 > main :: IO ()
 > main = do
