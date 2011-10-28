@@ -24,5 +24,5 @@ only.
 >          let tt :: [Statement]
 >              tt = snd $ typeCheckStatements defaultTemplate1Catalog t1
 >              errs :: [TypeError]
->              errs = [x | x <- universeBi tt]
->          mapM_ (putStrLn . show) errs
+>              errs = universeBi tt
+>          mapM_ print errs

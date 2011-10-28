@@ -17,7 +17,7 @@ solution: give up on astanti approach, just stick antinodes in the
 > import Database.HsSqlPpp.H7c
 
 > main :: IO ()
-> main = do
+> main =
 >   h7c defaultConfig
 >        {connectionString = "dbname=chaos"
 >        ,sqlSourceFiles =

@@ -71,7 +71,7 @@ it and quits.
 >
 > -- this is wrong because we don't take into account function overloading
 > getFunctionRefs :: Data a => a -> [String]
-> getFunctionRefs ast = [fn| FunCall _ fn _ <- universeBi ast]
+> getFunctionRefs ast = [fn | FunCall _ fn _ <- universeBi ast]
 >
 > listFunctions :: Data a => a -> [(String,Statement)]
 > listFunctions ast =

@@ -44,6 +44,7 @@ HC_OPTS = -Wall -XTupleSections -XScopedTypeVariables -XDeriveDataTypeable  -thr
 EXE_FILES = src-extra/tests/Tests \
 	src-extra/devel-util/MakeAntiNodesRunner \
 	src-extra/devel-util/MakeDefaultTemplate1Catalog \
+	src-extra/examples/FixSqlServerTpchSyntax \
 	src-extra/examples/MakeSelect \
 	src-extra/examples/Parse \
 	src-extra/examples/Parse2 \
@@ -52,7 +53,6 @@ EXE_FILES = src-extra/tests/Tests \
 	src-extra/examples/TypeCheck \
 	src-extra/examples/TypeCheckDB
 
-#	src-extra/examples/FixSqlServerTpchSyntax
 #	src-extra/chaos/build.lhs
 
 # used for dependency generation
@@ -76,6 +76,8 @@ src-extra/tests/Tests : src-extra/tests/Tests.o
 src-extra/devel-util/MakeAntiNodesRunner : src-extra/devel-util/MakeAntiNodesRunner.o
 	$(HC) $(HC_OPTS) $(addsuffix .lhs,$@)
 
+src-extra/examples/FixSqlServerTpchSyntax : src-extra/examples/FixSqlServerTpchSyntax.o
+	$(HC) $(HC_OPTS) $(addsuffix .lhs,$@)
 
 
 

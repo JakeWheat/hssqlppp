@@ -45,8 +45,8 @@ and test the produced simple select lists
 >      $ Right $ SetOfType $ CompositeType
 >         [("a",typeInt)
 >         ,("b",typeInt)]
->   ,Query db1 "select u.* from t;"
->      $ Left [UnrecognisedCorrelationName "u"]
+>   {-,Query db1 "select u.* from t;"
+>      $ Left [UnrecognisedCorrelationName "u"]-}
 >   ,Query db1 "select * from t u;"
 >      $ Right $ SetOfType $ CompositeType
 >         [("a",typeInt)
@@ -63,8 +63,8 @@ and test the produced simple select lists
 >      $ Right $ SetOfType $ CompositeType
 >         [("c",typeInt)
 >         ,("d",typeInt)]
->   ,Query db1 "select t.* from t u;"
->      $ Left [UnrecognisedCorrelationName "t"]
+>   {-,Query db1 "select t.* from t u;"
+>      $ Left [UnrecognisedCorrelationName "t"]-}
 >   -- FIXME: disabled because the error comes out twice, and I can't work out why
 >   -- this problem occurs in the uuagc code so it is probably the ag code which is wrong
 >   {-,Query db1 "select * from t u(a);"

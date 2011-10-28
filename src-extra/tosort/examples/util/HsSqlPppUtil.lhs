@@ -121,7 +121,7 @@ lexing test2.sql
 >                liftIO $ putStrLn ("lexing " ++ fn)
 >                s <- liftIO $ readInput fn
 >                tokens <- etsr $ lexSqlText fn s
->                liftIO $ mapM_ (putStrLn . show) tokens
+>                liftIO $ mapM_ print tokens
 
 -------------------------------------------------------------------------------
 
@@ -403,8 +403,8 @@ success
 > testPppp = mapM_ tp
 >   where
 >     tp fn = runES $ do
->               ast1 <- ps fn =<< (liftIO $ readInput fn)
->               ast2 <- ps "" $ printSql ast1 
+>               ast1 <- ps fn =<< liftIO (readInput fn)
+>               ast2 <- ps "" $ printSql ast1
 >               liftIO $ if ast1 /= ast2
 >                        then do
 >                             putStrLn "asts are different\n-- original"
@@ -413,7 +413,7 @@ success
 >                             putStrLn $ ppExprNoAnns ast2
 >                          else putStrLn "success"
 >     ps :: String -> String -> ErrorT String IO [Statement]
->     ps fn s = resetAnnotations `fmap` (etsr $ P.parseSql fn s)
+>     ps fn s = resetAnnotations `fmap` etsr (P.parseSql fn s)
 
 -------------------------------------------------------------------------------
 

@@ -1,3 +1,4 @@
+
 > -- | Utility function for use with WrapperGen example code
 > module Database.HsSqlPpp.Examples.Wrappers.WrapLib where
 >

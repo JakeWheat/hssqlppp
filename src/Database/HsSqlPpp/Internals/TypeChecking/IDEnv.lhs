@@ -14,6 +14,7 @@ bindings code
 > import Data.List
 > --import Debug.Trace
 > import Control.Monad
+> import Data.Maybe
 
 > data IDEnv =
 
@@ -93,11 +94,11 @@ special case for aliased funtrefs
 > --showit :: Show a => String -> a -> a
 > --showit a t = trace (a ++ show t ++ "\n\n") t
 
-> expandStar :: IDEnv -> (Maybe String) -> Maybe [(String,String)]
+> expandStar :: IDEnv -> Maybe String -> Maybe [(String,String)]
 > expandStar i s = {-showit ("expandStar: " ++ show i ++ "\n" ++ show s ++ "\n\n")
 >                  $ showit "esresult: " $ -} expandStar' i s
 
-> expandStar' :: IDEnv -> (Maybe String) -> Maybe [(String,String)]
+> expandStar' :: IDEnv -> Maybe String -> Maybe [(String,String)]
 > expandStar' (CorrelatedIDEnv ids _) i = expandStar ids i
 > expandStar' (TrefIDEnv s pus _) Nothing = Just $ zip (repeat s) pus
 > expandStar' (TrefIDEnv s pus _) (Just s1) | s == s1 = Just $ zip (repeat s) pus
@@ -120,9 +121,9 @@ special case for a table alias on a non table valued funtref
 
 > expandStar' (JoinTrefIDEnv js t0 t1) Nothing =
 >   let isJ = (`elem` js) . snd
->       (jis,t0is) = partition isJ $ maybe [] id (expandStar t0 Nothing)
+>       (jis,t0is) = partition isJ $ fromMaybe [] (expandStar t0 Nothing)
 >              -- remove join columns from second list
->       t1is = filter (not . isJ) $ maybe [] id (expandStar t1 Nothing)
+>       t1is = filter (not . isJ) $ fromMaybe [] (expandStar t1 Nothing)
 >   in case jis ++ t0is ++ t1is of -- check for duplicates?
 >     [] -> Nothing
 >     x -> Just x
@@ -130,8 +131,8 @@ special case for a table alias on a non table valued funtref
 expand actual alias, assume that there is no overlap so don't have to eliminate js
 
 > expandStar' (JoinTrefIDEnv _js t0 t1) i =
->   let t0is = maybe [] id (expandStar t0 i)
->       t1is = maybe [] id (expandStar t1 i)
+>   let t0is = fromMaybe [] (expandStar t0 i)
+>       t1is = fromMaybe [] (expandStar t1 i)
 >   in case t0is ++ t1is of -- check for duplicates?
 >     [] -> Nothing
 >     x -> Just x

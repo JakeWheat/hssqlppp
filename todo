@@ -1,3 +1,8 @@
+checklist for 0.4.0
+haddock
+website review
+get makefile helper working properly
+check compile warnings
 
 = next release, 0.5.0
 
@@ -132,7 +137,7 @@ parser internals for extension use.
 
 the catalog holds pretty limited information at the moment, and
 doesn't use that information to type check ddl very well (e.g. reject
-drop on non existant objects, don't allow two tables with same name,
+drop on non existent objects, don't allow two tables with same name,
 etc.)
 so
 * add much better error checking
@@ -216,7 +221,7 @@ which supplies the parser with the operator details at run time so
 there is some flexibility
 
 full dynamic support: e.g. create operators in sql then able to parse
-use of them ... standard way of dealing with operator precendence is
+use of them ... standard way of dealing with operator precedence is
 to parse them all as left associative then adjust the tree after, not
 sure this will be enough
 

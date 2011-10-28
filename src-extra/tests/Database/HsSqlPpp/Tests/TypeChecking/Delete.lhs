@@ -16,7 +16,7 @@
 >      ,s "delete from pg_attrdef where 1;"
 >         $ Left [ExpressionMustBeBool]
 >      ,s "delete from pg_attrdef where adsrc='';"
->         $ Right [Just $ ([], [])]
+>         $ Right [Just ([], [])]
 >      ]
 
 >  where

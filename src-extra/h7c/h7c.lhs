@@ -142,7 +142,7 @@ one or more precompiled dlls
 >   ast <- either (\e -> print e >> exitFailure)
 >                 return
 >                 east
->   let tast = (extensions options) ast
+>   let tast = extensions options ast
 >   putStrLn $ printStatements tast
 
 

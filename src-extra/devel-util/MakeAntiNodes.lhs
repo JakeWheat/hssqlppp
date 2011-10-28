@@ -373,8 +373,8 @@ the public conversion functions
 > exports :: (Data a) => a -> [ExportSpec]
 > exports ast = map (EVar . UnQual . Ident )
 >                  ["convertStatements", "convertScalarExpr", "attributeDef", "queryExpr"] ++
->               [ex| ex@(EThingAll _) <- universeBi ast] ++
->               [ex| ex@(EAbs _) <- universeBi ast]
+>               [ex | ex@(EThingAll _) <- universeBi ast] ++
+>               [ex | ex@(EAbs _) <- universeBi ast]
 
 take all the pieces and make a complete module to be pretty printed
 ready for compilation

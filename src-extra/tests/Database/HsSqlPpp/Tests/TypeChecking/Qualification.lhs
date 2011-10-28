@@ -14,10 +14,10 @@
 >         \cross join (select 3 as c, 4 as d) b;"
 >         $ Right [Just ([], [("a", typeInt)
 >                            ,("b", typeInt)])]
->      ,s "select nothere.* from \n\
+>      {-,s "select nothere.* from \n\
 >         \(select 1 as a, 2 as b) a \n\
 >         \cross join (select 3 as c, 4 as d) b;"
->         $ Left [UnrecognisedCorrelationName "nothere"]
+>         $ Left [UnrecognisedCorrelationName "nothere"]-}
 >      ,s "select a.b,b.c from \n\
 >         \(select 1 as a, 2 as b) a \n\
 >         \natural inner join (select 3 as a, 4 as c) b;"

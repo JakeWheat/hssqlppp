@@ -302,7 +302,7 @@ with att1 as (
 >                     "c" -> NamedCompositeType
 >                     "d" -> DomainType
 >                     "e" -> EnumType
->                     "p" -> \t -> Pseudo $ pn t
+>                     "p" -> Pseudo . pn
 >                     _ -> error $ "internal error: unknown type type: "
 >                          ++ (l !! 1)
 >            scType = (head l, ctor name, name)

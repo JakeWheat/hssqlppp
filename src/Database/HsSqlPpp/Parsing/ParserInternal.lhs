@@ -1160,6 +1160,7 @@ with a function, so we don't try an parse a keyword as a function name
 
 >       ,try interval
 >       ,try typedStringLit
+>       ,antiScalarExpr
 >       ,identifier
 >       ]
 
@@ -1471,6 +1472,9 @@ checking with aggregates at the moment so should fix it all together.
 >   return $ case (di,ob) of
 >     (Nothing,[]) -> FunCall p (nm p fnName) as
 >     (d,o) -> AggregateFn p (fromMaybe Dupes d) (FunCall p (nm p fnName) as) o
+> --hack for antiquoted function name
+> functionCallSuffix (AntiScalarExpr n) =
+>   functionCallSuffix (Identifier emptyAnnotation (Nmc $ "$(" ++ n ++ ")"))
 > functionCallSuffix s =
 >   fail $ "cannot make functioncall from " ++ show s
 >
@@ -1702,8 +1706,8 @@ identifier which happens to start with a complete keyword
 > positionalArg :: SParser ScalarExpr
 > positionalArg = PositionalArg <$> pos <*> liftPositionalArgTok
 >
-> --antiScalarExpr :: SParser ScalarExpr
-> --antiScalarExpr = AntiScalarExpr <$> splice
+> antiScalarExpr :: SParser ScalarExpr
+> antiScalarExpr = AntiScalarExpr <$> splice
 >
 > placeholder :: SParser ScalarExpr
 > placeholder = (Placeholder <$> pos) <* symbol "?"
