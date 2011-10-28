@@ -780,7 +780,7 @@ TYPE AlterTableActionList = [AlterTableAction]
 TYPE MaybeNameComponentList = MAYBE NameComponentList
 TYPE NameComponentList = [NameComponent]
 
--- Add a root data type so we can put initial values for inherited
+-- Add a root data type so you can put initial values for inherited
 -- attributes in the section which defines and uses those attributes
 -- rather than in the sem_ calls
 

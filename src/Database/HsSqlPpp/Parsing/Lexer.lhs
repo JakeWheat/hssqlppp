@@ -103,8 +103,8 @@ Lexer for an individual token.
 Could lex lazily and when the lexer reads a copy from stdin statement,
 it switches lexers to lex the inline table data, then switches
 back. Don't know how to do this in parsec, or even if it is possible,
-so as a work around, we use the state to trap if we've just seen 'from
-stdin;', if so, we read the copy payload as one big token, otherwise
+so as a work around, you use the state to trap if we've just seen 'from
+stdin;', if so, you read the copy payload as one big token, otherwise
 we read a normal token.
 
 > sqlToken :: Parser Token

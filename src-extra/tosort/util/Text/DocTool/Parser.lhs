@@ -29,7 +29,7 @@ also: option to not have nested comments
 >
 > import Control.Applicative
 > import Control.Monad.Identity
-> import Control.Monad.Error
+> --import Control.Monad.Error
 
 > --import Debug.Trace
 
@@ -142,6 +142,6 @@ Lexing
 > (<:>) :: Monad m => m a1 -> m [a1] -> m [a1]
 > (<:>) = liftM2 (:)
 
-> instance Error ParseError where
->   noMsg = error "gone wrong"
->   strMsg = error "gone wrong"
+> --instance Error ParseError where
+> --  noMsg = error "gone wrong"
+> --    strMsg = error "gone wrong"

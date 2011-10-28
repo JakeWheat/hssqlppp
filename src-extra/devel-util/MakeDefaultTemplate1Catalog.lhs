@@ -1,15 +1,15 @@
 
 > {-# LANGUAGE QuasiQuotes #-}
 
-> import System.Environment
+> --import System.Environment
 > import Text.Groom
 
-> import Database.HsSqlPpp.Parser
-> import Database.HsSqlPpp.TypeChecker
-> import Database.HsSqlPpp.Catalog
-> import Database.HsSqlPpp.Types
-> import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.Ast
+> --import Database.HsSqlPpp.Parser
+> --import Database.HsSqlPpp.TypeChecker
+> --import Database.HsSqlPpp.Catalog
+> --import Database.HsSqlPpp.Types
+> --import Database.HsSqlPpp.Annotation
+> --import Database.HsSqlPpp.Ast
 
 > import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Utils.CatalogReader

@@ -47,18 +47,18 @@ combine
 orderby
 limit
 
-if a type error occurs, we want to give up on any following stages,
+if a type error occurs, you want to give up on any following stages,
 rather than create loads of type errors (maybe this could be refined
 more).
 
 The select list produces the final type which the selectexpression has.
 
-inside the from, if we have any join expressions we need to pass the types
+inside the from, if you have any join expressions we need to pass the types
 from the joined trefs to the join expressions.
 
 So, the basic plan is to propagate the iden bindings in the cat attribute
 as elsewhere, and also pass along a flag to say whether the previous stage
-type checked or not, so we can bail if it has failed.
+type checked or not, so you can bail if it has failed.
 
 alternative idea: explore transforming the ast for a select expression into
 something using relational algebra-like operations - can then follow the flow
@@ -72,7 +72,7 @@ current simple version:
 from tref -> select list
           -> where
 
-(so we take the identifiers and types from the tref part, and send
+(so you take the identifiers and types from the tref part, and send
 them into the selectlist and where parts)
 
 full order of identifier passing:

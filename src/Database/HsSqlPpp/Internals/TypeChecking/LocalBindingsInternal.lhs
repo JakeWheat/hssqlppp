@@ -248,7 +248,7 @@ First get the info for the two sub trefs:
 >   ids1 <- updateStuff cat u1
 >   ids2 <- updateStuff cat u2
 
-split these apart so we have the unqualified lookups and star expands
+split these apart so you have the unqualified lookups and star expands
 separately
 
 >   let (uids1,qids1) = splitLkps ids1
@@ -268,8 +268,8 @@ names of any remaining ambiguous identifiers:
 
 First: get the names of the join ids: this is the explicit list in the
 case of a using join, or the commonly named fields in a natural
-join. We get the commonly named fields from the unqualified star
-expansions so we don't include system attributes in a natural join.
+join. You get the commonly named fields from the unqualified star
+expansions so you don't include system attributes in a natural join.
 
 Then check: make sure explicit join id list is in both trefs, and
 resolve the types of the join ids.
@@ -590,9 +590,9 @@ This is where constructing the local bindings lookup stacks is done
 >   (LocalBindingsLookup i2 s2) <- makeStack cat t2
 >   -- get the names and types of the join columns
 >   let jns' = case jns of
->              Left () -> -- natural join, so we have to work out the names
+>              Left () -> -- natural join, so you have to work out the names
 >                         -- by looking at the common attributes
->                         -- we do this by getting the star expansion
+>                         -- you do this by getting the star expansion
 >                         -- with no correlation name, and then finding
 >                         -- the ids which appear in both lists
 >                         -- (so this ignores internal ids)
@@ -644,7 +644,7 @@ This is where constructing the local bindings lookup stacks is done
 >                                                ids = map (\(n,t) -> (s,c1,n,t)) jids
 >                                            in (c, fmap (ids++) lkps)
 >       newStarExpansion = map (prependJids . removeJids1) se
->       -- if we have an alias then we just want unqualified ids, then
+>       -- if you have an alias then you just want unqualified ids, then
 >       -- the same ids with a t3 alias for both ids and star expansion
 >       -- with all the correlation names replaced with the alias
 >   if a == ""

@@ -13,7 +13,7 @@ cd /home/jake/wd/hssqlppp/trunk/src/lib/Database/HsSqlPpp/Internals && uuagc --g
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.TypeChecker
 > import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.Annotation
+> --import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Types
 > --import Database.HsSqlPpp.Utils.PPExpr
@@ -26,7 +26,6 @@ cd /home/jake/wd/hssqlppp/trunk/src/lib/Database/HsSqlPpp/Internals && uuagc --g
 > data Item = Group String [Item]
 >           | Item [CatalogUpdate] String String
 >           | SItem [CatalogUpdate] String String
->           | MSItem [CatalogUpdate] String String
 >
 > fixUpIdentifiersTests :: Test.Framework.Test
 > fixUpIdentifiersTests = itemToTft fixUpIdentifiersTestsData

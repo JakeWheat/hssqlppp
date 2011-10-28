@@ -13,7 +13,7 @@ time util/DevelTool makewebsite +RTS -N
 > import Data.Char
 > import System.Directory
 > import Control.Monad
-> import System.Environment
+> --import System.Environment
 > import Data.List hiding (find)
 
 > import Text.DocTool.DocTool
@@ -60,9 +60,9 @@ time util/DevelTool makewebsite +RTS -N
 >                                      title-}
 >   return $ tfp {- ++ src -} {-++ trch1-} ++ wso -- ++ ex ++ devel ++ tests
 >   where
->     removeMatches :: [String] -> [OutputFile] -> [OutputFile]
+>     {-removeMatches :: [String] -> [OutputFile] -> [OutputFile]
 >     removeMatches bads =
->       filter (\(OutputFile (File fn) _ _ _) -> fn `notElem` bads)
+>       filter (\(OutputFile (File fn) _ _ _) -> fn `notElem` bads)-}
 >     doF fl c = fmap (map $ toOf c) $ find always supportedFileP fl
 >     ft f = case map toLower (takeExtension f) of
 >              ".sql" -> Sql

@@ -139,7 +139,7 @@ exactly one statement
 >       Left e -> Left $ show e
 
 hack: replace the annotations in asts produced by parsing with
-wildcards, if we don't do this then pattern matches generally don't
+wildcards, if you don't do this then pattern matches generally don't
 work since the source position annotations from the parser don't match
 up. The source position annotations are still available so that e.g. a
 function can pattern match against a statement then get the source
@@ -227,7 +227,7 @@ where x = FunCall [] "fn" []
 gives
 FunCall [] "fn" [] <- need $(x) to parse as an antiexpression
 
-need context which we don't have to make this decision (and would
+need context which you don't have to make this decision (and would
 probably be really hard even if the context was available)
 
 so - use two different splice syntaxes.

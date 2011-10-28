@@ -251,12 +251,12 @@ SEM ScalarExpr
 {-
 == case expression
 
-for non simple cases, we need all the when expressions to be bool, and
-then to collect the types of the then parts to see if we can resolve a
+for non simple cases, you need all the when expressions to be bool, and
+then to collect the types of the then parts to see if you can resolve a
 common type
 
-for simple cases, we need to check all the when parts have the same type
-as the value to check against, then we collect the then parts as above.
+for simple cases, you need to check all the when parts have the same type
+as the value to check against, then you collect the then parts as above.
 
 -}
 
@@ -359,7 +359,7 @@ SEM ScalarExpr
         loc.tpe = Right UnknownType
         loc.backTree = Placeholder @ann
 
--- exists: will work on any subselect so we don't need to do any checking
+-- exists: will work on any subselect so you don't need to do any checking
 SEM ScalarExpr
     | Exists
         loc.tpe = Right typeBool

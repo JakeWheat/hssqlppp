@@ -99,7 +99,7 @@ SEM SelectList
             maybe [] id $ do
             -- _ <- etmt @loc.tpe
             (it,ft) <- etmt @loc.intoFroms
-            -- not complete, we only cope with situation when
+            -- not complete, you only cope with situation when
             -- assigning to a single record type on its own
             return $ case it of
               [(n,PgRecord _)] -> [LBIds "set record actual fields from select into"
@@ -111,14 +111,14 @@ SEM SelectList
 somewhere this has gone wrong.
 we need @items.listType to be maybe [(String,Maybe Type)]
 not [(String,Type)]
-this is only so we can give better error messages
+this is only so you can give better error messages
 it doesn't make any difference when it type checks
 
 we need the outer maybe to say the types feeding in have gone
 completely wrong, so don't add any more errors
 
 we need the maybes on the types to keep the columns lined up, so that
-e.g. if we have
+e.g. if you have
 
 select t1,typerror,t3 into a,b,c ...
 

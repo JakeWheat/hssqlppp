@@ -1,5 +1,5 @@
 
-This file contains the data type Type. It is kept separate so we can
+This file contains the data type Type. It is kept separate so you can
 compile the types and function information from the database
 separately to AstInternal.ag.
 
@@ -215,7 +215,7 @@ the elements (now sure how exactly are they matched? - number of
 elements, type compatibility of elements, just by context?).
 
 string literals are not checked for valid syntax currently, but this
-will probably change so we can type check string literals statically.
+will probably change so you can type check string literals statically.
 Postgres defers all checking to runtime, because it has to cope with
 custom data types. This code will allow adding a grammar checker for
 each type so you can optionally check the string lits statically.
@@ -228,7 +228,7 @@ types, or against the current list in a database (which is read before
 processing and sql code).
 
 todo: collect type names from current source file to check against
-A lot of the infrastructure to do this is already in place. We also
+A lot of the infrastructure to do this is already in place. You also
 need to do this for all other definitions, etc.
 
 === Type aliases
@@ -236,7 +236,7 @@ need to do this for all other definitions, etc.
 Some types in postgresql have multiple names. I think this is
 hardcoded in the pg parser.
 
-For the canonical name in this code, we use the name given in the
+For the canonical name in this code, you use the name given in the
 postgresql pg_type catalog relvar.
 
 TODO: Change the ast canonical names: where there is a choice, prefer
@@ -330,9 +330,9 @@ new plan for types:
 The type annotations attached to nodes will be either typecheckfailed 'type'
 this will allow chaining type check failed more robustly. Type errors don't change.
 
-the sql type type will be changed so we can track the different
+the sql type type will be changed so you can track the different
 contexts where different sql types can be used, split to use different
-sets of types so we can use the haskell type system to enforce these
+sets of types so you can use the haskell type system to enforce these
 contexts.
 
 rename type to sqltype, too confusing otherwise
@@ -350,7 +350,7 @@ expressions (but not as a column in a view), and is used in other places
 domaintype : what types are allowable as the base type?
 pseudo types: these are used for arguments and return values for function prototypes only
 any*, record - just means pg infers the return type which will be a composite type (namedcomposite, composite or anonymousrecord), trigger: just a tag, void: just a tag, any*: polymorphic functions, ignore cstring, internal, language handler and opaque.
-issue: a variable declaration can be a polymorphic type in a polymorphic function, but we can't use the other pseudo types so need to split these
+issue: a variable declaration can be a polymorphic type in a polymorphic function, but you can't use the other pseudo types so need to split these
 a variable declared as type record IS NOT the same thing as the pseudo record type, I've finally worked out.
 so our plpgsqlrecordtype is plpgsqlrecordtype (Nothing|one of the three composite types)
 

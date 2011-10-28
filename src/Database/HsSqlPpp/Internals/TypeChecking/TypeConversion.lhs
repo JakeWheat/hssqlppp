@@ -19,9 +19,10 @@ checkAssignmentValid - pass in source type and target type, returns
                 Value Storage
 
 I wrote this when I was still struggling with haskell basics so it is
-probably the worst bit of code in the codebase (there are a few other
-contenders for this accolade). A rewrite is planned, but it seems to
-do the job reasonably well at the moment so keeps getting put off.
+probably the worst bit of code in the codebase (there are a few
+other contenders for this accolade). A rewrite is planned, but it
+seems to do the job reasonably well at the moment so keeps getting put
+off.
 
 
 > {-# LANGUAGE PatternGuards #-}

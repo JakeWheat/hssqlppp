@@ -493,13 +493,13 @@ convert a function call into a [String,[(string,type)]] list for use
 in a tableref context
 first consideration is the alias: if there is an alias in the select,
 e.g. select * from generate_series(1,2) x;  (alias is x)
-we use that, otherwise we use the name of the function
+we use that, otherwise you use the name of the function
 second consideration is the attributes coming out, roughly speaking
 we have to convert an arbitrary type to a relation type
-if we have a relation valued function, we don't need to do anything
-if we have a setof non composite, we lift the single type to an
+if you have a relation valued function, we don't need to do anything
+if you have a setof non composite, we lift the single type to an
 attribute, using the function name for the attribute name
-if we have a non setof, we lift the single type to an attribute and
+if you have a non setof, we lift the single type to an attribute and
 then relation, using the function name for the attribute name
 need to check to see what should happen with arrayof
 

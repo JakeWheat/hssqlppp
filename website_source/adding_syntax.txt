@@ -2,7 +2,7 @@
 
 Adding support for new syntax (even just to add to the ast and parser)
 is pretty involved. Here is a sketch example which may be out of date.
-Please contact me if you are trying to follow this and have any
+Please get in touch if you are trying to follow this and have any
 questions.
 
 overview:
@@ -50,8 +50,8 @@ The first step: add a test. At the moment, all the parsing tests go
 src-extra/tests/Database/HsSqlPpp/Tests/ParserTest.lhs. You could also
 add a new module, and add it to src-extra/tests/Tests.
 
-To add the new test, we have to figure out how the new abstract syntax
-will look. We can defer this while we add the test, until we actually
+To add the new test, you have to figure out how the new abstract syntax
+will look. We can defer this while you add the test, until we actually
 edit the abstract syntax types. The code added to ParserTests.lhs:
 
 ~~~~{.haskell}
@@ -120,7 +120,7 @@ DATA TypeName | SimpleTypeName ann:Annotation tn:String
               | SetOfTypeName ann:Annotation typ:TypeName
 ~~~~
 
-Now we have made changes to an ag file, we need to run uuagc to
+Now you have made changes to an ag file, we need to run uuagc to
 produce AstInternal.hs.
 
 You can use the build.sh script to do this.

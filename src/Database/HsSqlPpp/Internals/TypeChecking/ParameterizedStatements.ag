@@ -4,7 +4,7 @@
 
 proper dodgy:
 1st pass is to add inferred types to the tree. This is done only for
-expressions in a funcall argument list atm. Then we pull out the
+expressions in a funcall argument list atm. Then you pull out the
 placeholders after they've had this information added. Only the
 placeholders in funcall argument lists will have their type inferred
 in this way, to be expanded. Insert also does this currently, but in Dml.ag
@@ -50,13 +50,13 @@ wouldn't be too hard to add
 
 some more of the code is in insert.ag
 
-basically we just pass inferred types from function calls to the
-individual arguments using the matched function prototype, and we pass
+basically you just pass inferred types from function calls to the
+individual arguments using the matched function prototype, and you pass
 inferred types from the table's attribute types in an insert
 statement. No other inferrence is done, and the inferred types aren't
 checked for consistency with any type already in a node.
 
-Then we use this info only to get the types of any placeholders in a
+Then you use this info only to get the types of any placeholders in a
 parameterized statement.
 
 -}

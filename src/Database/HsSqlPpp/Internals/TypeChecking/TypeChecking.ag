@@ -49,7 +49,7 @@ is used to do error handling.
 One of the common patterns is when type checking a node:
 
 first check any types of subnodes which it depends on, if any are
-typecheckfailed, then this node's type is typecheckfailed and we stop
+typecheckfailed, then this node's type is typecheckfailed and you stop
 there.
 
 otherwise, calculate the type of this node, or get an error if there
@@ -220,7 +220,7 @@ SEM Statement
      | ForSelectStatement ForIntegerStatement WhileStatement sts.inLoop = True
      | CreateFunction body.inLoop = False
 
--- now we can check when we hit a continue statement if it is in the
+-- now you can check when we hit a continue statement if it is in the
 -- right context
 SEM Statement
     | ContinueStatement  lhs.messages = if not @lhs.inLoop
@@ -266,9 +266,9 @@ typename -> setof (& fix parsing), what else like this?
 expressions: positionalarg in function, window function only in select
  list top level
 
-review all ast checks, and see if we can also catch them during
+review all ast checks, and see if you can also catch them during
 parsing (e.g. typeName parses setof, but this should only be allowed
-for a function return, and we can make this a parse error when parsing
+for a function return, and you can make this a parse error when parsing
 from source code rather than checking a generated ast. This needs
 judgement to say whether a parse error is better than a check error, I
 think for setof it is, but e.g. for a continue not in a loop (which

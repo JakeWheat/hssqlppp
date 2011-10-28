@@ -117,7 +117,7 @@ SEM Statement
 
 == function prototype
 
-all we do here is type check enough to produce the prototype
+all you do here is type check enough to produce the prototype
 information which is added to the catalog, this means the function
 name, parameter types, and the return type.
 

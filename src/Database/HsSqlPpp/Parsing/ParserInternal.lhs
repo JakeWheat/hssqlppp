@@ -70,7 +70,7 @@ To support antiquotation, the following approach is used:
 * this parsing code parses to the antinodes, then converts to regular
   nodes for the public api, and returns antinodes for the sql
   quasiquoter to use.
-* todo: add a flag so that if we are not parsing for the quasiquoter,
+* todo: add a flag so that if you are not parsing for the quasiquoter,
   any splice syntax is rejected as a parse error.
 
 > parseStatements :: String -- ^ filename to use in errors
@@ -355,7 +355,7 @@ a simple tableref i.e just a name
 an aliased table ref e.g. select a.b from tbl as a
 a sub select e.g. select a from (select b from c)
  - these are handled in nonJoinTref
-then we combine by seeing if there is a join looking prefix
+then you combine by seeing if there is a join looking prefix
 
 > tableRef :: SParser TableRef
 > tableRef =
@@ -539,7 +539,7 @@ ddl
 >   where
 >     --parse our unordered list of attribute defs or constraints, for
 >     --each line want to try the constraint parser first, then the
->     --attribute parser, so we need the swap to feed them in the
+>     --attribute parser, so you need the swap to feed them in the
 >     --right order into createtable
 >     readAttsAndCons = parens (swap <$> multiPerm
 >                                          (try tableConstraint)
@@ -1147,7 +1147,7 @@ try a few random things which can't start a different expression
 >       ,numberLit
 
 put the factors which start with keywords before the ones which start
-with a function, so we don't try an parse a keyword as a function name
+with a function, so you don't try an parse a keyword as a function name
 
 >       ,caseScalarExpr
 >       ,exists
@@ -1647,7 +1647,7 @@ tokeny things
 -------------
 
 keyword has to not be immediately followed by letters or numbers
-(symbols and whitespace are ok) so we know that we aren't reading an
+(symbols and whitespace are ok) so you know that we aren't reading an
 identifier which happens to start with a complete keyword
 
 > keyword :: String -> SParser ()
@@ -1782,7 +1782,7 @@ doesn't really add a lot of value
 > matchAKeyword [] = fail "no matches"
 > matchAKeyword ((k,v):kvs) = v <$ keyword k <|> matchAKeyword kvs
 
-parseOptionalSuffix
+optionalSuffix
 
 parse the start of something -> parseResultA,
 then parse an optional suffix -> parseResultB
@@ -1794,7 +1794,7 @@ parsing an identifier in a select list can be
 fieldName
 or
 fieldName as alias
-so we can pass
+so you can pass
 * IdentifierCtor
 * identifier (returns aval)
 * AliasedIdentifierCtor
@@ -1804,7 +1804,7 @@ as the args, which I like to ident like:
 parseOptionalSuffix
   IdentifierCtor identifierParser
   AliasedIdentifierCtor () asAliasParser
-and we get either
+and you get either
 * IdentifierCtor identifierValue
 or
 * AliasedIdentifierCtor identifierValue aliasValue
@@ -1881,7 +1881,7 @@ expr operator [any|some|all] (expr)
 
 This gets parsed as
 funcall operator [expr1,funcall [any|some|all] [expr2,...]]
-and we want to transform it to
+and you want to transform it to
 liftoperator operator any|some|all [expr1, expr2,...]
 not doing anything if the funcall name isn't any,some,all
 any other checks are left to the type checking stage

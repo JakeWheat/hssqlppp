@@ -13,7 +13,7 @@ things which should pass).
 
 [Could do slightly better whilst checking these functions (e.g. detect
 inconsistencies in the way old and new are used), but don't need to do
-this here to catch errors, since we catch them when they are attached
+this here to catch errors, since you catch them when they are attached
 to a table.
 
 also: returns trigger means that the function should return old, new

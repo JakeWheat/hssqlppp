@@ -134,7 +134,7 @@ if a node has no source position e.g. the all in select all or select
 
 hack job, often not interested in the source positions when testing
 the asts produced, so this function will reset all the source
-positions to empty ("", 0, 0) so we can compare them for equality, etc.
+positions to empty ("", 0, 0) so you can compare them for equality, etc.
 without having to get the positions correct.
 
 > -}

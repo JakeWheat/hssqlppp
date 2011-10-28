@@ -35,7 +35,7 @@ writeAntiNodes
 > import Control.Monad
 > import Data.List
 
-> import Database.HsSqlPpp.Utils.Here
+> --import Database.HsSqlPpp.Utils.Here
 > import Text.Groom
 
 > writeAntiNodes :: IO()
