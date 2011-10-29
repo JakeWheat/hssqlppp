@@ -25,15 +25,10 @@ other possible ideas for next release:
 
 typesafe wrapper, use for chaos tests, get chaos actually running also
 
-fix the quasiquote syntax approach - no separate antinoded ast types,
-anti nodes are manually added and explicit in the ast.
-
 type checking flow, inferred type ish
 
 
 concrete steps:
-1) antictor change -> add the ctors in manually, remove the generated
-   astanti completely
 2) rewrite the parse tests to be readable
 3) kill the typechecking, and start again with better annotation
 4) work through the typechecking tests getting the new system working

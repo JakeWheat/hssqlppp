@@ -66,6 +66,7 @@ Conversion routines - convert Sql asts into Docs
 > -- Statements
 >
 > statement :: Bool -> Bool -> (Annotation -> String) -> Statement -> Doc
+> statement _nice _se _ca (AntiStatement s) = text $ "$(" ++ s ++ ")"
 >
 > -- selects
 >
@@ -288,7 +289,8 @@ Conversion routines - convert Sql asts into Docs
 >             (text . (\e -> case e of
 >                                 TInsert -> "insert"
 >                                 TUpdate -> "update"
->                                 TDelete -> "delete")) events
+>                                 TDelete -> "delete"
+>                                 AntiTriggerEvent s -> "$(" ++ s ++ ")")) events
 >
 > -- plpgsql
 >
@@ -630,6 +632,7 @@ Statement components
 > -- expressions
 >
 > scalExpr :: Bool -> ScalarExpr -> Doc
+> scalExpr _ (AntiScalarExpr s) = text $ "$(" ++ s ++ ")"
 > scalExpr _ (Star _) = text "*"
 > scalExpr _ (QStar _ i) = nmc i <> text ".*"
 

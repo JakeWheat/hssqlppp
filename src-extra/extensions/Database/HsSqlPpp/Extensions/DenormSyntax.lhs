@@ -21,7 +21,6 @@ File to parse the denormalized6nf syntax
 > --import Control.Monad.Error
 >
 > import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.Internals.AstAnti (attributeDef)
 > import Database.HsSqlPpp.Parsing.ParserInternal
 > import Database.HsSqlPpp.Parsing.Lexer
 > import Database.HsSqlPpp.Utils.Here
@@ -115,9 +114,7 @@ parsing code
 > dTable = DTable
 >          <$> idString
 >          <*> option [] (symbol ":" *> commaSep1 idString)
->          <*> option []
->                      (parens (commaSep
->                              (attributeDef <$> tableAttribute)))
+>          <*> option [] (parens (commaSep tableAttribute))
 >              <* symbol ";"
 >
 > mutualExclusion :: MyParser D6nfStatement

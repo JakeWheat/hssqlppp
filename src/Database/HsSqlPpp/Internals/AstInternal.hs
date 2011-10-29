@@ -146,7 +146,7 @@ data SetValue
 
 data TriggerWhen = TriggerBefore | TriggerAfter
                    deriving (Show,Eq,Typeable,Data)
-data TriggerEvent = TInsert| TUpdate | TDelete
+data TriggerEvent = TInsert| TUpdate | TDelete | AntiTriggerEvent String
                     deriving (Show,Eq,Typeable,Data)
 data TriggerFire = EachRow | EachStatement
                    deriving (Show,Eq,Typeable,Data)
@@ -1233,10 +1233,10 @@ sem_CaseScalarExprListScalarExprPair_Tuple x1_ x2_  =
               _x2IfixedUpIdentifiersTree :: ScalarExpr 
               _x2IoriginalTree :: ScalarExpr 
               _x2IuType :: (Maybe Type)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 275, column 13)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 276, column 13)
               _lhsOwhenTypes =
                   _x1IuType
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 276, column 13)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 277, column 13)
               _lhsOthenType =
                   _x2IuType
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 76, column 13)
@@ -1360,10 +1360,10 @@ sem_CaseScalarExprListScalarExprPairList_Cons hd_ tl_  =
               _tlIoriginalTree :: CaseScalarExprListScalarExprPairList 
               _tlIthenTypes :: ([Maybe Type])
               _tlIwhenTypes :: ([[Maybe Type]])
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 266, column 10)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 267, column 10)
               _lhsOwhenTypes =
                   _hdIwhenTypes : _tlIwhenTypes
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 267, column 10)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 268, column 10)
               _lhsOthenTypes =
                   _hdIthenType : _tlIthenTypes
               -- self rule
@@ -1417,10 +1417,10 @@ sem_CaseScalarExprListScalarExprPairList_Nil  =
               _lhsOannotatedTree :: CaseScalarExprListScalarExprPairList 
               _lhsOfixedUpIdentifiersTree :: CaseScalarExprListScalarExprPairList 
               _lhsOoriginalTree :: CaseScalarExprListScalarExprPairList 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 268, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 269, column 9)
               _lhsOwhenTypes =
                   []
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 269, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 270, column 9)
               _lhsOthenTypes =
                   []
               -- self rule
@@ -2050,10 +2050,10 @@ sem_InList_InList ann_ exprs_  =
               _exprsIfixedUpIdentifiersTree :: ScalarExprList 
               _exprsIoriginalTree :: ScalarExprList 
               _exprsIuType :: ([Maybe Type])
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 419, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 420, column 9)
               _lhsOlistType =
                   mapM lmt _exprsIuType >>= resolveResultSetType _lhsIcat
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 420, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 421, column 9)
               _exprsOexpectedTypes =
                   repeat _lhsIexpectedType
               -- self rule
@@ -2109,7 +2109,7 @@ sem_InList_InQueryExpr ann_ sel_  =
               _selIlibUpdates :: ([LocalBindingsUpdate])
               _selIoriginalTree :: QueryExpr 
               _selIuType :: (Maybe [(String,Type)])
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 423, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 424, column 9)
               _lhsOlistType =
                   do
                   st <- lmt (map snd <$> _selIuType)
@@ -2346,7 +2346,7 @@ sem_MaybeBoolExpr_Just just_  =
               _justIfixedUpIdentifiersTree :: ScalarExpr 
               _justIoriginalTree :: ScalarExpr 
               _justIuType :: (Maybe Type)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 138, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 139, column 9)
               _lhsOannotatedTree =
                   let t = _justIuType
                   in if t `elem` [Nothing,Just typeBool]
@@ -2507,7 +2507,7 @@ sem_MaybeScalarExpr_Just just_  =
               _justIfixedUpIdentifiersTree :: ScalarExpr 
               _justIoriginalTree :: ScalarExpr 
               _justIuType :: (Maybe Type)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 130, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 131, column 12)
               _lhsOuType =
                   _justIuType
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 100, column 12)
@@ -2552,7 +2552,7 @@ sem_MaybeScalarExpr_Nothing  =
               _lhsOannotatedTree :: MaybeScalarExpr 
               _lhsOfixedUpIdentifiersTree :: MaybeScalarExpr 
               _lhsOoriginalTree :: MaybeScalarExpr 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 131, column 15)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 132, column 15)
               _lhsOuType =
                   Nothing
               -- self rule
@@ -4728,6 +4728,12 @@ sem_RowConstraintList_Nil  =
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
             local originalTree : _
+      alternative AntiScalarExpr:
+         child string         : {String}
+         visit 0:
+            local annotatedTree : _
+            local fixedUpIdentifiersTree : _
+            local originalTree : _
       alternative BooleanLit:
          child ann            : {Annotation}
          child b              : {Bool}
@@ -4963,6 +4969,7 @@ sem_RowConstraintList_Nil  =
             local originalTree : _
 -}
 data ScalarExpr  = AggregateFn (Annotation) (Distinct) (ScalarExpr ) (ScalarExprDirectionPairList ) 
+                 | AntiScalarExpr (String) 
                  | BooleanLit (Annotation) (Bool) 
                  | Case (Annotation) (CaseScalarExprListScalarExprPairList ) (MaybeScalarExpr ) 
                  | CaseSimple (Annotation) (ScalarExpr ) (CaseScalarExprListScalarExprPairList ) (MaybeScalarExpr ) 
@@ -4991,6 +4998,8 @@ sem_ScalarExpr :: ScalarExpr  ->
                   T_ScalarExpr 
 sem_ScalarExpr (AggregateFn _ann _aggDistinct _fn _orderBy )  =
     (sem_ScalarExpr_AggregateFn _ann _aggDistinct (sem_ScalarExpr _fn ) (sem_ScalarExprDirectionPairList _orderBy ) )
+sem_ScalarExpr (AntiScalarExpr _string )  =
+    (sem_ScalarExpr_AntiScalarExpr _string )
 sem_ScalarExpr (BooleanLit _ann _b )  =
     (sem_ScalarExpr_BooleanLit _ann _b )
 sem_ScalarExpr (Case _ann _cases _els )  =
@@ -5124,6 +5133,39 @@ sem_ScalarExpr_AggregateFn ann_ aggDistinct_ fn_ orderBy_  =
               ( _orderByIannotatedTree,_orderByIfixedUpIdentifiersTree,_orderByIoriginalTree) =
                   orderBy_ _orderByOcat _orderByOidenv _orderByOlib 
           in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree,_lhsOuType)))
+sem_ScalarExpr_AntiScalarExpr :: String ->
+                                 T_ScalarExpr 
+sem_ScalarExpr_AntiScalarExpr string_  =
+    (\ _lhsIcat
+       _lhsIexpectedType
+       _lhsIidenv
+       _lhsIlib ->
+         (let _lhsOuType :: (Maybe Type)
+              _lhsOannotatedTree :: ScalarExpr 
+              _lhsOfixedUpIdentifiersTree :: ScalarExpr 
+              _lhsOoriginalTree :: ScalarExpr 
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 108, column 9)
+              _lhsOuType =
+                  Nothing
+              -- self rule
+              _annotatedTree =
+                  AntiScalarExpr string_
+              -- self rule
+              _fixedUpIdentifiersTree =
+                  AntiScalarExpr string_
+              -- self rule
+              _originalTree =
+                  AntiScalarExpr string_
+              -- self rule
+              _lhsOannotatedTree =
+                  _annotatedTree
+              -- self rule
+              _lhsOfixedUpIdentifiersTree =
+                  _fixedUpIdentifiersTree
+              -- self rule
+              _lhsOoriginalTree =
+                  _originalTree
+          in  ( _lhsOannotatedTree,_lhsOfixedUpIdentifiersTree,_lhsOoriginalTree,_lhsOuType)))
 sem_ScalarExpr_BooleanLit :: Annotation ->
                              Bool ->
                              T_ScalarExpr 
@@ -5152,10 +5194,10 @@ sem_ScalarExpr_BooleanLit ann_ b_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 161, column 19)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 162, column 19)
               _tpe =
                   Right typeBool
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 171, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 172, column 9)
               _backTree =
                   BooleanLit ann_ b_
               -- self rule
@@ -5218,13 +5260,13 @@ sem_ScalarExpr_Case ann_ cases_ els_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 281, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 282, column 9)
               _whenTypes =
                   _casesIwhenTypes
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 282, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 283, column 9)
               _thenTypes =
                   _casesIthenTypes ++ maybe [] ((:[]) . Just) _elsIuType
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 286, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 287, column 9)
               _tpe =
                   do
                   wt <- mapM lmt $ concat _whenTypes
@@ -5232,7 +5274,7 @@ sem_ScalarExpr_Case ann_ cases_ els_  =
                       [WrongTypes typeBool wt]
                   tt <- mapM lmt _thenTypes
                   resolveResultSetType _lhsIcat tt
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 294, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 295, column 9)
               _backTree =
                   Case ann_ _casesIannotatedTree _elsIannotatedTree
               -- self rule
@@ -5326,13 +5368,13 @@ sem_ScalarExpr_CaseSimple ann_ value_ cases_ els_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 281, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 282, column 9)
               _whenTypes =
                   _casesIwhenTypes
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 282, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 283, column 9)
               _thenTypes =
                   _casesIthenTypes ++ maybe [] ((:[]) . Just) _elsIuType
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 299, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 300, column 9)
               _tpe =
                   do
                   wt <- mapM lmt $ concat _whenTypes
@@ -5340,7 +5382,7 @@ sem_ScalarExpr_CaseSimple ann_ value_ cases_ els_  =
                   _ <- resolveResultSetType _lhsIcat (vt : wt)
                   tt <- mapM lmt _thenTypes
                   resolveResultSetType _lhsIcat tt
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 306, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 307, column 9)
               _backTree =
                   CaseSimple ann_
                              _valueIannotatedTree
@@ -5442,10 +5484,10 @@ sem_ScalarExpr_Cast ann_ expr_ tn_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 188, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 189, column 12)
               _tpe =
                   lmt _tnInamedType
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 189, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 190, column 12)
               _backTree =
                   Cast ann_ _exprIannotatedTree _tnIannotatedTree
               -- self rule
@@ -5528,13 +5570,13 @@ sem_ScalarExpr_Exists ann_ sel_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 365, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 366, column 9)
               _tpe =
                   Right typeBool
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 366, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 367, column 9)
               _backTree =
                   Exists ann_ _selIannotatedTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 389, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 390, column 9)
               _selOcsql =
                   _lhsIlib
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 169, column 29)
@@ -5604,14 +5646,14 @@ sem_ScalarExpr_Extract ann_ field_ e_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 434, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 435, column 9)
               _tpe =
                   do
                   x <- lmt _eIuType
                   if x == typeDate
                     then Right typeFloat8
                     else Left [NoMatchingOperator "extract" [x]]
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 439, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 440, column 9)
               _backTree =
                   Extract ann_ field_ _eIannotatedTree
               -- self rule
@@ -5685,7 +5727,7 @@ sem_ScalarExpr_FunCall ann_ funName_ args_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 202, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 203, column 9)
               __tup1 =
                   either (\e -> (Left e, Nothing)) id $ do
                   args <- mapM lmt _argsIuType
@@ -5694,13 +5736,13 @@ sem_ScalarExpr_FunCall ann_ funName_ args_  =
                                        args
                   let (_,_,r,_) = efp
                   return (Right r, Just efp)
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 202, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 203, column 9)
               (_tpe,_) =
                   __tup1
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 202, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 203, column 9)
               (_,_prototype) =
                   __tup1
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 212, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 213, column 9)
               _backTree =
                   FunCall ann_ _funNameIoriginalTree _argsIannotatedTree
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 127, column 9)
@@ -5782,13 +5824,13 @@ sem_ScalarExpr_Identifier ann_ i_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 319, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 320, column 9)
               _tpe =
                   case lookupLocalBinding _lhsIlib "" (ncStr i_) of
                                         Right Nothing -> Left []
                                         Right (Just t) -> Right t
                                         Left e -> Left e
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 324, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 325, column 9)
               _backTree =
                   Identifier ann_ i_
               -- self rule
@@ -5851,24 +5893,24 @@ sem_ScalarExpr_InPredicate ann_ expr_ i_ list_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 398, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 399, column 9)
               _rt =
                   do
                   lt <- _listIlistType
                   expt <- lmt _exprIuType
                   resolveResultSetType _lhsIcat [expt, lt]
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 402, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 403, column 9)
               _tpe =
                   do
                   _ <- _rt
                   return typeBool
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 405, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 406, column 9)
               _listOexpectedType =
                   etmt _rt
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 406, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 407, column 9)
               _exprOexpectedType =
                   etmt _rt
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 407, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 408, column 9)
               _backTree =
                   InPredicate ann_
                               _exprIannotatedTree
@@ -5942,10 +5984,10 @@ sem_ScalarExpr_Interval ann_ value_ field_ prec_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 176, column 16)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 177, column 16)
               _tpe =
                   Right $ ScalarType "interval"
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 177, column 16)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 178, column 16)
               _backTree =
                   Interval ann_ value_ field_ prec_
               -- self rule
@@ -6002,7 +6044,7 @@ sem_ScalarExpr_LiftOperator ann_ oper_ flav_ args_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 234, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 235, column 9)
               _tpe =
                   do
                   at <- mapM lmt _argsIuType
@@ -6018,7 +6060,7 @@ sem_ScalarExpr_LiftOperator ann_ oper_ flav_ args_  =
                   errorWhen (resType /= typeBool)
                             [AnyAllError $ "operator must have bool return, got " ++ show resType]
                   return resType
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 248, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 249, column 9)
               _backTree =
                   LiftOperator ann_ oper_ flav_ _argsIannotatedTree
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 135, column 9)
@@ -6078,10 +6120,10 @@ sem_ScalarExpr_NullLit ann_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 163, column 16)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 164, column 16)
               _tpe =
                   Right UnknownType
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 173, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 174, column 9)
               _backTree =
                   NullLit ann_
               -- self rule
@@ -6128,14 +6170,14 @@ sem_ScalarExpr_NumberLit ann_ d_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 155, column 18)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 156, column 18)
               _tpe =
                   if all (`elem` digChars) d_
                   then Right typeInt
                   else Right typeNumeric
                   where
                     digChars = concatMap show [(0::Int)..9]
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 167, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 168, column 9)
               _backTree =
                   NumberLit ann_ d_
               -- self rule
@@ -6181,10 +6223,10 @@ sem_ScalarExpr_Placeholder ann_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 359, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 360, column 9)
               _tpe =
                   Right UnknownType
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 360, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 361, column 9)
               _backTree =
                   Placeholder ann_
               -- self rule
@@ -6231,10 +6273,10 @@ sem_ScalarExpr_PositionalArg ann_ p_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 353, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 354, column 9)
               _tpe =
                   unwrapLookup <$> lbLookupID _lhsIlib ['$':show p_]
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 354, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 355, column 9)
               _backTree =
                   PositionalArg ann_ p_
               -- self rule
@@ -6284,7 +6326,7 @@ sem_ScalarExpr_QIdentifier ann_ is_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 326, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 327, column 9)
               _tpe =
                   case is_ of
                     [Nmc q,Nmc i] ->
@@ -6293,7 +6335,7 @@ sem_ScalarExpr_QIdentifier ann_ is_  =
                                         Right (Just t) -> Right t
                                         Left e -> Left e
                     _ -> Left [InternalError "dot selection not implemented"]
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 333, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 334, column 9)
               _backTree =
                   QIdentifier ann_ is_
               -- self rule
@@ -6382,7 +6424,7 @@ sem_ScalarExpr_ScalarSubQuery ann_ sel_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 377, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 378, column 9)
               _tpe =
                   do
                   selType <- lmt (map snd <$> _selIuType)
@@ -6390,10 +6432,10 @@ sem_ScalarExpr_ScalarSubQuery ann_ sel_  =
                     0 -> Left [InternalError "no columns in scalar subquery?"]
                     1 -> Right $ head selType
                     _ -> Right $ AnonymousRecordType selType
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 385, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 386, column 9)
               _backTree =
                   ScalarSubQuery ann_ _selIannotatedTree
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 387, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 388, column 9)
               _selOcsql =
                   _lhsIlib
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 169, column 29)
@@ -6487,10 +6529,10 @@ sem_ScalarExpr_StringLit ann_ value_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 160, column 18)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 161, column 18)
               _tpe =
                   Right UnknownType
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 169, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 170, column 9)
               _backTree =
                   StringLit ann_ value_
               -- self rule
@@ -6545,10 +6587,10 @@ sem_ScalarExpr_TypedStringLit ann_ tn_ value_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 193, column 10)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 194, column 10)
               _tpe =
                   lmt _tnInamedType
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 194, column 10)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 195, column 10)
               _backTree =
                   TypedStringLit ann_ _tnIannotatedTree value_
               -- self rule
@@ -6631,10 +6673,10 @@ sem_ScalarExpr_WindowFn ann_ fn_ partitionBy_ orderBy_ frm_  =
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 104, column 9)
               _lhsOuType =
                   etmt _tpe
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 216, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 217, column 9)
               _tpe =
                   lmt _fnIuType
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 217, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 218, column 9)
               _backTree =
                   WindowFn ann_
                            _fnIannotatedTree
@@ -6995,7 +7037,7 @@ sem_ScalarExprList_Cons hd_ tl_  =
               _tlIfixedUpIdentifiersTree :: ScalarExprList 
               _tlIoriginalTree :: ScalarExprList 
               _tlIuType :: ([Maybe Type])
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 113, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 114, column 12)
               _lhsOuType =
                   _hdIuType : _tlIuType
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 86, column 12)
@@ -7059,7 +7101,7 @@ sem_ScalarExprList_Nil  =
               _lhsOannotatedTree :: ScalarExprList 
               _lhsOfixedUpIdentifiersTree :: ScalarExprList 
               _lhsOoriginalTree :: ScalarExprList 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 114, column 11)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 115, column 11)
               _lhsOuType =
                   []
               -- self rule
@@ -7156,7 +7198,7 @@ sem_ScalarExprListList_Cons hd_ tl_  =
               _tlIfixedUpIdentifiersTree :: ScalarExprListList 
               _tlIoriginalTree :: ScalarExprListList 
               _tlIuType :: ([[Maybe Type]])
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 123, column 12)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 124, column 12)
               _lhsOuType =
                   _hdIuType : _tlIuType
               -- "src/Database/HsSqlPpp/Internals/TypeChecking/ParameterizedStatements.ag"(line 165, column 12)
@@ -7216,7 +7258,7 @@ sem_ScalarExprListList_Nil  =
               _lhsOannotatedTree :: ScalarExprListList 
               _lhsOfixedUpIdentifiersTree :: ScalarExprListList 
               _lhsOoriginalTree :: ScalarExprListList 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 124, column 11)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs/ScalarExprs.ag"(line 125, column 11)
               _lhsOuType =
                   []
               -- self rule
@@ -8644,6 +8686,13 @@ sem_SetClauseList_Nil  =
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
             local originalTree : _
+      alternative AntiStatement:
+         child string         : {String}
+         visit 0:
+            local libUpdates  : _
+            local annotatedTree : _
+            local fixedUpIdentifiersTree : _
+            local originalTree : _
       alternative Assignment:
          child ann            : {Annotation}
          child target         : Name 
@@ -9079,6 +9128,7 @@ sem_SetClauseList_Nil  =
 -}
 data Statement  = AlterSequence (Annotation) (Name ) (Name ) 
                 | AlterTable (Annotation) (Name ) (AlterTableActionList ) 
+                | AntiStatement (String) 
                 | Assignment (Annotation) (Name ) (ScalarExpr ) 
                 | Block (Annotation) ((Maybe String)) (VarDefList ) (StatementList ) 
                 | CaseStatement (Annotation) (ScalarExprListStatementListPairList ) (StatementList ) 
@@ -9126,6 +9176,8 @@ sem_Statement (AlterSequence _ann _name _ownedBy )  =
     (sem_Statement_AlterSequence _ann (sem_Name _name ) (sem_Name _ownedBy ) )
 sem_Statement (AlterTable _ann _name _actions )  =
     (sem_Statement_AlterTable _ann (sem_Name _name ) (sem_AlterTableActionList _actions ) )
+sem_Statement (AntiStatement _string )  =
+    (sem_Statement_AntiStatement _string )
 sem_Statement (Assignment _ann _target _value )  =
     (sem_Statement_Assignment _ann (sem_Name _target ) (sem_ScalarExpr _value ) )
 sem_Statement (Block _ann _lb _vars _sts )  =
@@ -9372,6 +9424,46 @@ sem_Statement_AlterTable ann_ name_ actions_  =
                   name_ _nameOcat _nameOidenv _nameOlib 
               ( _actionsIannotatedTree,_actionsIfixedUpIdentifiersTree,_actionsIoriginalTree) =
                   actions_ _actionsOcat _actionsOidenv _actionsOlib 
+          in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
+sem_Statement_AntiStatement :: String ->
+                               T_Statement 
+sem_Statement_AntiStatement string_  =
+    (\ _lhsIcat
+       _lhsIidenv
+       _lhsIinProducedCat
+       _lhsIlib ->
+         (let _lhsOcatUpdates :: ([CatalogUpdate])
+              _lhsOlibUpdates :: ([LocalBindingsUpdate])
+              _lhsOannotatedTree :: Statement 
+              _lhsOfixedUpIdentifiersTree :: Statement 
+              _lhsOoriginalTree :: Statement 
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Statements.ag"(line 94, column 9)
+              _libUpdates =
+                  []
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Statements.ag"(line 116, column 9)
+              _lhsOcatUpdates =
+                  []
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/Statements.ag"(line 117, column 9)
+              _lhsOlibUpdates =
+                  []
+              -- self rule
+              _annotatedTree =
+                  AntiStatement string_
+              -- self rule
+              _fixedUpIdentifiersTree =
+                  AntiStatement string_
+              -- self rule
+              _originalTree =
+                  AntiStatement string_
+              -- self rule
+              _lhsOannotatedTree =
+                  _annotatedTree
+              -- self rule
+              _lhsOfixedUpIdentifiersTree =
+                  _fixedUpIdentifiersTree
+              -- self rule
+              _lhsOoriginalTree =
+                  _originalTree
           in  ( _lhsOannotatedTree,_lhsOcatUpdates,_lhsOfixedUpIdentifiersTree,_lhsOlibUpdates,_lhsOoriginalTree)))
 sem_Statement_Assignment :: Annotation ->
                             T_Name  ->

@@ -22,8 +22,8 @@ cabal configure && cabal build
 Rebuild the generated files for the syntax
 ==========================================
 
-If you edit the ag files, you need to rebuild the AstInternal.hs and
-the AstAnti.hs. First make sure you have uuagc installed:
+If you edit the ag files, you need to rebuild AstInternal.hs. First
+make sure you have uuagc installed:
 
 ~~~~~
 cabal install uuagc
@@ -32,7 +32,7 @@ cabal install uuagc
 Then use the makefile:
 
 ~~~~~
-make src/Database/HsSqlPpp/Internals/AstAnti.hs
+make src/Database/HsSqlPpp/Internals/AstInternal.hs
 ~~~~~
 
 The makefile hasn't been heavily tested yet. If you have any problems
@@ -44,7 +44,7 @@ To just rebuild the library in the usual way after editing the ag
 files use:
 
 ~~~~~
-make src/Database/HsSqlPpp/Internals/AstAnti.hs
+make src/Database/HsSqlPpp/Internals/AstInternal.hs
 cabal build
 ~~~~~
 
@@ -109,7 +109,6 @@ Source overview
 weird bits:
 
 * uuagc
-* astanti
 * lexing/parsing split (uses parsec to lex, then parsec again to
   parse)
 * typechecker: fixupidentifiers

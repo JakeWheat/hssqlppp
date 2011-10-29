@@ -26,7 +26,7 @@
 #   test modules?
 
 # todo: don't write the .o, .hi and exes in the source tree
-# todo: transition to not storing astanti and astinternal.hs in repo?
+# todo: transition to not storing astinternal.hs in repo?
 
 # todo: find something better than make
 
@@ -58,7 +58,6 @@ HC_OPTS = $(HC_BASIC_OPTS) $(HC_INCLUDE_DIRS) $(HC_PACKAGES)
 # the list of .o files which an .lhs for an exe needs to build
 # (ghc -M is used for all the dependencies other than the exes)
 EXE_FILES = src-extra/tests/Tests \
-	src-extra/devel-util/MakeAntiNodesRunner \
 	src-extra/devel-util/MakeDefaultTemplate1Catalog \
 	src-extra/examples/FixSqlServerTpchSyntax \
 	src-extra/examples/MakeSelect \
@@ -103,6 +102,7 @@ website : src-extra/tosort/util/DevelTool
 website_haddock :
 	cabal configure
 	cabal haddock
+	-mkdir hssqlppp
 	mv dist/doc/html/hssqlppp hssqlppp/haddock
 
 # task to build the chaos sql, which takes the source sql
@@ -138,15 +138,10 @@ exe_depend : src-extra/devel-util/GenerateExeRules.lhs Makefile
 depend :
 	ghc -M $(HC_OPTS) $(SRCS_ROOTS) -dep-makefile .depend
 
-#specific rules for generated files: astanti.hs and astinternal.hs
-
-src/Database/HsSqlPpp/Internals/AstAnti.hs : \
-		src/Database/HsSqlPpp/Internals/AstInternal.hs \
-		src-extra/devel-util/MakeAntiNodesRunner
-	src-extra/devel-util/MakeAntiNodesRunner
+#specific rules for generated file astinternal.hs
 
 src/Database/HsSqlPpp/Internals/AstInternal.hs : $(AG_FILES)
-	uuagc  -dcfwsp -P src/Database/HsSqlPpp/Internals/ \
+	uuagc -dcfwsp -P src/Database/HsSqlPpp/Internals/ \
 		src/Database/HsSqlPpp/Internals/AstInternal.ag
 
 # rule for the generated file
@@ -173,7 +168,6 @@ clean :
 	-rm -Rf hssqlppp
 
 maintainer-clean : clean
-	-rm src/Database/HsSqlPpp/Internals/AstAnti.hs
 	-rm src/Database/HsSqlPpp/Internals/AstInternal.hs
 
 

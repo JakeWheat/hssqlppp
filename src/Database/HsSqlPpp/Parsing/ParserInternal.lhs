@@ -10,15 +10,13 @@ right choice, but it seems to do the job pretty well at the moment.
 >     ,parseStatementsWithPosition
 >     ,parseStatementsFromFile
 >     ,parseQueryExpr
+>     ,parsePlpgsqlWithPosition
 >      -- * Testing
 >     ,parseScalarExpr
+>     ,parseScalarExprWithPosition
 >     ,parsePlpgsql
 >      -- * errors
 >     ,ParseErrorExtra(..)
->      -- * quasiquotation support
->     ,parseAntiSql
->     ,parseAntiPlpgsql
->     ,parseAntiScalarExpr
 >      -- other helpers for internal use
 >     ,tableAttribute
 >     ,keyword
@@ -45,9 +43,7 @@ right choice, but it seems to do the job pretty well at the moment.
 >
 > import Database.HsSqlPpp.Parsing.Lexer
 > import Database.HsSqlPpp.Parsing.ParseErrors
-> import Database.HsSqlPpp.Internals.AstAnti
-> --import Database.HsSqlPpp.Ast
-> import qualified Database.HsSqlPpp.Ast as A
+> import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation as A
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Catalog
@@ -58,48 +54,36 @@ right choice, but it seems to do the job pretty well at the moment.
 Top level parsing functions
 ===========================
 
-To support antiquotation, the following approach is used:
-
-* makeantinodes processes the generated astinternal.hs, and extracts
-  the ast node types.
-* it modifies these to add anti ctors to the appropriate types,
-  creates a set of trivial conversion functions to convert between anti
-  nodes and regular nodes, and this is written to astanti.hs.
-* astanti then contains exactly the same set of ast nodes as
-  astinternal, but with a few additions to support antiquotes.
-* this parsing code parses to the antinodes, then converts to regular
-  nodes for the public api, and returns antinodes for the sql
-  quasiquoter to use.
-* todo: add a flag so that if you are not parsing for the quasiquoter,
-  any splice syntax is rejected as a parse error.
-
 > parseStatements :: String -- ^ filename to use in errors
 >                 -> String -- ^ a string containing the sql to parse
->                 -> Either ParseErrorExtra [A.Statement]
+>                 -> Either ParseErrorExtra [Statement]
 > parseStatements f s =
->   deAS $ parseIt l sqlStatements f Nothing s startState
+>   parseIt l sqlStatements f Nothing s startState
 >   where l = lexSqlText f s
 >
 > parseStatementsWithPosition :: FilePath -- ^ filename to use in errors
 >                             -> Int -- ^ adjust line number in errors by adding this
 >                             -> Int -- ^ adjust column in errors by adding this
 >                             -> String -- ^ a string containing the sql to parse
->                             -> Either ParseErrorExtra [A.Statement]
-> parseStatementsWithPosition f l c s = deAS $ parseAntiSql f l c s
+>                             -> Either ParseErrorExtra [Statement]
+> parseStatementsWithPosition f l c s =
+>   parseIt lx sqlStatements f (Just (l,c)) s startState
+>   where lx = lexSqlText f s
+> --parseAntiSql f l c s
 >
 > parseStatementsFromFile :: FilePath -- ^ file name of file containing sql
->                         -> IO (Either ParseErrorExtra [A.Statement])
+>                         -> IO (Either ParseErrorExtra [Statement])
 > parseStatementsFromFile fn = do
 >   sc <- readFile fn
 >   x <- lexSqlFile fn
->   return $ deAS $ parseIt x sqlStatements fn Nothing sc startState
+>   return $ parseIt x sqlStatements fn Nothing sc startState
 >
 
 > parseQueryExpr :: String -- ^ filename to use in errors
 >                -> String -- ^ a string containing the sql to parse
->                -> Either ParseErrorExtra A.QueryExpr
+>                -> Either ParseErrorExtra QueryExpr
 > parseQueryExpr f s =
->   deQE $ parseIt l pqe f Nothing s startState
+>   parseIt l pqe f Nothing s startState
 >   where
 >     l = lexSqlText f s
 >     pqe :: SParser QueryExpr
@@ -113,9 +97,9 @@ To support antiquotation, the following approach is used:
 > parseScalarExpr :: String -- ^ filename for error messages
 >                 -> String -- ^ sql string containing a single expression,
 >                           -- with no trailing ';'
->                 -> Either ParseErrorExtra A.ScalarExpr
+>                 -> Either ParseErrorExtra ScalarExpr
 > parseScalarExpr f s =
->   deAE $ parseIt l (expr <* eof) f Nothing s startState
+>   parseIt l (expr <* eof) f Nothing s startState
 >   where l = lexSqlText f s
 >
 > -- | Parse plpgsql statements, used for testing purposes -
@@ -124,42 +108,31 @@ To support antiquotation, the following approach is used:
 > -- (The produced ast won't pass a type check.)
 > parsePlpgsql :: String
 >              -> String
->              -> Either ParseErrorExtra [A.Statement]
+>              -> Either ParseErrorExtra [Statement]
 > parsePlpgsql f s =
->   deAS $ parseIt l p f Nothing s startState
+>   parseIt l p f Nothing s startState
 >   where
 >     l = lexSqlText f s
 >     p = many plPgsqlStatement <* eof
 >
-> parseAntiSql :: FilePath
->              -> Int
->              -> Int
->              -> String
->              -> Either ParseErrorExtra [Statement]
-> parseAntiSql f l c s =
->   parseIt lx sqlStatements f ps s startState
->   where
->     lx = lexSqlTextWithPosition f l c s
->     ps = Just (l,c)
->
-> parseAntiPlpgsql :: String
+> parsePlpgsqlWithPosition :: String
 >                  -> Int
 >                  -> Int
 >                  -> String
 >                  -> Either ParseErrorExtra [Statement]
-> parseAntiPlpgsql f l c s =
+> parsePlpgsqlWithPosition f l c s =
 >   parseIt lx p f ps s startState
 >   where
 >     lx = lexSqlText f s
 >     p = many plPgsqlStatement <* eof
 >     ps = Just (l,c)
 >
-> parseAntiScalarExpr :: String
+> parseScalarExprWithPosition :: String
 >                     -> Int
 >                     -> Int
 >                     -> String
 >                     -> Either ParseErrorExtra ScalarExpr
-> parseAntiScalarExpr f l c s =
+> parseScalarExprWithPosition f l c s =
 >   parseIt lx p f ps s startState
 >   where
 >     lx = lexSqlText f s
@@ -182,23 +155,6 @@ To support antiquotation, the following approach is used:
 >                              in case toParseErrorExtra r1 sp src of
 >                                   Left er -> Left er
 >                                   Right t -> Right $ fixupTree t
->
-> deAE :: Either ParseErrorExtra ScalarExpr
->      -> Either ParseErrorExtra A.ScalarExpr
-> deAE x = case x of
->                 Left e -> Left e
->                 Right ex -> Right $ convertScalarExpr ex
-> deAS :: Either ParseErrorExtra [Statement]
->      -> Either ParseErrorExtra [A.Statement]
-> deAS x = case x of
->                 Left e -> Left e
->                 Right ex -> Right $ convertStatements ex
-
-> deQE :: Either ParseErrorExtra QueryExpr
->      -> Either ParseErrorExtra A.QueryExpr
-> deQE x = case x of
->                 Left e -> Left e
->                 Right ex -> Right $ queryExpr ex
 
 
 --------------------------------------------------------------------------------

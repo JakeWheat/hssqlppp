@@ -104,9 +104,10 @@ SEM ScalarExpr
         lhs.uType = etmt @loc.tpe
 
 SEM ScalarExpr
-    | QStar Star
+    | QStar Star AntiScalarExpr
         lhs.uType = Nothing -- Leetmt @loc.tpe
         -- loc.tpe = Left [BadStarExpand]
+
 
 
 SEM ScalarExprList

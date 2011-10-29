@@ -322,6 +322,8 @@ DATA Statement
          els : StatementList
     | Block ann:Annotation lb:{Maybe String} vars:VarDefList sts : StatementList
 
+    | AntiStatement String
+
 -- =============================================================================
 
 --Statement components
@@ -476,7 +478,7 @@ data SetValue
 
 data TriggerWhen = TriggerBefore | TriggerAfter
                    deriving (Show,Eq,Typeable,Data)
-data TriggerEvent = TInsert| TUpdate | TDelete
+data TriggerEvent = TInsert| TUpdate | TDelete | AntiTriggerEvent String
                     deriving (Show,Eq,Typeable,Data)
 data TriggerFire = EachRow | EachStatement
                    deriving (Show,Eq,Typeable,Data)
@@ -610,6 +612,7 @@ DATA ScalarExpr | NumberLit ann:Annotation d:String
                                oper:String
                                flav:LiftFlavour
                                args:ScalarExprList
+                | AntiScalarExpr String
 {
 data LiftFlavour = LiftAny | LiftAll
                    deriving (Show,Eq,Typeable,Data)

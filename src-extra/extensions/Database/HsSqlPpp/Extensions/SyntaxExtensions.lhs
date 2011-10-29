@@ -60,11 +60,6 @@ loading into pg, it's only at runtime when we hit a customstatement
 which hasn't been transformed out that we error. But this is cheap and
 cheerful and it's not too bad to live with.
 
-Is there a better way? Put some work into avoiding this when adding
-the antiquotes, which seemed to turn out quite well - leaving
-antiquote nodes in the tree under normal usage causes a compile time
-error.
-
 Have vague recollection of someone altering a haskell regular
 expression engine using something clever, without access to the
 source, see if can find and is relevant.

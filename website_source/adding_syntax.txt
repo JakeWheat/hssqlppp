@@ -36,7 +36,8 @@ add new datatypes to AstInternal.ag
 
 fix any default uuagc rules if needed
 
-run the build script which processes the ag file into haskell files
+run the make target which runs uuagc to generate the hs from the ag
+  files
 
 add code for parsing and pretty printing the new syntax
 
@@ -120,10 +121,10 @@ DATA TypeName | SimpleTypeName ann:Annotation tn:String
 Now you have made changes to an ag file, we need to run uuagc to
 produce AstInternal.hs.
 
-You can use the build.sh script to do this.
+You can use the makefile to do this.
 
 ~~~~
-$ ./build.sh
+$ make src/Database/HsSqlPpp/Internals/AstInternal.hs
 ./TypeChecking/Misc.ag:15:18: warning: Missing rule for synthesized attribute namedType in alternative Prec2TypeName of nonterminal TypeName.
 ~~~~
 
@@ -181,9 +182,8 @@ Now uuagc runs without warnings. You can try and skip fixing these
 warnings just to get the parsing working. (Patches which add new
 syntax/parsing but leave the type checker broken are welcome.)
 
-If the build.sh script completes successfully, then the .ag files
-should be compiled to hs, the AstAnti.hs module should be generated,
-and cabal build run.
+If make completes successfully, then the .ag files should be compiled
+to hs, and you can then run cabal build to check the compilation.
 
 Time to fix the tests: editing the line in ParserTests.lhs to match
 the new syntax gives:

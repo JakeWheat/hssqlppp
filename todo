@@ -74,16 +74,6 @@ some renames - try to follow the sql standard reference better
 
 split out the plpgsql statements to separate ast node
 
-the quasiquoting uses a crazy system of automatically generating the
-anticonstructors, want to change this so these are explicit and
-visible to the user. This will make understanding and editing the
-source much easier, and make it sensible to expose the internals of
-the parser to help with writing syntax extensions. The downside is
-less accurate typechecking, but I think this is an ok tradeoff since
-the ast types are able to represent a vast range of invalid sql
-already. SQL is too big and messy to try to be elegant in this
-respect.
-
 have parens explicit in the ast?
 
 more faithful representation of source code? This is mainly for

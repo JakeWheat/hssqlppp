@@ -4,12 +4,6 @@ the extensions use the internals of the hssqlppp library
 solution:
 expose some of the internals for extension use
 
-problem: how to plug into the parsing, the parsers return stuff from
-  the astanti module. This should be hidden
-solution: give up on astanti approach, just stick antinodes in the
-  actual syntax?
-
-
 
 > import ChaosExtensions
 > import Database.HsSqlPpp.H7c

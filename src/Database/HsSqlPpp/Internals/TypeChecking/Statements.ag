@@ -90,7 +90,7 @@ SEM Statement
     | Insert Update Delete CreateView CreateDomain
       CreateFunction CreateType CreateTable CreateTableAs Return
       Assignment ForQueryStatement ForIntegerStatement Set CreateLanguage
-      Notify CreateSequence AlterSequence DropFunction Block
+      Notify CreateSequence AlterSequence DropFunction Block AntiStatement
         loc.libUpdates = []
 
 SEM StatementList
@@ -112,7 +112,7 @@ SEM Statement
       DropSomething Execute
       If NullStatement ExitStatement Perform Raise ReturnNext ReturnQuery Truncate
       WhileStatement Set Notify CreateSequence LoopStatement
-      AlterSequence AlterTable CreateTrigger Into
+      AlterSequence AlterTable CreateTrigger Into AntiStatement
         lhs.catUpdates = []
         lhs.libUpdates = []
 

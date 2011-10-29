@@ -68,7 +68,7 @@ tpch conversion util
 
 
 
-> import System.Environment
+> --import System.Environment
 > import System.Exit
 
 > import Database.HsSqlPpp.Parser

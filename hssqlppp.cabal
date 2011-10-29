@@ -57,7 +57,6 @@ Library
                      Database.HsSqlPpp.Parsing.ParserInternal
                      Database.HsSqlPpp.Internals.Catalog.CatalogInternal
                      Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
-                     Database.HsSqlPpp.Internals.AstAnti
                      Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
                      Database.HsSqlPpp.Internals.TypeChecking.ErrorUtils
                      Database.HsSqlPpp.Internals.TypeChecking.LocalBindings

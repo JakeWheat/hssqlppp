@@ -137,6 +137,7 @@ implementation
 >                           TInsert -> "insert"
 >                           TUpdate -> "update"
 >                           TDelete -> "delete"
+>                           AntiTriggerEvent s -> "$(" ++ s ++ ")"
 >               spliceErrMsg = ttname ++ " on " ++ tablename ++
 >                        " violates transition constraint " ++ constraintName
 >               spliceTriggerName = tablename ++ "_" ++ ttname ++ "_transition_trigger"

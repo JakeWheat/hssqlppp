@@ -47,30 +47,29 @@ transformations which implement syntax extensions to sql
 >
 > import Database.HsSqlPpp.Parsing.ParserInternal
 > import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.Internals.AstAnti hiding (Name)
->
+> import Database.HsSqlPpp.Ast hiding (Name)
 
 public api: the quasiquote functions
 
 > -- | quotes Statements
 > sqlStmts :: QuasiQuoter
-> sqlStmts = makeQQ parseAntiSql
+> sqlStmts = makeQQ parseStatementsWithPosition
 >
 > -- | quotes a single Statement
 > sqlStmt :: QuasiQuoter
-> sqlStmt = makeQQ parseOneAntiSql
+> sqlStmt = makeQQ parseOneStatement
 >
 > -- | quotes plpgsql Statements
 > pgsqlStmts :: QuasiQuoter
-> pgsqlStmts = makeQQ parseAntiPlpgsql
+> pgsqlStmts = makeQQ parsePlpgsqlWithPosition
 >
 > -- | quotes a plpgsql Statement
 > pgsqlStmt :: QuasiQuoter
-> pgsqlStmt = makeQQ parseOneAntiPlpgsql
+> pgsqlStmt = makeQQ parseOnePlpgsql
 
 > -- | quotes a ScalarExpr
 > sqlExpr :: QuasiQuoter
-> sqlExpr = makeQQ parseAntiScalarExpr
+> sqlExpr = makeQQ parseScalarExprWithPosition
 
 boilerplate utils to hook everything together
 
@@ -86,11 +85,6 @@ boilerplate utils to hook everything together
 >                        ,quotePat = parseExprPat p
 >                        ,quoteType = undefined
 >                        ,quoteDec = undefined}
-
-these return asts of from the module
-Database.HsSqlPpp.Internals.AstAnti, but when you expect the result
-of a quasiquote to be from the module Database.HsSqlPpp.Ast, it
-magically converts from one to the other ...
 
 > parseExprExp :: (Show e, Data a) =>
 >                 Parser e a -> String -> Q Exp
@@ -124,16 +118,16 @@ and converts left to fail
 wrappers - the Parser module doesn't expose methods which parse
 exactly one statement
 
-> parseOneAntiPlpgsql :: Parser String Statement
-> parseOneAntiPlpgsql f l c s =
->     case parseAntiPlpgsql f l c s of
+> parseOnePlpgsql :: Parser String Statement
+> parseOnePlpgsql f l c s =
+>     case parsePlpgsqlWithPosition f l c s of
 >       Right [st] -> Right st
 >       Right _ -> Left "got multiple statements"
 >       Left e -> Left $ show e
 >
-> parseOneAntiSql :: Parser String Statement
-> parseOneAntiSql f l c s =
->     case parseAntiSql f l c s of
+> parseOneStatement :: Parser String Statement
+> parseOneStatement f l c s =
+>     case parseStatementsWithPosition f l c s of
 >       Right [st] -> Right st
 >       Right _ -> Left "got multiple statements"
 >       Left e -> Left $ show e
