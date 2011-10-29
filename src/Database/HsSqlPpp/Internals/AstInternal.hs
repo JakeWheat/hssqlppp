@@ -8702,7 +8702,7 @@ sem_SetClauseList_Nil  =
             local tpe         : {Either [TypeError] Type}
             local backTree    : _
             local catUpdates  : {[CatalogUpdate]}
-            local statementType : {Maybe StatementType}
+            local statementType : {Maybe ParameterizedStatementType}
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
             local originalTree : _
@@ -8766,7 +8766,7 @@ sem_SetClauseList_Nil  =
             local libUpdates  : _
             local tpe         : {Either [TypeError] Type}
             local backTree    : _
-            local statementType : {Maybe StatementType}
+            local statementType : {Maybe ParameterizedStatementType}
             local catUpdates  : {[CatalogUpdate]}
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
@@ -8785,7 +8785,7 @@ sem_SetClauseList_Nil  =
             local tpe         : {Either [TypeError] Type}
             local catUpdates  : {[CatalogUpdate]}
             local backTree    : _
-            local statementType : {Maybe StatementType}
+            local statementType : {Maybe ParameterizedStatementType}
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
             local originalTree : _
@@ -8796,7 +8796,7 @@ sem_SetClauseList_Nil  =
             local libUpdates  : _
             local tpe         : {Either [TypeError] Type}
             local backTree    : _
-            local statementType : {Maybe StatementType}
+            local statementType : {Maybe ParameterizedStatementType}
             local catUpdates  : {[CatalogUpdate]}
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
@@ -8824,7 +8824,7 @@ sem_SetClauseList_Nil  =
             local tpe         : {Either [TypeError] Type}
             local catUpdates  : {[CatalogUpdate]}
             local attrs       : {[(String,Type)]}
-            local statementType : {Maybe StatementType}
+            local statementType : {Maybe ParameterizedStatementType}
             local backTree    : _
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
@@ -8839,7 +8839,7 @@ sem_SetClauseList_Nil  =
             local catUpdates  : {[CatalogUpdate]}
             local attrs       : {Either [TypeError] [(String,Type)]}
             local backTree    : _
-            local statementType : {Maybe StatementType}
+            local statementType : {Maybe ParameterizedStatementType}
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
             local originalTree : _
@@ -8865,7 +8865,7 @@ sem_SetClauseList_Nil  =
             local tpe         : {Either [TypeError] Type}
             local attrs       : _
             local backTree    : _
-            local statementType : {Maybe StatementType}
+            local statementType : {Maybe ParameterizedStatementType}
             local catUpdates  : {[CatalogUpdate]}
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
@@ -8880,7 +8880,7 @@ sem_SetClauseList_Nil  =
             local tpe         : {Either [TypeError] Type}
             local backTree    : _
             local catUpdates  : {[CatalogUpdate]}
-            local statementType : {Maybe StatementType}
+            local statementType : {Maybe ParameterizedStatementType}
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
             local originalTree : _
@@ -8894,7 +8894,7 @@ sem_SetClauseList_Nil  =
             local trefEnv     : _
             local libUpdates  : _
             local tpe         : {Either [TypeError] Type}
-            local statementType : {Maybe StatementType}
+            local statementType : {Maybe ParameterizedStatementType}
             local backTree    : _
             local catUpdates  : {[CatalogUpdate]}
             local lib         : _
@@ -8911,7 +8911,7 @@ sem_SetClauseList_Nil  =
             local tpe         : {Either [TypeError] Type}
             local backTree    : _
             local catUpdates  : {[CatalogUpdate]}
-            local statementType : {Maybe StatementType}
+            local statementType : {Maybe ParameterizedStatementType}
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
             local originalTree : _
@@ -8951,7 +8951,7 @@ sem_SetClauseList_Nil  =
             local tpe         : {Either [TypeError] Type}
             local backTree    : _
             local catUpdates  : {[CatalogUpdate]}
-            local statementType : {Maybe StatementType}
+            local statementType : {Maybe ParameterizedStatementType}
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
             local originalTree : _
@@ -8966,7 +8966,7 @@ sem_SetClauseList_Nil  =
             local tpe         : {Either [TypeError] Type}
             local backTree    : _
             local catUpdates  : {[CatalogUpdate]}
-            local statementType : {Maybe StatementType}
+            local statementType : {Maybe ParameterizedStatementType}
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
             local originalTree : _
@@ -8988,7 +8988,7 @@ sem_SetClauseList_Nil  =
             local trefEnv     : _
             local libUpdates  : _
             local tpe         : {Either [TypeError] Type}
-            local statementType : {Maybe StatementType}
+            local statementType : {Maybe ParameterizedStatementType}
             local columnTypes : {Either [TypeError] [(String,Type)]}
             local backTree    : _
             local catUpdates  : {[CatalogUpdate]}
@@ -9038,7 +9038,7 @@ sem_SetClauseList_Nil  =
          child ex             : QueryExpr 
          visit 0:
             local tpe         : {Either [TypeError] Type}
-            local statementType : {Maybe StatementType}
+            local statementType : {Maybe ParameterizedStatementType}
             local backTree    : _
             local catUpdates  : {[CatalogUpdate]}
             local libUpdates  : _
@@ -9062,7 +9062,7 @@ sem_SetClauseList_Nil  =
             local tpe         : {Either [TypeError] Type}
             local backTree    : _
             local catUpdates  : {[CatalogUpdate]}
-            local statementType : {Maybe StatementType}
+            local statementType : {Maybe ParameterizedStatementType}
             local annotatedTree : _
             local fixedUpIdentifiersTree : _
             local originalTree : _
@@ -9109,7 +9109,7 @@ sem_SetClauseList_Nil  =
             local trefEnv     : _
             local libUpdates  : _
             local tpe         : {Either [TypeError] Type}
-            local statementType : {Maybe StatementType}
+            local statementType : {Maybe ParameterizedStatementType}
             local backTree    : _
             local catUpdates  : {[CatalogUpdate]}
             local lib         : _
@@ -9479,7 +9479,7 @@ sem_Statement_Assignment ann_ target_ value_  =
               _lhsOlibUpdates :: ([LocalBindingsUpdate])
               _tpe :: (Either [TypeError] Type)
               _catUpdates :: ([CatalogUpdate])
-              _statementType :: (Maybe StatementType)
+              _statementType :: (Maybe ParameterizedStatementType)
               _valueOexpectedType :: (Maybe Type)
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
@@ -9999,7 +9999,7 @@ sem_Statement_CreateDomain ann_ name_ typ_ constraintName_ check_  =
               _lhsOcatUpdates :: ([CatalogUpdate])
               _lhsOlibUpdates :: ([LocalBindingsUpdate])
               _tpe :: (Either [TypeError] Type)
-              _statementType :: (Maybe StatementType)
+              _statementType :: (Maybe ParameterizedStatementType)
               _catUpdates :: ([CatalogUpdate])
               _checkOlib :: LocalBindings
               _lhsOfixedUpIdentifiersTree :: Statement 
@@ -10125,7 +10125,7 @@ sem_Statement_CreateFunction ann_ name_ params_ rettype_ rep_ lang_ body_ vol_  
               _paramsOpos :: Int
               _tpe :: (Either [TypeError] Type)
               _catUpdates :: ([CatalogUpdate])
-              _statementType :: (Maybe StatementType)
+              _statementType :: (Maybe ParameterizedStatementType)
               _bodyOcat :: Catalog
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
@@ -10289,7 +10289,7 @@ sem_Statement_CreateLanguage ann_ name_  =
               _lhsOcatUpdates :: ([CatalogUpdate])
               _lhsOlibUpdates :: ([LocalBindingsUpdate])
               _tpe :: (Either [TypeError] Type)
-              _statementType :: (Maybe StatementType)
+              _statementType :: (Maybe ParameterizedStatementType)
               _catUpdates :: ([CatalogUpdate])
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
@@ -10418,7 +10418,7 @@ sem_Statement_CreateTable ann_ name_ atts_ cons_  =
               _tpe :: (Either [TypeError] Type)
               _catUpdates :: ([CatalogUpdate])
               _attrs :: ([(String,Type)])
-              _statementType :: (Maybe StatementType)
+              _statementType :: (Maybe ParameterizedStatementType)
               _consOlib :: LocalBindings
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
@@ -10547,7 +10547,7 @@ sem_Statement_CreateTableAs ann_ name_ expr_  =
               _tpe :: (Either [TypeError] Type)
               _catUpdates :: ([CatalogUpdate])
               _attrs :: (Either [TypeError] [(String,Type)])
-              _statementType :: (Maybe StatementType)
+              _statementType :: (Maybe ParameterizedStatementType)
               _exprOexpectedTypes :: ([Maybe Type])
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
@@ -10761,7 +10761,7 @@ sem_Statement_CreateType ann_ name_ atts_  =
               _lhsOcatUpdates :: ([CatalogUpdate])
               _lhsOlibUpdates :: ([LocalBindingsUpdate])
               _tpe :: (Either [TypeError] Type)
-              _statementType :: (Maybe StatementType)
+              _statementType :: (Maybe ParameterizedStatementType)
               _catUpdates :: ([CatalogUpdate])
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
@@ -10867,7 +10867,7 @@ sem_Statement_CreateView ann_ name_ colNames_ expr_  =
               _exprOcsql :: LocalBindings
               _tpe :: (Either [TypeError] Type)
               _catUpdates :: ([CatalogUpdate])
-              _statementType :: (Maybe StatementType)
+              _statementType :: (Maybe ParameterizedStatementType)
               _exprOexpectedTypes :: ([Maybe Type])
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
@@ -10977,7 +10977,7 @@ sem_Statement_Delete ann_ table_ using_ whr_ returning_  =
               _lhsOcatUpdates :: ([CatalogUpdate])
               _lhsOlibUpdates :: ([LocalBindingsUpdate])
               _tpe :: (Either [TypeError] Type)
-              _statementType :: (Maybe StatementType)
+              _statementType :: (Maybe ParameterizedStatementType)
               _catUpdates :: ([CatalogUpdate])
               _whrOlib :: LocalBindings
               _returningOlib :: LocalBindings
@@ -11124,7 +11124,7 @@ sem_Statement_DropFunction ann_ ifE_ sigs_ cascade_  =
               _lhsOlibUpdates :: ([LocalBindingsUpdate])
               _tpe :: (Either [TypeError] Type)
               _catUpdates :: ([CatalogUpdate])
-              _statementType :: (Maybe StatementType)
+              _statementType :: (Maybe ParameterizedStatementType)
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
               _sigsOcat :: Catalog
@@ -11355,7 +11355,7 @@ sem_Statement_ForIntegerStatement ann_ lb_ var_ from_ to_ sts_  =
               _stsOlibUpdates :: ([LocalBindingsUpdate])
               _tpe :: (Either [TypeError] Type)
               _catUpdates :: ([CatalogUpdate])
-              _statementType :: (Maybe StatementType)
+              _statementType :: (Maybe ParameterizedStatementType)
               _fromOexpectedType :: (Maybe Type)
               _toOexpectedType :: (Maybe Type)
               _lhsOfixedUpIdentifiersTree :: Statement 
@@ -11489,7 +11489,7 @@ sem_Statement_ForQueryStatement ann_ lb_ var_ sel_ sts_  =
               _selOcsql :: LocalBindings
               _tpe :: (Either [TypeError] Type)
               _catUpdates :: ([CatalogUpdate])
-              _statementType :: (Maybe StatementType)
+              _statementType :: (Maybe ParameterizedStatementType)
               _selOexpectedTypes :: ([Maybe Type])
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
@@ -11688,7 +11688,7 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
               _lhsOlibUpdates :: ([LocalBindingsUpdate])
               _insDataOcsql :: LocalBindings
               _tpe :: (Either [TypeError] Type)
-              _statementType :: (Maybe StatementType)
+              _statementType :: (Maybe ParameterizedStatementType)
               _columnTypes :: (Either [TypeError] [(String,Type)])
               _catUpdates :: ([CatalogUpdate])
               _insDataOexpectedTypes :: ([Maybe Type])
@@ -12107,7 +12107,7 @@ sem_Statement_QueryStatement ann_ ex_  =
               _lhsOcatUpdates :: ([CatalogUpdate])
               _lhsOlibUpdates :: ([LocalBindingsUpdate])
               _tpe :: (Either [TypeError] Type)
-              _statementType :: (Maybe StatementType)
+              _statementType :: (Maybe ParameterizedStatementType)
               _catUpdates :: ([CatalogUpdate])
               _exOcsql :: LocalBindings
               _exOexpectedTypes :: ([Maybe Type])
@@ -12263,7 +12263,7 @@ sem_Statement_Return ann_ value_  =
               _lhsOlibUpdates :: ([LocalBindingsUpdate])
               _tpe :: (Either [TypeError] Type)
               _catUpdates :: ([CatalogUpdate])
-              _statementType :: (Maybe StatementType)
+              _statementType :: (Maybe ParameterizedStatementType)
               _lhsOfixedUpIdentifiersTree :: Statement 
               _lhsOoriginalTree :: Statement 
               _valueOcat :: Catalog
@@ -12555,7 +12555,7 @@ sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
               _lhsOcatUpdates :: ([CatalogUpdate])
               _lhsOlibUpdates :: ([LocalBindingsUpdate])
               _tpe :: (Either [TypeError] Type)
-              _statementType :: (Maybe StatementType)
+              _statementType :: (Maybe ParameterizedStatementType)
               _catUpdates :: ([CatalogUpdate])
               _whrOlib :: LocalBindings
               _assignsOlib :: LocalBindings

@@ -71,6 +71,9 @@ make src-extra/tests/Tests
 src-extra/tests/Tests
 ~~~~~
 
+This also rebuilds from the ag files if needed. When working on the
+source, this is usually the only compile command you need.
+
 Background reading
 ==================
 

@@ -20,8 +20,8 @@
 
 > data Item = Group String [Item]
 >           | Expr String (Either [TypeError] Type)
->           | StmtType String (Either [TypeError] [Maybe StatementType])
->           | CatStmtType String [CatalogUpdate] (Either [TypeError] [Maybe StatementType])
+>           | StmtType String (Either [TypeError] [Maybe ParameterizedStatementType])
+>           | CatStmtType String [CatalogUpdate] (Either [TypeError] [Maybe ParameterizedStatementType])
 >           | Ddl String [CatalogUpdate]
 
 
@@ -38,7 +38,7 @@
 >      then assertEqual ("typecheck " ++ src) (Just et) $ fmap Right ty
 >      else assertEqual ("typecheck " ++ src) et $ Left er
 >
-> testStatementType :: String -> Either [TypeError] [Maybe StatementType] -> Test.Framework.Test
+> testStatementType :: String -> Either [TypeError] [Maybe ParameterizedStatementType] -> Test.Framework.Test
 > testStatementType src sis = testCase ("typecheck " ++ src) $
 >   let ast = case parseStatements "" src of
 >                               Left e -> error $ show e
@@ -54,7 +54,7 @@
 
 > testCatUpStatementType :: String
 >                        -> [CatalogUpdate]
->                        -> Either [TypeError] [Maybe StatementType]
+>                        -> Either [TypeError] [Maybe ParameterizedStatementType]
 >                        -> Test.Framework.Test
 > testCatUpStatementType src eu sis = testCase ("typecheck " ++ src) $
 >   let ast = case parseStatements "" src of

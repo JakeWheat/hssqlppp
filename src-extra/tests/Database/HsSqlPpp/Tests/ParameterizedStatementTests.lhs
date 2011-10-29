@@ -21,7 +21,7 @@ type checking tests.
 > import Database.HsSqlPpp.Catalog
 >
 > data Item = Group String [Item]
->           | Statements [(String, [CatalogUpdate], Maybe StatementType)]
+>           | Statements [(String, [CatalogUpdate], Maybe ParameterizedStatementType)]
 >
 > parameterizedStatementTests :: Test.Framework.Test
 > parameterizedStatementTests =
@@ -126,7 +126,7 @@ inpredicate
 
 -------------------------------------------------------------------------------
 
-> testStatementType :: String -> [CatalogUpdate] -> Maybe StatementType -> Test.Framework.Test
+> testStatementType :: String -> [CatalogUpdate] -> Maybe ParameterizedStatementType -> Test.Framework.Test
 > testStatementType src eu st = testCase ("typecheck " ++ src) $
 >   let ast = case parseStatements "" src of
 >                                         Left e -> error $ show e

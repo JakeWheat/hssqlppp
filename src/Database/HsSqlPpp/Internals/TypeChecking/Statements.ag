@@ -78,7 +78,7 @@ SEM Statement
       CreateFunction CreateType CreateTable CreateTableAs Return Assignment
       ForQueryStatement ForIntegerStatement DropFunction
         loc.tpe : {Either [TypeError] Type}
-        loc.statementType : {Maybe StatementType}
+        loc.statementType : {Maybe ParameterizedStatementType}
         lhs.annotatedTree =
             updateAnnotation
                 (\a -> a {stType = @loc.statementType

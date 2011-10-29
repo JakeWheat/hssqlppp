@@ -10,7 +10,7 @@ functions (not including those that depend on the ast data types).
 >      -- * Annotation data types
 >      Annotation(..)
 >     ,SourcePosition
->     ,StatementType
+>     ,ParameterizedStatementType
 >     ,getAnnotation
 >     --,updateAnnotations
 >     ,updateAnnotation
@@ -20,4 +20,4 @@ functions (not including those that depend on the ast data types).
 >     ) where
 >
 > import Database.HsSqlPpp.Internals.AstAnnotation
-> import Database.HsSqlPpp.Internals.AnnotationUtils
+> --import Database.HsSqlPpp.Internals.AnnotationUtils

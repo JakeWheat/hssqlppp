@@ -13,7 +13,7 @@ grammar code and aren't exposed.
 >     (
 >      Annotation(..)
 >     ,SourcePosition
->     ,StatementType
+>     ,ParameterizedStatementType
 >     ,getAnnotation
 >     ,updateAnnotations
 >     ,getAnnotations
@@ -34,7 +34,7 @@ grammar code and aren't exposed.
 > -- | Represents a source file position, usually set by the parser.
 > type SourcePosition = (String,Int,Int)
 > -- | Statement type is used for getting type information for a parameterized statement.
-> type StatementType = ([Type],[(String,Type)])
+> type ParameterizedStatementType = ([Type],[(String,Type)])
 
 > -- | Annotation type - one of these is attached to most of the
 > -- data types used in the ast.
@@ -44,8 +44,8 @@ grammar code and aren't exposed.
 >                              ,atype :: Maybe Type
 >                                -- | any type errors
 >                              ,errs :: [TypeError]
->                                -- | 'statement type' - used for getting the in and out types of a parameterized statement
->                              ,stType :: Maybe StatementType
+>                                -- | used for getting the in and out types of a parameterized statement
+>                              ,stType :: Maybe ParameterizedStatementType
 >                                -- | any catalog updates that a ddl statement produces
 >                              ,catUpd :: [CatalogUpdate]
 >                                -- | the matched function prototype for a funcall
