@@ -48,13 +48,13 @@
 >        (sl (selIL ["a"]))
 >        [Tref ea (i "t") (NoAlias ea)]
 >        Nothing [] Nothing [] (Just (NumberLit ea "10")) Nothing]-}
->      ,s "select t.a::int from table as t;"
+>      ,s "SELECT T.A::INT FROM TABLE AS T;"
 >         [QueryStatement ea
 >          (Select ea Dupes
 >           (SelectList ea
->            [SelExp ea (Cast ea (QIdentifier ea [Nmc "t",Nmc "a"])
+>            [SelExp ea (Cast ea (QIdentifier ea [Nmc "T",Nmc "A"])
 >                        (SimpleTypeName ea "int"))])
->           [Tref ea (Name ea [Nmc "table"]) (TableAlias ea (Nmc "t"))]
+>           [Tref ea (Name ea [Nmc "TABLE"]) (TableAlias ea (Nmc "T"))]
 >           Nothing [] Nothing [] Nothing Nothing)]
 >      ]
 >
