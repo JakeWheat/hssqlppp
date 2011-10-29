@@ -23,13 +23,22 @@ Rebuild the generated files for the syntax
 ==========================================
 
 If you edit the ag files, you need to rebuild the AstInternal.hs and
-the AstAnti.hs. Use the makefile:
+the AstAnti.hs. First make sure you have uuagc installed:
+
+~~~~~
+cabal install uuagc
+~~~~~
+
+Then use the makefile:
 
 ~~~~~
 make src/Database/HsSqlPpp/Internals/AstAnti.hs
 ~~~~~
 
-The makefile hasn't been heavily tested yet.
+The makefile hasn't been heavily tested yet. If you have any problems
+with unrecognised modules, the complete list of packages referenced is
+in the Makefile (it may be missing build tools, such as cpphs, this
+hasn't been checked yet).
 
 To just rebuild the library in the usual way after editing the ag
 files use:
@@ -40,7 +49,7 @@ cabal build
 ~~~~~
 
 There is one further generated file, DefaultTemplate1Catalog.lhs. You
-don't usually need to regenerate this:
+don't usually need to regenerate this, but this is how you do it:
 
 ~~~~~
 make regenDefaultTemplate1Catalog

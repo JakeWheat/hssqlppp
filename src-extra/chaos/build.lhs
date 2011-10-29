@@ -1,6 +1,4 @@
 
-cd /home/jake/wd/hssqlppp/trunk/src-extra/chaos && ghc -iextensions:../extensions build.hs
-
 Problems with this:
 the extensions use the internals of the hssqlppp library
 solution:

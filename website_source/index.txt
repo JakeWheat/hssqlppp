@@ -48,8 +48,8 @@ The pretty printer should support everything the parser supports
 understand).
 
 Catalog information is limited, supports the type checking. Some
-information is collected on: scalar types, domains, composite types,
-casts, tables, views and functions currently.
+information is collected on scalar types, domains, composite types,
+casts, tables, views and functions.
 
 Installation
 ============

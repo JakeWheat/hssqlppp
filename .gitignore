@@ -15,10 +15,9 @@
 /src-extra/examples/TypeCheck
 /src-extra/examples/TypeCheckDB
 /src-extra/h7c/dist/
-/src-extra/tests/dist/
 /src-extra/tosort/util/DevelTool
 /src-extra/tests/Tests
 /src-extra/devel-util/MakeDefaultTemplate1Catalog
-/src-extra/util/GenerateExeRules
+/src-extra/devel-util/GenerateExeRules
 /src-extra/h7c/h7c
 /.depend.bak

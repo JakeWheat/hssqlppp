@@ -20,10 +20,6 @@ typechecking (enough to produce the types of most things - not looking
 at adding the missing error checks for a bunch of things yet) and the
 quasiquotes used in the extensions all working.
 
-write the make file properly, so there is one way to do every build,
-can get rid of all the lines for calling ghc in each of the exes, and
-all the different scripts and docs spread out everywhere.
-
 get to the stage of being able to compile and roughly typecheck the
 chaos sql again
 

@@ -26,5 +26,3 @@ type inference tests
 
 > main :: IO ()
 > main = defaultMain allTests
-
-cd /home/jake/wd/hssqlppp/trunk/ && make && ghc -Wall -XTupleSections -XScopedTypeVariables -XDeriveDataTypeable -isrc:src-extra/util:src-extra/tests/ src-extra/tests/Tests.lhs

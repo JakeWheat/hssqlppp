@@ -1,11 +1,7 @@
-Make the website,
 
-To compile, use something like:
+Used to build the website. To compile and run use
 
-time ghc -threaded -XDeriveDataTypeable -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -idevel:src:examples/chaos:examples/extensions/:examples/util/:tests/ --make devel/DevelTool
-
-cd /home/jake/wd/hssqlppp/trunk && ghc -XTupleSections -XScopedTypeVariables -XDeriveDataTypeable -isrc:src-extra/examples:src-extra/tests:src-extra/util:src-extra/tosort/util src-extra/tosort/util/DevelTool.lhs -rtsopts -threaded
-
+make website
 
 > import System.Environment
 

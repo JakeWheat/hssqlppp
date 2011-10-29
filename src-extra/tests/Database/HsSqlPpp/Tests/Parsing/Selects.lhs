@@ -48,7 +48,14 @@
 >        (sl (selIL ["a"]))
 >        [Tref ea (i "t") (NoAlias ea)]
 >        Nothing [] Nothing [] (Just (NumberLit ea "10")) Nothing]-}
-
+>      ,s "select t.a::int from table as t;"
+>         [QueryStatement ea
+>          (Select ea Dupes
+>           (SelectList ea
+>            [SelExp ea (Cast ea (QIdentifier ea [Nmc "t",Nmc "a"])
+>                        (SimpleTypeName ea "int"))])
+>           [Tref ea (Name ea [Nmc "table"]) (TableAlias ea (Nmc "t"))]
+>           Nothing [] Nothing [] Nothing Nothing)]
 >      ]
 >
 

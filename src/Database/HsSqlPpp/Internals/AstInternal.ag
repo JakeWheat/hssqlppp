@@ -16,28 +16,9 @@ These ast nodes are both used as the result of successful parsing, and
 as the input to the type checker (and the output from the type
 checker), and the pretty printer.
 
-= compiling
+see here for how to compile:
 
-use
-
-uuagc  -dcfwsp --cycle --genlinepragmas AstInternal.ag
-
-to generate a new AstInternal.hs from this file (cycle will check for
-cycles - it's bad if you get any of these, and genlinepragmas mean
-that you'll be able to view the original source ag positions when
-there are errors or warnings compiling the generated hs file, which
-you want much more often than not).
-
-Depending on the alignment of the planets, you might need to use
-
-uuagc  -dcfwsp AstInternal.ag
-
-At the moment, genlinepragmas seems to break when you use where with
-uuagc > 0.9.19.
-
-(install uuagc with
-cabal install uuagc
-)
+http://jakewheat.github.com/hssqlppp/devel.txt.html
 
 -}
 

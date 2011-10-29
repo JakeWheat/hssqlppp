@@ -1,10 +1,7 @@
-Make the website,
 
-To compile and run, use something like:
+Used to build the website. To compile and run use
 
-ghc --make -threaded -XScopedTypeVariables -XDeriveDataTypeable -XTupleSections -DPOSTGRES -cpp -pgmPcpphs -optP--cpp -iutil:src/lib:src/qq:src/postgresql:examples/chaos:examples/extensions/:examples/util/:tests/ --make util/DevelTool.lhs -rtsopts
-
-time util/DevelTool makewebsite +RTS -N
+make website
 
 > module MakeWebsite (makeWebsite, sourceLinks) where
 

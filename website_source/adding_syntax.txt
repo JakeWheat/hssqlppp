@@ -60,9 +60,8 @@ Now check the test fails.
 
 ~~~~
 
-$ cd src-extra/tests
-$ ghc -XTupleSections -XScopedTypeVariables -XDeriveDataTypeable -i../../src:../util Tests.lhs
-$ ./Tests -t "numeric"
+$ make src-extra/tests/Tests
+$ src-extra/tests/Tests -t "numeric"
 parserTests:
   parse expressions:
     simple operators:
