@@ -78,7 +78,11 @@ the quasiquoting uses a crazy system of automatically generating the
 anticonstructors, want to change this so these are explicit and
 visible to the user. This will make understanding and editing the
 source much easier, and make it sensible to expose the internals of
-the parser to help with writing syntax extensions.
+the parser to help with writing syntax extensions. The downside is
+less accurate typechecking, but I think this is an ok tradeoff since
+the ast types are able to represent a vast range of invalid sql
+already. SQL is too big and messy to try to be elegant in this
+respect.
 
 have parens explicit in the ast?
 
@@ -147,7 +151,7 @@ so
 * add much more information to support error checking
 * track more types of objects, e.g. triggers, indexes
 * add more information to support documentation generator, e.g. view
-  source, function source
+  source, function source, cross-linked hypertext sources
 
 == quasiquote work
 
@@ -156,7 +160,10 @@ lot more quasiquotes. Good start would be to review all the
 extensions, and translation examples, codegen, etc.. and make sure you
 never need to write asts out explicitly, and can always use
 quasiquotes.
-Another thing to add is full haskell syntax inside quasiquotes.
+
+Another thing to add is full haskell syntax inside quasiquotes. No
+idea how to do this but the language-c-quote package does this so can
+look at the source there.
 
 == refactoring
 
@@ -224,13 +231,15 @@ which supplies the parser with the operator details at run time so
 there is some flexibility
 
 full dynamic support: e.g. create operators in sql then able to parse
-use of them ... standard way of dealing with operator precedence is
-to parse them all as left associative then adjust the tree after, not
-sure this will be enough
+use of them ... standard way of dealing with operator precedence is to
+parse them all as left associative then adjust the tree after, not
+sure this will be enough -> perhaps can reuse the haskell-src-exts
+fixity thing for rewriting trees - will have to add parens explicitly
+to the ast and parser, which might be tricky for sql?
 
 == write extensions?
 
-materialized vie, temporal data, generalized inclusions, order
+materialized view, temporal data, generalized inclusions, order
 independent ddl source, show used catalog, modules for sql source
 
 == lint
@@ -238,7 +247,8 @@ independent ddl source, show used catalog, modules for sql source
 lint tool framework - so want to make it easy to add new rules
 
 == separate parse tree?
-consider having separate parse tree to the ast
+consider having separate parse tree to the ast - can this be
+automatic, or should it be a 'fake' parse tree
 
 == better annotation approach?
 

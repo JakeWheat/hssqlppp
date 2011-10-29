@@ -6,20 +6,21 @@ Purpose
 
 Possible uses of this library include:
 
-* parsing SQL
 * type-checker can help with SQL development and catch bugs which
   aren't statically detected by Postgres
 * generating SQL code programmatically/ generating SQL from some other
   source
-* transforming SQL code using quasiquoting
+* transforming SQL code, possibly using quasiquoting, e.g. writing
+  PL/pgSQL with less boilerplate, or optimisation rewrites
 * viewing the catalog produced by some SQL code
 
 With some extra work:
 
 * generating documentation for SQL code
-* middleware to support running one dialect of SQL on a different DBMS
-* typesafe database access from haskell
-* write a lint for PL/pgSQL
+* support running one dialect of SQL on a different DBMS using
+  automatic translation - portable SQL
+* typesafe database access from Haskell
+* lint or semantic analysis for SQL or PL/pgSQL
 
 Status
 ======
@@ -72,8 +73,8 @@ Documentation
 
 [Some notes on hacking on hssqlppp itself](devel.txt.html)
 
-Useful links
-============
+Links
+=====
 
 Homepage: <http://jakewheat.github.com/hssqlppp/>
 

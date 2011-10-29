@@ -1,7 +1,8 @@
 The big plan for sorting out a lot of the code.
 
 The motivation is: how can the code be rewritten so that it isn't
-embarrassing anymore.
+embarrassingly bad (hopefully this is about code quality and not
+ego...)
 
 Rough overview:
 
@@ -13,16 +14,30 @@ qualifications yet though).
 
 work through and rewrite the test code, it's all a massive unreadable
 unplanned mess. Want to make the tests much more orthogonal so each
-test is more unit-y.
+test is more unit-y. (And when the syntax is updated, it doesn't
+trigger mass rewriting all over the tests.)
 
-try to target getting the chaos sql and extensions parsing,
-typechecking (enough to produce the types of most things - not looking
-at adding the missing error checks for a bunch of things yet) and the
-quasiquotes used in the extensions all working.
+get the chaos sql typechecking to the previous standard (back in
+version 0.0.5 or something), clean up the use of h7c, and get the
+documentation for this generating properly again
 
-get to the stage of being able to compile and roughly typecheck the
-chaos sql again
+other possible ideas for next release:
 
+typesafe wrapper, use for chaos tests, get chaos actually running also
+
+fix the quasiquote syntax approach - no separate antinoded ast types,
+anti nodes are manually added and explicit in the ast.
+
+type checking flow, inferred type ish
+
+
+concrete steps:
+1) antictor change -> add the ctors in manually, remove the generated
+   astanti completely
+2) rewrite the parse tests to be readable
+3) kill the typechecking, and start again with better annotation
+4) work through the typechecking tests getting the new system working
+5) look at typechecking chaos
 
 Details
 
@@ -33,23 +48,21 @@ approach, plus it's a bit weird.
 
 The IDEnv code used for the fixup identifiers shows the way
 forward. This will be extended to support types and typechecking in
-the same style. At this point, the separate fixup identifiers pass can
-be eliminated. The basic concept is that the IDEnv is a cut down tree
-structure which mirrors how the current environment has been
-constructed, and then this can be queried to get the tye/ qualifier/
-star expansion out, and flag ambiguities, etc.
+the same style. Then the separate fixup identifiers pass can be
+eliminated. The basic concept is that the IDEnv is a cut down tree
+structure (an abstract ast?) which mirrors how the current environment
+has been constructed, and then this can be queried to get the type/
+qualifier/ star expansion out, and flag ambiguities, etc.
 
 The only tree rewrite that fixup identifiers does that will stay in
-the new system is expanding * in select lists. So the new typechecker
-will rewrite the * in select lists first, then procede with usual
-typechecking.
+the new system is expanding * in select lists and this will not be
+optional when typechecking. The new typechecker will rewrite the * in
+select lists when typechecking the select list.
 
 The other rewrites will be optional during typechecking:
 
-Adding full aliases to trefs where possible (you wouldn't usually want
-this, but it makes some analysis/ transform of the asts easier so is
-useful). And to subqueries - so you get the column names as well as
-the 'table' name for the subquery.
+Adding full aliases to trefs where possible, and to subqueries - so
+you get the column names as well as the 'table' name for the subquery.
 
 Adding the qualifiers to identifier references explicitly.
 
@@ -59,3 +72,5 @@ which doesn't rewrite the star
 adds explicit aliases to select items in a select list
 e.g. 'count(*)' is rewritten to 'count(*) as count'
 
+Most of these are mainly useful for code which wants to
+query/transform the ast.

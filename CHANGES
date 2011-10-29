@@ -1,15 +1,19 @@
 0.4.0
 
+lots of breaking changes to the ast types
 change ast for into statements
 change ast for update statements
 add support for distinct and order by in aggregate calls
-change the syntax for identifiers and similar, much better handling of
-  names, qualification and quoted names in the parser and syntax
-handle asterix in syntax and parser differently - will give syntax
+change the syntax for names, identifiers, etc., much better handling
+  of qualification and quoted names in the parser and syntax
+handle asterix in syntax and parser differently, and will give syntax
   error in most places when the asterix isn't valid during parsing
-support parsing sql server select top n syntax
-add makefile which handles all the generated files for building and
-  running the tests, and a bunch of other stuff
+support parsing sql server select top n syntax (parses to postgres
+  limit abstract syntax)
+add a reasonably comprehensive makefile which handles the generated
+  files, compiling and running the tests and other tasks much more
+  straightforwardly, replaces the various build scripts and the cabal
+  file for the tests
 remove the functions from Annotation module which are trivial wrappers
   around uniplate functions
 bug/regression fixes:
@@ -19,10 +23,12 @@ fix pretty printing (x).y member reference in scalar
 fix typechecking for update and insert statements
 fix typechecking for natural joins
 fix typechecking for parameterized queries/dml
-fix parsing of substring when it uses regular function call syntax
-  (i.e. substring(a,b,c) rather than substring(a from b for c)
 fix typechecking for most joins
 fix typechecking for non composite function table refs
+main deficiency for typechecking expressions remaining is composite
+  and set of composite returning functions in tablerefs.
+fix parsing of substring when it uses regular function call syntax
+  (i.e. substring(a,b,c) rather than substring(a from b for c)
 fix for the syntax of the directions in order by in window functions
 
 0.3.1
