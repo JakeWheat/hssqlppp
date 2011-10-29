@@ -3,15 +3,15 @@
 # more info here: http://jakewheat.github.com/hssqlppp/devel.txt.html
 
 # this makefile can be used:
-# * when the .ag files are altered
+# * when the .ag files are altered to rebuild the hs
 # * to build/ run the tests
-# * to build other example exes
+# * to build all the examples
 # * to build/run other development utils
 
 # the default make target is to build the automated tests exe
 
 # stuff to add:
-# build the lib using cabal
+# build the lib using cabal from here
 # do stuff with chaos:
 #   build the 'compiler' exe only
 #   produce the transformed sql

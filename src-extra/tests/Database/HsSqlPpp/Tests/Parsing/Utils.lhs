@@ -75,3 +75,16 @@ shortcuts for constructing test data and asts
 
 > member :: ScalarExpr -> ScalarExpr -> ScalarExpr
 > member a b = FunCall ea (name ".") [a,b]
+
+
+
+> num :: String -> ScalarExpr
+> num n = NumberLit ea n
+
+> funCall :: String -> [ScalarExpr] -> ScalarExpr
+> funCall n as = FunCall ea (name n) as
+
+> lTrue,lFalse,lNull :: ScalarExpr
+> lTrue = BooleanLit ea True
+> lFalse = BooleanLit ea False
+> lNull = NullLit ea
