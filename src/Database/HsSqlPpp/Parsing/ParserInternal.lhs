@@ -236,19 +236,24 @@ this recursion needs refactoring cos it's a mess
 
 > intoQueryStatement :: SParser Statement
 > intoQueryStatement = do
->   p <- pos
->   (i,q) <- pQueryExprX True
->   return $ i $ QueryStatement p q
+>   (i,_) <- pQueryExprX True
+>   case i of
+>     Nothing -> fail "not into"
+>     Just s -> return s
 
 > pQueryExpr :: SParser QueryExpr
 > pQueryExpr = snd <$> pQueryExprX False
 
-> pQueryExprX :: Bool -> SParser (Statement -> Statement, QueryExpr)
-> pQueryExprX allowInto = (id,) <$>
->   (with <|>
->    buildExpressionParser combTable selFactor)
+bit convoluted to parse the into part
+
+> pQueryExprX :: Bool -> SParser (Maybe Statement, QueryExpr)
+> pQueryExprX allowInto =
+>   ((Nothing,) <$> with)
+>   <|>  buildExpressionParser combTable selFactor
 >   where
->         selFactor = try (parens pQueryExpr) <|> selQuerySpec <|> values
+>         selFactor = choice [try ((Nothing,) <$> (parens pQueryExpr))
+>                            ,selQuerySpec
+>                            ,(Nothing,) <$> values]
 >         with = WithQueryExpr <$> (pos <* keyword "with")
 >                              <*> commaSep1 withQuery
 >                              <*> pQueryExpr
@@ -256,13 +261,18 @@ this recursion needs refactoring cos it's a mess
 >                               <*> nameComponent
 >                               <*> tryOptionMaybe (parens $ commaSep nameComponent)
 >                               <*> (keyword "as" *> parens pQueryExpr)
->         combTable = [map (\(c,p) -> Infix (CombineQueryExpr
->                                            <$> pos
->                                            <*> (c <$ p)) AssocLeft)
->                         [(Except, keyword "except")
->                         ,(Intersect, keyword "intersect")
->                         ,(UnionAll, try (keyword "union" *> keyword "all"))
->                         ,(Union, keyword "union")]]
+>         combTable =
+>            [map makeOp [(Except, keyword "except")
+>                        ,(Intersect, keyword "intersect")
+>                        ,(UnionAll, try (keyword "union" *> keyword "all"))
+>                        ,(Union, keyword "union")]]
+>         makeOp (c,p) =
+>            Infix (do
+>                   cmb <- CombineQueryExpr
+>                          <$> pos
+>                          <*> (c <$ p)
+>                   return $ \s0 s1 -> (Nothing, cmb (snd s0) (snd s1))
+>                  ) AssocLeft
 >         selQuerySpec = do
 >           p <- pos <* keyword "select"
 >           d <- option Dupes (Distinct <$ keyword "distinct")
@@ -272,12 +282,12 @@ this recursion needs refactoring cos it's a mess
 >                 $ keyword "top" *> (NumberLit <$> pos <*> (show <$> integer))
 >           -- todo: work out how to make this work properly - need to return
 >           -- the into
->           (sl,_intoBit) <- if allowInto
+>           (sl,intoBit) <- if allowInto
 >                           then permute ((,)
 >                                         <$$> try selectList
 >                                         <|?> (Nothing, Just <$> into))
->                          else (,Nothing) <$> selectList
->           Select p d sl
+>                           else (,Nothing) <$> selectList
+>           s <- Select p d sl
 >                    <$> option [] from
 >                    <*> optionMaybe whereClause
 >                    <*> option [] groupBy
@@ -285,6 +295,10 @@ this recursion needs refactoring cos it's a mess
 >                    <*> orderBy
 >                    <*> option tp (Just <$> limit)
 >                    <*> optionMaybe offset
+>           return (case intoBit of
+>                       Just f -> Just $ f $ QueryStatement p s
+>                       Nothing -> Nothing
+>                  ,s)
 >         from = keyword "from" *> commaSep1 tableRef
 >         groupBy = keyword "group" *> keyword "by"
 >                   *> commaSep1 expr

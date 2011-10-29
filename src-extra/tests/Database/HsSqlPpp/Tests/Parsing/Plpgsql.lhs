@@ -33,16 +33,20 @@
 >       [Perform ea $ FunCall ea (name "test") [
 >                     FunCall ea (name "||") [eqi "r" "relvar_name"
 >                                     ,stringQ "_and_stuff"]]]
->       -- FIXME: get into working again
->       -- This should be in the plpgsql section
->      {-,f "select into a,b c,d from e;"
->       [Into ea False [ei "a", ei "b"]
+>      ,f "select into a,b c,d from e;"
+>       [Into ea False [name "a", name "b"]
 >        $ QueryStatement ea $ Select ea Dupes (SelectList ea [selI "c", selI "d"])
->              [Tref ea (i "e") (NoAlias ea)] Nothing [] Nothing [] Nothing Nothing]-}
->      {-,f "select c,d into a,b from e;"
->       [Into ea False [ei "a", ei "b"]
+>              [Tref ea (i "e") (NoAlias ea)] Nothing [] Nothing [] Nothing Nothing]
+>      ,f "select c,d into a,b from e;"
+>       [Into ea False [name "a", name "b"]
 >        $ QueryStatement ea $ Select ea Dupes (SelectList ea [selI "c", selI "d"])
->        [Tref ea (i "e") (NoAlias ea)] Nothing [] Nothing [] Nothing Nothing]-}
+>          [Tref ea (i "e") (NoAlias ea)] Nothing [] Nothing [] Nothing Nothing]
+>      ,f "delete from pieces where x = 1 and y = 1 returning tag into r.tag;"
+>       [Into ea False [Name ea [Nmc "r",Nmc "tag"]]
+>        $ Delete ea (dqi "pieces") []
+>          (Just $ funCall "!and" [funCall "=" [ei "x",num "1"]
+>                                 ,funCall "=" [ei "y",num "1"]])
+>          (Just $ sl [selI "tag"])]
 >      ,f "update pieces\n\
 >         \set a=b returning tag into r.tag;"
 >       [Into ea False [Name ea [Nmc "r",Nmc "tag"]]

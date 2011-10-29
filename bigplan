@@ -28,11 +28,40 @@ typesafe wrapper, use for chaos tests, get chaos actually running also
 type checking flow, inferred type ish
 
 
+
+= current work: typechecking fixes:
+
+do syntax fix first - into, split plpgsql statement types from regular
+sql?
+
+get rid of inftype in annotation
+get rid of almost all the typechecking code completely
+adjust the catalog to use names (and handle case properly, maybe
+  better error checking also?)
+start with simple scalar expressions: get types, and type errors
+then add fns and fnprototype annotation
+and ability to get type of ? via attrs
+
+then start on queryexprs:
+simple trefs, simple select lists
+* expansion
+build up to all trefs
+
+other query expr parts ...
+then dml
+then have ddl and plpgsql to tackle
+
+get to stage where chaos can successfully type check
+will be a lot more functional that current system at this point
+
+
+
 concrete steps:
 2) rewrite the parse tests to be readable
 3) kill the typechecking, and start again with better annotation
 4) work through the typechecking tests getting the new system working
 5) look at typechecking chaos
+
 
 Details
 
