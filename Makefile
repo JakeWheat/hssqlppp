@@ -57,18 +57,19 @@ HC_OPTS = $(HC_BASIC_OPTS) $(HC_INCLUDE_DIRS) $(HC_PACKAGES)
 # by a utility (use make exe_depend) since ghc -M doesn't provide
 # the list of .o files which an .lhs for an exe needs to build
 # (ghc -M is used for all the dependencies other than the exes)
-EXE_FILES = src-extra/tests/Tests \
-	src-extra/devel-util/MakeDefaultTemplate1Catalog \
-	src-extra/examples/FixSqlServerTpchSyntax \
-	src-extra/examples/MakeSelect \
-	src-extra/examples/Parse \
-	src-extra/examples/Parse2 \
-	src-extra/examples/QQ \
-	src-extra/examples/ShowCatalog \
-	src-extra/examples/TypeCheck \
-	src-extra/examples/TypeCheckDB \
-	src-extra/tosort/util/DevelTool \
-	src-extra/h7c/h7c
+EXE_FILES = src-extra/tests/Tests
+
+#	src-extra/devel-util/MakeDefaultTemplate1Catalog \
+#	src-extra/examples/FixSqlServerTpchSyntax \
+#	src-extra/examples/MakeSelect \
+#	src-extra/examples/Parse \
+#	src-extra/examples/Parse2 \
+#	src-extra/examples/QQ \
+#	src-extra/examples/ShowCatalog \
+#	src-extra/examples/TypeCheck \
+#	src-extra/examples/TypeCheckDB \
+#	src-extra/tosort/util/DevelTool \
+#	src-extra/h7c/h7c
 
 #	src-extra/chaos/build.lhs
 

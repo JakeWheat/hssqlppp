@@ -30,16 +30,16 @@ This is the public module for the type checking functionality.
 >     ,typeCheckParameterizedStatement
 >     ,typeCheckQueryExpr
 >     ,typeCheckScalarExpr
->     ,fixUpIdentifiers
->     ,fixUpIdentifiersQE
->     ,fixUpIdentifiersSE
->     ,addExplicitCasts
->     ,canonicalizeTypeNames
+>     --,fixUpIdentifiers
+>     --,fixUpIdentifiersQE
+>     --,fixUpIdentifiersSE
+>     --,addExplicitCasts
+>     --,canonicalizeTypeNames
 >      -- * Annotated tree utils
 >     ,getStatementAnnotations
 >     ) where
 >
 > import Database.HsSqlPpp.Internals.AstInternal
-> import Database.HsSqlPpp.Internals.TypeChecking.Utils
+> --import Database.HsSqlPpp.Internals.TypeChecking.Utils
 > --import Database.HsSqlPpp.Internals.AstAnnotation
 > import Database.HsSqlPpp.Internals.AnnotationUtils
