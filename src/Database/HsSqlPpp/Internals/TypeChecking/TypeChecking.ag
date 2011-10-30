@@ -62,8 +62,7 @@ main global attributes
 
 -}
 
-ATTR AllNodes Root ScalarExprRoot
-  [ cat : Catalog
-  || annotatedTree : SELF -- annotated tree is the output tree with the types added
-     originalTree : SELF -- this is the original tree, should not be changed
-  ]
+attr AllNodes Root ScalarExprRoot
+  inh cat :: Catalog
+  syn annotatedTree :: SELF -- annotated tree is the output tree with the types added
+     ,originalTree :: SELF -- this is the original tree, should not be changed

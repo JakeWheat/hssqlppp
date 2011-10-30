@@ -24,7 +24,7 @@ http://jakewheat.github.com/hssqlppp/devel.txt.html
 
 {- | test
 -}
-MODULE {Database.HsSqlPpp.Internals.AstInternal}
+module {Database.HsSqlPpp.Internals.AstInternal}
 {
     -- {-# LANGUAGE DeriveDataTypeable,ScopedTypeVariables #-}
     --from the ag files:
@@ -147,177 +147,177 @@ everything is chucked in here: dml, ddl, plpgsql statements
 
 -}
 
-DATA Statement
+data Statement
 
 --queries
 
-    | QueryStatement ann:Annotation ex:QueryExpr
+    | QueryStatement ann::Annotation ex::QueryExpr
 
 -- dml
 
     --table targetcolumns insertdata(values or select statement) returning
-    | Insert ann:Annotation
-             table : Name
-             targetCols : {[NameComponent]}
-             insData : QueryExpr
-             returning : MaybeSelectList
+    | Insert ann::Annotation
+             table :: Name
+             targetCols :: {[NameComponent]}
+             insData :: QueryExpr
+             returning :: MaybeSelectList
     --tablename setitems where returning
-    | Update ann:Annotation
-             table : Name
-             assigns : SetClauseList
-             fromList : TableRefList
-             whr : MaybeBoolExpr
-             returning : MaybeSelectList
+    | Update ann::Annotation
+             table :: Name
+             assigns :: SetClauseList
+             fromList :: TableRefList
+             whr :: MaybeBoolExpr
+             returning :: MaybeSelectList
     --tablename, where, returning
-    | Delete ann:Annotation
-             table : Name
-             using : TableRefList
-             whr : MaybeBoolExpr
-             returning : MaybeSelectList
+    | Delete ann::Annotation
+             table :: Name
+             using :: TableRefList
+             whr :: MaybeBoolExpr
+             returning :: MaybeSelectList
     --tablename column names, from
-    | Copy ann:Annotation
-           table : Name
-           targetCols : {[NameComponent]}
-           source : CopySource
+    | Copy ann::Annotation
+           table :: Name
+           targetCols :: {[NameComponent]}
+           source :: CopySource
     --represents inline data for copy statement
-    | CopyData ann:Annotation insData : String
-    | Truncate ann:Annotation
-               tables: {[Name]}
-               restartIdentity : RestartIdentity
-               cascade : Cascade
+    | CopyData ann::Annotation insData :: String
+    | Truncate ann::Annotation
+               tables:: {[Name]}
+               restartIdentity :: RestartIdentity
+               cascade :: Cascade
 
 -- ddl
 
-    | CreateTable ann:Annotation
-                  name : Name
-                  atts : AttributeDefList
-                  cons : ConstraintList
-    | AlterTable ann:Annotation
-                 name : Name
-                 actions : AlterTableActionList
-    | CreateSequence ann:Annotation
-                     name:Name
-                     incr:Integer
-                     min:Integer
-                     max:Integer
-                     start:Integer
-                     cache:Integer
-    | AlterSequence ann:Annotation
-                    name:Name
-                    ownedBy: Name
-    | CreateTableAs ann:Annotation
-                    name : Name
-                    expr : QueryExpr
-    | CreateView ann:Annotation
-                 name : Name
-                 colNames : {MaybeNameComponentList}
-                 expr : QueryExpr
-    | CreateType ann:Annotation
-                 name : Name
-                 atts : TypeAttributeDefList
+    | CreateTable ann::Annotation
+                  name :: Name
+                  atts :: AttributeDefList
+                  cons :: ConstraintList
+    | AlterTable ann::Annotation
+                 name :: Name
+                 actions :: AlterTableActionList
+    | CreateSequence ann::Annotation
+                     name::Name
+                     incr::Integer
+                     min::Integer
+                     max::Integer
+                     start::Integer
+                     cache::Integer
+    | AlterSequence ann::Annotation
+                    name::Name
+                    ownedBy:: Name
+    | CreateTableAs ann::Annotation
+                    name :: Name
+                    expr :: QueryExpr
+    | CreateView ann::Annotation
+                 name :: Name
+                 colNames :: {MaybeNameComponentList}
+                 expr :: QueryExpr
+    | CreateType ann::Annotation
+                 name :: Name
+                 atts :: TypeAttributeDefList
     -- language name args rettype bodyquoteused body vol
-    | CreateFunction ann:Annotation
-                     name : Name
-                     params : ParamDefList
-                     rettype : TypeName
-                     rep : Replace
-                     lang : Language
-                     body : FnBody
-                     vol : Volatility
+    | CreateFunction ann::Annotation
+                     name :: Name
+                     params :: ParamDefList
+                     rettype :: TypeName
+                     rep :: Replace
+                     lang :: Language
+                     body :: FnBody
+                     vol :: Volatility
     -- name type checkexpression
-    | CreateDomain ann:Annotation
-                   name : Name
-                   typ : TypeName
-                   constraintName: String
-                   check : MaybeBoolExpr
-    | CreateLanguage ann:Annotation
-                     name:String
-    | CreateTrigger ann:Annotation
-                    name:NameComponent
-                    wh : TriggerWhen
-                    events: {[TriggerEvent]}
-                    tbl : Name
-                    firing : TriggerFire
-                    fnName : Name
-                    fnArgs : ScalarExprList
+    | CreateDomain ann::Annotation
+                   name :: Name
+                   typ :: TypeName
+                   constraintName:: String
+                   check :: MaybeBoolExpr
+    | CreateLanguage ann::Annotation
+                     name::String
+    | CreateTrigger ann::Annotation
+                    name::NameComponent
+                    wh :: TriggerWhen
+                    events:: {[TriggerEvent]}
+                    tbl :: Name
+                    firing :: TriggerFire
+                    fnName :: Name
+                    fnArgs :: ScalarExprList
     -- ifexists (name,argtypes)* cascadeorrestrict
-    | DropFunction ann:Annotation
-                   ifE : IfExists
-                   sigs : NameTypeNameListPairList
-                   cascade : Cascade
+    | DropFunction ann::Annotation
+                   ifE :: IfExists
+                   sigs :: NameTypeNameListPairList
+                   cascade :: Cascade
     -- ifexists names cascadeorrestrict
-    | DropSomething ann:Annotation
-                    dropType : DropType
-                    ifE : IfExists
-                    names : {[Name]}
-                    cascade : Cascade
+    | DropSomething ann::Annotation
+                    dropType :: DropType
+                    ifE :: IfExists
+                    names :: {[Name]}
+                    cascade :: Cascade
 
 --misc
 
-    | Set ann:Annotation name:String values:{[SetValue]}
-    | Notify ann:Annotation name:String
+    | Set ann::Annotation name::String values::{[SetValue]}
+    | Notify ann::Annotation name::String
 
 
 
-{-    | SqlStatement ann:Annotation -- todo: put this in so that the lib can be better used as a pure sql parser
-                   stmt:Statement -}
-    | Into ann:Annotation
-           strict:Bool
-           into : {[Name]}
-           stmt : Statement
-    | Assignment ann:Annotation
-                 target : Name
-                 value : ScalarExpr
-    | Return ann:Annotation
-             value : MaybeScalarExpr
-    | ReturnNext ann:Annotation
-                 expr : ScalarExpr
-    | ReturnQuery ann:Annotation
-                  sel : QueryExpr
-    | Raise ann:Annotation
-            level : RaiseType
-            message : String
-            args : ScalarExprList
-    | NullStatement ann:Annotation
-    | Perform ann:Annotation
-              expr : ScalarExpr
-    | Execute ann:Annotation
-              expr : ScalarExpr
-    | ForQueryStatement ann:Annotation
-                        lb : {Maybe String}
-                        var : NameComponent
-                        sel : QueryExpr
-                        sts : StatementList
-    | ForIntegerStatement ann:Annotation
-                          lb : {Maybe String}
-                          var : NameComponent
-                          from : ScalarExpr
-                          to : ScalarExpr
-                          sts : StatementList
-    | LoopStatement ann:Annotation
-                    lb : {Maybe String}
-                    sts : StatementList
-    | WhileStatement ann:Annotation
-                     lb : {Maybe String}
-                     expr : ScalarExpr
-                     sts : StatementList
-    | ContinueStatement ann:Annotation lb:{Maybe String}
-    | ExitStatement ann:Annotation lb:{Maybe String}
+{-    | SqlStatement ann::Annotation -- todo:: put this in so that the lib can be better used as a pure sql parser
+                   stmt::Statement -}
+    | Into ann::Annotation
+           strict::Bool
+           into :: {[Name]}
+           stmt :: Statement
+    | Assignment ann::Annotation
+                 target :: Name
+                 value :: ScalarExpr
+    | Return ann::Annotation
+             value :: MaybeScalarExpr
+    | ReturnNext ann::Annotation
+                 expr :: ScalarExpr
+    | ReturnQuery ann::Annotation
+                  sel :: QueryExpr
+    | Raise ann::Annotation
+            level :: RaiseType
+            message :: String
+            args :: ScalarExprList
+    | NullStatement ann::Annotation
+    | Perform ann::Annotation
+              expr :: ScalarExpr
+    | Execute ann::Annotation
+              expr :: ScalarExpr
+    | ForQueryStatement ann::Annotation
+                        lb :: {Maybe String}
+                        var :: NameComponent
+                        sel :: QueryExpr
+                        sts :: StatementList
+    | ForIntegerStatement ann::Annotation
+                          lb :: {Maybe String}
+                          var :: NameComponent
+                          from :: ScalarExpr
+                          to :: ScalarExpr
+                          sts :: StatementList
+    | LoopStatement ann::Annotation
+                    lb :: {Maybe String}
+                    sts :: StatementList
+    | WhileStatement ann::Annotation
+                     lb :: {Maybe String}
+                     expr :: ScalarExpr
+                     sts :: StatementList
+    | ContinueStatement ann::Annotation lb::{Maybe String}
+    | ExitStatement ann::Annotation lb::{Maybe String}
     --variable, list of when parts, else part
-    | CaseStatementSimple ann:Annotation
-                    val : ScalarExpr
-                    cases : ScalarExprListStatementListPairList
-                    els : StatementList
-    | CaseStatement ann:Annotation
-                    cases : ScalarExprListStatementListPairList
-                    els : StatementList
+    | CaseStatementSimple ann::Annotation
+                    val :: ScalarExpr
+                    cases :: ScalarExprListStatementListPairList
+                    els :: StatementList
+    | CaseStatement ann::Annotation
+                    cases :: ScalarExprListStatementListPairList
+                    els :: StatementList
     --list is
-    --first if (condition, statements):elseifs(condition, statements)
+    --first if (condition, statements)::elseifs(condition, statements)
     --last bit is else statements
-    | If ann:Annotation
-         cases : ScalarExprStatementListPairList
-         els : StatementList
-    | Block ann:Annotation lb:{Maybe String} vars:VarDefList sts : StatementList
+    | If ann::Annotation
+         cases :: ScalarExprStatementListPairList
+         els :: StatementList
+    | Block ann::Annotation lb::{Maybe String} vars::VarDefList sts :: StatementList
 
     | AntiStatement String
 
@@ -340,61 +340,61 @@ ncStr (Nmc n) = n
 ncStr (QNmc n) = n
 }
 
-DATA Name | Name ann:Annotation is:{[NameComponent]}
+data Name | Name ann::Annotation is::{[NameComponent]}
 
-DATA QueryExpr
-    | Select ann:Annotation
-             selDistinct : Distinct
-             selSelectList : SelectList
-             selTref : TableRefList
-             selWhere : MaybeBoolExpr
-             selGroupBy : ScalarExprList
-             selHaving : MaybeBoolExpr
-             selOrderBy : ScalarExprDirectionPairList
-             selLimit : MaybeScalarExpr
-             selOffset : MaybeScalarExpr
-    | CombineQueryExpr ann:Annotation
-                       ctype : CombineType
-                       sel1 : QueryExpr
-                       sel2 : QueryExpr
-    | Values ann:Annotation
-             vll:ScalarExprListList
-    | WithQueryExpr ann : Annotation
-                    withs : WithQueryList
-                    ex : QueryExpr
+data QueryExpr
+    | Select ann::Annotation
+             selDistinct :: Distinct
+             selSelectList :: SelectList
+             selTref :: TableRefList
+             selWhere :: MaybeBoolExpr
+             selGroupBy :: ScalarExprList
+             selHaving :: MaybeBoolExpr
+             selOrderBy :: ScalarExprDirectionPairList
+             selLimit :: MaybeScalarExpr
+             selOffset :: MaybeScalarExpr
+    | CombineQueryExpr ann::Annotation
+                       ctype :: CombineType
+                       sel1 :: QueryExpr
+                       sel2 :: QueryExpr
+    | Values ann::Annotation
+             vll::ScalarExprListList
+    | WithQueryExpr ann :: Annotation
+                    withs :: WithQueryList
+                    ex :: QueryExpr
 
-TYPE WithQueryList = [WithQuery]
-DATA WithQuery | WithQuery ann : Annotation
-                           name : NameComponent
-                           colAliases : {Maybe [NameComponent]}
-                           ex : QueryExpr
+type WithQueryList = [WithQuery]
+data WithQuery | WithQuery ann :: Annotation
+                           name :: NameComponent
+                           colAliases :: {Maybe [NameComponent]}
+                           ex :: QueryExpr
 
-DATA FnBody | SqlFnBody ann:Annotation sts : StatementList
-            | PlpgsqlFnBody ann:Annotation blk : Statement
+data FnBody | SqlFnBody ann::Annotation sts :: StatementList
+            | PlpgsqlFnBody ann::Annotation blk :: Statement
 
-DATA TableRef | Tref ann:Annotation
-                     tbl:Name
-                     alias : TableAlias
-              | JoinTref ann:Annotation
-                         tbl : TableRef
-                         nat : Natural
-                         joinType : JoinType
-                         tbl1 : TableRef
-                         onExpr : OnExpr
-                         alias : TableAlias
-              | SubTref ann:Annotation
-                        sel : QueryExpr
-                        alias : TableAlias
-              | FunTref ann:Annotation
-                        fn:ScalarExpr
-                        alias : TableAlias
+data TableRef | Tref ann::Annotation
+                     tbl::Name
+                     alias :: TableAlias
+              | JoinTref ann::Annotation
+                         tbl :: TableRef
+                         nat :: Natural
+                         joinType :: JoinType
+                         tbl1 :: TableRef
+                         onExpr :: OnExpr
+                         alias :: TableAlias
+              | SubTref ann::Annotation
+                        sel :: QueryExpr
+                        alias :: TableAlias
+              | FunTref ann::Annotation
+                        fn::ScalarExpr
+                        alias :: TableAlias
 
-DATA TableAlias | NoAlias ann:Annotation
-                | TableAlias ann:Annotation tb:NameComponent
-                | FullAlias ann:Annotation tb:NameComponent cols:{[NameComponent]}
+data TableAlias | NoAlias ann::Annotation
+                | TableAlias ann::Annotation tb::NameComponent
+                | FullAlias ann::Annotation tb::NameComponent cols::{[NameComponent]}
 
-DATA JoinExpr | JoinOn ann:Annotation expr:ScalarExpr
-              | JoinUsing ann:Annotation x:{[NameComponent]}
+data JoinExpr | JoinOn ann::Annotation expr::ScalarExpr
+              | JoinUsing ann::Annotation x::{[NameComponent]}
 
 {
 data JoinType = Inner | LeftOuter| RightOuter | FullOuter | Cross
@@ -403,10 +403,10 @@ data JoinType = Inner | LeftOuter| RightOuter | FullOuter | Cross
 
 -- select columns, into columns
 
-DATA SelectList | SelectList ann:Annotation items:SelectItemList
+data SelectList | SelectList ann::Annotation items::SelectItemList
 
-DATA SelectItem | SelExp ann:Annotation ex:ScalarExpr
-                | SelectItem ann:Annotation ex:ScalarExpr name:NameComponent
+data SelectItem | SelExp ann::Annotation ex::ScalarExpr
+                | SelectItem ann::Annotation ex::ScalarExpr name::NameComponent
 
 {
 data CopySource = CopyFilename String
@@ -414,57 +414,57 @@ data CopySource = CopyFilename String
                   deriving (Show,Eq,Typeable,Data)
 }
 
-DATA SetClause | SetClause ann:Annotation
-                           setTarget:NameComponent
-                           ex:ScalarExpr
-               | MultiSetClause ann:Annotation
-                                setTargets:{[NameComponent]}
-                                ex:ScalarExpr
+data SetClause | SetClause ann::Annotation
+                           setTarget::NameComponent
+                           ex::ScalarExpr
+               | MultiSetClause ann::Annotation
+                                setTargets::{[NameComponent]}
+                                ex::ScalarExpr
 
 --name type default null constraint
 
-DATA AttributeDef | AttributeDef ann:Annotation
-                                 name : NameComponent
-                                 typ : TypeName
-                                 def: MaybeScalarExpr
-                                 cons : RowConstraintList
+data AttributeDef | AttributeDef ann::Annotation
+                                 name :: NameComponent
+                                 typ :: TypeName
+                                 def:: MaybeScalarExpr
+                                 cons :: RowConstraintList
 
 --Constraints which appear attached to an individual field
 
-DATA RowConstraint | NullConstraint ann:Annotation name:String
-                   | NotNullConstraint ann:Annotation name:String
-                   | RowCheckConstraint ann:Annotation name:String expr:ScalarExpr
-                   | RowUniqueConstraint ann:Annotation name:String
-                   | RowPrimaryKeyConstraint ann:Annotation name:String
-                   | RowReferenceConstraint ann:Annotation name:String
-                                            table : Name
-                                            att : (Maybe NameComponent)
-                                            onUpdate : Cascade
-                                            onDelete : Cascade
+data RowConstraint | NullConstraint ann::Annotation name::String
+                   | NotNullConstraint ann::Annotation name::String
+                   | RowCheckConstraint ann::Annotation name::String expr::ScalarExpr
+                   | RowUniqueConstraint ann::Annotation name::String
+                   | RowPrimaryKeyConstraint ann::Annotation name::String
+                   | RowReferenceConstraint ann::Annotation name::String
+                                            table :: Name
+                                            att :: (Maybe NameComponent)
+                                            onUpdate :: Cascade
+                                            onDelete :: Cascade
 
 --constraints which appear on a separate row in the create table
 
-DATA Constraint | UniqueConstraint ann:Annotation name:String x:{[NameComponent]}
-                | PrimaryKeyConstraint ann:Annotation name:String x:{[NameComponent]}
-                | CheckConstraint ann:Annotation name:String expr:ScalarExpr
+data Constraint | UniqueConstraint ann::Annotation name::String x::{[NameComponent]}
+                | PrimaryKeyConstraint ann::Annotation name::String x::{[NameComponent]}
+                | CheckConstraint ann::Annotation name::String expr::ScalarExpr
                   -- sourcecols targettable targetcols ondelete onupdate
-                | ReferenceConstraint ann:Annotation
-                                      name:String
-                                      atts : {[NameComponent]}
-                                      table : Name
-                                      tableAtts : {[NameComponent]}
-                                      onUpdate : Cascade
-                                      onDelete : Cascade
+                | ReferenceConstraint ann::Annotation
+                                      name::String
+                                      atts :: {[NameComponent]}
+                                      table :: Name
+                                      tableAtts :: {[NameComponent]}
+                                      onUpdate :: Cascade
+                                      onDelete :: Cascade
 
-DATA TypeAttributeDef | TypeAttDef ann:Annotation
-                                   name : NameComponent
-                                   typ : TypeName
+data TypeAttributeDef | TypeAttDef ann::Annotation
+                                   name :: NameComponent
+                                   typ :: TypeName
 
-DATA AlterTableAction | AlterColumnDefault ann:Annotation
-                                           nm : NameComponent
-                                           def : ScalarExpr
-                      | AddConstraint ann: Annotation
-                                      con: Constraint
+data AlterTableAction | AlterColumnDefault ann::Annotation
+                                           nm :: NameComponent
+                                           def :: ScalarExpr
+                      | AddConstraint ann:: Annotation
+                                      con:: Constraint
 {
 data SetValue
     = SetStr Annotation String
@@ -481,19 +481,19 @@ data TriggerFire = EachRow | EachStatement
                    deriving (Show,Eq,Typeable,Data)
 }
 
-DATA ParamDef | ParamDef ann:Annotation name:NameComponent typ:TypeName
-              | ParamDefTp ann:Annotation typ:TypeName
+data ParamDef | ParamDef ann::Annotation name::NameComponent typ::TypeName
+              | ParamDefTp ann::Annotation typ::TypeName
 
-DATA VarDef | VarDef ann:Annotation
-                     name : NameComponent
-                     typ : TypeName
-                     value : (Maybe ScalarExpr)
-            | ParamAlias ann:Annotation
-                         name : NameComponent
-                         i : Integer
-            | VarAlias ann:Annotation
-                       name : NameComponent
-                       aliased : Name
+data VarDef | VarDef ann::Annotation
+                     name :: NameComponent
+                     typ :: TypeName
+                     value :: (Maybe ScalarExpr)
+            | ParamAlias ann::Annotation
+                         name :: NameComponent
+                         i :: Integer
+            | VarAlias ann::Annotation
+                       name :: NameComponent
+                       aliased :: Name
 {
 data RaiseType = RNotice | RException | RError
                  deriving (Show,Eq,Typeable,Data)
@@ -508,11 +508,11 @@ data Language = Sql | Plpgsql
                 deriving (Show,Eq,Typeable,Data)
 }
 
-DATA TypeName | SimpleTypeName ann:Annotation tn:String
-              | PrecTypeName ann:Annotation tn:String prec:Integer
-              | Prec2TypeName ann:Annotation tn:String prec:Integer prec1:Integer
-              | ArrayTypeName ann:Annotation typ:TypeName
-              | SetOfTypeName ann:Annotation typ:TypeName
+data TypeName | SimpleTypeName ann::Annotation tn::String
+              | PrecTypeName ann::Annotation tn::String prec::Integer
+              | Prec2TypeName ann::Annotation tn::String prec::Integer prec1::Integer
+              | ArrayTypeName ann::Annotation typ::TypeName
+              | SetOfTypeName ann::Annotation typ::TypeName
 {
 data DropType = Table
               | Domain
@@ -553,62 +553,62 @@ appear in different places.  Maybe this should be called scalar
 expression?
 
 -}
-DATA ScalarExpr | NumberLit ann:Annotation d:String
-                | StringLit ann:Annotation
-                            value : String
-                | TypedStringLit ann:Annotation
-                                 tn : TypeName
-                                 value : String
-                | Interval ann:Annotation
-                           value : String
-                           field : IntervalField
-                           prec : {Maybe Int}
-                | Extract ann:Annotation
-                          field : ExtractField
-                          e : ScalarExpr
-                | NullLit ann:Annotation
-                | BooleanLit ann:Annotation b:Bool
-                | PositionalArg ann:Annotation p:Integer
-                | Placeholder ann:Annotation -- represents a '?'
-                | Cast ann:Annotation
-                       expr:ScalarExpr
-                       tn:TypeName
-                | Star ann:Annotation
-                | QStar ann:Annotation q:NameComponent -- e.g. a.*
-                | Identifier ann:Annotation -- e.g. tbl
-                             i:NameComponent
-                | QIdentifier ann:Annotation is:{[NameComponent]} -- e.g. tbl.a
-                | Case ann:Annotation
-                       cases : CaseScalarExprListScalarExprPairList
-                       els : MaybeScalarExpr
-                | CaseSimple ann:Annotation
-                             value : ScalarExpr
-                             cases : CaseScalarExprListScalarExprPairList
-                             els : MaybeScalarExpr
-                | Exists ann:Annotation
-                         sel : QueryExpr
-                | FunCall ann:Annotation
-                          funName:Name
-                          args:ScalarExprList
-                | InPredicate ann:Annotation
-                              expr:ScalarExpr
-                              i:Bool
-                              list:InList
-                | AggregateFn ann:Annotation
-                              aggDistinct : Distinct
-                              fn : ScalarExpr
-                              orderBy : ScalarExprDirectionPairList
-                | WindowFn ann:Annotation
-                           fn : ScalarExpr
-                           partitionBy : ScalarExprList
-                           orderBy : ScalarExprDirectionPairList
-                           frm : FrameClause
-                | ScalarSubQuery ann:Annotation -- scalar meaning scalar context not scalar valued...
-                                 sel : QueryExpr
-                | LiftOperator ann:Annotation
-                               oper:String
-                               flav:LiftFlavour
-                               args:ScalarExprList
+data ScalarExpr | NumberLit ann::Annotation d::String
+                | StringLit ann::Annotation
+                            value :: String
+                | TypedStringLit ann::Annotation
+                                 tn :: TypeName
+                                 value :: String
+                | Interval ann::Annotation
+                           value :: String
+                           field :: IntervalField
+                           prec :: {Maybe Int}
+                | Extract ann::Annotation
+                          field :: ExtractField
+                          e :: ScalarExpr
+                | NullLit ann::Annotation
+                | BooleanLit ann::Annotation b::Bool
+                | PositionalArg ann::Annotation p::Integer
+                | Placeholder ann::Annotation -- represents a '?'
+                | Cast ann::Annotation
+                       expr::ScalarExpr
+                       tn::TypeName
+                | Star ann::Annotation
+                | QStar ann::Annotation q::NameComponent -- e.g. a.*
+                | Identifier ann::Annotation -- e.g. tbl
+                             i::NameComponent
+                | QIdentifier ann::Annotation is::{[NameComponent]} -- e.g. tbl.a
+                | Case ann::Annotation
+                       cases :: CaseScalarExprListScalarExprPairList
+                       els :: MaybeScalarExpr
+                | CaseSimple ann::Annotation
+                             value :: ScalarExpr
+                             cases :: CaseScalarExprListScalarExprPairList
+                             els :: MaybeScalarExpr
+                | Exists ann::Annotation
+                         sel :: QueryExpr
+                | FunCall ann::Annotation
+                          funName::Name
+                          args::ScalarExprList
+                | InPredicate ann::Annotation
+                              expr::ScalarExpr
+                              i::Bool
+                              list::InList
+                | AggregateFn ann::Annotation
+                              aggDistinct :: Distinct
+                              fn :: ScalarExpr
+                              orderBy :: ScalarExprDirectionPairList
+                | WindowFn ann::Annotation
+                           fn :: ScalarExpr
+                           partitionBy :: ScalarExprList
+                           orderBy :: ScalarExprDirectionPairList
+                           frm :: FrameClause
+                | ScalarSubQuery ann::Annotation -- scalar meaning scalar context not scalar valued...
+                                 sel :: QueryExpr
+                | LiftOperator ann::Annotation
+                               oper::String
+                               flav::LiftFlavour
+                               args::ScalarExprList
                 | AntiScalarExpr String
 {
 data LiftFlavour = LiftAny | LiftAll
@@ -654,9 +654,9 @@ data ExtractField = ExtractCentury
 
 }
 
---todo: use liftoperator to implement inlist?
-DATA InList | InList ann:Annotation exprs : ScalarExprList
-            | InQueryExpr ann:Annotation sel : QueryExpr
+--todo:: use liftoperator to implement inlist?
+data InList | InList ann::Annotation exprs :: ScalarExprList
+            | InQueryExpr ann::Annotation sel :: QueryExpr
 
 {
 data FrameClause = FrameUnboundedPreceding
@@ -684,7 +684,7 @@ array constructor                 funcall
 row constructor                   funall
 
 Anything that is represented in the ast as some sort of name plus a
-list of expressions as arguments is treated as the same type of node:
+list of expressions as arguments is treated as the same type of node::
 FunCall.
 
 This includes
@@ -698,7 +698,7 @@ arrayctors e.g. array[3,5,6]
 rowctors e.g. ROW (2,4,6)
 array subscripting
 
-list of keyword operators (regular prefix, infix and postfix):
+list of keyword operators (regular prefix, infix and postfix)::
 and, or, not
 is null, is not null, isnull, notnull
 is distinct from, is not distinct from
@@ -727,52 +727,52 @@ currently supported keyword operators.
 -- some list nodes, not sure if all of these are needed as separately
 -- named node types
 
-TYPE OnExpr = MAYBE JoinExpr
-TYPE MaybeSelectList = MAYBE SelectList
+type OnExpr = maybe JoinExpr
+type MaybeSelectList = maybe SelectList
 
-TYPE TableRefList = [TableRef]
-TYPE MaybeScalarExpr = MAYBE ScalarExpr
-TYPE MaybeBoolExpr = MAYBE ScalarExpr
+type TableRefList = [TableRef]
+type MaybeScalarExpr = maybe ScalarExpr
+type MaybeBoolExpr = maybe ScalarExpr
 
-TYPE ScalarExprList = [ScalarExpr]
-TYPE ScalarExprListList = [ScalarExprList]
+type ScalarExprList = [ScalarExpr]
+type ScalarExprListList = [ScalarExprList]
 
-TYPE SetClauseList = [SetClause]
-TYPE AttributeDefList = [AttributeDef]
-TYPE ConstraintList = [Constraint]
-TYPE TypeAttributeDefList = [TypeAttributeDef]
-TYPE ParamDefList = [ParamDef]
-TYPE TypeNameList = [TypeName]
-TYPE NameTypeNameListPair = (Name, TypeNameList)
-TYPE NameTypeNameListPairList = [NameTypeNameListPair]
-TYPE ScalarExprListStatementListPair = (ScalarExprList,StatementList)
-TYPE ScalarExprListStatementListPairList = [ScalarExprListStatementListPair]
-TYPE ScalarExprStatementListPair = (ScalarExpr, StatementList)
-TYPE ScalarExprStatementListPairList = [ScalarExprStatementListPair]
-TYPE VarDefList = [VarDef]
-TYPE SelectItemList = [SelectItem]
-TYPE RowConstraintList = [RowConstraint]
-TYPE CaseScalarExprListScalarExprPair = (ScalarExprList,ScalarExpr)
-TYPE CaseScalarExprListScalarExprPairList = [CaseScalarExprListScalarExprPair]
-TYPE StatementList = [Statement]
-TYPE ScalarExprDirectionPair = (ScalarExpr,Direction)
-TYPE ScalarExprDirectionPairList = [ScalarExprDirectionPair]
-TYPE AlterTableActionList = [AlterTableAction]
-TYPE MaybeNameComponentList = MAYBE NameComponentList
-TYPE NameComponentList = [NameComponent]
+type SetClauseList = [SetClause]
+type AttributeDefList = [AttributeDef]
+type ConstraintList = [Constraint]
+type TypeAttributeDefList = [TypeAttributeDef]
+type ParamDefList = [ParamDef]
+type TypeNameList = [TypeName]
+type NameTypeNameListPair = (Name, TypeNameList)
+type NameTypeNameListPairList = [NameTypeNameListPair]
+type ScalarExprListStatementListPair = (ScalarExprList,StatementList)
+type ScalarExprListStatementListPairList = [ScalarExprListStatementListPair]
+type ScalarExprStatementListPair = (ScalarExpr, StatementList)
+type ScalarExprStatementListPairList = [ScalarExprStatementListPair]
+type VarDefList = [VarDef]
+type SelectItemList = [SelectItem]
+type RowConstraintList = [RowConstraint]
+type CaseScalarExprListScalarExprPair = (ScalarExprList,ScalarExpr)
+type CaseScalarExprListScalarExprPairList = [CaseScalarExprListScalarExprPair]
+type StatementList = [Statement]
+type ScalarExprDirectionPair = (ScalarExpr,Direction)
+type ScalarExprDirectionPairList = [ScalarExprDirectionPair]
+type AlterTableActionList = [AlterTableAction]
+type MaybeNameComponentList = maybe NameComponentList
+type NameComponentList = [NameComponent]
 
 -- Add a root data type so you can put initial values for inherited
 -- attributes in the section which defines and uses those attributes
 -- rather than in the sem_ calls
 
-DATA Root | Root statements:StatementList
-DERIVING Root: Show
+data Root | Root statements::StatementList
+deriving Root: Show
 
 -- use an expression root also to support type checking,
 -- etc., individual expressions
 
-DATA ScalarExprRoot | ScalarExprRoot expr:ScalarExpr
-DERIVING ScalarExprRoot: Show
+data ScalarExprRoot | ScalarExprRoot expr::ScalarExpr
+deriving ScalarExprRoot: Show
 
 {-
 ================================================================================
@@ -782,7 +782,7 @@ DERIVING ScalarExprRoot: Show
 attributes which every node has
 -}
 
-SET AllNodes = Statement QueryExpr FnBody TableRef
+set AllNodes = Statement QueryExpr FnBody TableRef
                JoinExpr
                SelectList SelectItem AttributeDef RowConstraint
                TypeAttributeDef ParamDef VarDef Constraint
@@ -807,10 +807,10 @@ SET AllNodes = Statement QueryExpr FnBody TableRef
                SetClause SetClauseList
 
 
-DERIVING AllNodes: Show,Eq,Typeable,Data
+deriving AllNodes: Show,Eq,Typeable,Data
 
 
-INCLUDE "TypeChecking/TypeChecking.ag"
+include "TypeChecking/TypeChecking.ag"
 
 {-
 
@@ -818,10 +818,10 @@ INCLUDE "TypeChecking/TypeChecking.ag"
 
 used to use record syntax to try to insulate code from field changes,
 and not have to write out loads of nothings and [] for simple selects,
-but don't know how to create haskell named records from uuagc DATA
+but don't know how to create haskell named records from uuagc data
 things
 
-makeSelect :: Statement
+makeSelect :::: Statement
 makeSelect = Select Dupes (SelectList [SelExp (Identifier "*")] [])
                    Nothing Nothing [] Nothing [] Asc Nothing Nothing
 
