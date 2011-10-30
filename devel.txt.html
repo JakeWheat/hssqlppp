@@ -8,7 +8,7 @@
   ><body
   ><div class="header"
     ><a href="index.html"
-      >HsSqlPpp-0.3.1</a
+      >HsSqlPpp-0.4.0</a
       ></div
     ><br
      /><br
@@ -20,7 +20,7 @@
     >Get the source</h1
     >
 <p
-    >Please use the code from git to develop with, one way to get the code is to run:</p
+    >Please use the code from git to develop with, one way to get it is to run:</p
     >
 <pre
     ><code
@@ -32,7 +32,7 @@
     >Build the library</h1
     >
 <p
-    >Once you have the source, build using cabal</p
+    >Once you have the source, you can build the library using cabal</p
     >
 <pre
     ><code
@@ -44,36 +44,78 @@
     >Rebuild the generated files for the syntax</h1
     >
 <p
-    >If you edit the ag files, use the build.sh script. This rebuilds two of the generated files: AstInternal.hs which is generated from the .ag files, and AstAnti.hs which is generated from AstInternal.hs.</p
+    >If you edit the ag files, you need to rebuild AstInternal.hs. First make sure you have uuagc installed:</p
+    >
+<pre
+    ><code
+      >cabal install uuagc
+</code
+      ></pre
     >
 <p
-    >There is one further generated file, DefaultTemplate1Catalog.lhs. There isn't a straightforward way to rebuild this at the moment.</p
+    >Then use the makefile:</p
+    >
+<pre
+    ><code
+      >make src/Database/HsSqlPpp/Internals/AstInternal.hs
+</code
+      ></pre
+    >
+<p
+    >The makefile hasn't been heavily tested yet. If you have any problems with unrecognised modules, the complete list of packages referenced is in the Makefile (it may be missing build tools, such as cpphs, this hasn't been checked yet).</p
+    >
+<p
+    >To just rebuild the library in the usual way after editing the ag files use:</p
+    >
+<pre
+    ><code
+      >make src/Database/HsSqlPpp/Internals/AstInternal.hs
+cabal build
+</code
+      ></pre
+    >
+<p
+    >There is one further generated file, DefaultTemplate1Catalog.lhs. You don't usually need to regenerate this, but this is how you do it:</p
+    >
+<pre
+    ><code
+      >make regenDefaultTemplate1Catalog
+</code
+      ></pre
     >
 <h1 id="build-and-run-the-tests"
     >Build and run the tests</h1
     >
 <p
-    >To build and run the tests, first install the hssqlppp library, then use:</p
+    >You can build and run the tests using the makefile:</p
     >
 <pre
     ><code
-      >cd src-extra/tests
-cabal configure &amp;&amp; cabal build
-dist/build/Tests/Tests
+      >make tests
 </code
       ></pre
     >
 <p
-    >There are a lot of regressions which haven't been fixed, so expect lots of failures (~50). These should all be typechecking failures.</p
+    >or to just build the tests, then run manually:</p
+    >
+<pre
+    ><code
+      >make src-extra/tests/Tests
+src-extra/tests/Tests
+</code
+      ></pre
+    >
+<p
+    >This also rebuilds from the ag files if needed. When working on the source, this is usually the only compile command you need.</p
     >
 <h1 id="background-reading"
     >Background reading</h1
     >
 <p
-    >The main components used in hssqlppp are: parsec, uuagc, generics, quasiquoting, pretty printing.</p
+    >The main things used in hssqlppp are: parsec, uuagc, generics, quasiquoting, pretty printing.</p
     >
 <p
-    >Parsec is used for parsing: Here is a outdated tutorial for parsec which isn't too bad for getting started: <a href="http://legacy.cs.uu.nl/daan/parsec.html"
+    >Parsec is used for parsing: Here is a tutorial for parsec which is outdated but isn't too bad for getting started: <a href="http://legacy.cs.uu.nl/daan/parsec.html"
       ><code class="url"
 	>http://legacy.cs.uu.nl/daan/parsec.html</code
 	></a
@@ -136,10 +178,7 @@ dist/build/Tests/Tests
       >uuagc</li
       >
 <li
-      >astanti</li
-      >
-<li
-      >lexing/parsing split</li
+      >lexing/parsing split (uses parsec to lex, then parsec again to parse)</li
       >
 <li
       >typechecker: fixupidentifiers</li
@@ -157,7 +196,7 @@ dist/build/Tests/Tests
      /><br
      /><br
      /><div class="footer"
-    >generated on 08/13/11 13:03:26, hssqlppp-0.3.1</div
+    >generated on 10/30/11 15:52:45, hssqlppp-0.4.0</div
     ></body
   ></html
 >

@@ -8,7 +8,7 @@
   ><body
   ><div class="header"
     ><a href="index.html"
-      >HsSqlPpp-0.3.1</a
+      >HsSqlPpp-0.4.0</a
       ></div
     ><br
      /><br
@@ -39,8 +39,8 @@ The source this file is generated from is here: <a href="https://github.com/Jake
     >TypeCheckTests.lhs</a
     >
 <table></table>
-<h1 id="astchecktests"
-    >astCheckTests</h1
+<h1 id="typechecktests"
+    >typeCheckTests</h1
     >
 <table>
 </table>
@@ -111,8 +111,8 @@ The source this file is generated from is here: <a href="https://github.com/Jake
   <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;!arrayctor&quot;</span>
      <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">]]</span></pre></div>
 </td></tr></table>
-<h1 id="some-expressions"
-    >some expressions</h1
+<h1 id="simple-expressions"
+    >simple expressions</h1
     >
 <table>
 <tr><td style='width:50%'>
@@ -374,46 +374,6 @@ The source this file is generated from is here: <a href="https://github.com/Jake
 <div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span>
   <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;least&quot;</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">]]</span></pre></div>
 </td></tr></table>
-<h1 id="some-expressions-1"
-    >some expressions</h1
-    >
-<table>
-<tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Number">3</span> <span class="Symbol">+</span> <span class="Char">'4'</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Number">3.0</span> <span class="Symbol">+</span> <span class="Char">'4'</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;numeric&quot;</span><span class="Symbol">)</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Char">'3'</span> <span class="Symbol">+</span> <span class="Char">'4'</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;+&quot;</span> <span class="Symbol">[</span><span class="ConId">UnknownType</span><span class="Symbol">,</span> <span class="ConId">UnknownType</span><span class="Symbol">]]</span></pre></div>
-</td></tr></table>
-<h1 id="exists-expressions"
-    >exists expressions</h1
-    >
-<table>
-<tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">exists</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">pg_type</span><span class="Symbol">)</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">exists</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">testit</span> <span class="Keyword">from</span> <span class="VarId">pg_type</span><span class="Symbol">)</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedIdentifier</span> <span class="String">&quot;testit&quot;</span><span class="Symbol">]</span></pre></div>
-</td></tr></table>
 <h1 id="row-comparison-expressions"
     >row comparison expressions</h1
     >
@@ -619,6 +579,51 @@ The source this file is generated from is here: <a href="https://github.com/Jake
 
 <div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">IncompatibleTypeSet</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">]]</span></pre></div>
 </td></tr></table>
+<h1 id="misc-expressions"
+    >misc expressions</h1
+    >
+<table>
+</table>
+<h1 id="some-expressions"
+    >some expressions</h1
+    >
+<table>
+<tr><td style='width:50%'>
+
+<div class='SqlPostgresql'><pre class="sourceCode"><span class="Number">3</span> <span class="Symbol">+</span> <span class="Char">'4'</span></pre></div>
+</td><td style='width:50%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)</span></pre></div>
+</td></tr><tr><td style='width:50%'>
+
+<div class='SqlPostgresql'><pre class="sourceCode"><span class="Number">3.0</span> <span class="Symbol">+</span> <span class="Char">'4'</span></pre></div>
+</td><td style='width:50%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;numeric&quot;</span><span class="Symbol">)</span></pre></div>
+</td></tr><tr><td style='width:50%'>
+
+<div class='SqlPostgresql'><pre class="sourceCode"><span class="Char">'3'</span> <span class="Symbol">+</span> <span class="Char">'4'</span></pre></div>
+</td><td style='width:50%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;+&quot;</span> <span class="Symbol">[</span><span class="ConId">UnknownType</span><span class="Symbol">,</span> <span class="ConId">UnknownType</span><span class="Symbol">]]</span></pre></div>
+</td></tr></table>
+<h1 id="exists-expressions"
+    >exists expressions</h1
+    >
+<table>
+<tr><td style='width:50%'>
+
+<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">exists</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">from</span> <span class="VarId">pg_type</span><span class="Symbol">)</span></pre></div>
+</td><td style='width:50%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span></pre></div>
+</td></tr><tr><td style='width:50%'>
+
+<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">exists</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">testit</span> <span class="Keyword">from</span> <span class="VarId">pg_type</span><span class="Symbol">)</span></pre></div>
+</td><td style='width:50%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedIdentifier</span> <span class="String">&quot;testit&quot;</span><span class="Symbol">]</span></pre></div>
+</td></tr></table>
 <h1 id="polymorphic-functions"
     >polymorphic functions</h1
     >
@@ -779,8 +784,8 @@ The source this file is generated from is here: <a href="https://github.com/Jake
 
 <div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">ValuesListsMustBeSameLength</span><span class="Symbol">]</span></pre></div>
 </td></tr></table>
-<h1 id="simple-combine-selects"
-    >simple combine selects</h1
+<h1 id="combine-selects"
+    >combine selects</h1
     >
 <table>
 <tr><td style='width:50%'>
@@ -836,16 +841,12 @@ The source this file is generated from is here: <a href="https://github.com/Jake
 
 <div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
   <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;b&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">with</span> <span class="VarId">a</span> <span class="Keyword">as</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">as</span> <span class="VarId">a1</span><span class="Symbol">),</span>
-                <span class="VarId">b</span> <span class="Keyword">as</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="VarId">a</span><span class="Symbol">)</span>
-                <span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="VarId">a</span>
-                <span class="Keyword">union</span> <span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="VarId">b</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;a1&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div>
 </td></tr></table>
+<h1 id="selects-from"
+    >selects from</h1
+    >
+<table>
+</table>
 <h1 id="simple-selects-from"
     >simple selects from</h1
     >
@@ -927,7 +928,7 @@ The source this file is generated from is here: <a href="https://github.com/Jake
 <div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="VarId">g</span><span class="Symbol">.</span><span class="VarId">generate_series</span> <span class="Keyword">from</span> <span class="VarId">generate_series</span><span class="Symbol">(</span><span class="Number">1</span><span class="Symbol">,</span><span class="Number">7</span><span class="Symbol">)</span> <span class="VarId">g</span><span class="Symbol">;</span></pre></div>
 </td><td style='width:50%'>
 
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedIdentifier</span> <span class="String">&quot;g.generate_series&quot;</span><span class="Symbol">]</span></pre></div>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedIdentifier</span> <span class="String">&quot;generate_series&quot;</span><span class="Symbol">]</span></pre></div>
 </td></tr><tr><td style='width:50%'>
 
 <div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="VarId">pg_attrdef</span><span class="Symbol">;</span></pre></div>
@@ -937,7 +938,8 @@ The source this file is generated from is here: <a href="https://github.com/Jake
   <span class="Symbol">[</span><span class="ConId">Just</span>
      <span class="Symbol">([],</span>
       <span class="Symbol">[(</span><span class="String">&quot;adrelid&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;oid&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;adnum&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int2&quot;</span><span class="Symbol">),</span>
-       <span class="Symbol">(</span><span class="String">&quot;adbin&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;adsrc&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)])]</span></pre></div>
+       <span class="Symbol">(</span><span class="String">&quot;adbin&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;pg_node_tree&quot;</span><span class="Symbol">),</span>
+       <span class="Symbol">(</span><span class="String">&quot;adsrc&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)])]</span></pre></div>
 </td></tr><tr><td style='width:50%'>
 
 <div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="VarId">abs</span> <span class="Keyword">from</span> <span class="VarId">abs</span><span class="Symbol">(</span><span class="Number">3</span><span class="Symbol">);</span></pre></div>
@@ -951,24 +953,85 @@ The source this file is generated from is here: <a href="https://github.com/Jake
 <table>
 <tr><td style='width:50%'>
 
-<div class='haskell'><pre class="sourceCode"><span class="Symbol">[</span><span class="ConId">CatCreateComposite</span> <span class="String">&quot;testType&quot;</span>
-   <span class="Symbol">[(</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;b&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span>
-    <span class="Symbol">(</span><span class="String">&quot;c&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)],</span>
- <span class="ConId">CatCreateFunction</span> <span class="ConId">FunName</span> <span class="String">&quot;testfunc&quot;</span> <span class="Symbol">[]</span>
-   <span class="Symbol">(</span><span class="ConId">SetOfType</span> <span class="Symbol">(</span><span class="ConId">NamedCompositeType</span> <span class="String">&quot;testType&quot;</span><span class="Symbol">))</span>
-   <span class="ConId">False</span><span class="Symbol">]</span></pre></div>
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="VarId">a</span><span class="Symbol">,</span><span class="VarId">b</span> <span class="Keyword">from</span> <span class="VarId">testfunc</span><span class="Symbol">();</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
-  <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;b&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
 <div class='haskell'><pre class="sourceCode"><span class="Symbol">[</span><span class="ConId">CatCreateFunction</span> <span class="ConId">FunName</span> <span class="String">&quot;testfunc&quot;</span> <span class="Symbol">[]</span> <span class="Symbol">(</span><span class="ConId">Pseudo</span> <span class="ConId">Void</span><span class="Symbol">)</span> <span class="ConId">False</span><span class="Symbol">]</span></pre></div>
 <div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="VarId">testfunc</span><span class="Symbol">();</span></pre></div>
 </td><td style='width:50%'>
 
 <div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[])]</span></pre></div>
+</td></tr></table>
+<h1 id="simple-join-selects"
+    >simple join selects</h1
+    >
+<table>
+<tr><td style='width:50%'>
+
+<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">as</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="Number">2</span> <span class="Keyword">as</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="VarId">a</span>
+  <span class="Keyword">cross</span> <span class="Keyword">join</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">true</span> <span class="Keyword">as</span> <span class="VarId">c</span><span class="Symbol">,</span> <span class="Number">4.5</span> <span class="Keyword">as</span> <span class="VarId">d</span><span class="Symbol">)</span> <span class="VarId">b</span><span class="Symbol">;</span></pre></div>
+</td><td style='width:50%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span>
+     <span class="Symbol">([],</span>
+      <span class="Symbol">[(</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;b&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span>
+       <span class="Symbol">(</span><span class="String">&quot;c&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;d&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;numeric&quot;</span><span class="Symbol">)])]</span></pre></div>
+</td></tr><tr><td style='width:50%'>
+
+<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">as</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="Number">2</span> <span class="Keyword">as</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="VarId">a</span>
+  <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">true</span> <span class="Keyword">as</span> <span class="VarId">c</span><span class="Symbol">,</span> <span class="Number">4.5</span> <span class="Keyword">as</span> <span class="VarId">d</span><span class="Symbol">)</span> <span class="VarId">b</span> <span class="Keyword">on</span> <span class="VarId">true</span><span class="Symbol">;</span></pre></div>
+</td><td style='width:50%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span>
+     <span class="Symbol">([],</span>
+      <span class="Symbol">[(</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;b&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span>
+       <span class="Symbol">(</span><span class="String">&quot;c&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;d&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;numeric&quot;</span><span class="Symbol">)])]</span></pre></div>
+</td></tr><tr><td style='width:50%'>
+
+<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">as</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="Number">2</span> <span class="Keyword">as</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="VarId">a</span>
+  <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">as</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="Number">4.5</span> <span class="Keyword">as</span> <span class="VarId">d</span><span class="Symbol">)</span> <span class="VarId">b</span> <span class="Keyword">using</span><span class="Symbol">(</span><span class="VarId">a</span><span class="Symbol">);</span></pre></div>
+</td><td style='width:50%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span>
+     <span class="Symbol">([],</span>
+      <span class="Symbol">[(</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;b&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span>
+       <span class="Symbol">(</span><span class="String">&quot;d&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;numeric&quot;</span><span class="Symbol">)])]</span></pre></div>
+</td></tr><tr><td style='width:50%'>
+
+<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">as</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="Number">2</span> <span class="Keyword">as</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="VarId">a</span>
+ <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">as</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="Number">4.5</span> <span class="Keyword">as</span> <span class="VarId">d</span><span class="Symbol">)</span> <span class="VarId">b</span><span class="Symbol">;</span></pre></div>
+</td><td style='width:50%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span>
+     <span class="Symbol">([],</span>
+      <span class="Symbol">[(</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;b&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span>
+       <span class="Symbol">(</span><span class="String">&quot;d&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;numeric&quot;</span><span class="Symbol">)])]</span></pre></div>
+</td></tr><tr><td style='width:50%'>
+
+<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">2</span> <span class="Keyword">as</span> <span class="VarId">b</span><span class="Symbol">,</span> <span class="Number">1</span> <span class="Keyword">as</span> <span class="VarId">a</span><span class="Symbol">)</span> <span class="VarId">a</span>
+ <span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">4.5</span> <span class="Keyword">as</span> <span class="VarId">d</span><span class="Symbol">,</span> <span class="Number">1</span> <span class="Keyword">as</span> <span class="VarId">a</span><span class="Symbol">)</span> <span class="VarId">b</span><span class="Symbol">;</span></pre></div>
+</td><td style='width:50%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span>
+     <span class="Symbol">([],</span>
+      <span class="Symbol">[(</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;b&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span>
+       <span class="Symbol">(</span><span class="String">&quot;d&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;numeric&quot;</span><span class="Symbol">)])]</span></pre></div>
+</td></tr><tr><td style='width:50%'>
+
+<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">as</span> <span class="VarId">a1</span><span class="Symbol">)</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">2</span> <span class="Keyword">as</span> <span class="VarId">a2</span><span class="Symbol">)</span> <span class="VarId">b</span><span class="Symbol">;</span></pre></div>
+</td><td style='width:50%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;a1&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;a2&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div>
+</td></tr><tr><td style='width:50%'>
+
+<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">as</span> <span class="VarId">a1</span><span class="Symbol">)</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">2</span> <span class="Keyword">as</span> <span class="VarId">a1</span><span class="Symbol">)</span> <span class="VarId">b</span><span class="Symbol">;</span></pre></div>
+</td><td style='width:50%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;a1&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;a1&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div>
 </td></tr></table>
 <h1 id="simple-scalar-identifier-qualification"
     >simple scalar identifier qualification</h1
@@ -985,12 +1048,22 @@ The source this file is generated from is here: <a href="https://github.com/Jake
   <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;b&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div>
 </td></tr><tr><td style='width:50%'>
 
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="VarId">nothere</span><span class="Symbol">.*</span> <span class="Keyword">from</span> 
+<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="VarId">a</span><span class="Symbol">.</span><span class="VarId">b</span><span class="Symbol">,</span><span class="VarId">b</span><span class="Symbol">.</span><span class="VarId">c</span> <span class="Keyword">from</span> 
 <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">as</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="Number">2</span> <span class="Keyword">as</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="VarId">a</span> 
-<span class="Keyword">cross</span> <span class="Keyword">join</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">3</span> <span class="Keyword">as</span> <span class="VarId">c</span><span class="Symbol">,</span> <span class="Number">4</span> <span class="Keyword">as</span> <span class="VarId">d</span><span class="Symbol">)</span> <span class="VarId">b</span><span class="Symbol">;</span></pre></div>
+<span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">3</span> <span class="Keyword">as</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="Number">4</span> <span class="Keyword">as</span> <span class="VarId">c</span><span class="Symbol">)</span> <span class="VarId">b</span><span class="Symbol">;</span></pre></div>
 </td><td style='width:50%'>
 
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedCorrelationName</span> <span class="String">&quot;nothere&quot;</span><span class="Symbol">]</span></pre></div>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;b&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;c&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div>
+</td></tr><tr><td style='width:50%'>
+
+<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="VarId">a</span><span class="Symbol">.</span><span class="VarId">a</span><span class="Symbol">,</span><span class="VarId">b</span><span class="Symbol">.</span><span class="VarId">a</span> <span class="Keyword">from</span> 
+<span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">1</span> <span class="Keyword">as</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="Number">2</span> <span class="Keyword">as</span> <span class="VarId">b</span><span class="Symbol">)</span> <span class="VarId">a</span> 
+<span class="Keyword">natural</span> <span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="Number">3</span> <span class="Keyword">as</span> <span class="VarId">a</span><span class="Symbol">,</span> <span class="Number">4</span> <span class="Keyword">as</span> <span class="VarId">c</span><span class="Symbol">)</span> <span class="VarId">b</span><span class="Symbol">;</span></pre></div>
+</td><td style='width:50%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div>
 </td></tr><tr><td style='width:50%'>
 
 <div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="VarId">pg_attrdef</span><span class="Symbol">.</span><span class="VarId">adsrc</span> <span class="Keyword">from</span> <span class="VarId">pg_attrdef</span><span class="Symbol">;</span></pre></div>
@@ -1017,6 +1090,11 @@ The source this file is generated from is here: <a href="https://github.com/Jake
 
 <div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;a&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div>
 </td></tr></table>
+<h1 id="misc-selects"
+    >misc selects</h1
+    >
+<table>
+</table>
 <h1 id="aggregates"
     >aggregates</h1
     >
@@ -1107,10 +1185,52 @@ The source this file is generated from is here: <a href="https://github.com/Jake
 <div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;g&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div>
 </td></tr><tr><td style='width:50%'>
 
+<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="VarId">generate_series</span><span class="Symbol">(</span><span class="Number">3</span><span class="Symbol">,</span><span class="Number">5</span><span class="Symbol">);</span></pre></div>
+</td><td style='width:50%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;generate_series&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div>
+</td></tr><tr><td style='width:50%'>
+
+<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="VarId">generate_series</span><span class="Symbol">(</span><span class="Number">1</span><span class="Symbol">,</span><span class="Number">7</span><span class="Symbol">)</span> <span class="VarId">g</span>
+<span class="Keyword">where</span> <span class="VarId">g</span> <span class="Keyword">not</span> <span class="VarId">in</span> <span class="Symbol">(</span><span class="Number">1</span><span class="Symbol">,</span><span class="Number">2</span><span class="Symbol">);</span></pre></div>
+</td><td style='width:50%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;g&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)])]</span></pre></div>
+</td></tr><tr><td style='width:50%'>
+
 <div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="Number">3</span> <span class="Symbol">=</span> <span class="Keyword">any</span><span class="Symbol">(</span><span class="Keyword">array</span><span class="Symbol">[</span><span class="Number">1</span><span class="Symbol">,</span><span class="Number">2</span><span class="Symbol">,</span><span class="Number">3</span><span class="Symbol">]);</span></pre></div>
 </td><td style='width:50%'>
 
 <div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;?column?&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)])]</span></pre></div>
+</td></tr><tr><td style='width:50%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="Symbol">[</span><span class="ConId">CatCreateTable</span> <span class="String">&quot;a&quot;</span> <span class="Symbol">[(</span><span class="String">&quot;t&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)]</span> <span class="Symbol">[],</span>
+ <span class="ConId">CatCreateTable</span> <span class="String">&quot;b&quot;</span>
+   <span class="Symbol">[(</span><span class="String">&quot;t&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;u&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;numeric&quot;</span><span class="Symbol">)]</span>
+   <span class="Symbol">[]]</span></pre></div>
+<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="VarId">b</span><span class="Symbol">.</span><span class="VarId">t</span><span class="Symbol">,</span><span class="VarId">b</span><span class="Symbol">.</span><span class="VarId">u</span> <span class="Keyword">from</span> <span class="VarId">a</span><span class="Symbol">,</span><span class="VarId">b</span> <span class="Keyword">where</span> <span class="VarId">a</span><span class="Symbol">.</span><span class="VarId">t</span> <span class="Symbol">=</span> <span class="VarId">b</span><span class="Symbol">.</span><span class="VarId">t</span>
+ <span class="Keyword">and</span> <span class="VarId">b</span><span class="Symbol">.</span><span class="VarId">u</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="Keyword">select</span> <span class="VarId">min</span><span class="Symbol">(</span><span class="VarId">b</span><span class="Symbol">.</span><span class="VarId">u</span><span class="Symbol">)</span> <span class="Keyword">from</span> <span class="VarId">b</span> <span class="Keyword">where</span> <span class="VarId">a</span><span class="Symbol">.</span><span class="VarId">t</span> <span class="Symbol">=</span> <span class="VarId">b</span><span class="Symbol">.</span><span class="VarId">t</span><span class="Symbol">);</span></pre></div>
+</td><td style='width:50%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span>
+     <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;t&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;u&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;numeric&quot;</span><span class="Symbol">)])]</span></pre></div>
+</td></tr></table>
+<h1 id="select-part-identifiers"
+    >select part identifiers</h1
+    >
+<table>
+<tr><td style='width:50%'>
+
+<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="VarId">relname</span> <span class="Keyword">as</span> <span class="VarId">relvar_name</span><span class="Symbol">,</span><span class="VarId">attname</span> <span class="Keyword">as</span> <span class="VarId">name</span> <span class="Keyword">from</span> <span class="VarId">pg_class</span>
+<span class="Keyword">inner</span> <span class="Keyword">join</span> <span class="VarId">pg_attribute</span>
+<span class="Keyword">on</span> <span class="VarId">pg_attribute</span><span class="Symbol">.</span><span class="VarId">attrelid</span> <span class="Symbol">=</span> <span class="VarId">pg_class</span><span class="Symbol">.</span><span class="VarId">oid</span><span class="Symbol">;</span></pre></div>
+</td><td style='width:50%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span>
+     <span class="Symbol">([],</span>
+      <span class="Symbol">[(</span><span class="String">&quot;relvar_name&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;name&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;name&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;name&quot;</span><span class="Symbol">)])]</span></pre></div>
 </td></tr></table>
 <h1 id="insert"
     >insert</h1
@@ -1169,7 +1289,7 @@ The source this file is generated from is here: <a href="https://github.com/Jake
 <div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">update</span> <span class="VarId">nope</span> <span class="Keyword">set</span> <span class="VarId">a</span> <span class="Symbol">=</span> <span class="Number">1</span><span class="Symbol">;</span></pre></div>
 </td><td style='width:50%'>
 
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedRelation</span> <span class="String">&quot;nope&quot;</span><span class="Symbol">,</span> <span class="ConId">UnrecognisedIdentifier</span> <span class="String">&quot;a&quot;</span><span class="Symbol">]</span></pre></div>
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedRelation</span> <span class="String">&quot;nope&quot;</span><span class="Symbol">]</span></pre></div>
 </td></tr><tr><td style='width:50%'>
 
 <div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">update</span> <span class="VarId">pg_attrdef</span> <span class="Keyword">set</span> <span class="VarId">adsrc</span> <span class="Symbol">=</span> <span class="Char">''</span> <span class="Keyword">where</span> <span class="Number">1</span><span class="Symbol">;</span></pre></div>
@@ -1182,18 +1302,19 @@ The source this file is generated from is here: <a href="https://github.com/Jake
 </td><td style='width:50%'>
 
 <div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span>
-  <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;=&quot;</span>
-     <span class="Symbol">[</span><span class="ConId">AnonymousRecordType</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">],</span>
-      <span class="ConId">AnonymousRecordType</span> <span class="Symbol">[</span><span class="ConId">UnknownType</span><span class="Symbol">,</span> <span class="ConId">UnknownType</span><span class="Symbol">,</span> <span class="ConId">UnknownType</span><span class="Symbol">]]]</span></pre></div>
+  <span class="Symbol">[</span><span class="ConId">IncompatibleTypes</span>
+     <span class="Symbol">(</span><span class="ConId">AnonymousRecordType</span>
+        <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;pg_node_tree&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">])</span>
+     <span class="Symbol">(</span><span class="ConId">AnonymousRecordType</span> <span class="Symbol">[</span><span class="ConId">UnknownType</span><span class="Symbol">,</span> <span class="ConId">UnknownType</span><span class="Symbol">,</span> <span class="ConId">UnknownType</span><span class="Symbol">])]</span></pre></div>
 </td></tr><tr><td style='width:50%'>
 
 <div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">update</span> <span class="VarId">pg_attrdef</span> <span class="Keyword">set</span> <span class="Symbol">(</span><span class="VarId">adrelid</span><span class="Symbol">,</span><span class="VarId">adsrc</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="VarId">true</span><span class="Symbol">,</span><span class="Char">'b'</span><span class="Symbol">);</span></pre></div>
 </td><td style='width:50%'>
 
 <div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span>
-  <span class="Symbol">[</span><span class="ConId">NoMatchingOperator</span> <span class="String">&quot;=&quot;</span>
-     <span class="Symbol">[</span><span class="ConId">AnonymousRecordType</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;oid&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">],</span>
-      <span class="ConId">AnonymousRecordType</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">,</span> <span class="ConId">UnknownType</span><span class="Symbol">]]]</span></pre></div>
+  <span class="Symbol">[</span><span class="ConId">IncompatibleTypes</span>
+     <span class="Symbol">(</span><span class="ConId">AnonymousRecordType</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;oid&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">])</span>
+     <span class="Symbol">(</span><span class="ConId">AnonymousRecordType</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">,</span> <span class="ConId">UnknownType</span><span class="Symbol">])]</span></pre></div>
 </td></tr><tr><td style='width:50%'>
 
 <div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">update</span> <span class="VarId">pg_attrdef</span> <span class="Keyword">set</span> <span class="Symbol">(</span><span class="VarId">shmadrelid</span><span class="Symbol">,</span><span class="VarId">adsrc</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="Symbol">(</span><span class="Char">'a'</span><span class="Symbol">,</span><span class="Char">'b'</span><span class="Symbol">);</span></pre></div>
@@ -1289,19 +1410,13 @@ The source this file is generated from is here: <a href="https://github.com/Jake
 <div class='haskell'><pre class="sourceCode"><span class="Symbol">[</span><span class="ConId">CatCreateDomain</span> <span class="Symbol">(</span><span class="ConId">DomainType</span> <span class="String">&quot;t1&quot;</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)]</span></pre></div>
 </td></tr><tr><td style='width:50%'>
 
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">domain</span> <span class="VarId">t1</span> <span class="Keyword">as</span> <span class="Type">text</span> <span class="Keyword">check</span> <span class="Symbol">(</span><span class="VarId">value</span> <span class="VarId">in</span> <span class="Symbol">(</span><span class="Char">'a'</span><span class="Symbol">,</span> <span class="Char">'b'</span><span class="Symbol">));</span>
-<span class="Keyword">select</span> <span class="Char">'text'</span><span class="Symbol">::</span><span class="VarId">t1</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="Symbol">[</span><span class="ConId">CatCreateDomain</span> <span class="Symbol">(</span><span class="ConId">DomainType</span> <span class="String">&quot;t1&quot;</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)]</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
 <div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">v1</span> <span class="Keyword">as</span> <span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="VarId">pg_attrdef</span><span class="Symbol">;</span></pre></div>
 </td><td style='width:50%'>
 
 <div class='haskell'><pre class="sourceCode"><span class="Symbol">[</span><span class="ConId">CatCreateView</span> <span class="String">&quot;v1&quot;</span>
    <span class="Symbol">[(</span><span class="String">&quot;adrelid&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;oid&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;adnum&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int2&quot;</span><span class="Symbol">),</span>
-    <span class="Symbol">(</span><span class="String">&quot;adbin&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;adsrc&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)]]</span></pre></div>
+    <span class="Symbol">(</span><span class="String">&quot;adbin&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;pg_node_tree&quot;</span><span class="Symbol">),</span>
+    <span class="Symbol">(</span><span class="String">&quot;adsrc&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)]]</span></pre></div>
 </td></tr><tr><td style='width:50%'>
 
 <div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">t1</span><span class="Symbol">(</span><span class="Type">text</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">text</span> <span class="Keyword">as</span> $$
@@ -1324,186 +1439,11 @@ $$ <span class="Keyword">language</span> <span class="VarId">sql</span> <span cl
    <span class="Symbol">(</span><span class="ConId">Pseudo</span> <span class="ConId">Void</span><span class="Symbol">)</span>
    <span class="ConId">False</span><span class="Symbol">]</span></pre></div>
 </td></tr></table>
-<h1 id="create-function-identifier-resolution"
-    >create function identifier resolution</h1
+<h1 id="plpgsql"
+    >plpgsql</h1
     >
 <table>
-<tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">t1</span><span class="Symbol">(</span><span class="VarId">stuff</span> <span class="Type">text</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">text</span> <span class="Keyword">as</span> $$
-<span class="VarId">begin</span>
-  <span class="VarId">return</span> <span class="VarId">stuff</span> <span class="Symbol">||</span> <span class="Char">' and stuff'</span><span class="Symbol">;</span>
-<span class="Keyword">end</span><span class="Symbol">;</span>
-$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">t1</span><span class="Symbol">(</span><span class="VarId">stuff</span> <span class="Type">text</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">text</span> <span class="Keyword">as</span> $$
-<span class="VarId">begin</span>
-  <span class="VarId">return</span> <span class="VarId">badstuff</span> <span class="Symbol">||</span> <span class="Char">' and stuff'</span><span class="Symbol">;</span>
-<span class="Keyword">end</span><span class="Symbol">;</span>
-$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedIdentifier</span> <span class="String">&quot;badstuff&quot;</span><span class="Symbol">]</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">t1</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">text</span> <span class="Keyword">as</span> $$
-<span class="VarId">declare</span>
-  <span class="VarId">stuff</span> <span class="Type">text</span><span class="Symbol">;</span>
-<span class="VarId">begin</span>
-  <span class="VarId">return</span> <span class="VarId">stuff</span> <span class="Symbol">||</span> <span class="Char">' and stuff'</span><span class="Symbol">;</span>
-<span class="Keyword">end</span><span class="Symbol">;</span>
-$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div>
-</td></tr></table>
-<h1 id="plpgsqlbits"
-    >plpgsqlbits</h1
-    >
-<table>
-<tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">t1</span><span class="Symbol">(</span><span class="VarId">stuff</span> <span class="Type">text</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">text</span> <span class="Keyword">as</span> $$
-<span class="VarId">begin</span>
-  <span class="VarId">return</span> <span class="VarId">stuff</span> <span class="Symbol">||</span> <span class="Char">' and stuff'</span><span class="Symbol">;</span>
-<span class="Keyword">end</span><span class="Symbol">;</span>
-$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">t1</span><span class="Symbol">(</span><span class="VarId">stuff</span> <span class="Type">text</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">text</span> <span class="Keyword">as</span> $$
-<span class="VarId">begin</span>
-  <span class="VarId">return</span> <span class="VarId">badstuff</span> <span class="Symbol">||</span> <span class="Char">' and stuff'</span><span class="Symbol">;</span>
-<span class="Keyword">end</span><span class="Symbol">;</span>
-$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedIdentifier</span> <span class="String">&quot;badstuff&quot;</span><span class="Symbol">]</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">t1</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">text</span> <span class="Keyword">as</span> $$
-<span class="VarId">declare</span>
-  <span class="VarId">stuff</span> <span class="Type">text</span><span class="Symbol">;</span>
-<span class="VarId">begin</span>
-  <span class="VarId">return</span> <span class="VarId">stuff</span> <span class="Symbol">||</span> <span class="Char">' and stuff'</span><span class="Symbol">;</span>
-<span class="Keyword">end</span><span class="Symbol">;</span>
-$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div>
-</td></tr></table>
-<h1 id="plpgsqlbits-1"
-    >plpgsqlbits</h1
-    >
-<table>
-<tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">t1</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
-<span class="VarId">declare</span>
-  <span class="VarId">a</span> <span class="Type">bool</span><span class="Symbol">;</span>
-<span class="VarId">begin</span>
-  <span class="VarId">a</span> <span class="Symbol">:=</span> <span class="Number">3</span><span class="Symbol">;</span>
-<span class="Keyword">end</span><span class="Symbol">;</span>
-$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">IncompatibleTypes</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)]</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">t1</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
-<span class="VarId">declare</span>
-  <span class="VarId">a</span> <span class="VarId">boolean</span><span class="Symbol">;</span>
-<span class="VarId">begin</span>
-  <span class="VarId">a</span> <span class="Symbol">:=</span> <span class="VarId">true</span><span class="Symbol">;</span>
-<span class="Keyword">end</span><span class="Symbol">;</span>
-$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div>
-</td></tr></table>
-<h1 id="for-loops"
-    >for loops</h1
-    >
-<table>
-<tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">t1</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
-<span class="VarId">declare</span>
-  <span class="VarId">r</span> <span class="VarId">record</span><span class="Symbol">;</span>
-  <span class="VarId">t</span> <span class="Type">int</span><span class="Symbol">;</span>
-<span class="VarId">begin</span>
-  <span class="Keyword">for</span> <span class="VarId">r</span> <span class="VarId">in</span> <span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">from</span> <span class="VarId">pg_attrdef</span> <span class="VarId">loop</span>
-    <span class="VarId">t</span> <span class="Symbol">:=</span> <span class="VarId">r</span><span class="Symbol">.</span><span class="VarId">adnum</span><span class="Symbol">;</span>
-  <span class="Keyword">end</span> <span class="Keyword">loop</span><span class="Symbol">;</span>
-<span class="Keyword">end</span><span class="Symbol">;</span>
-$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">test</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
-<span class="VarId">declare</span>
-  <span class="VarId">i</span> <span class="Type">int</span><span class="Symbol">;</span>
-  <span class="VarId">i1</span> <span class="Type">int</span><span class="Symbol">;</span>
-<span class="VarId">begin</span>
-  <span class="Keyword">for</span> <span class="VarId">i</span> <span class="VarId">in</span> <span class="Number">0</span> <span class="Symbol">..</span> <span class="Number">10</span> <span class="VarId">loop</span>
-    <span class="VarId">i1</span> <span class="Symbol">:=</span> <span class="VarId">i</span><span class="Symbol">;</span>
-  <span class="Keyword">end</span> <span class="Keyword">loop</span><span class="Symbol">;</span>
-<span class="Keyword">end</span><span class="Symbol">;</span>
-$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">test</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
-<span class="VarId">declare</span>
-  <span class="VarId">i1</span> <span class="Type">int</span><span class="Symbol">;</span>
-<span class="VarId">begin</span>
-  <span class="Keyword">for</span> <span class="VarId">i</span> <span class="VarId">in</span> <span class="Number">0</span> <span class="Symbol">..</span> <span class="Number">10</span> <span class="VarId">loop</span>
-    <span class="VarId">i1</span> <span class="Symbol">:=</span> <span class="VarId">i</span><span class="Symbol">;</span>
-  <span class="Keyword">end</span> <span class="Keyword">loop</span><span class="Symbol">;</span>
-<span class="Keyword">end</span><span class="Symbol">;</span>
-$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">test</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
-<span class="VarId">declare</span>
-  <span class="VarId">i</span> <span class="Type">bool</span><span class="Symbol">;</span>
-<span class="VarId">begin</span>
-  <span class="Keyword">for</span> <span class="VarId">i</span> <span class="VarId">in</span> <span class="Number">0</span> <span class="Symbol">..</span> <span class="Number">10</span> <span class="VarId">loop</span>
-    <span class="Keyword">null</span><span class="Symbol">;</span>
-  <span class="Keyword">end</span> <span class="Keyword">loop</span><span class="Symbol">;</span>
-<span class="Keyword">end</span><span class="Symbol">;</span>
-$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">IncompatibleTypes</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)]</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">test</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
-<span class="VarId">declare</span>
-  <span class="VarId">t</span> <span class="Type">bool</span><span class="Symbol">;</span>
-<span class="VarId">begin</span>
-  <span class="Keyword">for</span> <span class="VarId">i</span> <span class="VarId">in</span> <span class="Number">0</span> <span class="Symbol">..</span> <span class="Number">10</span> <span class="VarId">loop</span>
-    <span class="VarId">t</span> <span class="Symbol">:=</span> <span class="VarId">i</span><span class="Symbol">;</span>
-  <span class="Keyword">end</span> <span class="Keyword">loop</span><span class="Symbol">;</span>
-<span class="Keyword">end</span><span class="Symbol">;</span>
-       $$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">volatile</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">IncompatibleTypes</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;bool&quot;</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)]</span></pre></div>
-</td></tr></table>
+</table>
 <h1 id="check-catalog-chaining"
     >check catalog chaining</h1
     >
@@ -1535,213 +1475,7 @@ $$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <spa
     >select into</h1
     >
 <table>
-<tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">insert</span> <span class="Keyword">into</span> <span class="VarId">pg_attrdef</span> <span class="Symbol">(</span><span class="VarId">adrelid</span><span class="Symbol">,</span><span class="VarId">adnum</span><span class="Symbol">,</span><span class="VarId">adbin</span><span class="Symbol">,</span><span class="VarId">adsrc</span><span class="Symbol">)</span>
-<span class="Keyword">values</span> <span class="Symbol">(</span><span class="Number">1</span><span class="Symbol">,</span><span class="Number">2</span><span class="Symbol">,</span> <span class="Char">'a'</span><span class="Symbol">,</span> <span class="Char">'b'</span><span class="Symbol">)</span> <span class="Keyword">returning</span> <span class="VarId">adnum</span><span class="Symbol">,</span><span class="VarId">adbin</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
-  <span class="Symbol">[</span><span class="ConId">Just</span>
-     <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;adnum&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int2&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;adbin&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)])]</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">update</span> <span class="VarId">pg_attrdef</span> <span class="Keyword">set</span> <span class="VarId">adnum</span> <span class="Symbol">=</span> <span class="VarId">adnum</span> <span class="Symbol">+</span> <span class="Number">1</span> <span class="Keyword">returning</span> <span class="VarId">adnum</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Just</span> <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;adnum&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int2&quot;</span><span class="Symbol">)])]</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">delete</span> <span class="Keyword">from</span> <span class="VarId">pg_attrdef</span> <span class="Keyword">returning</span> <span class="VarId">adnum</span><span class="Symbol">,</span><span class="VarId">adbin</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
-  <span class="Symbol">[</span><span class="ConId">Just</span>
-     <span class="Symbol">([],</span> <span class="Symbol">[(</span><span class="String">&quot;adnum&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int2&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;adbin&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)])]</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">t1</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
-<span class="VarId">declare</span>
-  <span class="VarId">a</span> <span class="Type">int</span><span class="Symbol">;</span>
-  <span class="VarId">b</span> <span class="Type">text</span><span class="Symbol">;</span>
-<span class="VarId">begin</span>
-  <span class="Keyword">select</span> <span class="VarId">adnum</span><span class="Symbol">,</span><span class="VarId">adbin</span> <span class="Keyword">into</span> <span class="VarId">a</span><span class="Symbol">,</span><span class="VarId">b</span> <span class="Keyword">from</span> <span class="VarId">pg_attrdef</span><span class="Symbol">;</span>
-<span class="Keyword">end</span><span class="Symbol">;</span>
-$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">t1</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
-<span class="VarId">declare</span>
-  <span class="VarId">a</span> <span class="Type">int</span><span class="Symbol">;</span>
-  <span class="VarId">b</span> <span class="Type">text</span><span class="Symbol">;</span>
-<span class="VarId">begin</span>
-  <span class="Keyword">select</span> <span class="VarId">adnum</span><span class="Symbol">,</span><span class="VarId">adbin</span> <span class="Keyword">into</span> <span class="VarId">b</span><span class="Symbol">,</span><span class="VarId">a</span> <span class="Keyword">from</span> <span class="VarId">pg_attrdef</span><span class="Symbol">;</span>
-<span class="Keyword">end</span><span class="Symbol">;</span>
-$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span>
-  <span class="Symbol">[</span><span class="ConId">IncompatibleTypes</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int2&quot;</span><span class="Symbol">),</span>
-   <span class="ConId">IncompatibleTypes</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;int4&quot;</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">)]</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">t1</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
-<span class="VarId">declare</span>
-  <span class="VarId">a</span> <span class="Type">int</span><span class="Symbol">;</span>
-  <span class="VarId">b</span> <span class="Type">text</span><span class="Symbol">;</span>
-<span class="VarId">begin</span>
-  <span class="Keyword">select</span> <span class="VarId">adnum</span><span class="Symbol">,</span><span class="VarId">adbin</span> <span class="Keyword">into</span> <span class="VarId">a</span><span class="Symbol">,</span><span class="VarId">c</span> <span class="Keyword">from</span> <span class="VarId">pg_attrdef</span><span class="Symbol">;</span>
-<span class="Keyword">end</span><span class="Symbol">;</span>
-$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedIdentifier</span> <span class="String">&quot;c&quot;</span><span class="Symbol">]</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">t1</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
-<span class="VarId">declare</span>
-  <span class="VarId">a</span> <span class="Type">int</span><span class="Symbol">;</span>
-  <span class="VarId">b</span> <span class="Type">text</span><span class="Symbol">;</span>
-<span class="VarId">begin</span>
-  <span class="Keyword">select</span> <span class="VarId">adnum</span><span class="Symbol">,</span><span class="VarId">adbin</span> <span class="Keyword">into</span> <span class="VarId">a</span> <span class="Keyword">from</span> <span class="VarId">pg_attrdef</span><span class="Symbol">;</span>
-<span class="Keyword">end</span><span class="Symbol">;</span>
-$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">WrongNumberOfColumns</span><span class="Symbol">]</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">t1</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
-<span class="VarId">declare</span>
-  <span class="VarId">r</span> <span class="VarId">record</span><span class="Symbol">;</span>
-  <span class="VarId">a</span> <span class="Type">int</span><span class="Symbol">;</span>
-  <span class="VarId">b</span> <span class="Type">text</span><span class="Symbol">;</span>
-<span class="VarId">begin</span>
-  <span class="Keyword">select</span> <span class="VarId">adnum</span><span class="Symbol">,</span><span class="VarId">adbin</span> <span class="Keyword">into</span> <span class="VarId">r</span> <span class="Keyword">from</span> <span class="VarId">pg_attrdef</span><span class="Symbol">;</span>
-  <span class="VarId">a</span> <span class="Symbol">:=</span> <span class="VarId">r</span><span class="Symbol">.</span><span class="VarId">adnum</span><span class="Symbol">;</span>
-  <span class="VarId">b</span> <span class="Symbol">:=</span> <span class="VarId">r</span><span class="Symbol">.</span><span class="VarId">adbin</span><span class="Symbol">;</span>
-<span class="Keyword">end</span><span class="Symbol">;</span>
-$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">t1</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
-<span class="VarId">declare</span>
-  <span class="VarId">r</span> <span class="VarId">record</span><span class="Symbol">;</span>
-  <span class="VarId">a</span> <span class="Type">int</span><span class="Symbol">;</span>
-  <span class="VarId">b</span> <span class="Type">text</span><span class="Symbol">;</span>
-<span class="VarId">begin</span>
-  <span class="Keyword">select</span> <span class="VarId">adnum</span><span class="Symbol">,</span><span class="VarId">adbin</span> <span class="Keyword">into</span> <span class="VarId">r</span> <span class="Keyword">from</span> <span class="VarId">pg_attrdef</span><span class="Symbol">;</span>
-  <span class="VarId">a</span> <span class="Symbol">:=</span> <span class="VarId">r</span><span class="Symbol">.</span><span class="VarId">adnum</span><span class="Symbol">;</span>
-  <span class="VarId">b</span> <span class="Symbol">:=</span> <span class="VarId">r</span><span class="Symbol">.</span><span class="VarId">adsrc</span><span class="Symbol">;</span>
-<span class="Keyword">end</span><span class="Symbol">;</span>
-$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedIdentifier</span> <span class="String">&quot;adsrc&quot;</span><span class="Symbol">]</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">t1</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
-<span class="VarId">declare</span>
-  <span class="VarId">r</span> <span class="VarId">pg_attrdef</span><span class="Symbol">;</span>
-<span class="VarId">begin</span>
-  <span class="Keyword">select</span> <span class="Symbol">*</span> <span class="Keyword">into</span> <span class="VarId">r</span> <span class="Keyword">from</span> <span class="VarId">pg_attrdef</span><span class="Symbol">;</span>
-<span class="Keyword">end</span><span class="Symbol">;</span>
-$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">t1</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
-<span class="VarId">declare</span>
-  <span class="VarId">r</span> <span class="VarId">pg_class</span><span class="Symbol">;</span>
-<span class="VarId">begin</span>
-  <span class="Keyword">select</span> <span class="VarId">adnum</span><span class="Symbol">,</span><span class="VarId">adbin</span> <span class="Keyword">into</span> <span class="VarId">r</span> <span class="Keyword">from</span> <span class="VarId">pg_attrdef</span><span class="Symbol">;</span>
-<span class="Keyword">end</span><span class="Symbol">;</span>
-$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span>
-  <span class="Symbol">[</span><span class="ConId">IncompatibleTypes</span> <span class="Symbol">(</span><span class="ConId">NamedCompositeType</span> <span class="String">&quot;pg_class&quot;</span><span class="Symbol">)</span>
-     <span class="Symbol">(</span><span class="ConId">AnonymousRecordType</span> <span class="Symbol">[</span><span class="ConId">ScalarType</span> <span class="String">&quot;int2&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">])]</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">t1</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
-<span class="VarId">declare</span>
-  <span class="VarId">r</span> <span class="VarId">record</span><span class="Symbol">;</span>
-<span class="VarId">begin</span>
-  <span class="Keyword">select</span> <span class="VarId">adnum</span><span class="Symbol">,</span><span class="VarId">adbin</span> <span class="Keyword">into</span> <span class="VarId">r</span> <span class="Keyword">from</span> <span class="VarId">pg_attrdef</span><span class="Symbol">;</span>
-  <span class="Keyword">select</span> <span class="VarId">relname</span> <span class="Keyword">into</span> <span class="VarId">r</span> <span class="Keyword">from</span> <span class="VarId">pg_class</span><span class="Symbol">;</span>
-<span class="Keyword">end</span><span class="Symbol">;</span>
-$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div>
-</td></tr></table>
-<h1 id="composite-elements"
-    >composite elements</h1
-    >
-<table>
-<tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">t1</span><span class="Symbol">()</span> <span class="Keyword">returns</span> <span class="Type">void</span> <span class="Keyword">as</span> $$
-<span class="VarId">declare</span>
-  <span class="VarId">r</span> <span class="VarId">pg_attrdef</span><span class="Symbol">;</span>
-  <span class="VarId">a</span> <span class="Type">int</span><span class="Symbol">;</span>
-  <span class="VarId">b</span> <span class="Type">text</span><span class="Symbol">;</span>
-<span class="VarId">begin</span>
-  <span class="VarId">b</span> <span class="Symbol">=</span> <span class="VarId">r</span><span class="Symbol">.</span><span class="VarId">adsrc</span><span class="Symbol">;</span>
-  <span class="VarId">r</span><span class="Symbol">.</span><span class="VarId">adnum</span> <span class="Symbol">:=</span> <span class="VarId">a</span><span class="Symbol">;</span>
-  <span class="VarId">b</span> <span class="Symbol">=</span> <span class="VarId">r</span><span class="Symbol">.</span><span class="VarId">adsrc</span><span class="Symbol">;</span>
-<span class="Keyword">end</span><span class="Symbol">;</span>
-$$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span> <span class="Keyword">stable</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div>
-</td></tr></table>
-<h1 id="positional-args"
-    >positional args</h1
-    >
-<table>
-<tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">distance</span><span class="Symbol">(</span><span class="Type">int</span><span class="Symbol">,</span> <span class="Type">int</span><span class="Symbol">,</span> <span class="Type">int</span><span class="Symbol">,</span> <span class="Type">int</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">float</span><span class="Symbol">(</span><span class="Number">24</span><span class="Symbol">)</span> <span class="Keyword">as</span> $$
-  <span class="Keyword">select</span> <span class="Symbol">(</span><span class="VarId">point</span><span class="Symbol">(</span>$<span class="Number">1</span><span class="Symbol">,</span> $<span class="Number">2</span><span class="Symbol">)</span> <span class="Symbol">&lt;-&gt;</span> <span class="VarId">point</span><span class="Symbol">(</span>$<span class="Number">3</span><span class="Symbol">,</span> $<span class="Number">4</span><span class="Symbol">))::</span><span class="Type">float</span><span class="Symbol">(</span><span class="Number">24</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">result</span><span class="Symbol">;</span>
-$$ <span class="Keyword">language</span> <span class="VarId">sql</span> <span class="Keyword">immutable</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span> <span class="Symbol">[</span><span class="ConId">Nothing</span><span class="Symbol">]</span></pre></div>
-</td></tr><tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">function</span> <span class="VarId">distance</span><span class="Symbol">(</span><span class="Type">int</span><span class="Symbol">,</span> <span class="Type">int</span><span class="Symbol">,</span> <span class="Type">int</span><span class="Symbol">,</span> <span class="Type">int</span><span class="Symbol">)</span> <span class="Keyword">returns</span> <span class="Type">float</span><span class="Symbol">(</span><span class="Number">24</span><span class="Symbol">)</span> <span class="Keyword">as</span> $$
-  <span class="Keyword">select</span> <span class="Symbol">(</span><span class="VarId">point</span><span class="Symbol">(</span>$<span class="Number">1</span><span class="Symbol">,</span> $<span class="Number">2</span><span class="Symbol">)</span> <span class="Symbol">&lt;-&gt;</span> <span class="VarId">point</span><span class="Symbol">(</span>$<span class="Number">3</span><span class="Symbol">,</span> $<span class="Number">5</span><span class="Symbol">))::</span><span class="Type">float</span><span class="Symbol">(</span><span class="Number">24</span><span class="Symbol">)</span> <span class="Keyword">as</span> <span class="VarId">result</span><span class="Symbol">;</span>
-$$ <span class="Keyword">language</span> <span class="VarId">sql</span> <span class="Keyword">immutable</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Left</span> <span class="Symbol">[</span><span class="ConId">UnrecognisedIdentifier</span> <span class="String">&quot;$5&quot;</span><span class="Symbol">]</span></pre></div>
-</td></tr></table>
-<h1 id="window-fns"
-    >window fns</h1
-    >
-<table>
-<tr><td style='width:50%'>
-
-<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="Symbol">*,</span> <span class="VarId">row_number</span><span class="Symbol">()</span> <span class="Keyword">over</span> <span class="Symbol">()</span> <span class="Keyword">from</span> <span class="VarId">pg_attrdef</span><span class="Symbol">;</span></pre></div>
-</td><td style='width:50%'>
-
-<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
-  <span class="Symbol">[</span><span class="ConId">Just</span>
-     <span class="Symbol">([],</span>
-      <span class="Symbol">[(</span><span class="String">&quot;adrelid&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;oid&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;adnum&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int2&quot;</span><span class="Symbol">),</span>
-       <span class="Symbol">(</span><span class="String">&quot;adbin&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;adsrc&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">),</span>
-       <span class="Symbol">(</span><span class="String">&quot;row_number&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int8&quot;</span><span class="Symbol">)])]</span></pre></div>
-</td></tr></table>
+</table>
 <h1 id="drop-stuff"
     >drop stuff</h1
     >
@@ -1786,11 +1520,32 @@ $$ <span class="Keyword">language</span> <span class="VarId">plpgsql</span><span
     >
 <table>
 </table>
+<h1 id="misc"
+    >misc</h1
+    >
+<table>
+</table>
+<h1 id="window-fns"
+    >window fns</h1
+    >
+<table>
+<tr><td style='width:50%'>
+
+<div class='SqlPostgresql'><pre class="sourceCode"><span class="Keyword">select</span> <span class="Symbol">*,</span> <span class="VarId">row_number</span><span class="Symbol">()</span> <span class="Keyword">over</span> <span class="Symbol">()</span> <span class="Keyword">from</span> <span class="VarId">pg_attrdef</span><span class="Symbol">;</span></pre></div>
+</td><td style='width:50%'>
+
+<div class='haskell'><pre class="sourceCode"><span class="ConId">Right</span>
+  <span class="Symbol">[</span><span class="ConId">Just</span>
+     <span class="Symbol">([],</span>
+      <span class="Symbol">[(</span><span class="String">&quot;adrelid&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;oid&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;adnum&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int2&quot;</span><span class="Symbol">),</span>
+       <span class="Symbol">(</span><span class="String">&quot;adbin&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;pg_node_tree&quot;</span><span class="Symbol">),</span> <span class="Symbol">(</span><span class="String">&quot;adsrc&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;text&quot;</span><span class="Symbol">),</span>
+       <span class="Symbol">(</span><span class="String">&quot;row_number&quot;</span><span class="Symbol">,</span> <span class="ConId">ScalarType</span> <span class="String">&quot;int8&quot;</span><span class="Symbol">)])]</span></pre></div>
+</td></tr></table>
 <br
      /><br
      /><br
      /><div class="footer"
-    >generated on 08/13/11 13:03:26, hssqlppp-0.3.1</div
+    >generated on 10/30/11 15:52:45, hssqlppp-0.4.0</div
     ></body
   ></html
 >

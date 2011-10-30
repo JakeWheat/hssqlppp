@@ -8,7 +8,7 @@
   ><body
   ><div class="header"
     ><a href="index.html"
-      >HsSqlPpp-0.3.1</a
+      >HsSqlPpp-0.4.0</a
       ></div
     ><br
      /><br
@@ -17,7 +17,25 @@
     >Adding new syntax</h1
     >
 <p
-    >This is an example of how to add new syntax to the library. One way to do it is:</p
+    >Adding support for new syntax (even just to add to the ast and parser) is pretty involved. Here is a sketch example which may be out of date. Please get in touch if you are trying to follow this and have any questions.</p
+    >
+<p
+    >Worked through example of adding support for parsing data types with two precision components. (This is already in hssqlppp).</p
+    >
+<p
+    >The parser/syntax currently supports the precision of floating point types, e.g.</p
+    >
+<div class='sql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">t</span> <span class="CBracket">{</span>
+   <span class="VarId">col</span> <span class="Type">float</span><span class="Symbol">(</span><span class="Number">24</span><span class="Symbol">);</span>
+<span class="CBracket">}</span></pre></div>
+<p
+    >We want it to also support two components, for numeric types:</p
+    >
+<div class='sql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">t</span> <span class="CBracket">{</span>
+   <span class="VarId">col</span> <span class="VarId">numeric</span><span class="Symbol">(</span><span class="Number">5</span><span class="Symbol">,</span><span class="Number">3</span><span class="Symbol">);</span>
+<span class="CBracket">}</span></pre></div>
+<h2 id="outline"
+    >Outline</h2
     >
 <p
     >add test(s) to the automated tests under src-extra/tests/</p
@@ -32,7 +50,7 @@
     >fix any default uuagc rules if needed</p
     >
 <p
-    >run the build script which processes the ag file into haskell files</p
+    >run the make target which runs uuagc to generate the hs from the ag files</p
     >
 <p
     >add code for parsing and pretty printing the new syntax</p
@@ -40,24 +58,6 @@
 <p
     >compile and run the tests to check that the new test(s) now pass</p
     >
-<h1 id="example"
-    >Example</h1
-    >
-<p
-    >Worked through example of adding support for parsing data types with two precision components. (This is already in the latest version of hssqlppp).</p
-    >
-<p
-    >The parser/syntax currently supports the precision of floating point types, e.g.</p
-    >
-<div class='sql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">t</span> <span class="CBracket">{</span>
-   <span class="VarId">col</span> <span class="Type">float</span><span class="Symbol">(</span><span class="Number">24</span><span class="Symbol">);</span>
-<span class="CBracket">}</span></pre></div>
-<p
-    >We want it to also support two components, for numeric types:</p
-    >
-<div class='sql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">t</span> <span class="CBracket">{</span>
-   <span class="VarId">col</span> <span class="VarId">numeric</span><span class="Symbol">(</span><span class="Number">5</span><span class="Symbol">,</span><span class="Number">3</span><span class="Symbol">);</span>
-<span class="CBracket">}</span></pre></div>
 <h2 id="add-a-test"
     >Add a test</h2
     >
@@ -65,20 +65,17 @@
     >The first step: add a test. At the moment, all the parsing tests go src-extra/tests/Database/HsSqlPpp/Tests/ParserTest.lhs. You could also add a new module, and add it to src-extra/tests/Tests.</p
     >
 <p
-    >To add the new test, we have to figure out how the new abstract syntax will look. We can defer this while we add the test, until we actually edit the abstract syntax types. The code added to ParserTests.lhs:</p
+    >To add the new test, you have to figure out how the new abstract syntax will look. We can defer this while you add the test, until we actually edit the abstract syntax types. The code added to ParserTests.lhs:</p
     >
 <div class='haskell'><pre class="sourceCode"><span class="Function">e</span> <span class="String">&quot;245.1::numeric(5,3)&quot;</span> <span class="Symbol">(</span><span class="ConId">Cast</span> <span class="VarId">ea</span> <span class="Symbol">(</span><span class="ConId">FloatLit</span> <span class="VarId">ea</span> <span class="Number">245.1</span><span class="Symbol">)</span> <span class="Symbol">(</span><span class="ConId">PrecTypeName</span> <span class="VarId">ea</span> <span class="String">&quot;numeric&quot;</span> <span class="Number">5</span><span class="Symbol">))</span></pre></div>
 <p
-    >Now check the test fails. The tests use the ghc installed version of hssqlppp, so you need to reinstall the library before running the tests.</p
+    >Now check the test fails.</p
     >
 <pre
     ><code
-      >$ cd $PROJ_ROOT
-$ cabal install
-$ cd src-extra/tests
-$ cabal configure
-$ cabal build
-$ dist/build/Tests/Tests -t &quot;numeric&quot;
+      ><br
+	 />$ make src-extra/tests/Tests
+$ src-extra/tests/Tests -t &quot;numeric&quot;
 parserTests:
   parse expressions:
     simple operators:
@@ -132,14 +129,14 @@ $
               <span class="Symbol">|</span> <span class="ConId">ArrayTypeName</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">typ</span><span class="Symbol">:</span><span class="ConId">TypeName</span>
               <span class="Symbol">|</span> <span class="ConId">SetOfTypeName</span> <span class="VarId">ann</span><span class="Symbol">:</span><span class="ConId">Annotation</span> <span class="VarId">typ</span><span class="Symbol">:</span><span class="ConId">TypeName</span></pre></div>
 <p
-    >Now we have made changes to an ag file, we need to run uuagc to produce AstInternal.hs.</p
+    >Now you have made changes to an ag file, we need to run uuagc to produce AstInternal.hs.</p
     >
 <p
-    >You can use the build.sh script to do this.</p
+    >You can use the makefile to do this.</p
     >
 <pre
     ><code
-      >$ ./build.sh
+      >$ make src/Database/HsSqlPpp/Internals/AstInternal.hs
 ./TypeChecking/Misc.ag:15:18: warning: Missing rule for synthesized attribute namedType in alternative Prec2TypeName of nonterminal TypeName.
 </code
       ></pre
@@ -193,7 +190,7 @@ $
     >Now uuagc runs without warnings. You can try and skip fixing these warnings just to get the parsing working. (Patches which add new syntax/parsing but leave the type checker broken are welcome.)</p
     >
 <p
-    >If the build.sh script completes successfully, then the .ag files should be compiled to hs, the AstAnti.hs module should be generated, and cabal build run.</p
+    >If make completes successfully, then the .ag files should be compiled to hs, and you can then run cabal build to check the compilation.</p
     >
 <p
     >Time to fix the tests: editing the line in ParserTests.lhs to match the new syntax gives:</p
@@ -227,7 +224,7 @@ $
 <span class="Symbol">&gt;</span>                                                   <span class="Symbol">&lt;*</span> <span class="VarId">keyword</span> <span class="String">&quot;precision&quot;</span><span class="Symbol">))</span>
 <span class="Symbol">&gt;</span>                       <span class="Symbol">&lt;|&gt;</span> <span class="VarId">idString</span></pre></div>
 <p
-    >Here is the updated version. It could probably be a bit better designed but getting a badly written version working and passing tests is usually a good first step before trying to make it clean and elegant.</p
+    >Here is the updated version. It could probably be a bit better written - once the tests pass it is easier to can refactor to something clean and elegant.</p
     >
 <div class='haskell'><pre class="sourceCode"><span class="Symbol">&gt;</span> <span class="VarId">typeName</span> <span class="Symbol">::</span> <span class="ConId">SParser</span> <span class="ConId">TypeName</span>
 <span class="Symbol">&gt;</span> <span class="VarId">typeName</span> <span class="Symbol">=</span>
@@ -278,21 +275,18 @@ ERROR: src/Database/HsSqlPpp/Pretty.lhs:(565,2)-(568,67): Non-exhaustive pattern
 <p
     >The pretty printing routines are in 'src/Database/HsSqlPpp.Pretty'. Here is the line I added after the PrecTypeName pretty printer:</p
     >
-<div class='haskell'><pre class="sourceCode"><span class="Symbol">&gt;</span> <span class="VarId">convTypeName</span> <span class="Symbol">(</span><span class="ConId">PrecTypeName</span> <span class="VarId">_</span> <span class="VarId">s</span> <span class="VarId">i</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">text</span> <span class="VarId">s</span> <span class="Symbol">&lt;&gt;</span> <span class="VarId">parens</span><span class="Symbol">(</span><span class="VarId">integer</span> <span class="VarId">i</span><span class="Symbol">)</span>
-<span class="Symbol">&gt;</span> <span class="VarId">convTypeName</span> <span class="Symbol">(</span><span class="ConId">Prec2TypeName</span> <span class="VarId">_</span> <span class="VarId">s</span> <span class="VarId">i</span> <span class="VarId">i1</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">text</span> <span class="VarId">s</span> <span class="Symbol">&lt;&gt;</span> <span class="VarId">parens</span> <span class="Symbol">(</span><span class="VarId">hcatCsv</span> <span class="Symbol">[</span><span class="VarId">integer</span> <span class="VarId">i</span><span class="Symbol">,</span> <span class="VarId">integer</span> <span class="VarId">i1</span><span class="Symbol">])</span></pre></div>
+<div class='haskell'><pre class="sourceCode"><span class="Symbol">&gt;</span> <span class="VarId">typeName</span> <span class="Symbol">(</span><span class="ConId">PrecTypeName</span> <span class="VarId">_</span> <span class="VarId">s</span> <span class="VarId">i</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">text</span> <span class="VarId">s</span> <span class="Symbol">&lt;&gt;</span> <span class="VarId">parens</span><span class="Symbol">(</span><span class="VarId">integer</span> <span class="VarId">i</span><span class="Symbol">)</span>
+<span class="Symbol">&gt;</span> <span class="VarId">typeName</span> <span class="Symbol">(</span><span class="ConId">Prec2TypeName</span> <span class="VarId">_</span> <span class="VarId">s</span> <span class="VarId">i</span> <span class="VarId">i1</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">text</span> <span class="VarId">s</span> <span class="Symbol">&lt;&gt;</span> <span class="VarId">parens</span> <span class="Symbol">(</span><span class="VarId">hcatCsv</span> <span class="Symbol">[</span><span class="VarId">integer</span> <span class="VarId">i</span><span class="Symbol">,</span> <span class="VarId">integer</span> <span class="VarId">i1</span><span class="Symbol">])</span></pre></div>
 <h2 id="finished"
     >Finished</h2
     >
 <p
     >Now the test passes and the only thing left is to run all the tests to check nothing else has been broken.</p
-    >
-<p
-    >This is just a sketch guide, please email me if you are trying to follow this and have any questions.</p
     ><br
      /><br
      /><br
      /><div class="footer"
-    >generated on 08/13/11 13:03:26, hssqlppp-0.3.1</div
+    >generated on 10/30/11 15:52:45, hssqlppp-0.4.0</div
     ></body
   ></html
 >

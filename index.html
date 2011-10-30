@@ -8,7 +8,7 @@
   ><body
   ><div class="header"
     ><a href="index.html"
-      >HsSqlPpp-0.3.1</a
+      >HsSqlPpp-0.4.0</a
       ></div
     ><br
      /><br
@@ -25,28 +25,35 @@
 <ul
     >
 <li
-      >parsing SQL</li
-      >
-<li
-      >lint checking SQL code</li
-      >
-<li
-      >type-checker can help with SQL development and catch bugs which aren't statically detected by PostgreSQL</li
+      >type-checker can help with SQL development and catch bugs which aren't statically detected by Postgres</li
       >
 <li
       >generating SQL code programmatically/ generating SQL from some other source</li
       >
 <li
-      >transforming SQL code using quasiquoting</li
+      >transforming SQL code, possibly using quasiquoting, e.g. writing PL/pgSQL with less boilerplate, or optimisation rewrites</li
       >
 <li
       >viewing the catalog produced by some SQL code</li
       >
-<li
-      >typesafe database access from haskell</li
-      >
+</ul
+    >
+<p
+    >With some extra work:</p
+    >
+<ul
+    >
 <li
       >generating documentation for SQL code</li
+      >
+<li
+      >support running one dialect of SQL on a different DBMS using automatic translation - portable SQL</li
+      >
+<li
+      >typesafe database access from Haskell</li
+      >
+<li
+      >lint or semantic analysis for SQL or PL/pgSQL</li
       >
 </ul
     >
@@ -92,11 +99,17 @@
       >
 </ul
     >
+<p
+    >The pretty printer should support everything the parser supports (i.e. it pretty prints code which both the parser and Postgres understand).</p
+    >
+<p
+    >Catalog information is limited, supports the type checking. Some information is collected on scalar types, domains, composite types, casts, tables, views and functions.</p
+    >
 <h1 id="installation"
     >Installation</h1
     >
 <p
-    >This project is currently developed on GHC 7.0.4.</p
+    >This project is currently developed on GHC 7.2.1. 7.0.x should be fine, 6.12.x might take a small amount of work.</p
     >
 <p
     >To install use</p
@@ -120,8 +133,8 @@
       >Some notes on hacking on hssqlppp itself</a
       ></p
     >
-<h1 id="useful-links"
-    >Useful links</h1
+<h1 id="links"
+    >Links</h1
     >
 <p
     >Homepage: <a href="http://jakewheat.github.com/hssqlppp/"
@@ -179,7 +192,7 @@
       >a 'compiler' command to help developing SQL</li
       >
 <li
-      >parse most PostgreSQL syntax, possibly other SQL dialects as well</li
+      >parse most Postgres syntax, possibly other SQL dialects as well</li
       >
 <li
       >improve the typechecker - fix current regressions, get more sql type checking correctly</li
@@ -207,7 +220,7 @@
      /><br
      /><br
      /><div class="footer"
-    >generated on 08/13/11 13:03:26, hssqlppp-0.3.1</div
+    >generated on 10/30/11 15:52:45, hssqlppp-0.4.0</div
     ></body
   ></html
 >

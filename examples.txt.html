@@ -8,7 +8,7 @@
   ><body
   ><div class="header"
     ><a href="index.html"
-      >HsSqlPpp-0.3.1</a
+      >HsSqlPpp-0.4.0</a
       ></div
     ><br
      /><br
@@ -199,6 +199,43 @@ Just (SetOfType (CompositeType [(&quot;a&quot;,ScalarType &quot;int4&quot;),(&qu
       >CatalogReader</a
       ></p
     >
+<h1 id="show-catalog"
+    >Show catalog</h1
+    >
+<p
+    >Bit rough at the moment:</p
+    >
+<div class='haskell'><pre class="sourceCode"><span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">System.Environment</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Data.List</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Text.Groom</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Parser</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.TypeChecker</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Catalog</span>
+
+<span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">::</span> <span class="ConId">IO</span> <span class="Symbol">()</span>
+<span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
+<span class="Symbol">&gt;</span>   <span class="Symbol">[</span><span class="VarId">f</span><span class="Symbol">]</span> <span class="Symbol">&lt;-</span> <span class="VarId">getArgs</span>
+<span class="Symbol">&gt;</span>   <span class="ConId">Right</span> <span class="VarId">ast</span> <span class="Symbol">&lt;-</span> <span class="VarId">parseStatementsFromFile</span> <span class="VarId">f</span>
+<span class="Symbol">&gt;</span>   <span class="Keyword">let</span> <span class="Symbol">(</span><span class="VarId">cat</span><span class="Symbol">,</span><span class="VarId">_</span><span class="Symbol">)</span> <span class="Symbol">=</span> <span class="VarId">typeCheckStatements</span> <span class="VarId">defaultTemplate1Catalog</span> <span class="VarId">ast</span>
+<span class="Symbol">&gt;</span>       <span class="VarId">cc</span> <span class="Symbol">=</span> <span class="VarId">deconstructCatalog</span> <span class="VarId">cat</span> <span class="Symbol">\\</span> <span class="VarId">deconstructCatalog</span> <span class="VarId">defaultTemplate1Catalog</span>
+<span class="Symbol">&gt;</span>   <span class="VarId">putStrLn</span> <span class="Symbol">$</span> <span class="VarId">groom</span> <span class="VarId">cc</span></pre></div>
+<p
+    >Pass in the following sql file:</p
+    >
+<div class='sql'><pre class="sourceCode"><span class="Keyword">create</span> <span class="Keyword">table</span> <span class="VarId">t</span> <span class="Symbol">(</span><span class="VarId">a</span> <span class="Type">int</span><span class="Symbol">,</span> <span class="VarId">b</span> <span class="Type">float</span><span class="Symbol">);</span>
+<span class="Keyword">create</span> <span class="Keyword">view</span> <span class="VarId">v</span> <span class="Keyword">as</span> <span class="Keyword">select</span> <span class="VarId">a</span> <span class="Keyword">from</span> <span class="VarId">t</span><span class="Symbol">;</span></pre></div>
+<pre
+    ><code
+      >$ ./ShowCatalog sc.sql
+[CatCreateTable &quot;t&quot;
+   [(&quot;a&quot;, ScalarType &quot;int4&quot;), (&quot;b&quot;, ScalarType &quot;float8&quot;)]
+   [(&quot;tableoid&quot;, ScalarType &quot;oid&quot;), (&quot;cmax&quot;, ScalarType &quot;cid&quot;),
+    (&quot;xmax&quot;, ScalarType &quot;xid&quot;), (&quot;cmin&quot;, ScalarType &quot;cid&quot;),
+    (&quot;xmin&quot;, ScalarType &quot;xid&quot;), (&quot;ctid&quot;, ScalarType &quot;tid&quot;)],
+ CatCreateView &quot;v&quot; [(&quot;a&quot;, ScalarType &quot;int4&quot;)]]
+</code
+      ></pre
+    >
 <h1 id="generating-sql"
     >Generating SQL</h1
     >
@@ -208,7 +245,6 @@ Just (SetOfType (CompositeType [(&quot;a&quot;,ScalarType &quot;int4&quot;),(&qu
 <div class='haskell'><pre class="sourceCode"><span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Annotation</span>
 <span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Ast</span>
 <span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Pretty</span>
-
 
 <span class="Symbol">&gt;</span> <span class="Keyword">data</span> <span class="ConId">MakeSelect</span> <span class="Symbol">=</span> <span class="ConId">MakeSelect</span> <span class="Symbol">[</span><span class="ConId">String</span><span class="Symbol">]</span> <span class="ConId">String</span>
 
@@ -221,11 +257,11 @@ Just (SetOfType (CompositeType [(&quot;a&quot;,ScalarType &quot;int4&quot;),(&qu
 <span class="Symbol">&gt;</span>     <span class="VarId">sl</span> <span class="Symbol">=</span> <span class="ConId">SelectList</span> <span class="VarId">emptyAnnotation</span>
 <span class="Symbol">&gt;</span>                     <span class="Symbol">(</span><span class="VarId">map</span> <span class="VarId">si</span> <span class="VarId">cols</span><span class="Symbol">)</span>
 <span class="Symbol">&gt;</span>     <span class="VarId">tr</span> <span class="Symbol">=</span> <span class="Symbol">[</span><span class="ConId">Tref</span> <span class="VarId">emptyAnnotation</span>
-<span class="Symbol">&gt;</span>                <span class="Symbol">(</span><span class="ConId">SQIdentifier</span> <span class="VarId">emptyAnnotation</span> <span class="Symbol">[</span><span class="VarId">tb</span><span class="Symbol">])</span>
+<span class="Symbol">&gt;</span>                <span class="Symbol">(</span><span class="ConId">Name</span> <span class="VarId">emptyAnnotation</span> <span class="Symbol">[</span><span class="ConId">Nmc</span> <span class="VarId">tb</span><span class="Symbol">])</span>
 <span class="Symbol">&gt;</span>                <span class="Symbol">(</span><span class="ConId">NoAlias</span> <span class="VarId">emptyAnnotation</span><span class="Symbol">)]</span>
 <span class="Symbol">&gt;</span>     <span class="VarId">si</span> <span class="VarId">i</span> <span class="Symbol">=</span> <span class="ConId">SelExp</span> <span class="VarId">emptyAnnotation</span>
 <span class="Symbol">&gt;</span>                   <span class="Symbol">(</span><span class="ConId">Identifier</span> <span class="VarId">emptyAnnotation</span>
-<span class="Symbol">&gt;</span>                               <span class="VarId">i</span><span class="Symbol">)</span>
+<span class="Symbol">&gt;</span>                               <span class="Symbol">(</span><span class="ConId">Nmc</span> <span class="VarId">i</span><span class="Symbol">))</span>
 
 <span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">::</span> <span class="ConId">IO</span> <span class="Symbol">()</span>
 <span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
@@ -282,20 +318,22 @@ create table my_table (
     >Transforming SQL</h1
     >
 <p
-    >The TPC-H qgen program generates the SQL queries for the TPC-H benchmarks and includes an option for SQL Server. For some reason, it doesn't output the queries in syntax which SQL Server recognises. Here is a short program to take the qgen output and convert it into a format which SQL Server understands. (I haven't checked carefully to see if this code is correct.)</p
+    >The TPC-H qgen program generates the SQL queries for the TPC-H benchmarks and includes an option for SQL Server. For some reason, it doesn't output the queries in syntax which SQL Server recognises. Here is a short program to take the qgen output and convert it into a format which SQL Server understands. (I haven't checked carefully to see if the produced SQL is correct.)</p
     >
 <div class='haskell'><pre class="sourceCode">
 <span class="ConId">Convert</span> <span class="VarId">qgen</span> <span class="VarId">output</span> <span class="VarId">into</span> <span class="VarId">sql</span> <span class="VarId">server</span> <span class="VarId">format</span>
 
+<span class="Symbol">&gt;</span> <span class="Comment">{-# LANGUAGE QuasiQuotes #-}</span>
 <span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Data.Generics.Uniplate.Data</span>
 
 <span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">System.Environment</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Data.Data</span>
 
 <span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Parser</span>
-
 <span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Ast</span>
 <span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Pretty</span>
-<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Data.Data</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Quote</span>
+<span class="Symbol">&gt;</span> <span class="Keyword">import</span> <span class="ConId">Database.HsSqlPpp.Annotation</span>
 
 <span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">::</span> <span class="ConId">IO</span> <span class="Symbol">()</span>
 <span class="Symbol">&gt;</span> <span class="VarId">main</span> <span class="Symbol">=</span> <span class="Keyword">do</span>
@@ -305,7 +343,7 @@ create table my_table (
 
 <span class="Symbol">&gt;</span> <span class="VarId">fixSql</span> <span class="Symbol">::</span> <span class="ConId">String</span> <span class="Symbol">-&gt;</span> <span class="ConId">String</span>
 <span class="Symbol">&gt;</span> <span class="VarId">fixSql</span> <span class="VarId">sql</span> <span class="Symbol">=</span>
-<span class="Symbol">&gt;</span>   <span class="Keyword">let</span> <span class="ConId">Right</span> <span class="VarId">qe</span> <span class="Symbol">=</span> <span class="VarId">parseStatements</span> <span class="String">&quot;&quot;</span> <span class="VarId">sql</span>
+<span class="Symbol">&gt;</span>   <span class="Keyword">let</span> <span class="VarId">qe</span> <span class="Symbol">=</span> <span class="VarId">either</span> <span class="Symbol">(</span><span class="VarId">error</span> <span class="Symbol">.</span> <span class="VarId">show</span><span class="Symbol">)</span> <span class="VarId">id</span> <span class="Symbol">$</span> <span class="VarId">parseStatements</span> <span class="String">&quot;&quot;</span> <span class="VarId">sql</span>
 <span class="Symbol">&gt;</span>       <span class="VarId">qe'</span> <span class="Symbol">=</span> <span class="VarId">fixSqlAst</span> <span class="VarId">qe</span>
 <span class="Symbol">&gt;</span>   <span class="Keyword">in</span> <span class="VarId">printStatements</span> <span class="VarId">qe'</span>
 
@@ -318,18 +356,19 @@ create table my_table (
 
 <span class="Symbol">&gt;</span> <span class="VarId">fixIntervals</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
 <span class="Symbol">&gt;</span> <span class="VarId">fixIntervals</span> <span class="Symbol">=</span> <span class="VarId">transformBi</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span> <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
-<span class="Symbol">&gt;</span>   <span class="ConId">FunCall</span> <span class="VarId">a</span> <span class="VarId">f</span> <span class="Symbol">[</span><span class="ConId">TypedStringLit</span> <span class="VarId">_</span> <span class="Symbol">(</span><span class="ConId">SimpleTypeName</span> <span class="VarId">_</span> <span class="String">&quot;date&quot;</span><span class="Symbol">)</span> <span class="VarId">d</span>
-<span class="Symbol">&gt;</span>                 <span class="Symbol">,</span><span class="ConId">Interval</span> <span class="VarId">_</span> <span class="VarId">v</span> <span class="VarId">i</span> <span class="VarId">_</span><span class="Symbol">]</span>
-<span class="Symbol">&gt;</span>     <span class="Symbol">|</span> <span class="VarId">f</span> <span class="Symbol">`</span><span class="VarId">elem</span><span class="Symbol">`</span> <span class="Symbol">[</span><span class="String">&quot;+&quot;</span><span class="Symbol">,</span><span class="String">&quot;-&quot;</span><span class="Symbol">]</span>
-<span class="Symbol">&gt;</span>     <span class="Symbol">,</span> <span class="ConId">Just</span> <span class="VarId">i'</span> <span class="Symbol">&lt;-</span> <span class="VarId">lookup</span> <span class="VarId">i</span> <span class="Symbol">[(</span><span class="ConId">IntervalDay</span><span class="Symbol">,</span><span class="String">&quot;day&quot;</span><span class="Symbol">)</span>
-<span class="Symbol">&gt;</span>                           <span class="Symbol">,(</span><span class="ConId">IntervalMonth</span><span class="Symbol">,</span><span class="String">&quot;month&quot;</span><span class="Symbol">)</span>
-<span class="Symbol">&gt;</span>                           <span class="Symbol">,(</span><span class="ConId">IntervalYear</span><span class="Symbol">,</span><span class="String">&quot;year&quot;</span><span class="Symbol">)]</span>
-<span class="Symbol">&gt;</span>     <span class="Symbol">-&gt;</span> <span class="ConId">FunCall</span> <span class="VarId">a</span> <span class="String">&quot;dateAdd&quot;</span> <span class="Symbol">[</span><span class="ConId">Identifier</span> <span class="VarId">a</span> <span class="VarId">i'</span>
-<span class="Symbol">&gt;</span>                            <span class="Symbol">,</span><span class="Keyword">case</span> <span class="VarId">f</span> <span class="Keyword">of</span>
-<span class="Symbol">&gt;</span>                               <span class="String">&quot;-&quot;</span> <span class="Symbol">-&gt;</span> <span class="ConId">FunCall</span> <span class="VarId">a</span> <span class="String">&quot;u-&quot;</span> <span class="Symbol">[</span><span class="ConId">NumberLit</span> <span class="VarId">a</span> <span class="VarId">v</span><span class="Symbol">]</span>
-<span class="Symbol">&gt;</span>                               <span class="VarId">_</span> <span class="Symbol">-&gt;</span> <span class="ConId">NumberLit</span> <span class="VarId">a</span> <span class="VarId">v</span>
-<span class="Symbol">&gt;</span>                            <span class="Symbol">,</span><span class="ConId">StringLit</span> <span class="VarId">a</span> <span class="VarId">d</span><span class="Symbol">]</span>
+<span class="Symbol">&gt;</span>   <span class="Symbol">[</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="Symbol">$(</span><span class="VarId">a</span><span class="Symbol">)</span> <span class="Symbol">+</span> <span class="Symbol">$(</span><span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">|]</span> <span class="Symbol">|</span> <span class="ConId">Just</span> <span class="Symbol">(</span><span class="VarId">i</span><span class="Symbol">,</span><span class="VarId">v</span><span class="Symbol">,</span><span class="VarId">d</span><span class="Symbol">)</span> <span class="Symbol">&lt;-</span> <span class="VarId">dateInfo</span> <span class="VarId">a</span> <span class="VarId">b</span> <span class="Symbol">-&gt;</span>
+<span class="Symbol">&gt;</span>      <span class="Symbol">[</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="VarId">dateAdd</span><span class="Symbol">($</span><span class="VarId">i</span><span class="Symbol">(</span><span class="VarId">i</span><span class="Symbol">),$(</span><span class="VarId">v</span><span class="Symbol">),$</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">d</span><span class="Symbol">))|]</span>
+<span class="Symbol">&gt;</span>   <span class="Symbol">[</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="Symbol">$(</span><span class="VarId">a</span><span class="Symbol">)</span> <span class="Symbol">-</span> <span class="Symbol">$(</span><span class="VarId">b</span><span class="Symbol">)</span> <span class="Symbol">|]|</span> <span class="ConId">Just</span> <span class="Symbol">(</span><span class="VarId">i</span><span class="Symbol">,</span><span class="VarId">v</span><span class="Symbol">,</span><span class="VarId">d</span><span class="Symbol">)</span> <span class="Symbol">&lt;-</span> <span class="VarId">dateInfo</span> <span class="VarId">a</span> <span class="VarId">b</span> <span class="Symbol">-&gt;</span>
+<span class="Symbol">&gt;</span>      <span class="Symbol">[</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="VarId">dateAdd</span><span class="Symbol">($</span><span class="VarId">i</span><span class="Symbol">(</span><span class="VarId">i</span><span class="Symbol">),-$(</span><span class="VarId">v</span><span class="Symbol">),$</span><span class="VarId">s</span><span class="Symbol">(</span><span class="VarId">d</span><span class="Symbol">))|]</span>
 <span class="Symbol">&gt;</span>   <span class="VarId">x'</span> <span class="Symbol">-&gt;</span> <span class="VarId">x'</span>
+<span class="Symbol">&gt;</span>   <span class="Keyword">where</span>
+<span class="Symbol">&gt;</span>     <span class="VarId">dateInfo</span> <span class="Symbol">(</span><span class="ConId">TypedStringLit</span> <span class="VarId">_</span> <span class="Symbol">(</span><span class="ConId">SimpleTypeName</span> <span class="VarId">_</span> <span class="String">&quot;date&quot;</span><span class="Symbol">)</span> <span class="VarId">d</span><span class="Symbol">)</span>
+<span class="Symbol">&gt;</span>              <span class="Symbol">(</span><span class="ConId">Interval</span> <span class="VarId">_</span> <span class="VarId">v</span> <span class="VarId">i</span> <span class="VarId">_</span><span class="Symbol">)</span>
+<span class="Symbol">&gt;</span>              <span class="Symbol">|</span> <span class="ConId">Just</span> <span class="VarId">i'</span> <span class="Symbol">&lt;-</span> <span class="VarId">lookup</span> <span class="VarId">i</span> <span class="Symbol">[(</span><span class="ConId">IntervalDay</span><span class="Symbol">,</span><span class="String">&quot;day&quot;</span><span class="Symbol">)</span>
+<span class="Symbol">&gt;</span>                                    <span class="Symbol">,(</span><span class="ConId">IntervalMonth</span><span class="Symbol">,</span><span class="String">&quot;month&quot;</span><span class="Symbol">)</span>
+<span class="Symbol">&gt;</span>                                    <span class="Symbol">,(</span><span class="ConId">IntervalYear</span><span class="Symbol">,</span><span class="String">&quot;year&quot;</span><span class="Symbol">)]</span>
+<span class="Symbol">&gt;</span>              <span class="Symbol">=</span> <span class="ConId">Just</span> <span class="Symbol">(</span><span class="VarId">i'</span><span class="Symbol">,</span><span class="ConId">NumberLit</span> <span class="VarId">emptyAnnotation</span> <span class="VarId">v</span><span class="Symbol">,</span><span class="VarId">d</span><span class="Symbol">)</span>
+<span class="Symbol">&gt;</span>     <span class="VarId">dateInfo</span> <span class="VarId">_</span> <span class="VarId">_</span> <span class="Symbol">=</span> <span class="ConId">Nothing</span>
 
  <span class="VarId">datepart</span><span class="Symbol">(</span><span class="VarId">year</span><span class="Symbol">,</span><span class="VarId">l_shipdate</span><span class="Symbol">)</span>
 <span class="ConId">Instead</span> <span class="Keyword">of</span><span class="Symbol">:</span>
@@ -337,7 +376,8 @@ create table my_table (
 
 <span class="Symbol">&gt;</span> <span class="VarId">fixExtract</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
 <span class="Symbol">&gt;</span> <span class="VarId">fixExtract</span> <span class="Symbol">=</span> <span class="VarId">transformBi</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span> <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
-<span class="Symbol">&gt;</span>   <span class="ConId">Extract</span> <span class="VarId">a</span> <span class="ConId">ExtractYear</span> <span class="VarId">e</span> <span class="Symbol">-&gt;</span> <span class="ConId">FunCall</span> <span class="VarId">a</span> <span class="String">&quot;datepart&quot;</span> <span class="Symbol">[</span><span class="ConId">Identifier</span> <span class="VarId">a</span> <span class="String">&quot;year&quot;</span><span class="Symbol">,</span> <span class="VarId">e</span><span class="Symbol">]</span>
+<span class="Symbol">&gt;</span>   <span class="Symbol">[</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="VarId">extract</span><span class="Symbol">(</span><span class="VarId">year</span> <span class="VarId">from</span> <span class="Symbol">$(</span><span class="VarId">expr</span><span class="Symbol">)</span> <span class="Symbol">)</span> <span class="Symbol">|]</span> <span class="Symbol">-&gt;</span>
+<span class="Symbol">&gt;</span>       <span class="Symbol">[</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="VarId">datepart</span><span class="Symbol">(</span><span class="VarId">year</span><span class="Symbol">,$(</span><span class="VarId">expr</span><span class="Symbol">))</span> <span class="Symbol">|]</span>
 <span class="Symbol">&gt;</span>   <span class="VarId">x'</span> <span class="Symbol">-&gt;</span> <span class="VarId">x'</span>
 
 
@@ -347,7 +387,8 @@ create table my_table (
 
 <span class="Symbol">&gt;</span> <span class="VarId">fixSubstring</span> <span class="Symbol">::</span> <span class="ConId">Data</span> <span class="VarId">a</span> <span class="Symbol">=&gt;</span> <span class="VarId">a</span> <span class="Symbol">-&gt;</span> <span class="VarId">a</span>
 <span class="Symbol">&gt;</span> <span class="VarId">fixSubstring</span> <span class="Symbol">=</span> <span class="VarId">transformBi</span> <span class="Symbol">$</span> <span class="Symbol">\</span><span class="VarId">x</span> <span class="Symbol">-&gt;</span> <span class="Keyword">case</span> <span class="VarId">x</span> <span class="Keyword">of</span>
-<span class="Symbol">&gt;</span>   <span class="ConId">FunCall</span> <span class="VarId">a</span> <span class="String">&quot;!substring&quot;</span> <span class="Symbol">[</span><span class="VarId">e</span><span class="Symbol">,</span><span class="VarId">fr</span><span class="Symbol">,</span><span class="VarId">fo</span><span class="Symbol">]</span> <span class="Symbol">-&gt;</span> <span class="ConId">FunCall</span> <span class="VarId">a</span> <span class="String">&quot;substring&quot;</span> <span class="Symbol">[</span><span class="VarId">e</span><span class="Symbol">,</span><span class="VarId">fr</span><span class="Symbol">,</span><span class="VarId">fo</span><span class="Symbol">]</span>
+<span class="Symbol">&gt;</span>   <span class="Symbol">[</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="VarId">substring</span><span class="Symbol">($(</span><span class="VarId">i</span><span class="Symbol">)</span> <span class="VarId">from</span> <span class="Symbol">$(</span><span class="VarId">a</span><span class="Symbol">)</span> <span class="VarId">for</span> <span class="Symbol">$(</span><span class="VarId">b</span><span class="Symbol">))</span> <span class="Symbol">|]</span> <span class="Symbol">-&gt;</span>
+<span class="Symbol">&gt;</span>       <span class="Symbol">[</span><span class="VarId">sqlExpr</span><span class="Symbol">|</span> <span class="VarId">substring</span><span class="Symbol">($(</span><span class="VarId">i</span><span class="Symbol">),$(</span><span class="VarId">a</span><span class="Symbol">),$(</span><span class="VarId">b</span><span class="Symbol">))</span> <span class="Symbol">|]</span>
 <span class="Symbol">&gt;</span>   <span class="VarId">x'</span> <span class="Symbol">-&gt;</span> <span class="VarId">x'</span>
 
  &#8216;<span class="Number">1998</span><span class="Symbol">-</span><span class="Number">12</span><span class="Symbol">-</span><span class="Number">01</span>&#8217;
@@ -407,7 +448,7 @@ create table my_table (
      /><br
      /><br
      /><div class="footer"
-    >generated on 08/13/11 13:03:26, hssqlppp-0.3.1</div
+    >generated on 10/30/11 15:52:45, hssqlppp-0.4.0</div
     ></body
   ></html
 >
