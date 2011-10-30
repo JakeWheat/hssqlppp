@@ -49,6 +49,10 @@ src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o : src-extra/util/Database/HsS
 src/Database/HsSqlPpp/Internals/AstAnnotation.o : src/Database/HsSqlPpp/Internals/AstAnnotation.lhs
 src/Database/HsSqlPpp/Internals/AstAnnotation.o : src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.hi
 src/Database/HsSqlPpp/Internals/AstAnnotation.o : src/Database/HsSqlPpp/Internals/TypeType.hi
+src/Database/HsSqlPpp/Annotation.o : src/Database/HsSqlPpp/Annotation.lhs
+src/Database/HsSqlPpp/Annotation.o : src/Database/HsSqlPpp/Internals/AstAnnotation.hi
+src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.o : src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.lhs
+src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.o : src/Database/HsSqlPpp/Annotation.hi
 src/Database/HsSqlPpp/Internals/AstInternal.o : src/Database/HsSqlPpp/Internals/AstInternal.hs
 src/Database/HsSqlPpp/Internals/AstInternal.o : src/Database/HsSqlPpp/Internals/TypeChecking/IDEnv.hi
 src/Database/HsSqlPpp/Internals/AstInternal.o : src/Database/HsSqlPpp/Utils/Utils.hi
@@ -69,11 +73,6 @@ src/Database/HsSqlPpp/TypeChecker.o : src/Database/HsSqlPpp/TypeChecker.lhs
 src/Database/HsSqlPpp/TypeChecker.o : src/Database/HsSqlPpp/Internals/AnnotationUtils.hi
 src/Database/HsSqlPpp/TypeChecker.o : src/Database/HsSqlPpp/Internals/TypeChecking/Utils.hi
 src/Database/HsSqlPpp/TypeChecker.o : src/Database/HsSqlPpp/Internals/AstInternal.hi
-src/Database/HsSqlPpp/Annotation.o : src/Database/HsSqlPpp/Annotation.lhs
-src/Database/HsSqlPpp/Annotation.o : src/Database/HsSqlPpp/Internals/AnnotationUtils.hi
-src/Database/HsSqlPpp/Annotation.o : src/Database/HsSqlPpp/Internals/AstAnnotation.hi
-src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.o : src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.lhs
-src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.o : src/Database/HsSqlPpp/Annotation.hi
 src/Database/HsSqlPpp/Ast.o : src/Database/HsSqlPpp/Ast.lhs
 src/Database/HsSqlPpp/Ast.o : src/Database/HsSqlPpp/Internals/AstInternal.hi
 src/Database/HsSqlPpp/Parsing/ParserInternal.o : src/Database/HsSqlPpp/Parsing/ParserInternal.lhs

@@ -34,12 +34,12 @@ src/Database/HsSqlPpp/Parsing/Lexer.o \
 src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/Annotation.o \
 src/Database/HsSqlPpp/Catalog.o \
-src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
 src-extra/util/Database/HsSqlPpp/Utils/Here.o \
 src/Database/HsSqlPpp/TypeChecker.o \
 src/Database/HsSqlPpp/Types.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/Utils.o \
+src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TableRefTests.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TpchTests.o \
@@ -104,12 +104,12 @@ src/Database/HsSqlPpp/Parsing/Lexer.o \
 src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/Annotation.o \
 src/Database/HsSqlPpp/Catalog.o \
-src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
 src-extra/util/Database/HsSqlPpp/Utils/Here.o \
 src/Database/HsSqlPpp/TypeChecker.o \
 src/Database/HsSqlPpp/Types.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/Utils.o \
+src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TableRefTests.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TpchTests.o \
@@ -178,7 +178,6 @@ src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindings.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/ErrorUtils.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/IDEnv.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindingsInternal.o \
-src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o
 	$(HC) $(HC_OPTS) -o src-extra/examples/FixSqlServerTpchSyntax src-extra/examples/FixSqlServerTpchSyntax.o \
 src/Database/HsSqlPpp/Parser.o \
@@ -200,14 +199,12 @@ src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindings.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/ErrorUtils.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/IDEnv.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindingsInternal.o \
-src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o
 src-extra/examples/MakeSelect : src-extra/examples/MakeSelect.o \
 src/Database/HsSqlPpp/Annotation.o \
 src/Database/HsSqlPpp/Ast.o \
 src/Database/HsSqlPpp/Pretty.o \
 src/Database/HsSqlPpp/Internals/AstAnnotation.o \
-src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src/Database/HsSqlPpp/Internals/TypeType.o \
 src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
@@ -224,7 +221,6 @@ src/Database/HsSqlPpp/Annotation.o \
 src/Database/HsSqlPpp/Ast.o \
 src/Database/HsSqlPpp/Pretty.o \
 src/Database/HsSqlPpp/Internals/AstAnnotation.o \
-src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src/Database/HsSqlPpp/Internals/TypeType.o \
 src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
@@ -254,7 +250,6 @@ src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindings.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/ErrorUtils.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/IDEnv.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindingsInternal.o \
-src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o
 	$(HC) $(HC_OPTS) -o src-extra/examples/Parse src-extra/examples/Parse.o \
 src/Database/HsSqlPpp/Parser.o \
@@ -274,7 +269,6 @@ src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindings.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/ErrorUtils.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/IDEnv.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindingsInternal.o \
-src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o
 src-extra/examples/Parse2 : src-extra/examples/Parse2.o \
 src/Database/HsSqlPpp/Parser.o \
@@ -294,7 +288,6 @@ src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindings.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/ErrorUtils.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/IDEnv.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindingsInternal.o \
-src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o
 	$(HC) $(HC_OPTS) -o src-extra/examples/Parse2 src-extra/examples/Parse2.o \
 src/Database/HsSqlPpp/Parser.o \
@@ -314,7 +307,6 @@ src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindings.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/ErrorUtils.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/IDEnv.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindingsInternal.o \
-src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o
 src-extra/examples/QQ : src-extra/examples/QQ.o \
 src/Database/HsSqlPpp/Ast.o \
@@ -335,7 +327,6 @@ src/Database/HsSqlPpp/Parsing/ParserInternal.o \
 src/Database/HsSqlPpp/Parsing/Lexer.o \
 src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/Catalog.o \
-src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o
 	$(HC) $(HC_OPTS) -o src-extra/examples/QQ src-extra/examples/QQ.o \
 src/Database/HsSqlPpp/Ast.o \
@@ -356,7 +347,6 @@ src/Database/HsSqlPpp/Parsing/ParserInternal.o \
 src/Database/HsSqlPpp/Parsing/Lexer.o \
 src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/Catalog.o \
-src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o
 src-extra/examples/ShowCatalog : src-extra/examples/ShowCatalog.o \
 src/Database/HsSqlPpp/Parser.o \
@@ -377,9 +367,9 @@ src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindings.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/ErrorUtils.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/IDEnv.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindingsInternal.o \
-src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
-src/Database/HsSqlPpp/Internals/TypeChecking/Utils.o
+src/Database/HsSqlPpp/Internals/TypeChecking/Utils.o \
+src/Database/HsSqlPpp/Internals/AnnotationUtils.o
 	$(HC) $(HC_OPTS) -o src-extra/examples/ShowCatalog src-extra/examples/ShowCatalog.o \
 src/Database/HsSqlPpp/Parser.o \
 src/Database/HsSqlPpp/TypeChecker.o \
@@ -399,9 +389,9 @@ src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindings.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/ErrorUtils.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/IDEnv.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindingsInternal.o \
-src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
-src/Database/HsSqlPpp/Internals/TypeChecking/Utils.o
+src/Database/HsSqlPpp/Internals/TypeChecking/Utils.o \
+src/Database/HsSqlPpp/Internals/AnnotationUtils.o
 src-extra/examples/TypeCheck : src-extra/examples/TypeCheck.o \
 src/Database/HsSqlPpp/Parser.o \
 src/Database/HsSqlPpp/TypeChecker.o \
@@ -422,9 +412,9 @@ src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindings.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/ErrorUtils.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/IDEnv.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindingsInternal.o \
-src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
-src/Database/HsSqlPpp/Internals/TypeChecking/Utils.o
+src/Database/HsSqlPpp/Internals/TypeChecking/Utils.o \
+src/Database/HsSqlPpp/Internals/AnnotationUtils.o
 	$(HC) $(HC_OPTS) -o src-extra/examples/TypeCheck src-extra/examples/TypeCheck.o \
 src/Database/HsSqlPpp/Parser.o \
 src/Database/HsSqlPpp/TypeChecker.o \
@@ -445,9 +435,9 @@ src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindings.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/ErrorUtils.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/IDEnv.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindingsInternal.o \
-src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
-src/Database/HsSqlPpp/Internals/TypeChecking/Utils.o
+src/Database/HsSqlPpp/Internals/TypeChecking/Utils.o \
+src/Database/HsSqlPpp/Internals/AnnotationUtils.o
 src-extra/examples/TypeCheckDB : src-extra/examples/TypeCheckDB.o \
 src/Database/HsSqlPpp/Parser.o \
 src/Database/HsSqlPpp/TypeChecker.o \
@@ -469,9 +459,9 @@ src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindings.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/ErrorUtils.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/IDEnv.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindingsInternal.o \
-src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/Utils.o \
+src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src-extra/util/Database/HsSqlPpp/Utils/Here.o \
 src-extra/util/Database/HsSqlPpp/Utils/PgUtils.o
 	$(HC) $(HC_OPTS) -o src-extra/examples/TypeCheckDB src-extra/examples/TypeCheckDB.o \
@@ -495,9 +485,9 @@ src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindings.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/ErrorUtils.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/IDEnv.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindingsInternal.o \
-src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/Utils.o \
+src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src-extra/util/Database/HsSqlPpp/Utils/Here.o \
 src-extra/util/Database/HsSqlPpp/Utils/PgUtils.o
 src-extra/tosort/util/DevelTool : src-extra/tosort/util/DevelTool.o \
@@ -536,7 +526,6 @@ src/Database/HsSqlPpp/Parsing/Lexer.o \
 src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/Annotation.o \
 src/Database/HsSqlPpp/Catalog.o \
-src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TableRefTests.o \
@@ -567,6 +556,7 @@ src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Misc.o \
 src/Database/HsSqlPpp/TypeChecker.o \
 src/Database/HsSqlPpp/Types.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/Utils.o \
+src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o \
 src/Database/HsSqlPpp/Quote.o
 	$(HC) $(HC_OPTS) -o src-extra/tosort/util/DevelTool src-extra/tosort/util/DevelTool.o \
@@ -605,7 +595,6 @@ src/Database/HsSqlPpp/Parsing/Lexer.o \
 src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/Annotation.o \
 src/Database/HsSqlPpp/Catalog.o \
-src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TableRefTests.o \
@@ -636,6 +625,7 @@ src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Misc.o \
 src/Database/HsSqlPpp/TypeChecker.o \
 src/Database/HsSqlPpp/Types.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/Utils.o \
+src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o \
 src/Database/HsSqlPpp/Quote.o
 src-extra/h7c/h7c : src-extra/h7c/h7c.o \
@@ -658,7 +648,6 @@ src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindings.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/ErrorUtils.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/IDEnv.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindingsInternal.o \
-src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
 src-extra/extensions/Database/HsSqlPpp/Extensions/ExtensionsUtils.o \
 src/Database/HsSqlPpp/Quote.o \
@@ -692,7 +681,6 @@ src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindings.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/ErrorUtils.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/IDEnv.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/LocalBindingsInternal.o \
-src/Database/HsSqlPpp/Internals/AnnotationUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
 src-extra/extensions/Database/HsSqlPpp/Extensions/ExtensionsUtils.o \
 src/Database/HsSqlPpp/Quote.o \

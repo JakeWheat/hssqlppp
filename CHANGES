@@ -16,6 +16,8 @@ add a reasonably comprehensive makefile which handles the generated
   file for the tests
 remove the functions from Annotation module which are trivial wrappers
   around uniplate functions
+remove ugly system for implementing antiquotes in the syntax - now is
+  much more straightforward
 bug/regression fixes:
 fix parsing 'for 1..10' without spaces
 fix pretty printing (x).y member reference in scalar
@@ -30,6 +32,9 @@ main deficiency for typechecking expressions remaining is composite
 fix parsing of substring when it uses regular function call syntax
   (i.e. substring(a,b,c) rather than substring(a from b for c)
 fix for the syntax of the directions in order by in window functions
+fix broken select into parsing
+parsing of :: cast operator has been improved in some cases
+
 
 0.3.1
 Released 13/08/2011
