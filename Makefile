@@ -2,6 +2,9 @@
 # you can build the library using cabal configure && cabal build
 # more info here: http://jakewheat.github.com/hssqlppp/devel.txt.html
 
+# this makefile uses gnu make syntax, not sure what other makes it
+# works with
+
 # this makefile can be used:
 # * when the .ag files are altered to rebuild the hs
 # * to build/ run the tests
