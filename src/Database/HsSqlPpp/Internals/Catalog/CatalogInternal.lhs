@@ -48,7 +48,7 @@ modules.
 > -- import Debug.Trace
 > import Data.Char
 >
-> import Database.HsSqlPpp.Internals.TypeType
+> import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Utils.Utils
 >
 > -- | The main datatype, this holds the catalog and context

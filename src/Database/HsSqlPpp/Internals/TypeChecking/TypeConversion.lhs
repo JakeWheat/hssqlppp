@@ -39,7 +39,7 @@ off.
 > --import Debug.Trace
 > import Data.Char
 >
-> import Database.HsSqlPpp.Internals.TypeType
+> import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 > import Database.HsSqlPpp.Utils.Utils
 

@@ -36,10 +36,9 @@ This is the public module for the type checking functionality.
 >     --,addExplicitCasts
 >     --,canonicalizeTypeNames
 >      -- * Annotated tree utils
->     ,getStatementAnnotations
+>     --,getStatementAnnotations
 >     ) where
 >
 > import Database.HsSqlPpp.Internals.AstInternal
 > --import Database.HsSqlPpp.Internals.TypeChecking.Utils
 > --import Database.HsSqlPpp.Internals.AstAnnotation
-> import Database.HsSqlPpp.Internals.AnnotationUtils

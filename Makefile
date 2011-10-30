@@ -135,11 +135,11 @@ more_all : all all_exes website website_haddock tests
 
 # dependency and rules for exe autogeneration:
 
-exe_depend : src-extra/devel-util/GenerateExeRules.lhs Makefile
+exe_depend : src-extra/devel-util/GenerateExeRules.lhs Makefile src/Database/HsSqlPpp/Internals/AstInternal.hs
 	ghc -isrc-extra/devel-util src-extra/devel-util/GenerateExeRules.lhs
 	src-extra/devel-util/GenerateExeRules
 
-depend :
+depend : src/Database/HsSqlPpp/Internals/AstInternal.hs
 	ghc -M $(HC_OPTS) $(SRCS_ROOTS) -dep-makefile .depend
 
 #specific rules for generated file astinternal.hs

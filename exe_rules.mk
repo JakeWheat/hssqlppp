@@ -16,9 +16,9 @@ src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Plpgsql.o \
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Misc.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \
-src/Database/HsSqlPpp/Internals/TypeType.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
-src/Database/HsSqlPpp/Internals/AstAnnotation.o \
+src/Database/HsSqlPpp/Internals/AnnotationInternal.o \
 src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/Parsing/ParserInternal.o \
@@ -47,9 +47,9 @@ src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Plpgsql.o \
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Misc.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \
-src/Database/HsSqlPpp/Internals/TypeType.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
-src/Database/HsSqlPpp/Internals/AstAnnotation.o \
+src/Database/HsSqlPpp/Internals/AnnotationInternal.o \
 src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/Parsing/ParserInternal.o \

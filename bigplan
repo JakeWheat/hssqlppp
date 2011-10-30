@@ -1,3 +1,77 @@
+immediate work notes:
+
+do some review/ rewriting:
+typeconversion needs a rewrite from scratch - leave this until at
+least much of the scalexpr typechecking is working again, will need to
+write some shims to produce a different api whilst writing the
+typechecking
+
+remove annotationutils
+rename astannotation to annotationinternal - review and rewrite
+rename typetype to typesinternal - review and rewrite, massive amount
+  of confused notes here. all the typechecking utils to be removed
+  from here
+
+tree sketch of target set of ag files
+
+|-- Ddl
+|   |-- CreateFunction.ag
+|   |-- CreateTable.ag
+|   |-- Drops.ag
+|   |-- MiscCreates.ag
+|   `-- Triggers.ag
+|-- Dml
+|   |-- Delete.ag
+|   |-- Insert.ag
+|   `-- Update.ag
+|-- IDEnv.lhs
+|-- Misc.ag
+|-- ParameterizedStatements.ag
+|-- Plpgsql
+|   |-- Block.ag
+|   `-- Plpgsql.ag
+|-- QueryExprs
+|   |-- QueryStatement.ag
+|   |-- SelectLists.ag
+|   `-- TableRefs.ag
+|-- ScalarExprs.ag
+|-- Statements.ag
+
+maybe statements is something like: ddlstatements, plpgsqlstatements?
+
+
+get some basic scal exprs typechecking
+
+zap the catalog code and start from scratch again
+
+-> basic concept of a list of catalog updates is sound, the rest is
+   going to completely change (some of the api will be similar)
+
+
+then do fns, implicittypes, ? typing
+
+then start on queryexprs:
+simple trefs, simple select lists
+* expansion
+build up to all trefs
+
+other query expr parts ...
+then dml
+then have ddl and plpgsql to tackle
+
+get to stage where chaos can successfully type check
+
+will be a lot more functional that current system at this point -
+i.e. will check and flag a lot more things
+
+fix syntax: split out plpgsql statements from regular
+(so not going to split crud from ddl).
+
+
+--------------------
+
+proper notes:
+
 The big plan for sorting out a lot of the code.
 
 The motivation is: how can the code be rewritten so that it isn't
@@ -25,9 +99,6 @@ other possible ideas for next release:
 
 typesafe wrapper, use for chaos tests, get chaos actually running also
 
-type checking flow, inferred type ish
-
-switch ag to haskell style and bird lag to match the other code
 provide some more hacking examples and support in the code:
 add a new ctor to existing node
 add a new kind of node
@@ -35,30 +106,6 @@ include simple instructions to fail gracefully at typechecking, so new
   syntax plus parsing and pretty printing can be easily added
 review parsing code and try to make it clearer for the confusing bits,
   also the lexer
-
-= current work: typechecking fixes:
-
-do syntax fix first - into, split plpgsql statement types from regular
-sql? - too much of a mess at this time, do after typechecking fix
-
-get rid of inftype in annotation
-get rid of almost all the typechecking code completely
-zap the catalog to start again
-start with simple scalar expressions: get types, and type errors
-then add fns and fnprototype annotation
-and ability to get type of ? via attrs
-
-then start on queryexprs:
-simple trefs, simple select lists
-* expansion
-build up to all trefs
-
-other query expr parts ...
-then dml
-then have ddl and plpgsql to tackle
-
-get to stage where chaos can successfully type check
-will be a lot more functional that current system at this point
 
 
 

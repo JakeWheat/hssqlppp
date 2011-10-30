@@ -106,9 +106,9 @@ import Debug.Trace
 --import Text.Groom
 
 
-import Database.HsSqlPpp.Internals.TypeType
+import Database.HsSqlPpp.Internals.TypesInternal
 import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
-import Database.HsSqlPpp.Internals.AstAnnotation
+import Database.HsSqlPpp.Internals.AnnotationInternal
 import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 import Database.HsSqlPpp.Utils.Utils
 

@@ -34,7 +34,7 @@ installed to do this.
 >      (defaultTemplate1Catalog) where
 >
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
-> import Database.HsSqlPpp.Internals.TypeType
+> import Database.HsSqlPpp.Internals.TypesInternal
 >
 > defaultTemplate1Catalog :: Catalog
 > defaultTemplate1Catalog =
