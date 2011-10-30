@@ -78,8 +78,8 @@ More readable output from this variation:
 >           x -> error $ show x
 ~~~~~
 
-The annotation values have been replace with the string 'Ann', and the
-output indented using haskell-src-exts:
+The annotation values have been replaced with the string 'Ann', and
+the output indented using haskell-src-exts:
 
 ~~~~~
 $ Parse2 x.sql

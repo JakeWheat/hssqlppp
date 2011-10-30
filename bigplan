@@ -27,7 +27,14 @@ typesafe wrapper, use for chaos tests, get chaos actually running also
 
 type checking flow, inferred type ish
 
-
+switch ag to haskell style and bird lag to match the other code
+provide some more hacking examples and support in the code:
+add a new ctor to existing node
+add a new kind of node
+include simple instructions to fail gracefully at typechecking, so new
+  syntax plus parsing and pretty printing can be easily added
+review parsing code and try to make it clearer for the confusing bits,
+  also the lexer
 
 = current work: typechecking fixes:
 
