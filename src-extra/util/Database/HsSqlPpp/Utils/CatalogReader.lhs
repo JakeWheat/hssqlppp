@@ -13,14 +13,10 @@ was heavily changed so it's a bit messy.
 > import qualified Data.Map as M
 > import Data.Maybe
 > import Control.Applicative
-> --import Debug.Trace
->
-> --import Database.HsSqlPpp.Internals.TypeType
-> --import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Utils.Here
-> --import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+> import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 > import Database.HsSqlPpp.Utils.PgUtils
-> import Database.HsSqlPpp.Catalog
+> --import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Types
 >
 > -- | Creates an 'CatalogUpdate' list by reading the database given.
@@ -289,7 +285,7 @@ with att1 as (
 >         where
 >           fnRet = let rt1 = jlt (l!!3)
 >                   in if read (l!!2)::Bool
->                        then SetOfType rt1
+>                        then Pseudo (SetOfType rt1)
 >                        else rt1
 >           fnArgs = if (l!!1) == ""
 >                      then []

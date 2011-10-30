@@ -21,6 +21,7 @@ src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
 src/Database/HsSqlPpp/Internals/AnnotationInternal.o \
 src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/Internals/TediousTypeUtils.o \
 src/Database/HsSqlPpp/Parsing/ParserInternal.o \
 src/Database/HsSqlPpp/Parsing/Lexer.o \
 src/Database/HsSqlPpp/Parsing/ParseErrors.o \
@@ -52,6 +53,7 @@ src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
 src/Database/HsSqlPpp/Internals/AnnotationInternal.o \
 src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/Internals/TediousTypeUtils.o \
 src/Database/HsSqlPpp/Parsing/ParserInternal.o \
 src/Database/HsSqlPpp/Parsing/Lexer.o \
 src/Database/HsSqlPpp/Parsing/ParseErrors.o \
@@ -60,3 +62,19 @@ src/Database/HsSqlPpp/Catalog.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
 src-extra/util/Database/HsSqlPpp/Utils/Here.o \
 src/Database/HsSqlPpp/Quote.o
+src-extra/devel-util/MakeDefaultTemplate1Catalog : src-extra/devel-util/MakeDefaultTemplate1Catalog.o \
+src-extra/util/Database/HsSqlPpp/Utils/Here.o \
+src-extra/util/Database/HsSqlPpp/Utils/CatalogReader.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src-extra/util/Database/HsSqlPpp/Utils/PgUtils.o \
+src/Database/HsSqlPpp/Types.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Utils/Utils.o
+	$(HC) $(HC_OPTS) -o src-extra/devel-util/MakeDefaultTemplate1Catalog src-extra/devel-util/MakeDefaultTemplate1Catalog.o \
+src-extra/util/Database/HsSqlPpp/Utils/Here.o \
+src-extra/util/Database/HsSqlPpp/Utils/CatalogReader.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src-extra/util/Database/HsSqlPpp/Utils/PgUtils.o \
+src/Database/HsSqlPpp/Types.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Utils/Utils.o

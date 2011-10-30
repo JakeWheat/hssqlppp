@@ -42,6 +42,7 @@ off.
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 > import Database.HsSqlPpp.Utils.Utils
+> import Database.HsSqlPpp.Internals.TediousTypeUtils
 
  > traceIt :: Show a => String -> a -> a
  > traceIt s t = trace (s ++ ": " ++ show t) t
@@ -421,9 +422,10 @@ against.
 >                                            else pit
 >                     Pseudo AnyEnum -> pit
 >                     Pseudo AnyNonArray -> pit
->                     SetOfType (Pseudo AnyElement) -> if isArrayType at
->                                                      then SetOfType (ArrayType pit)
->                                                      else SetOfType pit
+>                     Pseudo (SetOfType (Pseudo AnyElement)) ->
+>                         if isArrayType at
+>                         then Pseudo $ SetOfType (ArrayType pit)
+>                         else Pseudo $ SetOfType pit
 >                     _ -> at
 >       --merge in the instantiated poly functions, with a twist:
 >       -- if we already have the exact same set of args in the non poly list
@@ -633,7 +635,7 @@ wrapper around the catalog to add a bunch of extra valid casts
 >   || (cc == AssignmentCastContext
 >       && isCompOrSetoOfComp from
 >       && case to of
->            PgRecord _ -> True
+>            Pseudo (PgRecord _) -> True
 >            _ -> False)
 >   -- check unboxing: wrapped single attribute
 >   || recurseTransFrom (unboxedSingleType from)
@@ -653,19 +655,19 @@ wrapper around the catalog to add a bunch of extra valid casts
 >         Just $ map snd $ fromRight [] $ catCompositePublicAttrs cat [] n
 >     getCompositeTypes (CompositeType t) = Just $ map snd t
 >     getCompositeTypes (AnonymousRecordType t) = Just t
->     getCompositeTypes (PgRecord Nothing) = Nothing
->     getCompositeTypes (PgRecord (Just t)) = getCompositeTypes t
+>     getCompositeTypes (Pseudo (PgRecord Nothing)) = Nothing
+>     getCompositeTypes (Pseudo (PgRecord (Just t))) = getCompositeTypes t
 >     getCompositeTypes _ = Nothing
 >
->     isCompOrSetoOfComp (SetOfType c) = isCompositeType c
+>     isCompOrSetoOfComp (Pseudo (SetOfType c)) = isCompositeType c
 >     isCompOrSetoOfComp c = isCompositeType c
 >
->     unboxedSingleType (SetOfType (CompositeType [(_,t)])) = Just t
->     unboxedSingleType (PgRecord (Just t)) = unboxedSingleType t
+>     unboxedSingleType (Pseudo (SetOfType (CompositeType [(_,t)]))) = Just t
+>     unboxedSingleType (Pseudo (PgRecord (Just t))) = unboxedSingleType t
 >     unboxedSingleType _ = Nothing
 >
->     unboxedSetOfType (SetOfType a) = Just a
->     unboxedSetOfType (PgRecord (Just t)) = unboxedSetOfType t
+>     unboxedSetOfType (Pseudo (SetOfType a)) = Just a
+>     unboxedSetOfType (Pseudo (PgRecord (Just t))) = unboxedSetOfType t
 >     unboxedSetOfType _ = Nothing
 >
 >     recurseTransFrom = maybe False (flip (castableFromTo cat cc) to)

@@ -3295,7 +3295,7 @@ installed to do this.
 >           False,
 >         CatCreateFunction FunName "aclexplode"
 >           [ArrayType (ScalarType "aclitem")]
->           (SetOfType (Pseudo Record))
+>           (Pseudo (SetOfType (Pseudo Record)))
 >           False,
 >         CatCreateFunction FunName "aclinsert"
 >           [ArrayType (ScalarType "aclitem"), ScalarType "aclitem"]
@@ -5438,37 +5438,37 @@ installed to do this.
 >           False,
 >         CatCreateFunction FunName "generate_series"
 >           [ScalarType "int8", ScalarType "int8"]
->           (SetOfType (ScalarType "int8"))
+>           (Pseudo (SetOfType (ScalarType "int8")))
 >           False,
 >         CatCreateFunction FunName "generate_series"
 >           [ScalarType "int4", ScalarType "int4"]
->           (SetOfType (ScalarType "int4"))
+>           (Pseudo (SetOfType (ScalarType "int4")))
 >           False,
 >         CatCreateFunction FunName "generate_series"
 >           [ScalarType "int8", ScalarType "int8", ScalarType "int8"]
->           (SetOfType (ScalarType "int8"))
+>           (Pseudo (SetOfType (ScalarType "int8")))
 >           False,
 >         CatCreateFunction FunName "generate_series"
 >           [ScalarType "int4", ScalarType "int4", ScalarType "int4"]
->           (SetOfType (ScalarType "int4"))
+>           (Pseudo (SetOfType (ScalarType "int4")))
 >           False,
 >         CatCreateFunction FunName "generate_series"
 >           [ScalarType "timestamp", ScalarType "timestamp",
 >            ScalarType "interval"]
->           (SetOfType (ScalarType "timestamp"))
+>           (Pseudo (SetOfType (ScalarType "timestamp")))
 >           False,
 >         CatCreateFunction FunName "generate_series"
 >           [ScalarType "timestamptz", ScalarType "timestamptz",
 >            ScalarType "interval"]
->           (SetOfType (ScalarType "timestamptz"))
+>           (Pseudo (SetOfType (ScalarType "timestamptz")))
 >           False,
 >         CatCreateFunction FunName "generate_subscripts"
 >           [Pseudo AnyArray, ScalarType "int4"]
->           (SetOfType (ScalarType "int4"))
+>           (Pseudo (SetOfType (ScalarType "int4")))
 >           False,
 >         CatCreateFunction FunName "generate_subscripts"
 >           [Pseudo AnyArray, ScalarType "int4", ScalarType "bool"]
->           (SetOfType (ScalarType "int4"))
+>           (Pseudo (SetOfType (ScalarType "int4")))
 >           False,
 >         CatCreateFunction FunName "get_bit"
 >           [ScalarType "bytea", ScalarType "int4"]
@@ -8376,10 +8376,10 @@ installed to do this.
 >           (Pseudo Void)
 >           False,
 >         CatCreateFunction FunName "pg_available_extension_versions" []
->           (SetOfType (Pseudo Record))
+>           (Pseudo (SetOfType (Pseudo Record)))
 >           False,
 >         CatCreateFunction FunName "pg_available_extensions" []
->           (SetOfType (Pseudo Record))
+>           (Pseudo (SetOfType (Pseudo Record)))
 >           False,
 >         CatCreateFunction FunName "pg_backend_pid" [] (ScalarType "int4")
 >           False,
@@ -8417,7 +8417,7 @@ installed to do this.
 >           (ScalarType "text")
 >           False,
 >         CatCreateFunction FunName "pg_cursor" []
->           (SetOfType (Pseudo Record))
+>           (Pseudo (SetOfType (Pseudo Record)))
 >           False,
 >         CatCreateFunction FunName "pg_database_size" [ScalarType "name"]
 >           (ScalarType "int8")
@@ -8442,7 +8442,7 @@ installed to do this.
 >           False,
 >         CatCreateFunction FunName "pg_extension_update_paths"
 >           [ScalarType "name"]
->           (SetOfType (Pseudo Record))
+>           (Pseudo (SetOfType (Pseudo Record)))
 >           False,
 >         CatCreateFunction FunName "pg_function_is_visible"
 >           [ScalarType "oid"]
@@ -8486,7 +8486,7 @@ installed to do this.
 >           (ScalarType "text")
 >           False,
 >         CatCreateFunction FunName "pg_get_keywords" []
->           (SetOfType (Pseudo Record))
+>           (Pseudo (SetOfType (Pseudo Record)))
 >           False,
 >         CatCreateFunction FunName "pg_get_ruledef" [ScalarType "oid"]
 >           (ScalarType "text")
@@ -8570,13 +8570,13 @@ installed to do this.
 >           (ScalarType "text")
 >           False,
 >         CatCreateFunction FunName "pg_listening_channels" []
->           (SetOfType (ScalarType "text"))
+>           (Pseudo (SetOfType (ScalarType "text")))
 >           False,
 >         CatCreateFunction FunName "pg_lock_status" []
->           (SetOfType (Pseudo Record))
+>           (Pseudo (SetOfType (Pseudo Record)))
 >           False,
 >         CatCreateFunction FunName "pg_ls_dir" [ScalarType "text"]
->           (SetOfType (ScalarType "text"))
+>           (Pseudo (SetOfType (ScalarType "text")))
 >           False,
 >         CatCreateFunction FunName "pg_my_temp_schema" [] (ScalarType "oid")
 >           False,
@@ -8608,16 +8608,16 @@ installed to do this.
 >           False,
 >         CatCreateFunction FunName "pg_options_to_table"
 >           [ArrayType (ScalarType "text")]
->           (SetOfType (Pseudo Record))
+>           (Pseudo (SetOfType (Pseudo Record)))
 >           False,
 >         CatCreateFunction FunName "pg_postmaster_start_time" []
 >           (ScalarType "timestamptz")
 >           False,
 >         CatCreateFunction FunName "pg_prepared_statement" []
->           (SetOfType (Pseudo Record))
+>           (Pseudo (SetOfType (Pseudo Record)))
 >           False,
 >         CatCreateFunction FunName "pg_prepared_xact" []
->           (SetOfType (Pseudo Record))
+>           (Pseudo (SetOfType (Pseudo Record)))
 >           False,
 >         CatCreateFunction FunName "pg_read_binary_file" [ScalarType "text"]
 >           (ScalarType "bytea")
@@ -8659,7 +8659,7 @@ installed to do this.
 >           (Pseudo Record)
 >           False,
 >         CatCreateFunction FunName "pg_show_all_settings" []
->           (SetOfType (Pseudo Record))
+>           (Pseudo (SetOfType (Pseudo Record)))
 >           False,
 >         CatCreateFunction FunName "pg_size_pretty" [ScalarType "int8"]
 >           (ScalarType "text")
@@ -8678,7 +8678,7 @@ installed to do this.
 >           False,
 >         CatCreateFunction FunName "pg_stat_get_activity"
 >           [ScalarType "int4"]
->           (SetOfType (Pseudo Record))
+>           (Pseudo (SetOfType (Pseudo Record)))
 >           False,
 >         CatCreateFunction FunName "pg_stat_get_analyze_count"
 >           [ScalarType "oid"]
@@ -8713,7 +8713,7 @@ installed to do this.
 >           (ScalarType "oid")
 >           False,
 >         CatCreateFunction FunName "pg_stat_get_backend_idset" []
->           (SetOfType (ScalarType "int4"))
+>           (Pseudo (SetOfType (ScalarType "int4")))
 >           False,
 >         CatCreateFunction FunName "pg_stat_get_backend_pid"
 >           [ScalarType "int4"]
@@ -8914,7 +8914,7 @@ installed to do this.
 >           (ScalarType "int8")
 >           False,
 >         CatCreateFunction FunName "pg_stat_get_wal_senders" []
->           (SetOfType (Pseudo Record))
+>           (Pseudo (SetOfType (Pseudo Record)))
 >           False,
 >         CatCreateFunction FunName "pg_stat_get_xact_blocks_fetched"
 >           [ScalarType "oid"]
@@ -8989,7 +8989,7 @@ installed to do this.
 >           False,
 >         CatCreateFunction FunName "pg_tablespace_databases"
 >           [ScalarType "oid"]
->           (SetOfType (ScalarType "oid"))
+>           (Pseudo (SetOfType (ScalarType "oid")))
 >           False,
 >         CatCreateFunction FunName "pg_tablespace_size" [ScalarType "name"]
 >           (ScalarType "int8")
@@ -9002,10 +9002,10 @@ installed to do this.
 >           (ScalarType "bool")
 >           False,
 >         CatCreateFunction FunName "pg_timezone_abbrevs" []
->           (SetOfType (Pseudo Record))
+>           (Pseudo (SetOfType (Pseudo Record)))
 >           False,
 >         CatCreateFunction FunName "pg_timezone_names" []
->           (SetOfType (Pseudo Record))
+>           (Pseudo (SetOfType (Pseudo Record)))
 >           False,
 >         CatCreateFunction FunName "pg_total_relation_size"
 >           [ScalarType "regclass"]
@@ -9476,11 +9476,11 @@ installed to do this.
 >           False,
 >         CatCreateFunction FunName "regexp_matches"
 >           [ScalarType "text", ScalarType "text"]
->           (SetOfType (ArrayType (ScalarType "text")))
+>           (Pseudo (SetOfType (ArrayType (ScalarType "text"))))
 >           False,
 >         CatCreateFunction FunName "regexp_matches"
 >           [ScalarType "text", ScalarType "text", ScalarType "text"]
->           (SetOfType (ArrayType (ScalarType "text")))
+>           (Pseudo (SetOfType (ArrayType (ScalarType "text"))))
 >           False,
 >         CatCreateFunction FunName "regexp_replace"
 >           [ScalarType "text", ScalarType "text", ScalarType "text"]
@@ -9501,11 +9501,11 @@ installed to do this.
 >           False,
 >         CatCreateFunction FunName "regexp_split_to_table"
 >           [ScalarType "text", ScalarType "text"]
->           (SetOfType (ScalarType "text"))
+>           (Pseudo (SetOfType (ScalarType "text")))
 >           False,
 >         CatCreateFunction FunName "regexp_split_to_table"
 >           [ScalarType "text", ScalarType "text", ScalarType "text"]
->           (SetOfType (ScalarType "text"))
+>           (Pseudo (SetOfType (ScalarType "text")))
 >           False,
 >         CatCreateFunction FunName "regoperatorin" [Pseudo Cstring]
 >           (ScalarType "regoperator")
@@ -10765,11 +10765,11 @@ installed to do this.
 >           (ScalarType "numeric")
 >           False,
 >         CatCreateFunction FunName "ts_debug" [ScalarType "text"]
->           (SetOfType (Pseudo Record))
+>           (Pseudo (SetOfType (Pseudo Record)))
 >           False,
 >         CatCreateFunction FunName "ts_debug"
 >           [ScalarType "regconfig", ScalarType "text"]
->           (SetOfType (Pseudo Record))
+>           (Pseudo (SetOfType (Pseudo Record)))
 >           False,
 >         CatCreateFunction FunName "ts_headline"
 >           [ScalarType "text", ScalarType "tsquery"]
@@ -10810,11 +10810,11 @@ installed to do this.
 >           False,
 >         CatCreateFunction FunName "ts_parse"
 >           [ScalarType "text", ScalarType "text"]
->           (SetOfType (Pseudo Record))
+>           (Pseudo (SetOfType (Pseudo Record)))
 >           False,
 >         CatCreateFunction FunName "ts_parse"
 >           [ScalarType "oid", ScalarType "text"]
->           (SetOfType (Pseudo Record))
+>           (Pseudo (SetOfType (Pseudo Record)))
 >           False,
 >         CatCreateFunction FunName "ts_rank"
 >           [ScalarType "tsvector", ScalarType "tsquery"]
@@ -10861,17 +10861,17 @@ installed to do this.
 >           (ScalarType "tsquery")
 >           False,
 >         CatCreateFunction FunName "ts_stat" [ScalarType "text"]
->           (SetOfType (Pseudo Record))
+>           (Pseudo (SetOfType (Pseudo Record)))
 >           False,
 >         CatCreateFunction FunName "ts_stat"
 >           [ScalarType "text", ScalarType "text"]
->           (SetOfType (Pseudo Record))
+>           (Pseudo (SetOfType (Pseudo Record)))
 >           False,
 >         CatCreateFunction FunName "ts_token_type" [ScalarType "text"]
->           (SetOfType (Pseudo Record))
+>           (Pseudo (SetOfType (Pseudo Record)))
 >           False,
 >         CatCreateFunction FunName "ts_token_type" [ScalarType "oid"]
->           (SetOfType (Pseudo Record))
+>           (Pseudo (SetOfType (Pseudo Record)))
 >           False,
 >         CatCreateFunction FunName "ts_typanalyze" [Pseudo Internal]
 >           (ScalarType "bool")
@@ -11016,7 +11016,7 @@ installed to do this.
 >           False,
 >         CatCreateFunction FunName "txid_snapshot_xip"
 >           [ScalarType "txid_snapshot"]
->           (SetOfType (ScalarType "int8"))
+>           (Pseudo (SetOfType (ScalarType "int8")))
 >           False,
 >         CatCreateFunction FunName "txid_snapshot_xmax"
 >           [ScalarType "txid_snapshot"]
@@ -11050,7 +11050,7 @@ installed to do this.
 >           (ScalarType "bytea")
 >           False,
 >         CatCreateFunction FunName "unnest" [Pseudo AnyArray]
->           (SetOfType (Pseudo AnyElement))
+>           (Pseudo (SetOfType (Pseudo AnyElement)))
 >           False,
 >         CatCreateFunction FunName "upper" [ScalarType "text"]
 >           (ScalarType "text")

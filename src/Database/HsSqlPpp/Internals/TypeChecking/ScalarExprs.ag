@@ -1,0 +1,15 @@
+{-
+
+type checking scalar exprs
+
+annotations to get are the type and type errors, and the implicit cast
+
+the implicit cast says if an implicit cast is used, what type is being
+cast to.
+
+not applicable: parameterizedstatementtype, catalog update
+
+plus also store the matched functionprototype for functions. Is this
+to help with getting the type of ? placeholders, and for inserting
+
+-}

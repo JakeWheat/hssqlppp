@@ -387,7 +387,7 @@ remove from list, and remove from update list
 > catGetCategoryInfo :: Catalog -> Type -> Either [TypeError] (String, Bool)
 > catGetCategoryInfo cat ty =
 >   case ty of
->     SetOfType _ -> Right ("", False)
+>     Pseudo (SetOfType _) -> Right ("", False)
 >     AnonymousRecordType _ -> Right ("", False)
 >     ArrayType (Pseudo _) -> Right ("A",False)
 >     Pseudo _ -> Right ("P",False)
@@ -400,7 +400,7 @@ remove from list, and remove from update list
 > catTypeExists :: Catalog -> Type -> Either [TypeError] Type
 > catTypeExists cat t =
 >     errorWhen (t `notElem` map snd (catTypeNames cat))
->               [UnknownTypeError t] >>
+>             [TypeNotKnown t] >>
 >     Right t
 >
 > catLookupType :: Catalog -> String -> Either [TypeError] Type
