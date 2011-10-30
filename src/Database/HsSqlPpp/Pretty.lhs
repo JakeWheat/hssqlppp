@@ -377,7 +377,7 @@ Conversion routines - convert Sql asts into Docs
 > statement _nice se ca (ContinueStatement ann lb) =
 >     annot ca ann <+> text "continue"
 >       <+> maybe empty text lb <> statementEnd se
-> statement nice se ca (Perform ann f@(FunCall _ _ _)) =
+> statement nice se ca (Perform ann f@(App _ _ _)) =
 >     annot ca ann <+>
 >     text "perform" <+> scalExpr nice f <> statementEnd se
 > statement _ _ _ (Perform _ x) =
@@ -551,7 +551,7 @@ Statement components
 > tref nice (SubTref _ sub alias) =
 >         parens (queryExpr nice True True Nothing sub)
 >         <+> text "as" <+> trefAlias nice alias
-> tref nice (FunTref _ f@(FunCall _ _ _) a) = scalExpr nice f <+> trefAlias nice a
+> tref nice (FunTref _ f@(App _ _ _) a) = scalExpr nice f <+> trefAlias nice a
 > tref _nice (FunTref _ x _) =
 >       error $ "internal error: node not supported in function tref: "
 >             ++ show x
@@ -670,7 +670,7 @@ Statement components
 >                                               then replace "'" "''" s
 >                                               else s-}
 >
-> scalExpr nice (FunCall _ n es) =
+> scalExpr nice (App _ n es) =
 >     --check for special operators
 >    case getTName n of
 >      Just "!and" | nice, [a,b] <- es -> doLeftAnds a b
@@ -724,7 +724,7 @@ Statement components
 >                                 : map (\x -> text "and" <+> scalExpr nice x) (tail as))
 >                                ++ [text "and" <+> scalExpr nice b])
 >      and' a = case a of
->                 FunCall _ f [x,y] | Just "!and" <- getTName f -> and' x ++ and' y
+>                 App _ f [x,y] | Just "!and" <- getTName f -> and' x ++ and' y
 >                 _ -> [a]
 >
 > scalExpr _ (BooleanLit _ b) = bool b
@@ -733,7 +733,7 @@ Statement components
 >   <+> parens (case lst of
 >                        InList _ expr -> csvExp nice expr
 >                        InQueryExpr _ sel -> queryExpr nice True True Nothing sel)
-> scalExpr nice (LiftOperator _ op flav args) =
+> scalExpr nice (LiftApp _ op flav args) =
 >   scalExpr nice (head args) <+> text op
 >   <+> text (case flav of
 >               LiftAny -> "any"
@@ -741,7 +741,7 @@ Statement components
 >   <+> parens (scalExpr nice $ head $ tail args)
 > scalExpr nice (ScalarSubQuery _ s) = parens (queryExpr nice True True Nothing s)
 > scalExpr _ (NullLit _) = text "null"
-> scalExpr nice (WindowFn _ fn part order frm) =
+> scalExpr nice (WindowApp _ fn part order frm) =
 >   scalExpr nice fn <+> text "over"
 >   <+> parens (if hp || ho
 >               then (if hp
@@ -758,13 +758,13 @@ Statement components
 >                 FrameUnboundedFull -> text "range between unbounded preceding and unbounded following"
 >                 FrameRowsUnboundedPreceding -> text "rows unbounded preceding"
 >
-> scalExpr nice (AggregateFn _ d (FunCall _ fn es) o) =
+> scalExpr nice (AggregateApp _ d (App _ fn es) o) =
 >   name fn <> parens ((case d of
 >                         Dupes -> text "all"
 >                         Distinct -> text "distinct")
 >                      <+> csvExp nice es
 >                      <+> orderBy nice o)
-> scalExpr _ (AggregateFn _ _ _ _) = error "bad syntax for aggregate function"
+> scalExpr _ (AggregateApp _ _ _ _) = error "bad syntax for aggregate function"
 > scalExpr nice (Case _ whens els) =
 >   text "case"
 >   $+$ nest 2 (vcat (map whn whens)
@@ -846,7 +846,7 @@ Statement components
 
 
 > scalExprSl :: Bool ->  ScalarExpr -> Doc
-> scalExprSl nice (FunCall _ f es) | Just "." <- getTName f
+> scalExprSl nice (App _ f es) | Just "." <- getTName f
 >                                 , [a@(Identifier _ _), b] <- es =
 >   parens (scalExprSl nice a) <> text "." <> scalExprSl nice b
 > scalExprSl nice x = scalExpr nice x
@@ -854,15 +854,15 @@ Statement components
 >
 > set :: Bool -> SetClause -> Doc
 > set nice (SetClause _ a e) =
->    -- (FunCall _ "=" [Identifier _ a, e]) =
+>    -- (App _ "=" [Identifier _ a, e]) =
 >   nmc a <+> text "=" <+> scalExpr nice e
-> {-set nice (FunCall _ "=" [a, b]) | (FunCall _ "!rowctor" is1) <- a
->                                      ,(FunCall _ "!rowctor" is2) <- b =
+> {-set nice (App _ "=" [a, b]) | (App _ "!rowctor" is1) <- a
+>                                      ,(App _ "!rowctor" is2) <- b =
 >   rsNoRow is1 <+> text "=" <+> rsNoRow is2
 >   where
 >     rsNoRow is = parens (sepCsvMap (scalExpr nice) is)
 > set _ a = error $ "bad expression in set in update: " ++ show a-}
-> set nice (MultiSetClause _ is (FunCall _ f es)) | Just "!rowctor" <- getTName f =
+> set nice (MultiSetClause _ is (App _ f es)) | Just "!rowctor" <- getTName f =
 >   parens (sepCsvMap nmc is) <+> text "="
 >   <+> parens (sepCsvMap (scalExpr nice) es)
 > set _ a = error $ "bad expression in set in update: " ++ show a

@@ -33,7 +33,12 @@ grammar code and aren't exposed.
 >
 > -- | Represents a source file position, usually set by the parser.
 > type SourcePosition = (String,Int,Int)
-> -- | Statement type is used for getting type information for a parameterized statement.
+
+> -- | Statement type is used for getting type information for a
+> -- parameterized statement. The first part is the args that the
+> -- parameterized statement needs, and the second is the names and types
+> -- of the output columns. No way to signal that a statement returns
+> -- exactly one row at the moment
 > type ParameterizedStatementType = ([Type],[(String,Type)])
 
 > -- | Annotation type - one of these is attached to most of the
@@ -44,7 +49,7 @@ grammar code and aren't exposed.
 >                              ,atype :: Maybe Type
 >                                -- | any type errors
 >                              ,errs :: [TypeError]
->                                -- | if an implicit cast is needed between this node an its parent, this the target type of cast
+>                                -- | if an implicit cast is needed between this node an its parent, this the target type of cast. If no implicit cast is needed, this is Nothing
 >                              ,implicitCast :: Maybe Type
 >                                -- | used for getting the in and out types of a parameterized statement, useful only in Statements containing ? placeholders
 >                              ,stType :: Maybe ParameterizedStatementType

@@ -43,9 +43,9 @@ make website
 >   let tfp = [OutputFile (Text parserTestsTable)
 >                         Txt "hssqlppp/ParserTests.html"
 >                         "HsSqlPpp parser examples"
->             ,OutputFile (Text typeCheckTestsTable)
+>             {-,OutputFile (Text typeCheckTestsTable)
 >                         Txt "hssqlppp/TypeCheckTests.html"
->                         "HsSqlPpp type checking examples"
+>                         "HsSqlPpp type checking examples"-}
 >             ,OutputFile (Text qq)
 >                         Txt "hssqlppp/QuasiQuoteTests.html"
 >                         "HsSqlPpp quasiquotation examples"]

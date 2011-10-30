@@ -69,7 +69,7 @@ insert from select
 >       [Update ea (dqi "tb") [SetClause ea (Nmc "x") $ NumberLit ea "1"
 >                             ,SetClause ea (Nmc "y") $ NumberLit ea "2"]
 >        []
->        (Just $ FunCall ea (name "=")
+>        (Just $ App ea (name "=")
 >         [Identifier ea "z", BooleanLit ea True])
 >        Nothing]
 >      ,s "update tb\n\
@@ -81,23 +81,23 @@ insert from select
 >         \  set (x,y) = (1,2);"
 >       [Update ea (dqi "tb")
 >        [MultiSetClause ea [Nmc "x",Nmc "y"]
->         $ FunCall ea (name "!rowctor") [NumberLit ea "1"
->                                        ,NumberLit ea "2"]]
+>         $ App ea (name "!rowctor") [NumberLit ea "1"
+>                                    ,NumberLit ea "2"]]
 >        []
 >        Nothing Nothing]
 >      ]
 
-FunCall ea "=" [FunCall ea "!rowctor" [Identifier ea "x",Identifier ea "y"],FunCall ea "!rowctor" [NumberLit ea "1",NumberLit ea "2"]])
+App ea "=" [App ea "!rowctor" [Identifier ea "x",Identifier ea "y"],App ea "!rowctor" [NumberLit ea "1",NumberLit ea "2"]])
 
 
 >
 >     ,Group "delete" [
 >       s "delete from tbl1 where x = true;"
->       [Delete ea (dqi "tbl1") [] (Just $ FunCall ea (name "=")
+>       [Delete ea (dqi "tbl1") [] (Just $ App ea (name "=")
 >                                [Identifier ea "x", BooleanLit ea True])
 >        Nothing]
 >      ,s "delete from tbl1 where x = true returning id;"
->       [Delete ea (dqi "tbl1") [] (Just $ FunCall ea (name "=")
+>       [Delete ea (dqi "tbl1") [] (Just $ App ea (name "=")
 >                                [Identifier ea "x", BooleanLit ea True])
 >        (Just $ sl [selI "id"])]
 >      ]

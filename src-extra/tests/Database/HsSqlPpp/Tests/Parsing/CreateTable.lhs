@@ -133,7 +133,7 @@ quick sanity check
 >         \);"
 >         [CreateTable ea (dqi "t1") [att "x" "int"
 >                           ,att "y" "int"]
->          [CheckConstraint ea "" (FunCall ea (name ">") [Identifier ea "x", Identifier ea "y"])]]
+>          [CheckConstraint ea "" (App ea (name ">") [Identifier ea "x", Identifier ea "y"])]]
 >      ]
 >
 >      ,Group "misc" [

@@ -74,15 +74,15 @@ shortcuts for constructing test data and asts
 >     fromString = Nmc
 
 > member :: ScalarExpr -> ScalarExpr -> ScalarExpr
-> member a b = FunCall ea (name ".") [a,b]
+> member a b = App ea (name ".") [a,b]
 
 
 
 > num :: String -> ScalarExpr
 > num n = NumberLit ea n
 
-> funCall :: String -> [ScalarExpr] -> ScalarExpr
-> funCall n as = FunCall ea (name n) as
+> app :: String -> [ScalarExpr] -> ScalarExpr
+> app n as = App ea (name n) as
 
 > lTrue,lFalse,lNull :: ScalarExpr
 > lTrue = BooleanLit ea True

@@ -1,4 +1,7 @@
 # DO NOT DELETE: Beginning of Haskell dependencies
+src-extra/tosort/util/Text/DocTool/Parser.o : src-extra/tosort/util/Text/DocTool/Parser.lhs
+src-extra/tosort/util/Text/DocTool/DocTool.o : src-extra/tosort/util/Text/DocTool/DocTool.lhs
+src-extra/tosort/util/Text/DocTool/DocTool.o : src-extra/tosort/util/Text/DocTool/Parser.hi
 src-extra/util/Database/HsSqlPpp/Utils/PgUtils.o : src-extra/util/Database/HsSqlPpp/Utils/PgUtils.lhs
 src/Database/HsSqlPpp/Parsing/ParseErrors.o : src/Database/HsSqlPpp/Parsing/ParseErrors.lhs
 src-extra/util/Database/HsSqlPpp/Utils/Here.o : src-extra/util/Database/HsSqlPpp/Utils/Here.lhs
@@ -59,6 +62,10 @@ src/Database/HsSqlPpp/Parsing/ParserInternal.o : src/Database/HsSqlPpp/Parsing/P
 src/Database/HsSqlPpp/Parsing/ParserInternal.o : src/Database/HsSqlPpp/Parsing/Lexer.hi
 src/Database/HsSqlPpp/Parser.o : src/Database/HsSqlPpp/Parser.lhs
 src/Database/HsSqlPpp/Parser.o : src/Database/HsSqlPpp/Parsing/ParserInternal.hi
+src-extra/examples/Parse.o : src-extra/examples/Parse.lhs
+src-extra/examples/Parse.o : src/Database/HsSqlPpp/Parser.hi
+src-extra/examples/Parse2.o : src-extra/examples/Parse2.lhs
+src-extra/examples/Parse2.o : src/Database/HsSqlPpp/Parser.hi
 src/Database/HsSqlPpp/Pretty.o : src/Database/HsSqlPpp/Pretty.lhs
 src/Database/HsSqlPpp/Pretty.o : src/Database/HsSqlPpp/Utils/Utils.hi
 src/Database/HsSqlPpp/Pretty.o : src/Database/HsSqlPpp/Catalog.hi
@@ -68,6 +75,21 @@ src/Database/HsSqlPpp/Quote.o : src/Database/HsSqlPpp/Quote.lhs
 src/Database/HsSqlPpp/Quote.o : src/Database/HsSqlPpp/Ast.hi
 src/Database/HsSqlPpp/Quote.o : src/Database/HsSqlPpp/Annotation.hi
 src/Database/HsSqlPpp/Quote.o : src/Database/HsSqlPpp/Parsing/ParserInternal.hi
+src-extra/examples/FixSqlServerTpchSyntax.o : src-extra/examples/FixSqlServerTpchSyntax.lhs
+src-extra/examples/FixSqlServerTpchSyntax.o : src/Database/HsSqlPpp/Annotation.hi
+src-extra/examples/FixSqlServerTpchSyntax.o : src/Database/HsSqlPpp/Quote.hi
+src-extra/examples/FixSqlServerTpchSyntax.o : src/Database/HsSqlPpp/Pretty.hi
+src-extra/examples/FixSqlServerTpchSyntax.o : src/Database/HsSqlPpp/Ast.hi
+src-extra/examples/FixSqlServerTpchSyntax.o : src/Database/HsSqlPpp/Parser.hi
+src-extra/examples/MakeSelect.o : src-extra/examples/MakeSelect.lhs
+src-extra/examples/MakeSelect.o : src/Database/HsSqlPpp/Pretty.hi
+src-extra/examples/MakeSelect.o : src/Database/HsSqlPpp/Ast.hi
+src-extra/examples/MakeSelect.o : src/Database/HsSqlPpp/Annotation.hi
+src-extra/examples/QQ.o : src-extra/examples/QQ.lhs
+src-extra/examples/QQ.o : src/Database/HsSqlPpp/Pretty.hi
+src-extra/examples/QQ.o : src/Database/HsSqlPpp/Annotation.hi
+src-extra/examples/QQ.o : src/Database/HsSqlPpp/Quote.hi
+src-extra/examples/QQ.o : src/Database/HsSqlPpp/Ast.hi
 src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.o : src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs
 src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.hi
 src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.o : src/Database/HsSqlPpp/Quote.hi
@@ -122,4 +144,13 @@ src-extra/tests/Database/HsSqlPpp/Tests/Tests.o : src-extra/tests/Database/HsSql
 src-extra/tests/Database/HsSqlPpp/Tests/Tests.o : src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.hi
 src-extra/tests/Tests.o : src-extra/tests/Tests.lhs
 src-extra/tests/Tests.o : src-extra/tests/Database/HsSqlPpp/Tests/Tests.hi
+src-extra/tosort/util/TestFileProcessor.o : src-extra/tosort/util/TestFileProcessor.lhs
+src-extra/tosort/util/TestFileProcessor.o : src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.hi
+src-extra/tosort/util/TestFileProcessor.o : src-extra/util/Database/HsSqlPpp/Utils/Here.hi
+src-extra/tosort/util/TestFileProcessor.o : src/Database/HsSqlPpp/Utils/Utils.hi
+src-extra/tosort/util/MakeWebsite.o : src-extra/tosort/util/MakeWebsite.lhs
+src-extra/tosort/util/MakeWebsite.o : src-extra/tosort/util/TestFileProcessor.hi
+src-extra/tosort/util/MakeWebsite.o : src-extra/tosort/util/Text/DocTool/DocTool.hi
+src-extra/tosort/util/DevelTool.o : src-extra/tosort/util/DevelTool.lhs
+src-extra/tosort/util/DevelTool.o : src-extra/tosort/util/MakeWebsite.hi
 # DO NOT DELETE: End of Haskell dependencies

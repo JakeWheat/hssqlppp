@@ -1,0 +1,12 @@
+{
+
+setTypeAddErrors :: Either [TypeError] Type -> Annotation -> Annotation
+setTypeAddErrors e a =
+  case atype a of
+    Nothing -> a {errs = errs a ++ either id (const []) e
+                 ,atype = either (const Nothing) Just e}
+    Just _ -> a {errs = errs a
+                        ++ [InternalError $ "tried to set type a second time - "
+                            ++ show e]}
+
+}

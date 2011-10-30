@@ -3,6 +3,8 @@
 type checking scalar exprs
 
 annotations to get are the type and type errors, and the implicit cast
+The implicit cast is determined by the parent node and comes through
+in an attribute
 
 the implicit cast says if an implicit cast is used, what type is being
 cast to.
@@ -13,3 +15,34 @@ plus also store the matched functionprototype for functions. Is this
 to help with getting the type of ? placeholders, and for inserting
 
 -}
+
+sem ScalarExpr
+    | NumberLit StringLit NullLit BooleanLit TypedStringLit Interval
+      Extract PositionalArg Placeholder Cast Star QStar Identifier
+      QIdentifier Case CaseSimple Exists App AggregateApp
+      WindowApp InPredicate LiftApp ScalarSubQuery AntiScalarExpr
+
+-- each bit of typechecking for each ctor sets loc.tpe
+-- to build the annotated tree, each node defines a 'backtree'
+-- which contains the sub annotated tree nodes
+-- then the annotated tree rule here adds the loc.tpe
+-- information. not sure if there is an less weird way to do this
+        loc.tpe :: {Either [TypeError] Type}
+        lhs.annotatedTree = updateAnnotation
+                              (setTypeAddErrors @loc.tpe)
+                               @loc.backTree
+
+sem ScalarExpr
+    | BooleanLit
+        loc.tpe = Right $ typeBool
+        loc.backTree = BooleanLit @ann @b
+
+
+-- temp
+sem ScalarExpr
+    | NumberLit StringLit NullLit TypedStringLit Interval
+      Extract PositionalArg Placeholder Cast Star QStar Identifier
+      QIdentifier Case CaseSimple Exists App AggregateApp
+      WindowApp InPredicate LiftApp ScalarSubQuery AntiScalarExpr
+        loc.tpe = Left []
+        loc.backTree = undefined

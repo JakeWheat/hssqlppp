@@ -26,12 +26,12 @@
 >      ,f "raise notice 'stuff %', 1;"
 >       [Raise ea RNotice "stuff %" [NumberLit ea "1"]]
 >      ,f "perform test();"
->       [Perform ea $ FunCall ea (name "test") []]
+>       [Perform ea $ App ea (name "test") []]
 >      ,f "perform test(a,b);"
->       [Perform ea $ FunCall ea (name "test") [Identifier ea "a", Identifier ea "b"]]
+>       [Perform ea $ App ea (name "test") [Identifier ea "a", Identifier ea "b"]]
 >      ,f "perform test(r.relvar_name || '_and_stuff');"
->       [Perform ea $ FunCall ea (name "test") [
->                     FunCall ea (name "||") [eqi "r" "relvar_name"
+>       [Perform ea $ App ea (name "test") [
+>                     App ea (name "||") [eqi "r" "relvar_name"
 >                                     ,stringQ "_and_stuff"]]]
 >      ,f "select into a,b c,d from e;"
 >       [Into ea False [name "a", name "b"]
@@ -44,8 +44,8 @@
 >      ,f "delete from pieces where x = 1 and y = 1 returning tag into r.tag;"
 >       [Into ea False [Name ea [Nmc "r",Nmc "tag"]]
 >        $ Delete ea (dqi "pieces") []
->          (Just $ funCall "!and" [funCall "=" [ei "x",num "1"]
->                                 ,funCall "=" [ei "y",num "1"]])
+>          (Just $ app "!and" [app "=" [ei "x",num "1"]
+>                             ,app "=" [ei "y",num "1"]])
 >          (Just $ sl [selI "tag"])]
 >      ,f "update pieces\n\
 >         \set a=b returning tag into r.tag;"
@@ -106,7 +106,7 @@
 >      ,f "if a=b then\n\
 >         \  update c set d = e;\n\
 >         \end if;"
->       [If ea [(FunCall ea (name "=") [ei "a", ei "b"]
+>       [If ea [(App ea (name "=") [ei "a", ei "b"]
 >               ,[Update ea (dqi "c") [SetClause ea (Nmc "d")
 >                                     $ ei "e"] [] Nothing Nothing])]
 >        []]

@@ -66,3 +66,6 @@ attr AllNodes Root ScalarExprRoot
   inh cat :: Catalog
   syn annotatedTree :: SELF -- annotated tree is the output tree with the types added
      ,originalTree :: SELF -- this is the original tree, should not be changed
+
+include "TypeChecking/Utils.ag"
+include "TypeChecking/ScalarExprs.ag"

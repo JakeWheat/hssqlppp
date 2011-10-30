@@ -4,14 +4,14 @@ examples.
 > {-# LANGUAGE QuasiQuotes #-}
 > module TestFileProcessor
 >     (parserTestsTable
->     ,typeCheckTestsTable
+>     --,typeCheckTestsTable
 >     ,quasiQuoteTestsTable) where
 >
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Utils.Here
 > import Text.Groom
 > import Database.HsSqlPpp.Tests.Parsing.ParserTests as PT
-> import Database.HsSqlPpp.Tests.TypeChecking.TypeCheckTests as TT
+> --import Database.HsSqlPpp.Tests.TypeChecking.TypeCheckTests as TT
 > import Language.Haskell.Exts hiding (String)
 > import qualified Language.Haskell.Exts as Exts
 > --import Data.Generics
@@ -27,8 +27,8 @@ examples.
 > parserTestsTable :: String
 > parserTestsTable = parserIntro ++ rowsToHtml (mapParserTests PT.parserTestData)
 >
-> typeCheckTestsTable :: String
-> typeCheckTestsTable = typeCheckIntro ++ rowsToHtml (mapTypeCheckTests TT.typeCheckTestData)
+> --typeCheckTestsTable :: String
+> --typeCheckTestsTable = typeCheckIntro ++ rowsToHtml (mapTypeCheckTests TT.typeCheckTestData)
 >
 
 >
@@ -58,12 +58,12 @@ need to use haskell-src-exts for the quasi quote tests since we want
 to get the quasi quote source syntax, not the asts it produces at
 compile time.
 
-> mapTypeCheckTests :: TT.Item -> [Row]
+> {-mapTypeCheckTests :: TT.Item -> [Row]
 > mapTypeCheckTests (TT.Group n is) = HHeader n : concatMap mapTypeCheckTests is
 > mapTypeCheckTests (TT.Expr s r) = [Row [[Sql s],[Haskell (groom r)]]]
 > mapTypeCheckTests (TT.StmtType s r) = [Row [[Sql s],[Haskell (groom r)]]]
 > mapTypeCheckTests (TT.CatStmtType s c r) = [Row [[Haskell (groom c),Sql s],[Haskell (groom r)]]]
-> mapTypeCheckTests (TT.Ddl s c) = [Row [[Sql s],[Haskell (groom c)]]]
+> mapTypeCheckTests (TT.Ddl s c) = [Row [[Sql s],[Haskell (groom c)]]]-}
 >
 > rowsToHtml :: [Row] -> String
 > rowsToHtml rs =

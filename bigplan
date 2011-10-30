@@ -1,16 +1,25 @@
 immediate work notes:
 
-do some review/ rewriting:
-typeconversion needs a rewrite from scratch - leave this until at
-least much of the scalexpr typechecking is working again, will need to
-write some shims to produce a different api whilst writing the
-typechecking
+get scal exprs which don't need catalog working, with tests
 
-remove annotationutils
-rename astannotation to annotationinternal - review and rewrite
-rename typetype to typesinternal - review and rewrite, massive amount
-  of confused notes here. all the typechecking utils to be removed
-  from here
+zap the catalog code and start from scratch again
+
+-> basic concept of a list of catalog updates is sound, the rest is
+   going to completely change (some of the api will be similar)
+
+add most of the other scalar exprs, + implicit casts + ?
+
+then start on queryexprs:
+simple trefs, simple select lists
+* expansion
+build up to all trefs
+
+other query expr parts ..., finish off scalar expr
+
+then dml
+
+then ddl and plpgsql
+
 
 tree sketch of target set of ag files
 
@@ -36,28 +45,8 @@ tree sketch of target set of ag files
 |   `-- TableRefs.ag
 |-- ScalarExprs.ag
 |-- Statements.ag
+maybe statements.ag is something like: ddlstatements, plpgsqlstatements?
 
-maybe statements is something like: ddlstatements, plpgsqlstatements?
-
-
-get some basic scal exprs typechecking
-
-zap the catalog code and start from scratch again
-
--> basic concept of a list of catalog updates is sound, the rest is
-   going to completely change (some of the api will be similar)
-
-
-then do fns, implicittypes, ? typing
-
-then start on queryexprs:
-simple trefs, simple select lists
-* expansion
-build up to all trefs
-
-other query expr parts ...
-then dml
-then have ddl and plpgsql to tackle
 
 get to stage where chaos can successfully type check
 
@@ -67,6 +56,7 @@ i.e. will check and flag a lot more things
 fix syntax: split out plpgsql statements from regular
 (so not going to split crud from ddl).
 
+typeconversion needs a rewrite from scratch
 
 --------------------
 

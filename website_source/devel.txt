@@ -109,13 +109,25 @@ The automated tests use test-framework and HUnit.
 Source overview
 ===============
 
-weird bits:
+A good place to start is with the syntax, which is in uuagc format in
+the file src/Database/HsSqlPpp/Internals/AstInternal.ag. The main
+parsing code might also be interesting:
+src/Database/HsSqlPpp/Parsing/ParserInternal.lhs. There is also a
+separate lexer: src/Database/HsSqlPpp/Parsing/Lexing.lhs. Both use
+parsec. There is no particular reason behind this design, maybe
+something else for the lexer, or a different parser library would work
+better.
 
-* uuagc
-* lexing/parsing split (uses parsec to lex, then parsec again to
-  parse)
-* typechecker: fixupidentifiers
+To get stuck into the typechecking, a good place to start is the
+scalar expression typechecking code, which is in
+src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag. There is
+no separation in the code between the syntax and semantics.
 
-TODO: make this less cryptic
+Other interesting files are:
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternals.lhs, which
+handles the catalog datatype and implements a fair bit of the type
+checking support, and src/Database/HsSqlPpp/Internals/IDEnv.lhs which
+contains most of the rest of the type checking support, works with the
+identifiers in the env which aren't part of the catalog.
 
 A short guide on [adding Syntax](adding_syntax.txt.html).

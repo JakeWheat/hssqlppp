@@ -418,7 +418,7 @@ multiple rows to insert and insert from select statements
 >           l <- parens (commaSep1 nameComponent)
 >           symbol "="
 >           r <- parens (commaSep1 expr)
->           return $ MultiSetClause p l $ FunCall p (nm p "!rowctor") r
+>           return $ MultiSetClause p l $ App p (nm p "!rowctor") r
 >         ,do
 >           p <- pos
 >           l <- nameComponent
@@ -1209,11 +1209,11 @@ be used here.
 >       postfixks = unaryCust Postfix . mapM_ keyword
 >       binarycust opParse t =
 >         Infix $ try $ do
->              f <- FunCall <$> pos <*> (nm emptyAnnotation t <$ opParse)
+>              f <- App <$> pos <*> (nm emptyAnnotation t <$ opParse)
 >              return (\l m -> f [l,m])
 >       unaryCust ctor opParse t =
 >         ctor $ try $ do
->           f <- FunCall <$> pos <*> (nm emptyAnnotation t <$ opParse)
+>           f <- App <$> pos <*> (nm emptyAnnotation t <$ opParse)
 >           return (\l -> f [l])
 >       -- hack - haven't worked out why parsec buildexpression parser won't
 >       -- parse something like "not not EXPR" without parens so hack here
@@ -1223,8 +1223,8 @@ be used here.
 >                       keyword "not"
 >                       p2 <- pos
 >                       keyword "not"
->                       return (\l -> FunCall p1 (nm p1 "!not")
->                                     [FunCall p2 (nm p2 "!not") [l]]))
+>                       return (\l -> App p1 (nm p1 "!not")
+>                                     [App p2 (nm p2 "!not") [l]]))
 
 From postgresql src/backend/parser/gram.y
 
@@ -1291,7 +1291,7 @@ row ctor: one of
 * and () is a syntax error.
 
 > rowCtor :: SParser ScalarExpr
-> rowCtor = FunCall
+> rowCtor = App
 >           <$> pos
 >           <*> (nm <$> pos <*> return "!rowctor")
 >           <*> choice [
@@ -1340,7 +1340,7 @@ row ctor: one of
 > nullLit = NullLit <$> pos <* keyword "null"
 >
 > arrayLit :: SParser ScalarExpr
-> arrayLit = FunCall <$> pos <* keyword "array"
+> arrayLit = App <$> pos <* keyword "array"
 >                    <*> (nm <$> pos <*> return "!arrayctor")
 >                    <*> squares (commaSep expr)
 >
@@ -1348,12 +1348,12 @@ row ctor: one of
 > arraySubSuffix e = case e of
 >                      Identifier _ (Nmc "array") -> fail "can't use array \
 >                                                         \as identifier name"
->                      _ -> FunCall <$> pos
+>                      _ -> App <$> pos
 >                                   <*> (nm <$> pos <*> return "!arraysub")
 >                                   <*> ((e:) <$> squares (commaSep1 expr))
 >
 > windowFnSuffix :: ScalarExpr -> SParser ScalarExpr
-> windowFnSuffix e = WindowFn <$> pos <*> return e
+> windowFnSuffix e = WindowApp <$> pos <*> return e
 >                    <*> (keyword "over"
 >                         *> (symbol "(" *> option [] partitionBy))
 >                    <*> orderBy
@@ -1402,7 +1402,7 @@ row ctor: one of
 >   b <- b_expr
 >   keyword "and"
 >   c <- b_expr
->   return $ FunCall p (nm p "!between") [a,b,c]
+>   return $ App p (nm p "!between") [a,b,c]
 
 handles aggregate business as well
 
@@ -1440,8 +1440,8 @@ checking with aggregates at the moment so should fix it all together.
 >                           <*> commaSep expr
 >                           <*> orderBy]
 >   return $ case (di,ob) of
->     (Nothing,[]) -> FunCall p (nm p fnName) as
->     (d,o) -> AggregateFn p (fromMaybe Dupes d) (FunCall p (nm p fnName) as) o
+>     (Nothing,[]) -> App p (nm p fnName) as
+>     (d,o) -> AggregateApp p (fromMaybe Dupes d) (App p (nm p fnName) as) o
 > --hack for antiquoted function name
 > functionCallSuffix (AntiScalarExpr n) =
 >   functionCallSuffix (Identifier emptyAnnotation (Nmc $ "$(" ++ n ++ ")"))
@@ -1530,7 +1530,7 @@ checking with aggregates at the moment so should fix it all together.
 >             keyword "for"
 >             c <- expr
 >             symbol ")"
->             return $ FunCall p (nm p "!substring") [a,b,c]
+>             return $ App p (nm p "!substring") [a,b,c]
 >
 
 ------------------------------------------------------------
@@ -1544,7 +1544,7 @@ identifier wasteland
 > qualIdSuffix e = do
 >     p <- pos
 >     i1 <- symbol "." *> nameComponent
->     return $ FunCall p (nm p ".") [e,Identifier p i1]
+>     return $ App p (nm p ".") [e,Identifier p i1]
 
 
 > identifier :: SParser ScalarExpr
@@ -1862,7 +1862,7 @@ be an array or subselect, etc)
 > fixupTree =
 >     transformBi $ \x ->
 >       case x of
->              FunCall an op (expr1:FunCall _ fn expr2s:expr3s)
+>              App an op (expr1:App _ fn expr2s:expr3s)
 >                | Name _ [Nmc opnm] <- op
 >                , isOperatorName opnm
 >                , Name _ [Nmc fnm] <- fn
@@ -1871,7 +1871,7 @@ be an array or subselect, etc)
 >                                  "some" -> Just LiftAny
 >                                  "all" -> Just LiftAll
 >                                  _ -> Nothing
->                -> LiftOperator an opnm flav (expr1:expr2s ++ expr3s)
+>                -> LiftApp an opnm flav (expr1:expr2s ++ expr3s)
 >              x1 -> x1
 
 --------------------------------------------------------------------------------
