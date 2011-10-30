@@ -8,7 +8,7 @@
 > --import Database.HsSqlPpp.Tests.FixTree.FixUpIdentifiersTests
 > --import Database.HsSqlPpp.Tests.FixTree.ExplicitCasts
 
-> --import Database.HsSqlPpp.Tests.TypeChecking.TypeCheckTests
+> import Database.HsSqlPpp.Tests.TypeChecking.TypeCheckTests
 
 > import Database.HsSqlPpp.Tests.QuasiQuoteTests
 
@@ -21,7 +21,7 @@
 >     -- : fixUpIdentifiersTests
 >     -- : explicitCastTests
 >     : quasiQuoteTests
->     -- : typeCheckTests
+>     : typeCheckTests
 >     -- : parameterizedStatementTests
 >     -- : extensionTests
 >     : []
