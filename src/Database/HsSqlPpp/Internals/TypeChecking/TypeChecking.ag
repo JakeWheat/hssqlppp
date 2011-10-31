@@ -12,7 +12,7 @@ typeCheckStatements cat sts =
                                   {-,lib_Inh_Root = emptyBindings
                                   ,idenv_Inh_Root = emptyIDEnv "tcs"-}}
         tl = annotatedTree_Syn_Root ta
-        cat1 = undefined --producedCat_Syn_Root ta
+        cat1 = cat --producedCat_Syn_Root ta
     in case tl of
          Root r -> (cat1,r)
 

@@ -692,8 +692,9 @@ Statement components
 >      Just "."   -- special case to avoid ws around '.'. Don't know if this is important
 >            -- or just cosmetic
 >          | [a,b] <- es -> parens (scalExpr nice a) <> text "." <> scalExpr nice b
->      Just n' | isOperatorName n' ->
->         case forceRight (getOperatorType defaultTemplate1Catalog n') of
+>      Just n' | ncs <- nameComponents n
+>              , isOperatorName ncs ->
+>         case forceRight (getOperatorType defaultTemplate1Catalog ncs) of
 >                           BinaryOp ->
 >                               let e1d = scalExpr nice (head es)
 >                                   opd = text $ filterKeyword n'
@@ -734,7 +735,7 @@ Statement components
 >                        InList _ expr -> csvExp nice expr
 >                        InQueryExpr _ sel -> queryExpr nice True True Nothing sel)
 > scalExpr nice (LiftApp _ op flav args) =
->   scalExpr nice (head args) <+> text op
+>   scalExpr nice (head args) <+> name op
 >   <+> text (case flav of
 >               LiftAny -> "any"
 >               LiftAll -> "all")

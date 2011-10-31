@@ -176,14 +176,16 @@ test some more really basic expressions
 >       (InPredicate ea (app "!rowctor" [ei "t",ei "u"]) True
 >        (InList ea [num "1",num "2"]))
 >      ,e "3 = any (array[1,2])"
->       (LiftApp ea "=" LiftAny [num "3"
->                                    ,app "!arrayctor" [num "1"
->                                                          ,num "2"]])
+>       (LiftApp ea (name "=")
+>        LiftAny [num "3"
+>                ,app "!arrayctor" [num "1"
+>                                  ,num "2"]])
 >      ,e "3 = all (array[1,2,4])"
->       (LiftApp ea "=" LiftAll [num "3"
->                                    ,app "!arrayctor" [num "1"
->                                                          ,num "2"
->                                                          ,num "4"]])
+>       (LiftApp ea (name "=")
+>        LiftAll [num "3"
+>                ,app "!arrayctor" [num "1"
+>                                  ,num "2"
+>                                  ,num "4"]])
 >      ]
 >    ,Group "comparison operators" [
 >       e "a < b"

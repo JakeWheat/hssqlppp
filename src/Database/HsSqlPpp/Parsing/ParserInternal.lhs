@@ -1868,15 +1868,14 @@ be an array or subselect, etc)
 >     transformBi $ \x ->
 >       case x of
 >              App an op (expr1:App _ fn expr2s:expr3s)
->                | Name _ [Nmc opnm] <- op
->                , isOperatorName opnm
+>                | isOperatorName $ nameComponents op
 >                , Name _ [Nmc fnm] <- fn
 >                , Just flav <- case map toLower fnm of
 >                                  "any" -> Just LiftAny
 >                                  "some" -> Just LiftAny
 >                                  "all" -> Just LiftAll
 >                                  _ -> Nothing
->                -> LiftApp an opnm flav (expr1:expr2s ++ expr3s)
+>                -> LiftApp an op flav (expr1:expr2s ++ expr3s)
 >              x1 -> x1
 
 --------------------------------------------------------------------------------

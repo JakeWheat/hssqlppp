@@ -7,6 +7,13 @@ zap the catalog code and start from scratch again
 -> basic concept of a list of catalog updates is sound, the rest is
    going to completely change (some of the api will be similar)
 
+once minimal catalog is set up, the tests should start passing again
+(some of the pretty printing relies on information from the catalog -
+maybe this indicates something wrong with the ast types?)
+
+then add syntax support for enum types
+
+
 add most of the other scalar exprs, + implicit casts + ?
 
 then start on queryexprs:

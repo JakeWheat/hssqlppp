@@ -65,6 +65,7 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,RestartIdentity (..)
    ,ScalarExpr (..)
    ,Name(..)
+   ,nameComponents
    ,NameComponent(..)
    ,ncStr
    ,IntervalField(..)
@@ -147,7 +148,8 @@ import Debug.Trace
 
 
 import Database.HsSqlPpp.Internals.TypesInternal
-import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
+
+--import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
 import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 import Database.HsSqlPpp.Utils.Utils
 }
@@ -339,22 +341,12 @@ data Statement
 
 --Statement components
 
--- used for schema qualified identifiers
--- should be used in more places in the ast
-{
-
-data NameComponent = Nmc String
-                   | QNmc String -- quoted
-                     deriving (Data,Eq,Show,Typeable)
--- this is a transition function
--- it should be removed when ready, since all the code
--- should be working with NameComponents directly
-ncStr :: NameComponent -> String
-ncStr (Nmc n) = n
-ncStr (QNmc n) = n
-}
-
 data Name | Name ann::Annotation is::{[NameComponent]}
+
+{
+nameComponents :: Name -> [NameComponent]
+nameComponents (Name _ is) = is
+}
 
 data QueryExpr
     | Select ann::Annotation
@@ -624,7 +616,7 @@ data ScalarExpr | NumberLit ann::Annotation d::String
                               i::Bool
                               list::InList
                 | LiftApp ann::Annotation
-                               oper::String
+                               oper::Name
                                flav::LiftFlavour
                                args::ScalarExprList
                 | ScalarSubQuery ann::Annotation -- scalar meaning scalar context not scalar valued...

@@ -30,29 +30,29 @@ Forward the public part of CatalogInternal.
 >      Catalog
 >      -- ** Updates
 >     ,CatalogUpdate(..)
->     ,ppCatUpdate
+>     --,ppCatUpdate
 >      -- ** bits and pieces
->     ,CastContext(..)
->     ,CompositeFlavour(..)
->     ,CompositeDef
->     ,FunctionPrototype
->     ,DomainDefinition
->     ,FunFlav(..)
+>     --,CastContext(..)
+>     --,CompositeFlavour(..)
+>     --,CompositeDef
+>     --,FunctionPrototype
+>     --,DomainDefinition
+>     --,FunFlav(..)
 >      -- * Catalog values
 >     ,emptyCatalog
 >     ,defaultCatalog
 >     ,defaultTemplate1Catalog
 >      -- * Catalog comparison
->     ,CatalogDiff(..)
->     ,compareCatalogs
->     ,ppCatDiff
+>     --,CatalogDiff(..)
+>     --,compareCatalogs
+>     --,ppCatDiff
 >      -- * Functions
 >     ,updateCatalog
->     ,deconstructCatalog
+>     --,deconstructCatalog
 >      -- * operator utils
->     ,OperatorType(..)
->     ,getOperatorType
 >     ,isOperatorName
+>     ,OperatorFlavour(..)
+>     ,getOperatorType
 >     ) where
 >
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal

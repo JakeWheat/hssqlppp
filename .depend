@@ -6,13 +6,9 @@ src-extra/util/Database/HsSqlPpp/Utils/PgUtils.o : src-extra/util/Database/HsSql
 src/Database/HsSqlPpp/Parsing/ParseErrors.o : src/Database/HsSqlPpp/Parsing/ParseErrors.lhs
 src-extra/util/Database/HsSqlPpp/Utils/Here.o : src-extra/util/Database/HsSqlPpp/Utils/Here.lhs
 src/Database/HsSqlPpp/Internals/TypesInternal.o : src/Database/HsSqlPpp/Internals/TypesInternal.lhs
-src/Database/HsSqlPpp/Internals/TediousTypeUtils.o : src/Database/HsSqlPpp/Internals/TediousTypeUtils.lhs
-src/Database/HsSqlPpp/Internals/TediousTypeUtils.o : src/Database/HsSqlPpp/Internals/TypesInternal.hi
 src/Database/HsSqlPpp/Types.o : src/Database/HsSqlPpp/Types.lhs
 src/Database/HsSqlPpp/Types.o : src/Database/HsSqlPpp/Internals/TypesInternal.hi
-src/Database/HsSqlPpp/Utils/Utils.o : src/Database/HsSqlPpp/Utils/Utils.lhs
 src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o : src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.lhs
-src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o : src/Database/HsSqlPpp/Utils/Utils.hi
 src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o : src/Database/HsSqlPpp/Internals/TypesInternal.hi
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o : src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o : src/Database/HsSqlPpp/Internals/TypesInternal.hi
@@ -25,11 +21,7 @@ src-extra/util/Database/HsSqlPpp/Utils/CatalogReader.o : src-extra/util/Database
 src-extra/devel-util/MakeDefaultTemplate1Catalog.o : src-extra/devel-util/MakeDefaultTemplate1Catalog.lhs
 src-extra/devel-util/MakeDefaultTemplate1Catalog.o : src-extra/util/Database/HsSqlPpp/Utils/CatalogReader.hi
 src-extra/devel-util/MakeDefaultTemplate1Catalog.o : src-extra/util/Database/HsSqlPpp/Utils/Here.hi
-src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o : src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.lhs
-src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o : src/Database/HsSqlPpp/Internals/TediousTypeUtils.hi
-src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o : src/Database/HsSqlPpp/Utils/Utils.hi
-src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o : src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.hi
-src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o : src/Database/HsSqlPpp/Internals/TypesInternal.hi
+src/Database/HsSqlPpp/Utils/Utils.o : src/Database/HsSqlPpp/Utils/Utils.lhs
 src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/Parsing/Lexer.lhs
 src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/Utils/Utils.hi
 src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/Parsing/ParseErrors.hi
@@ -39,7 +31,6 @@ src/Database/HsSqlPpp/Catalog.o : src/Database/HsSqlPpp/Internals/Catalog/Catalo
 src/Database/HsSqlPpp/Internals/AstInternal.o : src/Database/HsSqlPpp/Internals/AstInternal.hs
 src/Database/HsSqlPpp/Internals/AstInternal.o : src/Database/HsSqlPpp/Utils/Utils.hi
 src/Database/HsSqlPpp/Internals/AstInternal.o : src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.hi
-src/Database/HsSqlPpp/Internals/AstInternal.o : src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.hi
 src/Database/HsSqlPpp/Internals/AstInternal.o : src/Database/HsSqlPpp/Internals/TypesInternal.hi
 src/Database/HsSqlPpp/TypeChecker.o : src/Database/HsSqlPpp/TypeChecker.lhs
 src/Database/HsSqlPpp/TypeChecker.o : src/Database/HsSqlPpp/Internals/AstInternal.hi

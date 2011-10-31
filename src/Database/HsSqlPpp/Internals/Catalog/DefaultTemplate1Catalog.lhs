@@ -19,7 +19,7 @@ installed to do this.
 >      updateCatalog defaultCatalog
 
     
->        [CatCreateScalar (ScalarType "bool") "B" True,
+>        []{-CatCreateScalar (ScalarType "bool") "B" True,
 >         CatCreateScalar (ScalarType "bytea") "U" False,
 >         CatCreateScalar (ScalarType "char") "S" False,
 >         CatCreateScalar (ScalarType "name") "S" False,
@@ -13735,5 +13735,5 @@ installed to do this.
 >            ("is_trigger_deletable",
 >             DomainType "information_schema.yes_or_no"),
 >            ("is_trigger_insertable_into",
->             DomainType "information_schema.yes_or_no")]]
+>             DomainType "information_schema.yes_or_no")]]-}
 

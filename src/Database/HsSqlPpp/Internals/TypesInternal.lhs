@@ -35,7 +35,9 @@ notes on what the types are for and how they are used in postgres.
 >           | EnumType String
 >           -- | postgres pseudo type is used for types which only appear
 >           -- as argument or return types in function definitions and/or
->           -- are used only in plpgsql and not regular sql
+>           -- are used only in plpgsql and not regular sql, hsssqlppp tries
+>           -- to follow this usage, even though the types aren't described
+>           -- in the exact same way
 >           | Pseudo PseudoType
 >           -- | String literals in postgres have an unknown type. The effective
 >           -- type is determined using what seems to amount to some simple ad hoc rules
@@ -61,7 +63,7 @@ notes on what the types are for and how they are used in postgres.
 >                 | AnyEnum
 >                   -- | like AnyElement, but the type must be a non array type
 >                 | AnyNonArray
->                   -- | Any drops the restriction that all the Any* types must
+>                   -- | Any drops the restriction that all the Any types must
 >                   -- be the same type
 >                 | Any
 >                 -- | setof is used for set returning functions

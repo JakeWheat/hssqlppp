@@ -54,13 +54,13 @@ emptyAnnotation = Annotation Nothing Nothing [] Nothing Nothing []
 getAnnotation :: Data a => a -> Annotation
 getAnnotation = head . childrenBi
 
--- | get all the annotations from a tree
-getAnnotations :: Data a => a -> [Annotation]
-getAnnotations = universeBi -- st --[x | x <- universeBi st]
+--   | get all the annotations from a tree
+--getAnnotations :: Data a => a -> [Annotation]
+--getAnnotations = universeBi -- st --[x | x <- universeBi st]
 
--- | update all the annotations in a tree
-updateAnnotations :: Data a => (Annotation -> Annotation) -> a -> a
-updateAnnotations = transformBi
+--   | update all the annotations in a tree
+--updateAnnotations :: Data a => (Annotation -> Annotation) -> a -> a
+--updateAnnotations = transformBi
 
 atype :: Annotation -> Maybe Type
 atype (Annotation _ a _ _ _ _) = a
@@ -78,8 +78,8 @@ setErrs :: [TypeError] -> Annotation -> Annotation
 setErrs e (Annotation s a _e i st c) = Annotation s a e i st c
 
 
-getTypeAnnotation :: Data a => a -> Maybe Type
-getTypeAnnotation = atype . getAnnotation
+--getTypeAnnotation :: Data a => a -> Maybe Type
+--getTypeAnnotation = atype . getAnnotation
 
 --don't know how to do this one with uniplate
 

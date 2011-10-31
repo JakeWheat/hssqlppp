@@ -36,6 +36,7 @@
 >     ,IntervalField(..)
 >     ,ExtractField(..)
 >     ,Name(..)
+>     ,nameComponents
 >     ,NameComponent(..)
 >     ,ncStr
 >      -- ** dml
