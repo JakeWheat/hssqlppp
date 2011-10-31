@@ -631,9 +631,9 @@ Statement components
 > nestedStatements nice pa = nest 2 . vcat . map (statement nice True pa)
 >
 > typeName :: TypeName -> Doc
-> typeName (SimpleTypeName _ s) = text s
-> typeName (PrecTypeName _ s i) = text s <> parens(integer i)
-> typeName (Prec2TypeName _ s i i1) = text s <> parens (sepCsv [integer i, integer i1])
+> typeName (SimpleTypeName _ s) = name s
+> typeName (PrecTypeName _ s i) = name s <> parens(integer i)
+> typeName (Prec2TypeName _ s i i1) = name s <> parens (sepCsv [integer i, integer i1])
 > typeName (ArrayTypeName _ t) = typeName t <> text "[]"
 > typeName (SetOfTypeName _ t) = text "setof" <+> typeName t
 >

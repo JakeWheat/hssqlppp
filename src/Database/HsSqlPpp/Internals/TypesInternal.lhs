@@ -41,7 +41,7 @@ notes on what the types are for and how they are used in postgres.
 >           -- type is determined using what seems to amount to some simple ad hoc rules
 >           -- based on the context of the string literal. Hssqlppp also uses the same process
 >           -- for determining the effective types of ? placeholders in parameterized
->           -- statements
+>           -- statements, and for literal nulls
 >           | UnknownType
 >             deriving (Eq,Show,Ord,Typeable,Data)
 >

@@ -8,6 +8,12 @@
 > scalarExprs =
 >   Group "scalarExprs"
 >   [Group "simple literals"
->    [ScalExpr "true" $ Right $ typeBool
->    ,ScalExpr "false" $ Right $ typeBool]
+>    [ScalExpr "true" $ Right typeBool
+>    ,ScalExpr "false" $ Right typeBool
+>    ,ScalExpr "41" $ Right typeInt
+>    ,ScalExpr "1.6" $ Right typeNumeric
+>    ,ScalExpr "'test'" $ Right UnknownType
+>    ,ScalExpr "null" $ Right UnknownType
+>    ]
 >   ]
+

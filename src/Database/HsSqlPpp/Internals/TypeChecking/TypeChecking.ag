@@ -78,8 +78,9 @@ sem Annotation
   | Annotation
       lhs.annotatedTree =
           let t = either (const Nothing) Just @lhs.tpe
-              es = @errs ++ either id (const []) @lhs.tpe
+              es = either id (const []) @lhs.tpe
           in Annotation @asrc t es @implicitCast @stType @catUpd
 
 
 include "TypeChecking/ScalarExprs.ag"
+include "TypeChecking/Misc.ag"

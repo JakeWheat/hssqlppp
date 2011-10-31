@@ -522,9 +522,9 @@ data Language = Sql | Plpgsql
                 deriving (Show,Eq,Typeable,Data)
 }
 
-data TypeName | SimpleTypeName ann::Annotation tn::String
-              | PrecTypeName ann::Annotation tn::String prec::Integer
-              | Prec2TypeName ann::Annotation tn::String prec::Integer prec1::Integer
+data TypeName | SimpleTypeName ann::Annotation tn::Name
+              | PrecTypeName ann::Annotation tn::Name prec::Integer
+              | Prec2TypeName ann::Annotation tn::Name prec::Integer prec1::Integer
               | ArrayTypeName ann::Annotation typ::TypeName
               | SetOfTypeName ann::Annotation typ::TypeName
 {

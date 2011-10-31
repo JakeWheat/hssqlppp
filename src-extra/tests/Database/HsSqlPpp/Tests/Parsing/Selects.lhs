@@ -53,7 +53,7 @@
 >          (Select ea Dupes
 >           (SelectList ea
 >            [SelExp ea (Cast ea (QIdentifier ea [Nmc "T",Nmc "A"])
->                        (SimpleTypeName ea "int"))])
+>                        (SimpleTypeName ea $ name "INT"))])
 >           [Tref ea (Name ea [Nmc "TABLE"]) (TableAlias ea (Nmc "T"))]
 >           Nothing [] Nothing [] Nothing Nothing)]
 >      ]

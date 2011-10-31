@@ -62,7 +62,7 @@ shortcuts for constructing test data and asts
 >                [frm] (Just whr) [] Nothing [] Nothing Nothing
 >
 > att :: String -> String -> AttributeDef
-> att n t = AttributeDef ea (Nmc n) (SimpleTypeName ea t) Nothing []
+> att n t = AttributeDef ea (Nmc n) (SimpleTypeName ea $ name t) Nothing []
 
 > ea :: Annotation
 > ea = emptyAnnotation

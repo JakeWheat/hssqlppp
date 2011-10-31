@@ -21,15 +21,15 @@
 >        (dqi "v1") (Just [Nmc "c",Nmc "d"])
 >        (selectFrom [selI "a", selI "b"] (Tref ea (i "t") (NoAlias ea)))]
 >      ,s "create domain td as text check (value in ('t1', 't2'));"
->       [CreateDomain ea (dqi "td") (SimpleTypeName ea "text") ""
+>       [CreateDomain ea (dqi "td") (SimpleTypeName ea $ name "text") ""
 >        (Just (InPredicate ea (Identifier ea "value") True
 >               (InList ea [stringQ "t1" ,stringQ "t2"])))]
 >      ,s "create type tp1 as (\n\
 >         \  f1 text,\n\
 >         \  f2 text\n\
 >         \);"
->       [CreateType ea (dqi "tp1") [TypeAttDef ea (Nmc "f1") (SimpleTypeName ea "text")
->                                  ,TypeAttDef ea (Nmc "f2") (SimpleTypeName ea "text")]]
+>       [CreateType ea (dqi "tp1") [TypeAttDef ea (Nmc "f1") (SimpleTypeName ea $ name "text")
+>                                  ,TypeAttDef ea (Nmc "f2") (SimpleTypeName ea $ name "text")]]
 >
 >      ,s "create sequence s start with 5 increment by 4 no maxvalue no minvalue cache 1;"
 >         [CreateSequence ea (dqi "s") 4 1 ((2::Integer) ^ (63::Integer) - 1) 5 1]

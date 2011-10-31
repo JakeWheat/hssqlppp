@@ -861,7 +861,7 @@ that can left factor the 'name component . '  part and avoid the try
 >   where
 >     otherTypeName = do
 >        p <- pos
->        s <- map toLower <$> pTypeNameString
+>        s <- pTypeNameString
 >        choice [try (Prec2TypeName p s
 >                     <$> (symbol "(" *> integer)
 >                     <*> (symbol "," *> integer <* symbol ")"))
@@ -870,10 +870,15 @@ that can left factor the 'name component . '  part and avoid the try
 >               ,return $ SimpleTypeName p s]
 >     arrayTypeName p s = ArrayTypeName p (SimpleTypeName p s)
 >                         <$ symbol "[" <* symbol "]"
->     --todo: add special cases for the other type names with spaces in them
->     pTypeNameString = ("double precision" <$ try (keyword "double"
->                                                   <* keyword "precision"))
->                       <|> idString
+>     pTypeNameString :: SParser Name
+>     pTypeNameString = (Name <$> pos
+>                        <*> choice [[Nmc "double precision"]
+>                                    <$ try (keyword "double"
+>                                            <* keyword "precision")
+>                                   ,[Nmc "character varying"]
+>                                    <$ try (keyword "character"
+>                                            <* keyword "varying")])
+>                       <|> name
 >
 > cascade :: SParser Cascade
 > cascade = option Restrict (choice [

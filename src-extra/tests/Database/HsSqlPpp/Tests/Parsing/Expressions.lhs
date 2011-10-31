@@ -73,14 +73,16 @@ test some more really basic expressions
 >      ,e "'a' || 'b'" (app "||" [stringQ "a"
 >                                    ,stringQ "b"])
 >      ,e "'stuff'::text"
->       (Cast ea (stringQ "stuff") (SimpleTypeName ea "text"))
->      ,e "245::float(24)" (Cast ea (num "245") (PrecTypeName ea "float" 24))
+>       (Cast ea (stringQ "stuff") (SimpleTypeName ea $ name "text"))
+>      ,e "245::float(24)" (Cast ea (num "245") (PrecTypeName ea (name "float") 24))
 >      ,e "245.1::numeric(5,3)"
->       (Cast ea (num "245.1") (Prec2TypeName ea "numeric" 5 3))
+>       (Cast ea (num "245.1") (Prec2TypeName ea (name "numeric") 5 3))
 >      ,e "245::double precision"
->       (Cast ea (num "245") (SimpleTypeName ea "double precision"))
+>       (Cast ea (num "245") (SimpleTypeName ea $ name "double precision"))
+>      ,e "'test'::character varying(6)"
+>       (Cast ea (StringLit ea "test") (PrecTypeName ea (name "character varying") 6))
 >      ,e "date '1998-12-01'"
->       (TypedStringLit ea (SimpleTypeName ea "date") "1998-12-01")
+>       (TypedStringLit ea (SimpleTypeName ea $ name "date") "1998-12-01")
 >      ,e "interval '63' day" (Interval ea "63" IntervalDay Nothing)
 >      ,e "interval '63' day (3)" (Interval ea "63" IntervalDay $ Just 3)
 >      ,e "extract(year from a)" (Extract ea ExtractYear $ ei "a")
@@ -93,7 +95,7 @@ test some more really basic expressions
 >                             ,app "+" [num "7"
 >                                          ,num "1"]])
 >      ,e "cast(a as text)"
->         (Cast ea (ei "a") (SimpleTypeName ea "text"))
+>         (Cast ea (ei "a") (SimpleTypeName ea $ name "text"))
 >      ,e "@ a"
 >         (app "@" [ei "a"])
 >      ,e "substring(a from 0 for 3)"
@@ -217,7 +219,7 @@ and dollar quoting, including nesting.
 >                                   (app "!rowctor"
 >                                    [eqi "a" "x"
 >                                    ,ei "y"])
->                                   (SimpleTypeName ea "z")])])))
+>                                   (SimpleTypeName ea $ name "z")])])))
 >      ]
 >      ]
 >  where

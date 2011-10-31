@@ -1,0 +1,38 @@
+
+
+{-
+
+typenames - translate from the syntactic typenames to semantic types
+
+typenames always refer to existing types, aren't used syntactically to
+when creating new types, so lookup the type in the catalog here to
+check it exists
+
+-}
+{-
+attr TypeName
+  syn namedType :: {Maybe Type}
+
+sem TypeName
+     | SimpleTypeName ArrayTypeName SetOfTypeName PrecTypeName Prec2TypeName
+         lhs.namedType = either (const Nothing) Just @loc.tpe
+         ann.tpe = @loc.tpe
+
+SEM TypeName
+     | SimpleTypeName
+         loc.tpe = catLookupType @lhs.cat $ canonicalizeTypeName @tn
+{-
+todos: check the array type exists
+check that this type can be used as a setof
+check that the type can accept one or two modifiers
+-}
+
+     | ArrayTypeName
+        loc.tpe = lmt @typ.namedType >>=  Right . ArrayType
+     | SetOfTypeName
+        loc.tpe = lmt @typ.namedType >>=  Right . SetOfType
+     | PrecTypeName
+        loc.tpe = catLookupType @lhs.cat $ canonicalizeTypeName @tn
+     | Prec2TypeName
+        loc.tpe = catLookupType @lhs.cat $ canonicalizeTypeName @tn
+-}

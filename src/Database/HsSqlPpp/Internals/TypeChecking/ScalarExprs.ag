@@ -31,19 +31,72 @@ needs the type of another node which is unable to type check, then no
 additional type errors are produced, this is represented in the
 annotation for the type as Nothing, and in loc.tpe as Left []
 
+not sure it's worth the indirection of writing to loc.tpe then to
+ann.tpe
+
 -}
 
+{-
 
+------------------------------------------------
+
+simple literals
+
+-}
 
 sem ScalarExpr
     | BooleanLit
-        loc.tpe = Right $ typeBool
+        loc.tpe = Right typeBool
 
+-- numbers - a bit hacky, maybe should follow haskell
+-- and represent as integers and rationals instead of strings
+
+    | NumberLit
+        loc.tpe = Right $ if all (`elem` @loc.digChars) @d
+                          then typeInt
+                          else typeNumeric
+        loc.digChars = concatMap show [(0::Int)..9]
+
+    | StringLit
+        loc.tpe = Right UnknownType
+    -- I think a null has the same type resolution as an unknown string lit
+    | NullLit
+         loc.tpe = Right UnknownType
+
+{-
+
+----------------------------------
+simplish ctors
+
+-}
+
+{-    | TypedStringLit
+         loc.tpe = fromMaybe (Left []) @tn.namedType
+    | Interval
+         loc.tpe = Right $ ScalarType "interval"
+    | Extract
+         loc.tpe = -- check the argument is a date
+                   do
+                   x <- lmt @e.uType
+                   if x == typeDate
+                     then Right typeFloat8
+                     else Left [NoMatchingOperator "extract" [x]]
+    | Placeholder
+         loc.tpe = Right UnknownType
+    | Cast
+         loc.tpe = fromMaybe (Left []) @tn.namedType
+-}
+
+{-
+
+fallback for unimplemented bits
+
+-}
 
 -- temp
 sem ScalarExpr
-    | NumberLit StringLit NullLit TypedStringLit Interval
-      Extract PositionalArg Placeholder Cast Star QStar Identifier
+    | TypedStringLit Extract Interval Placeholder
+      PositionalArg Cast Star QStar Identifier
       QIdentifier Case CaseSimple Exists App AggregateApp
       WindowApp InPredicate LiftApp ScalarSubQuery AntiScalarExpr
         loc.tpe = Left []
