@@ -17,7 +17,12 @@ functions (not including those that depend on the ast data types).
 >     --,getAnnotations
 >     ,emptyAnnotation
 >     --,resetAnnotations
+>     ,atype
+>     ,setAtype
+>     ,errs
+>     ,setErrs
+>     ,setAsrc
 >     ) where
 >
-> import Database.HsSqlPpp.Internals.AnnotationInternal
+> import Database.HsSqlPpp.Internals.AstInternal
 > --import Database.HsSqlPpp.Internals.AnnotationUtils

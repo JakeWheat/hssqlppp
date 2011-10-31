@@ -20,22 +20,24 @@ sem ScalarExpr
     | NumberLit StringLit NullLit BooleanLit TypedStringLit Interval
       Extract PositionalArg Placeholder Cast Star QStar Identifier
       QIdentifier Case CaseSimple Exists App AggregateApp
-      WindowApp InPredicate LiftApp ScalarSubQuery AntiScalarExpr
+      WindowApp InPredicate LiftApp ScalarSubQuery --AntiScalarExpr
+        ann.tpe = @loc.tpe
+{-
+each ctor has its own typechecking code
 
--- each bit of typechecking for each ctor sets loc.tpe
--- to build the annotated tree, each node defines a 'backtree'
--- which contains the sub annotated tree nodes
--- then the annotated tree rule here adds the loc.tpe
--- information. not sure if there is an less weird way to do this
-        loc.tpe :: {Either [TypeError] Type}
-        lhs.annotatedTree = updateAnnotation
-                              (setTypeAddErrors @loc.tpe)
-                               @loc.backTree
+this sets loc.tpe with either the succesfully determined type, or the
+type errors. The typechecking is shortcircuited so that if a node
+needs the type of another node which is unable to type check, then no
+additional type errors are produced, this is represented in the
+annotation for the type as Nothing, and in loc.tpe as Left []
+
+-}
+
+
 
 sem ScalarExpr
     | BooleanLit
         loc.tpe = Right $ typeBool
-        loc.backTree = BooleanLit @ann @b
 
 
 -- temp
@@ -45,4 +47,3 @@ sem ScalarExpr
       QIdentifier Case CaseSimple Exists App AggregateApp
       WindowApp InPredicate LiftApp ScalarSubQuery AntiScalarExpr
         loc.tpe = Left []
-        loc.backTree = undefined

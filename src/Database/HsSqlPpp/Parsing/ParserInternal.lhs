@@ -1827,7 +1827,7 @@ parser combinator to return the current position as an ast annotation
 
 > pos :: SParser Annotation
 > pos =
->   (\a -> emptyAnnotation {asrc=Just a}) <$> toMySp <$> getPosition
+>   (\a -> setAsrc (Just a) emptyAnnotation) <$> toMySp <$> getPosition
 
 == lexer stuff
 

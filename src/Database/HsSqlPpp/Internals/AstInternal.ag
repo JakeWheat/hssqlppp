@@ -111,6 +111,20 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,typeCheckParameterizedStatement
    ,typeCheckScalarExpr
    ,typeCheckQueryExpr
+   -- annotation
+   ,Annotation(..)
+   ,SourcePosition
+   ,ParameterizedStatementType
+   ,getAnnotation
+   ,updateAnnotation
+   ,emptyAnnotation
+   ,atype
+   ,setAtype
+   ,errs
+   ,setErrs
+   ,setAsrc
+
+
    --,fixUpIdentifiers
    --,fixUpIdentifiersQE
    --,fixUpIdentifiersSE
@@ -126,6 +140,7 @@ import Data.Char
 import Control.Monad.State
 import Control.Arrow
 
+import Data.Generics
 import Data.Generics.Uniplate.Data
 import Debug.Trace
 --import Text.Groom
@@ -133,7 +148,6 @@ import Debug.Trace
 
 import Database.HsSqlPpp.Internals.TypesInternal
 import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
-import Database.HsSqlPpp.Internals.AnnotationInternal
 import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 import Database.HsSqlPpp.Utils.Utils
 }
@@ -815,7 +829,7 @@ set AllNodes = Statement QueryExpr FnBody TableRef
 
 deriving AllNodes: Show,Eq,Typeable,Data
 
-
+include "Annotation.ag"
 include "TypeChecking/TypeChecking.ag"
 
 {-

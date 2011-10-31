@@ -50,7 +50,7 @@ Library
                      Database.HsSqlPpp.TypeChecker
                      Database.HsSqlPpp.Quote
 
-                     -- find src/lib -iname '*hs' | sed -e "s@src/@@" | sed -e "s@/@.@g" |sed -e "s/.lhs//" |sed -e "s/.hs//"
+                     -- find src -iname '*hs' | sed -e "s@src/@@" | sed -e "s@/@.@g" |sed -e "s/.lhs//" |sed -e "s/.hs//"
   Other-Modules:     Database.HsSqlPpp.Utils.Utils
                      Database.HsSqlPpp.Parsing.ParseErrors
                      Database.HsSqlPpp.Parsing.Lexer
@@ -61,7 +61,6 @@ Library
                      Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
                      Database.HsSqlPpp.Internals.TediousTypeUtils
                      Database.HsSqlPpp.Internals.AstInternal
-                     Database.HsSqlPpp.Internals.AnnotationInternal
 
   extensions:        TupleSections
                      DeriveDataTypeable,

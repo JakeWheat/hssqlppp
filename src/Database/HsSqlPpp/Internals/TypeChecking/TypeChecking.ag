@@ -62,10 +62,24 @@ main global attributes
 
 -}
 
-attr AllNodes Root ScalarExprRoot
+attr AllNodes Root ScalarExprRoot Annotation
   inh cat :: Catalog
   syn annotatedTree :: SELF -- annotated tree is the output tree with the types added
      ,originalTree :: SELF -- this is the original tree, should not be changed
 
-include "TypeChecking/Utils.ag"
+-- the types and errors are pulled out of the attributes, which
+-- are set by the sem for each type/ ctor in the various files in
+-- TypeChecking/ and put into the annotated tree output
+
+attr Annotation
+  inh tpe :: {Either [TypeError] Type}
+
+sem Annotation
+  | Annotation
+      lhs.annotatedTree =
+          let t = either (const Nothing) Just @lhs.tpe
+              es = @errs ++ either id (const []) @lhs.tpe
+          in Annotation @asrc t es @implicitCast @stType @catUpd
+
+
 include "TypeChecking/ScalarExprs.ag"
