@@ -58,7 +58,7 @@ Library
                      Database.HsSqlPpp.Internals.Catalog.CatalogInternal
                      Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
                      Database.HsSqlPpp.Internals.TypesInternal
-                     Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
+                     --Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
                      Database.HsSqlPpp.Internals.TediousTypeUtils
                      Database.HsSqlPpp.Internals.AstInternal
 

@@ -13,6 +13,8 @@ maybe this indicates something wrong with the ast types?)
 
 then add syntax support for enum types
 
+then represent prefix, postfix and binary ops explicitly in syntax
+think about add parens explicitly to syntax
 
 add most of the other scalar exprs, + implicit casts + ?
 

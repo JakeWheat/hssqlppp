@@ -72,7 +72,6 @@ EXE_FILES = src-extra/tests/Tests \
 #	src-extra/examples/ShowCatalog \
 #	src-extra/examples/TypeCheck \
 #	src-extra/examples/TypeCheckDB \
-#	src-extra/tosort/util/DevelTool \
 #	src-extra/h7c/h7c
 
 #	src-extra/chaos/build.lhs
@@ -108,6 +107,7 @@ website_haddock :
 	cabal configure
 	cabal haddock
 	-mkdir hssqlppp
+	-rm -Rf hssqlppp/haddock
 	mv dist/doc/html/hssqlppp hssqlppp/haddock
 
 # task to build the chaos sql, which takes the source sql

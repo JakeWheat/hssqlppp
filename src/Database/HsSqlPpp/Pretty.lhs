@@ -694,7 +694,7 @@ Statement components
 >          | [a,b] <- es -> parens (scalExpr nice a) <> text "." <> scalExpr nice b
 >      Just n' | ncs <- nameComponents n
 >              , isOperatorName ncs ->
->         case forceRight (getOperatorType defaultTemplate1Catalog ncs) of
+>         case forceRight (getOperatorFlavour defaultTemplate1Catalog ncs) of
 >                           BinaryOp ->
 >                               let e1d = scalExpr nice (head es)
 >                                   opd = text $ filterKeyword n'

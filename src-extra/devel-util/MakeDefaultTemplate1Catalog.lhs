@@ -26,8 +26,10 @@ installed to do this.
 >      (defaultTemplate1Catalog) where
 >
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
-> import Database.HsSqlPpp.Internals.TypesInternal
->
+> --import Database.HsSqlPpp.Internals.TypesInternal
+> -- | The catalog from a default template1 database in roughly the
+> -- latest postgres. (At some point will provide catalogs from different
+> -- versions, the one in this release is probably from 9.1.1)
 > defaultTemplate1Catalog :: Catalog
 > defaultTemplate1Catalog =
 >     (\l -> case l of

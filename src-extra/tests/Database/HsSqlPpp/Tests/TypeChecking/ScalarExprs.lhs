@@ -15,5 +15,8 @@
 >    ,ScalExpr "'test'" $ Right UnknownType
 >    ,ScalExpr "null" $ Right UnknownType
 >    ]
+>   ,Group "other simple scalexprs"
+>     [ScalExpr "'1'::int" $ Right typeInt
+>     ]
 >   ]
 

@@ -1,9 +1,8 @@
 
-This module contains the code to read a set of catalog updates
-from a database.
+This module contains the code to read a set of catalog updates from a
+database. This can be applied to the default catalog to be able to
+typecheck against that database.
 
-The code here hasn't been tidied up since the Catalog data type
-was heavily changed so it's a bit messy.
 
 > {-# LANGUAGE QuasiQuotes #-}
 >
@@ -29,8 +28,158 @@ was heavily changed so it's a bit messy.
 > readCatalogFromDatabase :: String -- ^ connection string of the database to read
 >                             -> IO [CatalogUpdate]
 > readCatalogFromDatabase cs = withConn cs $ \conn -> do
->    typeInfo <- selectRelation conn [here|
 
+
+>   scalarTypeNames <-
+>     map (CatCreateScalarType . head) `fmap`
+>         selectRelation conn [here|
+\begin{code}
+
+select  case nspname
+         when 'public' then t.typname
+         when 'pg_catalog' then t.typname
+         else nspname || '.' || t.typname
+       end as typname
+from pg_catalog.pg_type t
+  inner join pg_namespace ns
+      on t.typnamespace = ns.oid
+where typtype = 'b'
+  and ns.nspname in ('pg_catalog'
+                    ,'public'
+                    ,'information_schema')
+  and not exists(select 1 from pg_catalog.pg_type el
+                    where el.typarray = t.oid)
+  order by t.typname;
+
+\end{code}
+>                                     |] []
+
+
+
+>   domainTypes <-
+>     map (\[d,b] -> CatCreateDomainType d b) `fmap`
+>         selectRelation conn [here|
+\begin{code}
+
+select case ns.nspname
+         when 'public' then t.typname
+         when 'pg_catalog' then t.typname
+         else ns.nspname || '.' || t.typname
+       end as typname,
+       case bns.nspname
+         when 'public' then bt.typname
+         when 'pg_catalog' then bt.typname
+         else bns.nspname || '.' || bt.typname
+       end as basename
+from pg_catalog.pg_type t
+  inner join pg_namespace ns
+      on t.typnamespace = ns.oid
+  inner join pg_catalog.pg_type bt
+      on t.typbasetype = bt.oid
+  inner join pg_namespace bns
+      on bt.typnamespace = bns.oid
+where t.typtype = 'd'
+  and ns.nspname in ('pg_catalog'
+                    ,'public'
+                    ,'information_schema')
+  and not exists(select 1 from pg_catalog.pg_type el
+                    where el.typarray = t.oid)
+  order by t.typname;
+
+\end{code}
+>                                     |] []
+
+>   arrayTypes <-
+>     map ( \[nm,bs] -> CatCreateArrayType nm bs) `fmap`
+>         selectRelation conn [here|
+\begin{code}
+
+select e.typname as arraytype,
+       t.typname as basetype
+  from pg_catalog.pg_type t
+  inner join pg_type e
+    on t.typarray = e.oid
+   inner join pg_namespace ns
+      on t.typnamespace = ns.oid
+         and ns.nspname in ('pg_catalog'
+                           ,'public'
+                           ,'information_schema')
+  order by t.typname;
+
+\end{code}
+>                                     |] []
+
+>   prefixOps <-
+>     map ( \[nm,rt,res] -> CatCreatePrefixOp nm rt res) `fmap`
+>         selectRelation conn [here|
+\begin{code}
+select oprname,
+       rt.typname,
+       res.typname
+from pg_operator
+inner join pg_type rt
+  on oprright = rt.oid
+inner join pg_type res
+  on oprresult = res.oid
+order by oprname;
+\end{code}
+>                                     |] []
+
+>   postfixOps <-
+>     map ( \[nm,lt,res] -> CatCreatePostfixOp nm lt res) `fmap`
+>         selectRelation conn [here|
+\begin{code}
+select oprname,
+       lt.typname,
+       res.typname
+from pg_operator
+inner join pg_type lt
+  on oprleft = lt.oid
+inner join pg_type res
+  on oprresult = res.oid
+order by oprname;
+\end{code}
+>                                     |] []
+
+>   binaryOps <-
+>     map ( \[nm,lt,rt,res] -> CatCreateBinaryOp nm lt rt res) `fmap`
+>         selectRelation conn [here|
+\begin{code}
+select oprname,
+       lt.typname,
+       rt.typname,
+       res.typname
+from pg_operator
+inner join pg_type lt
+  on oprleft = lt.oid
+inner join pg_type rt
+  on oprright = rt.oid
+inner join pg_type res
+  on oprresult = res.oid
+where not oprname = '@' --hack for now
+order by oprname;
+\end{code}
+>                                     |] []
+
+>   return $ concat [scalarTypeNames
+>                   ,domainTypes
+>                   ,arrayTypes
+>                   ,prefixOps
+>                   ,postfixOps
+>                   ,binaryOps]
+
+
+
+
+
+
+
+
+
+
+
+
+>    {-typeInfo <- selectRelation conn [here|
 \begin{code}
 
 select t.oid as oid,
@@ -58,7 +207,6 @@ select t.oid as oid,
   order by t.typname;
 
 \end{code}
-
 >                |] []
 >    let typeStuff = concatMap convTypeInfoRow typeInfo
 >        typeAssoc = map (\(a,b,_) -> (a,b)) typeStuff
@@ -66,7 +214,6 @@ select t.oid as oid,
 >    cts <- map (\(nm:cat:pref:[]) ->
 >                CatCreateScalar (ScalarType nm) cat ( read pref :: Bool)) <$>
 >           selectRelation conn [here|
-
 \begin{code}
 
 select t.typname,typcategory,typispreferred
@@ -79,10 +226,8 @@ where t.typarray<>0 and
     pg_catalog.pg_type_is_visible(t.oid)*/;
 
 \end{code}
-
 >                |] []
 >    domainDefInfo <- selectRelation conn [here|
-
 \begin{code}
 
 select pg_type.oid, typbasetype
@@ -94,7 +239,6 @@ select pg_type.oid, typbasetype
      /*and  pg_catalog.pg_type_is_visible(oid)*/;
 
 \end{code}
-
 >                |] []
 >    let jlt k = fromJust $ M.lookup k typeMap
 >    let domainDefs = map (\l -> (jlt (l!!0),  jlt (l!!1))) domainDefInfo
@@ -113,7 +257,6 @@ select pg_type.oid, typbasetype
 >                                   _ -> error $ "internal error: unknown \
 >                                                \cast context " ++ (l!!2)))
 >    operatorInfo <- selectRelation conn [here|
-
 \begin{code}
 
 select oprname,
@@ -126,7 +269,6 @@ from pg_operator
       order by oprname;
 
 \end{code}
-
 >                |] []
 >    let getOps a b c [] = (a,b,c)
 >        getOps pref post bin (l:ls) =
@@ -140,7 +282,6 @@ from pg_operator
 >                                                          ,jlt (l!!2)]:bin) ls
 >    let (prefixOps, postfixOps, binaryOps) = getOps [] [] [] operatorInfo
 >    functionInfo <- selectRelation conn [here|
-
 \begin{code}
 
 select proname,
@@ -154,11 +295,9 @@ where pg_catalog.pg_function_is_visible(pg_proc.oid)
       and not proiswindow
 order by proname,proargtypes;
 \end{code}
-
 >                |] []
 >    let fnProts = map (convFnRow jlt) functionInfo
 >    aggregateInfo <- selectRelation conn [here|
-
 \begin{code}
 
 select proname,
@@ -171,11 +310,9 @@ where pg_catalog.pg_function_is_visible(pg_proc.oid)
       and proisagg
 order by proname,proargtypes;
 \end{code}
-
 >                |] []
 >    let aggProts = map (convFnRow jlt) aggregateInfo
 >    windowInfo <- selectRelation conn [here|
-
 \begin{code}
 
 select proname,
@@ -189,7 +326,6 @@ where pg_catalog.pg_function_is_visible(pg_proc.oid)
 order by proname,proargtypes;
 
 \end{code}
-
 >                |] []
 >    let winProts = map (convFnRow jlt) windowInfo
 >    comps <- map (\(kind:nm:atts:sysatts:nsp:[]) ->
@@ -204,7 +340,6 @@ order by proname,proargtypes;
 >                     "v" -> CatCreateView nm1 (convertAttString jlt atts)
 >                     _ -> error $ "unrecognised relkind: " ++ kind) <$>
 >                 selectRelation conn [here|
-
 \begin{code}
 
 with att1 as (
@@ -256,7 +391,6 @@ with att1 as (
    order by relkind,relname;
 
 \end{code}
-
 >                |] []
 >    return
 >      $ concat [cts
@@ -319,7 +453,7 @@ with att1 as (
 >                    "trigger" -> Trigger
 >                    "void" -> Void
 >                    "fdw_handler" -> FdwHandler
->                    _ -> error $ "internal error: unknown pseudo " ++ t
+>                    _ -> error $ "internal error: unknown pseudo " ++ t -}
 
 > split :: Char -> String -> [String]
 > split _ ""                =  []

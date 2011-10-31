@@ -40,7 +40,7 @@ Instead of:
 >      [sqlExpr| dateAdd($i(i),-$(v),$s(d))|]
 >   x' -> x'
 >   where
->     dateInfo (TypedStringLit _ (SimpleTypeName _ "date") d)
+>     dateInfo (TypedStringLit _ (SimpleTypeName _ (Name _ [Nmc "date"])) d)
 >              (Interval _ v i _)
 >              | Just i' <- lookup i [(IntervalDay,"day")
 >                                    ,(IntervalMonth,"month")
@@ -75,5 +75,5 @@ Instead of:
 
 > fixDate :: Data a => a -> a
 > fixDate = transformBi $ \x -> case x of
->    TypedStringLit a (SimpleTypeName _ "date") d -> StringLit a d
+>    TypedStringLit a (SimpleTypeName _  (Name _ [Nmc "date"])) d -> StringLit a d
 >    x' -> x'

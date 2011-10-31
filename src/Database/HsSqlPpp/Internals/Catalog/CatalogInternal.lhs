@@ -59,6 +59,8 @@ arrays for sets and maps
 >     ,defaultCatalog
 >     ,NameComponent(..)
 >     ,ncStr
+>     ,CompositeFlavour(..)
+>     ,CatName
 >      -- catalog updates
 >     ,CatalogUpdate(..)
 >     ,updateCatalog
@@ -67,10 +69,10 @@ arrays for sets and maps
 >      -- util
 >     ,isOperatorName
 >     ,OperatorFlavour(..)
->     ,getOperatorType
+>     ,getOperatorFlavour
 >     ) where
 >
-> --import Control.Monad
+> import Control.Monad
 > import Data.List
 > import Data.Data
 > import Data.Char
@@ -147,6 +149,9 @@ name, parameter types, return type and variadic flag
 
 catalog values
 
+
+> -- | represents the name of something in the catalog, maybe in the future
+> -- this will include the schema.
 > type CatName = String
 
 > data CompositeFlavour = Composite | TableComposite | ViewComposite
@@ -165,6 +170,7 @@ catalog values
 >                                 (CompositeFlavour
 >                                 ,[(String,CatName)] -- public attrs
 >                                 ,[(String,CatName)])-- system columns
+>     ,catArrayTypes :: M.Map CatName CatName --pg array type name, base type name
 >     ,catPrefixOps :: M.Map CatName OperatorPrototype
 >     ,catPostfixOps :: M.Map CatName OperatorPrototype
 >     ,catBinaryOps :: M.Map CatName OperatorPrototype
@@ -181,7 +187,8 @@ catalog values
 > -- | Represents an empty catalog. This doesn't contain things
 > -- like the \'and\' operator, 'defaultCatalog' contains these.
 > emptyCatalog :: Catalog
-> emptyCatalog = Catalog S.empty M.empty M.empty M.empty M.empty M.empty M.empty M.empty M.empty []
+> emptyCatalog = Catalog S.empty M.empty M.empty M.empty M.empty M.empty
+>                        M.empty M.empty M.empty M.empty []
 >
 > -- | Represents what you probably want to use as a starting point if
 > -- you are building an catalog from scratch. It contains
@@ -286,16 +293,57 @@ functions and not in catalog values themselves.
 
  updates
 
-> data CatalogUpdate = CatalogUpdate Int
->                      deriving (Eq,Ord,Typeable,Data,Show)
+> data CatalogUpdate =
+>     -- | register a base scalar type with the given name
+>     CatCreateScalarType CatName
+>     -- | register a domain type with name and base type
+>   | CatCreateDomainType CatName CatName
+>     -- | register an array type with name and base type
+>   | CatCreateArrayType CatName CatName
+>     -- | register a prefix op, opname, param type, return type
+>   | CatCreatePrefixOp CatName CatName CatName --op name, argtypename, rettypename
+>     -- | register a postfix op, opname, param type, return type
+>   | CatCreatePostfixOp CatName CatName CatName
+>     -- | register a binary op, opname, the two param types, return type
+>   | CatCreateBinaryOp CatName CatName CatName CatName
+>     deriving (Eq,Ord,Typeable,Data,Show)
 
 > -- | Applies a list of 'CatalogUpdate's to an 'Catalog' value
 > -- to produce a new Catalog value.
 > updateCatalog :: Catalog
->                   -> [CatalogUpdate]
->                   -> Either [TypeError] Catalog
-> updateCatalog cat' eus = Right cat'
-
+>               -> [CatalogUpdate]
+>               -> Either [TypeError] Catalog
+> updateCatalog cat' eus =
+>   foldM updateCat' (cat' {catUpdates = catUpdates cat' ++ eus}) eus
+>   where
+>     updateCat' cat u = case u of
+>       CatCreateScalarType n ->
+>         if S.member n (catScalarTypeNames cat)
+>         -- todo: need to check all the type lists
+>         -- and maybe need to check the name doesn't conflict with pseudo names or something?
+>         -- this should happen with other cases as well
+>         then Left [InternalError $ "type already exists: " ++ show n]
+>         else Right $ cat {catScalarTypeNames = S.insert n (catScalarTypeNames cat)}
+>       CatCreateDomainType n b ->
+>         Right $ cat {catDomainTypes = M.insert n b (catDomainTypes cat)}
+>       CatCreateArrayType n b ->
+>         Right $ cat {catArrayTypes = M.insert n b (catArrayTypes cat)}
+>       -- todo: check the uniqueness of operator names (can overload by type)
+>       -- also check the name of the operator is a valid operator name
+>       -- and that the op has the correct number of args (1 or 2 resp.)
+>       CatCreatePrefixOp n lt ret -> do
+>         ltt <- catLookupType cat [QNmc lt]
+>         rett <- catLookupType cat [QNmc ret]
+>         Right $ cat {catPrefixOps = M.insert n (n,[ltt],rett,False) (catPrefixOps cat)}
+>       CatCreatePostfixOp n rt ret -> do
+>         rtt <- catLookupType cat [QNmc rt]
+>         rett <- catLookupType cat [QNmc ret]
+>         Right $ cat {catPostfixOps = M.insert n (n,[rtt],rett,False) (catPostfixOps cat)}
+>       CatCreateBinaryOp n lt rt ret -> do
+>         ltt <- catLookupType cat [QNmc lt]
+>         rtt <- catLookupType cat [QNmc rt]
+>         rett <- catLookupType cat [QNmc ret]
+>         Right $ cat {catBinaryOps = M.insert n (n,[ltt,rtt],rett,False) (catBinaryOps cat)}
 
 -----------------------------------------------------------
 
@@ -312,13 +360,14 @@ queries
 > -- will return a type not recognised if the type isn't in the catalog
 > catLookupType :: Catalog -> [NameComponent] -> Either [TypeError] Type
 > catLookupType cat ncs =
->   case getCatName ncs of
+>   case canonicalizeTypeName $ getCatName ncs of
 >     -- check if is a pseudo type
 >     cn | Just p <- M.lookup cn pseudoTypes -> Right p
->     -- check for base, domain, enum or composite
+>     -- check for base, domain, enum or composite, and array
 >        | S.member cn (catScalarTypeNames cat) -> Right $ ScalarType cn
 >        | M.member cn (catDomainTypes cat) -> Right $ DomainType cn
 >        | M.member cn (catCompositeTypes cat) -> Right $ NamedCompositeType cn
+>        | Just t <- M.lookup cn (catArrayTypes cat) -> Right $ ArrayType $ ScalarType t
 >        | otherwise -> Left [UnknownTypeName cn]
 
 
@@ -335,8 +384,8 @@ catalog about syntax issues probably means the syntax design is wrong
 > data OperatorFlavour = BinaryOp | PrefixOp | PostfixOp
 >                        deriving (Eq,Show)
 >
-> getOperatorType :: Catalog -> [NameComponent] -> Either [TypeError] OperatorFlavour
-> getOperatorType cat s' =
+> getOperatorFlavour :: Catalog -> [NameComponent] -> Either [TypeError] OperatorFlavour
+> getOperatorFlavour cat s' =
 >   case () of
 >           _ | M.member s (catBinaryOps cat) -> Right BinaryOp
 >             | M.member s (catPrefixOps cat) -> Right PrefixOp
@@ -347,7 +396,7 @@ catalog about syntax issues probably means the syntax design is wrong
 >                 Left [InternalError $ "don't know flavour of operator " ++ s]
 >   where
 >     s = case s' of
->           [] -> error $ "empty namecomponent list given to getOperatorType"
+>           [] -> error $ "empty namecomponent list given to getOperatorFlavour"
 >           x -> ncStr $ last x
 
 > isOperatorName :: [NameComponent] -> Bool

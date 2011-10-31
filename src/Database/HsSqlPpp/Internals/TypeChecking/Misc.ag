@@ -15,9 +15,31 @@ attr TypeName
 
 sem TypeName
      | SimpleTypeName ArrayTypeName SetOfTypeName PrecTypeName Prec2TypeName
+{-
+for a simple type:
+get an either [type error] type
+
+if it is left error - want to attach the error to the typename
+node. don't want to duplicate this error to the name node or the
+parent node
+
+if it is right type: send the type to the parent. don't want to
+annotated the typename or the name with the type since this annotation
+isn't applicable to either node type
+
+TODO: add tests for cast which make sure there is only one type in the
+tree when successful, and only one type error in the tree when the
+typename isn't recognised
+
+-}
          loc.tpe :: {Either [TypeError] Type}
          lhs.namedType = either (const Nothing) Just @loc.tpe
-         ann.tpe = @loc.tpe
+         ann.tpe = either Left (const $ Left []) @loc.tpe
+     | SimpleTypeName PrecTypeName Prec2TypeName
+         tn.tpe = Left []
+
+attr Name
+  inh tpe :: {Either [TypeError] Type}
 
 sem TypeName
      | SimpleTypeName

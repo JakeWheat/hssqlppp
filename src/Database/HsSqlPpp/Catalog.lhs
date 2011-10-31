@@ -4,23 +4,15 @@ Forward the public part of CatalogInternal.
 > {- | This module contains the database catalog data types and helper
 >  functions.
 >
->  The catalog data type serves the following purposes:
+> The catalog data type holds the catalog information needed to type
+> check sql code, and a catalog value is produced after typechecking sql
+> which represents the catalog that would be produced (e.g. for sql
+> containing ddl)
 >
->  * Contains all the catalog information needed to type check against
->     an existing database.
->
->  * A copy of the catalog information from a default template1
->    database is included - 'defaultTemplate1Catalog'.
->
->  * It is used internally to keep track of updates to the catalog
->     whilst running an annotation process (e.g. so that a select can
->     type check against a create table given in the same source). It
->     is also used to track other identifier types, such as attribute
->     references in select expressions, and argument and variable
->     types inside create function statements.
->
->  You can see what kind of stuff is contained in the Catalog type
->  by looking at the 'CatalogUpdate' type.
+
+> You can create a catalog using the 'CatalogUpdate' type, and there
+> is example and util in the repo which shows reading the catalog from
+> an existing database in postgres.
 >
 > -}
 >
@@ -33,7 +25,8 @@ Forward the public part of CatalogInternal.
 >     --,ppCatUpdate
 >      -- ** bits and pieces
 >     --,CastContext(..)
->     --,CompositeFlavour(..)
+>     ,CompositeFlavour(..)
+>     ,CatName
 >     --,CompositeDef
 >     --,FunctionPrototype
 >     --,DomainDefinition
@@ -52,7 +45,7 @@ Forward the public part of CatalogInternal.
 >      -- * operator utils
 >     ,isOperatorName
 >     ,OperatorFlavour(..)
->     ,getOperatorType
+>     ,getOperatorFlavour
 >     ) where
 >
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
