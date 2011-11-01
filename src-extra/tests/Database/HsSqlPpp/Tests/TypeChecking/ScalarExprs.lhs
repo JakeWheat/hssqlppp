@@ -21,5 +21,12 @@
 >     ,ScalExpr "interval '90' day" $ Right $ ScalarType "interval"
 >     ,ScalExpr "?" $ Right UnknownType
 >     ]
+>   ,Group "function application"
+>     [ScalExpr "length('test'::text)" $ Right typeInt
+>     ]
+>   ,Group "function application like"
+>     [ScalExpr "extract(year from date '2000-01-01')" $ Right typeFloat8
+>     ,ScalExpr "extract(year from 3)" $ Left [NoMatchingOperator "extract" [typeInt]]
+>     ]
 >   ]
 

@@ -62,12 +62,14 @@ sequences
 >     ,updateCatalog
 >      -- catalog queries
 >     ,catLookupType
+>     ,catGetOpsMatchingName
 >     ) where
 >
 > import Control.Monad
 > import Data.List
 > import Data.Data
 > import Data.Char
+> import Data.Maybe
 
 > import qualified Data.Map as M
 > import qualified Data.Set as S
@@ -163,12 +165,12 @@ catalog values
 >                                 ,[(String,CatName)] -- public attrs
 >                                 ,[(String,CatName)])-- system columns
 >     ,catArrayTypes :: M.Map CatName CatName --pg array type name, base type name
->     ,catPrefixOps :: M.Map CatName OperatorPrototype
->     ,catPostfixOps :: M.Map CatName OperatorPrototype
->     ,catBinaryOps :: M.Map CatName OperatorPrototype
->     ,catFunctions :: M.Map CatName OperatorPrototype
->     ,catAggregateFunctions :: M.Map CatName OperatorPrototype
->     ,catWindowFunctions :: M.Map CatName OperatorPrototype
+>     ,catPrefixOps :: M.Map CatName [OperatorPrototype]
+>     ,catPostfixOps :: M.Map CatName [OperatorPrototype]
+>     ,catBinaryOps :: M.Map CatName [OperatorPrototype]
+>     ,catFunctions :: M.Map CatName [OperatorPrototype]
+>     ,catAggregateFunctions :: M.Map CatName [OperatorPrototype]
+>     ,catWindowFunctions :: M.Map CatName [OperatorPrototype]
 >     ,catUpdates :: [CatalogUpdate]
 >     }
 >                deriving Show
@@ -190,10 +192,18 @@ catalog values
 > defaultCatalog :: Catalog
 > defaultCatalog =
 >     -- todo: specify in terms of catalog updates
->   emptyCatalog {catBinaryOps = M.fromList systemBinaryOps
->                ,catPrefixOps = M.fromList systemPrefixOps
->                ,catPostfixOps = M.fromList systemPostfixOps
->                ,catFunctions = M.fromList systemFunctions}
+>   emptyCatalog {catBinaryOps = insertOperators systemBinaryOps M.empty
+>                ,catPrefixOps = insertOperators systemPrefixOps M.empty
+>                ,catPostfixOps = insertOperators systemPostfixOps M.empty
+>                ,catFunctions = insertOperators systemFunctions M.empty}
+
+> insertOperators :: [(CatName,OperatorPrototype)]
+>                 -> M.Map CatName [OperatorPrototype]
+>                 -> M.Map CatName [OperatorPrototype]
+> insertOperators vs m =
+>   foldr i m vs
+>   where
+>     i (k,v) = M.insertWith (++) k [v]
 
 -------------------------------------------------------------
 
@@ -255,6 +265,10 @@ names to refer to the pseudo types
 >     ,("void",Pseudo Void)
 >     ,("_cstring",ArrayType $ Pseudo Cstring)
 >     ,("_record",ArrayType $ Pseudo Record)
+>     ,("internal",Pseudo Internal)
+>     ,("language_handler", Pseudo LanguageHandler)
+>     ,("opaque", Pseudo Opaque)
+>     ,("fdw_handler", Pseudo FdwHandler)
 >     ]
 
 
@@ -298,6 +312,8 @@ functions and not in catalog values themselves.
 >   | CatCreatePostfixOp CatName CatName CatName
 >     -- | register a binary op, opname, the two param types, return type
 >   | CatCreateBinaryOp CatName CatName CatName CatName
+>     -- | register a function: name, param types, retsetof, return type
+>   | CatCreateFunction CatName [CatName] Bool CatName
 >     deriving (Eq,Ord,Typeable,Data,Show)
 
 > -- | Applies a list of 'CatalogUpdate's to an 'Catalog' value
@@ -326,16 +342,31 @@ functions and not in catalog values themselves.
 >       CatCreatePrefixOp n lt ret -> do
 >         ltt <- catLookupType cat [QNmc lt]
 >         rett <- catLookupType cat [QNmc ret]
->         Right $ cat {catPrefixOps = M.insert n (n,[ltt],rett,False) (catPrefixOps cat)}
+>         Right $ cat {catPrefixOps = insertOperators
+>                                     [(n,(n,[ltt],rett,False))]
+>                                     (catPrefixOps cat)}
 >       CatCreatePostfixOp n rt ret -> do
 >         rtt <- catLookupType cat [QNmc rt]
 >         rett <- catLookupType cat [QNmc ret]
->         Right $ cat {catPostfixOps = M.insert n (n,[rtt],rett,False) (catPostfixOps cat)}
+>         Right $ cat {catPostfixOps = insertOperators
+>                                      [(n,(n,[rtt],rett,False))]
+>                                      (catPostfixOps cat)}
 >       CatCreateBinaryOp n lt rt ret -> do
 >         ltt <- catLookupType cat [QNmc lt]
 >         rtt <- catLookupType cat [QNmc rt]
 >         rett <- catLookupType cat [QNmc ret]
->         Right $ cat {catBinaryOps = M.insert n (n,[ltt,rtt],rett,False) (catBinaryOps cat)}
+>         Right $ cat {catBinaryOps = insertOperators
+>                                     [(n,(n,[ltt,rtt],rett,False))]
+>                                     (catBinaryOps cat)}
+>       CatCreateFunction n ps rs ret -> do
+>         pst <- mapM (\n -> catLookupType cat [QNmc n]) ps
+>         rett <- catLookupType cat [QNmc ret]
+>         let rett' = if rs
+>                     then Pseudo $ SetOfType rett
+>                     else rett
+>         Right $ cat {catFunctions = insertOperators
+>                                     [(n,(n,pst,rett',False))]
+>                                     (catFunctions cat)}
 
 -----------------------------------------------------------
 
@@ -363,8 +394,16 @@ queries
 >        | otherwise -> Left [UnknownTypeName cn]
 
 
-
-
+> catGetOpsMatchingName :: Catalog -> [NameComponent] -> [OperatorPrototype]
+> catGetOpsMatchingName cat nmcs =
+>   let nm = getCatName nmcs
+>   in concatMap (\f -> fromMaybe [] $ M.lookup nm $ f cat)
+>        [catPrefixOps
+>        ,catPostfixOps
+>        ,catBinaryOps
+>        ,catFunctions
+>        ,catAggregateFunctions
+>        ,catWindowFunctions]
 
 the TypeConversion module handles checking assignment compatibility,
 'resolving result set types', and finding function call matches since

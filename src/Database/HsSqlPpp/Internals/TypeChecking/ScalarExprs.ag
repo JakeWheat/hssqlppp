@@ -22,6 +22,19 @@ sem ScalarExpr
       QIdentifier Case CaseSimple Exists App AggregateApp
       WindowApp InPredicate LiftApp ScalarSubQuery --AntiScalarExpr
         ann.tpe = @loc.tpe
+        lhs.upType = either (const Nothing) Just @loc.tpe
+
+attr ScalarExpr
+  syn upType :: {Maybe Type} -- the type of this node made available to the parent node
+
+attr ScalarExprList
+  syn upTypes :: {[Maybe Type]}
+
+sem ScalarExprList
+    | Cons lhs.upTypes = @hd.upType : @tl.upTypes
+    | Nil lhs.upTypes = []
+
+
 {-
 each ctor has its own typechecking code
 
@@ -74,15 +87,32 @@ simplish ctors
          loc.tpe = maybe (Left []) Right @tn.namedType
     | Interval
          loc.tpe = Right $ ScalarType "interval"
-{-    | Extract
+    | Extract
          loc.tpe = -- check the argument is a date
                    do
-                   x <- lmt @e.uType
+                   x <- maybe (Left []) Right @e.upType
                    if x == typeDate
                      then Right typeFloat8
-                     else Left [NoMatchingOperator "extract" [x]]-}
+                     else Left [NoMatchingOperator "extract" [x]]
     | Placeholder
          loc.tpe = Right UnknownType
+
+{-
+
+---------------------------------------
+
+op calls, fn calls, etc.
+
+uType : {Maybe Type}
+
+-}
+
+    | App
+         loc.tpe = do
+                   tys <- mapM (maybe (Left []) Right) @args.upTypes
+                   let Name _ ns = @funName.originalTree
+                   (_,rt) <- matchApp @lhs.cat ns tys
+                   return rt
 
 {-
 
@@ -92,8 +122,7 @@ fallback for unimplemented bits
 
 -- temp
 sem ScalarExpr
-    | Extract
-      PositionalArg Star QStar Identifier
-      QIdentifier Case CaseSimple Exists App AggregateApp
+    | PositionalArg Star QStar Identifier
+      QIdentifier Case CaseSimple Exists AggregateApp
       WindowApp InPredicate LiftApp ScalarSubQuery AntiScalarExpr
         loc.tpe = Left []

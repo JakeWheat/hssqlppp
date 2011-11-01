@@ -51,7 +51,7 @@ HC_INCLUDE_DIRS = -i$(subst $(space),:,$(SRC_DIRS))
 PACKAGES = haskell-src-exts uniplate mtl base containers parsec pretty \
 	syb transformers template-haskell test-framework groom \
 	test-framework-hunit HUnit HDBC HDBC-postgresql pandoc xhtml \
-	illuminate datetime
+	illuminate datetime split
 HC_PACKAGES = $(patsubst %,-package %,$(PACKAGES))
 
 HC_OPTS = $(HC_BASIC_OPTS) $(HC_INCLUDE_DIRS) $(HC_PACKAGES)

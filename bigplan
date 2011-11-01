@@ -1,11 +1,21 @@
 immediate work notes:
 
+lots of improvements independent to the new typechecking have been
+made deadline: 1st jan 2012, if the new typechecking isn't ready for
+release 0.5.0, then backport the other fixes to master and release
+that with the old typechecking
+
+docs: write a preprocessor for the .hs produced from the .ag
+want to add the LANGUAGE directives
+and also add the haddock docs which get stripped out
+and also convert some of the data type definitions to use record syntax
+want to do this automatically, not sure how can parse the original ag
+  though?
+
 typechecking:
 
 1st job:
 rewrite the TypeConversion from scratch, with automated tests
-
-then: add basic support for typechecking the App variations
 
 then: start work on query exprs: trefs and select lists is the focus
 

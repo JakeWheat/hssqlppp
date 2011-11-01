@@ -149,7 +149,7 @@ import Debug.Trace
 
 import Database.HsSqlPpp.Internals.TypesInternal
 
---import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
+import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
 import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 import Database.HsSqlPpp.Utils.Utils
 }

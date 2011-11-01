@@ -17,6 +17,7 @@ typecheck against that database.
 > import Database.HsSqlPpp.Utils.PgUtils
 > --import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Types
+> import Data.List.Split
 >
 > -- | Creates an 'CatalogUpdate' list by reading the database given.
 > -- To create an Catalog value from this, use
@@ -161,17 +162,60 @@ order by oprname;
 \end{code}
 >                                     |] []
 
+>   fns <-
+>     map ( \[nm,ts,pr,res] -> CatCreateFunction nm (splitOn "," ts) (pr == "t") res) `fmap`
+>         selectRelation conn [here|
+\begin{code}
+-- maybe the args will come out in the right order?
+with typenames as (
+select pg_type.oid as toid,typname from pg_type
+inner join pg_namespace ns
+      on typnamespace = ns.oid
+where
+  ns.nspname in ('pg_catalog'
+                ,'public'
+                ,'information_schema')
+),
+unnestargs as (
+select oid as prooid,
+       proname,
+       unnest(proargtypes) as arg,
+       proretset,
+       prorettype
+from pg_proc
+where pg_catalog.pg_function_is_visible(pg_proc.oid)
+      and provariadic = 0
+      and not proisagg
+      and not proiswindow
+),
+namedtypes as (
+select prooid,
+       proname,
+       arg.typname as argname,
+       proretset,
+       ret.typname as retname
+from unnestargs
+  inner join typenames arg
+    on arg = arg.toid
+  inner join typenames ret
+    on prorettype = ret.toid)
+select proname,
+       array_to_string(array_agg(argname),','),
+       proretset,
+       retname
+from namedtypes
+group by prooid,proname,proretset,retname;
+\end{code}
+>                                     |] []
+
+
 >   return $ concat [scalarTypeNames
 >                   ,domainTypes
 >                   ,arrayTypes
 >                   ,prefixOps
 >                   ,postfixOps
->                   ,binaryOps]
-
-
-
-
-
+>                   ,binaryOps
+>                   ,fns]
 
 
 
@@ -455,9 +499,19 @@ with att1 as (
 >                    "fdw_handler" -> FdwHandler
 >                    _ -> error $ "internal error: unknown pseudo " ++ t -}
 
-> split :: Char -> String -> [String]
+> {-split :: Char -> String -> [String]
 > split _ ""                =  []
 > split c s                 =  let (l, s') = break (== c) s
 >                            in  l : case s' of
 >                                            [] -> []
->                                            (_:s'') -> split c s''
+>                                            (_:s'') -> split c s''-}
+
+
+select pg_type.oid as toid,typname from pg_type
+inner join pg_namespace ns
+      on typnamespace = ns.oid
+where
+  ns.nspname in ('pg_catalog'
+                ,'public'
+                ,'information_schema')
+  and typname = 'internal';
