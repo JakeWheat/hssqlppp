@@ -23,14 +23,14 @@
 >      ]
 >    ,Group "basic expressions" [
 >       e "1" (num "1")
->      ,e "-1" (app "u-" [num "1"])
+>      ,e "-1" (prefop "u-" $ num "1")
 >      ,e "1.1" (num "1.1")
->      ,e "-1.1" (app "u-" [num "1.1"])
->      ,e " 1 + 1 " (app "+" [num "1"
->                                ,num "1"])
->      ,e "1+1+1" (app "+" [app "+" [num "1"
->                                           ,num "1"]
->                              ,num "1"])
+>      ,e "-1.1" (prefop "u-" $ num "1.1")
+>      ,e " 1 + 1 " (binop "+" (num "1")
+>                              (num "1"))
+>      ,e "1+1+1" (binop "+" (binop "+" (num "1")
+>                                       (num "1"))
+>                            (num "1"))
 >      ]
 >    ,Group "parens" [
 
@@ -38,10 +38,10 @@ check some basic parens use wrt naked values and row constructors
 these tests reflect how pg seems to interpret the variants.
 
 >       e "(1)" (num "1")
->      ,e "row ()" (app "!rowctor" [])
->      ,e "row (1)" (app "!rowctor" [num "1"])
->      ,e "row (1,2)" (app "!rowctor" [num "1",num "2"])
->      ,e "(1,2)" (app "!rowctor" [num "1",num "2"])
+>      ,e "row ()" (specop "!rowctor" [])
+>      ,e "row (1)" (specop "!rowctor" [num "1"])
+>      ,e "row (1,2)" (specop "!rowctor" [num "1",num "2"])
+>      ,e "(1,2)" (specop "!rowctor" [num "1",num "2"])
 >      ]
 >    ,Group "more basic expressions" [
 
@@ -60,18 +60,18 @@ test some more really basic expressions
 >      ,e "null" lNull
 >      ]
 >    ,Group "array ctor and selector" [
->       e "array[1,2]" (app "!arrayctor" [num "1", num "2"])
->      ,e "a[1]" (app "!arraysub" [ei "a", num "1"])
+>       e "array[1,2]" (specop "!arrayctor" [num "1", num "2"])
+>      ,e "a[1]" (specop "!arraysub" [ei "a", num "1"])
 >      ]
 >    ,Group "simple operators" [
->       e "1 + tst1" (app "+" [num "1"
->                                 ,ei "tst1"])
->      ,e "tst1 + 1" (app "+" [ei "tst1"
->                                 ,num "1"])
->      ,e "tst + tst1" (app "+" [ei "tst"
->                                   ,ei "tst1"])
->      ,e "'a' || 'b'" (app "||" [stringQ "a"
->                                    ,stringQ "b"])
+>       e "1 + tst1" (binop "+" (num "1")
+>                               (ei "tst1"))
+>      ,e "tst1 + 1" (binop "+" (ei "tst1")
+>                               (num "1"))
+>      ,e "tst + tst1" (binop "+" (ei "tst")
+>                                 (ei "tst1"))
+>      ,e "'a' || 'b'" (binop "||" (stringQ "a")
+>                                  (stringQ "b"))
 >      ,e "'stuff'::text"
 >       (Cast ea (stringQ "stuff") (SimpleTypeName ea $ name "text"))
 >      ,e "245::float(24)" (Cast ea (num "245") (PrecTypeName ea (name "float") 24))
@@ -87,38 +87,38 @@ test some more really basic expressions
 >      ,e "interval '63' day (3)" (Interval ea "63" IntervalDay $ Just 3)
 >      ,e "extract(year from a)" (Extract ea ExtractYear $ ei "a")
 >      ,e "a between 1 and 3"
->         (app "!between" [ei "a", num "1", num "3"])
+>         (specop "!between" [ei "a", num "1", num "3"])
 >      ,e "a between 7 - 1 and 7 + 1"
->         (app "!between" [ei "a"
->                             ,app "-" [num "7"
->                                          ,num "1"]
->                             ,app "+" [num "7"
->                                          ,num "1"]])
+>         (specop "!between" [ei "a"
+>                            ,binop "-" (num "7")
+>                                       (num "1")
+>                            ,binop "+" (num "7")
+>                                       (num "1")])
 >      ,e "cast(a as text)"
 >         (Cast ea (ei "a") (SimpleTypeName ea $ name "text"))
 >      ,e "@ a"
->         (app "@" [ei "a"])
+>         (prefop "@" (ei "a"))
 >      ,e "substring(a from 0 for 3)"
->         (app "!substring" [ei "a", num "0", num "3"])
+>         (specop "!substring" [ei "a", num "0", num "3"])
 >      ,e "substring(a from 0 for (5 - 3))"
->         (app "!substring" [ei "a"
+>         (specop "!substring" [ei "a"
 >                               ,num "0"
->                               ,app "-" [num "5",num "3"]])
+>                               ,binop "-" (num "5") (num "3")])
 >      ,e "substring(a,b,c)"
 >         (app "substring" [ei "a"
->                              ,ei "b"
->                              ,ei "c"])
+>                          ,ei "b"
+>                          ,ei "c"])
 >      ,e "a like b"
->         (app "!like" [ei "a", ei "b"])
+>         (binop "!like" (ei "a") (ei "b"))
 >      ,e "a not like b"
->         (app "!notlike" [ei "a", ei "b"])
+>         (binop "!notlike" (ei "a") (ei "b"))
 >      , e "a and b and c and d"
->         (app "!and"
->          [app "!and"
->           [app "!and" [ei "a"
->                           ,ei "b"]
->           ,ei "c"]
->          ,ei "d"])
+>         (binop "!and"
+>          (binop "!and"
+>           (binop "!and" (ei "a")
+>                         (ei "b"))
+>           (ei "c"))
+>          (ei "d"))
 >      ]
 >    ,Group "function calls" [
 >       e "fn()" (app "fn" [])
@@ -134,12 +134,10 @@ test some more really basic expressions
 >      ,e "fn(1) " (app "fn" [num "1"])
 >      ]
 >    ,Group "null stuff" [
->       e "not null" (app "!not" [lNull])
->      ,e "a is null" (app "!isnull" [ei "a"])
->      ,e "a is not null" (app "!isnotnull" [ei "a"])
->      ,e "not not true" (app "!not"
->                          [app "!not"
->                           [lTrue]])
+>       e "not null" (prefop "!not" lNull)
+>      ,e "a is null" (postop "!isnull" (ei "a"))
+>      ,e "a is not null" (postop "!isnotnull" (ei "a"))
+>      ,e "not not true" (prefop "!not" $ prefop "!not" lTrue)
 >      ]
 
 >    ,Group "case expressions" [
@@ -160,7 +158,7 @@ test some more really basic expressions
 >    ,Group "positional args" [
 >       e "$1" (PositionalArg ea 1)
 >      ,e "?" (Placeholder ea)
->      ,e "a = ?" (app "=" [ei "a",Placeholder ea])
+>      ,e "a = ?" (binop "=" (ei "a") (Placeholder ea))
 >      ]
 >    ,Group "exists" [
 >       e "exists (select 1 from a)"
@@ -173,27 +171,27 @@ test some more really basic expressions
 >      ,e "t not in (1,2)"
 >       (InPredicate ea (ei "t") False (InList ea [num "1",num "2"]))
 >      ,e "(t,u) in (1,2)"
->       (InPredicate ea (app "!rowctor" [ei "t",ei "u"]) True
+>       (InPredicate ea (specop "!rowctor" [ei "t",ei "u"]) True
 >        (InList ea [num "1",num "2"]))
 >      ,e "3 = any (array[1,2])"
 >       (LiftApp ea (name "=")
 >        LiftAny [num "3"
->                ,app "!arrayctor" [num "1"
->                                  ,num "2"]])
+>                ,specop "!arrayctor" [num "1"
+>                                     ,num "2"]])
 >      ,e "3 = all (array[1,2,4])"
 >       (LiftApp ea (name "=")
 >        LiftAll [num "3"
->                ,app "!arrayctor" [num "1"
->                                  ,num "2"
->                                  ,num "4"]])
+>                ,specop "!arrayctor" [num "1"
+>                                     ,num "2"
+>                                     ,num "4"]])
 >      ]
 >    ,Group "comparison operators" [
 >       e "a < b"
->       (app "<" [ei "a", ei "b"])
+>       (binop "<" (ei "a") (ei "b"))
 >      ,e "a <> b"
->       (app "<>" [ei "a", ei "b"])
+>       (binop "<>" (ei "a") (ei "b"))
 >      ,e "a != b"
->       (app "<>" [ei "a", ei "b"])
+>       (binop "<>" (ei "a") (ei "b"))
 >      ]
 
 test some string parsing, want to check single quote behaviour,
@@ -218,9 +216,9 @@ and dollar quoting, including nesting.
 >          (selectE (sl
 >                    [SelExp ea
 >                     (app "f" [Cast ea
->                                   (app "!rowctor"
->                                    [eqi "a" "x"
->                                    ,ei "y"])
+>                                   (specop "!rowctor"
+>                                               [eqi "a" "x"
+>                                               ,ei "y"])
 >                                   (SimpleTypeName ea $ name "z")])])))
 >      ]
 >      ]

@@ -602,6 +602,19 @@ data ScalarExpr | NumberLit ann::Annotation d::String
                 | App ann::Annotation
                           funName::Name
                           args::ScalarExprList
+                | PrefixOp ann :: Annotation
+                           opName :: Name
+                           arg :: ScalarExpr
+                | PostfixOp ann :: Annotation
+                            opName :: Name
+                            arg :: ScalarExpr
+                | BinaryOp ann :: Annotation
+                           opName :: Name
+                           arg0 :: ScalarExpr
+                           arg1 :: ScalarExpr
+                | SpecialOp ann :: Annotation -- built in operators, etc. which don't
+                           opName :: Name     -- look like pref/post/bin ops
+                           args::ScalarExprList
                 | AggregateApp ann::Annotation
                               aggDistinct :: Distinct
                               fn :: ScalarExpr

@@ -5,17 +5,22 @@
 
 > import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Utils.CatalogReader
+> import Database.HsSqlPpp.Utils.PgUtils
 
 > main :: IO ()
 > main = do
->   cus <- readCatalogFromDatabase "dbname=template1"
+>   let cs = "dbname=template1"
+>   cus <- readCatalogFromDatabase cs
 >   let s = groom cus
->   putStrLn $ pre ++ "\n" ++
+>   v <- withConn cs $ \conn -> do
+>          r <- selectRelation conn "select version();" []
+>          return (head $ head r)
+>   putStrLn $ pre v ++ "\n" ++
 >      unlines (map (">        " ++) $ lines s)
 
 
-> pre :: String
-> pre = [here|
+> pre :: String -> String
+> pre v = [here|
 \begin{code}
 
 This file is auto generated, to regenerate use the
@@ -28,8 +33,8 @@ installed to do this.
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 > --import Database.HsSqlPpp.Internals.TypesInternal
 > -- | The catalog from a default template1 database in roughly the
-> -- latest postgres. (At some point will provide catalogs from different
-> -- versions, the one in this release is probably from 9.1.1)
+> -- latest postgres. 'select version()' from the dbms this catalog
+> -- was generated from: |] ++  v  ++ [here|
 > defaultTemplate1Catalog :: Catalog
 > defaultTemplate1Catalog =
 >     (\l -> case l of

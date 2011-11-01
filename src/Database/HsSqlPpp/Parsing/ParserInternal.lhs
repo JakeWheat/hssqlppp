@@ -418,7 +418,7 @@ multiple rows to insert and insert from select statements
 >           l <- parens (commaSep1 nameComponent)
 >           symbol "="
 >           r <- parens (commaSep1 expr)
->           return $ MultiSetClause p l $ App p (nm p "!rowctor") r
+>           return $ MultiSetClause p l $ SpecialOp p (nm p "!rowctor") r
 >         ,do
 >           p <- pos
 >           l <- nameComponent
@@ -1209,17 +1209,18 @@ be used here.
 >       idHackBinary s = binarycust (keyword s) s
 >       binaryk = binarycust . keyword
 >       binaryks = binarycust . mapM_ keyword
->       prefix = unaryCust Prefix . symbol
->       prefixk = unaryCust Prefix . keyword
->       postfixks = unaryCust Postfix . mapM_ keyword
+>       prefix = prefCust Prefix . symbol
+>       prefixk = prefCust Prefix . keyword
+>       postfixks = postCust Postfix . mapM_ keyword
 >       binarycust opParse t =
->         Infix $ try $ do
->              f <- App <$> pos <*> (nm emptyAnnotation t <$ opParse)
->              return (\l m -> f [l,m])
->       unaryCust ctor opParse t =
+>         Infix $ try $
+>           BinaryOp <$> pos <*> (nm emptyAnnotation t <$ opParse)
+>       prefCust ctor opParse t =
 >         ctor $ try $ do
->           f <- App <$> pos <*> (nm emptyAnnotation t <$ opParse)
->           return (\l -> f [l])
+>           PrefixOp <$> pos <*> (nm emptyAnnotation t <$ opParse)
+>       postCust ctor opParse t =
+>         ctor $ try $ do
+>           PostfixOp <$> pos <*> (nm emptyAnnotation t <$ opParse)
 >       -- hack - haven't worked out why parsec buildexpression parser won't
 >       -- parse something like "not not EXPR" without parens so hack here
 >       notNot =
@@ -1228,8 +1229,8 @@ be used here.
 >                       keyword "not"
 >                       p2 <- pos
 >                       keyword "not"
->                       return (\l -> App p1 (nm p1 "!not")
->                                     [App p2 (nm p2 "!not") [l]]))
+>                       return (\l -> PrefixOp p1 (nm p1 "!not")
+>                                     $ PrefixOp p2 (nm p2 "!not") l))
 
 From postgresql src/backend/parser/gram.y
 
@@ -1296,7 +1297,7 @@ row ctor: one of
 * and () is a syntax error.
 
 > rowCtor :: SParser ScalarExpr
-> rowCtor = App
+> rowCtor = SpecialOp
 >           <$> pos
 >           <*> (nm <$> pos <*> return "!rowctor")
 >           <*> choice [
@@ -1345,7 +1346,7 @@ row ctor: one of
 > nullLit = NullLit <$> pos <* keyword "null"
 >
 > arrayLit :: SParser ScalarExpr
-> arrayLit = App <$> pos <* keyword "array"
+> arrayLit = SpecialOp <$> pos <* keyword "array"
 >                    <*> (nm <$> pos <*> return "!arrayctor")
 >                    <*> squares (commaSep expr)
 >
@@ -1353,7 +1354,7 @@ row ctor: one of
 > arraySubSuffix e = case e of
 >                      Identifier _ (Nmc "array") -> fail "can't use array \
 >                                                         \as identifier name"
->                      _ -> App <$> pos
+>                      _ -> SpecialOp <$> pos
 >                                   <*> (nm <$> pos <*> return "!arraysub")
 >                                   <*> ((e:) <$> squares (commaSep1 expr))
 >
@@ -1407,7 +1408,7 @@ row ctor: one of
 >   b <- b_expr
 >   keyword "and"
 >   c <- b_expr
->   return $ App p (nm p "!between") [a,b,c]
+>   return $ SpecialOp p (nm p "!between") [a,b,c]
 
 handles aggregate business as well
 
@@ -1535,7 +1536,7 @@ checking with aggregates at the moment so should fix it all together.
 >             keyword "for"
 >             c <- expr
 >             symbol ")"
->             return $ App p (nm p "!substring") [a,b,c]
+>             return $ SpecialOp p (nm p "!substring") [a,b,c]
 >
 
 ------------------------------------------------------------
@@ -1549,7 +1550,7 @@ identifier wasteland
 > qualIdSuffix e = do
 >     p <- pos
 >     i1 <- symbol "." *> nameComponent
->     return $ App p (nm p ".") [e,Identifier p i1]
+>     return $ BinaryOp p (nm p ".") e (Identifier p i1)
 
 
 > identifier :: SParser ScalarExpr
@@ -1855,8 +1856,9 @@ any/some/all construct which looks like this:
 expr operator [any|some|all] (expr)
 
 This gets parsed as
-funcall operator [expr1,funcall [any|some|all] [expr2,...]]
-and you want to transform it to
+binop operator [expr1,app [any|some|all] [expr2,...]]
+
+and we want to transform it to
 liftoperator operator any|some|all [expr1, expr2,...]
 not doing anything if the funcall name isn't any,some,all
 any other checks are left to the type checking stage
@@ -1867,15 +1869,14 @@ be an array or subselect, etc)
 > fixupTree =
 >     transformBi $ \x ->
 >       case x of
->              App an op (expr1:App _ fn expr2s:expr3s)
->                | isOperatorName $ nameComponents op
->                , Name _ [Nmc fnm] <- fn
+>              BinaryOp an op (expr1) (App _ fn (expr2s:expr3s))
+>                | Name _ [Nmc fnm] <- fn
 >                , Just flav <- case map toLower fnm of
 >                                  "any" -> Just LiftAny
 >                                  "some" -> Just LiftAny
 >                                  "all" -> Just LiftAll
 >                                  _ -> Nothing
->                -> LiftApp an op flav (expr1:expr2s ++ expr3s)
+>                -> LiftApp an op flav ([expr1,expr2s] ++ expr3s)
 >              x1 -> x1
 
 --------------------------------------------------------------------------------

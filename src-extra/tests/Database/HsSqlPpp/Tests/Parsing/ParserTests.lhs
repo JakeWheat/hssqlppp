@@ -17,12 +17,13 @@ There are no tests for invalid syntax at the moment.
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > import Data.Generics
->
+> import Control.Monad
 > import Database.HsSqlPpp.Ast
 > --import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.Pretty
 >
+> import Database.HsSqlPpp.Utils.GroomNoAnns
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
 > import Database.HsSqlPpp.Tests.Parsing.Expressions
@@ -96,6 +97,9 @@ Unit test helpers
 >   case parser src of
 >     Left er -> assertFailure $ show er
 >     Right ast' -> do
+>       when (ast /= resetAnnotations ast') $ do
+>         putStrLn $ groomNoAnns ast
+>         putStrLn $ groomNoAnns $ resetAnnotations ast'
 >       assertEqual ("parse " ++ src) ast $ resetAnnotations ast'
 >       case reparser (printer ast) of
 >         Left er -> assertFailure $ "reparse\n" ++ show er ++ "\n" -- ++ pp ++ "\n"

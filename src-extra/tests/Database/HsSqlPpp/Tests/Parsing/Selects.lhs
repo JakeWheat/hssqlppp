@@ -30,15 +30,14 @@
 >       [QueryStatement ea $ selectFromWhere
 >         (selIL ["a"])
 >         (Tref ea (i "tbl") (NoAlias ea))
->         (App ea (name "=")
->          [Identifier ea "b", NumberLit ea "2"])]
+>         (binop "=" (ei "b") (num "2"))]
 >      ,s "select a from tbl where b=2 and c=3;"
 >       [QueryStatement ea $ selectFromWhere
 >         (selIL ["a"])
 >         (Tref ea (i "tbl") (NoAlias ea))
->         (App ea (name "!and")
->          [App ea (name "=")  [Identifier ea "b", NumberLit ea "2"]
->          ,App ea (name "=") [Identifier ea "c", NumberLit ea "3"]])]
+>         (binop "!and"
+>          (binop "=" (ei "b") (num "2"))
+>          (binop "=" (ei "c") (num "3")))]
 >      {-,MSStmt "select a from t;\ngo"
 >          [QueryStatement ea $ selectFrom (selIL ["a"]) (Tref ea (i "t") (NoAlias ea))]
 >      ,MSStmt "select a from t;\nset rowcount -1\ngo"
@@ -126,8 +125,7 @@
 >      ,s "select a + b as b from tbl;"
 >       [QueryStatement ea $ selectFrom
 >        [SelectItem ea
->         (App ea (name "+")
->          [Identifier ea "a", Identifier ea "b"]) (Nmc "b")]
+>         (binop "+" (ei "a") (ei "b")) (Nmc "b")]
 >        (Tref ea (i "tbl") (NoAlias ea))]
 >      ,s "select a.* from tbl a;"
 >       [QueryStatement ea $ selectFrom (selEL [QStar ea (Nmc "a")]) (Tref ea (i "tbl") (TableAlias ea (Nmc "a")))]
@@ -146,13 +144,13 @@
 >        (selIL ["a"])
 >        (JoinTref ea (Tref ea (i "b") (NoAlias ea)) Unnatural Inner (Tref ea (i "c") (NoAlias ea))
 >           (Just (JoinOn ea
->            (App ea (name "=") [eqi "b" "a", eqi "c" "a"]))) (NoAlias ea))]
+>            (binop "=" (eqi "b" "a") (eqi "c" "a")))) (NoAlias ea))]
 >      ,s "select a from b inner join c as d on b.a=d.a;"
 >       [QueryStatement ea $ selectFrom
 >        (selIL ["a"])
 >        (JoinTref ea (Tref ea (i "b") (NoAlias ea)) Unnatural Inner (Tref ea (i "c") (TableAlias ea (Nmc "d")))
 >           (Just (JoinOn ea
->            (App ea (name "=") [eqi "b" "a", eqi "d" "a"]))) (NoAlias ea))]
+>            (binop "=" (eqi "b" "a") (eqi "d" "a")))) (NoAlias ea))]
 >      ,s "select a from b inner join c using(d,e);"
 >       [QueryStatement ea $ selectFrom
 >        (selIL ["a"])
@@ -270,8 +268,7 @@
 >         (JoinTref ea (Tref ea (i "b") (NoAlias ea)) Unnatural Inner (Tref ea (i "c") (NoAlias ea))
 >          (Just $ JoinOn ea (BooleanLit ea True)) (NoAlias ea))
 >         Unnatural Inner (Tref ea (i "d") (NoAlias ea))
->         (Just $ JoinOn ea (App ea (name "=")
->                [NumberLit ea "1", NumberLit ea "1"])) (NoAlias ea))]
+>         (Just $ JoinOn ea (binop "=" (num "1") (num "1"))) (NoAlias ea))]
 
 >      ,s "select row_number() over(order by a) as place from tbl;"
 >       [QueryStatement ea $ selectFrom [SelectItem ea
@@ -303,7 +300,7 @@
 >       [QueryStatement ea $ selectFrom [SelectItem ea
 >                    (WindowApp ea
 >                     (App ea (name "row_number") [])
->                     [App ea (name "!rowctor") [Identifier ea "a",Identifier ea "b"]]
+>                     [SpecialOp ea (name "!rowctor") [Identifier ea "a",Identifier ea "b"]]
 >                     [(Identifier ea "c", Asc)] FrameUnboundedPreceding)
 >                    (Nmc "place")]
 >        (Tref ea (i "tbl") (NoAlias ea))]
@@ -399,7 +396,7 @@
 >         [QueryStatement ea $ Select ea Dupes
 >          (sl [selI "a", SelectItem ea (App ea (name "count") [Identifier ea "b"]) $ Nmc "cnt"])
 >          [Tref ea (i "c") (NoAlias ea)] Nothing [Identifier ea "a"]
->          (Just $ App ea (name ">") [Identifier ea "cnt", NumberLit ea "4"])
+>          (Just $ binop  ">" (ei "cnt") (num "4"))
 >          [] Nothing Nothing]
 >      ,s "select a from (select 1 as a, 2 as b) x;"
 >         [QueryStatement ea $ selectFrom

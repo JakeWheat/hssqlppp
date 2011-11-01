@@ -645,88 +645,83 @@ Statement components
 > scalExpr _ (QStar _ i) = nmc i <> text ".*"
 
 > scalExpr _ (Identifier _ i) = nmc i
->   {-if quotesNeeded
->      then text $ "\"" ++ i ++ "\""
->      else text i
->   where
->     --needs some work - quotes needed if contains invalid unquoted
->     --chars, or maybe if matches keyword or similar
->     quotesNeeded = case i of
->                      x:_ | not (isLetter x || x `elem` "_*") -> True
->                      _ | all okChar i -> False
->                        | otherwise -> True
->                    where
->                      okChar x =isAlphaNum x || x `elem` "*_."-}
 > scalExpr _nice (QIdentifier _a [i1, i]) = parens (nmc i1) <> text "." <> nmc i
 > scalExpr _nice (QIdentifier _a _) = error "only supports 2 part qualified identifers atm"
-> --scalExpr nice (QIdentifier a e i) = parens (scalExpr nice e) <> text "." <> scalExpr nice (Identifier a i)
 
-> --scalExpr (PIdentifier _ i) = parens $ scalExpr i
 > scalExpr _ (NumberLit _ n) = text n
 > scalExpr _ (StringLit _ s) = -- needs some thought about using $$?
 >                           text "'" <> text replaceQuotes <> text "'"
 >                           where
->                             replaceQuotes = replace "'" "''" s {-if tag == "'"
->                                               then replace "'" "''" s
->                                               else s-}
+>                             replaceQuotes = replace "'" "''" s
 >
-> scalExpr nice (App _ n es) =
->     --check for special operators
+> scalExpr nice (SpecialOp _ n es) =
 >    case getTName n of
->      Just "!and" | nice, [a,b] <- es -> doLeftAnds a b
 >      Just "!arrayctor" -> text "array" <> brackets (csvExp nice es)
 >      Just "!between" -> scalExpr nice (head es) <+> text "between"
->                    <+> parens (scalExpr nice (es !! 1))
->                   <+> text "and"
->                   <+> parens (scalExpr nice (es !! 2))
+>                         <+> parens (scalExpr nice (es !! 1))
+>                         <+> text "and"
+>                         <+> parens (scalExpr nice (es !! 2))
 >      Just "!substring" -> text "substring"
 >                      <> parens (scalExpr nice (head es)
 >                                 <+> text "from" <+> scalExpr nice (es !! 1)
 >                                 <+> text "for" <+> scalExpr nice (es !! 2))
->      Just "!arraysub" -> case es of
->                        (Identifier _ i : es1) -> nmc i
->                                                  <> brackets (csvExp nice es1)
->                        _ -> parens (scalExpr nice (head es))
->                             <> brackets (csvExp nice (tail es))
+>      Just "!arraysub" ->
+>        case es of
+>                (Identifier _ i : es1) -> nmc i
+>                                          <> brackets (csvExp nice es1)
+>                (e:es') -> parens (scalExpr nice e)
+>                           <> brackets (csvExp nice es')
+>                _ -> error $ "bad args to !arraysub: " ++ show es
 >      Just "!rowctor" -> text "row" <> parens (sepCsvMap (scalExpr nice) es)
+>      x -> error $ "bad special operator name: " ++ show x
+
+> scalExpr nice (BinaryOp _ n e0 e1) =
+>    case getTName n of
+>      Just "!and" | nice -> doLeftAnds e0 e1
+>                  | otherwise -> parens (scalExpr nice e0)
+>                                 <+> text "and" <+> scalExpr nice e1
+>      Just n' | Just n'' <- lookup n' [("!or","or")
+>                                      ,("!like","like")
+>                                      ,("!notlike","not like")] ->
+>        parens (scalExpr nice e0 <+> text n''
+>               <+> scalExpr nice e1)
 >      Just "."   -- special case to avoid ws around '.'. Don't know if this is important
->            -- or just cosmetic
->          | [a,b] <- es -> parens (scalExpr nice a) <> text "." <> scalExpr nice b
->      Just n' | ncs <- nameComponents n
->              , isOperatorName ncs ->
->         case forceRight (getOperatorFlavour defaultTemplate1Catalog ncs) of
->                           BinaryOp ->
->                               let e1d = scalExpr nice (head es)
->                                   opd = text $ filterKeyword n'
->                                   e2d = scalExpr nice (es !! 1)
->                               in parens (if n' `elem` ["!and", "!or"]
->                                          then vcat [e1d, opd <+> e2d]
->                                          else e1d <+> opd <+> e2d)
->                           PrefixOp -> parens (text (if n' == "u-"
->                                                     then "-"
->                                                     else filterKeyword n')
->                                                <+> parens (scalExpr nice (head es)))
->                           PostfixOp -> parens (scalExpr nice (head es)
->                                        <+> text (filterKeyword n'))
->      _ -> name n <> parens (csvExp nice es)
+>                 -- or just cosmetic
+>          -> parens (scalExpr nice e0) <> text "." <> scalExpr nice e1
+>      Just n' -> parens (scalExpr nice e0 <+> text n' <+> scalExpr nice e1)
+>      Nothing -> error $ "bad binary operator name:" ++ show n
 >    where
->      filterKeyword t = case t of
->                          "!and" -> "and"
->                          "!or" -> "or"
->                          "!not" -> "not"
->                          "!isnull" -> "is null"
->                          "!isnotnull" -> "is not null"
->                          "!like" -> "like"
->                          "!notlike" -> "not like"
->                          x -> x
 >      -- try to write a series of ands in a vertical line with slightly less parens
 >      doLeftAnds a b = let as = and' a
 >                       in vcat ((scalExpr nice (head as)
 >                                 : map (\x -> text "and" <+> scalExpr nice x) (tail as))
 >                                ++ [text "and" <+> scalExpr nice b])
 >      and' a = case a of
->                 App _ f [x,y] | Just "!and" <- getTName f -> and' x ++ and' y
+>                 BinaryOp _ f x y | Just "!and" <- getTName f -> and' x ++ and' y
 >                 _ -> [a]
+
+> scalExpr nice (PrefixOp _ n e0)
+>   | Just "!not" <- getTName n =
+>       parens (text "not" <+> parens (scalExpr nice e0))
+>   | Just n' <- getTName n =
+>       parens (text (if n' == "u-"
+>                     then "-"
+>                     else n')
+>               <+> parens (scalExpr nice e0))
+>   | otherwise = error $ "bad prefix operator name:" ++ show n
+
+
+> scalExpr nice (PostfixOp _ n e0)
+>   | Just n' <- getTName n >>= flip lookup [("!isnull", "is null")
+>                                           ,("!isnotnull", "is not null")] =
+>        parens (scalExpr nice e0 <+> text n')
+>   | Just n' <- getTName n =
+>       parens (scalExpr nice e0 <+> text n')
+>   | otherwise = error $ "bad postfix operator name:" ++ show n
+
+> scalExpr nice (App _ n es) =
+>   name n <> parens (csvExp nice es)
+
 >
 > scalExpr _ (BooleanLit _ b) = bool b
 > scalExpr nice (InPredicate _ att t lst) =
@@ -855,15 +850,8 @@ Statement components
 >
 > set :: Bool -> SetClause -> Doc
 > set nice (SetClause _ a e) =
->    -- (App _ "=" [Identifier _ a, e]) =
 >   nmc a <+> text "=" <+> scalExpr nice e
-> {-set nice (App _ "=" [a, b]) | (App _ "!rowctor" is1) <- a
->                                      ,(App _ "!rowctor" is2) <- b =
->   rsNoRow is1 <+> text "=" <+> rsNoRow is2
->   where
->     rsNoRow is = parens (sepCsvMap (scalExpr nice) is)
-> set _ a = error $ "bad expression in set in update: " ++ show a-}
-> set nice (MultiSetClause _ is (App _ f es)) | Just "!rowctor" <- getTName f =
+> set nice (MultiSetClause _ is (SpecialOp _ f es)) | Just "!rowctor" <- getTName f =
 >   parens (sepCsvMap nmc is) <+> text "="
 >   <+> parens (sepCsvMap (scalExpr nice) es)
 > set _ a = error $ "bad expression in set in update: " ++ show a

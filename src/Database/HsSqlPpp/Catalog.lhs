@@ -42,10 +42,6 @@ Forward the public part of CatalogInternal.
 >      -- * Functions
 >     ,updateCatalog
 >     --,deconstructCatalog
->      -- * operator utils
->     ,isOperatorName
->     ,OperatorFlavour(..)
->     ,getOperatorFlavour
 >     ) where
 >
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal

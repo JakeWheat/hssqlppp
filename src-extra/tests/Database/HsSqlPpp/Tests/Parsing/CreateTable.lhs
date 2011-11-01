@@ -132,8 +132,8 @@ quick sanity check
 >         \ check (x>y)\n\
 >         \);"
 >         [CreateTable ea (dqi "t1") [att "x" "int"
->                           ,att "y" "int"]
->          [CheckConstraint ea "" (App ea (name ">") [Identifier ea "x", Identifier ea "y"])]]
+>                                    ,att "y" "int"]
+>          [CheckConstraint ea "" (binop ">" (ei "x") (ei "y"))]]
 >      ]
 >
 >      ,Group "misc" [

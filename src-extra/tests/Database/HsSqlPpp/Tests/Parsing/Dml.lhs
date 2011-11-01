@@ -69,8 +69,7 @@ insert from select
 >       [Update ea (dqi "tb") [SetClause ea (Nmc "x") $ NumberLit ea "1"
 >                             ,SetClause ea (Nmc "y") $ NumberLit ea "2"]
 >        []
->        (Just $ App ea (name "=")
->         [Identifier ea "z", BooleanLit ea True])
+>        (Just $ binop "=" (ei "z") lTrue)
 >        Nothing]
 >      ,s "update tb\n\
 >         \  set x = 1, y = 2 returning id;"
@@ -81,8 +80,8 @@ insert from select
 >         \  set (x,y) = (1,2);"
 >       [Update ea (dqi "tb")
 >        [MultiSetClause ea [Nmc "x",Nmc "y"]
->         $ App ea (name "!rowctor") [NumberLit ea "1"
->                                    ,NumberLit ea "2"]]
+>         $ SpecialOp ea (name "!rowctor") [NumberLit ea "1"
+>                                          ,NumberLit ea "2"]]
 >        []
 >        Nothing Nothing]
 >      ]
@@ -93,12 +92,10 @@ App ea "=" [App ea "!rowctor" [Identifier ea "x",Identifier ea "y"],App ea "!row
 >
 >     ,Group "delete" [
 >       s "delete from tbl1 where x = true;"
->       [Delete ea (dqi "tbl1") [] (Just $ App ea (name "=")
->                                [Identifier ea "x", BooleanLit ea True])
+>       [Delete ea (dqi "tbl1") [] (Just $ binop "=" (ei "x") lTrue)
 >        Nothing]
 >      ,s "delete from tbl1 where x = true returning id;"
->       [Delete ea (dqi "tbl1") [] (Just $ App ea (name "=")
->                                [Identifier ea "x", BooleanLit ea True])
+>       [Delete ea (dqi "tbl1") [] (Just $ binop "=" (ei "x") lTrue)
 >        (Just $ sl [selI "id"])]
 >      ]
 >

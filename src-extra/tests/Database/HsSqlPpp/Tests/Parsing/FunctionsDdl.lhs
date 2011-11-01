@@ -18,8 +18,7 @@
 >        (SimpleTypeName ea $ name "text") NoReplace Sql
 >        (SqlFnBody ea
 >         [QueryStatement ea $ selectFromWhere [SelExp ea (Identifier ea "a")] (Tref ea (i "t1") (NoAlias ea))
->          (App ea (name "=")
->           [Identifier ea "b", PositionalArg ea 1])])
+>          (binop "=" (ei "b") (PositionalArg ea 1))])
 >        Stable]
 >      ,s "create function fn() returns void as $$\n\
 >         \declare\n\

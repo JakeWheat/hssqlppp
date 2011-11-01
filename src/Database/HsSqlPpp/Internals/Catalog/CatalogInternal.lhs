@@ -45,10 +45,6 @@ indexes
 sequences
 
 
-TODO: once catalog is mostly working, switch out lists and associative
-arrays for sets and maps
-
-
 > {-# LANGUAGE DeriveDataTypeable #-}
 >
 > module Database.HsSqlPpp.Internals.Catalog.CatalogInternal
@@ -66,10 +62,6 @@ arrays for sets and maps
 >     ,updateCatalog
 >      -- catalog queries
 >     ,catLookupType
->      -- util
->     ,isOperatorName
->     ,OperatorFlavour(..)
->     ,getOperatorFlavour
 >     ) where
 >
 > import Control.Monad
@@ -371,34 +363,11 @@ queries
 >        | otherwise -> Left [UnknownTypeName cn]
 
 
+
+
+
 the TypeConversion module handles checking assignment compatibility,
 'resolving result set types', and finding function call matches since
 this relies on some heavy algorithms to match postgress really complex
 overloading and implicit cast system.
 
---------------------------------------------------------
-
-utils to help mainly with working with syntax. the need to ask the
-catalog about syntax issues probably means the syntax design is wrong
-
-> data OperatorFlavour = BinaryOp | PrefixOp | PostfixOp
->                        deriving (Eq,Show)
->
-> getOperatorFlavour :: Catalog -> [NameComponent] -> Either [TypeError] OperatorFlavour
-> getOperatorFlavour cat s' =
->   case () of
->           _ | M.member s (catBinaryOps cat) -> Right BinaryOp
->             | M.member s (catPrefixOps cat) -> Right PrefixOp
->             | s == "u-" -- cope with someone who has dropped unary - from the catalog (?)
->             , M.member "-" (catPrefixOps cat) -> Right PrefixOp
->             | M.member s (catPostfixOps cat) -> Right PostfixOp
->             | otherwise ->
->                 Left [InternalError $ "don't know flavour of operator " ++ s]
->   where
->     s = case s' of
->           [] -> error $ "empty namecomponent list given to getOperatorFlavour"
->           x -> ncStr $ last x
-
-> isOperatorName :: [NameComponent] -> Bool
-> isOperatorName [] = error $ "empty namecomponent list given to isOperatorName"
-> isOperatorName x = any (`elem` "+-*/<>=~!@#%^&|`?.") $ ncStr $ last x

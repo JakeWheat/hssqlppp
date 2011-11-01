@@ -74,7 +74,7 @@ shortcuts for constructing test data and asts
 >     fromString = Nmc
 
 > member :: ScalarExpr -> ScalarExpr -> ScalarExpr
-> member a b = App ea (name ".") [a,b]
+> member a b = BinaryOp ea (name ".") a b
 
 
 
@@ -83,6 +83,19 @@ shortcuts for constructing test data and asts
 
 > app :: String -> [ScalarExpr] -> ScalarExpr
 > app n as = App ea (name n) as
+
+> specop :: String -> [ScalarExpr] -> ScalarExpr
+> specop n as = SpecialOp ea (name n) as
+
+
+> prefop :: String -> ScalarExpr -> ScalarExpr
+> prefop n a = PrefixOp ea (name n) a
+
+> postop :: String -> ScalarExpr -> ScalarExpr
+> postop n a = PostfixOp ea (name n) a
+
+> binop :: String -> ScalarExpr -> ScalarExpr -> ScalarExpr
+> binop n a0 a1 = BinaryOp ea (name n) a0 a1
 
 > lTrue,lFalse,lNull :: ScalarExpr
 > lTrue = BooleanLit ea True

@@ -31,8 +31,8 @@
 >       [Perform ea $ App ea (name "test") [Identifier ea "a", Identifier ea "b"]]
 >      ,f "perform test(r.relvar_name || '_and_stuff');"
 >       [Perform ea $ App ea (name "test") [
->                     App ea (name "||") [eqi "r" "relvar_name"
->                                     ,stringQ "_and_stuff"]]]
+>                     binop "||" (eqi "r" "relvar_name")
+>                                (stringQ "_and_stuff")]]
 >      ,f "select into a,b c,d from e;"
 >       [Into ea False [name "a", name "b"]
 >        $ QueryStatement ea $ Select ea Dupes (SelectList ea [selI "c", selI "d"])
@@ -44,8 +44,8 @@
 >      ,f "delete from pieces where x = 1 and y = 1 returning tag into r.tag;"
 >       [Into ea False [Name ea [Nmc "r",Nmc "tag"]]
 >        $ Delete ea (dqi "pieces") []
->          (Just $ app "!and" [app "=" [ei "x",num "1"]
->                             ,app "=" [ei "y",num "1"]])
+>          (Just $ binop "!and" (binop "=" (ei "x") (num "1"))
+>                               (binop "=" (ei "y") (num "1")))
 >          (Just $ sl [selI "tag"])]
 >      ,f "update pieces\n\
 >         \set a=b returning tag into r.tag;"
@@ -106,7 +106,7 @@
 >      ,f "if a=b then\n\
 >         \  update c set d = e;\n\
 >         \end if;"
->       [If ea [(App ea (name "=") [ei "a", ei "b"]
+>       [If ea [(binop "=" (ei "a") (ei "b")
 >               ,[Update ea (dqi "c") [SetClause ea (Nmc "d")
 >                                     $ ei "e"] [] Nothing Nothing])]
 >        []]
