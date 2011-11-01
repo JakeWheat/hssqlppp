@@ -142,8 +142,8 @@ name, parameter types, return type and variadic flag
 catalog values
 
 
-> -- | represents the name of something in the catalog, maybe in the future
-> -- this will include the schema.
+> -- | represents the name of something in the catalog, when schema
+> -- support is added then this will change to (String,String)
 > type CatName = String
 
 > data CompositeFlavour = Composite | TableComposite | ViewComposite

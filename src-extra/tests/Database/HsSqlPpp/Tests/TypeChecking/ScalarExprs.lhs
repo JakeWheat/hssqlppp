@@ -17,6 +17,9 @@
 >    ]
 >   ,Group "other simple scalexprs"
 >     [ScalExpr "'1'::int" $ Right typeInt
+>     ,ScalExpr "date '2000-01-01'" $ Right $ ScalarType "date"
+>     ,ScalExpr "interval '90' day" $ Right $ ScalarType "interval"
+>     ,ScalExpr "?" $ Right UnknownType
 >     ]
 >   ]
 

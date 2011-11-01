@@ -37,19 +37,22 @@
 # makefiles
 
 HC              = ghc
-HC_BASIC_OPTS   = -Wall -XTupleSections -XScopedTypeVariables -XDeriveDataTypeable \
-		  -threaded -rtsopts
-HC_INCLUDE_DIRS = -isrc:src-extra/util:src-extra/tests/:src-extra/devel-util \
-		  -isrc-extra/chaos:src-extra/chaos/extensions/:src-extra/examples \
-		  -isrc-extra/h7c:src-extra/tosort/util/:src-extra/extensions \
-	          -isrc-extra/h7c:src-extra/chaos/extensions
-HC_PACKAGES = -package haskell-src-exts -package uniplate -package mtl \
-	-package base -package containers -package parsec -package pretty \
-	-package syb -package transformers -package template-haskell \
-	-package test-framework -package groom -package test-framework-hunit \
-	-package HUnit -package HDBC -package HDBC-postgresql \
-	-package pandoc -package xhtml -package illuminate -package datetime
+HC_BASIC_OPTS   = -Wall -XTupleSections -XScopedTypeVariables \
+-XDeriveDataTypeable -threaded -rtsopts
+SRC_DIRS = src src-extra/util src-extra/tests/ src-extra/devel-util \
+	src-extra/chaos src-extra/chaos/extensions/ src-extra/examples \
+	src-extra/h7c src-extra/tosort/util/ src-extra/extensions \
+	src-extra/h7c src-extra/chaos/extensions
+space :=
+space +=
+comma := ,
+HC_INCLUDE_DIRS = -i$(subst $(space),:,$(SRC_DIRS))
 
+PACKAGES = haskell-src-exts uniplate mtl base containers parsec pretty \
+	syb transformers template-haskell test-framework groom \
+	test-framework-hunit HUnit HDBC HDBC-postgresql pandoc xhtml \
+	illuminate datetime
+HC_PACKAGES = $(patsubst %,-package %,$(PACKAGES))
 
 HC_OPTS = $(HC_BASIC_OPTS) $(HC_INCLUDE_DIRS) $(HC_PACKAGES)
 
@@ -138,7 +141,8 @@ more_all : all all_exes website website_haddock tests
 
 exe_depend : src-extra/devel-util/GenerateExeRules.lhs Makefile src/Database/HsSqlPpp/Internals/AstInternal.hs
 	ghc -isrc-extra/devel-util src-extra/devel-util/GenerateExeRules.lhs
-	src-extra/devel-util/GenerateExeRules
+	src-extra/devel-util/GenerateExeRules exe_rules.mk \
+	$(SRC_DIRS) EXES $(EXE_FILES)
 
 depend : src/Database/HsSqlPpp/Internals/AstInternal.hs
 	ghc -M $(HC_OPTS) $(SRCS_ROOTS) -dep-makefile .depend

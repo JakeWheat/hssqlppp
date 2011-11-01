@@ -23,6 +23,8 @@ precedence in buildExpressionParser to parse ::. Also produce parse
 errors if after parsing, you try to cast to something which isn't a
 typename
 
+add support for enum types
+
 = 'arcs'
 
 == names

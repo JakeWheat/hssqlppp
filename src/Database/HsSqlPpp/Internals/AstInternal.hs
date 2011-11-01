@@ -4599,9 +4599,9 @@ sem_ScalarExpr_AggregateApp ann_ aggDistinct_ fn_ orderBy_  =
                    _tpe
                    {-# LINE 4601 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 101, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 99, column 9)
               _tpe =
-                  ({-# LINE 101 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                  ({-# LINE 99 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    Left []
                    {-# LINE 4607 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -4660,9 +4660,9 @@ sem_ScalarExpr_AntiScalarExpr string_  =
     (\ _lhsIcat ->
          (let _lhsOannotatedTree :: ScalarExpr 
               _lhsOoriginalTree :: ScalarExpr 
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 101, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 99, column 9)
               _tpe =
-                  ({-# LINE 101 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                  ({-# LINE 99 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    Left []
                    {-# LINE 4668 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -4716,9 +4716,9 @@ sem_ScalarExpr_App ann_ funName_ args_  =
                    _tpe
                    {-# LINE 4718 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 101, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 99, column 9)
               _tpe =
-                  ({-# LINE 101 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                  ({-# LINE 99 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    Left []
                    {-# LINE 4724 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -4949,9 +4949,9 @@ sem_ScalarExpr_Case ann_ cases_ els_  =
                    _tpe
                    {-# LINE 4951 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 101, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 99, column 9)
               _tpe =
-                  ({-# LINE 101 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                  ({-# LINE 99 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    Left []
                    {-# LINE 4957 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -5032,9 +5032,9 @@ sem_ScalarExpr_CaseSimple ann_ value_ cases_ els_  =
                    _tpe
                    {-# LINE 5034 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 101, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 99, column 9)
               _tpe =
-                  ({-# LINE 101 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                  ({-# LINE 99 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    Left []
                    {-# LINE 5040 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -5120,9 +5120,9 @@ sem_ScalarExpr_Cast ann_ expr_ tn_  =
                    _tpe
                    {-# LINE 5122 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 87, column 10)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 74, column 10)
               _tpe =
-                  ({-# LINE 87 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                  ({-# LINE 74 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    maybe (Left []) Right _tnInamedType
                    {-# LINE 5128 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -5195,9 +5195,9 @@ sem_ScalarExpr_Exists ann_ sel_  =
                    _tpe
                    {-# LINE 5197 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 101, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 99, column 9)
               _tpe =
-                  ({-# LINE 101 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                  ({-# LINE 99 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    Left []
                    {-# LINE 5203 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -5263,9 +5263,9 @@ sem_ScalarExpr_Extract ann_ field_ e_  =
                    _tpe
                    {-# LINE 5265 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 101, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 99, column 9)
               _tpe =
-                  ({-# LINE 101 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                  ({-# LINE 99 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    Left []
                    {-# LINE 5271 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -5327,9 +5327,9 @@ sem_ScalarExpr_Identifier ann_ i_  =
                    _tpe
                    {-# LINE 5329 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 101, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 99, column 9)
               _tpe =
-                  ({-# LINE 101 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                  ({-# LINE 99 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    Left []
                    {-# LINE 5335 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -5391,9 +5391,9 @@ sem_ScalarExpr_InPredicate ann_ expr_ i_ list_  =
                    _tpe
                    {-# LINE 5393 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 101, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 99, column 9)
               _tpe =
-                  ({-# LINE 101 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                  ({-# LINE 99 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    Left []
                    {-# LINE 5399 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -5465,10 +5465,10 @@ sem_ScalarExpr_Interval ann_ value_ field_ prec_  =
                    _tpe
                    {-# LINE 5467 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 101, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 76, column 10)
               _tpe =
-                  ({-# LINE 101 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
-                   Left []
+                  ({-# LINE 76 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                   Right $ ScalarType "interval"
                    {-# LINE 5473 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- self rule
@@ -5530,9 +5530,9 @@ sem_ScalarExpr_LiftApp ann_ oper_ flav_ args_  =
                    _tpe
                    {-# LINE 5532 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 101, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 99, column 9)
               _tpe =
-                  ({-# LINE 101 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                  ({-# LINE 99 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    Left []
                    {-# LINE 5538 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -5726,10 +5726,10 @@ sem_ScalarExpr_Placeholder ann_  =
                    _tpe
                    {-# LINE 5728 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 101, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 85, column 10)
               _tpe =
-                  ({-# LINE 101 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
-                   Left []
+                  ({-# LINE 85 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                   Right UnknownType
                    {-# LINE 5734 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- self rule
@@ -5782,9 +5782,9 @@ sem_ScalarExpr_PositionalArg ann_ p_  =
                    _tpe
                    {-# LINE 5784 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 101, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 99, column 9)
               _tpe =
-                  ({-# LINE 101 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                  ({-# LINE 99 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    Left []
                    {-# LINE 5790 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -5998,9 +5998,9 @@ sem_ScalarExpr_QIdentifier ann_ is_  =
                    _tpe
                    {-# LINE 6000 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 101, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 99, column 9)
               _tpe =
-                  ({-# LINE 101 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                  ({-# LINE 99 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    Left []
                    {-# LINE 6006 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -6054,9 +6054,9 @@ sem_ScalarExpr_QStar ann_ q_  =
                    _tpe
                    {-# LINE 6056 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 101, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 99, column 9)
               _tpe =
-                  ({-# LINE 101 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                  ({-# LINE 99 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    Left []
                    {-# LINE 6062 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -6113,9 +6113,9 @@ sem_ScalarExpr_ScalarSubQuery ann_ sel_  =
                    _tpe
                    {-# LINE 6115 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 101, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 99, column 9)
               _tpe =
-                  ({-# LINE 101 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                  ({-# LINE 99 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    Left []
                    {-# LINE 6121 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -6256,9 +6256,9 @@ sem_ScalarExpr_Star ann_  =
                    _tpe
                    {-# LINE 6258 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 101, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 99, column 9)
               _tpe =
-                  ({-# LINE 101 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                  ({-# LINE 99 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    Left []
                    {-# LINE 6264 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -6373,10 +6373,10 @@ sem_ScalarExpr_TypedStringLit ann_ tn_ value_  =
                    _tpe
                    {-# LINE 6375 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 101, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 74, column 10)
               _tpe =
-                  ({-# LINE 101 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
-                   Left []
+                  ({-# LINE 74 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                   maybe (Left []) Right _tnInamedType
                    {-# LINE 6381 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- self rule
@@ -6449,9 +6449,9 @@ sem_ScalarExpr_WindowApp ann_ fn_ partitionBy_ orderBy_ frm_  =
                    _tpe
                    {-# LINE 6451 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
-              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 101, column 9)
+              -- "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 99, column 9)
               _tpe =
-                  ({-# LINE 101 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                  ({-# LINE 99 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    Left []
                    {-# LINE 6457 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )

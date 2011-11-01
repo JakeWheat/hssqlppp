@@ -2,7 +2,7 @@
 generate the sections of the makefile for the exes
 reads the list of exes from the Makefile
 creates the complete list of object files for each exe using
-  haskell-src-exts
+haskell-src-exts
 
 exe : obj_files
 	$(HC) $(HC_OPTS) -o exe obj_files
@@ -12,53 +12,31 @@ exe : obj_files
 > import GetImports
 > import Debug.Trace
 > import System.FilePath
+> import System.Environment
+> import System.Exit
+
+expects: outputfilename ([sourcepaths],[exefilenames])
+the source files for the exes are found by adding .lhs
 
 > main :: IO ()
 > main = do
->   exes <- getExes
->   --mapM_ putStrLn exes
->   ts <- mapM makeTg exes
->   writeFile "exe_rules.mk" $ intercalate "\n" ts
+>   args <- getArgs
+>   let (mkfn,srcs,exes) = case args of
+>         [] -> error "no output filename given"
+>         (mkfn:as) -> let (srcs,exes') = break (=="EXES") as
+>                          exes = drop 1 exes'
+>                      in case () of
+>                           _ | null srcs -> error $ "no source folders given"
+>                             | null exes -> error $ "no exes given"
+>                             | otherwise -> (mkfn,srcs,exes)
+>   ts <- mapM (makeTg srcs) exes
+>   writeFile mkfn $ intercalate "\n" ts
 >   return ()
 >   where
->     makeTg f = trace ("deps for " ++ f) $ do
->       deps <- tcDependencies ["src"
->                              ,"src-extra/util"
->                              ,"src-extra/tests/"
->                              ,"src-extra/devel-util"
->                              ,"src-extra/chaos"
->                              ,"src-extra/chaos/extensions"
->                              ,"src-extra/examples"
->                              ,"src-extra/h7c"
->                              ,"src-extra/tosort/util/"
->                              ,"src-extra/extensions"] (f ++ ".lhs")
+>     makeTg srcs f = trace ("deps for " ++ f) $ do
+>       deps <- tcDependencies srcs (f ++ ".lhs")
 >       let objs = (f `replaceExtension` "o")
 >                  : map ((`replaceExtension` "o") . snd) deps
 >           objstr = intercalate " \\\n" objs
 >       return $ f ++ " : " ++ objstr
 >                 ++ "\n\t$(HC) $(HC_OPTS) -o " ++ f ++ " " ++ objstr
-
-rather than parse the makefile, the makefile could just pass the exes
-along on the command line. that would be less insane. Also, the
-makefile should pass the list of source folders above on the command
-line too
-
->     getExes :: IO [String]
->     getExes = do
->       f <- readFile "Makefile"
->       let ls = lines f
->           st = dropWhile (not . isPrefixOf "EXE_FILES =") ls
->           en = keepExtended st
->           fs = (\(x:xs) -> drop (length "EXE_FILES =") x : xs) en
->           ns = map (trim . rmSl) fs
->       return ns
->     rmSl x = if last x == '\\'
->              then init x
->              else x
->     trim = t . reverse . t . reverse
->     t = dropWhile isSpace
->     keepExtended :: [String] -> [String]
->     keepExtended (x:xs) = if last x /= '\\'
->                              then [x]
->                              else x : keepExtended xs
->     keepExtended _ = error "reading EXE_FILES value"

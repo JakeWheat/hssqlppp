@@ -70,21 +70,19 @@ simplish ctors
 
 -}
 
-{-    | TypedStringLit
-         loc.tpe = fromMaybe (Left []) @tn.namedType
+    | TypedStringLit Cast
+         loc.tpe = maybe (Left []) Right @tn.namedType
     | Interval
          loc.tpe = Right $ ScalarType "interval"
-    | Extract
+{-    | Extract
          loc.tpe = -- check the argument is a date
                    do
                    x <- lmt @e.uType
                    if x == typeDate
                      then Right typeFloat8
-                     else Left [NoMatchingOperator "extract" [x]]
+                     else Left [NoMatchingOperator "extract" [x]]-}
     | Placeholder
-         loc.tpe = Right UnknownType -}
-    | Cast
-         loc.tpe = maybe (Left []) Right @tn.namedType
+         loc.tpe = Right UnknownType
 
 {-
 
@@ -94,7 +92,7 @@ fallback for unimplemented bits
 
 -- temp
 sem ScalarExpr
-    | TypedStringLit Extract Interval Placeholder
+    | Extract
       PositionalArg Star QStar Identifier
       QIdentifier Case CaseSimple Exists App AggregateApp
       WindowApp InPredicate LiftApp ScalarSubQuery AntiScalarExpr
