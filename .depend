@@ -25,6 +25,9 @@ src-extra/devel-util/MakeDefaultTemplate1Catalog.o : src-extra/catalogReader/Dat
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o : src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.lhs
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o : src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.hi
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o : src/Database/HsSqlPpp/Internals/TypesInternal.hi
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o : src/Database/HsSqlPpp/Internals/TypeChecking/Environment.lhs
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o : src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.hi
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o : src/Database/HsSqlPpp/Internals/TypesInternal.hi
 src/Database/HsSqlPpp/Catalog.o : src/Database/HsSqlPpp/Catalog.lhs
 src/Database/HsSqlPpp/Catalog.o : src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.hi
 src/Database/HsSqlPpp/Catalog.o : src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.hi
@@ -35,6 +38,7 @@ src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/Parsing/ParseError
 src/Database/HsSqlPpp/Internals/AstInternal.o : src/Database/HsSqlPpp/Internals/AstInternal.hs
 src/Database/HsSqlPpp/Internals/AstInternal.o : src/Database/HsSqlPpp/Utils/Utils.hi
 src/Database/HsSqlPpp/Internals/AstInternal.o : src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.hi
+src/Database/HsSqlPpp/Internals/AstInternal.o : src/Database/HsSqlPpp/Internals/TypeChecking/Environment.hi
 src/Database/HsSqlPpp/Internals/AstInternal.o : src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.hi
 src/Database/HsSqlPpp/Internals/AstInternal.o : src/Database/HsSqlPpp/Internals/TypesInternal.hi
 src/Database/HsSqlPpp/TypeChecker.o : src/Database/HsSqlPpp/TypeChecker.lhs

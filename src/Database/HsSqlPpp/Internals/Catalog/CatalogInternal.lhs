@@ -62,6 +62,7 @@ sequences
 >     ,updateCatalog
 >      -- catalog queries
 >     ,catLookupType
+>     ,catLookupTableAndAttrs
 >     ,catGetOpsMatchingName
 >     ) where
 >
@@ -171,6 +172,8 @@ catalog values
 >     ,catFunctions :: M.Map CatName [OperatorPrototype]
 >     ,catAggregateFunctions :: M.Map CatName [OperatorPrototype]
 >     ,catWindowFunctions :: M.Map CatName [OperatorPrototype]
+>     ,catTables :: M.Map CatName ([(String,Type)] -- public attrs
+>                                 ,[(String,Type)]) -- system columns
 >     ,catUpdates :: [CatalogUpdate]
 >     }
 >                deriving Show
@@ -182,7 +185,7 @@ catalog values
 > -- like the \'and\' operator, 'defaultCatalog' contains these.
 > emptyCatalog :: Catalog
 > emptyCatalog = Catalog S.empty M.empty M.empty M.empty M.empty M.empty
->                        M.empty M.empty M.empty M.empty []
+>                        M.empty M.empty M.empty M.empty M.empty []
 >
 > -- | Represents what you probably want to use as a starting point if
 > -- you are building an catalog from scratch. It contains
@@ -314,10 +317,18 @@ functions and not in catalog values themselves.
 >   | CatCreateBinaryOp CatName CatName CatName CatName
 >     -- | register a function: name, param types, retsetof, return type
 >   | CatCreateFunction CatName [CatName] Bool CatName
+>     -- | register a table only: name, (colname,typename) pairs
+>   | CatCreateTable CatName [(CatName,CatName)]
 >     deriving (Eq,Ord,Typeable,Data,Show)
 
 > -- | Applies a list of 'CatalogUpdate's to an 'Catalog' value
-> -- to produce a new Catalog value.
+> -- to produce a new Catalog value. TODO: there will be a split
+> -- between the individual low level updates which just update
+> -- one 'row' in the catalog type, and the high level updates
+> -- which correspond to ddl (e.g. create type will also add the
+> -- array type, create table will add a table, supply the
+> -- private columns automatically, and add the composite type)
+> -- highlevel not implemented yet
 > updateCatalog :: [CatalogUpdate]
 >               -> Catalog
 >               -> Either [TypeError] Catalog
@@ -330,6 +341,8 @@ functions and not in catalog values themselves.
 >         -- todo: need to check all the type lists
 >         -- and maybe need to check the name doesn't conflict with pseudo names or something?
 >         -- this should happen with other cases as well
+>         -- also: needs to take into account alias, so int and int4 are
+>         -- both disallowed for new types, and lookup of either finds int4
 >         then Left [InternalError $ "type already exists: " ++ show n]
 >         else Right $ cat {catScalarTypeNames = S.insert n (catScalarTypeNames cat)}
 >       CatCreateDomainType n b ->
@@ -367,6 +380,11 @@ functions and not in catalog values themselves.
 >         Right $ cat {catFunctions = insertOperators
 >                                     [(n,(n,pst,rett',False))]
 >                                     (catFunctions cat)}
+>       CatCreateTable n cs -> do
+>         cts <- mapM (\(cn,t) -> do
+>                        t' <- catLookupType cat [QNmc t]
+>                        return (cn,t')) cs
+>         Right $ cat {catTables = M.insert n (cts,[]) (catTables cat)}
 
 -----------------------------------------------------------
 
@@ -392,6 +410,19 @@ queries
 >        | M.member cn (catCompositeTypes cat) -> Right $ NamedCompositeType cn
 >        | Just t <- M.lookup cn (catArrayTypes cat) -> Right $ ArrayType $ ScalarType t
 >        | otherwise -> Left [UnknownTypeName cn]
+
+
+> -- | takes a table name, and returns the exact table name (to deal
+> -- with quoting), and the public and private attr names
+> catLookupTableAndAttrs :: Catalog
+>                        -> [NameComponent]
+>                        -> Either [TypeError] (String,[(String,Type)], [(String,Type)])
+> catLookupTableAndAttrs cat nmcs = do
+>   let n = getCatName nmcs
+>   (pu,pv) <- maybe (Left [UnrecognisedRelation n]) Right
+>              $ M.lookup n (catTables cat)
+>   return (n,pu,pv)
+
 
 
 > catGetOpsMatchingName :: Catalog -> [NameComponent] -> [OperatorPrototype]

@@ -1,0 +1,31 @@
+
+{-
+basic query expression type checking:
+
+take the environment produced by the tref
+feed it into the selectlist
+
+take the type produced in the select list and pass it up
+
+-}
+
+
+
+include "TypeChecking/QueryExprs/TableRefs.ag"
+include "TypeChecking/QueryExprs/SelectLists.ag"
+
+sem QueryExpr
+    | Select
+        selSelectList.downEnv = @selTref.upEnv
+        lhs.upType = @selSelectList.upType
+        loc.tpe = maybe (Left []) Right @selSelectList.upType
+
+sem QueryExpr
+    | Select CombineQueryExpr Values WithQueryExpr
+        loc.tpe :: {Either [TypeError] Type}
+
+-- temp
+
+sem QueryExpr
+    | CombineQueryExpr Values WithQueryExpr
+        loc.tpe = Left []

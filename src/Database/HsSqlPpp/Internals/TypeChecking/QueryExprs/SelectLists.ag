@@ -1,0 +1,56 @@
+
+attr SelectList
+  inh downEnv :: Environment
+  syn upType :: {Maybe Type}
+
+attr SelectItemList
+  inh downEnv :: Environment
+  syn cols :: {[Maybe (String,Type)]}
+  syn upType :: {Maybe Type}
+
+attr SelectItem
+  inh downEnv :: Environment
+  syn col :: {Maybe (String,Type)}
+
+sem SelectList
+  | SelectList
+      lhs.upType = @items.upType
+      ann.tpe = Left []
+
+sem SelectItemList
+  | Nil lhs.cols = []
+        lhs.upType = Nothing
+  | Cons
+      loc.cols = @hd.col : @tl.cols
+      lhs.cols = @loc.cols
+      lhs.upType = fmap CompositeType $ sequence @loc.cols
+
+sem SelectItem
+  | SelExp SelectItem
+      ann.tpe = Left []
+
+sem SelectItem
+  | SelectItem
+      lhs.col = fmap (nm @name,) @ex.upType
+
+sem SelectItem
+  | SelExp
+      lhs.col = fmap (columnName @ex.originalTree,) @ex.upType
+
+{
+
+-- | thet name to choose for a column in a select list which doesn't
+-- have an explicit name
+columnName :: ScalarExpr -> String
+columnName (Identifier _ i) = nm i
+columnName (QIdentifier _ is) = nm $ last is
+columnName (App _ f@(Name _ ncs) _) = nm $ last ncs
+columnName (Cast _ _ (SimpleTypeName _ (Name _ ncs))) = nm $ last ncs
+columnName (WindowApp _ (App _ f@(Name _ ncs) _) _ _ _) = nm $ last ncs
+columnName (AggregateApp _ _ (App _ f@(Name _ ncs) _) _) = nm $ last ncs
+columnName _ = "?column?"
+
+nm :: NameComponent -> String
+nm (Nmc n) = map toLower n
+nm (QNmc n) = n
+}

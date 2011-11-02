@@ -80,5 +80,5 @@ sem Annotation
 
 
 include "TypeChecking/ScalarExprs.ag"
-include "TypeChecking/QueryExprs.ag"
+include "TypeChecking/QueryExprs/QueryExprs.ag"
 include "TypeChecking/Misc.ag"

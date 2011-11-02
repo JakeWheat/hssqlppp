@@ -142,7 +142,7 @@ gutted and rewritten
 >                | DomainDefNotFound Type
 >                | TypeNotKnown Type
 >                | UnknownTypeName String
-
+>                | UnrecognisedIdentifier String
 
 >                | InternalError String
 >                 --shoved in to humour the Either Monad

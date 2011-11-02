@@ -1,0 +1,37 @@
+
+attr TableRefList
+     syn upEnv :: Environment
+
+attr TableRef
+     syn upEnv :: Environment
+
+sem TableRefList
+  | Nil lhs.upEnv = emptyEnvironment
+  | Cons
+      -- todo: fix when joins are working
+      lhs.upEnv = @hd.upEnv
+
+sem TableRef
+  | Tref JoinTref SubTref FunTref
+      loc.eEnv :: {Either [TypeError] Environment}
+      -- pass any errors to the annotation
+      ann.tpe = either Left (const $ Left []) @loc.eEnv
+      -- todo: what to do here?
+      lhs.upEnv = either (const emptyEnvironment) id @loc.eEnv
+
+sem TableRef
+  | Tref
+      -- if the referenced table doesn't exist, want to attach the error
+      -- only to the name node. So this code should be fixed to get a Maybe [NameComponent]
+      -- attribute from the @tbl or something
+      loc.eEnv = envCreateTrefEnvironment @lhs.cat (nameComponents @tbl.originalTree)
+      tbl.tpe = Left []
+
+-- temp until code written
+sem TableRef
+  | JoinTref SubTref FunTref
+      loc.eEnv = Left []
+
+sem TableAlias
+    | NoAlias TableAlias FullAlias
+        ann.tpe = Left []

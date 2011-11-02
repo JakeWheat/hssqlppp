@@ -158,7 +158,7 @@ depend : src/Database/HsSqlPpp/Internals/AstInternal.hs
 #specific rules for generated file astinternal.hs
 
 src/Database/HsSqlPpp/Internals/AstInternal.hs : $(AG_FILES)
-	uuagc -dcfwsp -P src/Database/HsSqlPpp/Internals/ \
+	uuagc -dcfspwm --cycle -O -P src/Database/HsSqlPpp/Internals/ \
 		--lckeywords --doublecolons --genlinepragmas \
 		src/Database/HsSqlPpp/Internals/AstInternal.ag
 

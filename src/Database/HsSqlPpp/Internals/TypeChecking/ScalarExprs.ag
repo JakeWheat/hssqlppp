@@ -25,9 +25,12 @@ sem ScalarExpr
         lhs.upType = either (const Nothing) Just @loc.tpe
 
 attr ScalarExpr
+  inh downEnv :: Environment
   syn upType :: {Maybe Type} -- the type of this node made available to the parent node
 
+
 attr ScalarExprList
+  inh downEnv :: Environment
   syn upTypes :: {[Maybe Type]}
 
 sem ScalarExprList
@@ -96,6 +99,16 @@ simplish ctors
                      else Left [NoMatchingOperator "extract" [x]]
     | Placeholder
          loc.tpe = Right UnknownType
+{-
+
+---------------------------------------
+identifier
+
+-}
+    | Identifier
+         loc.tpe = envLookupIdentifier [@i] @lhs.downEnv
+
+
 
 {-
 
@@ -122,7 +135,7 @@ fallback for unimplemented bits
 
 -- temp
 sem ScalarExpr
-    | PositionalArg Star QStar Identifier
+    | PositionalArg Star QStar
       QIdentifier Case CaseSimple Exists AggregateApp
       WindowApp InPredicate LiftApp ScalarSubQuery AntiScalarExpr
         loc.tpe = Left []
