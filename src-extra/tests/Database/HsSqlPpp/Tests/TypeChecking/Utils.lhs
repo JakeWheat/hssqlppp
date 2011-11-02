@@ -13,7 +13,8 @@
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Types
 > --import Database.HsSqlPpp.Pretty
-> --import Text.Groom
+> import Text.Groom
+> import Debug.Trace
 > --import Database.HsSqlPpp.Tests.TestUtils
 
 
@@ -43,8 +44,13 @@
 >       ty = atype $ getAnnotation aast
 >       er :: [TypeError]
 >       er = universeBi aast
->       got = if null er then Right ty else Left er
->   in assertEqual "" (either Left (Right . Just) et) got
+>       got :: Either [TypeError] Type
+>       got = case () of
+>               _ | null er -> maybe (Left []) Right ty
+>                 | otherwise -> Left er
+>   in (if et /= got
+>       then trace (groom aast)
+>       else id) $ assertEqual "" et got
 
 
 > itemToTft :: Item -> Test.Framework.Test

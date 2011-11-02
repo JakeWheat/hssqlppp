@@ -292,14 +292,6 @@ emptyAnnotation = Annotation Nothing Nothing [] Nothing Nothing []
 getAnnotation :: Data a => a -> Annotation
 getAnnotation = head . childrenBi
 
---   | get all the annotations from a tree
---getAnnotations :: Data a => a -> [Annotation]
---getAnnotations = universeBi -- st --[x | x <- universeBi st]
-
---   | update all the annotations in a tree
---updateAnnotations :: Data a => (Annotation -> Annotation) -> a -> a
---updateAnnotations = transformBi
-
 atype :: Annotation -> Maybe Type
 atype (Annotation _ a _ _ _ _) = a
 
@@ -315,17 +307,13 @@ errs (Annotation _ _ e _ _ _) = e
 setErrs :: [TypeError] -> Annotation -> Annotation
 setErrs e (Annotation s a _e i st c) = Annotation s a e i st c
 
-
---getTypeAnnotation :: Data a => a -> Maybe Type
---getTypeAnnotation = atype . getAnnotation
-
 --don't know how to do this one with uniplate
 
 -- | Update the first annotation in a tree using the function supplied
 updateAnnotation :: Data a => (Annotation -> Annotation) -> a -> a
 updateAnnotation f = gmapT (mkT f)
 
-{-# LINE 329 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+{-# LINE 317 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
 
 {-# LINE 3 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
 
@@ -380,7 +368,7 @@ cse"-}}))
     in case rt of
          ScalarExprRoot e -> e
 
-{-# LINE 384 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+{-# LINE 372 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
 
 {-# LINE 75 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
 
@@ -393,13 +381,13 @@ expandStarsStatements cat sts =
         tl = expandedStars_Syn_Root ta
     in case tl of
          Root r -> r
-{-# LINE 397 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+{-# LINE 385 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
 
-{-# LINE 40 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
+{-# LINE 57 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
 
 
 -- | thet name to choose for a column in a select list which doesn't
--- have an explicit name
+-- have an explicit name - have to follow postgresql's rules for this
 columnName :: ScalarExpr -> String
 columnName (Identifier _ i) = nm i
 columnName (QIdentifier _ is) = nm $ last is
@@ -408,11 +396,11 @@ columnName (Cast _ _ (SimpleTypeName _ (Name _ ncs))) = nm $ last ncs
 columnName (WindowApp _ (App _ f@(Name _ ncs) _) _ _ _) = nm $ last ncs
 columnName (AggregateApp _ _ (App _ f@(Name _ ncs) _) _) = nm $ last ncs
 columnName _ = "?column?"
-
+-- quick hack together
 nm :: NameComponent -> String
 nm (Nmc n) = map toLower n
 nm (QNmc n) = n
-{-# LINE 416 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+{-# LINE 404 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
 -- AlterTableAction --------------------------------------------
 {-
    visit 0:
@@ -467,12 +455,12 @@ sem_AlterTableAction_AddConstraint ann_ con_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 471 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 459 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _conOcat ->
           (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   error "missing rule: AlterTableAction.AddConstraint.ann.tpe"
-                  {-# LINE 476 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 464 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (con_ _conOcat ) of
@@ -481,39 +469,39 @@ sem_AlterTableAction_AddConstraint ann_ con_  =
                  { ( _annIoriginalTree,ann_1) ->
                      (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              _lhsIcat
-                             {-# LINE 485 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 473 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annOcat ->
                       (case (ann_1 _annOcat _annOtpe ) of
                        { ( _annIannotatedTree,_annIexpandedStars) ->
                            (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    AddConstraint _annIannotatedTree _conIannotatedTree
-                                   {-# LINE 492 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 480 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _annotatedTree ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _annotatedTree
-                                    {-# LINE 497 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 485 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOannotatedTree ->
                              (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      AddConstraint _annIexpandedStars _conIexpandedStars
-                                     {-# LINE 502 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 490 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _expandedStars ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       _expandedStars
-                                      {-# LINE 507 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 495 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _lhsOexpandedStars ->
                                (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        AddConstraint _annIoriginalTree _conIoriginalTree
-                                       {-# LINE 512 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 500 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _originalTree ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         _originalTree
-                                        {-# LINE 517 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 505 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOoriginalTree ->
                                  ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -525,17 +513,17 @@ sem_AlterTableAction_AlterColumnDefault ann_ nm_ def_  =
     (\ _lhsIcat ->
          (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  error "missing rule: AlterTableAction.AlterColumnDefault.def.downEnv"
-                 {-# LINE 529 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 517 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _defOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 534 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 522 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _defOcat ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    error "missing rule: AlterTableAction.AlterColumnDefault.ann.tpe"
-                   {-# LINE 539 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 527 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (def_ _defOcat _defOdownEnv ) of
@@ -544,39 +532,39 @@ sem_AlterTableAction_AlterColumnDefault ann_ nm_ def_  =
                   { ( _annIoriginalTree,ann_1) ->
                       (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIcat
-                              {-# LINE 548 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 536 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annOcat ->
                        (case (ann_1 _annOcat _annOtpe ) of
                         { ( _annIannotatedTree,_annIexpandedStars) ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     AlterColumnDefault _annIannotatedTree nm_ _defIannotatedTree
-                                    {-# LINE 555 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 543 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annotatedTree ->
                              (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _annotatedTree
-                                     {-# LINE 560 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 548 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _lhsOannotatedTree ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       AlterColumnDefault _annIexpandedStars nm_ _defIexpandedStars
-                                      {-# LINE 565 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 553 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _expandedStars ->
                                (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        _expandedStars
-                                       {-# LINE 570 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 558 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _lhsOexpandedStars ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         AlterColumnDefault _annIoriginalTree nm_ _defIoriginalTree
-                                        {-# LINE 575 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 563 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _originalTree ->
                                  (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          _originalTree
-                                         {-# LINE 580 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 568 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _lhsOoriginalTree ->
                                   ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -627,12 +615,12 @@ sem_AlterTableActionList_Cons hd_ tl_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 631 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 619 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tlOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 636 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 624 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _hdOcat ->
            (case (tl_ _tlOcat ) of
@@ -641,32 +629,32 @@ sem_AlterTableActionList_Cons hd_ tl_  =
                  { ( _hdIannotatedTree,_hdIexpandedStars,_hdIoriginalTree) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              (:) _hdIannotatedTree _tlIannotatedTree
-                             {-# LINE 645 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 633 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 650 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 638 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                (:) _hdIexpandedStars _tlIexpandedStars
-                               {-# LINE 655 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 643 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 660 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 648 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  (:) _hdIoriginalTree _tlIoriginalTree
-                                 {-# LINE 665 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 653 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 670 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 658 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -675,32 +663,32 @@ sem_AlterTableActionList_Nil  =
     (\ _lhsIcat ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  []
-                 {-# LINE 679 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 667 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 684 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 672 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    []
-                   {-# LINE 689 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 677 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _expandedStars ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _expandedStars
-                    {-# LINE 694 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 682 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOexpandedStars ->
              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      []
-                     {-# LINE 699 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 687 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _originalTree ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _originalTree
-                      {-# LINE 704 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 692 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }))
@@ -760,12 +748,12 @@ sem_Annotation_Annotation :: (Maybe SourcePosition) ->
 sem_Annotation_Annotation asrc_ atype_ errs_ implicitCast_ stType_ catUpd_  =
     (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
             Annotation asrc_ atype_ errs_ implicitCast_ stType_ catUpd_
-            {-# LINE 764 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+            {-# LINE 752 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
             )) of
      { _originalTree ->
      (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
              _originalTree
-             {-# LINE 769 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+             {-# LINE 757 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
              )) of
       { _lhsOoriginalTree ->
       (case ((let sem_Annotation_Annotation_1 :: T_Annotation_1 
@@ -776,17 +764,17 @@ sem_Annotation_Annotation asrc_ atype_ errs_ implicitCast_ stType_ catUpd_  =
                                    let t = either (const Nothing) Just _lhsItpe
                                        es = either id (const []) _lhsItpe
                                    in Annotation asrc_ t es implicitCast_ stType_ catUpd_
-                                   {-# LINE 780 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 768 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _lhsOannotatedTree ->
                             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     Annotation asrc_ atype_ errs_ implicitCast_ stType_ catUpd_
-                                    {-# LINE 785 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 773 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _expandedStars ->
                              (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _expandedStars
-                                     {-# LINE 790 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 778 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _lhsOexpandedStars ->
                               ( _lhsOannotatedTree,_lhsOexpandedStars) }) }) }))
@@ -842,22 +830,22 @@ sem_AttributeDef_AttributeDef ann_ name_ typ_ def_ cons_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 846 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 834 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _consOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 851 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 839 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _defOcat ->
            (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    _lhsIcat
-                   {-# LINE 856 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 844 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _typOcat ->
             (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     error "missing rule: AttributeDef.AttributeDef.ann.tpe"
-                    {-# LINE 861 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 849 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _annOtpe ->
              (case (cons_ _consOcat ) of
@@ -870,39 +858,39 @@ sem_AttributeDef_AttributeDef ann_ name_ typ_ def_ cons_  =
                              { ( _annIoriginalTree,ann_1) ->
                                  (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          _lhsIcat
-                                         {-# LINE 874 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 862 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _annOcat ->
                                   (case (ann_1 _annOcat _annOtpe ) of
                                    { ( _annIannotatedTree,_annIexpandedStars) ->
                                        (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                AttributeDef _annIannotatedTree name_ _typIannotatedTree _defIannotatedTree _consIannotatedTree
-                                               {-# LINE 881 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 869 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _annotatedTree ->
                                         (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 _annotatedTree
-                                                {-# LINE 886 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 874 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _lhsOannotatedTree ->
                                          (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                  AttributeDef _annIexpandedStars name_ _typIexpandedStars _defIexpandedStars _consIexpandedStars
-                                                 {-# LINE 891 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                 {-# LINE 879 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                  )) of
                                           { _expandedStars ->
                                           (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                   _expandedStars
-                                                  {-# LINE 896 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                  {-# LINE 884 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                   )) of
                                            { _lhsOexpandedStars ->
                                            (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                    AttributeDef _annIoriginalTree name_ _typIoriginalTree _defIoriginalTree _consIoriginalTree
-                                                   {-# LINE 901 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                   {-# LINE 889 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                    )) of
                                             { _originalTree ->
                                             (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                     _originalTree
-                                                    {-# LINE 906 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                    {-# LINE 894 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                     )) of
                                              { _lhsOoriginalTree ->
                                              ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -953,12 +941,12 @@ sem_AttributeDefList_Cons hd_ tl_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 957 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 945 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tlOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 962 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 950 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _hdOcat ->
            (case (tl_ _tlOcat ) of
@@ -967,32 +955,32 @@ sem_AttributeDefList_Cons hd_ tl_  =
                  { ( _hdIannotatedTree,_hdIexpandedStars,_hdIoriginalTree) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              (:) _hdIannotatedTree _tlIannotatedTree
-                             {-# LINE 971 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 959 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 976 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 964 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                (:) _hdIexpandedStars _tlIexpandedStars
-                               {-# LINE 981 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 969 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 986 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 974 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  (:) _hdIoriginalTree _tlIoriginalTree
-                                 {-# LINE 991 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 979 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 996 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 984 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -1001,32 +989,32 @@ sem_AttributeDefList_Nil  =
     (\ _lhsIcat ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  []
-                 {-# LINE 1005 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 993 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 1010 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 998 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    []
-                   {-# LINE 1015 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 1003 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _expandedStars ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _expandedStars
-                    {-# LINE 1020 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 1008 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOexpandedStars ->
              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      []
-                     {-# LINE 1025 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 1013 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _originalTree ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _originalTree
-                      {-# LINE 1030 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 1018 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }))
@@ -1072,22 +1060,22 @@ sem_CaseScalarExprListScalarExprPair_Tuple x1_ x2_  =
     (\ _lhsIcat ->
          (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  error "missing rule: CaseScalarExprListScalarExprPair.Tuple.x2.downEnv"
-                 {-# LINE 1076 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 1064 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _x2OdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 1081 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 1069 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _x2Ocat ->
-           (case (({-# LINE 33 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+           (case (({-# LINE 35 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    error "missing rule: CaseScalarExprListScalarExprPair.Tuple.x1.downEnv"
-                   {-# LINE 1086 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 1074 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _x1OdownEnv ->
             (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _lhsIcat
-                    {-# LINE 1091 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 1079 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _x1Ocat ->
              (case (x2_ _x2Ocat _x2OdownEnv ) of
@@ -1096,32 +1084,32 @@ sem_CaseScalarExprListScalarExprPair_Tuple x1_ x2_  =
                    { ( _x1IannotatedTree,_x1IexpandedStars,_x1IoriginalTree,_x1IupTypes) ->
                        (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                (_x1IannotatedTree,_x2IannotatedTree)
-                               {-# LINE 1100 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 1088 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _annotatedTree ->
                         (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _annotatedTree
-                                {-# LINE 1105 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 1093 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOannotatedTree ->
                          (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  (_x1IexpandedStars,_x2IexpandedStars)
-                                 {-# LINE 1110 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 1098 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _expandedStars ->
                           (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _expandedStars
-                                  {-# LINE 1115 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 1103 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOexpandedStars ->
                            (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    (_x1IoriginalTree,_x2IoriginalTree)
-                                   {-# LINE 1120 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 1108 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _originalTree ->
                             (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _originalTree
-                                    {-# LINE 1125 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 1113 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOoriginalTree ->
                              ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -1172,12 +1160,12 @@ sem_CaseScalarExprListScalarExprPairList_Cons hd_ tl_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 1176 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 1164 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tlOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 1181 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 1169 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _hdOcat ->
            (case (tl_ _tlOcat ) of
@@ -1186,32 +1174,32 @@ sem_CaseScalarExprListScalarExprPairList_Cons hd_ tl_  =
                  { ( _hdIannotatedTree,_hdIexpandedStars,_hdIoriginalTree) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              (:) _hdIannotatedTree _tlIannotatedTree
-                             {-# LINE 1190 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 1178 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 1195 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 1183 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                (:) _hdIexpandedStars _tlIexpandedStars
-                               {-# LINE 1200 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 1188 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 1205 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 1193 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  (:) _hdIoriginalTree _tlIoriginalTree
-                                 {-# LINE 1210 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 1198 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 1215 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 1203 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -1220,32 +1208,32 @@ sem_CaseScalarExprListScalarExprPairList_Nil  =
     (\ _lhsIcat ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  []
-                 {-# LINE 1224 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 1212 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 1229 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 1217 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    []
-                   {-# LINE 1234 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 1222 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _expandedStars ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _expandedStars
-                    {-# LINE 1239 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 1227 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOexpandedStars ->
              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      []
-                     {-# LINE 1244 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 1232 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _originalTree ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _originalTree
-                      {-# LINE 1249 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 1237 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }))
@@ -1331,17 +1319,17 @@ sem_Constraint_CheckConstraint ann_ name_ expr_  =
     (\ _lhsIcat ->
          (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  error "missing rule: Constraint.CheckConstraint.expr.downEnv"
-                 {-# LINE 1335 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 1323 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _exprOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 1340 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 1328 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _exprOcat ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    error "missing rule: Constraint.CheckConstraint.ann.tpe"
-                   {-# LINE 1345 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 1333 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (expr_ _exprOcat _exprOdownEnv ) of
@@ -1350,39 +1338,39 @@ sem_Constraint_CheckConstraint ann_ name_ expr_  =
                   { ( _annIoriginalTree,ann_1) ->
                       (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIcat
-                              {-# LINE 1354 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 1342 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annOcat ->
                        (case (ann_1 _annOcat _annOtpe ) of
                         { ( _annIannotatedTree,_annIexpandedStars) ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     CheckConstraint _annIannotatedTree name_ _exprIannotatedTree
-                                    {-# LINE 1361 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 1349 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annotatedTree ->
                              (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _annotatedTree
-                                     {-# LINE 1366 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 1354 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _lhsOannotatedTree ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       CheckConstraint _annIexpandedStars name_ _exprIexpandedStars
-                                      {-# LINE 1371 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 1359 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _expandedStars ->
                                (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        _expandedStars
-                                       {-# LINE 1376 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 1364 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _lhsOexpandedStars ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         CheckConstraint _annIoriginalTree name_ _exprIoriginalTree
-                                        {-# LINE 1381 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 1369 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _originalTree ->
                                  (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          _originalTree
-                                         {-# LINE 1386 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 1374 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _lhsOoriginalTree ->
                                   ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -1394,46 +1382,46 @@ sem_Constraint_PrimaryKeyConstraint ann_ name_ x_  =
     (\ _lhsIcat ->
          (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  error "missing rule: Constraint.PrimaryKeyConstraint.ann.tpe"
-                 {-# LINE 1398 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 1386 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annOtpe ->
           (case (ann_ ) of
            { ( _annIoriginalTree,ann_1) ->
                (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        _lhsIcat
-                       {-# LINE 1405 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 1393 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _annOcat ->
                 (case (ann_1 _annOcat _annOtpe ) of
                  { ( _annIannotatedTree,_annIexpandedStars) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              PrimaryKeyConstraint _annIannotatedTree name_ x_
-                             {-# LINE 1412 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 1400 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 1417 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 1405 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                PrimaryKeyConstraint _annIexpandedStars name_ x_
-                               {-# LINE 1422 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 1410 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 1427 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 1415 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  PrimaryKeyConstraint _annIoriginalTree name_ x_
-                                 {-# LINE 1432 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 1420 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 1437 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 1425 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -1447,21 +1435,21 @@ sem_Constraint_ReferenceConstraint :: T_Annotation  ->
                                       T_Constraint 
 sem_Constraint_ReferenceConstraint ann_ name_ atts_ table_ tableAtts_ onUpdate_ onDelete_  =
     (\ _lhsIcat ->
-         (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+         (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                  error "missing rule: Constraint.ReferenceConstraint.table.tpe"
-                 {-# LINE 1453 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 1441 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tableOtpe ->
           (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   error "missing rule: Constraint.ReferenceConstraint.ann.tpe"
-                  {-# LINE 1458 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 1446 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (table_ ) of
             { ( _tableIoriginalTree,table_1) ->
                 (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                         _lhsIcat
-                        {-# LINE 1465 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 1453 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _tableOcat ->
                  (case (table_1 _tableOcat _tableOtpe ) of
@@ -1470,39 +1458,39 @@ sem_Constraint_ReferenceConstraint ann_ name_ atts_ table_ tableAtts_ onUpdate_ 
                        { ( _annIoriginalTree,ann_1) ->
                            (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    _lhsIcat
-                                   {-# LINE 1474 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 1462 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _annOcat ->
                             (case (ann_1 _annOcat _annOtpe ) of
                              { ( _annIannotatedTree,_annIexpandedStars) ->
                                  (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          ReferenceConstraint _annIannotatedTree name_ atts_ _tableIannotatedTree tableAtts_ onUpdate_ onDelete_
-                                         {-# LINE 1481 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 1469 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _annotatedTree ->
                                   (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           _annotatedTree
-                                          {-# LINE 1486 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 1474 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _lhsOannotatedTree ->
                                    (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            ReferenceConstraint _annIexpandedStars name_ atts_ _tableIexpandedStars tableAtts_ onUpdate_ onDelete_
-                                           {-# LINE 1491 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 1479 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _expandedStars ->
                                     (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             _expandedStars
-                                            {-# LINE 1496 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 1484 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _lhsOexpandedStars ->
                                      (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              ReferenceConstraint _annIoriginalTree name_ atts_ _tableIoriginalTree tableAtts_ onUpdate_ onDelete_
-                                             {-# LINE 1501 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 1489 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _originalTree ->
                                       (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                               _originalTree
-                                              {-# LINE 1506 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 1494 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _lhsOoriginalTree ->
                                        ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -1514,46 +1502,46 @@ sem_Constraint_UniqueConstraint ann_ name_ x_  =
     (\ _lhsIcat ->
          (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  error "missing rule: Constraint.UniqueConstraint.ann.tpe"
-                 {-# LINE 1518 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 1506 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annOtpe ->
           (case (ann_ ) of
            { ( _annIoriginalTree,ann_1) ->
                (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        _lhsIcat
-                       {-# LINE 1525 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 1513 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _annOcat ->
                 (case (ann_1 _annOcat _annOtpe ) of
                  { ( _annIannotatedTree,_annIexpandedStars) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              UniqueConstraint _annIannotatedTree name_ x_
-                             {-# LINE 1532 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 1520 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 1537 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 1525 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                UniqueConstraint _annIexpandedStars name_ x_
-                               {-# LINE 1542 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 1530 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 1547 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 1535 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  UniqueConstraint _annIoriginalTree name_ x_
-                                 {-# LINE 1552 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 1540 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 1557 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 1545 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -1604,12 +1592,12 @@ sem_ConstraintList_Cons hd_ tl_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 1608 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 1596 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tlOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 1613 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 1601 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _hdOcat ->
            (case (tl_ _tlOcat ) of
@@ -1618,32 +1606,32 @@ sem_ConstraintList_Cons hd_ tl_  =
                  { ( _hdIannotatedTree,_hdIexpandedStars,_hdIoriginalTree) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              (:) _hdIannotatedTree _tlIannotatedTree
-                             {-# LINE 1622 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 1610 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 1627 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 1615 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                (:) _hdIexpandedStars _tlIexpandedStars
-                               {-# LINE 1632 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 1620 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 1637 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 1625 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  (:) _hdIoriginalTree _tlIoriginalTree
-                                 {-# LINE 1642 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 1630 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 1647 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 1635 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -1652,32 +1640,32 @@ sem_ConstraintList_Nil  =
     (\ _lhsIcat ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  []
-                 {-# LINE 1656 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 1644 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 1661 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 1649 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    []
-                   {-# LINE 1666 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 1654 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _expandedStars ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _expandedStars
-                    {-# LINE 1671 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 1659 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOexpandedStars ->
              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      []
-                     {-# LINE 1676 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 1664 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _originalTree ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _originalTree
-                      {-# LINE 1681 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 1669 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }))
@@ -1734,12 +1722,12 @@ sem_FnBody_PlpgsqlFnBody ann_ blk_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 1738 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 1726 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _blkOcat ->
           (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   error "missing rule: FnBody.PlpgsqlFnBody.ann.tpe"
-                  {-# LINE 1743 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 1731 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (blk_ _blkOcat ) of
@@ -1748,39 +1736,39 @@ sem_FnBody_PlpgsqlFnBody ann_ blk_  =
                  { ( _annIoriginalTree,ann_1) ->
                      (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              _lhsIcat
-                             {-# LINE 1752 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 1740 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annOcat ->
                       (case (ann_1 _annOcat _annOtpe ) of
                        { ( _annIannotatedTree,_annIexpandedStars) ->
                            (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    PlpgsqlFnBody _annIannotatedTree _blkIannotatedTree
-                                   {-# LINE 1759 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 1747 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _annotatedTree ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _annotatedTree
-                                    {-# LINE 1764 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 1752 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOannotatedTree ->
                              (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      PlpgsqlFnBody _annIexpandedStars _blkIexpandedStars
-                                     {-# LINE 1769 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 1757 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _expandedStars ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       _expandedStars
-                                      {-# LINE 1774 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 1762 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _lhsOexpandedStars ->
                                (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        PlpgsqlFnBody _annIoriginalTree _blkIoriginalTree
-                                       {-# LINE 1779 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 1767 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _originalTree ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         _originalTree
-                                        {-# LINE 1784 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 1772 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOoriginalTree ->
                                  ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -1791,12 +1779,12 @@ sem_FnBody_SqlFnBody ann_ sts_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 1795 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 1783 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _stsOcat ->
           (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   error "missing rule: FnBody.SqlFnBody.ann.tpe"
-                  {-# LINE 1800 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 1788 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (sts_ _stsOcat ) of
@@ -1805,39 +1793,39 @@ sem_FnBody_SqlFnBody ann_ sts_  =
                  { ( _annIoriginalTree,ann_1) ->
                      (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              _lhsIcat
-                             {-# LINE 1809 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 1797 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annOcat ->
                       (case (ann_1 _annOcat _annOtpe ) of
                        { ( _annIannotatedTree,_annIexpandedStars) ->
                            (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    SqlFnBody _annIannotatedTree _stsIannotatedTree
-                                   {-# LINE 1816 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 1804 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _annotatedTree ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _annotatedTree
-                                    {-# LINE 1821 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 1809 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOannotatedTree ->
                              (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      SqlFnBody _annIexpandedStars _stsIexpandedStars
-                                     {-# LINE 1826 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 1814 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _expandedStars ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       _expandedStars
-                                      {-# LINE 1831 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 1819 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _lhsOexpandedStars ->
                                (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        SqlFnBody _annIoriginalTree _stsIoriginalTree
-                                       {-# LINE 1836 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 1824 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _originalTree ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         _originalTree
-                                        {-# LINE 1841 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 1829 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOoriginalTree ->
                                  ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -1892,19 +1880,19 @@ sem_InList_InList :: T_Annotation  ->
                      T_InList 
 sem_InList_InList ann_ exprs_  =
     (\ _lhsIcat ->
-         (case (({-# LINE 33 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+         (case (({-# LINE 35 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  error "missing rule: InList.InList.exprs.downEnv"
-                 {-# LINE 1898 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 1886 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _exprsOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 1903 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 1891 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _exprsOcat ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    error "missing rule: InList.InList.ann.tpe"
-                   {-# LINE 1908 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 1896 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (exprs_ _exprsOcat _exprsOdownEnv ) of
@@ -1913,39 +1901,39 @@ sem_InList_InList ann_ exprs_  =
                   { ( _annIoriginalTree,ann_1) ->
                       (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIcat
-                              {-# LINE 1917 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 1905 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annOcat ->
                        (case (ann_1 _annOcat _annOtpe ) of
                         { ( _annIannotatedTree,_annIexpandedStars) ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     InList _annIannotatedTree _exprsIannotatedTree
-                                    {-# LINE 1924 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 1912 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annotatedTree ->
                              (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _annotatedTree
-                                     {-# LINE 1929 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 1917 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _lhsOannotatedTree ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       InList _annIexpandedStars _exprsIexpandedStars
-                                      {-# LINE 1934 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 1922 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _expandedStars ->
                                (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        _expandedStars
-                                       {-# LINE 1939 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 1927 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _lhsOexpandedStars ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         InList _annIoriginalTree _exprsIoriginalTree
-                                        {-# LINE 1944 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 1932 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _originalTree ->
                                  (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          _originalTree
-                                         {-# LINE 1949 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 1937 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _lhsOoriginalTree ->
                                   ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -1956,12 +1944,12 @@ sem_InList_InQueryExpr ann_ sel_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 1960 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 1948 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _selOcat ->
           (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   error "missing rule: InList.InQueryExpr.ann.tpe"
-                  {-# LINE 1965 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 1953 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (sel_ _selOcat ) of
@@ -1970,39 +1958,39 @@ sem_InList_InQueryExpr ann_ sel_  =
                  { ( _annIoriginalTree,ann_1) ->
                      (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              _lhsIcat
-                             {-# LINE 1974 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 1962 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annOcat ->
                       (case (ann_1 _annOcat _annOtpe ) of
                        { ( _annIannotatedTree,_annIexpandedStars) ->
                            (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    InQueryExpr _annIannotatedTree _selIannotatedTree
-                                   {-# LINE 1981 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 1969 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _annotatedTree ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _annotatedTree
-                                    {-# LINE 1986 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 1974 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOannotatedTree ->
                              (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      InQueryExpr _annIexpandedStars _selIexpandedStars
-                                     {-# LINE 1991 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 1979 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _expandedStars ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       _expandedStars
-                                      {-# LINE 1996 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 1984 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _lhsOexpandedStars ->
                                (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        InQueryExpr _annIoriginalTree _selIoriginalTree
-                                       {-# LINE 2001 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 1989 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _originalTree ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         _originalTree
-                                        {-# LINE 2006 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 1994 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOoriginalTree ->
                                  ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -2059,17 +2047,17 @@ sem_JoinExpr_JoinOn ann_ expr_  =
     (\ _lhsIcat ->
          (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  error "missing rule: JoinExpr.JoinOn.expr.downEnv"
-                 {-# LINE 2063 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 2051 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _exprOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 2068 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 2056 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _exprOcat ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    error "missing rule: JoinExpr.JoinOn.ann.tpe"
-                   {-# LINE 2073 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 2061 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (expr_ _exprOcat _exprOdownEnv ) of
@@ -2078,39 +2066,39 @@ sem_JoinExpr_JoinOn ann_ expr_  =
                   { ( _annIoriginalTree,ann_1) ->
                       (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIcat
-                              {-# LINE 2082 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 2070 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annOcat ->
                        (case (ann_1 _annOcat _annOtpe ) of
                         { ( _annIannotatedTree,_annIexpandedStars) ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     JoinOn _annIannotatedTree _exprIannotatedTree
-                                    {-# LINE 2089 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 2077 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annotatedTree ->
                              (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _annotatedTree
-                                     {-# LINE 2094 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 2082 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _lhsOannotatedTree ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       JoinOn _annIexpandedStars _exprIexpandedStars
-                                      {-# LINE 2099 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 2087 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _expandedStars ->
                                (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        _expandedStars
-                                       {-# LINE 2104 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 2092 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _lhsOexpandedStars ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         JoinOn _annIoriginalTree _exprIoriginalTree
-                                        {-# LINE 2109 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 2097 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _originalTree ->
                                  (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          _originalTree
-                                         {-# LINE 2114 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 2102 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _lhsOoriginalTree ->
                                   ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -2121,46 +2109,46 @@ sem_JoinExpr_JoinUsing ann_ x_  =
     (\ _lhsIcat ->
          (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  error "missing rule: JoinExpr.JoinUsing.ann.tpe"
-                 {-# LINE 2125 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 2113 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annOtpe ->
           (case (ann_ ) of
            { ( _annIoriginalTree,ann_1) ->
                (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        _lhsIcat
-                       {-# LINE 2132 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 2120 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _annOcat ->
                 (case (ann_1 _annOcat _annOtpe ) of
                  { ( _annIannotatedTree,_annIexpandedStars) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              JoinUsing _annIannotatedTree x_
-                             {-# LINE 2139 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 2127 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 2144 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 2132 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                JoinUsing _annIexpandedStars x_
-                               {-# LINE 2149 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 2137 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 2154 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 2142 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  JoinUsing _annIoriginalTree x_
-                                 {-# LINE 2159 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 2147 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 2164 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 2152 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -2211,44 +2199,44 @@ sem_MaybeBoolExpr_Just just_  =
     (\ _lhsIcat ->
          (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  error "missing rule: MaybeBoolExpr.Just.just.downEnv"
-                 {-# LINE 2215 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 2203 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _justOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 2220 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 2208 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _justOcat ->
            (case (just_ _justOcat _justOdownEnv ) of
             { ( _justIannotatedTree,_justIexpandedStars,_justIoriginalTree,_justIupType) ->
                 (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                         Just _justIannotatedTree
-                        {-# LINE 2227 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 2215 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annotatedTree ->
                  (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                          _annotatedTree
-                         {-# LINE 2232 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 2220 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _lhsOannotatedTree ->
                   (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                           Just _justIexpandedStars
-                          {-# LINE 2237 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                          {-# LINE 2225 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                           )) of
                    { _expandedStars ->
                    (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                            _expandedStars
-                           {-# LINE 2242 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                           {-# LINE 2230 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                            )) of
                     { _lhsOexpandedStars ->
                     (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                             Just _justIoriginalTree
-                            {-# LINE 2247 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                            {-# LINE 2235 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                             )) of
                      { _originalTree ->
                      (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              _originalTree
-                             {-# LINE 2252 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 2240 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _lhsOoriginalTree ->
                       ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }))
@@ -2257,32 +2245,32 @@ sem_MaybeBoolExpr_Nothing  =
     (\ _lhsIcat ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  Nothing
-                 {-# LINE 2261 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 2249 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 2266 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 2254 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    Nothing
-                   {-# LINE 2271 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 2259 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _expandedStars ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _expandedStars
-                    {-# LINE 2276 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 2264 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOexpandedStars ->
              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      Nothing
-                     {-# LINE 2281 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 2269 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _originalTree ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _originalTree
-                      {-# LINE 2286 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 2274 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }))
@@ -2365,44 +2353,44 @@ sem_MaybeScalarExpr_Just just_  =
     (\ _lhsIcat ->
          (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  error "missing rule: MaybeScalarExpr.Just.just.downEnv"
-                 {-# LINE 2369 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 2357 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _justOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 2374 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 2362 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _justOcat ->
            (case (just_ _justOcat _justOdownEnv ) of
             { ( _justIannotatedTree,_justIexpandedStars,_justIoriginalTree,_justIupType) ->
                 (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                         Just _justIannotatedTree
-                        {-# LINE 2381 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 2369 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annotatedTree ->
                  (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                          _annotatedTree
-                         {-# LINE 2386 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 2374 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _lhsOannotatedTree ->
                   (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                           Just _justIexpandedStars
-                          {-# LINE 2391 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                          {-# LINE 2379 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                           )) of
                    { _expandedStars ->
                    (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                            _expandedStars
-                           {-# LINE 2396 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                           {-# LINE 2384 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                            )) of
                     { _lhsOexpandedStars ->
                     (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                             Just _justIoriginalTree
-                            {-# LINE 2401 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                            {-# LINE 2389 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                             )) of
                      { _originalTree ->
                      (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              _originalTree
-                             {-# LINE 2406 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 2394 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _lhsOoriginalTree ->
                       ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }))
@@ -2411,32 +2399,32 @@ sem_MaybeScalarExpr_Nothing  =
     (\ _lhsIcat ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  Nothing
-                 {-# LINE 2415 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 2403 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 2420 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 2408 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    Nothing
-                   {-# LINE 2425 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 2413 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _expandedStars ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _expandedStars
-                    {-# LINE 2430 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 2418 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOexpandedStars ->
              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      Nothing
-                     {-# LINE 2435 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 2423 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _originalTree ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _originalTree
-                      {-# LINE 2440 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 2428 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }))
@@ -2485,46 +2473,46 @@ sem_MaybeSelectList_Just :: T_SelectList  ->
                             T_MaybeSelectList 
 sem_MaybeSelectList_Just just_  =
     (\ _lhsIcat ->
-         (case (({-# LINE 3 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
+         (case (({-# LINE 6 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
                  error "missing rule: MaybeSelectList.Just.just.downEnv"
-                 {-# LINE 2491 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 2479 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _justOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 2496 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 2484 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _justOcat ->
            (case (just_ _justOcat _justOdownEnv ) of
             { ( _justIannotatedTree,_justIexpandedStars,_justIoriginalTree,_justIupType) ->
                 (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                         Just _justIannotatedTree
-                        {-# LINE 2503 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 2491 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annotatedTree ->
                  (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                          _annotatedTree
-                         {-# LINE 2508 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 2496 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _lhsOannotatedTree ->
                   (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                           Just _justIexpandedStars
-                          {-# LINE 2513 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                          {-# LINE 2501 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                           )) of
                    { _expandedStars ->
                    (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                            _expandedStars
-                           {-# LINE 2518 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                           {-# LINE 2506 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                            )) of
                     { _lhsOexpandedStars ->
                     (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                             Just _justIoriginalTree
-                            {-# LINE 2523 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                            {-# LINE 2511 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                             )) of
                      { _originalTree ->
                      (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              _originalTree
-                             {-# LINE 2528 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 2516 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _lhsOoriginalTree ->
                       ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }))
@@ -2533,32 +2521,32 @@ sem_MaybeSelectList_Nothing  =
     (\ _lhsIcat ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  Nothing
-                 {-# LINE 2537 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 2525 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 2542 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 2530 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    Nothing
-                   {-# LINE 2547 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 2535 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _expandedStars ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _expandedStars
-                    {-# LINE 2552 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 2540 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOexpandedStars ->
              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      Nothing
-                     {-# LINE 2557 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 2545 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _originalTree ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _originalTree
-                      {-# LINE 2562 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 2550 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }))
@@ -2613,12 +2601,12 @@ sem_Name_Name ann_ is_  =
      { ( _annIoriginalTree,ann_1) ->
          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  Name _annIoriginalTree is_
-                 {-# LINE 2617 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 2605 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _originalTree ->
           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _originalTree
-                  {-# LINE 2622 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 2610 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOoriginalTree ->
            (case ((let sem_Name_Name_1 :: T_Name_1 
@@ -2627,34 +2615,34 @@ sem_Name_Name ann_ is_  =
                               _lhsItpe ->
                                 (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         _lhsItpe
-                                        {-# LINE 2631 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 2619 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _annOtpe ->
                                  (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          _lhsIcat
-                                         {-# LINE 2636 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 2624 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _annOcat ->
                                   (case (ann_1 _annOcat _annOtpe ) of
                                    { ( _annIannotatedTree,_annIexpandedStars) ->
                                        (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                Name _annIannotatedTree is_
-                                               {-# LINE 2643 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 2631 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _annotatedTree ->
                                         (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 _annotatedTree
-                                                {-# LINE 2648 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 2636 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _lhsOannotatedTree ->
                                          (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                  Name _annIexpandedStars is_
-                                                 {-# LINE 2653 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                 {-# LINE 2641 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                  )) of
                                           { _expandedStars ->
                                           (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                   _expandedStars
-                                                  {-# LINE 2658 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                  {-# LINE 2646 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                   )) of
                                            { _lhsOexpandedStars ->
                                            ( _lhsOannotatedTree,_lhsOexpandedStars) }) }) }) }) }) }) }))
@@ -2735,12 +2723,12 @@ sem_NameTypeNameListPair_Tuple x1_ x2_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 2739 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 2727 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _x2Ocat ->
-          (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+          (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                   error "missing rule: NameTypeNameListPair.Tuple.x1.tpe"
-                  {-# LINE 2744 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 2732 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _x1Otpe ->
            (case (x2_ _x2Ocat ) of
@@ -2749,39 +2737,39 @@ sem_NameTypeNameListPair_Tuple x1_ x2_  =
                  { ( _x1IoriginalTree,x1_1) ->
                      (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              _lhsIcat
-                             {-# LINE 2753 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 2741 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _x1Ocat ->
                       (case (x1_1 _x1Ocat _x1Otpe ) of
                        { ( _x1IannotatedTree,_x1IexpandedStars) ->
                            (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    (_x1IannotatedTree,_x2IannotatedTree)
-                                   {-# LINE 2760 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 2748 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _annotatedTree ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _annotatedTree
-                                    {-# LINE 2765 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 2753 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOannotatedTree ->
                              (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      (_x1IexpandedStars,_x2IexpandedStars)
-                                     {-# LINE 2770 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 2758 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _expandedStars ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       _expandedStars
-                                      {-# LINE 2775 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 2763 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _lhsOexpandedStars ->
                                (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        (_x1IoriginalTree,_x2IoriginalTree)
-                                       {-# LINE 2780 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 2768 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _originalTree ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         _originalTree
-                                        {-# LINE 2785 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 2773 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOoriginalTree ->
                                  ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -2832,12 +2820,12 @@ sem_NameTypeNameListPairList_Cons hd_ tl_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 2836 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 2824 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tlOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 2841 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 2829 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _hdOcat ->
            (case (tl_ _tlOcat ) of
@@ -2846,32 +2834,32 @@ sem_NameTypeNameListPairList_Cons hd_ tl_  =
                  { ( _hdIannotatedTree,_hdIexpandedStars,_hdIoriginalTree) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              (:) _hdIannotatedTree _tlIannotatedTree
-                             {-# LINE 2850 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 2838 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 2855 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 2843 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                (:) _hdIexpandedStars _tlIexpandedStars
-                               {-# LINE 2860 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 2848 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 2865 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 2853 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  (:) _hdIoriginalTree _tlIoriginalTree
-                                 {-# LINE 2870 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 2858 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 2875 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 2863 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -2880,32 +2868,32 @@ sem_NameTypeNameListPairList_Nil  =
     (\ _lhsIcat ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  []
-                 {-# LINE 2884 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 2872 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 2889 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 2877 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    []
-                   {-# LINE 2894 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 2882 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _expandedStars ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _expandedStars
-                    {-# LINE 2899 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 2887 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOexpandedStars ->
              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      []
-                     {-# LINE 2904 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 2892 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _originalTree ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _originalTree
-                      {-# LINE 2909 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 2897 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }))
@@ -2956,39 +2944,39 @@ sem_OnExpr_Just just_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 2960 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 2948 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _justOcat ->
           (case (just_ _justOcat ) of
            { ( _justIannotatedTree,_justIexpandedStars,_justIoriginalTree) ->
                (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        Just _justIannotatedTree
-                       {-# LINE 2967 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 2955 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _annotatedTree ->
                 (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                         _annotatedTree
-                        {-# LINE 2972 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 2960 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _lhsOannotatedTree ->
                  (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                          Just _justIexpandedStars
-                         {-# LINE 2977 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 2965 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _expandedStars ->
                   (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                           _expandedStars
-                          {-# LINE 2982 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                          {-# LINE 2970 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                           )) of
                    { _lhsOexpandedStars ->
                    (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                            Just _justIoriginalTree
-                           {-# LINE 2987 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                           {-# LINE 2975 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                            )) of
                     { _originalTree ->
                     (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                             _originalTree
-                            {-# LINE 2992 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                            {-# LINE 2980 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                             )) of
                      { _lhsOoriginalTree ->
                      ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }))
@@ -2997,32 +2985,32 @@ sem_OnExpr_Nothing  =
     (\ _lhsIcat ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  Nothing
-                 {-# LINE 3001 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 2989 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3006 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 2994 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    Nothing
-                   {-# LINE 3011 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 2999 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _expandedStars ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _expandedStars
-                    {-# LINE 3016 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 3004 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOexpandedStars ->
              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      Nothing
-                     {-# LINE 3021 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 3009 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _originalTree ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _originalTree
-                      {-# LINE 3026 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 3014 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }))
@@ -3081,12 +3069,12 @@ sem_ParamDef_ParamDef ann_ name_ typ_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 3085 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 3073 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _typOcat ->
           (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   error "missing rule: ParamDef.ParamDef.ann.tpe"
-                  {-# LINE 3090 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 3078 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (typ_ _typOcat ) of
@@ -3095,39 +3083,39 @@ sem_ParamDef_ParamDef ann_ name_ typ_  =
                  { ( _annIoriginalTree,ann_1) ->
                      (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              _lhsIcat
-                             {-# LINE 3099 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 3087 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annOcat ->
                       (case (ann_1 _annOcat _annOtpe ) of
                        { ( _annIannotatedTree,_annIexpandedStars) ->
                            (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    ParamDef _annIannotatedTree name_ _typIannotatedTree
-                                   {-# LINE 3106 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 3094 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _annotatedTree ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _annotatedTree
-                                    {-# LINE 3111 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 3099 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOannotatedTree ->
                              (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      ParamDef _annIexpandedStars name_ _typIexpandedStars
-                                     {-# LINE 3116 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 3104 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _expandedStars ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       _expandedStars
-                                      {-# LINE 3121 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 3109 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _lhsOexpandedStars ->
                                (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        ParamDef _annIoriginalTree name_ _typIoriginalTree
-                                       {-# LINE 3126 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 3114 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _originalTree ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         _originalTree
-                                        {-# LINE 3131 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 3119 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOoriginalTree ->
                                  ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -3138,12 +3126,12 @@ sem_ParamDef_ParamDefTp ann_ typ_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 3142 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 3130 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _typOcat ->
           (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   error "missing rule: ParamDef.ParamDefTp.ann.tpe"
-                  {-# LINE 3147 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 3135 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (typ_ _typOcat ) of
@@ -3152,39 +3140,39 @@ sem_ParamDef_ParamDefTp ann_ typ_  =
                  { ( _annIoriginalTree,ann_1) ->
                      (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              _lhsIcat
-                             {-# LINE 3156 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 3144 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annOcat ->
                       (case (ann_1 _annOcat _annOtpe ) of
                        { ( _annIannotatedTree,_annIexpandedStars) ->
                            (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    ParamDefTp _annIannotatedTree _typIannotatedTree
-                                   {-# LINE 3163 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 3151 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _annotatedTree ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _annotatedTree
-                                    {-# LINE 3168 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 3156 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOannotatedTree ->
                              (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      ParamDefTp _annIexpandedStars _typIexpandedStars
-                                     {-# LINE 3173 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 3161 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _expandedStars ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       _expandedStars
-                                      {-# LINE 3178 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 3166 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _lhsOexpandedStars ->
                                (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        ParamDefTp _annIoriginalTree _typIoriginalTree
-                                       {-# LINE 3183 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 3171 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _originalTree ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         _originalTree
-                                        {-# LINE 3188 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 3176 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOoriginalTree ->
                                  ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -3235,12 +3223,12 @@ sem_ParamDefList_Cons hd_ tl_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 3239 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 3227 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tlOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 3244 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 3232 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _hdOcat ->
            (case (tl_ _tlOcat ) of
@@ -3249,32 +3237,32 @@ sem_ParamDefList_Cons hd_ tl_  =
                  { ( _hdIannotatedTree,_hdIexpandedStars,_hdIoriginalTree) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              (:) _hdIannotatedTree _tlIannotatedTree
-                             {-# LINE 3253 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 3241 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 3258 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 3246 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                (:) _hdIexpandedStars _tlIexpandedStars
-                               {-# LINE 3263 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 3251 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 3268 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 3256 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  (:) _hdIoriginalTree _tlIoriginalTree
-                                 {-# LINE 3273 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 3261 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 3278 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 3266 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -3283,32 +3271,32 @@ sem_ParamDefList_Nil  =
     (\ _lhsIcat ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  []
-                 {-# LINE 3287 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 3275 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 3292 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 3280 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    []
-                   {-# LINE 3297 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 3285 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _expandedStars ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _expandedStars
-                    {-# LINE 3302 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 3290 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOexpandedStars ->
              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      []
-                     {-# LINE 3307 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 3295 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _originalTree ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _originalTree
-                      {-# LINE 3312 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 3300 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }))
@@ -3403,22 +3391,22 @@ sem_QueryExpr_CombineQueryExpr ann_ ctype_ sel1_ sel2_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 3407 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 3395 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _sel2Ocat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 3412 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 3400 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _sel1Ocat ->
-           (case (({-# LINE 33 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag" #-}
+           (case (({-# LINE 39 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag" #-}
                    Left []
-                   {-# LINE 3417 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 3405 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _tpe ->
             (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _tpe
-                    {-# LINE 3422 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 3410 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _annOtpe ->
              (case (sel2_ _sel2Ocat ) of
@@ -3429,44 +3417,44 @@ sem_QueryExpr_CombineQueryExpr ann_ ctype_ sel1_ sel2_  =
                         { ( _annIoriginalTree,ann_1) ->
                             (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _lhsIcat
-                                    {-# LINE 3433 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 3421 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annOcat ->
                              (case (ann_1 _annOcat _annOtpe ) of
                               { ( _annIannotatedTree,_annIexpandedStars) ->
                                   (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           CombineQueryExpr _annIannotatedTree ctype_ _sel1IannotatedTree _sel2IannotatedTree
-                                          {-# LINE 3440 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 3428 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _annotatedTree ->
                                    (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            _annotatedTree
-                                           {-# LINE 3445 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 3433 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _lhsOannotatedTree ->
                                     (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             CombineQueryExpr _annIexpandedStars ctype_ _sel1IexpandedStars _sel2IexpandedStars
-                                            {-# LINE 3450 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 3438 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _expandedStars ->
                                      (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              _expandedStars
-                                             {-# LINE 3455 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 3443 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _lhsOexpandedStars ->
                                       (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                               CombineQueryExpr _annIoriginalTree ctype_ _sel1IoriginalTree _sel2IoriginalTree
-                                              {-# LINE 3460 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 3448 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _originalTree ->
                                        (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                _originalTree
-                                               {-# LINE 3465 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 3453 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _lhsOoriginalTree ->
                                         (case (({-# LINE 18 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag" #-}
                                                 _sel2IupType
-                                                {-# LINE 3470 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 3458 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _lhsOupType ->
                                          ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -3485,66 +3473,66 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 3489 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 3477 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _selOffsetOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 3494 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 3482 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _selLimitOcat ->
            (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    _lhsIcat
-                   {-# LINE 3499 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 3487 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _selOrderByOcat ->
             (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _lhsIcat
-                    {-# LINE 3504 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 3492 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _selHavingOcat ->
-             (case (({-# LINE 33 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+             (case (({-# LINE 35 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                      error "missing rule: QueryExpr.Select.selGroupBy.downEnv"
-                     {-# LINE 3509 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 3497 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _selGroupByOdownEnv ->
               (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _lhsIcat
-                      {-# LINE 3514 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 3502 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _selGroupByOcat ->
                (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        _lhsIcat
-                       {-# LINE 3519 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 3507 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _selWhereOcat ->
                 (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                         _lhsIcat
-                        {-# LINE 3524 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 3512 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _selTrefOcat ->
                  (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                          _lhsIcat
-                         {-# LINE 3529 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 3517 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _selSelectListOcat ->
                   (case (selTref_ _selTrefOcat ) of
                    { ( _selTrefIannotatedTree,_selTrefIexpandedStars,_selTrefIoriginalTree,_selTrefIupEnv) ->
                        (case (({-# LINE 21 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag" #-}
                                _selTrefIupEnv
-                               {-# LINE 3536 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 3524 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _selSelectListOdownEnv ->
                         (case (selSelectList_ _selSelectListOcat _selSelectListOdownEnv ) of
                          { ( _selSelectListIannotatedTree,_selSelectListIexpandedStars,_selSelectListIoriginalTree,_selSelectListIupType) ->
-                             (case (({-# LINE 23 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag" #-}
+                             (case (({-# LINE 24 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag" #-}
                                      maybe (Left []) (Right . CompositeType) _selSelectListIupType
-                                     {-# LINE 3543 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 3531 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _tpe ->
                               (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       _tpe
-                                      {-# LINE 3548 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 3536 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _annOtpe ->
                                (case (selOffset_ _selOffsetOcat ) of
@@ -3563,44 +3551,44 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
                                                               { ( _annIoriginalTree,ann_1) ->
                                                                   (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                                           _lhsIcat
-                                                                          {-# LINE 3567 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                                          {-# LINE 3555 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                                           )) of
                                                                    { _annOcat ->
                                                                    (case (ann_1 _annOcat _annOtpe ) of
                                                                     { ( _annIannotatedTree,_annIexpandedStars) ->
                                                                         (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                                                 Select _annIannotatedTree selDistinct_ _selSelectListIannotatedTree _selTrefIannotatedTree _selWhereIannotatedTree _selGroupByIannotatedTree _selHavingIannotatedTree _selOrderByIannotatedTree _selLimitIannotatedTree _selOffsetIannotatedTree
-                                                                                {-# LINE 3574 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                                                {-# LINE 3562 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                                                 )) of
                                                                          { _annotatedTree ->
                                                                          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                                                  _annotatedTree
-                                                                                 {-# LINE 3579 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                                                 {-# LINE 3567 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                                                  )) of
                                                                           { _lhsOannotatedTree ->
                                                                           (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                                                   Select _annIexpandedStars selDistinct_ _selSelectListIexpandedStars _selTrefIexpandedStars _selWhereIexpandedStars _selGroupByIexpandedStars _selHavingIexpandedStars _selOrderByIexpandedStars _selLimitIexpandedStars _selOffsetIexpandedStars
-                                                                                  {-# LINE 3584 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                                                  {-# LINE 3572 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                                                   )) of
                                                                            { _expandedStars ->
                                                                            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                                                    _expandedStars
-                                                                                   {-# LINE 3589 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                                                   {-# LINE 3577 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                                                    )) of
                                                                             { _lhsOexpandedStars ->
                                                                             (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                                                     Select _annIoriginalTree selDistinct_ _selSelectListIoriginalTree _selTrefIoriginalTree _selWhereIoriginalTree _selGroupByIoriginalTree _selHavingIoriginalTree _selOrderByIoriginalTree _selLimitIoriginalTree _selOffsetIoriginalTree
-                                                                                    {-# LINE 3594 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                                                    {-# LINE 3582 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                                                     )) of
                                                                              { _originalTree ->
                                                                              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                                                      _originalTree
-                                                                                     {-# LINE 3599 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                                                     {-# LINE 3587 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                                                      )) of
                                                                               { _lhsOoriginalTree ->
-                                                                              (case (({-# LINE 22 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag" #-}
+                                                                              (case (({-# LINE 29 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag" #-}
                                                                                       _selSelectListIupType
-                                                                                      {-# LINE 3604 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                                                      {-# LINE 3592 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                                                       )) of
                                                                                { _lhsOupType ->
                                                                                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -3611,17 +3599,17 @@ sem_QueryExpr_Values ann_ vll_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 3615 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 3603 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _vllOcat ->
-          (case (({-# LINE 33 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag" #-}
+          (case (({-# LINE 39 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag" #-}
                   Left []
-                  {-# LINE 3620 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 3608 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _tpe ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    _tpe
-                   {-# LINE 3625 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 3613 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (vll_ _vllOcat ) of
@@ -3630,44 +3618,44 @@ sem_QueryExpr_Values ann_ vll_  =
                   { ( _annIoriginalTree,ann_1) ->
                       (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIcat
-                              {-# LINE 3634 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 3622 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annOcat ->
                        (case (ann_1 _annOcat _annOtpe ) of
                         { ( _annIannotatedTree,_annIexpandedStars) ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     Values _annIannotatedTree _vllIannotatedTree
-                                    {-# LINE 3641 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 3629 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annotatedTree ->
                              (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _annotatedTree
-                                     {-# LINE 3646 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 3634 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _lhsOannotatedTree ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       Values _annIexpandedStars _vllIexpandedStars
-                                      {-# LINE 3651 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 3639 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _expandedStars ->
                                (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        _expandedStars
-                                       {-# LINE 3656 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 3644 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _lhsOexpandedStars ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         Values _annIoriginalTree _vllIoriginalTree
-                                        {-# LINE 3661 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 3649 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _originalTree ->
                                  (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          _originalTree
-                                         {-# LINE 3666 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 3654 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _lhsOoriginalTree ->
                                   (case (({-# LINE 18 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag" #-}
                                           error "missing rule: QueryExpr.Values.lhs.upType"
-                                          {-# LINE 3671 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 3659 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _lhsOupType ->
                                    ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -3679,22 +3667,22 @@ sem_QueryExpr_WithQueryExpr ann_ withs_ ex_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 3683 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 3671 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _exOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 3688 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 3676 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _withsOcat ->
-           (case (({-# LINE 33 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag" #-}
+           (case (({-# LINE 39 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag" #-}
                    Left []
-                   {-# LINE 3693 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 3681 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _tpe ->
             (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _tpe
-                    {-# LINE 3698 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 3686 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _annOtpe ->
              (case (ex_ _exOcat ) of
@@ -3705,44 +3693,44 @@ sem_QueryExpr_WithQueryExpr ann_ withs_ ex_  =
                         { ( _annIoriginalTree,ann_1) ->
                             (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _lhsIcat
-                                    {-# LINE 3709 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 3697 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annOcat ->
                              (case (ann_1 _annOcat _annOtpe ) of
                               { ( _annIannotatedTree,_annIexpandedStars) ->
                                   (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           WithQueryExpr _annIannotatedTree _withsIannotatedTree _exIannotatedTree
-                                          {-# LINE 3716 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 3704 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _annotatedTree ->
                                    (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            _annotatedTree
-                                           {-# LINE 3721 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 3709 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _lhsOannotatedTree ->
                                     (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             WithQueryExpr _annIexpandedStars _withsIexpandedStars _exIexpandedStars
-                                            {-# LINE 3726 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 3714 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _expandedStars ->
                                      (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              _expandedStars
-                                             {-# LINE 3731 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 3719 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _lhsOexpandedStars ->
                                       (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                               WithQueryExpr _annIoriginalTree _withsIoriginalTree _exIoriginalTree
-                                              {-# LINE 3736 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 3724 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _originalTree ->
                                        (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                _originalTree
-                                               {-# LINE 3741 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 3729 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _lhsOoriginalTree ->
                                         (case (({-# LINE 18 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag" #-}
                                                 _exIupType
-                                                {-# LINE 3746 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 3734 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _lhsOupType ->
                                          ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -3787,39 +3775,39 @@ sem_Root_Root statements_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 3791 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 3779 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _statementsOcat ->
           (case (statements_ _statementsOcat ) of
            { ( _statementsIannotatedTree,_statementsIexpandedStars,_statementsIoriginalTree) ->
                (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        Root _statementsIannotatedTree
-                       {-# LINE 3798 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 3786 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _annotatedTree ->
                 (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                         _annotatedTree
-                        {-# LINE 3803 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 3791 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _lhsOannotatedTree ->
                  (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                          Root _statementsIexpandedStars
-                         {-# LINE 3808 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 3796 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _expandedStars ->
                   (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                           _expandedStars
-                          {-# LINE 3813 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                          {-# LINE 3801 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                           )) of
                    { _lhsOexpandedStars ->
                    (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                            Root _statementsIoriginalTree
-                           {-# LINE 3818 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                           {-# LINE 3806 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                            )) of
                     { _originalTree ->
                     (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                             _originalTree
-                            {-# LINE 3823 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                            {-# LINE 3811 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                             )) of
                      { _lhsOoriginalTree ->
                      ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }))
@@ -3921,46 +3909,46 @@ sem_RowConstraint_NotNullConstraint ann_ name_  =
     (\ _lhsIcat ->
          (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  error "missing rule: RowConstraint.NotNullConstraint.ann.tpe"
-                 {-# LINE 3925 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 3913 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annOtpe ->
           (case (ann_ ) of
            { ( _annIoriginalTree,ann_1) ->
                (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        _lhsIcat
-                       {-# LINE 3932 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 3920 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _annOcat ->
                 (case (ann_1 _annOcat _annOtpe ) of
                  { ( _annIannotatedTree,_annIexpandedStars) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              NotNullConstraint _annIannotatedTree name_
-                             {-# LINE 3939 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 3927 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 3944 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 3932 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                NotNullConstraint _annIexpandedStars name_
-                               {-# LINE 3949 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 3937 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 3954 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 3942 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  NotNullConstraint _annIoriginalTree name_
-                                 {-# LINE 3959 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 3947 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 3964 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 3952 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -3971,46 +3959,46 @@ sem_RowConstraint_NullConstraint ann_ name_  =
     (\ _lhsIcat ->
          (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  error "missing rule: RowConstraint.NullConstraint.ann.tpe"
-                 {-# LINE 3975 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 3963 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annOtpe ->
           (case (ann_ ) of
            { ( _annIoriginalTree,ann_1) ->
                (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        _lhsIcat
-                       {-# LINE 3982 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 3970 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _annOcat ->
                 (case (ann_1 _annOcat _annOtpe ) of
                  { ( _annIannotatedTree,_annIexpandedStars) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              NullConstraint _annIannotatedTree name_
-                             {-# LINE 3989 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 3977 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 3994 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 3982 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                NullConstraint _annIexpandedStars name_
-                               {-# LINE 3999 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 3987 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 4004 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 3992 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  NullConstraint _annIoriginalTree name_
-                                 {-# LINE 4009 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 3997 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 4014 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 4002 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -4022,17 +4010,17 @@ sem_RowConstraint_RowCheckConstraint ann_ name_ expr_  =
     (\ _lhsIcat ->
          (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  error "missing rule: RowConstraint.RowCheckConstraint.expr.downEnv"
-                 {-# LINE 4026 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 4014 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _exprOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 4031 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 4019 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _exprOcat ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    error "missing rule: RowConstraint.RowCheckConstraint.ann.tpe"
-                   {-# LINE 4036 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 4024 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (expr_ _exprOcat _exprOdownEnv ) of
@@ -4041,39 +4029,39 @@ sem_RowConstraint_RowCheckConstraint ann_ name_ expr_  =
                   { ( _annIoriginalTree,ann_1) ->
                       (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIcat
-                              {-# LINE 4045 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 4033 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annOcat ->
                        (case (ann_1 _annOcat _annOtpe ) of
                         { ( _annIannotatedTree,_annIexpandedStars) ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     RowCheckConstraint _annIannotatedTree name_ _exprIannotatedTree
-                                    {-# LINE 4052 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 4040 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annotatedTree ->
                              (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _annotatedTree
-                                     {-# LINE 4057 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 4045 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _lhsOannotatedTree ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       RowCheckConstraint _annIexpandedStars name_ _exprIexpandedStars
-                                      {-# LINE 4062 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 4050 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _expandedStars ->
                                (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        _expandedStars
-                                       {-# LINE 4067 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 4055 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _lhsOexpandedStars ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         RowCheckConstraint _annIoriginalTree name_ _exprIoriginalTree
-                                        {-# LINE 4072 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 4060 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _originalTree ->
                                  (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          _originalTree
-                                         {-# LINE 4077 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 4065 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _lhsOoriginalTree ->
                                   ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -4084,46 +4072,46 @@ sem_RowConstraint_RowPrimaryKeyConstraint ann_ name_  =
     (\ _lhsIcat ->
          (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  error "missing rule: RowConstraint.RowPrimaryKeyConstraint.ann.tpe"
-                 {-# LINE 4088 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 4076 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annOtpe ->
           (case (ann_ ) of
            { ( _annIoriginalTree,ann_1) ->
                (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        _lhsIcat
-                       {-# LINE 4095 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 4083 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _annOcat ->
                 (case (ann_1 _annOcat _annOtpe ) of
                  { ( _annIannotatedTree,_annIexpandedStars) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              RowPrimaryKeyConstraint _annIannotatedTree name_
-                             {-# LINE 4102 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 4090 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 4107 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 4095 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                RowPrimaryKeyConstraint _annIexpandedStars name_
-                               {-# LINE 4112 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 4100 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 4117 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 4105 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  RowPrimaryKeyConstraint _annIoriginalTree name_
-                                 {-# LINE 4122 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 4110 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 4127 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 4115 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -4136,21 +4124,21 @@ sem_RowConstraint_RowReferenceConstraint :: T_Annotation  ->
                                             T_RowConstraint 
 sem_RowConstraint_RowReferenceConstraint ann_ name_ table_ att_ onUpdate_ onDelete_  =
     (\ _lhsIcat ->
-         (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+         (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                  error "missing rule: RowConstraint.RowReferenceConstraint.table.tpe"
-                 {-# LINE 4142 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 4130 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tableOtpe ->
           (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   error "missing rule: RowConstraint.RowReferenceConstraint.ann.tpe"
-                  {-# LINE 4147 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 4135 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (table_ ) of
             { ( _tableIoriginalTree,table_1) ->
                 (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                         _lhsIcat
-                        {-# LINE 4154 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 4142 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _tableOcat ->
                  (case (table_1 _tableOcat _tableOtpe ) of
@@ -4159,39 +4147,39 @@ sem_RowConstraint_RowReferenceConstraint ann_ name_ table_ att_ onUpdate_ onDele
                        { ( _annIoriginalTree,ann_1) ->
                            (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    _lhsIcat
-                                   {-# LINE 4163 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 4151 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _annOcat ->
                             (case (ann_1 _annOcat _annOtpe ) of
                              { ( _annIannotatedTree,_annIexpandedStars) ->
                                  (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          RowReferenceConstraint _annIannotatedTree name_ _tableIannotatedTree att_ onUpdate_ onDelete_
-                                         {-# LINE 4170 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 4158 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _annotatedTree ->
                                   (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           _annotatedTree
-                                          {-# LINE 4175 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 4163 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _lhsOannotatedTree ->
                                    (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            RowReferenceConstraint _annIexpandedStars name_ _tableIexpandedStars att_ onUpdate_ onDelete_
-                                           {-# LINE 4180 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 4168 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _expandedStars ->
                                     (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             _expandedStars
-                                            {-# LINE 4185 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 4173 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _lhsOexpandedStars ->
                                      (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              RowReferenceConstraint _annIoriginalTree name_ _tableIoriginalTree att_ onUpdate_ onDelete_
-                                             {-# LINE 4190 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 4178 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _originalTree ->
                                       (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                               _originalTree
-                                              {-# LINE 4195 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 4183 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _lhsOoriginalTree ->
                                        ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -4202,46 +4190,46 @@ sem_RowConstraint_RowUniqueConstraint ann_ name_  =
     (\ _lhsIcat ->
          (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  error "missing rule: RowConstraint.RowUniqueConstraint.ann.tpe"
-                 {-# LINE 4206 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 4194 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annOtpe ->
           (case (ann_ ) of
            { ( _annIoriginalTree,ann_1) ->
                (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        _lhsIcat
-                       {-# LINE 4213 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 4201 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _annOcat ->
                 (case (ann_1 _annOcat _annOtpe ) of
                  { ( _annIannotatedTree,_annIexpandedStars) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              RowUniqueConstraint _annIannotatedTree name_
-                             {-# LINE 4220 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 4208 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 4225 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 4213 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                RowUniqueConstraint _annIexpandedStars name_
-                               {-# LINE 4230 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 4218 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 4235 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 4223 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  RowUniqueConstraint _annIoriginalTree name_
-                                 {-# LINE 4240 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 4228 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 4245 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 4233 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -4292,12 +4280,12 @@ sem_RowConstraintList_Cons hd_ tl_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 4296 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 4284 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tlOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 4301 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 4289 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _hdOcat ->
            (case (tl_ _tlOcat ) of
@@ -4306,32 +4294,32 @@ sem_RowConstraintList_Cons hd_ tl_  =
                  { ( _hdIannotatedTree,_hdIexpandedStars,_hdIoriginalTree) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              (:) _hdIannotatedTree _tlIannotatedTree
-                             {-# LINE 4310 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 4298 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 4315 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 4303 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                (:) _hdIexpandedStars _tlIexpandedStars
-                               {-# LINE 4320 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 4308 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 4325 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 4313 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  (:) _hdIoriginalTree _tlIoriginalTree
-                                 {-# LINE 4330 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 4318 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 4335 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 4323 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -4340,32 +4328,32 @@ sem_RowConstraintList_Nil  =
     (\ _lhsIcat ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  []
-                 {-# LINE 4344 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 4332 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 4349 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 4337 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    []
-                   {-# LINE 4354 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 4342 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _expandedStars ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _expandedStars
-                    {-# LINE 4359 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 4347 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOexpandedStars ->
              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      []
-                     {-# LINE 4364 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 4352 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _originalTree ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _originalTree
-                      {-# LINE 4369 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 4357 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }))
@@ -4731,27 +4719,27 @@ sem_ScalarExpr_AggregateApp ann_ aggDistinct_ fn_ orderBy_  =
        _lhsIdownEnv ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 4735 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 4723 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _orderByOcat ->
           (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                   _lhsIdownEnv
-                  {-# LINE 4740 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 4728 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _fnOdownEnv ->
            (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    _lhsIcat
-                   {-# LINE 4745 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 4733 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _fnOcat ->
-            (case (({-# LINE 141 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+            (case (({-# LINE 147 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                     Left []
-                    {-# LINE 4750 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 4738 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _tpe ->
              (case (({-# LINE 24 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                      _tpe
-                     {-# LINE 4755 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 4743 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _annOtpe ->
               (case (orderBy_ _orderByOcat ) of
@@ -4762,44 +4750,44 @@ sem_ScalarExpr_AggregateApp ann_ aggDistinct_ fn_ orderBy_  =
                          { ( _annIoriginalTree,ann_1) ->
                              (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _lhsIcat
-                                     {-# LINE 4766 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 4754 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _annOcat ->
                               (case (ann_1 _annOcat _annOtpe ) of
                                { ( _annIannotatedTree,_annIexpandedStars) ->
                                    (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            AggregateApp _annIannotatedTree aggDistinct_ _fnIannotatedTree _orderByIannotatedTree
-                                           {-# LINE 4773 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 4761 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _annotatedTree ->
                                     (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             _annotatedTree
-                                            {-# LINE 4778 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 4766 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _lhsOannotatedTree ->
                                      (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              AggregateApp _annIexpandedStars aggDistinct_ _fnIexpandedStars _orderByIexpandedStars
-                                             {-# LINE 4783 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 4771 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _expandedStars ->
                                       (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                               _expandedStars
-                                              {-# LINE 4788 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 4776 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _lhsOexpandedStars ->
                                        (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                AggregateApp _annIoriginalTree aggDistinct_ _fnIoriginalTree _orderByIoriginalTree
-                                               {-# LINE 4793 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 4781 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _originalTree ->
                                         (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 _originalTree
-                                                {-# LINE 4798 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 4786 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _lhsOoriginalTree ->
                                          (case (({-# LINE 25 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                                  either (const Nothing) Just _tpe
-                                                 {-# LINE 4803 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                 {-# LINE 4791 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                  )) of
                                           { _lhsOupType ->
                                           ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -4810,37 +4798,37 @@ sem_ScalarExpr_AntiScalarExpr string_  =
        _lhsIdownEnv ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  AntiScalarExpr string_
-                 {-# LINE 4814 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 4802 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 4819 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 4807 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    AntiScalarExpr string_
-                   {-# LINE 4824 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 4812 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _expandedStars ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _expandedStars
-                    {-# LINE 4829 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 4817 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOexpandedStars ->
              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      AntiScalarExpr string_
-                     {-# LINE 4834 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 4822 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _originalTree ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _originalTree
-                      {-# LINE 4839 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 4827 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
                (case (({-# LINE 29 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                        error "missing rule: ScalarExpr.AntiScalarExpr.lhs.upType"
-                       {-# LINE 4844 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 4832 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _lhsOupType ->
                 ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }))
@@ -4851,42 +4839,42 @@ sem_ScalarExpr_App :: T_Annotation  ->
 sem_ScalarExpr_App ann_ funName_ args_  =
     (\ _lhsIcat
        _lhsIdownEnv ->
-         (case (({-# LINE 33 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+         (case (({-# LINE 35 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  _lhsIdownEnv
-                 {-# LINE 4857 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 4845 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _argsOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 4862 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 4850 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _argsOcat ->
            (case (args_ _argsOcat _argsOdownEnv ) of
             { ( _argsIannotatedTree,_argsIexpandedStars,_argsIoriginalTree,_argsIupTypes) ->
                 (case (funName_ ) of
                  { ( _funNameIoriginalTree,funName_1) ->
-                     (case (({-# LINE 124 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                     (case (({-# LINE 128 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                              do
                              tys <- mapM (maybe (Left []) Right) _argsIupTypes
                              let Name _ ns = _funNameIoriginalTree
                              (_,rt) <- matchApp _lhsIcat ns tys
                              return rt
-                             {-# LINE 4875 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 4863 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _tpe ->
-                      (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+                      (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                               _tpe
-                              {-# LINE 4880 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 4868 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _funNameOtpe ->
                        (case (({-# LINE 24 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                _tpe
-                               {-# LINE 4885 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 4873 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _annOtpe ->
                         (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _lhsIcat
-                                {-# LINE 4890 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 4878 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _funNameOcat ->
                          (case (funName_1 _funNameOcat _funNameOtpe ) of
@@ -4895,44 +4883,44 @@ sem_ScalarExpr_App ann_ funName_ args_  =
                                { ( _annIoriginalTree,ann_1) ->
                                    (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            _lhsIcat
-                                           {-# LINE 4899 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 4887 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _annOcat ->
                                     (case (ann_1 _annOcat _annOtpe ) of
                                      { ( _annIannotatedTree,_annIexpandedStars) ->
                                          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                  App _annIannotatedTree _funNameIannotatedTree _argsIannotatedTree
-                                                 {-# LINE 4906 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                 {-# LINE 4894 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                  )) of
                                           { _annotatedTree ->
                                           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                   _annotatedTree
-                                                  {-# LINE 4911 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                  {-# LINE 4899 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                   )) of
                                            { _lhsOannotatedTree ->
                                            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                    App _annIexpandedStars _funNameIexpandedStars _argsIexpandedStars
-                                                   {-# LINE 4916 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                   {-# LINE 4904 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                    )) of
                                             { _expandedStars ->
                                             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                     _expandedStars
-                                                    {-# LINE 4921 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                    {-# LINE 4909 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                     )) of
                                              { _lhsOexpandedStars ->
                                              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                      App _annIoriginalTree _funNameIoriginalTree _argsIoriginalTree
-                                                     {-# LINE 4926 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                     {-# LINE 4914 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                      )) of
                                               { _originalTree ->
                                               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                       _originalTree
-                                                      {-# LINE 4931 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                      {-# LINE 4919 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                       )) of
                                                { _lhsOoriginalTree ->
                                                (case (({-# LINE 25 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                                        either (const Nothing) Just _tpe
-                                                       {-# LINE 4936 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                       {-# LINE 4924 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                        )) of
                                                 { _lhsOupType ->
                                                 ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -4946,32 +4934,32 @@ sem_ScalarExpr_BinaryOp ann_ opName_ arg0_ arg1_  =
        _lhsIdownEnv ->
          (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  _lhsIdownEnv
-                 {-# LINE 4950 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 4938 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _arg1OdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 4955 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 4943 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _arg1Ocat ->
            (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    _lhsIdownEnv
-                   {-# LINE 4960 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 4948 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _arg0OdownEnv ->
             (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _lhsIcat
-                    {-# LINE 4965 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 4953 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _arg0Ocat ->
-             (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+             (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                      error "missing rule: ScalarExpr.BinaryOp.opName.tpe"
-                     {-# LINE 4970 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 4958 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _opNameOtpe ->
               (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       error "missing rule: ScalarExpr.BinaryOp.ann.tpe"
-                      {-# LINE 4975 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 4963 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _annOtpe ->
                (case (arg1_ _arg1Ocat _arg1OdownEnv ) of
@@ -4982,7 +4970,7 @@ sem_ScalarExpr_BinaryOp ann_ opName_ arg0_ arg1_  =
                           { ( _opNameIoriginalTree,opName_1) ->
                               (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       _lhsIcat
-                                      {-# LINE 4986 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 4974 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _opNameOcat ->
                                (case (opName_1 _opNameOcat _opNameOtpe ) of
@@ -4991,44 +4979,44 @@ sem_ScalarExpr_BinaryOp ann_ opName_ arg0_ arg1_  =
                                      { ( _annIoriginalTree,ann_1) ->
                                          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                  _lhsIcat
-                                                 {-# LINE 4995 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                 {-# LINE 4983 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                  )) of
                                           { _annOcat ->
                                           (case (ann_1 _annOcat _annOtpe ) of
                                            { ( _annIannotatedTree,_annIexpandedStars) ->
                                                (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                        BinaryOp _annIannotatedTree _opNameIannotatedTree _arg0IannotatedTree _arg1IannotatedTree
-                                                       {-# LINE 5002 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                       {-# LINE 4990 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                        )) of
                                                 { _annotatedTree ->
                                                 (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                         _annotatedTree
-                                                        {-# LINE 5007 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                        {-# LINE 4995 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                         )) of
                                                  { _lhsOannotatedTree ->
                                                  (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                          BinaryOp _annIexpandedStars _opNameIexpandedStars _arg0IexpandedStars _arg1IexpandedStars
-                                                         {-# LINE 5012 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                         {-# LINE 5000 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                          )) of
                                                   { _expandedStars ->
                                                   (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                           _expandedStars
-                                                          {-# LINE 5017 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                          {-# LINE 5005 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                           )) of
                                                    { _lhsOexpandedStars ->
                                                    (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                            BinaryOp _annIoriginalTree _opNameIoriginalTree _arg0IoriginalTree _arg1IoriginalTree
-                                                           {-# LINE 5022 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                           {-# LINE 5010 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                            )) of
                                                     { _originalTree ->
                                                     (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                             _originalTree
-                                                            {-# LINE 5027 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                            {-# LINE 5015 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                             )) of
                                                      { _lhsOoriginalTree ->
                                                      (case (({-# LINE 29 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                                              _arg1IupType
-                                                             {-# LINE 5032 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                             {-# LINE 5020 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                              )) of
                                                       { _lhsOupType ->
                                                       ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -5038,58 +5026,58 @@ sem_ScalarExpr_BooleanLit :: T_Annotation  ->
 sem_ScalarExpr_BooleanLit ann_ b_  =
     (\ _lhsIcat
        _lhsIdownEnv ->
-         (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  Right typeBool
-                 {-# LINE 5044 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 5032 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tpe ->
           (case (({-# LINE 24 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                   _tpe
-                  {-# LINE 5049 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 5037 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (ann_ ) of
             { ( _annIoriginalTree,ann_1) ->
                 (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                         _lhsIcat
-                        {-# LINE 5056 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 5044 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annOcat ->
                  (case (ann_1 _annOcat _annOtpe ) of
                   { ( _annIannotatedTree,_annIexpandedStars) ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               BooleanLit _annIannotatedTree b_
-                              {-# LINE 5063 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 5051 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annotatedTree ->
                        (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                _annotatedTree
-                               {-# LINE 5068 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 5056 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _lhsOannotatedTree ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 BooleanLit _annIexpandedStars b_
-                                {-# LINE 5073 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 5061 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _expandedStars ->
                          (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  _expandedStars
-                                 {-# LINE 5078 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 5066 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _lhsOexpandedStars ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   BooleanLit _annIoriginalTree b_
-                                  {-# LINE 5083 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 5071 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _originalTree ->
                            (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    _originalTree
-                                   {-# LINE 5088 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 5076 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _lhsOoriginalTree ->
                             (case (({-# LINE 25 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                     either (const Nothing) Just _tpe
-                                    {-# LINE 5093 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 5081 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOupType ->
                              ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -5102,22 +5090,22 @@ sem_ScalarExpr_Case ann_ cases_ els_  =
        _lhsIdownEnv ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 5106 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 5094 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _elsOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 5111 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 5099 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _casesOcat ->
-           (case (({-# LINE 141 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+           (case (({-# LINE 147 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    Left []
-                   {-# LINE 5116 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 5104 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _tpe ->
             (case (({-# LINE 24 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                     _tpe
-                    {-# LINE 5121 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 5109 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _annOtpe ->
              (case (els_ _elsOcat ) of
@@ -5128,44 +5116,44 @@ sem_ScalarExpr_Case ann_ cases_ els_  =
                         { ( _annIoriginalTree,ann_1) ->
                             (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _lhsIcat
-                                    {-# LINE 5132 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 5120 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annOcat ->
                              (case (ann_1 _annOcat _annOtpe ) of
                               { ( _annIannotatedTree,_annIexpandedStars) ->
                                   (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           Case _annIannotatedTree _casesIannotatedTree _elsIannotatedTree
-                                          {-# LINE 5139 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 5127 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _annotatedTree ->
                                    (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            _annotatedTree
-                                           {-# LINE 5144 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 5132 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _lhsOannotatedTree ->
                                     (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             Case _annIexpandedStars _casesIexpandedStars _elsIexpandedStars
-                                            {-# LINE 5149 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 5137 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _expandedStars ->
                                      (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              _expandedStars
-                                             {-# LINE 5154 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 5142 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _lhsOexpandedStars ->
                                       (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                               Case _annIoriginalTree _casesIoriginalTree _elsIoriginalTree
-                                              {-# LINE 5159 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 5147 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _originalTree ->
                                        (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                _originalTree
-                                               {-# LINE 5164 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 5152 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _lhsOoriginalTree ->
                                         (case (({-# LINE 25 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                                 either (const Nothing) Just _tpe
-                                                {-# LINE 5169 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 5157 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _lhsOupType ->
                                          ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -5179,32 +5167,32 @@ sem_ScalarExpr_CaseSimple ann_ value_ cases_ els_  =
        _lhsIdownEnv ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 5183 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 5171 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _elsOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 5188 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 5176 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _casesOcat ->
            (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    _lhsIdownEnv
-                   {-# LINE 5193 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 5181 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _valueOdownEnv ->
             (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _lhsIcat
-                    {-# LINE 5198 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 5186 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _valueOcat ->
-             (case (({-# LINE 141 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+             (case (({-# LINE 147 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                      Left []
-                     {-# LINE 5203 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 5191 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _tpe ->
               (case (({-# LINE 24 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                       _tpe
-                      {-# LINE 5208 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 5196 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _annOtpe ->
                (case (els_ _elsOcat ) of
@@ -5217,44 +5205,44 @@ sem_ScalarExpr_CaseSimple ann_ value_ cases_ els_  =
                                { ( _annIoriginalTree,ann_1) ->
                                    (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            _lhsIcat
-                                           {-# LINE 5221 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 5209 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _annOcat ->
                                     (case (ann_1 _annOcat _annOtpe ) of
                                      { ( _annIannotatedTree,_annIexpandedStars) ->
                                          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                  CaseSimple _annIannotatedTree _valueIannotatedTree _casesIannotatedTree _elsIannotatedTree
-                                                 {-# LINE 5228 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                 {-# LINE 5216 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                  )) of
                                           { _annotatedTree ->
                                           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                   _annotatedTree
-                                                  {-# LINE 5233 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                  {-# LINE 5221 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                   )) of
                                            { _lhsOannotatedTree ->
                                            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                    CaseSimple _annIexpandedStars _valueIexpandedStars _casesIexpandedStars _elsIexpandedStars
-                                                   {-# LINE 5238 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                   {-# LINE 5226 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                    )) of
                                             { _expandedStars ->
                                             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                     _expandedStars
-                                                    {-# LINE 5243 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                    {-# LINE 5231 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                     )) of
                                              { _lhsOexpandedStars ->
                                              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                      CaseSimple _annIoriginalTree _valueIoriginalTree _casesIoriginalTree _elsIoriginalTree
-                                                     {-# LINE 5248 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                     {-# LINE 5236 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                      )) of
                                               { _originalTree ->
                                               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                       _originalTree
-                                                      {-# LINE 5253 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                      {-# LINE 5241 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                       )) of
                                                { _lhsOoriginalTree ->
                                                (case (({-# LINE 25 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                                        either (const Nothing) Just _tpe
-                                                       {-# LINE 5258 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                       {-# LINE 5246 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                        )) of
                                                 { _lhsOupType ->
                                                 ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -5267,29 +5255,29 @@ sem_ScalarExpr_Cast ann_ expr_ tn_  =
        _lhsIdownEnv ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 5271 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 5259 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tnOcat ->
           (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                   _lhsIdownEnv
-                  {-# LINE 5276 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 5264 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _exprOdownEnv ->
            (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    _lhsIcat
-                   {-# LINE 5281 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 5269 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _exprOcat ->
             (case (tn_ _tnOcat ) of
              { ( _tnIannotatedTree,_tnIexpandedStars,_tnInamedType,_tnIoriginalTree) ->
-                 (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                 (case (({-# LINE 96 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                          maybe (Left []) Right _tnInamedType
-                         {-# LINE 5288 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 5276 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _tpe ->
                   (case (({-# LINE 24 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                           _tpe
-                          {-# LINE 5293 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                          {-# LINE 5281 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                           )) of
                    { _annOtpe ->
                    (case (expr_ _exprOcat _exprOdownEnv ) of
@@ -5298,44 +5286,44 @@ sem_ScalarExpr_Cast ann_ expr_ tn_  =
                          { ( _annIoriginalTree,ann_1) ->
                              (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _lhsIcat
-                                     {-# LINE 5302 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 5290 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _annOcat ->
                               (case (ann_1 _annOcat _annOtpe ) of
                                { ( _annIannotatedTree,_annIexpandedStars) ->
                                    (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            Cast _annIannotatedTree _exprIannotatedTree _tnIannotatedTree
-                                           {-# LINE 5309 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 5297 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _annotatedTree ->
                                     (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             _annotatedTree
-                                            {-# LINE 5314 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 5302 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _lhsOannotatedTree ->
                                      (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              Cast _annIexpandedStars _exprIexpandedStars _tnIexpandedStars
-                                             {-# LINE 5319 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 5307 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _expandedStars ->
                                       (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                               _expandedStars
-                                              {-# LINE 5324 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 5312 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _lhsOexpandedStars ->
                                        (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                Cast _annIoriginalTree _exprIoriginalTree _tnIoriginalTree
-                                               {-# LINE 5329 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 5317 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _originalTree ->
                                         (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 _originalTree
-                                                {-# LINE 5334 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 5322 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _lhsOoriginalTree ->
                                          (case (({-# LINE 25 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                                  either (const Nothing) Just _tpe
-                                                 {-# LINE 5339 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                 {-# LINE 5327 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                  )) of
                                           { _lhsOupType ->
                                           ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -5347,17 +5335,17 @@ sem_ScalarExpr_Exists ann_ sel_  =
        _lhsIdownEnv ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 5351 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 5339 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _selOcat ->
-          (case (({-# LINE 141 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+          (case (({-# LINE 147 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                   Left []
-                  {-# LINE 5356 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 5344 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _tpe ->
            (case (({-# LINE 24 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    _tpe
-                   {-# LINE 5361 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 5349 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (sel_ _selOcat ) of
@@ -5366,44 +5354,44 @@ sem_ScalarExpr_Exists ann_ sel_  =
                   { ( _annIoriginalTree,ann_1) ->
                       (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIcat
-                              {-# LINE 5370 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 5358 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annOcat ->
                        (case (ann_1 _annOcat _annOtpe ) of
                         { ( _annIannotatedTree,_annIexpandedStars) ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     Exists _annIannotatedTree _selIannotatedTree
-                                    {-# LINE 5377 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 5365 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annotatedTree ->
                              (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _annotatedTree
-                                     {-# LINE 5382 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 5370 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _lhsOannotatedTree ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       Exists _annIexpandedStars _selIexpandedStars
-                                      {-# LINE 5387 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 5375 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _expandedStars ->
                                (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        _expandedStars
-                                       {-# LINE 5392 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 5380 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _lhsOexpandedStars ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         Exists _annIoriginalTree _selIoriginalTree
-                                        {-# LINE 5397 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 5385 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _originalTree ->
                                  (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          _originalTree
-                                         {-# LINE 5402 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 5390 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _lhsOoriginalTree ->
                                   (case (({-# LINE 25 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                           either (const Nothing) Just _tpe
-                                          {-# LINE 5407 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 5395 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _lhsOupType ->
                                    ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -5416,72 +5404,72 @@ sem_ScalarExpr_Extract ann_ field_ e_  =
        _lhsIdownEnv ->
          (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  _lhsIdownEnv
-                 {-# LINE 5420 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 5408 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _eOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 5425 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 5413 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _eOcat ->
            (case (e_ _eOcat _eOdownEnv ) of
             { ( _eIannotatedTree,_eIexpandedStars,_eIoriginalTree,_eIupType) ->
-                (case (({-# LINE 94 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                (case (({-# LINE 100 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                         do
                         x <- maybe (Left []) Right _eIupType
                         if x == typeDate
                           then Right typeFloat8
                           else Left [NoMatchingOperator "extract" [x]]
-                        {-# LINE 5436 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 5424 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _tpe ->
                  (case (({-# LINE 24 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                          _tpe
-                         {-# LINE 5441 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 5429 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _annOtpe ->
                   (case (ann_ ) of
                    { ( _annIoriginalTree,ann_1) ->
                        (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                _lhsIcat
-                               {-# LINE 5448 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 5436 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _annOcat ->
                         (case (ann_1 _annOcat _annOtpe ) of
                          { ( _annIannotatedTree,_annIexpandedStars) ->
                              (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      Extract _annIannotatedTree field_ _eIannotatedTree
-                                     {-# LINE 5455 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 5443 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _annotatedTree ->
                               (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       _annotatedTree
-                                      {-# LINE 5460 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 5448 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _lhsOannotatedTree ->
                                (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        Extract _annIexpandedStars field_ _eIexpandedStars
-                                       {-# LINE 5465 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 5453 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _expandedStars ->
                                 (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         _expandedStars
-                                        {-# LINE 5470 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 5458 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOexpandedStars ->
                                  (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          Extract _annIoriginalTree field_ _eIoriginalTree
-                                         {-# LINE 5475 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 5463 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _originalTree ->
                                   (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           _originalTree
-                                          {-# LINE 5480 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 5468 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _lhsOoriginalTree ->
                                    (case (({-# LINE 25 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                            either (const Nothing) Just _tpe
-                                           {-# LINE 5485 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 5473 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _lhsOupType ->
                                     ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -5491,58 +5479,58 @@ sem_ScalarExpr_Identifier :: T_Annotation  ->
 sem_ScalarExpr_Identifier ann_ i_  =
     (\ _lhsIcat
        _lhsIdownEnv ->
-         (case (({-# LINE 109 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+         (case (({-# LINE 115 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  envLookupIdentifier [i_] _lhsIdownEnv
-                 {-# LINE 5497 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 5485 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tpe ->
           (case (({-# LINE 24 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                   _tpe
-                  {-# LINE 5502 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 5490 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (ann_ ) of
             { ( _annIoriginalTree,ann_1) ->
                 (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                         _lhsIcat
-                        {-# LINE 5509 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 5497 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annOcat ->
                  (case (ann_1 _annOcat _annOtpe ) of
                   { ( _annIannotatedTree,_annIexpandedStars) ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               Identifier _annIannotatedTree i_
-                              {-# LINE 5516 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 5504 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annotatedTree ->
                        (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                _annotatedTree
-                               {-# LINE 5521 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 5509 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _lhsOannotatedTree ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 Identifier _annIexpandedStars i_
-                                {-# LINE 5526 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 5514 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _expandedStars ->
                          (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  _expandedStars
-                                 {-# LINE 5531 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 5519 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _lhsOexpandedStars ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   Identifier _annIoriginalTree i_
-                                  {-# LINE 5536 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 5524 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _originalTree ->
                            (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    _originalTree
-                                   {-# LINE 5541 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 5529 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _lhsOoriginalTree ->
                             (case (({-# LINE 25 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                     either (const Nothing) Just _tpe
-                                    {-# LINE 5546 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 5534 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOupType ->
                              ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -5556,27 +5544,27 @@ sem_ScalarExpr_InPredicate ann_ expr_ i_ list_  =
        _lhsIdownEnv ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 5560 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 5548 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _listOcat ->
           (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                   _lhsIdownEnv
-                  {-# LINE 5565 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 5553 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _exprOdownEnv ->
            (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    _lhsIcat
-                   {-# LINE 5570 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 5558 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _exprOcat ->
-            (case (({-# LINE 141 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+            (case (({-# LINE 147 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                     Left []
-                    {-# LINE 5575 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 5563 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _tpe ->
              (case (({-# LINE 24 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                      _tpe
-                     {-# LINE 5580 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 5568 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _annOtpe ->
               (case (list_ _listOcat ) of
@@ -5587,44 +5575,44 @@ sem_ScalarExpr_InPredicate ann_ expr_ i_ list_  =
                          { ( _annIoriginalTree,ann_1) ->
                              (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _lhsIcat
-                                     {-# LINE 5591 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 5579 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _annOcat ->
                               (case (ann_1 _annOcat _annOtpe ) of
                                { ( _annIannotatedTree,_annIexpandedStars) ->
                                    (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            InPredicate _annIannotatedTree _exprIannotatedTree i_ _listIannotatedTree
-                                           {-# LINE 5598 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 5586 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _annotatedTree ->
                                     (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             _annotatedTree
-                                            {-# LINE 5603 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 5591 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _lhsOannotatedTree ->
                                      (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              InPredicate _annIexpandedStars _exprIexpandedStars i_ _listIexpandedStars
-                                             {-# LINE 5608 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 5596 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _expandedStars ->
                                       (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                               _expandedStars
-                                              {-# LINE 5613 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 5601 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _lhsOexpandedStars ->
                                        (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                InPredicate _annIoriginalTree _exprIoriginalTree i_ _listIoriginalTree
-                                               {-# LINE 5618 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 5606 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _originalTree ->
                                         (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 _originalTree
-                                                {-# LINE 5623 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 5611 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _lhsOoriginalTree ->
                                          (case (({-# LINE 25 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                                  either (const Nothing) Just _tpe
-                                                 {-# LINE 5628 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                 {-# LINE 5616 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                  )) of
                                           { _lhsOupType ->
                                           ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -5636,58 +5624,58 @@ sem_ScalarExpr_Interval :: T_Annotation  ->
 sem_ScalarExpr_Interval ann_ value_ field_ prec_  =
     (\ _lhsIcat
        _lhsIdownEnv ->
-         (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+         (case (({-# LINE 98 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  Right $ ScalarType "interval"
-                 {-# LINE 5642 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 5630 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tpe ->
           (case (({-# LINE 24 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                   _tpe
-                  {-# LINE 5647 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 5635 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (ann_ ) of
             { ( _annIoriginalTree,ann_1) ->
                 (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                         _lhsIcat
-                        {-# LINE 5654 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 5642 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annOcat ->
                  (case (ann_1 _annOcat _annOtpe ) of
                   { ( _annIannotatedTree,_annIexpandedStars) ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               Interval _annIannotatedTree value_ field_ prec_
-                              {-# LINE 5661 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 5649 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annotatedTree ->
                        (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                _annotatedTree
-                               {-# LINE 5666 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 5654 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _lhsOannotatedTree ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 Interval _annIexpandedStars value_ field_ prec_
-                                {-# LINE 5671 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 5659 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _expandedStars ->
                          (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  _expandedStars
-                                 {-# LINE 5676 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 5664 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _lhsOexpandedStars ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   Interval _annIoriginalTree value_ field_ prec_
-                                  {-# LINE 5681 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 5669 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _originalTree ->
                            (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    _originalTree
-                                   {-# LINE 5686 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 5674 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _lhsOoriginalTree ->
                             (case (({-# LINE 25 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                     either (const Nothing) Just _tpe
-                                    {-# LINE 5691 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 5679 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOupType ->
                              ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -5699,29 +5687,29 @@ sem_ScalarExpr_LiftApp :: T_Annotation  ->
 sem_ScalarExpr_LiftApp ann_ oper_ flav_ args_  =
     (\ _lhsIcat
        _lhsIdownEnv ->
-         (case (({-# LINE 33 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+         (case (({-# LINE 35 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  _lhsIdownEnv
-                 {-# LINE 5705 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 5693 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _argsOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 5710 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 5698 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _argsOcat ->
-           (case (({-# LINE 141 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+           (case (({-# LINE 147 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    Left []
-                   {-# LINE 5715 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 5703 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _tpe ->
-            (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+            (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                     _tpe
-                    {-# LINE 5720 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 5708 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _operOtpe ->
              (case (({-# LINE 24 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                      _tpe
-                     {-# LINE 5725 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 5713 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _annOtpe ->
               (case (args_ _argsOcat _argsOdownEnv ) of
@@ -5730,7 +5718,7 @@ sem_ScalarExpr_LiftApp ann_ oper_ flav_ args_  =
                     { ( _operIoriginalTree,oper_1) ->
                         (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _lhsIcat
-                                {-# LINE 5734 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 5722 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _operOcat ->
                          (case (oper_1 _operOcat _operOtpe ) of
@@ -5739,44 +5727,44 @@ sem_ScalarExpr_LiftApp ann_ oper_ flav_ args_  =
                                { ( _annIoriginalTree,ann_1) ->
                                    (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            _lhsIcat
-                                           {-# LINE 5743 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 5731 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _annOcat ->
                                     (case (ann_1 _annOcat _annOtpe ) of
                                      { ( _annIannotatedTree,_annIexpandedStars) ->
                                          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                  LiftApp _annIannotatedTree _operIannotatedTree flav_ _argsIannotatedTree
-                                                 {-# LINE 5750 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                 {-# LINE 5738 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                  )) of
                                           { _annotatedTree ->
                                           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                   _annotatedTree
-                                                  {-# LINE 5755 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                  {-# LINE 5743 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                   )) of
                                            { _lhsOannotatedTree ->
                                            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                    LiftApp _annIexpandedStars _operIexpandedStars flav_ _argsIexpandedStars
-                                                   {-# LINE 5760 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                   {-# LINE 5748 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                    )) of
                                             { _expandedStars ->
                                             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                     _expandedStars
-                                                    {-# LINE 5765 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                    {-# LINE 5753 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                     )) of
                                              { _lhsOexpandedStars ->
                                              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                      LiftApp _annIoriginalTree _operIoriginalTree flav_ _argsIoriginalTree
-                                                     {-# LINE 5770 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                     {-# LINE 5758 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                      )) of
                                               { _originalTree ->
                                               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                       _originalTree
-                                                      {-# LINE 5775 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                      {-# LINE 5763 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                       )) of
                                                { _lhsOoriginalTree ->
                                                (case (({-# LINE 25 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                                        either (const Nothing) Just _tpe
-                                                       {-# LINE 5780 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                       {-# LINE 5768 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                        )) of
                                                 { _lhsOupType ->
                                                 ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -5785,58 +5773,58 @@ sem_ScalarExpr_NullLit :: T_Annotation  ->
 sem_ScalarExpr_NullLit ann_  =
     (\ _lhsIcat
        _lhsIdownEnv ->
-         (case (({-# LINE 80 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+         (case (({-# LINE 86 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  Right UnknownType
-                 {-# LINE 5791 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 5779 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tpe ->
           (case (({-# LINE 24 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                   _tpe
-                  {-# LINE 5796 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 5784 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (ann_ ) of
             { ( _annIoriginalTree,ann_1) ->
                 (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                         _lhsIcat
-                        {-# LINE 5803 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 5791 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annOcat ->
                  (case (ann_1 _annOcat _annOtpe ) of
                   { ( _annIannotatedTree,_annIexpandedStars) ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               NullLit _annIannotatedTree
-                              {-# LINE 5810 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 5798 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annotatedTree ->
                        (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                _annotatedTree
-                               {-# LINE 5815 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 5803 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _lhsOannotatedTree ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 NullLit _annIexpandedStars
-                                {-# LINE 5820 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 5808 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _expandedStars ->
                          (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  _expandedStars
-                                 {-# LINE 5825 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 5813 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _lhsOexpandedStars ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   NullLit _annIoriginalTree
-                                  {-# LINE 5830 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 5818 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _originalTree ->
                            (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    _originalTree
-                                   {-# LINE 5835 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 5823 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _lhsOoriginalTree ->
                             (case (({-# LINE 25 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                     either (const Nothing) Just _tpe
-                                    {-# LINE 5840 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 5828 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOupType ->
                              ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -5846,65 +5834,65 @@ sem_ScalarExpr_NumberLit :: T_Annotation  ->
 sem_ScalarExpr_NumberLit ann_ d_  =
     (\ _lhsIcat
        _lhsIdownEnv ->
-         (case (({-# LINE 74 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+         (case (({-# LINE 79 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  concatMap show [(0::Int)..9]
-                 {-# LINE 5852 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 5840 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _digChars ->
-          (case (({-# LINE 71 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+          (case (({-# LINE 76 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                   Right $ if all (`elem` _digChars    ) d_
                           then typeInt
                           else typeNumeric
-                  {-# LINE 5859 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 5847 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _tpe ->
            (case (({-# LINE 24 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    _tpe
-                   {-# LINE 5864 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 5852 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (ann_ ) of
              { ( _annIoriginalTree,ann_1) ->
                  (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                          _lhsIcat
-                         {-# LINE 5871 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 5859 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _annOcat ->
                   (case (ann_1 _annOcat _annOtpe ) of
                    { ( _annIannotatedTree,_annIexpandedStars) ->
                        (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                NumberLit _annIannotatedTree d_
-                               {-# LINE 5878 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 5866 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _annotatedTree ->
                         (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _annotatedTree
-                                {-# LINE 5883 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 5871 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOannotatedTree ->
                          (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  NumberLit _annIexpandedStars d_
-                                 {-# LINE 5888 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 5876 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _expandedStars ->
                           (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _expandedStars
-                                  {-# LINE 5893 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 5881 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOexpandedStars ->
                            (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    NumberLit _annIoriginalTree d_
-                                   {-# LINE 5898 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 5886 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _originalTree ->
                             (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _originalTree
-                                    {-# LINE 5903 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 5891 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOoriginalTree ->
                              (case (({-# LINE 25 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                      either (const Nothing) Just _tpe
-                                     {-# LINE 5908 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 5896 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _lhsOupType ->
                               ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -5913,58 +5901,58 @@ sem_ScalarExpr_Placeholder :: T_Annotation  ->
 sem_ScalarExpr_Placeholder ann_  =
     (\ _lhsIcat
        _lhsIdownEnv ->
-         (case (({-# LINE 101 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+         (case (({-# LINE 107 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  Right UnknownType
-                 {-# LINE 5919 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 5907 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tpe ->
           (case (({-# LINE 24 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                   _tpe
-                  {-# LINE 5924 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 5912 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (ann_ ) of
             { ( _annIoriginalTree,ann_1) ->
                 (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                         _lhsIcat
-                        {-# LINE 5931 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 5919 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annOcat ->
                  (case (ann_1 _annOcat _annOtpe ) of
                   { ( _annIannotatedTree,_annIexpandedStars) ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               Placeholder _annIannotatedTree
-                              {-# LINE 5938 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 5926 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annotatedTree ->
                        (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                _annotatedTree
-                               {-# LINE 5943 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 5931 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _lhsOannotatedTree ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 Placeholder _annIexpandedStars
-                                {-# LINE 5948 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 5936 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _expandedStars ->
                          (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  _expandedStars
-                                 {-# LINE 5953 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 5941 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _lhsOexpandedStars ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   Placeholder _annIoriginalTree
-                                  {-# LINE 5958 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 5946 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _originalTree ->
                            (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    _originalTree
-                                   {-# LINE 5963 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 5951 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _lhsOoriginalTree ->
                             (case (({-# LINE 25 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                     either (const Nothing) Just _tpe
-                                    {-# LINE 5968 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 5956 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOupType ->
                              ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -5974,58 +5962,58 @@ sem_ScalarExpr_PositionalArg :: T_Annotation  ->
 sem_ScalarExpr_PositionalArg ann_ p_  =
     (\ _lhsIcat
        _lhsIdownEnv ->
-         (case (({-# LINE 141 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+         (case (({-# LINE 147 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  Left []
-                 {-# LINE 5980 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 5968 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tpe ->
           (case (({-# LINE 24 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                   _tpe
-                  {-# LINE 5985 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 5973 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (ann_ ) of
             { ( _annIoriginalTree,ann_1) ->
                 (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                         _lhsIcat
-                        {-# LINE 5992 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 5980 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annOcat ->
                  (case (ann_1 _annOcat _annOtpe ) of
                   { ( _annIannotatedTree,_annIexpandedStars) ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               PositionalArg _annIannotatedTree p_
-                              {-# LINE 5999 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 5987 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annotatedTree ->
                        (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                _annotatedTree
-                               {-# LINE 6004 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 5992 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _lhsOannotatedTree ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 PositionalArg _annIexpandedStars p_
-                                {-# LINE 6009 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 5997 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _expandedStars ->
                          (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  _expandedStars
-                                 {-# LINE 6014 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 6002 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _lhsOexpandedStars ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   PositionalArg _annIoriginalTree p_
-                                  {-# LINE 6019 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 6007 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _originalTree ->
                            (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    _originalTree
-                                   {-# LINE 6024 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 6012 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _lhsOoriginalTree ->
                             (case (({-# LINE 25 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                     either (const Nothing) Just _tpe
-                                    {-# LINE 6029 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 6017 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOupType ->
                              ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -6038,22 +6026,22 @@ sem_ScalarExpr_PostfixOp ann_ opName_ arg_  =
        _lhsIdownEnv ->
          (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  _lhsIdownEnv
-                 {-# LINE 6042 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 6030 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _argOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 6047 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 6035 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _argOcat ->
-           (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+           (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                    error "missing rule: ScalarExpr.PostfixOp.opName.tpe"
-                   {-# LINE 6052 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 6040 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _opNameOtpe ->
             (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     error "missing rule: ScalarExpr.PostfixOp.ann.tpe"
-                    {-# LINE 6057 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 6045 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _annOtpe ->
              (case (arg_ _argOcat _argOdownEnv ) of
@@ -6062,7 +6050,7 @@ sem_ScalarExpr_PostfixOp ann_ opName_ arg_  =
                    { ( _opNameIoriginalTree,opName_1) ->
                        (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                _lhsIcat
-                               {-# LINE 6066 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 6054 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _opNameOcat ->
                         (case (opName_1 _opNameOcat _opNameOtpe ) of
@@ -6071,44 +6059,44 @@ sem_ScalarExpr_PostfixOp ann_ opName_ arg_  =
                               { ( _annIoriginalTree,ann_1) ->
                                   (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           _lhsIcat
-                                          {-# LINE 6075 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 6063 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _annOcat ->
                                    (case (ann_1 _annOcat _annOtpe ) of
                                     { ( _annIannotatedTree,_annIexpandedStars) ->
                                         (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 PostfixOp _annIannotatedTree _opNameIannotatedTree _argIannotatedTree
-                                                {-# LINE 6082 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 6070 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _annotatedTree ->
                                          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                  _annotatedTree
-                                                 {-# LINE 6087 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                 {-# LINE 6075 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                  )) of
                                           { _lhsOannotatedTree ->
                                           (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                   PostfixOp _annIexpandedStars _opNameIexpandedStars _argIexpandedStars
-                                                  {-# LINE 6092 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                  {-# LINE 6080 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                   )) of
                                            { _expandedStars ->
                                            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                    _expandedStars
-                                                   {-# LINE 6097 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                   {-# LINE 6085 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                    )) of
                                             { _lhsOexpandedStars ->
                                             (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                     PostfixOp _annIoriginalTree _opNameIoriginalTree _argIoriginalTree
-                                                    {-# LINE 6102 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                    {-# LINE 6090 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                     )) of
                                              { _originalTree ->
                                              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                      _originalTree
-                                                     {-# LINE 6107 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                     {-# LINE 6095 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                      )) of
                                               { _lhsOoriginalTree ->
                                               (case (({-# LINE 29 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                                       _argIupType
-                                                      {-# LINE 6112 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                      {-# LINE 6100 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                       )) of
                                                { _lhsOupType ->
                                                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -6121,22 +6109,22 @@ sem_ScalarExpr_PrefixOp ann_ opName_ arg_  =
        _lhsIdownEnv ->
          (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  _lhsIdownEnv
-                 {-# LINE 6125 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 6113 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _argOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 6130 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 6118 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _argOcat ->
-           (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+           (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                    error "missing rule: ScalarExpr.PrefixOp.opName.tpe"
-                   {-# LINE 6135 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 6123 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _opNameOtpe ->
             (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     error "missing rule: ScalarExpr.PrefixOp.ann.tpe"
-                    {-# LINE 6140 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 6128 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _annOtpe ->
              (case (arg_ _argOcat _argOdownEnv ) of
@@ -6145,7 +6133,7 @@ sem_ScalarExpr_PrefixOp ann_ opName_ arg_  =
                    { ( _opNameIoriginalTree,opName_1) ->
                        (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                _lhsIcat
-                               {-# LINE 6149 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 6137 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _opNameOcat ->
                         (case (opName_1 _opNameOcat _opNameOtpe ) of
@@ -6154,44 +6142,44 @@ sem_ScalarExpr_PrefixOp ann_ opName_ arg_  =
                               { ( _annIoriginalTree,ann_1) ->
                                   (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           _lhsIcat
-                                          {-# LINE 6158 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 6146 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _annOcat ->
                                    (case (ann_1 _annOcat _annOtpe ) of
                                     { ( _annIannotatedTree,_annIexpandedStars) ->
                                         (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 PrefixOp _annIannotatedTree _opNameIannotatedTree _argIannotatedTree
-                                                {-# LINE 6165 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 6153 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _annotatedTree ->
                                          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                  _annotatedTree
-                                                 {-# LINE 6170 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                 {-# LINE 6158 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                  )) of
                                           { _lhsOannotatedTree ->
                                           (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                   PrefixOp _annIexpandedStars _opNameIexpandedStars _argIexpandedStars
-                                                  {-# LINE 6175 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                  {-# LINE 6163 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                   )) of
                                            { _expandedStars ->
                                            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                    _expandedStars
-                                                   {-# LINE 6180 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                   {-# LINE 6168 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                    )) of
                                             { _lhsOexpandedStars ->
                                             (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                     PrefixOp _annIoriginalTree _opNameIoriginalTree _argIoriginalTree
-                                                    {-# LINE 6185 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                    {-# LINE 6173 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                     )) of
                                              { _originalTree ->
                                              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                      _originalTree
-                                                     {-# LINE 6190 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                     {-# LINE 6178 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                      )) of
                                               { _lhsOoriginalTree ->
                                               (case (({-# LINE 29 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                                       _argIupType
-                                                      {-# LINE 6195 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                      {-# LINE 6183 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                       )) of
                                                { _lhsOupType ->
                                                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -6201,58 +6189,58 @@ sem_ScalarExpr_QIdentifier :: T_Annotation  ->
 sem_ScalarExpr_QIdentifier ann_ is_  =
     (\ _lhsIcat
        _lhsIdownEnv ->
-         (case (({-# LINE 141 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+         (case (({-# LINE 147 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  Left []
-                 {-# LINE 6207 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 6195 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tpe ->
           (case (({-# LINE 24 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                   _tpe
-                  {-# LINE 6212 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 6200 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (ann_ ) of
             { ( _annIoriginalTree,ann_1) ->
                 (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                         _lhsIcat
-                        {-# LINE 6219 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 6207 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annOcat ->
                  (case (ann_1 _annOcat _annOtpe ) of
                   { ( _annIannotatedTree,_annIexpandedStars) ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               QIdentifier _annIannotatedTree is_
-                              {-# LINE 6226 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 6214 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annotatedTree ->
                        (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                _annotatedTree
-                               {-# LINE 6231 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 6219 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _lhsOannotatedTree ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 QIdentifier _annIexpandedStars is_
-                                {-# LINE 6236 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 6224 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _expandedStars ->
                          (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  _expandedStars
-                                 {-# LINE 6241 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 6229 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _lhsOexpandedStars ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   QIdentifier _annIoriginalTree is_
-                                  {-# LINE 6246 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 6234 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _originalTree ->
                            (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    _originalTree
-                                   {-# LINE 6251 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 6239 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _lhsOoriginalTree ->
                             (case (({-# LINE 25 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                     either (const Nothing) Just _tpe
-                                    {-# LINE 6256 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 6244 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOupType ->
                              ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -6262,58 +6250,58 @@ sem_ScalarExpr_QStar :: T_Annotation  ->
 sem_ScalarExpr_QStar ann_ q_  =
     (\ _lhsIcat
        _lhsIdownEnv ->
-         (case (({-# LINE 141 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+         (case (({-# LINE 147 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  Left []
-                 {-# LINE 6268 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 6256 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tpe ->
           (case (({-# LINE 24 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                   _tpe
-                  {-# LINE 6273 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 6261 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (ann_ ) of
             { ( _annIoriginalTree,ann_1) ->
                 (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                         _lhsIcat
-                        {-# LINE 6280 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 6268 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annOcat ->
                  (case (ann_1 _annOcat _annOtpe ) of
                   { ( _annIannotatedTree,_annIexpandedStars) ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               QStar _annIannotatedTree q_
-                              {-# LINE 6287 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 6275 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annotatedTree ->
                        (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                _annotatedTree
-                               {-# LINE 6292 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 6280 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _lhsOannotatedTree ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 QStar _annIexpandedStars q_
-                                {-# LINE 6297 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 6285 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _expandedStars ->
                          (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  _expandedStars
-                                 {-# LINE 6302 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 6290 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _lhsOexpandedStars ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   QStar _annIoriginalTree q_
-                                  {-# LINE 6307 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 6295 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _originalTree ->
                            (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    _originalTree
-                                   {-# LINE 6312 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 6300 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _lhsOoriginalTree ->
                             (case (({-# LINE 25 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                     either (const Nothing) Just _tpe
-                                    {-# LINE 6317 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 6305 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOupType ->
                              ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -6325,17 +6313,17 @@ sem_ScalarExpr_ScalarSubQuery ann_ sel_  =
        _lhsIdownEnv ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 6329 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 6317 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _selOcat ->
-          (case (({-# LINE 141 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+          (case (({-# LINE 147 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                   Left []
-                  {-# LINE 6334 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 6322 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _tpe ->
            (case (({-# LINE 24 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    _tpe
-                   {-# LINE 6339 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 6327 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (sel_ _selOcat ) of
@@ -6344,44 +6332,44 @@ sem_ScalarExpr_ScalarSubQuery ann_ sel_  =
                   { ( _annIoriginalTree,ann_1) ->
                       (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIcat
-                              {-# LINE 6348 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 6336 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annOcat ->
                        (case (ann_1 _annOcat _annOtpe ) of
                         { ( _annIannotatedTree,_annIexpandedStars) ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     ScalarSubQuery _annIannotatedTree _selIannotatedTree
-                                    {-# LINE 6355 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 6343 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annotatedTree ->
                              (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _annotatedTree
-                                     {-# LINE 6360 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 6348 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _lhsOannotatedTree ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       ScalarSubQuery _annIexpandedStars _selIexpandedStars
-                                      {-# LINE 6365 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 6353 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _expandedStars ->
                                (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        _expandedStars
-                                       {-# LINE 6370 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 6358 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _lhsOexpandedStars ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         ScalarSubQuery _annIoriginalTree _selIoriginalTree
-                                        {-# LINE 6375 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 6363 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _originalTree ->
                                  (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          _originalTree
-                                         {-# LINE 6380 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 6368 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _lhsOoriginalTree ->
                                   (case (({-# LINE 25 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                           either (const Nothing) Just _tpe
-                                          {-# LINE 6385 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 6373 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _lhsOupType ->
                                    ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -6392,24 +6380,24 @@ sem_ScalarExpr_SpecialOp :: T_Annotation  ->
 sem_ScalarExpr_SpecialOp ann_ opName_ args_  =
     (\ _lhsIcat
        _lhsIdownEnv ->
-         (case (({-# LINE 33 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+         (case (({-# LINE 35 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  _lhsIdownEnv
-                 {-# LINE 6398 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 6386 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _argsOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 6403 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 6391 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _argsOcat ->
-           (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+           (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                    error "missing rule: ScalarExpr.SpecialOp.opName.tpe"
-                   {-# LINE 6408 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 6396 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _opNameOtpe ->
             (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     error "missing rule: ScalarExpr.SpecialOp.ann.tpe"
-                    {-# LINE 6413 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 6401 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _annOtpe ->
              (case (args_ _argsOcat _argsOdownEnv ) of
@@ -6418,7 +6406,7 @@ sem_ScalarExpr_SpecialOp ann_ opName_ args_  =
                    { ( _opNameIoriginalTree,opName_1) ->
                        (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                _lhsIcat
-                               {-# LINE 6422 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 6410 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _opNameOcat ->
                         (case (opName_1 _opNameOcat _opNameOtpe ) of
@@ -6427,44 +6415,44 @@ sem_ScalarExpr_SpecialOp ann_ opName_ args_  =
                               { ( _annIoriginalTree,ann_1) ->
                                   (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           _lhsIcat
-                                          {-# LINE 6431 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 6419 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _annOcat ->
                                    (case (ann_1 _annOcat _annOtpe ) of
                                     { ( _annIannotatedTree,_annIexpandedStars) ->
                                         (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 SpecialOp _annIannotatedTree _opNameIannotatedTree _argsIannotatedTree
-                                                {-# LINE 6438 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 6426 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _annotatedTree ->
                                          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                  _annotatedTree
-                                                 {-# LINE 6443 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                 {-# LINE 6431 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                  )) of
                                           { _lhsOannotatedTree ->
                                           (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                   SpecialOp _annIexpandedStars _opNameIexpandedStars _argsIexpandedStars
-                                                  {-# LINE 6448 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                  {-# LINE 6436 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                   )) of
                                            { _expandedStars ->
                                            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                    _expandedStars
-                                                   {-# LINE 6453 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                   {-# LINE 6441 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                    )) of
                                             { _lhsOexpandedStars ->
                                             (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                     SpecialOp _annIoriginalTree _opNameIoriginalTree _argsIoriginalTree
-                                                    {-# LINE 6458 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                    {-# LINE 6446 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                     )) of
                                              { _originalTree ->
                                              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                      _originalTree
-                                                     {-# LINE 6463 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                     {-# LINE 6451 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                      )) of
                                               { _lhsOoriginalTree ->
                                               (case (({-# LINE 29 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                                       error "missing rule: ScalarExpr.SpecialOp.lhs.upType"
-                                                      {-# LINE 6468 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                      {-# LINE 6456 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                       )) of
                                                { _lhsOupType ->
                                                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -6473,58 +6461,58 @@ sem_ScalarExpr_Star :: T_Annotation  ->
 sem_ScalarExpr_Star ann_  =
     (\ _lhsIcat
        _lhsIdownEnv ->
-         (case (({-# LINE 141 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+         (case (({-# LINE 147 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  Left []
-                 {-# LINE 6479 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 6467 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tpe ->
           (case (({-# LINE 24 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                   _tpe
-                  {-# LINE 6484 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 6472 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (ann_ ) of
             { ( _annIoriginalTree,ann_1) ->
                 (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                         _lhsIcat
-                        {-# LINE 6491 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 6479 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annOcat ->
                  (case (ann_1 _annOcat _annOtpe ) of
                   { ( _annIannotatedTree,_annIexpandedStars) ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               Star _annIannotatedTree
-                              {-# LINE 6498 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 6486 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annotatedTree ->
                        (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                _annotatedTree
-                               {-# LINE 6503 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 6491 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _lhsOannotatedTree ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 Star _annIexpandedStars
-                                {-# LINE 6508 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 6496 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _expandedStars ->
                          (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  _expandedStars
-                                 {-# LINE 6513 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 6501 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _lhsOexpandedStars ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   Star _annIoriginalTree
-                                  {-# LINE 6518 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 6506 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _originalTree ->
                            (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    _originalTree
-                                   {-# LINE 6523 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 6511 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _lhsOoriginalTree ->
                             (case (({-# LINE 25 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                     either (const Nothing) Just _tpe
-                                    {-# LINE 6528 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 6516 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOupType ->
                              ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -6534,58 +6522,58 @@ sem_ScalarExpr_StringLit :: T_Annotation  ->
 sem_ScalarExpr_StringLit ann_ value_  =
     (\ _lhsIcat
        _lhsIdownEnv ->
-         (case (({-# LINE 77 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+         (case (({-# LINE 83 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  Right UnknownType
-                 {-# LINE 6540 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 6528 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tpe ->
           (case (({-# LINE 24 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                   _tpe
-                  {-# LINE 6545 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 6533 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (ann_ ) of
             { ( _annIoriginalTree,ann_1) ->
                 (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                         _lhsIcat
-                        {-# LINE 6552 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 6540 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annOcat ->
                  (case (ann_1 _annOcat _annOtpe ) of
                   { ( _annIannotatedTree,_annIexpandedStars) ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               StringLit _annIannotatedTree value_
-                              {-# LINE 6559 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 6547 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annotatedTree ->
                        (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                _annotatedTree
-                               {-# LINE 6564 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 6552 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _lhsOannotatedTree ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 StringLit _annIexpandedStars value_
-                                {-# LINE 6569 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 6557 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _expandedStars ->
                          (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  _expandedStars
-                                 {-# LINE 6574 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 6562 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _lhsOexpandedStars ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   StringLit _annIoriginalTree value_
-                                  {-# LINE 6579 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 6567 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _originalTree ->
                            (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    _originalTree
-                                   {-# LINE 6584 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 6572 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _lhsOoriginalTree ->
                             (case (({-# LINE 25 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                     either (const Nothing) Just _tpe
-                                    {-# LINE 6589 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 6577 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOupType ->
                              ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -6598,63 +6586,63 @@ sem_ScalarExpr_TypedStringLit ann_ tn_ value_  =
        _lhsIdownEnv ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 6602 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 6590 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tnOcat ->
           (case (tn_ _tnOcat ) of
            { ( _tnIannotatedTree,_tnIexpandedStars,_tnInamedType,_tnIoriginalTree) ->
-               (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+               (case (({-# LINE 96 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                        maybe (Left []) Right _tnInamedType
-                       {-# LINE 6609 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 6597 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _tpe ->
                 (case (({-# LINE 24 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                         _tpe
-                        {-# LINE 6614 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 6602 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annOtpe ->
                  (case (ann_ ) of
                   { ( _annIoriginalTree,ann_1) ->
                       (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIcat
-                              {-# LINE 6621 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 6609 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annOcat ->
                        (case (ann_1 _annOcat _annOtpe ) of
                         { ( _annIannotatedTree,_annIexpandedStars) ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     TypedStringLit _annIannotatedTree _tnIannotatedTree value_
-                                    {-# LINE 6628 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 6616 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annotatedTree ->
                              (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _annotatedTree
-                                     {-# LINE 6633 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 6621 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _lhsOannotatedTree ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       TypedStringLit _annIexpandedStars _tnIexpandedStars value_
-                                      {-# LINE 6638 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 6626 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _expandedStars ->
                                (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        _expandedStars
-                                       {-# LINE 6643 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 6631 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _lhsOexpandedStars ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         TypedStringLit _annIoriginalTree _tnIoriginalTree value_
-                                        {-# LINE 6648 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 6636 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _originalTree ->
                                  (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          _originalTree
-                                         {-# LINE 6653 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 6641 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _lhsOoriginalTree ->
                                   (case (({-# LINE 25 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                           either (const Nothing) Just _tpe
-                                          {-# LINE 6658 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 6646 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _lhsOupType ->
                                    ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -6669,37 +6657,37 @@ sem_ScalarExpr_WindowApp ann_ fn_ partitionBy_ orderBy_ frm_  =
        _lhsIdownEnv ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 6673 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 6661 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _orderByOcat ->
-          (case (({-# LINE 33 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+          (case (({-# LINE 35 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                   _lhsIdownEnv
-                  {-# LINE 6678 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 6666 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _partitionByOdownEnv ->
            (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    _lhsIcat
-                   {-# LINE 6683 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 6671 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _partitionByOcat ->
             (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                     _lhsIdownEnv
-                    {-# LINE 6688 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 6676 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _fnOdownEnv ->
              (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      _lhsIcat
-                     {-# LINE 6693 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 6681 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _fnOcat ->
-              (case (({-# LINE 141 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+              (case (({-# LINE 147 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                       Left []
-                      {-# LINE 6698 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 6686 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _tpe ->
                (case (({-# LINE 24 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                        _tpe
-                       {-# LINE 6703 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 6691 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _annOtpe ->
                 (case (orderBy_ _orderByOcat ) of
@@ -6712,44 +6700,44 @@ sem_ScalarExpr_WindowApp ann_ fn_ partitionBy_ orderBy_ frm_  =
                                 { ( _annIoriginalTree,ann_1) ->
                                     (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             _lhsIcat
-                                            {-# LINE 6716 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 6704 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _annOcat ->
                                      (case (ann_1 _annOcat _annOtpe ) of
                                       { ( _annIannotatedTree,_annIexpandedStars) ->
                                           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                   WindowApp _annIannotatedTree _fnIannotatedTree _partitionByIannotatedTree _orderByIannotatedTree frm_
-                                                  {-# LINE 6723 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                  {-# LINE 6711 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                   )) of
                                            { _annotatedTree ->
                                            (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                    _annotatedTree
-                                                   {-# LINE 6728 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                   {-# LINE 6716 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                    )) of
                                             { _lhsOannotatedTree ->
                                             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                     WindowApp _annIexpandedStars _fnIexpandedStars _partitionByIexpandedStars _orderByIexpandedStars frm_
-                                                    {-# LINE 6733 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                    {-# LINE 6721 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                     )) of
                                              { _expandedStars ->
                                              (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                      _expandedStars
-                                                     {-# LINE 6738 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                     {-# LINE 6726 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                      )) of
                                               { _lhsOexpandedStars ->
                                               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                       WindowApp _annIoriginalTree _fnIoriginalTree _partitionByIoriginalTree _orderByIoriginalTree frm_
-                                                      {-# LINE 6743 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                      {-# LINE 6731 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                       )) of
                                                { _originalTree ->
                                                (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                        _originalTree
-                                                       {-# LINE 6748 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                       {-# LINE 6736 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                        )) of
                                                 { _lhsOoriginalTree ->
                                                 (case (({-# LINE 25 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                                         either (const Nothing) Just _tpe
-                                                        {-# LINE 6753 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                        {-# LINE 6741 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                         )) of
                                                  { _lhsOupType ->
                                                  ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -6795,44 +6783,44 @@ sem_ScalarExprDirectionPair_Tuple x1_ x2_  =
     (\ _lhsIcat ->
          (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  error "missing rule: ScalarExprDirectionPair.Tuple.x1.downEnv"
-                 {-# LINE 6799 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 6787 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _x1OdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 6804 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 6792 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _x1Ocat ->
            (case (x1_ _x1Ocat _x1OdownEnv ) of
             { ( _x1IannotatedTree,_x1IexpandedStars,_x1IoriginalTree,_x1IupType) ->
                 (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                         (_x1IannotatedTree,x2_)
-                        {-# LINE 6811 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 6799 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annotatedTree ->
                  (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                          _annotatedTree
-                         {-# LINE 6816 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 6804 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _lhsOannotatedTree ->
                   (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                           (_x1IexpandedStars,x2_)
-                          {-# LINE 6821 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                          {-# LINE 6809 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                           )) of
                    { _expandedStars ->
                    (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                            _expandedStars
-                           {-# LINE 6826 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                           {-# LINE 6814 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                            )) of
                     { _lhsOexpandedStars ->
                     (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                             (_x1IoriginalTree,x2_)
-                            {-# LINE 6831 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                            {-# LINE 6819 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                             )) of
                      { _originalTree ->
                      (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              _originalTree
-                             {-# LINE 6836 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 6824 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _lhsOoriginalTree ->
                       ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }))
@@ -6883,12 +6871,12 @@ sem_ScalarExprDirectionPairList_Cons hd_ tl_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 6887 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 6875 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tlOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 6892 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 6880 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _hdOcat ->
            (case (tl_ _tlOcat ) of
@@ -6897,32 +6885,32 @@ sem_ScalarExprDirectionPairList_Cons hd_ tl_  =
                  { ( _hdIannotatedTree,_hdIexpandedStars,_hdIoriginalTree) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              (:) _hdIannotatedTree _tlIannotatedTree
-                             {-# LINE 6901 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 6889 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 6906 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 6894 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                (:) _hdIexpandedStars _tlIexpandedStars
-                               {-# LINE 6911 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 6899 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 6916 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 6904 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  (:) _hdIoriginalTree _tlIoriginalTree
-                                 {-# LINE 6921 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 6909 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 6926 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 6914 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -6931,32 +6919,32 @@ sem_ScalarExprDirectionPairList_Nil  =
     (\ _lhsIcat ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  []
-                 {-# LINE 6935 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 6923 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 6940 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 6928 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    []
-                   {-# LINE 6945 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 6933 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _expandedStars ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _expandedStars
-                    {-# LINE 6950 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 6938 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOexpandedStars ->
              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      []
-                     {-# LINE 6955 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 6943 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _originalTree ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _originalTree
-                      {-# LINE 6960 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 6948 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }))
@@ -7009,24 +6997,24 @@ sem_ScalarExprList_Cons :: T_ScalarExpr  ->
 sem_ScalarExprList_Cons hd_ tl_  =
     (\ _lhsIcat
        _lhsIdownEnv ->
-         (case (({-# LINE 33 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+         (case (({-# LINE 35 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  _lhsIdownEnv
-                 {-# LINE 7015 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 7003 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tlOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 7020 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 7008 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _tlOcat ->
            (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    _lhsIdownEnv
-                   {-# LINE 7025 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 7013 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _hdOdownEnv ->
             (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _lhsIcat
-                    {-# LINE 7030 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 7018 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _hdOcat ->
              (case (tl_ _tlOcat _tlOdownEnv ) of
@@ -7035,37 +7023,37 @@ sem_ScalarExprList_Cons hd_ tl_  =
                    { ( _hdIannotatedTree,_hdIexpandedStars,_hdIoriginalTree,_hdIupType) ->
                        (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                (:) _hdIannotatedTree _tlIannotatedTree
-                               {-# LINE 7039 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 7027 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _annotatedTree ->
                         (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _annotatedTree
-                                {-# LINE 7044 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 7032 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOannotatedTree ->
                          (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  (:) _hdIexpandedStars _tlIexpandedStars
-                                 {-# LINE 7049 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 7037 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _expandedStars ->
                           (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _expandedStars
-                                  {-# LINE 7054 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 7042 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOexpandedStars ->
                            (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    (:) _hdIoriginalTree _tlIoriginalTree
-                                   {-# LINE 7059 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 7047 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _originalTree ->
                             (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _originalTree
-                                    {-# LINE 7064 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 7052 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOoriginalTree ->
-                             (case (({-# LINE 37 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                             (case (({-# LINE 39 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                      _hdIupType : _tlIupTypes
-                                     {-# LINE 7069 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 7057 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _lhsOupTypes ->
                               ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupTypes) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -7075,37 +7063,37 @@ sem_ScalarExprList_Nil  =
        _lhsIdownEnv ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  []
-                 {-# LINE 7079 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 7067 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 7084 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 7072 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    []
-                   {-# LINE 7089 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 7077 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _expandedStars ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _expandedStars
-                    {-# LINE 7094 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 7082 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOexpandedStars ->
              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      []
-                     {-# LINE 7099 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 7087 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _originalTree ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _originalTree
-                      {-# LINE 7104 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 7092 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
-               (case (({-# LINE 38 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+               (case (({-# LINE 40 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                        []
-                       {-# LINE 7109 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 7097 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _lhsOupTypes ->
                 ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupTypes) }) }) }) }) }) }) }))
@@ -7156,17 +7144,17 @@ sem_ScalarExprListList_Cons hd_ tl_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 7160 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 7148 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tlOcat ->
-          (case (({-# LINE 33 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+          (case (({-# LINE 35 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                   error "missing rule: ScalarExprListList.Cons.hd.downEnv"
-                  {-# LINE 7165 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 7153 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _hdOdownEnv ->
            (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    _lhsIcat
-                   {-# LINE 7170 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 7158 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _hdOcat ->
             (case (tl_ _tlOcat ) of
@@ -7175,32 +7163,32 @@ sem_ScalarExprListList_Cons hd_ tl_  =
                   { ( _hdIannotatedTree,_hdIexpandedStars,_hdIoriginalTree,_hdIupTypes) ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               (:) _hdIannotatedTree _tlIannotatedTree
-                              {-# LINE 7179 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 7167 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annotatedTree ->
                        (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                _annotatedTree
-                               {-# LINE 7184 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 7172 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _lhsOannotatedTree ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 (:) _hdIexpandedStars _tlIexpandedStars
-                                {-# LINE 7189 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 7177 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _expandedStars ->
                          (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  _expandedStars
-                                 {-# LINE 7194 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 7182 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _lhsOexpandedStars ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   (:) _hdIoriginalTree _tlIoriginalTree
-                                  {-# LINE 7199 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 7187 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _originalTree ->
                            (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    _originalTree
-                                   {-# LINE 7204 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 7192 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _lhsOoriginalTree ->
                             ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }))
@@ -7209,32 +7197,32 @@ sem_ScalarExprListList_Nil  =
     (\ _lhsIcat ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  []
-                 {-# LINE 7213 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 7201 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 7218 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 7206 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    []
-                   {-# LINE 7223 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 7211 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _expandedStars ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _expandedStars
-                    {-# LINE 7228 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 7216 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOexpandedStars ->
              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      []
-                     {-# LINE 7233 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 7221 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _originalTree ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _originalTree
-                      {-# LINE 7238 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 7226 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }))
@@ -7280,17 +7268,17 @@ sem_ScalarExprListStatementListPair_Tuple x1_ x2_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 7284 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 7272 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _x2Ocat ->
-          (case (({-# LINE 33 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+          (case (({-# LINE 35 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                   error "missing rule: ScalarExprListStatementListPair.Tuple.x1.downEnv"
-                  {-# LINE 7289 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 7277 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _x1OdownEnv ->
            (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    _lhsIcat
-                   {-# LINE 7294 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 7282 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _x1Ocat ->
             (case (x2_ _x2Ocat ) of
@@ -7299,32 +7287,32 @@ sem_ScalarExprListStatementListPair_Tuple x1_ x2_  =
                   { ( _x1IannotatedTree,_x1IexpandedStars,_x1IoriginalTree,_x1IupTypes) ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               (_x1IannotatedTree,_x2IannotatedTree)
-                              {-# LINE 7303 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 7291 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annotatedTree ->
                        (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                _annotatedTree
-                               {-# LINE 7308 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 7296 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _lhsOannotatedTree ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 (_x1IexpandedStars,_x2IexpandedStars)
-                                {-# LINE 7313 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 7301 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _expandedStars ->
                          (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  _expandedStars
-                                 {-# LINE 7318 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 7306 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _lhsOexpandedStars ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   (_x1IoriginalTree,_x2IoriginalTree)
-                                  {-# LINE 7323 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 7311 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _originalTree ->
                            (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    _originalTree
-                                   {-# LINE 7328 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 7316 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _lhsOoriginalTree ->
                             ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }))
@@ -7375,12 +7363,12 @@ sem_ScalarExprListStatementListPairList_Cons hd_ tl_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 7379 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 7367 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tlOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 7384 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 7372 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _hdOcat ->
            (case (tl_ _tlOcat ) of
@@ -7389,32 +7377,32 @@ sem_ScalarExprListStatementListPairList_Cons hd_ tl_  =
                  { ( _hdIannotatedTree,_hdIexpandedStars,_hdIoriginalTree) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              (:) _hdIannotatedTree _tlIannotatedTree
-                             {-# LINE 7393 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 7381 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 7398 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 7386 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                (:) _hdIexpandedStars _tlIexpandedStars
-                               {-# LINE 7403 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 7391 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 7408 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 7396 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  (:) _hdIoriginalTree _tlIoriginalTree
-                                 {-# LINE 7413 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 7401 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 7418 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 7406 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -7423,32 +7411,32 @@ sem_ScalarExprListStatementListPairList_Nil  =
     (\ _lhsIcat ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  []
-                 {-# LINE 7427 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 7415 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 7432 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 7420 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    []
-                   {-# LINE 7437 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 7425 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _expandedStars ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _expandedStars
-                    {-# LINE 7442 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 7430 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOexpandedStars ->
              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      []
-                     {-# LINE 7447 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 7435 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _originalTree ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _originalTree
-                      {-# LINE 7452 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 7440 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }))
@@ -7493,44 +7481,44 @@ sem_ScalarExprRoot_ScalarExprRoot expr_  =
     (\ _lhsIcat ->
          (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  error "missing rule: ScalarExprRoot.ScalarExprRoot.expr.downEnv"
-                 {-# LINE 7497 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 7485 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _exprOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 7502 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 7490 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _exprOcat ->
            (case (expr_ _exprOcat _exprOdownEnv ) of
             { ( _exprIannotatedTree,_exprIexpandedStars,_exprIoriginalTree,_exprIupType) ->
                 (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                         ScalarExprRoot _exprIannotatedTree
-                        {-# LINE 7509 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 7497 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annotatedTree ->
                  (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                          _annotatedTree
-                         {-# LINE 7514 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 7502 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _lhsOannotatedTree ->
                   (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                           ScalarExprRoot _exprIexpandedStars
-                          {-# LINE 7519 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                          {-# LINE 7507 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                           )) of
                    { _expandedStars ->
                    (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                            _expandedStars
-                           {-# LINE 7524 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                           {-# LINE 7512 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                            )) of
                     { _lhsOexpandedStars ->
                     (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                             ScalarExprRoot _exprIoriginalTree
-                            {-# LINE 7529 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                            {-# LINE 7517 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                             )) of
                      { _originalTree ->
                      (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              _originalTree
-                             {-# LINE 7534 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 7522 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _lhsOoriginalTree ->
                       ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }))
@@ -7576,17 +7564,17 @@ sem_ScalarExprStatementListPair_Tuple x1_ x2_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 7580 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 7568 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _x2Ocat ->
           (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                   error "missing rule: ScalarExprStatementListPair.Tuple.x1.downEnv"
-                  {-# LINE 7585 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 7573 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _x1OdownEnv ->
            (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    _lhsIcat
-                   {-# LINE 7590 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 7578 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _x1Ocat ->
             (case (x2_ _x2Ocat ) of
@@ -7595,32 +7583,32 @@ sem_ScalarExprStatementListPair_Tuple x1_ x2_  =
                   { ( _x1IannotatedTree,_x1IexpandedStars,_x1IoriginalTree,_x1IupType) ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               (_x1IannotatedTree,_x2IannotatedTree)
-                              {-# LINE 7599 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 7587 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annotatedTree ->
                        (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                _annotatedTree
-                               {-# LINE 7604 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 7592 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _lhsOannotatedTree ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 (_x1IexpandedStars,_x2IexpandedStars)
-                                {-# LINE 7609 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 7597 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _expandedStars ->
                          (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  _expandedStars
-                                 {-# LINE 7614 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 7602 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _lhsOexpandedStars ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   (_x1IoriginalTree,_x2IoriginalTree)
-                                  {-# LINE 7619 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 7607 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _originalTree ->
                            (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    _originalTree
-                                   {-# LINE 7624 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 7612 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _lhsOoriginalTree ->
                             ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }))
@@ -7671,12 +7659,12 @@ sem_ScalarExprStatementListPairList_Cons hd_ tl_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 7675 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 7663 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tlOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 7680 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 7668 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _hdOcat ->
            (case (tl_ _tlOcat ) of
@@ -7685,32 +7673,32 @@ sem_ScalarExprStatementListPairList_Cons hd_ tl_  =
                  { ( _hdIannotatedTree,_hdIexpandedStars,_hdIoriginalTree) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              (:) _hdIannotatedTree _tlIannotatedTree
-                             {-# LINE 7689 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 7677 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 7694 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 7682 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                (:) _hdIexpandedStars _tlIexpandedStars
-                               {-# LINE 7699 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 7687 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 7704 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 7692 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  (:) _hdIoriginalTree _tlIoriginalTree
-                                 {-# LINE 7709 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 7697 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 7714 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 7702 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -7719,32 +7707,32 @@ sem_ScalarExprStatementListPairList_Nil  =
     (\ _lhsIcat ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  []
-                 {-# LINE 7723 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 7711 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 7728 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 7716 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    []
-                   {-# LINE 7733 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 7721 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _expandedStars ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _expandedStars
-                    {-# LINE 7738 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 7726 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOexpandedStars ->
              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      []
-                     {-# LINE 7743 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 7731 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _originalTree ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _originalTree
-                      {-# LINE 7748 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 7736 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }))
@@ -7807,17 +7795,17 @@ sem_SelectItem_SelExp ann_ ex_  =
        _lhsIdownEnv ->
          (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  _lhsIdownEnv
-                 {-# LINE 7811 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 7799 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _exOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 7816 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 7804 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _exOcat ->
-           (case (({-# LINE 30 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
+           (case (({-# LINE 44 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
                    Left []
-                   {-# LINE 7821 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 7809 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (ex_ _exOcat _exOdownEnv ) of
@@ -7826,53 +7814,53 @@ sem_SelectItem_SelExp ann_ ex_  =
                   { ( _annIoriginalTree,ann_1) ->
                       (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIcat
-                              {-# LINE 7830 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 7818 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annOcat ->
                        (case (ann_1 _annOcat _annOtpe ) of
                         { ( _annIannotatedTree,_annIexpandedStars) ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     SelExp _annIannotatedTree _exIannotatedTree
-                                    {-# LINE 7837 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 7825 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annotatedTree ->
                              (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _annotatedTree
-                                     {-# LINE 7842 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 7830 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _lhsOannotatedTree ->
-                              (case (({-# LINE 38 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
+                              (case (({-# LINE 55 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
                                       fmap (columnName _exIoriginalTree,) _exIupType
-                                      {-# LINE 7847 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 7835 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _lhsOcol ->
                                (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        SelExp _annIexpandedStars _exIexpandedStars
-                                       {-# LINE 7852 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 7840 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _expandedStars ->
                                 (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         _expandedStars
-                                        {-# LINE 7857 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 7845 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOexpandedStars ->
                                  (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          SelExp _annIoriginalTree _exIoriginalTree
-                                         {-# LINE 7862 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 7850 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _originalTree ->
                                   (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           _originalTree
-                                          {-# LINE 7867 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 7855 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _lhsOoriginalTree ->
-                                   (case (({-# LINE 80 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
+                                   (case (({-# LINE 115 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
                                            case _exIoriginalTree of
                                              Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
                                                 let a = _annIoriginalTree
                                                 in map (\(n,_) -> SelExp a (Identifier a (QNmc n))) is
                                              x -> [_originalTree]
-                                           {-# LINE 7876 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 7864 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _lhsOslExpandedStars ->
                                     ( _lhsOannotatedTree,_lhsOcol,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOslExpandedStars) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -7885,17 +7873,17 @@ sem_SelectItem_SelectItem ann_ ex_ name_  =
        _lhsIdownEnv ->
          (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  _lhsIdownEnv
-                 {-# LINE 7889 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 7877 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _exOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 7894 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 7882 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _exOcat ->
-           (case (({-# LINE 30 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
+           (case (({-# LINE 44 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
                    Left []
-                   {-# LINE 7899 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 7887 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (ex_ _exOcat _exOdownEnv ) of
@@ -7904,49 +7892,49 @@ sem_SelectItem_SelectItem ann_ ex_ name_  =
                   { ( _annIoriginalTree,ann_1) ->
                       (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIcat
-                              {-# LINE 7908 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 7896 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annOcat ->
                        (case (ann_1 _annOcat _annOtpe ) of
                         { ( _annIannotatedTree,_annIexpandedStars) ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     SelectItem _annIannotatedTree _exIannotatedTree name_
-                                    {-# LINE 7915 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 7903 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annotatedTree ->
                              (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _annotatedTree
-                                     {-# LINE 7920 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 7908 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _lhsOannotatedTree ->
-                              (case (({-# LINE 34 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
+                              (case (({-# LINE 49 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
                                       fmap (nm name_,) _exIupType
-                                      {-# LINE 7925 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 7913 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _lhsOcol ->
                                (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        SelectItem _annIexpandedStars _exIexpandedStars name_
-                                       {-# LINE 7930 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 7918 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _expandedStars ->
                                 (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         _expandedStars
-                                        {-# LINE 7935 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 7923 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOexpandedStars ->
                                  (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          SelectItem _annIoriginalTree _exIoriginalTree name_
-                                         {-# LINE 7940 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 7928 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _originalTree ->
                                   (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           _originalTree
-                                          {-# LINE 7945 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 7933 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _lhsOoriginalTree ->
-                                   (case (({-# LINE 76 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
+                                   (case (({-# LINE 111 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
                                            [_expandedStars]
-                                           {-# LINE 7950 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 7938 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _lhsOslExpandedStars ->
                                     ( _lhsOannotatedTree,_lhsOcol,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOslExpandedStars) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -8002,24 +7990,24 @@ sem_SelectItemList_Cons :: T_SelectItem  ->
 sem_SelectItemList_Cons hd_ tl_  =
     (\ _lhsIcat
        _lhsIdownEnv ->
-         (case (({-# LINE 7 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
+         (case (({-# LINE 15 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
                  _lhsIdownEnv
-                 {-# LINE 8008 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 7996 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tlOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 8013 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 8001 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _tlOcat ->
-           (case (({-# LINE 12 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
+           (case (({-# LINE 20 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
                    _lhsIdownEnv
-                   {-# LINE 8018 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 8006 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _hdOdownEnv ->
             (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _lhsIcat
-                    {-# LINE 8023 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 8011 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _hdOcat ->
              (case (tl_ _tlOcat _tlOdownEnv ) of
@@ -8028,52 +8016,52 @@ sem_SelectItemList_Cons hd_ tl_  =
                    { ( _hdIannotatedTree,_hdIcol,_hdIexpandedStars,_hdIoriginalTree,_hdIslExpandedStars) ->
                        (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                (:) _hdIannotatedTree _tlIannotatedTree
-                               {-# LINE 8032 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 8020 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _annotatedTree ->
                         (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _annotatedTree
-                                {-# LINE 8037 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 8025 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOannotatedTree ->
-                         (case (({-# LINE 24 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
+                         (case (({-# LINE 36 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
                                  _hdIcol : _tlIcols
-                                 {-# LINE 8042 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 8030 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _cols ->
-                          (case (({-# LINE 25 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
+                          (case (({-# LINE 35 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
                                   _cols
-                                  {-# LINE 8047 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 8035 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOcols ->
                            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    (:) _hdIexpandedStars _tlIexpandedStars
-                                   {-# LINE 8052 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 8040 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _expandedStars ->
                             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _expandedStars
-                                    {-# LINE 8057 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 8045 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOexpandedStars ->
                              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      (:) _hdIoriginalTree _tlIoriginalTree
-                                     {-# LINE 8062 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 8050 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _originalTree ->
                               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       _originalTree
-                                      {-# LINE 8067 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 8055 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _lhsOoriginalTree ->
-                               (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
+                               (case (({-# LINE 105 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
                                        _hdIslExpandedStars ++ _tlIslExpandedStars
-                                       {-# LINE 8072 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 8060 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _lhsOslExpandedStars ->
-                                (case (({-# LINE 26 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
+                                (case (({-# LINE 38 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
                                         sequence _cols
-                                        {-# LINE 8077 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 8065 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOupType ->
                                  ( _lhsOannotatedTree,_lhsOcols,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOslExpandedStars,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -8083,47 +8071,47 @@ sem_SelectItemList_Nil  =
        _lhsIdownEnv ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  []
-                 {-# LINE 8087 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 8075 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 8092 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 8080 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
-           (case (({-# LINE 21 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
+           (case (({-# LINE 31 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
                    []
-                   {-# LINE 8097 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 8085 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _lhsOcols ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     []
-                    {-# LINE 8102 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 8090 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _expandedStars ->
              (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      _expandedStars
-                     {-# LINE 8107 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 8095 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _lhsOexpandedStars ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       []
-                      {-# LINE 8112 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 8100 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _originalTree ->
                (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        _originalTree
-                       {-# LINE 8117 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 8105 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _lhsOoriginalTree ->
-                (case (({-# LINE 63 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
+                (case (({-# LINE 104 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
                         []
-                        {-# LINE 8122 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 8110 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _lhsOslExpandedStars ->
-                 (case (({-# LINE 22 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
+                 (case (({-# LINE 32 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
                          Nothing
-                         {-# LINE 8127 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 8115 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _lhsOupType ->
                   ( _lhsOannotatedTree,_lhsOcols,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOslExpandedStars,_lhsOupType) }) }) }) }) }) }) }) }) }))
@@ -8171,19 +8159,19 @@ sem_SelectList_SelectList :: T_Annotation  ->
 sem_SelectList_SelectList ann_ items_  =
     (\ _lhsIcat
        _lhsIdownEnv ->
-         (case (({-# LINE 7 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
+         (case (({-# LINE 15 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
                  _lhsIdownEnv
-                 {-# LINE 8177 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 8165 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _itemsOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 8182 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 8170 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _itemsOcat ->
-           (case (({-# LINE 18 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
+           (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
                    Left []
-                   {-# LINE 8187 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 8175 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (items_ _itemsOcat _itemsOdownEnv ) of
@@ -8192,39 +8180,39 @@ sem_SelectList_SelectList ann_ items_  =
                   { ( _annIoriginalTree,ann_1) ->
                       (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIcat
-                              {-# LINE 8196 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 8184 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annOcat ->
                        (case (ann_1 _annOcat _annOtpe ) of
                         { ( _annIannotatedTree,_annIexpandedStars) ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     SelectList _annIannotatedTree _itemsIannotatedTree
-                                    {-# LINE 8203 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 8191 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annotatedTree ->
                              (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _annotatedTree
-                                     {-# LINE 8208 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 8196 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _lhsOannotatedTree ->
-                              (case (({-# LINE 68 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
+                              (case (({-# LINE 100 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
                                       SelectList _annIoriginalTree _itemsIslExpandedStars
-                                      {-# LINE 8213 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 8201 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _lhsOexpandedStars ->
                                (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        SelectList _annIoriginalTree _itemsIoriginalTree
-                                       {-# LINE 8218 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 8206 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _originalTree ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         _originalTree
-                                        {-# LINE 8223 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 8211 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOoriginalTree ->
-                                 (case (({-# LINE 17 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
+                                 (case (({-# LINE 25 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag" #-}
                                          _itemsIupType
-                                         {-# LINE 8228 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 8216 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _lhsOupType ->
                                   ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupType) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -8284,17 +8272,17 @@ sem_SetClause_MultiSetClause ann_ setTargets_ ex_  =
     (\ _lhsIcat ->
          (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  error "missing rule: SetClause.MultiSetClause.ex.downEnv"
-                 {-# LINE 8288 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 8276 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _exOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 8293 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 8281 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _exOcat ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    error "missing rule: SetClause.MultiSetClause.ann.tpe"
-                   {-# LINE 8298 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 8286 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (ex_ _exOcat _exOdownEnv ) of
@@ -8303,39 +8291,39 @@ sem_SetClause_MultiSetClause ann_ setTargets_ ex_  =
                   { ( _annIoriginalTree,ann_1) ->
                       (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIcat
-                              {-# LINE 8307 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 8295 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annOcat ->
                        (case (ann_1 _annOcat _annOtpe ) of
                         { ( _annIannotatedTree,_annIexpandedStars) ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     MultiSetClause _annIannotatedTree setTargets_ _exIannotatedTree
-                                    {-# LINE 8314 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 8302 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annotatedTree ->
                              (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _annotatedTree
-                                     {-# LINE 8319 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 8307 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _lhsOannotatedTree ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       MultiSetClause _annIexpandedStars setTargets_ _exIexpandedStars
-                                      {-# LINE 8324 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 8312 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _expandedStars ->
                                (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        _expandedStars
-                                       {-# LINE 8329 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 8317 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _lhsOexpandedStars ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         MultiSetClause _annIoriginalTree setTargets_ _exIoriginalTree
-                                        {-# LINE 8334 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 8322 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _originalTree ->
                                  (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          _originalTree
-                                         {-# LINE 8339 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 8327 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _lhsOoriginalTree ->
                                   ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -8347,17 +8335,17 @@ sem_SetClause_SetClause ann_ setTarget_ ex_  =
     (\ _lhsIcat ->
          (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  error "missing rule: SetClause.SetClause.ex.downEnv"
-                 {-# LINE 8351 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 8339 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _exOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 8356 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 8344 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _exOcat ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    error "missing rule: SetClause.SetClause.ann.tpe"
-                   {-# LINE 8361 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 8349 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (ex_ _exOcat _exOdownEnv ) of
@@ -8366,39 +8354,39 @@ sem_SetClause_SetClause ann_ setTarget_ ex_  =
                   { ( _annIoriginalTree,ann_1) ->
                       (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIcat
-                              {-# LINE 8370 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 8358 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annOcat ->
                        (case (ann_1 _annOcat _annOtpe ) of
                         { ( _annIannotatedTree,_annIexpandedStars) ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     SetClause _annIannotatedTree setTarget_ _exIannotatedTree
-                                    {-# LINE 8377 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 8365 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annotatedTree ->
                              (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _annotatedTree
-                                     {-# LINE 8382 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 8370 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _lhsOannotatedTree ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       SetClause _annIexpandedStars setTarget_ _exIexpandedStars
-                                      {-# LINE 8387 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 8375 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _expandedStars ->
                                (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        _expandedStars
-                                       {-# LINE 8392 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 8380 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _lhsOexpandedStars ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         SetClause _annIoriginalTree setTarget_ _exIoriginalTree
-                                        {-# LINE 8397 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 8385 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _originalTree ->
                                  (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          _originalTree
-                                         {-# LINE 8402 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 8390 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _lhsOoriginalTree ->
                                   ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -8449,12 +8437,12 @@ sem_SetClauseList_Cons hd_ tl_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 8453 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 8441 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tlOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 8458 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 8446 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _hdOcat ->
            (case (tl_ _tlOcat ) of
@@ -8463,32 +8451,32 @@ sem_SetClauseList_Cons hd_ tl_  =
                  { ( _hdIannotatedTree,_hdIexpandedStars,_hdIoriginalTree) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              (:) _hdIannotatedTree _tlIannotatedTree
-                             {-# LINE 8467 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 8455 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 8472 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 8460 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                (:) _hdIexpandedStars _tlIexpandedStars
-                               {-# LINE 8477 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 8465 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 8482 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 8470 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  (:) _hdIoriginalTree _tlIoriginalTree
-                                 {-# LINE 8487 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 8475 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 8492 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 8480 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -8497,32 +8485,32 @@ sem_SetClauseList_Nil  =
     (\ _lhsIcat ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  []
-                 {-# LINE 8501 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 8489 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 8506 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 8494 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    []
-                   {-# LINE 8511 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 8499 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _expandedStars ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _expandedStars
-                    {-# LINE 8516 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 8504 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOexpandedStars ->
              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      []
-                     {-# LINE 8521 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 8509 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _originalTree ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _originalTree
-                      {-# LINE 8526 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 8514 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }))
@@ -9045,26 +9033,26 @@ sem_Statement_AlterSequence :: T_Annotation  ->
                                T_Statement 
 sem_Statement_AlterSequence ann_ name_ ownedBy_  =
     (\ _lhsIcat ->
-         (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+         (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                  error "missing rule: Statement.AlterSequence.ownedBy.tpe"
-                 {-# LINE 9051 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 9039 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _ownedByOtpe ->
-          (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+          (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                   error "missing rule: Statement.AlterSequence.name.tpe"
-                  {-# LINE 9056 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 9044 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _nameOtpe ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    error "missing rule: Statement.AlterSequence.ann.tpe"
-                   {-# LINE 9061 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 9049 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (ownedBy_ ) of
              { ( _ownedByIoriginalTree,ownedBy_1) ->
                  (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                          _lhsIcat
-                         {-# LINE 9068 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 9056 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _ownedByOcat ->
                   (case (ownedBy_1 _ownedByOcat _ownedByOtpe ) of
@@ -9073,7 +9061,7 @@ sem_Statement_AlterSequence ann_ name_ ownedBy_  =
                         { ( _nameIoriginalTree,name_1) ->
                             (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _lhsIcat
-                                    {-# LINE 9077 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 9065 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _nameOcat ->
                              (case (name_1 _nameOcat _nameOtpe ) of
@@ -9082,39 +9070,39 @@ sem_Statement_AlterSequence ann_ name_ ownedBy_  =
                                    { ( _annIoriginalTree,ann_1) ->
                                        (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                _lhsIcat
-                                               {-# LINE 9086 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 9074 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _annOcat ->
                                         (case (ann_1 _annOcat _annOtpe ) of
                                          { ( _annIannotatedTree,_annIexpandedStars) ->
                                              (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                      AlterSequence _annIannotatedTree _nameIannotatedTree _ownedByIannotatedTree
-                                                     {-# LINE 9093 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                     {-# LINE 9081 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                      )) of
                                               { _annotatedTree ->
                                               (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                       _annotatedTree
-                                                      {-# LINE 9098 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                      {-# LINE 9086 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                       )) of
                                                { _lhsOannotatedTree ->
                                                (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                        AlterSequence _annIexpandedStars _nameIexpandedStars _ownedByIexpandedStars
-                                                       {-# LINE 9103 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                       {-# LINE 9091 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                        )) of
                                                 { _expandedStars ->
                                                 (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                         _expandedStars
-                                                        {-# LINE 9108 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                        {-# LINE 9096 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                         )) of
                                                  { _lhsOexpandedStars ->
                                                  (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                          AlterSequence _annIoriginalTree _nameIoriginalTree _ownedByIoriginalTree
-                                                         {-# LINE 9113 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                         {-# LINE 9101 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                          )) of
                                                   { _originalTree ->
                                                   (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                           _originalTree
-                                                          {-# LINE 9118 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                          {-# LINE 9106 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                           )) of
                                                    { _lhsOoriginalTree ->
                                                    ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -9126,17 +9114,17 @@ sem_Statement_AlterTable ann_ name_ actions_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 9130 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 9118 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _actionsOcat ->
-          (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+          (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                   error "missing rule: Statement.AlterTable.name.tpe"
-                  {-# LINE 9135 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 9123 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _nameOtpe ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    error "missing rule: Statement.AlterTable.ann.tpe"
-                   {-# LINE 9140 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 9128 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (actions_ _actionsOcat ) of
@@ -9145,7 +9133,7 @@ sem_Statement_AlterTable ann_ name_ actions_  =
                   { ( _nameIoriginalTree,name_1) ->
                       (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIcat
-                              {-# LINE 9149 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 9137 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _nameOcat ->
                        (case (name_1 _nameOcat _nameOtpe ) of
@@ -9154,39 +9142,39 @@ sem_Statement_AlterTable ann_ name_ actions_  =
                              { ( _annIoriginalTree,ann_1) ->
                                  (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          _lhsIcat
-                                         {-# LINE 9158 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 9146 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _annOcat ->
                                   (case (ann_1 _annOcat _annOtpe ) of
                                    { ( _annIannotatedTree,_annIexpandedStars) ->
                                        (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                AlterTable _annIannotatedTree _nameIannotatedTree _actionsIannotatedTree
-                                               {-# LINE 9165 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 9153 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _annotatedTree ->
                                         (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 _annotatedTree
-                                                {-# LINE 9170 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 9158 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _lhsOannotatedTree ->
                                          (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                  AlterTable _annIexpandedStars _nameIexpandedStars _actionsIexpandedStars
-                                                 {-# LINE 9175 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                 {-# LINE 9163 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                  )) of
                                           { _expandedStars ->
                                           (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                   _expandedStars
-                                                  {-# LINE 9180 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                  {-# LINE 9168 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                   )) of
                                            { _lhsOexpandedStars ->
                                            (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                    AlterTable _annIoriginalTree _nameIoriginalTree _actionsIoriginalTree
-                                                   {-# LINE 9185 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                   {-# LINE 9173 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                    )) of
                                             { _originalTree ->
                                             (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                     _originalTree
-                                                    {-# LINE 9190 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                    {-# LINE 9178 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                     )) of
                                              { _lhsOoriginalTree ->
                                              ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -9196,32 +9184,32 @@ sem_Statement_AntiStatement string_  =
     (\ _lhsIcat ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  AntiStatement string_
-                 {-# LINE 9200 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 9188 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 9205 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 9193 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    AntiStatement string_
-                   {-# LINE 9210 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 9198 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _expandedStars ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _expandedStars
-                    {-# LINE 9215 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 9203 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOexpandedStars ->
              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      AntiStatement string_
-                     {-# LINE 9220 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 9208 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _originalTree ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _originalTree
-                      {-# LINE 9225 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 9213 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }))
@@ -9233,22 +9221,22 @@ sem_Statement_Assignment ann_ target_ value_  =
     (\ _lhsIcat ->
          (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  error "missing rule: Statement.Assignment.value.downEnv"
-                 {-# LINE 9237 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 9225 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _valueOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 9242 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 9230 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _valueOcat ->
-           (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+           (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                    error "missing rule: Statement.Assignment.target.tpe"
-                   {-# LINE 9247 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 9235 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _targetOtpe ->
             (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     error "missing rule: Statement.Assignment.ann.tpe"
-                    {-# LINE 9252 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 9240 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _annOtpe ->
              (case (value_ _valueOcat _valueOdownEnv ) of
@@ -9257,7 +9245,7 @@ sem_Statement_Assignment ann_ target_ value_  =
                    { ( _targetIoriginalTree,target_1) ->
                        (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                _lhsIcat
-                               {-# LINE 9261 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 9249 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _targetOcat ->
                         (case (target_1 _targetOcat _targetOtpe ) of
@@ -9266,39 +9254,39 @@ sem_Statement_Assignment ann_ target_ value_  =
                               { ( _annIoriginalTree,ann_1) ->
                                   (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           _lhsIcat
-                                          {-# LINE 9270 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 9258 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _annOcat ->
                                    (case (ann_1 _annOcat _annOtpe ) of
                                     { ( _annIannotatedTree,_annIexpandedStars) ->
                                         (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 Assignment _annIannotatedTree _targetIannotatedTree _valueIannotatedTree
-                                                {-# LINE 9277 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 9265 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _annotatedTree ->
                                          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                  _annotatedTree
-                                                 {-# LINE 9282 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                 {-# LINE 9270 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                  )) of
                                           { _lhsOannotatedTree ->
                                           (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                   Assignment _annIexpandedStars _targetIexpandedStars _valueIexpandedStars
-                                                  {-# LINE 9287 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                  {-# LINE 9275 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                   )) of
                                            { _expandedStars ->
                                            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                    _expandedStars
-                                                   {-# LINE 9292 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                   {-# LINE 9280 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                    )) of
                                             { _lhsOexpandedStars ->
                                             (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                     Assignment _annIoriginalTree _targetIoriginalTree _valueIoriginalTree
-                                                    {-# LINE 9297 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                    {-# LINE 9285 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                     )) of
                                              { _originalTree ->
                                              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                      _originalTree
-                                                     {-# LINE 9302 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                     {-# LINE 9290 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                      )) of
                                               { _lhsOoriginalTree ->
                                               ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -9311,17 +9299,17 @@ sem_Statement_Block ann_ lb_ vars_ sts_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 9315 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 9303 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _stsOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 9320 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 9308 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _varsOcat ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    error "missing rule: Statement.Block.ann.tpe"
-                   {-# LINE 9325 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 9313 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (sts_ _stsOcat ) of
@@ -9332,39 +9320,39 @@ sem_Statement_Block ann_ lb_ vars_ sts_  =
                        { ( _annIoriginalTree,ann_1) ->
                            (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    _lhsIcat
-                                   {-# LINE 9336 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 9324 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _annOcat ->
                             (case (ann_1 _annOcat _annOtpe ) of
                              { ( _annIannotatedTree,_annIexpandedStars) ->
                                  (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          Block _annIannotatedTree lb_ _varsIannotatedTree _stsIannotatedTree
-                                         {-# LINE 9343 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 9331 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _annotatedTree ->
                                   (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           _annotatedTree
-                                          {-# LINE 9348 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 9336 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _lhsOannotatedTree ->
                                    (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            Block _annIexpandedStars lb_ _varsIexpandedStars _stsIexpandedStars
-                                           {-# LINE 9353 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 9341 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _expandedStars ->
                                     (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             _expandedStars
-                                            {-# LINE 9358 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 9346 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _lhsOexpandedStars ->
                                      (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              Block _annIoriginalTree lb_ _varsIoriginalTree _stsIoriginalTree
-                                             {-# LINE 9363 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 9351 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _originalTree ->
                                       (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                               _originalTree
-                                              {-# LINE 9368 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 9356 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _lhsOoriginalTree ->
                                        ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -9376,17 +9364,17 @@ sem_Statement_CaseStatement ann_ cases_ els_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 9380 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 9368 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _elsOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 9385 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 9373 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _casesOcat ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    error "missing rule: Statement.CaseStatement.ann.tpe"
-                   {-# LINE 9390 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 9378 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (els_ _elsOcat ) of
@@ -9397,39 +9385,39 @@ sem_Statement_CaseStatement ann_ cases_ els_  =
                        { ( _annIoriginalTree,ann_1) ->
                            (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    _lhsIcat
-                                   {-# LINE 9401 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 9389 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _annOcat ->
                             (case (ann_1 _annOcat _annOtpe ) of
                              { ( _annIannotatedTree,_annIexpandedStars) ->
                                  (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          CaseStatement _annIannotatedTree _casesIannotatedTree _elsIannotatedTree
-                                         {-# LINE 9408 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 9396 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _annotatedTree ->
                                   (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           _annotatedTree
-                                          {-# LINE 9413 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 9401 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _lhsOannotatedTree ->
                                    (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            CaseStatement _annIexpandedStars _casesIexpandedStars _elsIexpandedStars
-                                           {-# LINE 9418 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 9406 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _expandedStars ->
                                     (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             _expandedStars
-                                            {-# LINE 9423 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 9411 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _lhsOexpandedStars ->
                                      (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              CaseStatement _annIoriginalTree _casesIoriginalTree _elsIoriginalTree
-                                             {-# LINE 9428 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 9416 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _originalTree ->
                                       (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                               _originalTree
-                                              {-# LINE 9433 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 9421 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _lhsOoriginalTree ->
                                        ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -9442,27 +9430,27 @@ sem_Statement_CaseStatementSimple ann_ val_ cases_ els_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 9446 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 9434 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _elsOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 9451 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 9439 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _casesOcat ->
            (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    error "missing rule: Statement.CaseStatementSimple.val.downEnv"
-                   {-# LINE 9456 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 9444 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _valOdownEnv ->
             (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _lhsIcat
-                    {-# LINE 9461 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 9449 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _valOcat ->
              (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      error "missing rule: Statement.CaseStatementSimple.ann.tpe"
-                     {-# LINE 9466 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 9454 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _annOtpe ->
               (case (els_ _elsOcat ) of
@@ -9475,39 +9463,39 @@ sem_Statement_CaseStatementSimple ann_ val_ cases_ els_  =
                               { ( _annIoriginalTree,ann_1) ->
                                   (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           _lhsIcat
-                                          {-# LINE 9479 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 9467 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _annOcat ->
                                    (case (ann_1 _annOcat _annOtpe ) of
                                     { ( _annIannotatedTree,_annIexpandedStars) ->
                                         (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 CaseStatementSimple _annIannotatedTree _valIannotatedTree _casesIannotatedTree _elsIannotatedTree
-                                                {-# LINE 9486 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 9474 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _annotatedTree ->
                                          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                  _annotatedTree
-                                                 {-# LINE 9491 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                 {-# LINE 9479 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                  )) of
                                           { _lhsOannotatedTree ->
                                           (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                   CaseStatementSimple _annIexpandedStars _valIexpandedStars _casesIexpandedStars _elsIexpandedStars
-                                                  {-# LINE 9496 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                  {-# LINE 9484 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                   )) of
                                            { _expandedStars ->
                                            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                    _expandedStars
-                                                   {-# LINE 9501 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                   {-# LINE 9489 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                    )) of
                                             { _lhsOexpandedStars ->
                                             (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                     CaseStatementSimple _annIoriginalTree _valIoriginalTree _casesIoriginalTree _elsIoriginalTree
-                                                    {-# LINE 9506 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                    {-# LINE 9494 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                     )) of
                                              { _originalTree ->
                                              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                      _originalTree
-                                                     {-# LINE 9511 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                     {-# LINE 9499 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                      )) of
                                               { _lhsOoriginalTree ->
                                               ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -9518,46 +9506,46 @@ sem_Statement_ContinueStatement ann_ lb_  =
     (\ _lhsIcat ->
          (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  error "missing rule: Statement.ContinueStatement.ann.tpe"
-                 {-# LINE 9522 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 9510 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annOtpe ->
           (case (ann_ ) of
            { ( _annIoriginalTree,ann_1) ->
                (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        _lhsIcat
-                       {-# LINE 9529 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 9517 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _annOcat ->
                 (case (ann_1 _annOcat _annOtpe ) of
                  { ( _annIannotatedTree,_annIexpandedStars) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              ContinueStatement _annIannotatedTree lb_
-                             {-# LINE 9536 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 9524 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 9541 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 9529 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                ContinueStatement _annIexpandedStars lb_
-                               {-# LINE 9546 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 9534 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 9551 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 9539 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  ContinueStatement _annIoriginalTree lb_
-                                 {-# LINE 9556 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 9544 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 9561 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 9549 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -9568,21 +9556,21 @@ sem_Statement_Copy :: T_Annotation  ->
                       T_Statement 
 sem_Statement_Copy ann_ table_ targetCols_ source_  =
     (\ _lhsIcat ->
-         (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+         (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                  error "missing rule: Statement.Copy.table.tpe"
-                 {-# LINE 9574 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 9562 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tableOtpe ->
           (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   error "missing rule: Statement.Copy.ann.tpe"
-                  {-# LINE 9579 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 9567 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (table_ ) of
             { ( _tableIoriginalTree,table_1) ->
                 (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                         _lhsIcat
-                        {-# LINE 9586 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 9574 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _tableOcat ->
                  (case (table_1 _tableOcat _tableOtpe ) of
@@ -9591,39 +9579,39 @@ sem_Statement_Copy ann_ table_ targetCols_ source_  =
                        { ( _annIoriginalTree,ann_1) ->
                            (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    _lhsIcat
-                                   {-# LINE 9595 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 9583 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _annOcat ->
                             (case (ann_1 _annOcat _annOtpe ) of
                              { ( _annIannotatedTree,_annIexpandedStars) ->
                                  (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          Copy _annIannotatedTree _tableIannotatedTree targetCols_ source_
-                                         {-# LINE 9602 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 9590 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _annotatedTree ->
                                   (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           _annotatedTree
-                                          {-# LINE 9607 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 9595 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _lhsOannotatedTree ->
                                    (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            Copy _annIexpandedStars _tableIexpandedStars targetCols_ source_
-                                           {-# LINE 9612 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 9600 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _expandedStars ->
                                     (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             _expandedStars
-                                            {-# LINE 9617 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 9605 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _lhsOexpandedStars ->
                                      (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              Copy _annIoriginalTree _tableIoriginalTree targetCols_ source_
-                                             {-# LINE 9622 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 9610 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _originalTree ->
                                       (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                               _originalTree
-                                              {-# LINE 9627 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 9615 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _lhsOoriginalTree ->
                                        ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -9634,46 +9622,46 @@ sem_Statement_CopyData ann_ insData_  =
     (\ _lhsIcat ->
          (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  error "missing rule: Statement.CopyData.ann.tpe"
-                 {-# LINE 9638 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 9626 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annOtpe ->
           (case (ann_ ) of
            { ( _annIoriginalTree,ann_1) ->
                (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        _lhsIcat
-                       {-# LINE 9645 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 9633 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _annOcat ->
                 (case (ann_1 _annOcat _annOtpe ) of
                  { ( _annIannotatedTree,_annIexpandedStars) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              CopyData _annIannotatedTree insData_
-                             {-# LINE 9652 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 9640 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 9657 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 9645 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                CopyData _annIexpandedStars insData_
-                               {-# LINE 9662 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 9650 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 9667 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 9655 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  CopyData _annIoriginalTree insData_
-                                 {-# LINE 9672 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 9660 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 9677 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 9665 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -9687,22 +9675,22 @@ sem_Statement_CreateDomain ann_ name_ typ_ constraintName_ check_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 9691 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 9679 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _checkOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 9696 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 9684 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _typOcat ->
-           (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+           (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                    error "missing rule: Statement.CreateDomain.name.tpe"
-                   {-# LINE 9701 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 9689 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _nameOtpe ->
             (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     error "missing rule: Statement.CreateDomain.ann.tpe"
-                    {-# LINE 9706 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 9694 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _annOtpe ->
              (case (check_ _checkOcat ) of
@@ -9713,7 +9701,7 @@ sem_Statement_CreateDomain ann_ name_ typ_ constraintName_ check_  =
                         { ( _nameIoriginalTree,name_1) ->
                             (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _lhsIcat
-                                    {-# LINE 9717 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 9705 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _nameOcat ->
                              (case (name_1 _nameOcat _nameOtpe ) of
@@ -9722,39 +9710,39 @@ sem_Statement_CreateDomain ann_ name_ typ_ constraintName_ check_  =
                                    { ( _annIoriginalTree,ann_1) ->
                                        (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                _lhsIcat
-                                               {-# LINE 9726 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 9714 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _annOcat ->
                                         (case (ann_1 _annOcat _annOtpe ) of
                                          { ( _annIannotatedTree,_annIexpandedStars) ->
                                              (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                      CreateDomain _annIannotatedTree _nameIannotatedTree _typIannotatedTree constraintName_ _checkIannotatedTree
-                                                     {-# LINE 9733 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                     {-# LINE 9721 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                      )) of
                                               { _annotatedTree ->
                                               (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                       _annotatedTree
-                                                      {-# LINE 9738 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                      {-# LINE 9726 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                       )) of
                                                { _lhsOannotatedTree ->
                                                (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                        CreateDomain _annIexpandedStars _nameIexpandedStars _typIexpandedStars constraintName_ _checkIexpandedStars
-                                                       {-# LINE 9743 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                       {-# LINE 9731 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                        )) of
                                                 { _expandedStars ->
                                                 (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                         _expandedStars
-                                                        {-# LINE 9748 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                        {-# LINE 9736 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                         )) of
                                                  { _lhsOexpandedStars ->
                                                  (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                          CreateDomain _annIoriginalTree _nameIoriginalTree _typIoriginalTree constraintName_ _checkIoriginalTree
-                                                         {-# LINE 9753 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                         {-# LINE 9741 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                          )) of
                                                   { _originalTree ->
                                                   (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                           _originalTree
-                                                          {-# LINE 9758 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                          {-# LINE 9746 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                           )) of
                                                    { _lhsOoriginalTree ->
                                                    ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -9771,27 +9759,27 @@ sem_Statement_CreateFunction ann_ name_ params_ rettype_ rep_ lang_ body_ vol_  
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 9775 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 9763 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _bodyOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 9780 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 9768 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _rettypeOcat ->
            (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    _lhsIcat
-                   {-# LINE 9785 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 9773 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _paramsOcat ->
-            (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+            (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                     error "missing rule: Statement.CreateFunction.name.tpe"
-                    {-# LINE 9790 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 9778 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _nameOtpe ->
              (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      error "missing rule: Statement.CreateFunction.ann.tpe"
-                     {-# LINE 9795 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 9783 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _annOtpe ->
               (case (body_ _bodyOcat ) of
@@ -9804,7 +9792,7 @@ sem_Statement_CreateFunction ann_ name_ params_ rettype_ rep_ lang_ body_ vol_  
                               { ( _nameIoriginalTree,name_1) ->
                                   (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           _lhsIcat
-                                          {-# LINE 9808 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 9796 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _nameOcat ->
                                    (case (name_1 _nameOcat _nameOtpe ) of
@@ -9813,39 +9801,39 @@ sem_Statement_CreateFunction ann_ name_ params_ rettype_ rep_ lang_ body_ vol_  
                                          { ( _annIoriginalTree,ann_1) ->
                                              (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                      _lhsIcat
-                                                     {-# LINE 9817 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                     {-# LINE 9805 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                      )) of
                                               { _annOcat ->
                                               (case (ann_1 _annOcat _annOtpe ) of
                                                { ( _annIannotatedTree,_annIexpandedStars) ->
                                                    (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                            CreateFunction _annIannotatedTree _nameIannotatedTree _paramsIannotatedTree _rettypeIannotatedTree rep_ lang_ _bodyIannotatedTree vol_
-                                                           {-# LINE 9824 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                           {-# LINE 9812 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                            )) of
                                                     { _annotatedTree ->
                                                     (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                             _annotatedTree
-                                                            {-# LINE 9829 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                            {-# LINE 9817 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                             )) of
                                                      { _lhsOannotatedTree ->
                                                      (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                              CreateFunction _annIexpandedStars _nameIexpandedStars _paramsIexpandedStars _rettypeIexpandedStars rep_ lang_ _bodyIexpandedStars vol_
-                                                             {-# LINE 9834 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                             {-# LINE 9822 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                              )) of
                                                       { _expandedStars ->
                                                       (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                               _expandedStars
-                                                              {-# LINE 9839 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                              {-# LINE 9827 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                               )) of
                                                        { _lhsOexpandedStars ->
                                                        (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                                CreateFunction _annIoriginalTree _nameIoriginalTree _paramsIoriginalTree _rettypeIoriginalTree rep_ lang_ _bodyIoriginalTree vol_
-                                                               {-# LINE 9844 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                               {-# LINE 9832 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                                )) of
                                                         { _originalTree ->
                                                         (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                                 _originalTree
-                                                                {-# LINE 9849 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                                {-# LINE 9837 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                                 )) of
                                                          { _lhsOoriginalTree ->
                                                          ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -9856,46 +9844,46 @@ sem_Statement_CreateLanguage ann_ name_  =
     (\ _lhsIcat ->
          (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  error "missing rule: Statement.CreateLanguage.ann.tpe"
-                 {-# LINE 9860 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 9848 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annOtpe ->
           (case (ann_ ) of
            { ( _annIoriginalTree,ann_1) ->
                (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        _lhsIcat
-                       {-# LINE 9867 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 9855 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _annOcat ->
                 (case (ann_1 _annOcat _annOtpe ) of
                  { ( _annIannotatedTree,_annIexpandedStars) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              CreateLanguage _annIannotatedTree name_
-                             {-# LINE 9874 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 9862 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 9879 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 9867 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                CreateLanguage _annIexpandedStars name_
-                               {-# LINE 9884 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 9872 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 9889 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 9877 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  CreateLanguage _annIoriginalTree name_
-                                 {-# LINE 9894 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 9882 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 9899 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 9887 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -9909,21 +9897,21 @@ sem_Statement_CreateSequence :: T_Annotation  ->
                                 T_Statement 
 sem_Statement_CreateSequence ann_ name_ incr_ min_ max_ start_ cache_  =
     (\ _lhsIcat ->
-         (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+         (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                  error "missing rule: Statement.CreateSequence.name.tpe"
-                 {-# LINE 9915 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 9903 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _nameOtpe ->
           (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   error "missing rule: Statement.CreateSequence.ann.tpe"
-                  {-# LINE 9920 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 9908 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (name_ ) of
             { ( _nameIoriginalTree,name_1) ->
                 (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                         _lhsIcat
-                        {-# LINE 9927 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 9915 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _nameOcat ->
                  (case (name_1 _nameOcat _nameOtpe ) of
@@ -9932,39 +9920,39 @@ sem_Statement_CreateSequence ann_ name_ incr_ min_ max_ start_ cache_  =
                        { ( _annIoriginalTree,ann_1) ->
                            (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    _lhsIcat
-                                   {-# LINE 9936 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 9924 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _annOcat ->
                             (case (ann_1 _annOcat _annOtpe ) of
                              { ( _annIannotatedTree,_annIexpandedStars) ->
                                  (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          CreateSequence _annIannotatedTree _nameIannotatedTree incr_ min_ max_ start_ cache_
-                                         {-# LINE 9943 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 9931 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _annotatedTree ->
                                   (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           _annotatedTree
-                                          {-# LINE 9948 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 9936 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _lhsOannotatedTree ->
                                    (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            CreateSequence _annIexpandedStars _nameIexpandedStars incr_ min_ max_ start_ cache_
-                                           {-# LINE 9953 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 9941 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _expandedStars ->
                                     (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             _expandedStars
-                                            {-# LINE 9958 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 9946 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _lhsOexpandedStars ->
                                      (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              CreateSequence _annIoriginalTree _nameIoriginalTree incr_ min_ max_ start_ cache_
-                                             {-# LINE 9963 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 9951 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _originalTree ->
                                       (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                               _originalTree
-                                              {-# LINE 9968 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 9956 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _lhsOoriginalTree ->
                                        ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -9977,22 +9965,22 @@ sem_Statement_CreateTable ann_ name_ atts_ cons_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 9981 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 9969 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _consOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 9986 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 9974 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _attsOcat ->
-           (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+           (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                    error "missing rule: Statement.CreateTable.name.tpe"
-                   {-# LINE 9991 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 9979 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _nameOtpe ->
             (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     error "missing rule: Statement.CreateTable.ann.tpe"
-                    {-# LINE 9996 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 9984 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _annOtpe ->
              (case (cons_ _consOcat ) of
@@ -10003,7 +9991,7 @@ sem_Statement_CreateTable ann_ name_ atts_ cons_  =
                         { ( _nameIoriginalTree,name_1) ->
                             (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _lhsIcat
-                                    {-# LINE 10007 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 9995 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _nameOcat ->
                              (case (name_1 _nameOcat _nameOtpe ) of
@@ -10012,39 +10000,39 @@ sem_Statement_CreateTable ann_ name_ atts_ cons_  =
                                    { ( _annIoriginalTree,ann_1) ->
                                        (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                _lhsIcat
-                                               {-# LINE 10016 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 10004 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _annOcat ->
                                         (case (ann_1 _annOcat _annOtpe ) of
                                          { ( _annIannotatedTree,_annIexpandedStars) ->
                                              (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                      CreateTable _annIannotatedTree _nameIannotatedTree _attsIannotatedTree _consIannotatedTree
-                                                     {-# LINE 10023 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                     {-# LINE 10011 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                      )) of
                                               { _annotatedTree ->
                                               (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                       _annotatedTree
-                                                      {-# LINE 10028 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                      {-# LINE 10016 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                       )) of
                                                { _lhsOannotatedTree ->
                                                (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                        CreateTable _annIexpandedStars _nameIexpandedStars _attsIexpandedStars _consIexpandedStars
-                                                       {-# LINE 10033 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                       {-# LINE 10021 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                        )) of
                                                 { _expandedStars ->
                                                 (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                         _expandedStars
-                                                        {-# LINE 10038 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                        {-# LINE 10026 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                         )) of
                                                  { _lhsOexpandedStars ->
                                                  (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                          CreateTable _annIoriginalTree _nameIoriginalTree _attsIoriginalTree _consIoriginalTree
-                                                         {-# LINE 10043 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                         {-# LINE 10031 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                          )) of
                                                   { _originalTree ->
                                                   (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                           _originalTree
-                                                          {-# LINE 10048 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                          {-# LINE 10036 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                           )) of
                                                    { _lhsOoriginalTree ->
                                                    ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -10056,17 +10044,17 @@ sem_Statement_CreateTableAs ann_ name_ expr_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 10060 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 10048 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _exprOcat ->
-          (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+          (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                   error "missing rule: Statement.CreateTableAs.name.tpe"
-                  {-# LINE 10065 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 10053 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _nameOtpe ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    error "missing rule: Statement.CreateTableAs.ann.tpe"
-                   {-# LINE 10070 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 10058 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (expr_ _exprOcat ) of
@@ -10075,7 +10063,7 @@ sem_Statement_CreateTableAs ann_ name_ expr_  =
                   { ( _nameIoriginalTree,name_1) ->
                       (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIcat
-                              {-# LINE 10079 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 10067 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _nameOcat ->
                        (case (name_1 _nameOcat _nameOtpe ) of
@@ -10084,39 +10072,39 @@ sem_Statement_CreateTableAs ann_ name_ expr_  =
                              { ( _annIoriginalTree,ann_1) ->
                                  (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          _lhsIcat
-                                         {-# LINE 10088 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 10076 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _annOcat ->
                                   (case (ann_1 _annOcat _annOtpe ) of
                                    { ( _annIannotatedTree,_annIexpandedStars) ->
                                        (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                CreateTableAs _annIannotatedTree _nameIannotatedTree _exprIannotatedTree
-                                               {-# LINE 10095 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 10083 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _annotatedTree ->
                                         (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 _annotatedTree
-                                                {-# LINE 10100 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 10088 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _lhsOannotatedTree ->
                                          (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                  CreateTableAs _annIexpandedStars _nameIexpandedStars _exprIexpandedStars
-                                                 {-# LINE 10105 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                 {-# LINE 10093 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                  )) of
                                           { _expandedStars ->
                                           (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                   _expandedStars
-                                                  {-# LINE 10110 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                  {-# LINE 10098 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                   )) of
                                            { _lhsOexpandedStars ->
                                            (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                    CreateTableAs _annIoriginalTree _nameIoriginalTree _exprIoriginalTree
-                                                   {-# LINE 10115 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                   {-# LINE 10103 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                    )) of
                                             { _originalTree ->
                                             (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                     _originalTree
-                                                    {-# LINE 10120 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                    {-# LINE 10108 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                     )) of
                                              { _lhsOoriginalTree ->
                                              ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -10131,29 +10119,29 @@ sem_Statement_CreateTrigger :: T_Annotation  ->
                                T_Statement 
 sem_Statement_CreateTrigger ann_ name_ wh_ events_ tbl_ firing_ fnName_ fnArgs_  =
     (\ _lhsIcat ->
-         (case (({-# LINE 33 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+         (case (({-# LINE 35 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  error "missing rule: Statement.CreateTrigger.fnArgs.downEnv"
-                 {-# LINE 10137 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 10125 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _fnArgsOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 10142 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 10130 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _fnArgsOcat ->
-           (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+           (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                    error "missing rule: Statement.CreateTrigger.fnName.tpe"
-                   {-# LINE 10147 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 10135 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _fnNameOtpe ->
-            (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+            (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                     error "missing rule: Statement.CreateTrigger.tbl.tpe"
-                    {-# LINE 10152 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 10140 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _tblOtpe ->
              (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      error "missing rule: Statement.CreateTrigger.ann.tpe"
-                     {-# LINE 10157 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 10145 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _annOtpe ->
               (case (fnArgs_ _fnArgsOcat _fnArgsOdownEnv ) of
@@ -10162,7 +10150,7 @@ sem_Statement_CreateTrigger ann_ name_ wh_ events_ tbl_ firing_ fnName_ fnArgs_ 
                     { ( _fnNameIoriginalTree,fnName_1) ->
                         (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _lhsIcat
-                                {-# LINE 10166 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 10154 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _fnNameOcat ->
                          (case (fnName_1 _fnNameOcat _fnNameOtpe ) of
@@ -10171,7 +10159,7 @@ sem_Statement_CreateTrigger ann_ name_ wh_ events_ tbl_ firing_ fnName_ fnArgs_ 
                                { ( _tblIoriginalTree,tbl_1) ->
                                    (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            _lhsIcat
-                                           {-# LINE 10175 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 10163 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _tblOcat ->
                                     (case (tbl_1 _tblOcat _tblOtpe ) of
@@ -10180,39 +10168,39 @@ sem_Statement_CreateTrigger ann_ name_ wh_ events_ tbl_ firing_ fnName_ fnArgs_ 
                                           { ( _annIoriginalTree,ann_1) ->
                                               (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                       _lhsIcat
-                                                      {-# LINE 10184 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                      {-# LINE 10172 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                       )) of
                                                { _annOcat ->
                                                (case (ann_1 _annOcat _annOtpe ) of
                                                 { ( _annIannotatedTree,_annIexpandedStars) ->
                                                     (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                             CreateTrigger _annIannotatedTree name_ wh_ events_ _tblIannotatedTree firing_ _fnNameIannotatedTree _fnArgsIannotatedTree
-                                                            {-# LINE 10191 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                            {-# LINE 10179 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                             )) of
                                                      { _annotatedTree ->
                                                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                              _annotatedTree
-                                                             {-# LINE 10196 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                             {-# LINE 10184 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                              )) of
                                                       { _lhsOannotatedTree ->
                                                       (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                               CreateTrigger _annIexpandedStars name_ wh_ events_ _tblIexpandedStars firing_ _fnNameIexpandedStars _fnArgsIexpandedStars
-                                                              {-# LINE 10201 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                              {-# LINE 10189 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                               )) of
                                                        { _expandedStars ->
                                                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                                _expandedStars
-                                                               {-# LINE 10206 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                               {-# LINE 10194 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                                )) of
                                                         { _lhsOexpandedStars ->
                                                         (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                                 CreateTrigger _annIoriginalTree name_ wh_ events_ _tblIoriginalTree firing_ _fnNameIoriginalTree _fnArgsIoriginalTree
-                                                                {-# LINE 10211 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                                {-# LINE 10199 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                                 )) of
                                                          { _originalTree ->
                                                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                                  _originalTree
-                                                                 {-# LINE 10216 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                                 {-# LINE 10204 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                                  )) of
                                                           { _lhsOoriginalTree ->
                                                           ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -10224,17 +10212,17 @@ sem_Statement_CreateType ann_ name_ atts_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 10228 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 10216 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _attsOcat ->
-          (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+          (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                   error "missing rule: Statement.CreateType.name.tpe"
-                  {-# LINE 10233 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 10221 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _nameOtpe ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    error "missing rule: Statement.CreateType.ann.tpe"
-                   {-# LINE 10238 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 10226 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (atts_ _attsOcat ) of
@@ -10243,7 +10231,7 @@ sem_Statement_CreateType ann_ name_ atts_  =
                   { ( _nameIoriginalTree,name_1) ->
                       (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIcat
-                              {-# LINE 10247 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 10235 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _nameOcat ->
                        (case (name_1 _nameOcat _nameOtpe ) of
@@ -10252,39 +10240,39 @@ sem_Statement_CreateType ann_ name_ atts_  =
                              { ( _annIoriginalTree,ann_1) ->
                                  (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          _lhsIcat
-                                         {-# LINE 10256 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 10244 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _annOcat ->
                                   (case (ann_1 _annOcat _annOtpe ) of
                                    { ( _annIannotatedTree,_annIexpandedStars) ->
                                        (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                CreateType _annIannotatedTree _nameIannotatedTree _attsIannotatedTree
-                                               {-# LINE 10263 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 10251 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _annotatedTree ->
                                         (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 _annotatedTree
-                                                {-# LINE 10268 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 10256 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _lhsOannotatedTree ->
                                          (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                  CreateType _annIexpandedStars _nameIexpandedStars _attsIexpandedStars
-                                                 {-# LINE 10273 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                 {-# LINE 10261 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                  )) of
                                           { _expandedStars ->
                                           (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                   _expandedStars
-                                                  {-# LINE 10278 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                  {-# LINE 10266 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                   )) of
                                            { _lhsOexpandedStars ->
                                            (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                    CreateType _annIoriginalTree _nameIoriginalTree _attsIoriginalTree
-                                                   {-# LINE 10283 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                   {-# LINE 10271 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                    )) of
                                             { _originalTree ->
                                             (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                     _originalTree
-                                                    {-# LINE 10288 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                    {-# LINE 10276 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                     )) of
                                              { _lhsOoriginalTree ->
                                              ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -10297,17 +10285,17 @@ sem_Statement_CreateView ann_ name_ colNames_ expr_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 10301 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 10289 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _exprOcat ->
-          (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+          (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                   error "missing rule: Statement.CreateView.name.tpe"
-                  {-# LINE 10306 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 10294 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _nameOtpe ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    error "missing rule: Statement.CreateView.ann.tpe"
-                   {-# LINE 10311 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 10299 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (expr_ _exprOcat ) of
@@ -10316,7 +10304,7 @@ sem_Statement_CreateView ann_ name_ colNames_ expr_  =
                   { ( _nameIoriginalTree,name_1) ->
                       (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIcat
-                              {-# LINE 10320 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 10308 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _nameOcat ->
                        (case (name_1 _nameOcat _nameOtpe ) of
@@ -10325,39 +10313,39 @@ sem_Statement_CreateView ann_ name_ colNames_ expr_  =
                              { ( _annIoriginalTree,ann_1) ->
                                  (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          _lhsIcat
-                                         {-# LINE 10329 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 10317 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _annOcat ->
                                   (case (ann_1 _annOcat _annOtpe ) of
                                    { ( _annIannotatedTree,_annIexpandedStars) ->
                                        (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                CreateView _annIannotatedTree _nameIannotatedTree colNames_ _exprIannotatedTree
-                                               {-# LINE 10336 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 10324 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _annotatedTree ->
                                         (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 _annotatedTree
-                                                {-# LINE 10341 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 10329 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _lhsOannotatedTree ->
                                          (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                  CreateView _annIexpandedStars _nameIexpandedStars colNames_ _exprIexpandedStars
-                                                 {-# LINE 10346 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                 {-# LINE 10334 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                  )) of
                                           { _expandedStars ->
                                           (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                   _expandedStars
-                                                  {-# LINE 10351 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                  {-# LINE 10339 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                   )) of
                                            { _lhsOexpandedStars ->
                                            (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                    CreateView _annIoriginalTree _nameIoriginalTree colNames_ _exprIoriginalTree
-                                                   {-# LINE 10356 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                   {-# LINE 10344 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                    )) of
                                             { _originalTree ->
                                             (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                     _originalTree
-                                                    {-# LINE 10361 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                    {-# LINE 10349 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                     )) of
                                              { _lhsOoriginalTree ->
                                              ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -10371,27 +10359,27 @@ sem_Statement_Delete ann_ table_ using_ whr_ returning_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 10375 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 10363 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _returningOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 10380 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 10368 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _whrOcat ->
            (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    _lhsIcat
-                   {-# LINE 10385 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 10373 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _usingOcat ->
-            (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+            (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                     error "missing rule: Statement.Delete.table.tpe"
-                    {-# LINE 10390 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 10378 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _tableOtpe ->
              (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      error "missing rule: Statement.Delete.ann.tpe"
-                     {-# LINE 10395 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 10383 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _annOtpe ->
               (case (returning_ _returningOcat ) of
@@ -10404,7 +10392,7 @@ sem_Statement_Delete ann_ table_ using_ whr_ returning_  =
                               { ( _tableIoriginalTree,table_1) ->
                                   (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           _lhsIcat
-                                          {-# LINE 10408 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 10396 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _tableOcat ->
                                    (case (table_1 _tableOcat _tableOtpe ) of
@@ -10413,39 +10401,39 @@ sem_Statement_Delete ann_ table_ using_ whr_ returning_  =
                                          { ( _annIoriginalTree,ann_1) ->
                                              (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                      _lhsIcat
-                                                     {-# LINE 10417 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                     {-# LINE 10405 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                      )) of
                                               { _annOcat ->
                                               (case (ann_1 _annOcat _annOtpe ) of
                                                { ( _annIannotatedTree,_annIexpandedStars) ->
                                                    (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                            Delete _annIannotatedTree _tableIannotatedTree _usingIannotatedTree _whrIannotatedTree _returningIannotatedTree
-                                                           {-# LINE 10424 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                           {-# LINE 10412 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                            )) of
                                                     { _annotatedTree ->
                                                     (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                             _annotatedTree
-                                                            {-# LINE 10429 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                            {-# LINE 10417 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                             )) of
                                                      { _lhsOannotatedTree ->
                                                      (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                              Delete _annIexpandedStars _tableIexpandedStars _usingIexpandedStars _whrIexpandedStars _returningIexpandedStars
-                                                             {-# LINE 10434 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                             {-# LINE 10422 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                              )) of
                                                       { _expandedStars ->
                                                       (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                               _expandedStars
-                                                              {-# LINE 10439 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                              {-# LINE 10427 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                               )) of
                                                        { _lhsOexpandedStars ->
                                                        (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                                Delete _annIoriginalTree _tableIoriginalTree _usingIoriginalTree _whrIoriginalTree _returningIoriginalTree
-                                                               {-# LINE 10444 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                               {-# LINE 10432 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                                )) of
                                                         { _originalTree ->
                                                         (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                                 _originalTree
-                                                                {-# LINE 10449 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                                {-# LINE 10437 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                                 )) of
                                                          { _lhsOoriginalTree ->
                                                          ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -10458,12 +10446,12 @@ sem_Statement_DropFunction ann_ ifE_ sigs_ cascade_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 10462 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 10450 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _sigsOcat ->
           (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   error "missing rule: Statement.DropFunction.ann.tpe"
-                  {-# LINE 10467 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 10455 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (sigs_ _sigsOcat ) of
@@ -10472,39 +10460,39 @@ sem_Statement_DropFunction ann_ ifE_ sigs_ cascade_  =
                  { ( _annIoriginalTree,ann_1) ->
                      (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              _lhsIcat
-                             {-# LINE 10476 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 10464 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annOcat ->
                       (case (ann_1 _annOcat _annOtpe ) of
                        { ( _annIannotatedTree,_annIexpandedStars) ->
                            (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    DropFunction _annIannotatedTree ifE_ _sigsIannotatedTree cascade_
-                                   {-# LINE 10483 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 10471 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _annotatedTree ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _annotatedTree
-                                    {-# LINE 10488 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 10476 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOannotatedTree ->
                              (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      DropFunction _annIexpandedStars ifE_ _sigsIexpandedStars cascade_
-                                     {-# LINE 10493 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 10481 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _expandedStars ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       _expandedStars
-                                      {-# LINE 10498 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 10486 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _lhsOexpandedStars ->
                                (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        DropFunction _annIoriginalTree ifE_ _sigsIoriginalTree cascade_
-                                       {-# LINE 10503 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 10491 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _originalTree ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         _originalTree
-                                        {-# LINE 10508 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 10496 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOoriginalTree ->
                                  ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -10518,46 +10506,46 @@ sem_Statement_DropSomething ann_ dropType_ ifE_ names_ cascade_  =
     (\ _lhsIcat ->
          (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  error "missing rule: Statement.DropSomething.ann.tpe"
-                 {-# LINE 10522 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 10510 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annOtpe ->
           (case (ann_ ) of
            { ( _annIoriginalTree,ann_1) ->
                (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        _lhsIcat
-                       {-# LINE 10529 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 10517 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _annOcat ->
                 (case (ann_1 _annOcat _annOtpe ) of
                  { ( _annIannotatedTree,_annIexpandedStars) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              DropSomething _annIannotatedTree dropType_ ifE_ names_ cascade_
-                             {-# LINE 10536 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 10524 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 10541 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 10529 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                DropSomething _annIexpandedStars dropType_ ifE_ names_ cascade_
-                               {-# LINE 10546 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 10534 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 10551 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 10539 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  DropSomething _annIoriginalTree dropType_ ifE_ names_ cascade_
-                                 {-# LINE 10556 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 10544 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 10561 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 10549 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -10568,17 +10556,17 @@ sem_Statement_Execute ann_ expr_  =
     (\ _lhsIcat ->
          (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  error "missing rule: Statement.Execute.expr.downEnv"
-                 {-# LINE 10572 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 10560 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _exprOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 10577 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 10565 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _exprOcat ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    error "missing rule: Statement.Execute.ann.tpe"
-                   {-# LINE 10582 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 10570 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (expr_ _exprOcat _exprOdownEnv ) of
@@ -10587,39 +10575,39 @@ sem_Statement_Execute ann_ expr_  =
                   { ( _annIoriginalTree,ann_1) ->
                       (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIcat
-                              {-# LINE 10591 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 10579 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annOcat ->
                        (case (ann_1 _annOcat _annOtpe ) of
                         { ( _annIannotatedTree,_annIexpandedStars) ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     Execute _annIannotatedTree _exprIannotatedTree
-                                    {-# LINE 10598 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 10586 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annotatedTree ->
                              (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _annotatedTree
-                                     {-# LINE 10603 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 10591 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _lhsOannotatedTree ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       Execute _annIexpandedStars _exprIexpandedStars
-                                      {-# LINE 10608 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 10596 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _expandedStars ->
                                (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        _expandedStars
-                                       {-# LINE 10613 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 10601 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _lhsOexpandedStars ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         Execute _annIoriginalTree _exprIoriginalTree
-                                        {-# LINE 10618 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 10606 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _originalTree ->
                                  (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          _originalTree
-                                         {-# LINE 10623 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 10611 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _lhsOoriginalTree ->
                                   ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -10630,46 +10618,46 @@ sem_Statement_ExitStatement ann_ lb_  =
     (\ _lhsIcat ->
          (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  error "missing rule: Statement.ExitStatement.ann.tpe"
-                 {-# LINE 10634 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 10622 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annOtpe ->
           (case (ann_ ) of
            { ( _annIoriginalTree,ann_1) ->
                (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        _lhsIcat
-                       {-# LINE 10641 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 10629 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _annOcat ->
                 (case (ann_1 _annOcat _annOtpe ) of
                  { ( _annIannotatedTree,_annIexpandedStars) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              ExitStatement _annIannotatedTree lb_
-                             {-# LINE 10648 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 10636 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 10653 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 10641 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                ExitStatement _annIexpandedStars lb_
-                               {-# LINE 10658 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 10646 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 10663 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 10651 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  ExitStatement _annIoriginalTree lb_
-                                 {-# LINE 10668 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 10656 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 10673 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 10661 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -10684,32 +10672,32 @@ sem_Statement_ForIntegerStatement ann_ lb_ var_ from_ to_ sts_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 10688 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 10676 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _stsOcat ->
           (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                   error "missing rule: Statement.ForIntegerStatement.to.downEnv"
-                  {-# LINE 10693 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 10681 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _toOdownEnv ->
            (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    _lhsIcat
-                   {-# LINE 10698 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 10686 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _toOcat ->
             (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                     error "missing rule: Statement.ForIntegerStatement.from.downEnv"
-                    {-# LINE 10703 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 10691 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _fromOdownEnv ->
              (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      _lhsIcat
-                     {-# LINE 10708 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 10696 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _fromOcat ->
               (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       error "missing rule: Statement.ForIntegerStatement.ann.tpe"
-                      {-# LINE 10713 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 10701 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _annOtpe ->
                (case (sts_ _stsOcat ) of
@@ -10722,39 +10710,39 @@ sem_Statement_ForIntegerStatement ann_ lb_ var_ from_ to_ sts_  =
                                { ( _annIoriginalTree,ann_1) ->
                                    (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            _lhsIcat
-                                           {-# LINE 10726 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 10714 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _annOcat ->
                                     (case (ann_1 _annOcat _annOtpe ) of
                                      { ( _annIannotatedTree,_annIexpandedStars) ->
                                          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                  ForIntegerStatement _annIannotatedTree lb_ var_ _fromIannotatedTree _toIannotatedTree _stsIannotatedTree
-                                                 {-# LINE 10733 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                 {-# LINE 10721 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                  )) of
                                           { _annotatedTree ->
                                           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                   _annotatedTree
-                                                  {-# LINE 10738 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                  {-# LINE 10726 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                   )) of
                                            { _lhsOannotatedTree ->
                                            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                    ForIntegerStatement _annIexpandedStars lb_ var_ _fromIexpandedStars _toIexpandedStars _stsIexpandedStars
-                                                   {-# LINE 10743 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                   {-# LINE 10731 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                    )) of
                                             { _expandedStars ->
                                             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                     _expandedStars
-                                                    {-# LINE 10748 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                    {-# LINE 10736 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                     )) of
                                              { _lhsOexpandedStars ->
                                              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                      ForIntegerStatement _annIoriginalTree lb_ var_ _fromIoriginalTree _toIoriginalTree _stsIoriginalTree
-                                                     {-# LINE 10753 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                     {-# LINE 10741 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                      )) of
                                               { _originalTree ->
                                               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                       _originalTree
-                                                      {-# LINE 10758 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                      {-# LINE 10746 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                       )) of
                                                { _lhsOoriginalTree ->
                                                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -10768,17 +10756,17 @@ sem_Statement_ForQueryStatement ann_ lb_ var_ sel_ sts_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 10772 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 10760 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _stsOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 10777 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 10765 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _selOcat ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    error "missing rule: Statement.ForQueryStatement.ann.tpe"
-                   {-# LINE 10782 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 10770 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (sts_ _stsOcat ) of
@@ -10789,39 +10777,39 @@ sem_Statement_ForQueryStatement ann_ lb_ var_ sel_ sts_  =
                        { ( _annIoriginalTree,ann_1) ->
                            (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    _lhsIcat
-                                   {-# LINE 10793 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 10781 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _annOcat ->
                             (case (ann_1 _annOcat _annOtpe ) of
                              { ( _annIannotatedTree,_annIexpandedStars) ->
                                  (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          ForQueryStatement _annIannotatedTree lb_ var_ _selIannotatedTree _stsIannotatedTree
-                                         {-# LINE 10800 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 10788 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _annotatedTree ->
                                   (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           _annotatedTree
-                                          {-# LINE 10805 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 10793 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _lhsOannotatedTree ->
                                    (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            ForQueryStatement _annIexpandedStars lb_ var_ _selIexpandedStars _stsIexpandedStars
-                                           {-# LINE 10810 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 10798 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _expandedStars ->
                                     (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             _expandedStars
-                                            {-# LINE 10815 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 10803 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _lhsOexpandedStars ->
                                      (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              ForQueryStatement _annIoriginalTree lb_ var_ _selIoriginalTree _stsIoriginalTree
-                                             {-# LINE 10820 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 10808 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _originalTree ->
                                       (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                               _originalTree
-                                              {-# LINE 10825 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 10813 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _lhsOoriginalTree ->
                                        ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -10833,17 +10821,17 @@ sem_Statement_If ann_ cases_ els_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 10837 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 10825 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _elsOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 10842 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 10830 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _casesOcat ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    error "missing rule: Statement.If.ann.tpe"
-                   {-# LINE 10847 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 10835 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (els_ _elsOcat ) of
@@ -10854,39 +10842,39 @@ sem_Statement_If ann_ cases_ els_  =
                        { ( _annIoriginalTree,ann_1) ->
                            (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    _lhsIcat
-                                   {-# LINE 10858 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 10846 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _annOcat ->
                             (case (ann_1 _annOcat _annOtpe ) of
                              { ( _annIannotatedTree,_annIexpandedStars) ->
                                  (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          If _annIannotatedTree _casesIannotatedTree _elsIannotatedTree
-                                         {-# LINE 10865 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 10853 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _annotatedTree ->
                                   (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           _annotatedTree
-                                          {-# LINE 10870 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 10858 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _lhsOannotatedTree ->
                                    (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            If _annIexpandedStars _casesIexpandedStars _elsIexpandedStars
-                                           {-# LINE 10875 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 10863 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _expandedStars ->
                                     (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             _expandedStars
-                                            {-# LINE 10880 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 10868 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _lhsOexpandedStars ->
                                      (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              If _annIoriginalTree _casesIoriginalTree _elsIoriginalTree
-                                             {-# LINE 10885 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 10873 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _originalTree ->
                                       (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                               _originalTree
-                                              {-# LINE 10890 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 10878 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _lhsOoriginalTree ->
                                        ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -10900,22 +10888,22 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 10904 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 10892 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _returningOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 10909 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 10897 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _insDataOcat ->
-           (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+           (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                    error "missing rule: Statement.Insert.table.tpe"
-                   {-# LINE 10914 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 10902 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _tableOtpe ->
             (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     error "missing rule: Statement.Insert.ann.tpe"
-                    {-# LINE 10919 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 10907 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _annOtpe ->
              (case (returning_ _returningOcat ) of
@@ -10926,7 +10914,7 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
                         { ( _tableIoriginalTree,table_1) ->
                             (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _lhsIcat
-                                    {-# LINE 10930 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 10918 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _tableOcat ->
                              (case (table_1 _tableOcat _tableOtpe ) of
@@ -10935,39 +10923,39 @@ sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_  =
                                    { ( _annIoriginalTree,ann_1) ->
                                        (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                _lhsIcat
-                                               {-# LINE 10939 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 10927 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _annOcat ->
                                         (case (ann_1 _annOcat _annOtpe ) of
                                          { ( _annIannotatedTree,_annIexpandedStars) ->
                                              (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                      Insert _annIannotatedTree _tableIannotatedTree targetCols_ _insDataIannotatedTree _returningIannotatedTree
-                                                     {-# LINE 10946 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                     {-# LINE 10934 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                      )) of
                                               { _annotatedTree ->
                                               (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                       _annotatedTree
-                                                      {-# LINE 10951 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                      {-# LINE 10939 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                       )) of
                                                { _lhsOannotatedTree ->
                                                (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                        Insert _annIexpandedStars _tableIexpandedStars targetCols_ _insDataIexpandedStars _returningIexpandedStars
-                                                       {-# LINE 10956 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                       {-# LINE 10944 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                        )) of
                                                 { _expandedStars ->
                                                 (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                         _expandedStars
-                                                        {-# LINE 10961 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                        {-# LINE 10949 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                         )) of
                                                  { _lhsOexpandedStars ->
                                                  (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                          Insert _annIoriginalTree _tableIoriginalTree targetCols_ _insDataIoriginalTree _returningIoriginalTree
-                                                         {-# LINE 10966 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                         {-# LINE 10954 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                          )) of
                                                   { _originalTree ->
                                                   (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                           _originalTree
-                                                          {-# LINE 10971 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                          {-# LINE 10959 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                           )) of
                                                    { _lhsOoriginalTree ->
                                                    ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -10980,12 +10968,12 @@ sem_Statement_Into ann_ strict_ into_ stmt_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 10984 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 10972 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _stmtOcat ->
           (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   error "missing rule: Statement.Into.ann.tpe"
-                  {-# LINE 10989 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 10977 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (stmt_ _stmtOcat ) of
@@ -10994,39 +10982,39 @@ sem_Statement_Into ann_ strict_ into_ stmt_  =
                  { ( _annIoriginalTree,ann_1) ->
                      (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              _lhsIcat
-                             {-# LINE 10998 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 10986 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annOcat ->
                       (case (ann_1 _annOcat _annOtpe ) of
                        { ( _annIannotatedTree,_annIexpandedStars) ->
                            (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    Into _annIannotatedTree strict_ into_ _stmtIannotatedTree
-                                   {-# LINE 11005 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 10993 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _annotatedTree ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _annotatedTree
-                                    {-# LINE 11010 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 10998 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOannotatedTree ->
                              (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      Into _annIexpandedStars strict_ into_ _stmtIexpandedStars
-                                     {-# LINE 11015 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 11003 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _expandedStars ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       _expandedStars
-                                      {-# LINE 11020 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 11008 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _lhsOexpandedStars ->
                                (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        Into _annIoriginalTree strict_ into_ _stmtIoriginalTree
-                                       {-# LINE 11025 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 11013 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _originalTree ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         _originalTree
-                                        {-# LINE 11030 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 11018 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOoriginalTree ->
                                  ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -11038,12 +11026,12 @@ sem_Statement_LoopStatement ann_ lb_ sts_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 11042 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 11030 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _stsOcat ->
           (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   error "missing rule: Statement.LoopStatement.ann.tpe"
-                  {-# LINE 11047 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 11035 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (sts_ _stsOcat ) of
@@ -11052,39 +11040,39 @@ sem_Statement_LoopStatement ann_ lb_ sts_  =
                  { ( _annIoriginalTree,ann_1) ->
                      (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              _lhsIcat
-                             {-# LINE 11056 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 11044 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annOcat ->
                       (case (ann_1 _annOcat _annOtpe ) of
                        { ( _annIannotatedTree,_annIexpandedStars) ->
                            (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    LoopStatement _annIannotatedTree lb_ _stsIannotatedTree
-                                   {-# LINE 11063 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 11051 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _annotatedTree ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _annotatedTree
-                                    {-# LINE 11068 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 11056 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOannotatedTree ->
                              (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      LoopStatement _annIexpandedStars lb_ _stsIexpandedStars
-                                     {-# LINE 11073 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 11061 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _expandedStars ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       _expandedStars
-                                      {-# LINE 11078 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 11066 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _lhsOexpandedStars ->
                                (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        LoopStatement _annIoriginalTree lb_ _stsIoriginalTree
-                                       {-# LINE 11083 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 11071 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _originalTree ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         _originalTree
-                                        {-# LINE 11088 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 11076 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOoriginalTree ->
                                  ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -11095,46 +11083,46 @@ sem_Statement_Notify ann_ name_  =
     (\ _lhsIcat ->
          (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  error "missing rule: Statement.Notify.ann.tpe"
-                 {-# LINE 11099 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 11087 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annOtpe ->
           (case (ann_ ) of
            { ( _annIoriginalTree,ann_1) ->
                (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        _lhsIcat
-                       {-# LINE 11106 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 11094 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _annOcat ->
                 (case (ann_1 _annOcat _annOtpe ) of
                  { ( _annIannotatedTree,_annIexpandedStars) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              Notify _annIannotatedTree name_
-                             {-# LINE 11113 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 11101 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 11118 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 11106 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                Notify _annIexpandedStars name_
-                               {-# LINE 11123 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 11111 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 11128 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 11116 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  Notify _annIoriginalTree name_
-                                 {-# LINE 11133 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 11121 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 11138 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 11126 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -11144,46 +11132,46 @@ sem_Statement_NullStatement ann_  =
     (\ _lhsIcat ->
          (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  error "missing rule: Statement.NullStatement.ann.tpe"
-                 {-# LINE 11148 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 11136 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annOtpe ->
           (case (ann_ ) of
            { ( _annIoriginalTree,ann_1) ->
                (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        _lhsIcat
-                       {-# LINE 11155 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 11143 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _annOcat ->
                 (case (ann_1 _annOcat _annOtpe ) of
                  { ( _annIannotatedTree,_annIexpandedStars) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              NullStatement _annIannotatedTree
-                             {-# LINE 11162 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 11150 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 11167 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 11155 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                NullStatement _annIexpandedStars
-                               {-# LINE 11172 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 11160 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 11177 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 11165 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  NullStatement _annIoriginalTree
-                                 {-# LINE 11182 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 11170 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 11187 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 11175 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -11194,17 +11182,17 @@ sem_Statement_Perform ann_ expr_  =
     (\ _lhsIcat ->
          (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  error "missing rule: Statement.Perform.expr.downEnv"
-                 {-# LINE 11198 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 11186 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _exprOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 11203 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 11191 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _exprOcat ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    error "missing rule: Statement.Perform.ann.tpe"
-                   {-# LINE 11208 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 11196 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (expr_ _exprOcat _exprOdownEnv ) of
@@ -11213,39 +11201,39 @@ sem_Statement_Perform ann_ expr_  =
                   { ( _annIoriginalTree,ann_1) ->
                       (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIcat
-                              {-# LINE 11217 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 11205 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annOcat ->
                        (case (ann_1 _annOcat _annOtpe ) of
                         { ( _annIannotatedTree,_annIexpandedStars) ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     Perform _annIannotatedTree _exprIannotatedTree
-                                    {-# LINE 11224 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 11212 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annotatedTree ->
                              (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _annotatedTree
-                                     {-# LINE 11229 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 11217 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _lhsOannotatedTree ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       Perform _annIexpandedStars _exprIexpandedStars
-                                      {-# LINE 11234 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 11222 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _expandedStars ->
                                (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        _expandedStars
-                                       {-# LINE 11239 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 11227 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _lhsOexpandedStars ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         Perform _annIoriginalTree _exprIoriginalTree
-                                        {-# LINE 11244 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 11232 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _originalTree ->
                                  (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          _originalTree
-                                         {-# LINE 11249 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 11237 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _lhsOoriginalTree ->
                                   ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -11256,12 +11244,12 @@ sem_Statement_QueryStatement ann_ ex_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 11260 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 11248 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _exOcat ->
           (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   error "missing rule: Statement.QueryStatement.ann.tpe"
-                  {-# LINE 11265 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 11253 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (ex_ _exOcat ) of
@@ -11270,39 +11258,39 @@ sem_Statement_QueryStatement ann_ ex_  =
                  { ( _annIoriginalTree,ann_1) ->
                      (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              _lhsIcat
-                             {-# LINE 11274 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 11262 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annOcat ->
                       (case (ann_1 _annOcat _annOtpe ) of
                        { ( _annIannotatedTree,_annIexpandedStars) ->
                            (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    QueryStatement _annIannotatedTree _exIannotatedTree
-                                   {-# LINE 11281 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 11269 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _annotatedTree ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _annotatedTree
-                                    {-# LINE 11286 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 11274 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOannotatedTree ->
                              (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      QueryStatement _annIexpandedStars _exIexpandedStars
-                                     {-# LINE 11291 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 11279 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _expandedStars ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       _expandedStars
-                                      {-# LINE 11296 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 11284 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _lhsOexpandedStars ->
                                (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        QueryStatement _annIoriginalTree _exIoriginalTree
-                                       {-# LINE 11301 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 11289 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _originalTree ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         _originalTree
-                                        {-# LINE 11306 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 11294 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOoriginalTree ->
                                  ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -11313,19 +11301,19 @@ sem_Statement_Raise :: T_Annotation  ->
                        T_Statement 
 sem_Statement_Raise ann_ level_ message_ args_  =
     (\ _lhsIcat ->
-         (case (({-# LINE 33 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+         (case (({-# LINE 35 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  error "missing rule: Statement.Raise.args.downEnv"
-                 {-# LINE 11319 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 11307 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _argsOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 11324 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 11312 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _argsOcat ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    error "missing rule: Statement.Raise.ann.tpe"
-                   {-# LINE 11329 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 11317 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (args_ _argsOcat _argsOdownEnv ) of
@@ -11334,39 +11322,39 @@ sem_Statement_Raise ann_ level_ message_ args_  =
                   { ( _annIoriginalTree,ann_1) ->
                       (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIcat
-                              {-# LINE 11338 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 11326 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annOcat ->
                        (case (ann_1 _annOcat _annOtpe ) of
                         { ( _annIannotatedTree,_annIexpandedStars) ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     Raise _annIannotatedTree level_ message_ _argsIannotatedTree
-                                    {-# LINE 11345 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 11333 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annotatedTree ->
                              (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _annotatedTree
-                                     {-# LINE 11350 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 11338 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _lhsOannotatedTree ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       Raise _annIexpandedStars level_ message_ _argsIexpandedStars
-                                      {-# LINE 11355 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 11343 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _expandedStars ->
                                (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        _expandedStars
-                                       {-# LINE 11360 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 11348 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _lhsOexpandedStars ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         Raise _annIoriginalTree level_ message_ _argsIoriginalTree
-                                        {-# LINE 11365 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 11353 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _originalTree ->
                                  (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          _originalTree
-                                         {-# LINE 11370 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 11358 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _lhsOoriginalTree ->
                                   ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -11377,12 +11365,12 @@ sem_Statement_Return ann_ value_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 11381 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 11369 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _valueOcat ->
           (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   error "missing rule: Statement.Return.ann.tpe"
-                  {-# LINE 11386 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 11374 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (value_ _valueOcat ) of
@@ -11391,39 +11379,39 @@ sem_Statement_Return ann_ value_  =
                  { ( _annIoriginalTree,ann_1) ->
                      (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              _lhsIcat
-                             {-# LINE 11395 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 11383 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annOcat ->
                       (case (ann_1 _annOcat _annOtpe ) of
                        { ( _annIannotatedTree,_annIexpandedStars) ->
                            (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    Return _annIannotatedTree _valueIannotatedTree
-                                   {-# LINE 11402 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 11390 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _annotatedTree ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _annotatedTree
-                                    {-# LINE 11407 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 11395 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOannotatedTree ->
                              (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      Return _annIexpandedStars _valueIexpandedStars
-                                     {-# LINE 11412 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 11400 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _expandedStars ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       _expandedStars
-                                      {-# LINE 11417 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 11405 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _lhsOexpandedStars ->
                                (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        Return _annIoriginalTree _valueIoriginalTree
-                                       {-# LINE 11422 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 11410 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _originalTree ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         _originalTree
-                                        {-# LINE 11427 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 11415 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOoriginalTree ->
                                  ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -11434,17 +11422,17 @@ sem_Statement_ReturnNext ann_ expr_  =
     (\ _lhsIcat ->
          (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  error "missing rule: Statement.ReturnNext.expr.downEnv"
-                 {-# LINE 11438 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 11426 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _exprOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 11443 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 11431 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _exprOcat ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    error "missing rule: Statement.ReturnNext.ann.tpe"
-                   {-# LINE 11448 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 11436 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (expr_ _exprOcat _exprOdownEnv ) of
@@ -11453,39 +11441,39 @@ sem_Statement_ReturnNext ann_ expr_  =
                   { ( _annIoriginalTree,ann_1) ->
                       (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIcat
-                              {-# LINE 11457 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 11445 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annOcat ->
                        (case (ann_1 _annOcat _annOtpe ) of
                         { ( _annIannotatedTree,_annIexpandedStars) ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     ReturnNext _annIannotatedTree _exprIannotatedTree
-                                    {-# LINE 11464 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 11452 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annotatedTree ->
                              (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _annotatedTree
-                                     {-# LINE 11469 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 11457 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _lhsOannotatedTree ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       ReturnNext _annIexpandedStars _exprIexpandedStars
-                                      {-# LINE 11474 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 11462 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _expandedStars ->
                                (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        _expandedStars
-                                       {-# LINE 11479 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 11467 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _lhsOexpandedStars ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         ReturnNext _annIoriginalTree _exprIoriginalTree
-                                        {-# LINE 11484 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 11472 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _originalTree ->
                                  (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          _originalTree
-                                         {-# LINE 11489 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 11477 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _lhsOoriginalTree ->
                                   ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -11496,12 +11484,12 @@ sem_Statement_ReturnQuery ann_ sel_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 11500 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 11488 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _selOcat ->
           (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   error "missing rule: Statement.ReturnQuery.ann.tpe"
-                  {-# LINE 11505 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 11493 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (sel_ _selOcat ) of
@@ -11510,39 +11498,39 @@ sem_Statement_ReturnQuery ann_ sel_  =
                  { ( _annIoriginalTree,ann_1) ->
                      (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              _lhsIcat
-                             {-# LINE 11514 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 11502 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annOcat ->
                       (case (ann_1 _annOcat _annOtpe ) of
                        { ( _annIannotatedTree,_annIexpandedStars) ->
                            (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    ReturnQuery _annIannotatedTree _selIannotatedTree
-                                   {-# LINE 11521 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 11509 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _annotatedTree ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _annotatedTree
-                                    {-# LINE 11526 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 11514 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOannotatedTree ->
                              (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      ReturnQuery _annIexpandedStars _selIexpandedStars
-                                     {-# LINE 11531 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 11519 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _expandedStars ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       _expandedStars
-                                      {-# LINE 11536 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 11524 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _lhsOexpandedStars ->
                                (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        ReturnQuery _annIoriginalTree _selIoriginalTree
-                                       {-# LINE 11541 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 11529 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _originalTree ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         _originalTree
-                                        {-# LINE 11546 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 11534 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOoriginalTree ->
                                  ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -11554,46 +11542,46 @@ sem_Statement_Set ann_ name_ values_  =
     (\ _lhsIcat ->
          (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  error "missing rule: Statement.Set.ann.tpe"
-                 {-# LINE 11558 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 11546 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annOtpe ->
           (case (ann_ ) of
            { ( _annIoriginalTree,ann_1) ->
                (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        _lhsIcat
-                       {-# LINE 11565 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 11553 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _annOcat ->
                 (case (ann_1 _annOcat _annOtpe ) of
                  { ( _annIannotatedTree,_annIexpandedStars) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              Set _annIannotatedTree name_ values_
-                             {-# LINE 11572 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 11560 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 11577 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 11565 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                Set _annIexpandedStars name_ values_
-                               {-# LINE 11582 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 11570 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 11587 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 11575 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  Set _annIoriginalTree name_ values_
-                                 {-# LINE 11592 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 11580 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 11597 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 11585 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -11606,46 +11594,46 @@ sem_Statement_Truncate ann_ tables_ restartIdentity_ cascade_  =
     (\ _lhsIcat ->
          (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  error "missing rule: Statement.Truncate.ann.tpe"
-                 {-# LINE 11610 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 11598 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annOtpe ->
           (case (ann_ ) of
            { ( _annIoriginalTree,ann_1) ->
                (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        _lhsIcat
-                       {-# LINE 11617 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 11605 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _annOcat ->
                 (case (ann_1 _annOcat _annOtpe ) of
                  { ( _annIannotatedTree,_annIexpandedStars) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              Truncate _annIannotatedTree tables_ restartIdentity_ cascade_
-                             {-# LINE 11624 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 11612 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 11629 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 11617 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                Truncate _annIexpandedStars tables_ restartIdentity_ cascade_
-                               {-# LINE 11634 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 11622 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 11639 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 11627 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  Truncate _annIoriginalTree tables_ restartIdentity_ cascade_
-                                 {-# LINE 11644 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 11632 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 11649 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 11637 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -11660,32 +11648,32 @@ sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 11664 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 11652 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _returningOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 11669 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 11657 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _whrOcat ->
            (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    _lhsIcat
-                   {-# LINE 11674 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 11662 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _fromListOcat ->
             (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _lhsIcat
-                    {-# LINE 11679 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 11667 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _assignsOcat ->
-             (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+             (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                      error "missing rule: Statement.Update.table.tpe"
-                     {-# LINE 11684 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 11672 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _tableOtpe ->
               (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       error "missing rule: Statement.Update.ann.tpe"
-                      {-# LINE 11689 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 11677 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _annOtpe ->
                (case (returning_ _returningOcat ) of
@@ -11700,7 +11688,7 @@ sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
                                     { ( _tableIoriginalTree,table_1) ->
                                         (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 _lhsIcat
-                                                {-# LINE 11704 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 11692 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _tableOcat ->
                                          (case (table_1 _tableOcat _tableOtpe ) of
@@ -11709,39 +11697,39 @@ sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
                                                { ( _annIoriginalTree,ann_1) ->
                                                    (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                            _lhsIcat
-                                                           {-# LINE 11713 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                           {-# LINE 11701 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                            )) of
                                                     { _annOcat ->
                                                     (case (ann_1 _annOcat _annOtpe ) of
                                                      { ( _annIannotatedTree,_annIexpandedStars) ->
                                                          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                                  Update _annIannotatedTree _tableIannotatedTree _assignsIannotatedTree _fromListIannotatedTree _whrIannotatedTree _returningIannotatedTree
-                                                                 {-# LINE 11720 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                                 {-# LINE 11708 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                                  )) of
                                                           { _annotatedTree ->
                                                           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                                   _annotatedTree
-                                                                  {-# LINE 11725 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                                  {-# LINE 11713 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                                   )) of
                                                            { _lhsOannotatedTree ->
                                                            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                                    Update _annIexpandedStars _tableIexpandedStars _assignsIexpandedStars _fromListIexpandedStars _whrIexpandedStars _returningIexpandedStars
-                                                                   {-# LINE 11730 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                                   {-# LINE 11718 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                                    )) of
                                                             { _expandedStars ->
                                                             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                                     _expandedStars
-                                                                    {-# LINE 11735 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                                    {-# LINE 11723 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                                     )) of
                                                              { _lhsOexpandedStars ->
                                                              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                                      Update _annIoriginalTree _tableIoriginalTree _assignsIoriginalTree _fromListIoriginalTree _whrIoriginalTree _returningIoriginalTree
-                                                                     {-# LINE 11740 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                                     {-# LINE 11728 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                                      )) of
                                                               { _originalTree ->
                                                               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                                       _originalTree
-                                                                      {-# LINE 11745 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                                      {-# LINE 11733 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                                       )) of
                                                                { _lhsOoriginalTree ->
                                                                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -11754,22 +11742,22 @@ sem_Statement_WhileStatement ann_ lb_ expr_ sts_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 11758 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 11746 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _stsOcat ->
           (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                   error "missing rule: Statement.WhileStatement.expr.downEnv"
-                  {-# LINE 11763 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 11751 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _exprOdownEnv ->
            (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    _lhsIcat
-                   {-# LINE 11768 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 11756 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _exprOcat ->
             (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     error "missing rule: Statement.WhileStatement.ann.tpe"
-                    {-# LINE 11773 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 11761 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _annOtpe ->
              (case (sts_ _stsOcat ) of
@@ -11780,39 +11768,39 @@ sem_Statement_WhileStatement ann_ lb_ expr_ sts_  =
                         { ( _annIoriginalTree,ann_1) ->
                             (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _lhsIcat
-                                    {-# LINE 11784 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 11772 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annOcat ->
                              (case (ann_1 _annOcat _annOtpe ) of
                               { ( _annIannotatedTree,_annIexpandedStars) ->
                                   (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           WhileStatement _annIannotatedTree lb_ _exprIannotatedTree _stsIannotatedTree
-                                          {-# LINE 11791 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 11779 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _annotatedTree ->
                                    (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            _annotatedTree
-                                           {-# LINE 11796 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 11784 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _lhsOannotatedTree ->
                                     (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             WhileStatement _annIexpandedStars lb_ _exprIexpandedStars _stsIexpandedStars
-                                            {-# LINE 11801 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 11789 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _expandedStars ->
                                      (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              _expandedStars
-                                             {-# LINE 11806 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 11794 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _lhsOexpandedStars ->
                                       (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                               WhileStatement _annIoriginalTree lb_ _exprIoriginalTree _stsIoriginalTree
-                                              {-# LINE 11811 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 11799 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _originalTree ->
                                        (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                _originalTree
-                                               {-# LINE 11816 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 11804 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _lhsOoriginalTree ->
                                         ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -11863,12 +11851,12 @@ sem_StatementList_Cons hd_ tl_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 11867 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 11855 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tlOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 11872 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 11860 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _hdOcat ->
            (case (tl_ _tlOcat ) of
@@ -11877,32 +11865,32 @@ sem_StatementList_Cons hd_ tl_  =
                  { ( _hdIannotatedTree,_hdIexpandedStars,_hdIoriginalTree) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              (:) _hdIannotatedTree _tlIannotatedTree
-                             {-# LINE 11881 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 11869 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 11886 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 11874 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                (:) _hdIexpandedStars _tlIexpandedStars
-                               {-# LINE 11891 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 11879 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 11896 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 11884 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  (:) _hdIoriginalTree _tlIoriginalTree
-                                 {-# LINE 11901 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 11889 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 11906 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 11894 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -11911,32 +11899,32 @@ sem_StatementList_Nil  =
     (\ _lhsIcat ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  []
-                 {-# LINE 11915 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 11903 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 11920 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 11908 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    []
-                   {-# LINE 11925 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 11913 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _expandedStars ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _expandedStars
-                    {-# LINE 11930 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 11918 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOexpandedStars ->
              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      []
-                     {-# LINE 11935 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 11923 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _originalTree ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _originalTree
-                      {-# LINE 11940 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 11928 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }))
@@ -12002,48 +11990,48 @@ sem_TableAlias_FullAlias :: T_Annotation  ->
                             T_TableAlias 
 sem_TableAlias_FullAlias ann_ tb_ cols_  =
     (\ _lhsIcat ->
-         (case (({-# LINE 37 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+         (case (({-# LINE 60 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                  Left []
-                 {-# LINE 12008 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 11996 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annOtpe ->
           (case (ann_ ) of
            { ( _annIoriginalTree,ann_1) ->
                (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        _lhsIcat
-                       {-# LINE 12015 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 12003 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _annOcat ->
                 (case (ann_1 _annOcat _annOtpe ) of
                  { ( _annIannotatedTree,_annIexpandedStars) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              FullAlias _annIannotatedTree tb_ cols_
-                             {-# LINE 12022 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 12010 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 12027 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 12015 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                FullAlias _annIexpandedStars tb_ cols_
-                               {-# LINE 12032 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 12020 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 12037 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 12025 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  FullAlias _annIoriginalTree tb_ cols_
-                                 {-# LINE 12042 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 12030 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 12047 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 12035 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -12051,48 +12039,48 @@ sem_TableAlias_NoAlias :: T_Annotation  ->
                           T_TableAlias 
 sem_TableAlias_NoAlias ann_  =
     (\ _lhsIcat ->
-         (case (({-# LINE 37 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+         (case (({-# LINE 60 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                  Left []
-                 {-# LINE 12057 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 12045 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annOtpe ->
           (case (ann_ ) of
            { ( _annIoriginalTree,ann_1) ->
                (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        _lhsIcat
-                       {-# LINE 12064 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 12052 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _annOcat ->
                 (case (ann_1 _annOcat _annOtpe ) of
                  { ( _annIannotatedTree,_annIexpandedStars) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              NoAlias _annIannotatedTree
-                             {-# LINE 12071 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 12059 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 12076 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 12064 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                NoAlias _annIexpandedStars
-                               {-# LINE 12081 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 12069 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 12086 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 12074 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  NoAlias _annIoriginalTree
-                                 {-# LINE 12091 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 12079 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 12096 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 12084 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -12101,48 +12089,48 @@ sem_TableAlias_TableAlias :: T_Annotation  ->
                              T_TableAlias 
 sem_TableAlias_TableAlias ann_ tb_  =
     (\ _lhsIcat ->
-         (case (({-# LINE 37 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+         (case (({-# LINE 60 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                  Left []
-                 {-# LINE 12107 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 12095 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annOtpe ->
           (case (ann_ ) of
            { ( _annIoriginalTree,ann_1) ->
                (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        _lhsIcat
-                       {-# LINE 12114 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 12102 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _annOcat ->
                 (case (ann_1 _annOcat _annOtpe ) of
                  { ( _annIannotatedTree,_annIexpandedStars) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              TableAlias _annIannotatedTree tb_
-                             {-# LINE 12121 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 12109 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 12126 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 12114 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                TableAlias _annIexpandedStars tb_
-                               {-# LINE 12131 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 12119 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 12136 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 12124 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  TableAlias _annIoriginalTree tb_
-                                 {-# LINE 12141 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 12129 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 12146 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 12134 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -12168,7 +12156,7 @@ sem_TableAlias_TableAlias ann_ tb_  =
             local originalTree : _
       alternative JoinTref:
          child ann            : Annotation 
-         child tbl            : TableRef 
+         child tbl0           : TableRef 
          child nat            : {Natural}
          child joinType       : {JoinType}
          child tbl1           : TableRef 
@@ -12208,8 +12196,8 @@ sem_TableRef :: TableRef  ->
                 T_TableRef 
 sem_TableRef (FunTref _ann _fn _alias )  =
     (sem_TableRef_FunTref (sem_Annotation _ann ) (sem_ScalarExpr _fn ) (sem_TableAlias _alias ) )
-sem_TableRef (JoinTref _ann _tbl _nat _joinType _tbl1 _onExpr _alias )  =
-    (sem_TableRef_JoinTref (sem_Annotation _ann ) (sem_TableRef _tbl ) _nat _joinType (sem_TableRef _tbl1 ) (sem_OnExpr _onExpr ) (sem_TableAlias _alias ) )
+sem_TableRef (JoinTref _ann _tbl0 _nat _joinType _tbl1 _onExpr _alias )  =
+    (sem_TableRef_JoinTref (sem_Annotation _ann ) (sem_TableRef _tbl0 ) _nat _joinType (sem_TableRef _tbl1 ) (sem_OnExpr _onExpr ) (sem_TableAlias _alias ) )
 sem_TableRef (SubTref _ann _sel _alias )  =
     (sem_TableRef_SubTref (sem_Annotation _ann ) (sem_QueryExpr _sel ) (sem_TableAlias _alias ) )
 sem_TableRef (Tref _ann _tbl _alias )  =
@@ -12233,27 +12221,27 @@ sem_TableRef_FunTref ann_ fn_ alias_  =
     (\ _lhsIcat ->
          (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  error "missing rule: TableRef.FunTref.fn.downEnv"
-                 {-# LINE 12237 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 12225 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _fnOdownEnv ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 12242 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 12230 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _fnOcat ->
-           (case (({-# LINE 33 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+           (case (({-# LINE 56 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                    Left []
-                   {-# LINE 12247 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 12235 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _eEnv ->
-            (case (({-# LINE 18 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+            (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                     either Left (const $ Left []) _eEnv
-                    {-# LINE 12252 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 12240 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _annOtpe ->
              (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      _lhsIcat
-                     {-# LINE 12257 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 12245 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _aliasOcat ->
               (case (alias_ _aliasOcat ) of
@@ -12264,44 +12252,44 @@ sem_TableRef_FunTref ann_ fn_ alias_  =
                          { ( _annIoriginalTree,ann_1) ->
                              (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _lhsIcat
-                                     {-# LINE 12268 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 12256 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _annOcat ->
                               (case (ann_1 _annOcat _annOtpe ) of
                                { ( _annIannotatedTree,_annIexpandedStars) ->
                                    (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            FunTref _annIannotatedTree _fnIannotatedTree _aliasIannotatedTree
-                                           {-# LINE 12275 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 12263 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _annotatedTree ->
                                     (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             _annotatedTree
-                                            {-# LINE 12280 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 12268 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _lhsOannotatedTree ->
                                      (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              FunTref _annIexpandedStars _fnIexpandedStars _aliasIexpandedStars
-                                             {-# LINE 12285 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 12273 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _expandedStars ->
                                       (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                               _expandedStars
-                                              {-# LINE 12290 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 12278 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _lhsOexpandedStars ->
                                        (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                FunTref _annIoriginalTree _fnIoriginalTree _aliasIoriginalTree
-                                               {-# LINE 12295 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 12283 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _originalTree ->
                                         (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 _originalTree
-                                                {-# LINE 12300 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 12288 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _lhsOoriginalTree ->
-                                         (case (({-# LINE 20 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+                                         (case (({-# LINE 30 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                                                  either (const emptyEnvironment) id _eEnv
-                                                 {-# LINE 12305 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                 {-# LINE 12293 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                  )) of
                                           { _lhsOupEnv ->
                                           ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupEnv) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -12313,88 +12301,93 @@ sem_TableRef_JoinTref :: T_Annotation  ->
                          T_OnExpr  ->
                          T_TableAlias  ->
                          T_TableRef 
-sem_TableRef_JoinTref ann_ tbl_ nat_ joinType_ tbl1_ onExpr_ alias_  =
+sem_TableRef_JoinTref ann_ tbl0_ nat_ joinType_ tbl1_ onExpr_ alias_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 12321 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 12309 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _onExprOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 12326 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 12314 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _tbl1Ocat ->
            (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    _lhsIcat
-                   {-# LINE 12331 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 12319 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
-            { _tblOcat ->
-            (case (({-# LINE 33 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
-                    Left []
-                    {-# LINE 12336 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
-                    )) of
-             { _eEnv ->
-             (case (({-# LINE 18 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
-                     either Left (const $ Left []) _eEnv
-                     {-# LINE 12341 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
-                     )) of
-              { _annOtpe ->
-              (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
-                      _lhsIcat
-                      {-# LINE 12346 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
-                      )) of
-               { _aliasOcat ->
-               (case (alias_ _aliasOcat ) of
-                { ( _aliasIannotatedTree,_aliasIexpandedStars,_aliasIoriginalTree) ->
-                    (case (onExpr_ _onExprOcat ) of
-                     { ( _onExprIannotatedTree,_onExprIexpandedStars,_onExprIoriginalTree) ->
-                         (case (tbl1_ _tbl1Ocat ) of
-                          { ( _tbl1IannotatedTree,_tbl1IexpandedStars,_tbl1IoriginalTree,_tbl1IupEnv) ->
-                              (case (tbl_ _tblOcat ) of
-                               { ( _tblIannotatedTree,_tblIexpandedStars,_tblIoriginalTree,_tblIupEnv) ->
+            { _tbl0Ocat ->
+            (case (onExpr_ _onExprOcat ) of
+             { ( _onExprIannotatedTree,_onExprIexpandedStars,_onExprIoriginalTree) ->
+                 (case (tbl1_ _tbl1Ocat ) of
+                  { ( _tbl1IannotatedTree,_tbl1IexpandedStars,_tbl1IoriginalTree,_tbl1IupEnv) ->
+                      (case (tbl0_ _tbl0Ocat ) of
+                       { ( _tbl0IannotatedTree,_tbl0IexpandedStars,_tbl0IoriginalTree,_tbl0IupEnv) ->
+                           (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+                                   createJoinTrefEnvironment _lhsIcat
+                                     _tbl0IupEnv _tbl1IupEnv
+                                     $ case (joinType_,_onExprIoriginalTree) of
+                                        (x,Nothing) | x /= Cross -> Nothing
+                                        (_,Just (JoinUsing _ nms)) -> Just nms
+                                        _ -> Just []
+                                   {-# LINE 12335 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   )) of
+                            { _eEnv ->
+                            (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+                                    either Left (const $ Left []) _eEnv
+                                    {-# LINE 12340 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    )) of
+                             { _annOtpe ->
+                             (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
+                                     _lhsIcat
+                                     {-# LINE 12345 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     )) of
+                              { _aliasOcat ->
+                              (case (alias_ _aliasOcat ) of
+                               { ( _aliasIannotatedTree,_aliasIexpandedStars,_aliasIoriginalTree) ->
                                    (case (ann_ ) of
                                     { ( _annIoriginalTree,ann_1) ->
                                         (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 _lhsIcat
-                                                {-# LINE 12361 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 12354 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _annOcat ->
                                          (case (ann_1 _annOcat _annOtpe ) of
                                           { ( _annIannotatedTree,_annIexpandedStars) ->
                                               (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
-                                                      JoinTref _annIannotatedTree _tblIannotatedTree nat_ joinType_ _tbl1IannotatedTree _onExprIannotatedTree _aliasIannotatedTree
-                                                      {-# LINE 12368 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                      JoinTref _annIannotatedTree _tbl0IannotatedTree nat_ joinType_ _tbl1IannotatedTree _onExprIannotatedTree _aliasIannotatedTree
+                                                      {-# LINE 12361 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                       )) of
                                                { _annotatedTree ->
                                                (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                        _annotatedTree
-                                                       {-# LINE 12373 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                       {-# LINE 12366 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                        )) of
                                                 { _lhsOannotatedTree ->
                                                 (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
-                                                        JoinTref _annIexpandedStars _tblIexpandedStars nat_ joinType_ _tbl1IexpandedStars _onExprIexpandedStars _aliasIexpandedStars
-                                                        {-# LINE 12378 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                        JoinTref _annIexpandedStars _tbl0IexpandedStars nat_ joinType_ _tbl1IexpandedStars _onExprIexpandedStars _aliasIexpandedStars
+                                                        {-# LINE 12371 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                         )) of
                                                  { _expandedStars ->
                                                  (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                          _expandedStars
-                                                         {-# LINE 12383 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                         {-# LINE 12376 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                          )) of
                                                   { _lhsOexpandedStars ->
                                                   (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
-                                                          JoinTref _annIoriginalTree _tblIoriginalTree nat_ joinType_ _tbl1IoriginalTree _onExprIoriginalTree _aliasIoriginalTree
-                                                          {-# LINE 12388 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                          JoinTref _annIoriginalTree _tbl0IoriginalTree nat_ joinType_ _tbl1IoriginalTree _onExprIoriginalTree _aliasIoriginalTree
+                                                          {-# LINE 12381 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                           )) of
                                                    { _originalTree ->
                                                    (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                            _originalTree
-                                                           {-# LINE 12393 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                           {-# LINE 12386 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                            )) of
                                                     { _lhsOoriginalTree ->
-                                                    (case (({-# LINE 20 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+                                                    (case (({-# LINE 30 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                                                             either (const emptyEnvironment) id _eEnv
-                                                            {-# LINE 12398 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                            {-# LINE 12391 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                             )) of
                                                      { _lhsOupEnv ->
                                                      ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupEnv) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -12406,22 +12399,22 @@ sem_TableRef_SubTref ann_ sel_ alias_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 12410 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 12403 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _selOcat ->
-          (case (({-# LINE 33 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+          (case (({-# LINE 56 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                   Left []
-                  {-# LINE 12415 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 12408 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _eEnv ->
-           (case (({-# LINE 18 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+           (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                    either Left (const $ Left []) _eEnv
-                   {-# LINE 12420 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 12413 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _lhsIcat
-                    {-# LINE 12425 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 12418 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _aliasOcat ->
              (case (alias_ _aliasOcat ) of
@@ -12432,44 +12425,44 @@ sem_TableRef_SubTref ann_ sel_ alias_  =
                         { ( _annIoriginalTree,ann_1) ->
                             (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _lhsIcat
-                                    {-# LINE 12436 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 12429 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annOcat ->
                              (case (ann_1 _annOcat _annOtpe ) of
                               { ( _annIannotatedTree,_annIexpandedStars) ->
                                   (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           SubTref _annIannotatedTree _selIannotatedTree _aliasIannotatedTree
-                                          {-# LINE 12443 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 12436 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _annotatedTree ->
                                    (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            _annotatedTree
-                                           {-# LINE 12448 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 12441 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _lhsOannotatedTree ->
                                     (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             SubTref _annIexpandedStars _selIexpandedStars _aliasIexpandedStars
-                                            {-# LINE 12453 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 12446 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _expandedStars ->
                                      (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              _expandedStars
-                                             {-# LINE 12458 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 12451 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _lhsOexpandedStars ->
                                       (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                               SubTref _annIoriginalTree _selIoriginalTree _aliasIoriginalTree
-                                              {-# LINE 12463 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 12456 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _originalTree ->
                                        (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                _originalTree
-                                               {-# LINE 12468 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 12461 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _lhsOoriginalTree ->
-                                        (case (({-# LINE 20 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+                                        (case (({-# LINE 30 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                                                 either (const emptyEnvironment) id _eEnv
-                                                {-# LINE 12473 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 12466 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _lhsOupEnv ->
                                          ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupEnv) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -12479,33 +12472,33 @@ sem_TableRef_Tref :: T_Annotation  ->
                      T_TableRef 
 sem_TableRef_Tref ann_ tbl_ alias_  =
     (\ _lhsIcat ->
-         (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+         (case (({-# LINE 39 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                  Left []
-                 {-# LINE 12485 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 12478 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tblOtpe ->
           (case (tbl_ ) of
            { ( _tblIoriginalTree,tbl_1) ->
-               (case (({-# LINE 27 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+               (case (({-# LINE 38 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                        envCreateTrefEnvironment _lhsIcat (nameComponents _tblIoriginalTree)
-                       {-# LINE 12492 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 12485 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _eEnv ->
-                (case (({-# LINE 18 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+                (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                         either Left (const $ Left []) _eEnv
-                        {-# LINE 12497 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 12490 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annOtpe ->
                  (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                          _lhsIcat
-                         {-# LINE 12502 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 12495 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _aliasOcat ->
                   (case (alias_ _aliasOcat ) of
                    { ( _aliasIannotatedTree,_aliasIexpandedStars,_aliasIoriginalTree) ->
                        (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                _lhsIcat
-                               {-# LINE 12509 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 12502 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _tblOcat ->
                         (case (tbl_1 _tblOcat _tblOtpe ) of
@@ -12514,44 +12507,44 @@ sem_TableRef_Tref ann_ tbl_ alias_  =
                               { ( _annIoriginalTree,ann_1) ->
                                   (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           _lhsIcat
-                                          {-# LINE 12518 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 12511 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _annOcat ->
                                    (case (ann_1 _annOcat _annOtpe ) of
                                     { ( _annIannotatedTree,_annIexpandedStars) ->
                                         (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 Tref _annIannotatedTree _tblIannotatedTree _aliasIannotatedTree
-                                                {-# LINE 12525 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 12518 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _annotatedTree ->
                                          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                  _annotatedTree
-                                                 {-# LINE 12530 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                 {-# LINE 12523 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                  )) of
                                           { _lhsOannotatedTree ->
                                           (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                   Tref _annIexpandedStars _tblIexpandedStars _aliasIexpandedStars
-                                                  {-# LINE 12535 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                  {-# LINE 12528 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                   )) of
                                            { _expandedStars ->
                                            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                    _expandedStars
-                                                   {-# LINE 12540 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                   {-# LINE 12533 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                    )) of
                                             { _lhsOexpandedStars ->
                                             (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                     Tref _annIoriginalTree _tblIoriginalTree _aliasIoriginalTree
-                                                    {-# LINE 12545 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                    {-# LINE 12538 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                     )) of
                                              { _originalTree ->
                                              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                      _originalTree
-                                                     {-# LINE 12550 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                     {-# LINE 12543 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                      )) of
                                               { _lhsOoriginalTree ->
-                                              (case (({-# LINE 20 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+                                              (case (({-# LINE 30 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                                                       either (const emptyEnvironment) id _eEnv
-                                                      {-# LINE 12555 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                      {-# LINE 12548 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                       )) of
                                                { _lhsOupEnv ->
                                                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupEnv) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -12603,12 +12596,12 @@ sem_TableRefList_Cons hd_ tl_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 12607 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 12600 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tlOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 12612 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 12605 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _hdOcat ->
            (case (tl_ _tlOcat ) of
@@ -12617,37 +12610,41 @@ sem_TableRefList_Cons hd_ tl_  =
                  { ( _hdIannotatedTree,_hdIexpandedStars,_hdIoriginalTree,_hdIupEnv) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              (:) _hdIannotatedTree _tlIannotatedTree
-                             {-# LINE 12621 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 12614 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 12626 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 12619 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                (:) _hdIexpandedStars _tlIexpandedStars
-                               {-# LINE 12631 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 12624 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 12636 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 12629 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  (:) _hdIoriginalTree _tlIoriginalTree
-                                 {-# LINE 12641 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 12634 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 12646 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 12639 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
-                           (case (({-# LINE 12 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
-                                   _hdIupEnv
-                                   {-# LINE 12651 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                           (case (({-# LINE 15 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+                                   if isEmptyEnv _tlIupEnv
+                                   then _hdIupEnv
+                                   else
+                                          either (error . show) id $
+                                          createJoinTrefEnvironment _lhsIcat _hdIupEnv _tlIupEnv $ Just []
+                                   {-# LINE 12648 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _lhsOupEnv ->
                             ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupEnv) }) }) }) }) }) }) }) }) }) }) }))
@@ -12656,37 +12653,37 @@ sem_TableRefList_Nil  =
     (\ _lhsIcat ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  []
-                 {-# LINE 12660 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 12657 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 12665 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 12662 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    []
-                   {-# LINE 12670 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 12667 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _expandedStars ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _expandedStars
-                    {-# LINE 12675 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 12672 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOexpandedStars ->
              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      []
-                     {-# LINE 12680 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 12677 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _originalTree ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _originalTree
-                      {-# LINE 12685 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 12682 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
-               (case (({-# LINE 9 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+               (case (({-# LINE 13 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                        emptyEnvironment
-                       {-# LINE 12690 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 12687 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _lhsOupEnv ->
                 ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree,_lhsOupEnv) }) }) }) }) }) }) }))
@@ -12735,12 +12732,12 @@ sem_TypeAttributeDef_TypeAttDef ann_ name_ typ_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 12739 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 12736 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _typOcat ->
           (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   error "missing rule: TypeAttributeDef.TypeAttDef.ann.tpe"
-                  {-# LINE 12744 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 12741 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (typ_ _typOcat ) of
@@ -12749,39 +12746,39 @@ sem_TypeAttributeDef_TypeAttDef ann_ name_ typ_  =
                  { ( _annIoriginalTree,ann_1) ->
                      (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              _lhsIcat
-                             {-# LINE 12753 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 12750 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annOcat ->
                       (case (ann_1 _annOcat _annOtpe ) of
                        { ( _annIannotatedTree,_annIexpandedStars) ->
                            (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    TypeAttDef _annIannotatedTree name_ _typIannotatedTree
-                                   {-# LINE 12760 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 12757 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _annotatedTree ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _annotatedTree
-                                    {-# LINE 12765 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 12762 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOannotatedTree ->
                              (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      TypeAttDef _annIexpandedStars name_ _typIexpandedStars
-                                     {-# LINE 12770 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 12767 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _expandedStars ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       _expandedStars
-                                      {-# LINE 12775 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 12772 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _lhsOexpandedStars ->
                                (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        TypeAttDef _annIoriginalTree name_ _typIoriginalTree
-                                       {-# LINE 12780 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 12777 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _originalTree ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         _originalTree
-                                        {-# LINE 12785 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 12782 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOoriginalTree ->
                                  ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -12832,12 +12829,12 @@ sem_TypeAttributeDefList_Cons hd_ tl_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 12836 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 12833 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tlOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 12841 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 12838 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _hdOcat ->
            (case (tl_ _tlOcat ) of
@@ -12846,32 +12843,32 @@ sem_TypeAttributeDefList_Cons hd_ tl_  =
                  { ( _hdIannotatedTree,_hdIexpandedStars,_hdIoriginalTree) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              (:) _hdIannotatedTree _tlIannotatedTree
-                             {-# LINE 12850 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 12847 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 12855 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 12852 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                (:) _hdIexpandedStars _tlIexpandedStars
-                               {-# LINE 12860 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 12857 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 12865 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 12862 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  (:) _hdIoriginalTree _tlIoriginalTree
-                                 {-# LINE 12870 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 12867 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 12875 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 12872 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -12880,32 +12877,32 @@ sem_TypeAttributeDefList_Nil  =
     (\ _lhsIcat ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  []
-                 {-# LINE 12884 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 12881 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 12889 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 12886 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    []
-                   {-# LINE 12894 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 12891 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _expandedStars ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _expandedStars
-                    {-# LINE 12899 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 12896 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOexpandedStars ->
              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      []
-                     {-# LINE 12904 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 12901 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _originalTree ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _originalTree
-                      {-# LINE 12909 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 12906 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }))
@@ -13001,64 +12998,64 @@ sem_TypeName_ArrayTypeName ann_ typ_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 13005 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 13002 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _typOcat ->
           (case (typ_ _typOcat ) of
            { ( _typIannotatedTree,_typIexpandedStars,_typInamedType,_typIoriginalTree) ->
-               (case (({-# LINE 54 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+               (case (({-# LINE 58 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                        maybe (Left []) Right _typInamedType
                        >>=  Right . ArrayType
-                       {-# LINE 13013 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 13010 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _tpe ->
                 (case (({-# LINE 37 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                         either Left (const $ Left []) _tpe
-                        {-# LINE 13018 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 13015 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annOtpe ->
                  (case (ann_ ) of
                   { ( _annIoriginalTree,ann_1) ->
                       (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIcat
-                              {-# LINE 13025 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 13022 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annOcat ->
                        (case (ann_1 _annOcat _annOtpe ) of
                         { ( _annIannotatedTree,_annIexpandedStars) ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     ArrayTypeName _annIannotatedTree _typIannotatedTree
-                                    {-# LINE 13032 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 13029 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annotatedTree ->
                              (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _annotatedTree
-                                     {-# LINE 13037 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 13034 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _lhsOannotatedTree ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       ArrayTypeName _annIexpandedStars _typIexpandedStars
-                                      {-# LINE 13042 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 13039 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _expandedStars ->
                                (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        _expandedStars
-                                       {-# LINE 13047 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 13044 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _lhsOexpandedStars ->
                                 (case (({-# LINE 36 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                                         either (const Nothing) Just _tpe
-                                        {-# LINE 13052 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 13049 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOnamedType ->
                                  (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          ArrayTypeName _annIoriginalTree _typIoriginalTree
-                                         {-# LINE 13057 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 13054 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _originalTree ->
                                   (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           _originalTree
-                                          {-# LINE 13062 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 13059 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _lhsOoriginalTree ->
                                    ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOnamedType,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -13071,24 +13068,24 @@ sem_TypeName_Prec2TypeName ann_ tn_ prec_ prec1_  =
     (\ _lhsIcat ->
          (case (tn_ ) of
           { ( _tnIoriginalTree,tn_1) ->
-              (case (({-# LINE 62 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                       catLookupType _lhsIcat (nameComponents _tnIoriginalTree)
-                      {-# LINE 13077 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 13074 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _tpe ->
                (case (({-# LINE 39 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                        Left []
-                       {-# LINE 13082 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 13079 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _tnOtpe ->
                 (case (({-# LINE 37 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                         either Left (const $ Left []) _tpe
-                        {-# LINE 13087 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 13084 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annOtpe ->
                  (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                          _lhsIcat
-                         {-# LINE 13092 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 13089 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _tnOcat ->
                   (case (tn_1 _tnOcat _tnOtpe ) of
@@ -13097,44 +13094,44 @@ sem_TypeName_Prec2TypeName ann_ tn_ prec_ prec1_  =
                         { ( _annIoriginalTree,ann_1) ->
                             (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _lhsIcat
-                                    {-# LINE 13101 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 13098 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annOcat ->
                              (case (ann_1 _annOcat _annOtpe ) of
                               { ( _annIannotatedTree,_annIexpandedStars) ->
                                   (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           Prec2TypeName _annIannotatedTree _tnIannotatedTree prec_ prec1_
-                                          {-# LINE 13108 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 13105 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _annotatedTree ->
                                    (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            _annotatedTree
-                                           {-# LINE 13113 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 13110 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _lhsOannotatedTree ->
                                     (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             Prec2TypeName _annIexpandedStars _tnIexpandedStars prec_ prec1_
-                                            {-# LINE 13118 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 13115 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _expandedStars ->
                                      (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              _expandedStars
-                                             {-# LINE 13123 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 13120 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _lhsOexpandedStars ->
                                       (case (({-# LINE 36 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                                               either (const Nothing) Just _tpe
-                                              {-# LINE 13128 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 13125 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _lhsOnamedType ->
                                        (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                Prec2TypeName _annIoriginalTree _tnIoriginalTree prec_ prec1_
-                                               {-# LINE 13133 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 13130 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _originalTree ->
                                         (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 _originalTree
-                                                {-# LINE 13138 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 13135 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _lhsOoriginalTree ->
                                          ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOnamedType,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -13146,24 +13143,24 @@ sem_TypeName_PrecTypeName ann_ tn_ prec_  =
     (\ _lhsIcat ->
          (case (tn_ ) of
           { ( _tnIoriginalTree,tn_1) ->
-              (case (({-# LINE 60 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+              (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                       catLookupType _lhsIcat (nameComponents _tnIoriginalTree)
-                      {-# LINE 13152 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 13149 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _tpe ->
                (case (({-# LINE 39 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                        Left []
-                       {-# LINE 13157 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 13154 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _tnOtpe ->
                 (case (({-# LINE 37 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                         either Left (const $ Left []) _tpe
-                        {-# LINE 13162 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 13159 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annOtpe ->
                  (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                          _lhsIcat
-                         {-# LINE 13167 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 13164 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _tnOcat ->
                   (case (tn_1 _tnOcat _tnOtpe ) of
@@ -13172,44 +13169,44 @@ sem_TypeName_PrecTypeName ann_ tn_ prec_  =
                         { ( _annIoriginalTree,ann_1) ->
                             (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _lhsIcat
-                                    {-# LINE 13176 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 13173 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annOcat ->
                              (case (ann_1 _annOcat _annOtpe ) of
                               { ( _annIannotatedTree,_annIexpandedStars) ->
                                   (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           PrecTypeName _annIannotatedTree _tnIannotatedTree prec_
-                                          {-# LINE 13183 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 13180 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _annotatedTree ->
                                    (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            _annotatedTree
-                                           {-# LINE 13188 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 13185 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _lhsOannotatedTree ->
                                     (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             PrecTypeName _annIexpandedStars _tnIexpandedStars prec_
-                                            {-# LINE 13193 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 13190 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _expandedStars ->
                                      (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              _expandedStars
-                                             {-# LINE 13198 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 13195 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _lhsOexpandedStars ->
                                       (case (({-# LINE 36 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                                               either (const Nothing) Just _tpe
-                                              {-# LINE 13203 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 13200 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _lhsOnamedType ->
                                        (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                PrecTypeName _annIoriginalTree _tnIoriginalTree prec_
-                                               {-# LINE 13208 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 13205 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _originalTree ->
                                         (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 _originalTree
-                                                {-# LINE 13213 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 13210 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _lhsOoriginalTree ->
                                          ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOnamedType,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -13220,64 +13217,64 @@ sem_TypeName_SetOfTypeName ann_ typ_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 13224 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 13221 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _typOcat ->
           (case (typ_ _typOcat ) of
            { ( _typIannotatedTree,_typIexpandedStars,_typInamedType,_typIoriginalTree) ->
-               (case (({-# LINE 57 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+               (case (({-# LINE 61 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                        maybe (Left []) Right _typInamedType
                        >>=  Right . Pseudo . SetOfType
-                       {-# LINE 13232 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 13229 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _tpe ->
                 (case (({-# LINE 37 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                         either Left (const $ Left []) _tpe
-                        {-# LINE 13237 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 13234 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annOtpe ->
                  (case (ann_ ) of
                   { ( _annIoriginalTree,ann_1) ->
                       (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIcat
-                              {-# LINE 13244 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 13241 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annOcat ->
                        (case (ann_1 _annOcat _annOtpe ) of
                         { ( _annIannotatedTree,_annIexpandedStars) ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     SetOfTypeName _annIannotatedTree _typIannotatedTree
-                                    {-# LINE 13251 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 13248 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annotatedTree ->
                              (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _annotatedTree
-                                     {-# LINE 13256 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 13253 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _lhsOannotatedTree ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       SetOfTypeName _annIexpandedStars _typIexpandedStars
-                                      {-# LINE 13261 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 13258 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _expandedStars ->
                                (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        _expandedStars
-                                       {-# LINE 13266 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 13263 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _lhsOexpandedStars ->
                                 (case (({-# LINE 36 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                                         either (const Nothing) Just _tpe
-                                        {-# LINE 13271 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 13268 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOnamedType ->
                                  (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          SetOfTypeName _annIoriginalTree _typIoriginalTree
-                                         {-# LINE 13276 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 13273 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _originalTree ->
                                   (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           _originalTree
-                                          {-# LINE 13281 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 13278 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _lhsOoriginalTree ->
                                    ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOnamedType,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -13288,24 +13285,24 @@ sem_TypeName_SimpleTypeName ann_ tn_  =
     (\ _lhsIcat ->
          (case (tn_ ) of
           { ( _tnIoriginalTree,tn_1) ->
-              (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+              (case (({-# LINE 50 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                       catLookupType _lhsIcat (nameComponents _tnIoriginalTree)
-                      {-# LINE 13294 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 13291 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _tpe ->
                (case (({-# LINE 39 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                        Left []
-                       {-# LINE 13299 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 13296 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _tnOtpe ->
                 (case (({-# LINE 37 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                         either Left (const $ Left []) _tpe
-                        {-# LINE 13304 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 13301 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annOtpe ->
                  (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                          _lhsIcat
-                         {-# LINE 13309 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 13306 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _tnOcat ->
                   (case (tn_1 _tnOcat _tnOtpe ) of
@@ -13314,44 +13311,44 @@ sem_TypeName_SimpleTypeName ann_ tn_  =
                         { ( _annIoriginalTree,ann_1) ->
                             (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _lhsIcat
-                                    {-# LINE 13318 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 13315 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annOcat ->
                              (case (ann_1 _annOcat _annOtpe ) of
                               { ( _annIannotatedTree,_annIexpandedStars) ->
                                   (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           SimpleTypeName _annIannotatedTree _tnIannotatedTree
-                                          {-# LINE 13325 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 13322 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _annotatedTree ->
                                    (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            _annotatedTree
-                                           {-# LINE 13330 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 13327 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _lhsOannotatedTree ->
                                     (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             SimpleTypeName _annIexpandedStars _tnIexpandedStars
-                                            {-# LINE 13335 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 13332 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _expandedStars ->
                                      (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              _expandedStars
-                                             {-# LINE 13340 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 13337 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _lhsOexpandedStars ->
                                       (case (({-# LINE 36 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                                               either (const Nothing) Just _tpe
-                                              {-# LINE 13345 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 13342 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _lhsOnamedType ->
                                        (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                SimpleTypeName _annIoriginalTree _tnIoriginalTree
-                                               {-# LINE 13350 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 13347 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _originalTree ->
                                         (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 _originalTree
-                                                {-# LINE 13355 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 13352 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _lhsOoriginalTree ->
                                          ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOnamedType,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -13402,12 +13399,12 @@ sem_TypeNameList_Cons hd_ tl_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 13406 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 13403 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tlOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 13411 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 13408 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _hdOcat ->
            (case (tl_ _tlOcat ) of
@@ -13416,32 +13413,32 @@ sem_TypeNameList_Cons hd_ tl_  =
                  { ( _hdIannotatedTree,_hdIexpandedStars,_hdInamedType,_hdIoriginalTree) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              (:) _hdIannotatedTree _tlIannotatedTree
-                             {-# LINE 13420 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 13417 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 13425 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 13422 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                (:) _hdIexpandedStars _tlIexpandedStars
-                               {-# LINE 13430 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 13427 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 13435 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 13432 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  (:) _hdIoriginalTree _tlIoriginalTree
-                                 {-# LINE 13440 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 13437 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 13445 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 13442 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -13450,32 +13447,32 @@ sem_TypeNameList_Nil  =
     (\ _lhsIcat ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  []
-                 {-# LINE 13454 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 13451 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 13459 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 13456 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    []
-                   {-# LINE 13464 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 13461 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _expandedStars ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _expandedStars
-                    {-# LINE 13469 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 13466 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOexpandedStars ->
              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      []
-                     {-# LINE 13474 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 13471 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _originalTree ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _originalTree
-                      {-# LINE 13479 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 13476 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }))
@@ -13547,46 +13544,46 @@ sem_VarDef_ParamAlias ann_ name_ i_  =
     (\ _lhsIcat ->
          (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  error "missing rule: VarDef.ParamAlias.ann.tpe"
-                 {-# LINE 13551 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 13548 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annOtpe ->
           (case (ann_ ) of
            { ( _annIoriginalTree,ann_1) ->
                (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        _lhsIcat
-                       {-# LINE 13558 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 13555 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _annOcat ->
                 (case (ann_1 _annOcat _annOtpe ) of
                  { ( _annIannotatedTree,_annIexpandedStars) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              ParamAlias _annIannotatedTree name_ i_
-                             {-# LINE 13565 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 13562 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 13570 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 13567 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                ParamAlias _annIexpandedStars name_ i_
-                               {-# LINE 13575 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 13572 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 13580 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 13577 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  ParamAlias _annIoriginalTree name_ i_
-                                 {-# LINE 13585 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 13582 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 13590 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 13587 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -13596,21 +13593,21 @@ sem_VarDef_VarAlias :: T_Annotation  ->
                        T_VarDef 
 sem_VarDef_VarAlias ann_ name_ aliased_  =
     (\ _lhsIcat ->
-         (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
+         (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                  error "missing rule: VarDef.VarAlias.aliased.tpe"
-                 {-# LINE 13602 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 13599 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _aliasedOtpe ->
           (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   error "missing rule: VarDef.VarAlias.ann.tpe"
-                  {-# LINE 13607 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 13604 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (aliased_ ) of
             { ( _aliasedIoriginalTree,aliased_1) ->
                 (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                         _lhsIcat
-                        {-# LINE 13614 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 13611 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _aliasedOcat ->
                  (case (aliased_1 _aliasedOcat _aliasedOtpe ) of
@@ -13619,39 +13616,39 @@ sem_VarDef_VarAlias ann_ name_ aliased_  =
                        { ( _annIoriginalTree,ann_1) ->
                            (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    _lhsIcat
-                                   {-# LINE 13623 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 13620 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _annOcat ->
                             (case (ann_1 _annOcat _annOtpe ) of
                              { ( _annIannotatedTree,_annIexpandedStars) ->
                                  (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          VarAlias _annIannotatedTree name_ _aliasedIannotatedTree
-                                         {-# LINE 13630 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 13627 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _annotatedTree ->
                                   (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           _annotatedTree
-                                          {-# LINE 13635 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 13632 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _lhsOannotatedTree ->
                                    (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            VarAlias _annIexpandedStars name_ _aliasedIexpandedStars
-                                           {-# LINE 13640 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 13637 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _expandedStars ->
                                     (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             _expandedStars
-                                            {-# LINE 13645 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 13642 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _lhsOexpandedStars ->
                                      (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              VarAlias _annIoriginalTree name_ _aliasedIoriginalTree
-                                             {-# LINE 13650 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 13647 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _originalTree ->
                                       (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                               _originalTree
-                                              {-# LINE 13655 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 13652 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _lhsOoriginalTree ->
                                        ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -13664,12 +13661,12 @@ sem_VarDef_VarDef ann_ name_ typ_ value_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 13668 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 13665 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _typOcat ->
           (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   error "missing rule: VarDef.VarDef.ann.tpe"
-                  {-# LINE 13673 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 13670 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (typ_ _typOcat ) of
@@ -13678,39 +13675,39 @@ sem_VarDef_VarDef ann_ name_ typ_ value_  =
                  { ( _annIoriginalTree,ann_1) ->
                      (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              _lhsIcat
-                             {-# LINE 13682 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 13679 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annOcat ->
                       (case (ann_1 _annOcat _annOtpe ) of
                        { ( _annIannotatedTree,_annIexpandedStars) ->
                            (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    VarDef _annIannotatedTree name_ _typIannotatedTree value_
-                                   {-# LINE 13689 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 13686 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _annotatedTree ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _annotatedTree
-                                    {-# LINE 13694 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 13691 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOannotatedTree ->
                              (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      VarDef _annIexpandedStars name_ _typIexpandedStars value_
-                                     {-# LINE 13699 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 13696 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _expandedStars ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       _expandedStars
-                                      {-# LINE 13704 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 13701 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _lhsOexpandedStars ->
                                (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        VarDef _annIoriginalTree name_ _typIoriginalTree value_
-                                       {-# LINE 13709 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 13706 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _originalTree ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         _originalTree
-                                        {-# LINE 13714 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 13711 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOoriginalTree ->
                                  ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -13761,12 +13758,12 @@ sem_VarDefList_Cons hd_ tl_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 13765 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 13762 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tlOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 13770 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 13767 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _hdOcat ->
            (case (tl_ _tlOcat ) of
@@ -13775,32 +13772,32 @@ sem_VarDefList_Cons hd_ tl_  =
                  { ( _hdIannotatedTree,_hdIexpandedStars,_hdIoriginalTree) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              (:) _hdIannotatedTree _tlIannotatedTree
-                             {-# LINE 13779 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 13776 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 13784 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 13781 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                (:) _hdIexpandedStars _tlIexpandedStars
-                               {-# LINE 13789 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 13786 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 13794 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 13791 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  (:) _hdIoriginalTree _tlIoriginalTree
-                                 {-# LINE 13799 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 13796 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 13804 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 13801 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -13809,32 +13806,32 @@ sem_VarDefList_Nil  =
     (\ _lhsIcat ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  []
-                 {-# LINE 13813 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 13810 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 13818 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 13815 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    []
-                   {-# LINE 13823 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 13820 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _expandedStars ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _expandedStars
-                    {-# LINE 13828 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 13825 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOexpandedStars ->
              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      []
-                     {-# LINE 13833 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 13830 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _originalTree ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _originalTree
-                      {-# LINE 13838 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 13835 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }))
@@ -13885,12 +13882,12 @@ sem_WithQuery_WithQuery ann_ name_ colAliases_ ex_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 13889 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 13886 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _exOcat ->
           (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   error "missing rule: WithQuery.WithQuery.ann.tpe"
-                  {-# LINE 13894 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 13891 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (ex_ _exOcat ) of
@@ -13899,39 +13896,39 @@ sem_WithQuery_WithQuery ann_ name_ colAliases_ ex_  =
                  { ( _annIoriginalTree,ann_1) ->
                      (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              _lhsIcat
-                             {-# LINE 13903 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 13900 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annOcat ->
                       (case (ann_1 _annOcat _annOtpe ) of
                        { ( _annIannotatedTree,_annIexpandedStars) ->
                            (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                    WithQuery _annIannotatedTree name_ colAliases_ _exIannotatedTree
-                                   {-# LINE 13910 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 13907 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _annotatedTree ->
                             (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _annotatedTree
-                                    {-# LINE 13915 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 13912 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _lhsOannotatedTree ->
                              (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      WithQuery _annIexpandedStars name_ colAliases_ _exIexpandedStars
-                                     {-# LINE 13920 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 13917 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _expandedStars ->
                               (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       _expandedStars
-                                      {-# LINE 13925 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 13922 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _lhsOexpandedStars ->
                                (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        WithQuery _annIoriginalTree name_ colAliases_ _exIoriginalTree
-                                       {-# LINE 13930 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 13927 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _originalTree ->
                                 (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         _originalTree
-                                        {-# LINE 13935 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 13932 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOoriginalTree ->
                                  ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -13982,12 +13979,12 @@ sem_WithQueryList_Cons hd_ tl_  =
     (\ _lhsIcat ->
          (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 13986 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 13983 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tlOcat ->
           (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 13991 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 13988 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _hdOcat ->
            (case (tl_ _tlOcat ) of
@@ -13996,32 +13993,32 @@ sem_WithQueryList_Cons hd_ tl_  =
                  { ( _hdIannotatedTree,_hdIexpandedStars,_hdIoriginalTree) ->
                      (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                              (:) _hdIannotatedTree _tlIannotatedTree
-                             {-# LINE 14000 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                             {-# LINE 13997 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                              )) of
                       { _annotatedTree ->
                       (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _annotatedTree
-                              {-# LINE 14005 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 14002 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _lhsOannotatedTree ->
                        (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                (:) _hdIexpandedStars _tlIexpandedStars
-                               {-# LINE 14010 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 14007 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _expandedStars ->
                         (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _expandedStars
-                                {-# LINE 14015 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 14012 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOexpandedStars ->
                          (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  (:) _hdIoriginalTree _tlIoriginalTree
-                                 {-# LINE 14020 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 14017 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 14025 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 14022 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -14030,32 +14027,32 @@ sem_WithQueryList_Nil  =
     (\ _lhsIcat ->
          (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  []
-                 {-# LINE 14034 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 14031 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 14039 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 14036 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    []
-                   {-# LINE 14044 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 14041 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _expandedStars ->
             (case (({-# LINE 67 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _expandedStars
-                    {-# LINE 14049 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 14046 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOexpandedStars ->
              (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      []
-                     {-# LINE 14054 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 14051 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _originalTree ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _originalTree
-                      {-# LINE 14059 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 14056 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
                ( _lhsOannotatedTree,_lhsOexpandedStars,_lhsOoriginalTree) }) }) }) }) }) }))

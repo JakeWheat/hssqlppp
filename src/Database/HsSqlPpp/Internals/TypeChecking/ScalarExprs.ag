@@ -25,9 +25,11 @@ sem ScalarExpr
         lhs.upType = either (const Nothing) Just @loc.tpe
 
 attr ScalarExpr
-  inh downEnv :: Environment
+  inh downEnv :: Environment -- the environment from the parent
   syn upType :: {Maybe Type} -- the type of this node made available to the parent node
 
+
+-- collect the uptypes for a list of scalarexprs
 
 attr ScalarExprList
   inh downEnv :: Environment
@@ -64,16 +66,20 @@ sem ScalarExpr
     | BooleanLit
         loc.tpe = Right typeBool
 
--- numbers - a bit hacky, maybe should follow haskell
--- and represent as integers and rationals instead of strings
-
     | NumberLit
+        -- numbers - a bit hacky, maybe should follow haskell
+        -- and represent as integers and rationals instead of strings
+        -- here just sets as int if there is no decimal place
+        -- probably the support for different syntax for numbers
+        -- needs to improve a lot then this won't be possible any
+        -- more (e.g. 10e-5)
         loc.tpe = Right $ if all (`elem` @loc.digChars) @d
                           then typeInt
                           else typeNumeric
         loc.digChars = concatMap show [(0::Int)..9]
 
     | StringLit
+        -- string lit type comes from the context
         loc.tpe = Right UnknownType
     -- I think a null has the same type resolution as an unknown string lit
     | NullLit
@@ -116,12 +122,12 @@ identifier
 
 op calls, fn calls, etc.
 
-uType : {Maybe Type}
-
 -}
 
     | App
          loc.tpe = do
+                   -- get the types of the arguments
+                   -- then lookup in TypeConversion.matchApp
                    tys <- mapM (maybe (Left []) Right) @args.upTypes
                    let Name _ ns = @funName.originalTree
                    (_,rt) <- matchApp @lhs.cat ns tys
@@ -129,7 +135,7 @@ uType : {Maybe Type}
 
 {-
 
-fallback for unimplemented bits
+fallback for unimplemented ctors
 
 -}
 

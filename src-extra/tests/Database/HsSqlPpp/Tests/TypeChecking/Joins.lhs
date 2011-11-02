@@ -10,8 +10,30 @@
 > joins :: Item
 > joins =
 >   Group "joins"
->   [
+>   [qe "select * from t0 cross join t1"
+>       $ Right $ CompositeType [("a",typeInt)
+>                               ,("b", ScalarType "text")
+>                               ,("c",typeInt)
+>                               ,("d", ScalarType "text")]
+>   ,qe "select a from t0 cross join t1"
+>       $ Right $ CompositeType [("a",typeInt)]
+>   ,qe "select b from t0 cross join t1"
+>       $ Right $ CompositeType [("b",ScalarType "text")]
+>   ,qe "select c from t0 cross join t1"
+>       $ Right $ CompositeType [("c",typeInt)]
+>   ,qe "select d from t0 cross join t1"
+>       $ Right $ CompositeType [("d",ScalarType "text")]
+>   ,qe "select a,b,c,d from t0 cross join t1"
+>       $ Right $ CompositeType [("a",typeInt)
+>                               ,("b", ScalarType "text")
+>                               ,("c",typeInt)
+>                               ,("d", ScalarType "text")]
 >   ]
+>   where
+>     qe = QueryExpr [CatCreateTable "t0" [("a", "int4")
+>                                        ,("b", "text")]
+>                    ,CatCreateTable "t1" [("c", "int4")
+>                                         ,("d", "text")]]
 
 
 > {-

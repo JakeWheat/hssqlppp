@@ -38,6 +38,10 @@ typename isn't recognised
      | SimpleTypeName PrecTypeName Prec2TypeName
          tn.tpe = Left []
 
+-- pass down to Name to set the annotation on it
+-- This isn't used yet, need to review when more of the typechecking
+-- is written to check this attribute is needed
+
 attr Name
   inh tpe :: {Either [TypeError] Type}
 

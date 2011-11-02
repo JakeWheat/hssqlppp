@@ -1,7 +1,15 @@
 
+-- main attributes used: downEnv which provides the non catalog bindings,
+-- these mostly come from the tref
+-- and the uptypes
 attr SelectList
   inh downEnv :: Environment
   syn upType :: {Maybe [(String,Type)]}
+
+-- use cols to gather the list of String,Types
+-- together in a select item list
+-- and the uptype to produce the final set
+-- to pass up to the queryexpr node parent
 
 attr SelectItemList
   inh downEnv :: Environment
@@ -15,32 +23,41 @@ attr SelectItem
 sem SelectList
   | SelectList
       lhs.upType = @items.upType
+-- select list doesn't currently get a type, maybe it should
+-- get the items uptype?
       ann.tpe = Left []
 
 sem SelectItemList
   | Nil lhs.cols = []
         lhs.upType = Nothing
   | Cons
-      loc.cols = @hd.col : @tl.cols
+      -- for more Cons, pass the list of maybe string/types up
       lhs.cols = @loc.cols
+      loc.cols = @hd.col : @tl.cols
+      -- for a selectlist parent, create a maybe [(string/type)]
       lhs.upType = sequence @loc.cols
 
 sem SelectItem
   | SelExp SelectItem
+      -- select item not currently given a type, but maybe should
+      -- have the type of the @ex
       ann.tpe = Left []
 
 sem SelectItem
   | SelectItem
+      -- explicit aliased column
       lhs.col = fmap (nm @name,) @ex.upType
 
 sem SelectItem
   | SelExp
+      -- implicitly named column, try to get a column name
+      -- from the syntax of @ex
       lhs.col = fmap (columnName @ex.originalTree,) @ex.upType
 
 {
 
 -- | thet name to choose for a column in a select list which doesn't
--- have an explicit name
+-- have an explicit name - have to follow postgresql's rules for this
 columnName :: ScalarExpr -> String
 columnName (Identifier _ i) = nm i
 columnName (QIdentifier _ is) = nm $ last is
@@ -49,34 +66,52 @@ columnName (Cast _ _ (SimpleTypeName _ (Name _ ncs))) = nm $ last ncs
 columnName (WindowApp _ (App _ f@(Name _ ncs) _) _ _ _) = nm $ last ncs
 columnName (AggregateApp _ _ (App _ f@(Name _ ncs) _) _) = nm $ last ncs
 columnName _ = "?column?"
-
+-- quick hack together
 nm :: NameComponent -> String
 nm (Nmc n) = map toLower n
 nm (QNmc n) = n
 }
 
+{-
+
 -------------------------------
 
--- star expansion handling
+star expansion handling
+
+expand the stars in a separate pass
+TODO:
+this isn't going to work e.g.
+create view x as select * from t
+select * from t
+isn't going to type check since both stars can't be expanded in the
+  same pass
+so have to remove the extra pass and do it manually
+
+-}
+
+
+-- create an attribute to collect the star-expanded select item list
+attr SelectItem SelectItemList
+  syn slExpandedStars :: {[SelectItem]}
+
+-- replace the unexpanded list with the replacement
+sem SelectList
+  | SelectList
+      lhs.expandedStars = SelectList @ann.originalTree @items.slExpandedStars
+
 
 sem SelectItemList
   | Nil lhs.slExpandedStars = []
   | Cons lhs.slExpandedStars = @hd.slExpandedStars ++ @tl.slExpandedStars
 
-sem SelectList
-  | SelectList
-      lhs.expandedStars = SelectList @ann.originalTree @items.slExpandedStars
-
-attr SelectItem SelectItemList
-  syn slExpandedStars :: {[SelectItem]}
-
 sem SelectItem
   | SelectItem
-      -- star with alias -> wrong so do nothing
+      -- star with alias -> invalid syntax so do nothing, should catch this
+      -- in the main pass to add the appropriate error
       lhs.slExpandedStars = [@expandedStars]
 
   | SelExp
-      -- the error gets lost
+      -- TODO: the error here if expand star fails gets lost
       lhs.slExpandedStars =
          case @ex.originalTree of
            Star _ | Right is <- envExpandStar Nothing @lhs.downEnv ->

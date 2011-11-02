@@ -31,9 +31,8 @@ annotation is really poor without docs
 
 typechecking:
 
-select a,b from t
-select * from t
-joins
+add qualifiers to ids
+natural joins, do join id compatibility
 subtref
 funtref
 

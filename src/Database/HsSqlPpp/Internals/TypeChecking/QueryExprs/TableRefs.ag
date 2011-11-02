@@ -1,16 +1,26 @@
 
+-- upenv is the environment produced by the tablerefs
+
 attr TableRefList
      syn upEnv :: Environment
 
 attr TableRef
      syn upEnv :: Environment
 
+-- combine a tref list using cross joins
+
 sem TableRefList
   | Nil lhs.upEnv = emptyEnvironment
   | Cons
-      -- todo: fix when joins are working
-      lhs.upEnv = @hd.upEnv
+      lhs.upEnv = if isEmptyEnv @tl.upEnv
+                  then @hd.upEnv
+                  else --problem: where to put the error?
+                         either (error . show) id $
+                         createJoinTrefEnvironment @lhs.cat @hd.upEnv @tl.upEnv $ Just []
 
+
+-- boilerplate: pass any error from the env to the annotation
+-- pass any successful env in the upEnv
 sem TableRef
   | Tref JoinTref SubTref FunTref
       loc.eEnv :: {Either [TypeError] Environment}
@@ -19,6 +29,7 @@ sem TableRef
       -- todo: what to do here?
       lhs.upEnv = either (const emptyEnvironment) id @loc.eEnv
 
+-- actual environment creation - this is the interesting bit in this file
 sem TableRef
   | Tref
       -- if the referenced table doesn't exist, want to attach the error
@@ -27,9 +38,21 @@ sem TableRef
       loc.eEnv = envCreateTrefEnvironment @lhs.cat (nameComponents @tbl.originalTree)
       tbl.tpe = Left []
 
+  | JoinTref
+      loc.eEnv = createJoinTrefEnvironment @lhs.cat
+                   @tbl0.upEnv @tbl1.upEnv
+                   $ case (@joinType,@onExpr.originalTree) of
+                      -- natural join
+                      (x,Nothing) | x /= Cross -> Nothing
+                      -- using join
+                      (_,Just (JoinUsing _ nms)) -> Just nms
+                      -- cross join
+                      _ -> Just []
+
+
 -- temp until code written
 sem TableRef
-  | JoinTref SubTref FunTref
+  | SubTref FunTref
       loc.eEnv = Left []
 
 sem TableAlias

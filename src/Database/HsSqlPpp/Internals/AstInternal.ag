@@ -383,7 +383,7 @@ data TableRef | Tref ann::Annotation
                      tbl::Name
                      alias :: TableAlias
               | JoinTref ann::Annotation
-                         tbl :: TableRef
+                         tbl0 :: TableRef
                          nat :: Natural
                          joinType :: JoinType
                          tbl1 :: TableRef

@@ -111,7 +111,6 @@ added.
 >                | UnrecognisedRelation String
 >                | UnrecognisedCorrelationName String
 >                | BadStarExpand
->                | AmbiguousIdentifier String
 >                | ContextError String
 >                | MissingJoinAttribute
 >                | ExpressionMustBeBool
@@ -146,6 +145,7 @@ gutted and rewritten
 >                | UnrecognisedCorrelationName String
 >                | BadStarExpand
 >                | InternalError String
+>                | AmbiguousIdentifier String
 >                 --shoved in to humour the Either Monad
 >                | MiscError String
 >                  deriving (Eq,Show,Ord,Typeable,Data)
