@@ -23,8 +23,10 @@ and variables, etc.
 > import Data.Data
 > import Data.Char
 > import Data.Maybe
+> import Control.Monad
 
 > import Database.HsSqlPpp.Internals.TypesInternal
+> import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 
 ---------------------------------
@@ -42,7 +44,7 @@ and variables, etc.
 >                  -- | represents the bindings introduced by a tableref:
 >                  -- the name, the public fields, the private fields
 >                  | SimpleTref String [(String,Type)] [(String,Type)]
->                  | JoinTref [String] -- join ids
+>                  | JoinTref [(String,Type)] -- join ids
 >                             Environment Environment
 >                    deriving (Data,Typeable,Show,Eq)
 
@@ -76,8 +78,12 @@ catalog and combining environment values with updates
 > createJoinTrefEnvironment cat tref0 tref1 jsc = do
 >   -- todo: handle natural join case
 >   let jids = maybe (error "natural join ids") (map (nnm . (:[]))) jsc
+>   jts <- forM jids $ \i -> do
+>            t0 <- envLookupIdentifier [QNmc i] tref0
+>            t1 <- envLookupIdentifier [QNmc i] tref1
+>            fmap (i,) $ resolveResultSetType cat [t0,t1]
 >   -- todo: check type compatibility
->   return $ JoinTref jids tref0 tref1
+>   return $ JoinTref jts tref0 tref1
 
 
 
@@ -101,7 +107,7 @@ implicit correlation names, ambigous identifiers, etc.
 > envLookupIdentifier :: [NameComponent] -> Environment -> Either [TypeError] Type
 > envLookupIdentifier nmc EmptyEnvironment = Left [UnrecognisedIdentifier $ nnm nmc]
 
-> envLookupIdentifier nmc (SimpleTref nm pub prv) =
+> envLookupIdentifier nmc (SimpleTref _nm pub _prv) =
 >   let n = nnm nmc
 >   in case lookup n pub of
 >        Just t -> return t
@@ -110,14 +116,16 @@ implicit correlation names, ambigous identifiers, etc.
 
 > envLookupIdentifier nmc (JoinTref jids env0 env1) =
 >   let n = nnm nmc
->   in case (envLookupIdentifier nmc env0,envLookupIdentifier nmc env1) of
+>   in case (lookup n jids
+>           ,envLookupIdentifier nmc env0
+>           ,envLookupIdentifier nmc env1) of
 >        -- not sure this is right, errors are ignored, hope
 >        -- this doesn't hide something
->        (Left _, Left _) -> Left [UnrecognisedIdentifier n]
->        (Right t, Left _) -> Right t
->        (Left _, Right t) -> Right t
->        (Right t0, Right _t1) | n `elem` jids -> Right t0
->                              | otherwise -> Left [AmbiguousIdentifier n]
+>        (Just t, _, _) -> Right t
+>        (_,Left _, Left _) -> Left [UnrecognisedIdentifier n]
+>        (_,Right t, Left _) -> Right t
+>        (_,Left _, Right t) -> Right t
+>        (_,Right _, Right _) -> Left [AmbiguousIdentifier n]
 
 -------------------------------------------------------
 
@@ -132,26 +140,18 @@ implicit correlation names, ambigous identifiers, etc.
 >                    Nothing -> Left [BadStarExpand]
 >                    Just n -> Left [UnrecognisedCorrelationName $ nnm [n]]
 
-> envExpandStar nmc (JoinTref jids env0 env1) = do
+> envExpandStar nmc (JoinTref jts env0 env1) = do
 >   -- have to get the columns in the right order:
 >   -- join columns first (have to get the types of these also - should
 >   -- probably do that > -- in createjointrefenv since that is where the
 >   -- type compatibility is checked
 >   -- then the env0 columns without any join cols
 >   -- then the env1 columns without any join cols
->   jts <- jtypes
 >   t0 <- noJs env0
 >   t1 <- noJs env1
 >   return $ jts ++ t0 ++ t1
 >   where
->     jtypes :: Either [TypeError] [(String,Type)]
->     jtypes = do
->              e0 <- envExpandStar nmc env0
->              mapM (\i -> (i,) `fmap`
->                          maybe (Left [UnrecognisedIdentifier i])
->                                Right
->                                (lookup i e0)) jids
 >     noJs e = do
 >              se <- envExpandStar nmc e
->              return $ filter ((`notElem` jids) . fst) se
+>              return $ filter ((`notElem` (map fst jts)) . fst) se
 

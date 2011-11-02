@@ -27,6 +27,7 @@ src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o : src/Database/HsS
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o : src/Database/HsSqlPpp/Internals/TypesInternal.hi
 src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o : src/Database/HsSqlPpp/Internals/TypeChecking/Environment.lhs
 src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o : src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.hi
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o : src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.hi
 src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o : src/Database/HsSqlPpp/Internals/TypesInternal.hi
 src/Database/HsSqlPpp/Catalog.o : src/Database/HsSqlPpp/Catalog.lhs
 src/Database/HsSqlPpp/Catalog.o : src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.hi

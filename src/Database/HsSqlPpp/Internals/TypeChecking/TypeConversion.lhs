@@ -10,6 +10,7 @@ http://www.postgresql.org/docs/8.4/interactive/typeconv.html
 > {-# LANGUAGE PatternGuards #-}
 > module Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
 >     (matchApp
+>     ,resolveResultSetType
 >     ) where
 >
 > --import Data.Maybe
@@ -155,6 +156,13 @@ process along with the resolved function
 --------------------------------
 todo:
 
-resolveResultSetType
+> resolveResultSetType :: Catalog -> [Type] -> Either [TypeError] Type
+> resolveResultSetType _cat [] = error "resolveResultSetType: empty type set"
+> resolveResultSetType _cat (t:ts) =
+>   if all (==t) ts
+>   then Right t
+>   else Left [IncompatibleTypeSet (t:ts)]
+
+todo:
 
 assignmentCheck
