@@ -11,7 +11,7 @@ Forward the public part of CatalogInternal.
 >
 
 > You can create a catalog using the 'CatalogUpdate' type, and there
-> is example and util in the repo which shows reading the catalog from
+> is example and util in the repo which reads a catalog from
 > an existing database in postgres.
 >
 > -}

@@ -1,12 +1,8 @@
 
 
-> {- | Functions to convert sql asts to valid SQL source code. Includes
->    a function - 'printSqlAnn' - to output the annotations from a tree
->    in comments in the outputted SQL source.
+> {- | Functions to convert sql asts to valid SQL source code.
 >
->    Produces sort of readable code, but mainly just written to produce
->    reparsable text. Could do with some work to make the outputted text
->    layout better.
+>    Some effort is made produce human readable output.
 > -}
 > {-# LANGUAGE PatternGuards #-}
 > module Database.HsSqlPpp.Pretty (
@@ -21,37 +17,39 @@
 >     where
 >
 > import Text.PrettyPrint
-> --import Data.Char
-> --import Data.List
 > import Data.Maybe
 >
-> import Database.HsSqlPpp.Ast -- hiding (ncStr)
+> import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Utils.Utils
 
 --------------------------------------------------------------------------------
 
 Public functions
 
-> -- | convert an ast back to valid SQL source, it's also almost human readable.
+> -- | Convert an ast back to valid SQL source.
 > printStatements :: StatementList -> String
 > printStatements = printStatementsAnn (const "")
 >
-> -- | convert the ast back to valid source, and convert any annotations to
+> -- | Convert the ast back to valid source, and convert any annotations to
 > -- text using the function provided and interpolate the output of
-> -- this function(inside comments) with the SQL source.
+> -- this function (inside comments) with the SQL source.
 > printStatementsAnn :: (Annotation -> String) -> StatementList -> String
 > printStatementsAnn f ast = render $ vcat (map (statement False True f) ast) <> text "\n"
 >
 
+> -- | pretty print a query expression
 > printQueryExpr :: QueryExpr -> String
 > printQueryExpr ast = render (queryExpr False True True Nothing ast <> statementEnd True)
 
-> -- | Testing function, pretty print an expression
+> -- | pretty print a scalar expression
 > printScalarExpr :: ScalarExpr -> String
 > printScalarExpr = render . scalExpr False
 
+todo: this function (printQueryExprNice) avoids outputting table
+aliases in some places - the code that uses this can avoid adding the
+table aliases until later on so it shouldn't need this. waiting for
+the new typechecker before fixing this.
 
 > -- | Try harder to make the output human readable, not necessary correct
 > -- sql output at the moment

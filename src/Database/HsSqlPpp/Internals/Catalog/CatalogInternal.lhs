@@ -260,11 +260,11 @@ names to refer to the pseudo types
 >     ,("anyenum",Pseudo AnyEnum)
 >     ,("anynonarray",Pseudo AnyNonArray)
 >     ,("cstring",Pseudo Cstring)
->     ,("record",Pseudo Record)
+>     ,("record",Pseudo (Record Nothing))
 >     ,("trigger",Pseudo Trigger)
 >     ,("void",Pseudo Void)
 >     ,("_cstring",ArrayType $ Pseudo Cstring)
->     ,("_record",ArrayType $ Pseudo Record)
+>     ,("_record",ArrayType $ Pseudo (Record Nothing))
 >     ,("internal",Pseudo Internal)
 >     ,("language_handler", Pseudo LanguageHandler)
 >     ,("opaque", Pseudo Opaque)
@@ -318,10 +318,10 @@ functions and not in catalog values themselves.
 
 > -- | Applies a list of 'CatalogUpdate's to an 'Catalog' value
 > -- to produce a new Catalog value.
-> updateCatalog :: Catalog
->               -> [CatalogUpdate]
+> updateCatalog :: [CatalogUpdate]
+>               -> Catalog
 >               -> Either [TypeError] Catalog
-> updateCatalog cat' eus =
+> updateCatalog eus cat' =
 >   foldM updateCat' (cat' {catUpdates = catUpdates cat' ++ eus}) eus
 >   where
 >     updateCat' cat u = case u of
@@ -359,7 +359,7 @@ functions and not in catalog values themselves.
 >                                     [(n,(n,[ltt,rtt],rett,False))]
 >                                     (catBinaryOps cat)}
 >       CatCreateFunction n ps rs ret -> do
->         pst <- mapM (\n -> catLookupType cat [QNmc n]) ps
+>         pst <- mapM (\nc -> catLookupType cat [QNmc nc]) ps
 >         rett <- catLookupType cat [QNmc ret]
 >         let rett' = if rs
 >                     then Pseudo $ SetOfType rett

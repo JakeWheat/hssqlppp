@@ -2,9 +2,8 @@
 -- public api functions
 {
 
--- | Takes an ast, checks against catalog passed, and adds
---   annotations, including types, type errors, and statement info.
---   Returns the updated catalog as well as the annotated ast.
+-- | Typechecks the ast, and returns the updated catalog (which
+-- includes changes from any ddl statements in the ast).
 typeCheckStatements :: Catalog -> [Statement] -> (Catalog,[Statement])
 typeCheckStatements cat sts =
     let t = sem_Root (Root sts)
@@ -15,18 +14,17 @@ typeCheckStatements cat sts =
         cat1 = cat --producedCat_Syn_Root ta
     in case tl of
          Root r -> (cat1,r)
-
+-- | Typecheck a query expr
 typeCheckQueryExpr :: Catalog -> QueryExpr -> QueryExpr
 typeCheckQueryExpr cat qe =
    let (_,[QueryStatement _ qe']) = typeCheckStatements cat [QueryStatement emptyAnnotation qe]
    in qe'
 
--- | Unfinished version of type check which can type check an
--- individual statement with ? or positional arg placeholders in
--- it. Will error if the statement isn't select, update, insert or
--- delete. For use in type checking embedded parameterized
--- statements. Does all typechecking and annotation that the regular
--- typecheck does.
+-- | Not working yet. Typechecks a statement possibly containing ?
+-- placeholders. These are annotated with the 'inferred type', and the
+-- stType annotation on the return value can be used to get this info
+-- easily. Returns Left if the statement is not a query,insert,update or delete
+-- statement
 typeCheckParameterizedStatement :: Catalog -> Statement -> Either String Statement
 typeCheckParameterizedStatement cat st =
     case st of
@@ -42,8 +40,7 @@ typeCheckParameterizedStatement cat st =
                 _ -> error "impossible happened in typeCheckPS!"
 
 
--- | Testing utility, mainly used to check an expression for type errors
--- or to get its type.
+-- | type check a scalar expr
 typeCheckScalarExpr :: Catalog -> ScalarExpr -> ScalarExpr
 typeCheckScalarExpr cat ex =
     let t = sem_ScalarExprRoot (ScalarExprRoot ex)
@@ -83,4 +80,5 @@ sem Annotation
 
 
 include "TypeChecking/ScalarExprs.ag"
+include "TypeChecking/QueryExprs.ag"
 include "TypeChecking/Misc.ag"

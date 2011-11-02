@@ -39,10 +39,10 @@
 HC              = ghc
 HC_BASIC_OPTS   = -Wall -XTupleSections -XScopedTypeVariables \
 -XDeriveDataTypeable -threaded -rtsopts
-SRC_DIRS = src src-extra/util src-extra/tests/ src-extra/devel-util \
-	src-extra/chaos src-extra/chaos/extensions/ src-extra/examples \
-	src-extra/h7c src-extra/tosort/util/ src-extra/extensions \
-	src-extra/h7c src-extra/chaos/extensions
+SRC_DIRS = src src-extra/catalogReader src-extra/chaos \
+src-extra/devel-util src-extra/docutil src-extra/examples \
+src-extra/extensions src-extra/h7c src-extra/tests
+
 space :=
 space +=
 comma := ,
@@ -70,7 +70,7 @@ EXE_FILES = src-extra/tests/Tests \
 	src-extra/examples/Parse \
 	src-extra/examples/Parse2 \
 	src-extra/examples/QQ \
-	src-extra/tosort/util/DevelTool
+	src-extra/docutil/DevelTool
 
 #	src-extra/examples/ShowCatalog \
 #	src-extra/examples/TypeCheck \
@@ -101,8 +101,8 @@ tests : src-extra/tests/Tests
 	src-extra/tests/Tests --hide-successes
 
 # make the website
-website : src-extra/tosort/util/DevelTool
-	src-extra/tosort/util/DevelTool makewebsite +RTS -N
+website : src-extra/docutil/DevelTool
+	src-extra/docutil/DevelTool makewebsite +RTS -N
 
 # make the haddock and put in the correct place in the generated
 # website
@@ -119,6 +119,14 @@ CHAOS_SQL_SRC = $(shell find src-extra/chaos/sql/ -iname '*.sql')
 
 chaos.sql : $(CHAOS_SQL_SRC) src-extra/h7c/h7c
 	src-extra/h7c/h7c > chaos.sql
+
+# a simple check of the chaos process, if the chaos.sql is produced
+# without error:
+# in postgresql: create an empty database called chaos
+# run: psql chaos -q --set ON_ERROR_STOP=on --file=chaos.sql
+# the chaos project comes with automated tests which will be fixed
+# so that they run (so the test code is broken, expecting all
+# the tests to still pass).
 
 
 # targets mainly used to check everything builds ok
@@ -176,6 +184,7 @@ clean :
 	-rm chaos.sql
 	-rm $(EXE_FILES)
 	-rm -Rf hssqlppp
+	-rm src-extra/devel-util/GenerateExeRules
 
 maintainer-clean : clean
 	-rm src/Database/HsSqlPpp/Internals/AstInternal.hs

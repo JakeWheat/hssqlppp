@@ -17,34 +17,35 @@ notes on what the types are for and how they are used in postgres.
 > data Type = -- | basic type of a scalar value. These are either built in types
 >             -- in postgres, or implemented in C or similar
 >             ScalarType String
->           -- | postgres automatically creates an array type for every scalar type
->           -- (plus some other types?) If there is no array type for a type in the
->           -- catalog, then you can't work with arrays of that type
->           | ArrayType Type
->           -- | refer to composite type in catalog by name
->           | NamedCompositeType String
->           -- | refer to composite type generated on fly (?)
->           | CompositeType [(String,Type)]
->           -- | refer to anonymous composite type: the fields have no names
->           | AnonymousRecordType [Type]
 >           -- | a domain type is used for a constraint on a table column which
 >           -- would used on multiple columns on a table or in multiple tables,
 >           -- using a domain type is a way of just writing the constraint once
 >           | DomainType String
->           -- | enum type, not well support in hssqlppp yet?
+>           -- | enum type, not really supported in hssqlppp yet
 >           | EnumType String
->           -- | postgres pseudo type is used for types which only appear
->           -- as argument or return types in function definitions and/or
->           -- are used only in plpgsql and not regular sql, hsssqlppp tries
->           -- to follow this usage, even though the types aren't described
->           -- in the exact same way
->           | Pseudo PseudoType
 >           -- | String literals in postgres have an unknown type. The effective
 >           -- type is determined using what seems to amount to some simple ad hoc rules
->           -- based on the context of the string literal. Hssqlppp also uses the same process
->           -- for determining the effective types of ? placeholders in parameterized
->           -- statements, and for literal nulls
+>           -- based on the context of the string literal. Hssqlppp also treats
+>           -- ? placeholders and nulls the same way, so they have UnknownType,
+>           -- not sure how closely this matches postgres
 >           | UnknownType
+>           -- | postgres automatically creates an array type for every scalar type
+>           -- (plus some other types?) If there is no array type for a type in the
+>           -- catalog, then you can't work with arrays of that type
+>           | ArrayType Type
+>           -- | refer to composite type in catalog by name. not sure if this needs
+>           -- to exist along with CompositeType
+>           | NamedCompositeType String
+>           -- | refer to composite type by structure
+>           | CompositeType [(String,Type)]
+>           -- | the fields are anonymous as well as the type itself
+>           | AnonymousCompositeType [Type]
+>           -- | The pseudo type is used for types which only appear
+>           -- as argument or return types in function definitions and/or
+>           -- are used only in plpgsql and not regular sql. hssqlppp also
+>           -- follows this usage for the types used in hssqlppp which don't
+>           -- have an exact counterpart in postgres
+>           | Pseudo PseudoType
 >             deriving (Eq,Show,Ord,Typeable,Data)
 >
 
@@ -52,11 +53,13 @@ notes on what the types are for and how they are used in postgres.
 > -- functions. The weird undocumented types are just used to represent
 > -- functions with those types which are in the postgres default catalog
 > data PseudoType =
+>                 -- | setof is used for set returning functions
+>                   SetOfType Type
 >                   -- | used to represent polymorphic functions, all the
 >                   -- AnyElement parameters and the return type if
 >                   -- AnyElement must be the same type for a given function
 >                   -- call invocation.
->                   AnyElement
+>                 | AnyElement
 >                   -- | like AnyElement, but the type must be an array type
 >                 | AnyArray
 >                   -- | like AnyElement, but the type must be an enum type
@@ -66,23 +69,21 @@ notes on what the types are for and how they are used in postgres.
 >                   -- | Any drops the restriction that all the Any types must
 >                   -- be the same type
 >                 | Any
->                 -- | setof is used for set returning functions
->                 | SetOfType Type
->                 -- | pg record types (used only in plpgsql) can be assigned to from all
->                 -- three record types - the type in the maybe should only ever
->                 -- be namedcomposite, composite or anonymousrecord
->                 | PgRecord (Maybe Type)
->                 -- | cstring - a C string
->                 | Cstring
->                 -- | record - used for postgres record types, used in hssqlppp
->                 -- in the function catalog only
->                 | Record
+>                 -- | record types are used in plpgsql for a sort of dynamic
+>                 -- typing or rough polymorphism substitute. They can refer to
+>                 -- values of named composite type, composite type or
+>                 -- anonymous composite type, not sure if non composite types as well.
+>                 -- The type of a Record parameter or return value,
+>                 -- and the type of a record variable which hasn't been assigned
+>                 -- a value is Record Nothing.
+>                 | Record (Maybe Type)
 >                 -- | presumably used for the types of OLD and NEW in a trigger
->                 -- function. Hssqlppp will probably use the PgRecord type above
+>                 -- function. Hssqlppp will probably use the Record type above
 >                 -- for these.
 >                 | TriggerRecord
 >                 | Trigger
-
+>                 -- | cstring - a C string
+>                 | Cstring
 >                 -- | represents the return type of a function which doesn't return
 >                 -- anything. Not sure if it is used anywhere else
 >                 | Void
@@ -198,7 +199,7 @@ gutted and rewritten
 >       boolNames = ["boolean", "bool"]
 >       s = map toLower s'
 
-> -- | run canonicalizeTypeName on all the typenames in an ast
+> -- | run canonicalizeTypeName on all the TypeName nodes in an ast
 > canonicalizeTypeNames :: Data a => a -> a
 > canonicalizeTypeNames =
 >   transformBi $ \x ->

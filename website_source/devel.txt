@@ -130,4 +130,7 @@ checking support, and src/Database/HsSqlPpp/Internals/IDEnv.lhs which
 contains most of the rest of the type checking support, works with the
 identifiers in the env which aren't part of the catalog.
 
+There are a few index.txt files in the source which give a little info
+on what is in the various folders.
+
 A short guide on [adding Syntax](adding_syntax.txt.html).

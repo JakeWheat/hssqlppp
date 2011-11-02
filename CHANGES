@@ -1,4 +1,18 @@
+HEAD
+
+start rewriting the Catalog module, Annotation type, typechecking code
+  and typeconversion code from scratch - should be much clearer code
+  and more functionality
+lots of improvements to the Type module, types and documentation
+better haddock documentation
+parser/syntax additions and fixes:
+split functions and operators into different ctors (App, BinaryOp,
+  PrefixOp, etc.)
+rename some badly named ctors in the syntax
+use names in LiftApp
+
 0.4.0
+Released 30/09/2011
 
 lots of breaking changes to the ast types
 change ast for into statements

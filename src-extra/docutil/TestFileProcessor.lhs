@@ -61,6 +61,7 @@ compile time.
 > mapTypeCheckTests :: TT.Item -> [Row]
 > mapTypeCheckTests (TT.Group n is) = HHeader n : concatMap mapTypeCheckTests is
 > mapTypeCheckTests (TT.ScalExpr s r) = [Row [[Sql s],[Haskell (groom r)]]]
+> mapTypeCheckTests (TT.QueryExpr c s r) = [Row [[Haskell (groom c),Sql s],[Haskell (groom r)]]]
 > {-mapTypeCheckTests (TT.StmtType s r) = [Row [[Sql s],[Haskell (groom r)]]]
 > mapTypeCheckTests (TT.CatStmtType s c r) = [Row [[Haskell (groom c),Sql s],[Haskell (groom r)]]]
 > mapTypeCheckTests (TT.Ddl s c) = [Row [[Sql s],[Haskell (groom c)]]]-}

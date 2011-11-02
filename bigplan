@@ -12,17 +12,36 @@ and also convert some of the data type definitions to use record syntax
 want to do this automatically, not sure how can parse the original ag
   though?
 
+start with annotation as example:
+have explicit list of data types in astinternal that want to do this for
+find the complete definition of annotation in astinternal.hs
+want to replace part of this, would like to avoid killing other
+comments in astinternal.hs
+find the original definition of annotation in the ag files
+a) parse out the haddock string for each field
+b) parse out the field name and type for each field
+replace the def in astinternal with the replacement:
+include haddock strings
+use record notation
+
+what to do this for:
+ctor with lots of components in the ast -> particularly queryexpr
+annotation is really poor without docs
+
+
 typechecking:
 
-1st job:
-rewrite the TypeConversion from scratch, with automated tests
+select a,b from t
+select * from t
+joins
+subtref
+funtref
 
-then: start work on query exprs: trefs and select lists is the focus
-
-then: finish of scalar and query exprs
-then dml
+then: do a lot more of typeconversion, scalar and query exprs
+-> get tpch typechecking again
 then: casting, aliasing,etc., parameterized
 
+then dml
 then ddl and plpgsql
 
 

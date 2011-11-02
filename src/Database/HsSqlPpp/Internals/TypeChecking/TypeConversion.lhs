@@ -12,16 +12,16 @@ http://www.postgresql.org/docs/8.4/interactive/typeconv.html
 >     (matchApp
 >     ) where
 >
-> import Data.Maybe
+> --import Data.Maybe
 > import Data.List
 > import Data.Either
 > --import Debug.Trace
-> import Data.Char
+> --import Data.Char
 >
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
-> import Database.HsSqlPpp.Utils.Utils
-> import Database.HsSqlPpp.Internals.TediousTypeUtils
+> --import Database.HsSqlPpp.Utils.Utils
+> --import Database.HsSqlPpp.Internals.TediousTypeUtils
 
 ------------------------------------------------------------------
 
@@ -57,7 +57,7 @@ the functions with a matching name]
 >     [(_,tys,rt,_)] -> return (tys, rt)
 >     [] -> error $ "no matching fn: " ++ show nmcs
 >                   ++ "(" ++ intercalate "," (map show pts) ++ ")"
->     xs -> error "ambiguous"
+>     _xs -> error "ambiguous"
 
 
 
