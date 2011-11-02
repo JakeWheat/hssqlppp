@@ -14,11 +14,13 @@ take the type produced in the select list and pass it up
 include "TypeChecking/QueryExprs/TableRefs.ag"
 include "TypeChecking/QueryExprs/SelectLists.ag"
 
+attr QueryExpr
+  syn upType :: {Maybe [(String,Type)]}
 sem QueryExpr
     | Select
         selSelectList.downEnv = @selTref.upEnv
         lhs.upType = @selSelectList.upType
-        loc.tpe = maybe (Left []) Right @selSelectList.upType
+        loc.tpe = maybe (Left []) (Right . CompositeType) @selSelectList.upType
 
 sem QueryExpr
     | Select CombineQueryExpr Values WithQueryExpr

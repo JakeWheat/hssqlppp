@@ -6,7 +6,7 @@
 -- includes changes from any ddl statements in the ast).
 typeCheckStatements :: Catalog -> [Statement] -> (Catalog,[Statement])
 typeCheckStatements cat sts =
-    let t = sem_Root (Root sts)
+    let t = sem_Root (Root $ expandStarsStatements cat sts)
         ta = wrap_Root t Inh_Root {cat_Inh_Root = cat
                                   {-,lib_Inh_Root = emptyBindings
                                   ,idenv_Inh_Root = emptyIDEnv "tcs"-}}
@@ -47,7 +47,8 @@ typeCheckScalarExpr cat ex =
         rt = (annotatedTree_Syn_ScalarExprRoot
               (wrap_ScalarExprRoot t Inh_ScalarExprRoot {cat_Inh_ScalarExprRoot = cat
                                                         {-,lib_Inh_ScalarExprRoot = emptyBindings
-                                                        ,idenv_Inh_ScalarExprRoot = emptyIDEnv "tcse"-}}))
+                                                        ,idenv_Inh_ScalarExprRoot = emptyIDEnv "t
+cse"-}}))
     in case rt of
          ScalarExprRoot e -> e
 
@@ -63,6 +64,25 @@ attr AllNodes Root ScalarExprRoot Annotation
   inh cat :: Catalog
   syn annotatedTree :: SELF -- annotated tree is the output tree with the types added
      ,originalTree :: SELF -- this is the original tree, should not be changed
+     ,expandedStars :: SELF -- expand stars in separate pass
+
+{-
+expand stars: to expand stars, need to type check because of funtrefs
+but can't run ag on newly constructed identifiers in same pass, so for
+now just expand the stars in a separate pass
+-}
+
+{
+expandStarsStatements :: Catalog -> [Statement] -> [Statement]
+expandStarsStatements cat sts =
+    let t = sem_Root (Root sts)
+        ta = wrap_Root t Inh_Root {cat_Inh_Root = cat
+                                  {-,lib_Inh_Root = emptyBindings
+                                  ,idenv_Inh_Root = emptyIDEnv "tcs"-}}
+        tl = expandedStars_Syn_Root ta
+    in case tl of
+         Root r -> r
+}
 
 -- the types and errors are pulled out of the attributes, which
 -- are set by the sem for each type/ ctor in the various files in

@@ -143,7 +143,8 @@ gutted and rewritten
 >                | TypeNotKnown Type
 >                | UnknownTypeName String
 >                | UnrecognisedIdentifier String
-
+>                | UnrecognisedCorrelationName String
+>                | BadStarExpand
 >                | InternalError String
 >                 --shoved in to humour the Either Monad
 >                | MiscError String

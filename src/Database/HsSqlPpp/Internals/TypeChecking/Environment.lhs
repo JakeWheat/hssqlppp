@@ -15,6 +15,7 @@ and variables, etc.
 >     ,envCreateTrefEnvironment
 >      -- * environment query functions
 >     ,envLookupIdentifier
+>     ,envExpandStar
 >     ) where
 
 > import Data.Data
@@ -80,3 +81,11 @@ implicit correlation names, ambigous identifiers, etc.
 >        Just t -> return t
 >        Nothing -> Left [UnrecognisedIdentifier n]
 
+> envExpandStar :: Maybe NameComponent -> Environment -> Either [TypeError] [(String,Type)]
+> envExpandStar nmc (SimpleTref nm pub prv)
+>   | case nmc of
+>              Nothing -> True
+>              Just x -> nnm [x] == nm = Right pub
+>   | otherwise = case nmc of
+>                    Nothing -> Left [BadStarExpand]
+>                    Just n -> Left [UnrecognisedCorrelationName $ nnm [n]]

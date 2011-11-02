@@ -38,6 +38,7 @@ subtref
 funtref
 
 then: do a lot more of typeconversion, scalar and query exprs
+make sure all the files are documented
 -> get tpch typechecking again
 then: casting, aliasing,etc., parameterized
 
