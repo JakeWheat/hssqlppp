@@ -107,7 +107,7 @@ compile time.
 
 
 > parserIntro :: String
-> parserIntro = [here|
+> parserIntro = [$here|
 >
 > The parser examples have the sql source on the left, and the ast that the parser produces
 > the right, the annotations have been replaced with a placeholder 'Ann' to make the output a bit more readable.
@@ -119,7 +119,7 @@ compile time.
  [ParserTests.lhs](source/tests/Database/HsSqlPpp/Tests/ParserTests.lhs.html)
 
 > typeCheckIntro :: String
-> typeCheckIntro = [here|
+> typeCheckIntro = [$here|
 >
 > The type checking examples have the sql on the left and the result of type checking
 > on the right. Different sections are using different tests:
@@ -138,7 +138,7 @@ compile time.
 (source/tests/Database/HsSqlPpp/Tests/TypeCheckTests.lhs.html
 
 > qqIntro :: String
-> qqIntro = [here|
+> qqIntro = [$here|
 >
 > Pretty rough presentation, each example is a lets, with a pair of sql
 > quasiquotes: one with antiquotes, and one with the resultant sql without antiquotes.

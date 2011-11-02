@@ -141,7 +141,7 @@ test some more really basic expressions
 >      ]
 
 >    ,Group "case expressions" [
->       e [here|
+>       e [$here|
 >          case when a,b then 3
 >               when c then 4
 >               else 5

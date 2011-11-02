@@ -6,7 +6,7 @@
 > import Database.HsSqlPpp.Pretty
 
 > test :: Statement
-> test = [sqlStmt|
+> test = [$sqlStmt|
 >
 >   create table $(tablename) (
 >    $(varname) $(typename)

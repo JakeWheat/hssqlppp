@@ -97,7 +97,7 @@
 >         (CombineQueryExpr ea Union
 >          (selectE (SelectList ea [SelExp ea (NumberLit ea "2")]))
 >          (selectE (SelectList ea [SelExp ea (NumberLit ea "3")]))))]
->      ,s [here|
+>      ,s [$here|
 >          with a as (select 1 as a1),
 >               b as (select * from a)
 >               select * from b; |]
@@ -107,7 +107,7 @@
 >                                             [SelectItem ea (NumberLit ea "1") (Nmc "a1")])
 >            ,WithQuery ea (Nmc "b") Nothing (selectFrom (selEL [Star ea]) (Tref ea (i "a") (NoAlias ea)))]
 >            (selectFrom (selEL [Star ea]) (Tref ea (i "b") (NoAlias ea))))]
->      ,s [here|
+>      ,s [$here|
 >          with a as (select 1 as a1),
 >               b as (select * from a)
 >               select * from a

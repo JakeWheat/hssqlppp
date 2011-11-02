@@ -33,7 +33,7 @@ typecheck against that database.
 
 >   scalarTypeNames <-
 >     map (CatCreateScalarType . head) `fmap`
->         selectRelation conn [here|
+>         selectRelation conn [$here|
 \begin{code}
 
 select  case nspname
@@ -59,7 +59,7 @@ where typtype = 'b'
 
 >   domainTypes <-
 >     map (\[d,b] -> CatCreateDomainType d b) `fmap`
->         selectRelation conn [here|
+>         selectRelation conn [$here|
 \begin{code}
 
 select case ns.nspname
@@ -92,7 +92,7 @@ where t.typtype = 'd'
 
 >   arrayTypes <-
 >     map ( \[nm,bs] -> CatCreateArrayType nm bs) `fmap`
->         selectRelation conn [here|
+>         selectRelation conn [$here|
 \begin{code}
 
 select e.typname as arraytype,
@@ -112,7 +112,7 @@ select e.typname as arraytype,
 
 >   prefixOps <-
 >     map ( \[nm,rt,res] -> CatCreatePrefixOp nm rt res) `fmap`
->         selectRelation conn [here|
+>         selectRelation conn [$here|
 \begin{code}
 select oprname,
        rt.typname,
@@ -128,7 +128,7 @@ order by oprname;
 
 >   postfixOps <-
 >     map ( \[nm,lt,res] -> CatCreatePostfixOp nm lt res) `fmap`
->         selectRelation conn [here|
+>         selectRelation conn [$here|
 \begin{code}
 select oprname,
        lt.typname,
@@ -144,7 +144,7 @@ order by oprname;
 
 >   binaryOps <-
 >     map ( \[nm,lt,rt,res] -> CatCreateBinaryOp nm lt rt res) `fmap`
->         selectRelation conn [here|
+>         selectRelation conn [$here|
 \begin{code}
 select oprname,
        lt.typname,
@@ -164,7 +164,7 @@ order by oprname;
 
 >   fns <-
 >     map ( \[nm,ts,pr,res] -> CatCreateFunction nm (splitOn "," ts) (pr == "t") res) `fmap`
->         selectRelation conn [here|
+>         selectRelation conn [$here|
 \begin{code}
 -- maybe the args will come out in the right order?
 with typenames as (
@@ -223,7 +223,7 @@ group by prooid,proname,proretset,retname;
 
 
 
->    {-typeInfo <- selectRelation conn [here|
+>    {-typeInfo <- selectRelation conn [$here|
 \begin{code}
 
 select t.oid as oid,
@@ -257,7 +257,7 @@ select t.oid as oid,
 >        typeMap = M.fromList typeAssoc
 >    cts <- map (\(nm:cat:pref:[]) ->
 >                CatCreateScalar (ScalarType nm) cat ( read pref :: Bool)) <$>
->           selectRelation conn [here|
+>           selectRelation conn [$here|
 \begin{code}
 
 select t.typname,typcategory,typispreferred
@@ -271,7 +271,7 @@ where t.typarray<>0 and
 
 \end{code}
 >                |] []
->    domainDefInfo <- selectRelation conn [here|
+>    domainDefInfo <- selectRelation conn [$here|
 \begin{code}
 
 select pg_type.oid, typbasetype
@@ -300,7 +300,7 @@ select pg_type.oid, typbasetype
 >                                   "e" -> ExplicitCastContext
 >                                   _ -> error $ "internal error: unknown \
 >                                                \cast context " ++ (l!!2)))
->    operatorInfo <- selectRelation conn [here|
+>    operatorInfo <- selectRelation conn [$here|
 \begin{code}
 
 select oprname,
@@ -325,7 +325,7 @@ from pg_operator
 >                     | otherwise -> getOps pref post (bit [jlt (l!!1)
 >                                                          ,jlt (l!!2)]:bin) ls
 >    let (prefixOps, postfixOps, binaryOps) = getOps [] [] [] operatorInfo
->    functionInfo <- selectRelation conn [here|
+>    functionInfo <- selectRelation conn [$here|
 \begin{code}
 
 select proname,
@@ -341,7 +341,7 @@ order by proname,proargtypes;
 \end{code}
 >                |] []
 >    let fnProts = map (convFnRow jlt) functionInfo
->    aggregateInfo <- selectRelation conn [here|
+>    aggregateInfo <- selectRelation conn [$here|
 \begin{code}
 
 select proname,
@@ -356,7 +356,7 @@ order by proname,proargtypes;
 \end{code}
 >                |] []
 >    let aggProts = map (convFnRow jlt) aggregateInfo
->    windowInfo <- selectRelation conn [here|
+>    windowInfo <- selectRelation conn [$here|
 \begin{code}
 
 select proname,
@@ -383,7 +383,7 @@ order by proname,proargtypes;
 >                                               (convertAttString jlt sysatts)
 >                     "v" -> CatCreateView nm1 (convertAttString jlt atts)
 >                     _ -> error $ "unrecognised relkind: " ++ kind) <$>
->                 selectRelation conn [here|
+>                 selectRelation conn [$here|
 \begin{code}
 
 with att1 as (

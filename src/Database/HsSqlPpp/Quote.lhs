@@ -82,9 +82,7 @@ boilerplate utils to hook everything together
 > makeQQ :: (Show e, Data a) =>
 >           Parser e a -> QuasiQuoter
 > makeQQ p = QuasiQuoter {quoteExp = parseExprExp p
->                        ,quotePat = parseExprPat p
->                        ,quoteType = error "quoteType"
->                        ,quoteDec = error "quoteDec"}
+>                        ,quotePat = parseExprPat p}
 
 > parseExprExp :: (Show e, Data a) =>
 >                 Parser e a -> String -> Q Exp

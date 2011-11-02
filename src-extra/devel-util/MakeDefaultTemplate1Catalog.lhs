@@ -20,7 +20,7 @@
 
 
 > pre :: String -> String
-> pre v = [here|
+> pre v = [$here|
 \begin{code}
 
 This file is auto generated, to regenerate use the
@@ -34,7 +34,7 @@ installed to do this.
 > --import Database.HsSqlPpp.Internals.TypesInternal
 > -- | The catalog from a default template1 database in roughly the
 > -- latest postgres. 'select version()' from the dbms this catalog
-> -- was generated from: '|] ++  v  ++ [here|'.
+> -- was generated from: '|] ++  v  ++ [$here|'.
 > defaultTemplate1Catalog :: Catalog
 > defaultTemplate1Catalog =
 >     (\l -> case l of

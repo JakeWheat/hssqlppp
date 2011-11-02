@@ -34,10 +34,10 @@ Instead of:
 
 > fixIntervals :: Data a => a -> a
 > fixIntervals = transformBi $ \x -> case x of
->   [sqlExpr| $(a) + $(b) |] | Just (i,v,d) <- dateInfo a b ->
->      [sqlExpr| dateAdd($i(i),$(v),$s(d))|]
->   [sqlExpr| $(a) - $(b) |]| Just (i,v,d) <- dateInfo a b ->
->      [sqlExpr| dateAdd($i(i),-$(v),$s(d))|]
+>   [$sqlExpr| $(a) + $(b) |] | Just (i,v,d) <- dateInfo a b ->
+>      [$sqlExpr| dateAdd($i(i),$(v),$s(d))|]
+>   [$sqlExpr| $(a) - $(b) |]| Just (i,v,d) <- dateInfo a b ->
+>      [$sqlExpr| dateAdd($i(i),-$(v),$s(d))|]
 >   x' -> x'
 >   where
 >     dateInfo (TypedStringLit _ (SimpleTypeName _ (Name _ [Nmc "date"])) d)
@@ -54,8 +54,8 @@ Instead of:
 
 > fixExtract :: Data a => a -> a
 > fixExtract = transformBi $ \x -> case x of
->   [sqlExpr| extract(year from $(expr) ) |] ->
->       [sqlExpr| datepart(year,$(expr)) |]
+>   [$sqlExpr| extract(year from $(expr) ) |] ->
+>       [$sqlExpr| datepart(year,$(expr)) |]
 >   x' -> x'
 
 
@@ -65,8 +65,8 @@ Instead of:
 
 > fixSubstring :: Data a => a -> a
 > fixSubstring = transformBi $ \x -> case x of
->   [sqlExpr| substring($(i) from $(a) for $(b)) |] ->
->       [sqlExpr| substring($(i),$(a),$(b)) |]
+>   [$sqlExpr| substring($(i) from $(a) for $(b)) |] ->
+>       [$sqlExpr| substring($(i),$(a),$(b)) |]
 >   x' -> x'
 
  ‘1998-12-01’
