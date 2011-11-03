@@ -335,6 +335,8 @@ functions and not in catalog values themselves.
 >   | CatCreateBinaryOp CatName CatName CatName CatName
 >     -- | register a function: name, param types, retsetof, return type
 >   | CatCreateFunction CatName [CatName] Bool CatName
+>     -- | register a aggregate: name, param types, return type
+>   | CatCreateAggregate CatName [CatName] CatName
 >     -- | register a table only: name, (colname,typename) pairs
 >   | CatCreateTable CatName [(CatName,CatName)]
 >     -- | register a cast in the catalog
@@ -402,6 +404,12 @@ functions and not in catalog values themselves.
 >         Right $ cat {catFunctions = insertOperators
 >                                     [(n,(n,pst,rett',False))]
 >                                     (catFunctions cat)}
+>       CatCreateAggregate n ps ret -> do
+>         pst <- mapM (\nc -> catLookupType cat [QNmc nc]) ps
+>         rett <- catLookupType cat [QNmc ret]
+>         Right $ cat {catAggregateFunctions = insertOperators
+>                                     [(n,(n,pst,rett,False))]
+>                                     (catAggregateFunctions cat)}
 >       CatCreateTable n cs -> do
 >         cts <- mapM (\(cn,t) -> do
 >                        t' <- catLookupType cat [QNmc t]

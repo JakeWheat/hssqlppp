@@ -11,13 +11,28 @@
 >   Group "simpleQueryExpr"
 >   [QueryExpr [CatCreateTable "t" [("a", "int4")
 >                                  ,("b", "text")]]
->              "select a,b from t"
+>    "select a,b from t"
 >    $ Right $ CompositeType [("a",typeInt)
 >                            ,("b", ScalarType "text")]
+>
+>
 >   ,QueryExpr [CatCreateTable "t" [("a", "int4")
 >                                  ,("b", "text")]]
->              "select * from t"
+>    "select a as c,b as d from t"
+>    $ Right $ CompositeType [("c",typeInt)
+>                            ,("d", ScalarType "text")]
+>
+>
+>   ,QueryExpr [CatCreateTable "t" [("a", "int4")
+>                                  ,("b", "text")]]
+>    "select * from t"
 >    $ Right $ CompositeType [("a",typeInt)
 >                            ,("b", ScalarType "text")]
+>
+>
+>   ,QueryExpr [CatCreateTable "t" [("a", "int4")
+>                                  ,("b", "text")]]
+>    "select count(*) from t"
+>    $ Right $ CompositeType [("count",typeBigInt)]
 
 >   ]

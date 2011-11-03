@@ -209,9 +209,58 @@ select proname,
        proretset,
        retname
 from namedtypes
-group by prooid,proname,proretset,retname;
+group by prooid,proname,proretset,retname
+order by proname;
 \end{code}
 >                                     |] []
+
+>   aggs <-
+>     map ( \[nm,ts,_,res] -> CatCreateAggregate nm (splitOn "," ts) res) `fmap`
+>         selectRelation conn [$here|
+\begin{code}
+-- maybe the args will come out in the right order?
+with typenames as (
+select pg_type.oid as toid,typname from pg_type
+inner join pg_namespace ns
+      on typnamespace = ns.oid
+where
+  ns.nspname in ('pg_catalog'
+                ,'public'
+                ,'information_schema')
+),
+unnestargs as (
+select oid as prooid,
+       proname,
+       unnest(proargtypes) as arg,
+       proretset,
+       prorettype
+from pg_proc
+where pg_catalog.pg_function_is_visible(pg_proc.oid)
+      and provariadic = 0
+      and proisagg
+      and not proiswindow
+),
+namedtypes as (
+select prooid,
+       proname,
+       arg.typname as argname,
+       proretset,
+       ret.typname as retname
+from unnestargs
+  inner join typenames arg
+    on arg = arg.toid
+  inner join typenames ret
+    on prorettype = ret.toid)
+select proname,
+       array_to_string(array_agg(argname),','),
+       proretset,
+       retname
+from namedtypes
+group by prooid,proname,proretset,retname
+order by proname;
+\end{code}
+>                                     |] []
+
 
 >   casts <- map (\[f,t,c] -> let cs "a" = AssignmentCastContext
 >                                 cs "i" = ImplicitCastContext
@@ -236,7 +285,8 @@ from pg_cast
 inner join typenames cs
   on castsource=cs.toid
 inner join typenames ct
-  on casttarget=ct.toid;
+  on casttarget=ct.toid
+order by cs.typname,ct.typname;
 \end{code}
 >                                     |] []
 
@@ -251,7 +301,8 @@ from pg_type t
          and ns.nspname in ('pg_catalog', 'public', 'information_schema')
 where t.typarray<>0 and
     typtype='b' and
-    pg_catalog.pg_type_is_visible(t.oid);
+    pg_catalog.pg_type_is_visible(t.oid)
+order by t.typname;
 \end{code}
 >                                     |] []
 
@@ -264,6 +315,7 @@ where t.typarray<>0 and
 >                   ,postfixOps
 >                   ,binaryOps
 >                   ,fns
+>                   ,aggs
 >                   ,casts
 >                   ,typeCategories]
 

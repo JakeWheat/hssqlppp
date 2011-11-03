@@ -5,6 +5,7 @@
 attr SelectList
   inh downEnv :: Environment
   syn upType :: {Maybe [(String,Type)]}
+     ,upEnv :: Environment
 
 -- use cols to gather the list of String,Types
 -- together in a select item list
@@ -23,6 +24,9 @@ attr SelectItem
 sem SelectList
   | SelectList
       lhs.upType = @items.upType
+      lhs.upEnv = let e = maybe (Left []) id
+                          $ fmap envSelectListEnvironment @items.upType
+                  in either (const emptyEnvironment) id e
 -- select list doesn't currently get a type, maybe it should
 -- get the items uptype?
       ann.tpe = Left []
@@ -61,10 +65,10 @@ sem SelectItem
 columnName :: ScalarExpr -> String
 columnName (Identifier _ i) = nm i
 columnName (QIdentifier _ is) = nm $ last is
-columnName (App _ f@(Name _ ncs) _) = nm $ last ncs
+columnName (App _ (Name _ ncs) _) = nm $ last ncs
 columnName (Cast _ _ (SimpleTypeName _ (Name _ ncs))) = nm $ last ncs
-columnName (WindowApp _ (App _ f@(Name _ ncs) _) _ _ _) = nm $ last ncs
-columnName (AggregateApp _ _ (App _ f@(Name _ ncs) _) _) = nm $ last ncs
+columnName (WindowApp _ (App _ (Name _ ncs) _) _ _ _) = nm $ last ncs
+columnName (AggregateApp _ _ (App _ (Name _ ncs) _) _) = nm $ last ncs
 columnName _ = "?column?"
 -- quick hack together
 nm :: NameComponent -> String
@@ -117,4 +121,4 @@ sem SelectItem
            Star _ | Right is <- envExpandStar Nothing @lhs.downEnv ->
               let a = @ann.originalTree
               in map (\(n,_) -> SelExp a (Identifier a (QNmc n))) is
-           x -> [@originalTree]
+           _ -> [@originalTree]

@@ -48,13 +48,21 @@ sem TableRef
                       (_,Just (JoinUsing _ nms)) -> Just nms
                       -- cross join
                       _ -> Just []
+      --onExpr.downEnv2 = either emptyEnvironment id @loc.eEnv
+  | SubTref
+      loc.eEnv = maybe (Left []) id
+                 $ fmap envSelectListEnvironment @sel.upType
 
 
 -- temp until code written
 sem TableRef
-  | SubTref FunTref
+  | FunTref
       loc.eEnv = Left []
 
 sem TableAlias
     | NoAlias TableAlias FullAlias
         ann.tpe = Left []
+
+attr OnExpr
+  inh downEnv :: Environment
+

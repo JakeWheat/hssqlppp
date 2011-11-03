@@ -19,6 +19,10 @@ attr QueryExpr
 sem QueryExpr
     | Select
         selSelectList.downEnv = @selTref.upEnv
+        selWhere.downEnv = @selTref.upEnv
+        selGroupBy.downEnv = @selTref.upEnv
+        selHaving.downEnv = @selTref.upEnv
+        selOrderBy.downEnv = @selSelectList.upEnv
         -- wrap the names and types in a composite which
         -- fits with the annotation type
         loc.tpe = maybe (Left []) (Right . CompositeType) @selSelectList.upType
@@ -36,4 +40,17 @@ sem QueryExpr
 
 sem QueryExpr
     | CombineQueryExpr Values WithQueryExpr
+        loc.tpe = Left []
+
+attr MaybeBoolExpr ScalarExprDirectionPairList ScalarExprDirectionPair
+     JoinExpr InList CaseScalarExprListScalarExprPair
+     CaseScalarExprListScalarExprPairList
+  inh downEnv :: Environment
+
+sem InList
+    | InList InQueryExpr
+        loc.tpe = Left []
+
+sem JoinExpr
+    | JoinOn JoinUsing
         loc.tpe = Left []

@@ -20,9 +20,15 @@ sem ScalarExpr
     | NumberLit StringLit NullLit BooleanLit TypedStringLit Interval
       Extract PositionalArg Placeholder Cast Star QStar Identifier
       QIdentifier Case CaseSimple Exists App AggregateApp
-      WindowApp InPredicate LiftApp ScalarSubQuery --AntiScalarExpr
+      WindowApp InPredicate LiftApp ScalarSubQuery
+      BinaryOp PrefixOp PostfixOp SpecialOp
         ann.tpe = @loc.tpe
         lhs.upType = either (const Nothing) Just @loc.tpe
+
+sem ScalarExpr
+    | AntiScalarExpr
+        lhs.upType = either (const Nothing) Just @loc.tpe
+
 
 attr ScalarExpr
   inh downEnv :: Environment -- the environment from the parent
@@ -124,15 +130,39 @@ op calls, fn calls, etc.
 
 -}
 
-    | App
-         loc.tpe = do
-                   -- get the types of the arguments
-                   -- then lookup in TypeConversion.matchApp
-                   tys <- mapM (maybe (Left []) Right) @args.upTypes
-                   let Name _ ns = @funName.originalTree
-                   (_,rt) <- matchApp @lhs.cat ns tys
-                   return rt
 
+    | App
+         loc.tpe =
+           case @originalTree of
+             (App _ (Name _ [Nmc "count"]) [Star _]) ->
+                 tcAppLike @lhs.cat @funName.originalTree [Just UnknownType]
+             _ -> tcAppLike @lhs.cat @funName.originalTree @args.upTypes
+    | BinaryOp
+         loc.tpe = tcAppLike @lhs.cat @opName.originalTree [@arg0.upType,@arg1.upType]
+    | PrefixOp
+         loc.tpe = tcAppLike @lhs.cat @opName.originalTree [@arg.upType]
+    | PostfixOp
+         loc.tpe = tcAppLike @lhs.cat @opName.originalTree [@arg.upType]
+    | SpecialOp
+         loc.tpe = tcAppLike @lhs.cat @opName.originalTree @args.upTypes
+    | AggregateApp
+         loc.tpe =
+           case @fn.originalTree of
+             (App _ fnm@(Name _ [Nmc "count"]) [Star _]) ->
+                 tcAppLike @lhs.cat fnm [Just UnknownType]
+             _ -> maybe (Left []) Right @fn.upType
+
+{
+tcAppLike :: Catalog -> Name -> [Maybe Type] -> Either [TypeError] Type
+tcAppLike cat anm args = do
+  -- get the types of the arguments
+  -- then lookup in TypeConversion.matchApp
+  tys <- mapM (maybe (Left []) Right) args
+  let Name _ ns = anm
+  (_,rt) <- matchApp cat ns tys
+  return rt
+
+}
 {-
 
 fallback for unimplemented ctors
@@ -142,6 +172,6 @@ fallback for unimplemented ctors
 -- temp
 sem ScalarExpr
     | PositionalArg Star QStar
-      QIdentifier Case CaseSimple Exists AggregateApp
+      QIdentifier Case CaseSimple Exists
       WindowApp InPredicate LiftApp ScalarSubQuery AntiScalarExpr
         loc.tpe = Left []

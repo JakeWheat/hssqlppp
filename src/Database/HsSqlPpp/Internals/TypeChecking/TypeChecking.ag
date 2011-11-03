@@ -101,6 +101,7 @@ expandStarsStatements :: Catalog -> [Statement] -> [Statement]
 expandStarsStatements cat sts =
     let t = sem_Root (Root sts)
         ta = wrap_Root t Inh_Root {cat_Inh_Root = cat
+                                  ,flags_Inh_Root = defaultTypeCheckingFlags
                                   {-,lib_Inh_Root = emptyBindings
                                   ,idenv_Inh_Root = emptyIDEnv "tcs"-}}
         tl = expandedStars_Syn_Root ta

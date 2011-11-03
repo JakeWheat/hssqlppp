@@ -15,6 +15,7 @@ and variables, etc.
 >     ,isEmptyEnv
 >     ,envCreateTrefEnvironment
 >     ,createJoinTrefEnvironment
+>     ,envSelectListEnvironment
 >      -- * environment query functions
 >     ,envLookupIdentifier
 >     ,envExpandStar
@@ -46,6 +47,7 @@ and variables, etc.
 >                  | SimpleTref String [(String,Type)] [(String,Type)]
 >                  | JoinTref [(String,Type)] -- join ids
 >                             Environment Environment
+>                  | SelectListEnv [(String,Type)]
 >                    deriving (Data,Typeable,Show,Eq)
 
 
@@ -67,6 +69,11 @@ catalog and combining environment values with updates
 > envCreateTrefEnvironment cat tbnm = do
 >   (nm,pub,prv) <- catLookupTableAndAttrs cat tbnm
 >   return $ SimpleTref nm pub prv
+
+> envSelectListEnvironment :: [(String,Type)] -> Either [TypeError] Environment
+> envSelectListEnvironment cols = do
+>   return $ SelectListEnv cols
+
 
 > -- | create an environment as two envs joined together
 > createJoinTrefEnvironment :: Catalog
@@ -113,6 +120,13 @@ implicit correlation names, ambigous identifiers, etc.
 >        Just t -> return t
 >        Nothing -> Left [UnrecognisedIdentifier n]
 
+> envLookupIdentifier nmc (SelectListEnv cols) =
+>     -- todo: this isn't right
+>   let n = nnm nmc
+>   in case lookup n cols of
+>        Just t -> return t
+>        Nothing -> Left [UnrecognisedIdentifier n]
+
 
 > envLookupIdentifier nmc (JoinTref jids env0 env1) =
 >   let n = nnm nmc
@@ -130,9 +144,9 @@ implicit correlation names, ambigous identifiers, etc.
 -------------------------------------------------------
 
 > envExpandStar :: Maybe NameComponent -> Environment -> Either [TypeError] [(String,Type)]
-> envExpandStar nmc  EmptyEnvironment = Left [BadStarExpand]
+> envExpandStar _nmc  EmptyEnvironment = Left [BadStarExpand]
 
-> envExpandStar nmc (SimpleTref nm pub prv)
+> envExpandStar nmc (SimpleTref nm pub _prv)
 >   | case nmc of
 >              Nothing -> True
 >              Just x -> nnm [x] == nm = Right pub

@@ -17,7 +17,7 @@ moment.
 >         in s ++ drop 1 e
 >   where
 >     t = zipWith (\(_n,s) t' -> QueryExpr tpchCatalog s
->                               (Right $ Pseudo $ SetOfType $ CompositeType t'))
+>                               (Right $ {-Pseudo $ SetOfType $ -}CompositeType t'))
 >          tpchQueries
 >          [-- q1
 >           [("l_returnflag", typeChar)
