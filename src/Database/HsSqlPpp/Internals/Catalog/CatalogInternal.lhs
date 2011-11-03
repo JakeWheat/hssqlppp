@@ -64,7 +64,19 @@ sequences
 >     ,catLookupType
 >     ,catLookupTableAndAttrs
 >     ,catGetOpsMatchingName
+>      -- temp stuff for old typeconversion
+>     ,OperatorPrototype
+
+>     ,CastContext(..)
+>     ,catLookupFns
+>     ,catPreferredType
+>     ,isOperatorName
+>     ,catTypeCategory
+>     ,catCast
+>     ,catCompositePublicAttrs
+>     ,catDomainBaseType
 >     ) where
+
 >
 > import Control.Monad
 > import Data.List
@@ -174,6 +186,10 @@ catalog values
 >     ,catWindowFunctions :: M.Map CatName [OperatorPrototype]
 >     ,catTables :: M.Map CatName ([(String,Type)] -- public attrs
 >                                 ,[(String,Type)]) -- system columns
+>     -- needs more work:
+>     ,catCasts :: S.Set (Type,Type,CastContext)
+>     ,catTypeCategories :: M.Map Type (String,Bool)
+>      -- save the updates
 >     ,catUpdates :: [CatalogUpdate]
 >     }
 >                deriving Show
@@ -185,7 +201,9 @@ catalog values
 > -- like the \'and\' operator, 'defaultCatalog' contains these.
 > emptyCatalog :: Catalog
 > emptyCatalog = Catalog S.empty M.empty M.empty M.empty M.empty M.empty
->                        M.empty M.empty M.empty M.empty M.empty []
+>                        M.empty M.empty M.empty M.empty M.empty
+>                        S.empty M.empty
+>                        []
 >
 > -- | Represents what you probably want to use as a starting point if
 > -- you are building an catalog from scratch. It contains
@@ -319,6 +337,10 @@ functions and not in catalog values themselves.
 >   | CatCreateFunction CatName [CatName] Bool CatName
 >     -- | register a table only: name, (colname,typename) pairs
 >   | CatCreateTable CatName [(CatName,CatName)]
+>     -- | register a cast in the catalog
+>   | CatCreateCast CatName CatName CastContext
+>     -- | register a type category for a type (used in the implicit cast resolution
+>   | CatCreateTypeCategoryEntry CatName (String,Bool)
 >     deriving (Eq,Ord,Typeable,Data,Show)
 
 > -- | Applies a list of 'CatalogUpdate's to an 'Catalog' value
@@ -385,6 +407,14 @@ functions and not in catalog values themselves.
 >                        t' <- catLookupType cat [QNmc t]
 >                        return (cn,t')) cs
 >         Right $ cat {catTables = M.insert n (cts,[]) (catTables cat)}
+>       CatCreateCast n0 n1 ctx -> do
+>         t0 <- catLookupType cat [QNmc n0]
+>         t1 <- catLookupType cat [QNmc n1]
+>         Right $ cat {catCasts = S.insert (t0,t1,ctx) (catCasts cat)}
+>       CatCreateTypeCategoryEntry n (c,p) -> do
+>         t <- catLookupType cat [QNmc n]
+>         Right $ cat {catTypeCategories = M.insert t (c,p) $ catTypeCategories cat}
+
 
 -----------------------------------------------------------
 
@@ -441,3 +471,65 @@ the TypeConversion module handles checking assignment compatibility,
 this relies on some heavy algorithms to match postgress really complex
 overloading and implicit cast system.
 
+
+--------------------------------------------------------
+
+old stuff chucked in to support the old typeconversion, to be promoted
+to new code or deleted as typeconversion is rewritten
+
+
+> -- | Use to note what the flavour of a cast is, i.e. if/when it can
+> -- be used implicitly.
+> data CastContext = ImplicitCastContext
+>                  | AssignmentCastContext
+>                  | ExplicitCastContext
+>                    deriving (Eq,Show,Ord,Typeable,Data)
+
+> catCompositePublicAttrs :: Catalog -> [CompositeFlavour] -> String
+>                   -> Either [TypeError] [(String,Type)]
+> catCompositePublicAttrs cat _flvs ty = do
+>    (_,a,_) <- catLookupTableAndAttrs cat [Nmc ty]
+>    return a
+
+> catPreferredType :: Catalog -> Type -> Either [TypeError] Bool
+> catPreferredType cat ty =
+>   fmap snd $ catGetCategoryInfo cat ty
+>
+> catCast :: Catalog -> CastContext -> Type -> Type -> Either [TypeError] Bool
+> catCast cat ctx from to =
+>     case from of
+>       t@(DomainType _) -> do
+>                 baseType <- catDomainBaseType cat t
+>                 cc <- catCast cat ctx baseType to
+>                 return $ (baseType == to) ||
+>                                (cc || S.member (from, to, ctx) (catCasts cat))
+>       _ -> Right $ S.member (from, to, ctx) (catCasts cat)
+>
+> catDomainBaseType :: Catalog -> Type -> Either [TypeError] Type
+> catDomainBaseType cat (ScalarType ty) = do
+>   case M.lookup ty $ catDomainTypes cat of
+>     Just n -> Right $ ScalarType n
+>     Nothing -> Left [DomainDefNotFound $ ScalarType ty]
+> catDomainBaseType cat ty = Left [DomainDefNotFound ty]
+>
+> catLookupFns :: Catalog -> String -> [OperatorPrototype]
+> catLookupFns cat name =
+>    catGetOpsMatchingName cat [Nmc name]
+
+> catTypeCategory :: Catalog -> Type -> Either [TypeError] String
+> catTypeCategory cat ty =
+>   fmap fst $ catGetCategoryInfo cat ty
+
+> isOperatorName :: String -> Bool
+> isOperatorName = any (`elem` "+-*/<>=~!@#%^&|`?.")
+
+> catGetCategoryInfo :: Catalog -> Type -> Either [TypeError] (String, Bool)
+> catGetCategoryInfo cat ty =
+>   case ty of
+>     Pseudo (SetOfType _) -> Right ("", False)
+>     AnonymousCompositeType _ -> Right ("", False)
+>     ArrayType (Pseudo _) -> Right ("A",False)
+>     Pseudo _ -> Right ("P",False)
+>     _ -> case M.lookup ty $ catTypeCategories cat of
+>            Nothing -> Left [InternalError $ "no type category for " ++ show ty]
+>            Just x -> Right x

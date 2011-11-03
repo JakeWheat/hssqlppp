@@ -58,7 +58,10 @@ where typtype = 'b'
 
 
 >   domainTypes <-
->     map (\[d,b] -> CatCreateDomainType d b) `fmap`
+>     -- have to add the implicit cast since this isn't
+>     -- in the pg catalog (todo: check this)
+>     concatMap (\[d,b] -> [CatCreateDomainType d b
+>                          ,CatCreateCast d b ImplicitCastContext]) `fmap`
 >         selectRelation conn [$here|
 \begin{code}
 
@@ -91,7 +94,9 @@ where t.typtype = 'd'
 >                                     |] []
 
 >   arrayTypes <-
->     map ( \[nm,bs] -> CatCreateArrayType nm bs) `fmap`
+>     -- add the type categories for arrays
+>     concatMap ( \[nm,bs] -> [CatCreateArrayType nm bs
+>                             ,CatCreateTypeCategoryEntry nm ("A",False)]) `fmap`
 >         selectRelation conn [$here|
 \begin{code}
 
@@ -208,6 +213,49 @@ group by prooid,proname,proretset,retname;
 \end{code}
 >                                     |] []
 
+>   casts <- map (\[f,t,c] -> let cs "a" = AssignmentCastContext
+>                                 cs "i" = ImplicitCastContext
+>                                 cs "e" = ExplicitCastContext
+>                                 cs x = error $ "internal error: unknown \
+>                                                \cast context " ++ x
+>                             in CatCreateCast f t (cs c)
+>                          ) `fmap`
+>         selectRelation conn [$here|
+\begin{code}
+with typenames as (
+select pg_type.oid as toid,typname from pg_type
+inner join pg_namespace ns
+      on typnamespace = ns.oid
+where
+  ns.nspname in ('pg_catalog'
+                ,'public'
+                ,'information_schema')
+)
+select cs.typname,ct.typname,castcontext
+from pg_cast
+inner join typenames cs
+  on castsource=cs.toid
+inner join typenames ct
+  on casttarget=ct.toid;
+\end{code}
+>                                     |] []
+
+>   typeCategories <-
+>     map ( \[nm,cat,pref] -> CatCreateTypeCategoryEntry nm (cat,read pref)) `fmap`
+>         selectRelation conn [$here|
+\begin{code}
+select t.typname,typcategory,typispreferred
+from pg_type t
+   inner join pg_namespace ns
+      on t.typnamespace = ns.oid
+         and ns.nspname in ('pg_catalog', 'public', 'information_schema')
+where t.typarray<>0 and
+    typtype='b' and
+    pg_catalog.pg_type_is_visible(t.oid);
+\end{code}
+>                                     |] []
+
+
 
 >   return $ concat [scalarTypeNames
 >                   ,domainTypes
@@ -215,9 +263,9 @@ group by prooid,proname,proretset,retname;
 >                   ,prefixOps
 >                   ,postfixOps
 >                   ,binaryOps
->                   ,fns]
-
-
+>                   ,fns
+>                   ,casts
+>                   ,typeCategories]
 
 
 
@@ -432,8 +480,8 @@ with att1 as (
      on cls.oid = attrelid
    inner join pg_namespace ns
       on cls.relnamespace = ns.oid
-   order by relkind,relname;
-
+   order by relkind,relname
+;
 \end{code}
 >                |] []
 >    return

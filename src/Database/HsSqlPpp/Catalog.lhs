@@ -24,7 +24,7 @@ Forward the public part of CatalogInternal.
 >     ,CatalogUpdate(..)
 >     --,ppCatUpdate
 >      -- ** bits and pieces
->     --,CastContext(..)
+>     ,CastContext(..)
 >     ,CompositeFlavour(..)
 >     ,CatName
 >     --,CompositeDef

@@ -17,12 +17,14 @@ http://www.postgresql.org/docs/8.4/interactive/typeconv.html
 > import Data.List
 > import Data.Either
 > --import Debug.Trace
-> --import Data.Char
+> import Data.Char
 >
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 > --import Database.HsSqlPpp.Utils.Utils
 > --import Database.HsSqlPpp.Internals.TediousTypeUtils
+
+> import Database.HsSqlPpp.Internals.TypeChecking.OldTypeConversion
 
 ------------------------------------------------------------------
 
@@ -36,6 +38,15 @@ This needs a lot more tests
 >          -> [Type]
 >          -> Either [TypeError] ([Type],Type)
 > matchApp cat nmcs pts = do
+>   (_,ps,r,_) <- findCallMatch cat nm pts
+>   return (ps,r)
+>   where
+>     nm = case last nmcs of
+>            Nmc n -> map toLower n
+>            QNmc n -> n
+
+ findCallMatch :: Catalog -> String -> [Type] ->  Either [TypeError] OperatorPrototype
+ findCallMatch cat fnName' argsType =
 
 code interspersed with text cut and pasted from postgresql manual
 10.3. Functions
@@ -52,13 +63,13 @@ specified schema are considered.
 [HsSqlPpp doesn't support schema stuff yet, so just get a list of all
 the functions with a matching name]
 
->   let matchingNames = catGetOpsMatchingName cat nmcs
+>   {-let matchingNames = catGetOpsMatchingName cat nmcs
 >       exactMatches = filter (\(_,ts,_,_) -> ts == pts) matchingNames
 >   case exactMatches of
 >     [(_,tys,rt,_)] -> return (tys, rt)
 >     [] -> error $ "no matching fn: " ++ show nmcs
 >                   ++ "(" ++ intercalate "," (map show pts) ++ ")"
->     _xs -> error "ambiguous"
+>     _xs -> error "ambiguous"-}
 
 
 
@@ -156,12 +167,12 @@ process along with the resolved function
 --------------------------------
 todo:
 
-> resolveResultSetType :: Catalog -> [Type] -> Either [TypeError] Type
+> {-resolveResultSetType :: Catalog -> [Type] -> Either [TypeError] Type
 > resolveResultSetType _cat [] = error "resolveResultSetType: empty type set"
 > resolveResultSetType _cat (t:ts) =
 >   if all (==t) ts
 >   then Right t
->   else Left [IncompatibleTypeSet (t:ts)]
+>   else Left [IncompatibleTypeSet (t:ts)]-}
 
 todo:
 
