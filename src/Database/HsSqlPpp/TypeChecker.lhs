@@ -13,7 +13,6 @@ This is the public module for the type checking functionality.
 >     ,TypeCheckingFlags(..)
 >     ,defaultTypeCheckingFlags
 >     --,addExplicitCasts
->     --,canonicalizeTypeNames
 >     ) where
 >
 > import Database.HsSqlPpp.Internals.AstInternal

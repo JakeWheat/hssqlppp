@@ -10,29 +10,17 @@ release with some typechecking regressions in ddl, but no parsing
 regressions
 
 Urgency: want to get tpch typechecking again asap:
-add options to rewrite tree as typechecking:
+options to rewrite tree as typechecking:
   qualifiers, tref aliases, selectitem names
-typechecking: main areas:
-work on scalar exprs
-more work on trefs: joins, subtrefs
- (leave funtrefs for now)
-other areas:
-  group by, having, order by
-  basic combine query
+  get these working
+get old join tests working
+main blockers for remaining tpch queries:
+onexpr trickiness
+case exprs
+correlated subquery outer env
+then do add implicit casts
+then check if it works
 
-
-
-typechecking:
-
-add qualifiers to ids
-natural joins, do join id compatibility
-subtref
-funtref
-
-then: do a lot more of typeconversion, scalar and query exprs
-make sure all the files are documented
--> get tpch typechecking again
-then: casting, aliasing,etc., parameterized
 
 then dml
 then ddl and plpgsql
