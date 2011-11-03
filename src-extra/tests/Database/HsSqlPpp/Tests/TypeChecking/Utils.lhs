@@ -27,7 +27,7 @@
 >   let ast = case parseScalarExpr defaultParseFlags "" src of
 >               Left e -> error $ show e
 >               Right l -> l
->       aast = typeCheckScalarExpr defaultTemplate1Catalog ast
+>       aast = typeCheckScalarExpr defaultTypeCheckingFlags defaultTemplate1Catalog ast
 >       ty = atype $ getAnnotation aast
 >       er :: [TypeError]
 >       er = universeBi aast
@@ -40,7 +40,7 @@
 >               Left e -> error $ show e
 >               Right l -> l
 >       Right cat = updateCatalog cus defaultTemplate1Catalog
->       aast = typeCheckQueryExpr cat ast
+>       aast = typeCheckQueryExpr defaultTypeCheckingFlags cat ast
 >       ty = atype $ getAnnotation aast
 >       er :: [TypeError]
 >       er = universeBi aast

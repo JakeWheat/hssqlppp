@@ -328,7 +328,7 @@ functions and not in catalog values themselves.
 >     -- | register an array type with name and base type
 >   | CatCreateArrayType CatName CatName
 >     -- | register a prefix op, opname, param type, return type
->   | CatCreatePrefixOp CatName CatName CatName --op name, argtypename, rettypename
+>   | CatCreatePrefixOp CatName CatName CatName
 >     -- | register a postfix op, opname, param type, return type
 >   | CatCreatePostfixOp CatName CatName CatName
 >     -- | register a binary op, opname, the two param types, return type
@@ -339,7 +339,7 @@ functions and not in catalog values themselves.
 >   | CatCreateTable CatName [(CatName,CatName)]
 >     -- | register a cast in the catalog
 >   | CatCreateCast CatName CatName CastContext
->     -- | register a type category for a type (used in the implicit cast resolution
+>     -- | register a type category for a type (used in the implicit cast resolution)
 >   | CatCreateTypeCategoryEntry CatName (String,Bool)
 >     deriving (Eq,Ord,Typeable,Data,Show)
 

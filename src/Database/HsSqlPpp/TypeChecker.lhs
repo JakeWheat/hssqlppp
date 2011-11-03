@@ -10,9 +10,8 @@ This is the public module for the type checking functionality.
 >     ,typeCheckParameterizedStatement
 >     ,typeCheckQueryExpr
 >     ,typeCheckScalarExpr
->     --,fixUpIdentifiers
->     --,fixUpIdentifiersQE
->     --,fixUpIdentifiersSE
+>     ,TypeCheckingFlags(..)
+>     ,defaultTypeCheckingFlags
 >     --,addExplicitCasts
 >     --,canonicalizeTypeNames
 >     ) where

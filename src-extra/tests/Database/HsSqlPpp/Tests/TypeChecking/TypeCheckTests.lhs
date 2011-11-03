@@ -12,13 +12,15 @@
 > import Database.HsSqlPpp.Tests.TypeChecking.ScalarExprs
 > import Database.HsSqlPpp.Tests.TypeChecking.SimpleQueryExprs
 > import Database.HsSqlPpp.Tests.TypeChecking.Joins
+> import Database.HsSqlPpp.Tests.TypeChecking.Tpch
 
 > typeCheckTestData :: Item
 > typeCheckTestData =
 >   Group "typeCheckTests"
 >     [scalarExprs
 >     ,simpleQueryExprs
->     ,joins]
+>     ,joins
+>     {-,tpch-}]
 
 > typeCheckTests :: Test.Framework.Test
 > typeCheckTests =

@@ -10,7 +10,6 @@ release with some typechecking regressions in ddl, but no parsing
 regressions
 
 Urgency: want to get tpch typechecking again asap:
-shim in old typeconversion module for now
 add options to rewrite tree as typechecking:
   qualifiers, tref aliases, selectitem names
 typechecking: main areas:

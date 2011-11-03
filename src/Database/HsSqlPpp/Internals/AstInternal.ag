@@ -112,6 +112,8 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,typeCheckParameterizedStatement
    ,typeCheckScalarExpr
    ,typeCheckQueryExpr
+   ,TypeCheckingFlags(..)
+   ,defaultTypeCheckingFlags
    -- annotation
    ,Annotation(..)
    ,SourcePosition

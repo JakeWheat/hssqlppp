@@ -2,12 +2,32 @@
 -- public api functions
 {
 
+-- | some options when typechecking
+data TypeCheckingFlags =
+    TypeCheckingFlags
+    { -- | add qualifiers to unqualified ids where possible
+     tcfAddQualifiers :: Bool
+     -- | add full aliases to every tableref and subselect
+    ,tcfAddFullTablerefAliases :: Bool
+     -- | add explicit aliases to all select items
+    ,tcfAddSelectItemAliases :: Bool}
+
+-- | reasonable defaults for type checking, doesn't add anything
+-- optional
+defaultTypeCheckingFlags :: TypeCheckingFlags
+defaultTypeCheckingFlags =
+    TypeCheckingFlags
+    {tcfAddQualifiers = False
+    ,tcfAddFullTablerefAliases = False
+    ,tcfAddSelectItemAliases = False}
+
 -- | Typechecks the ast, and returns the updated catalog (which
 -- includes changes from any ddl statements in the ast).
-typeCheckStatements :: Catalog -> [Statement] -> (Catalog,[Statement])
-typeCheckStatements cat sts =
+typeCheckStatements :: TypeCheckingFlags -> Catalog -> [Statement] -> (Catalog,[Statement])
+typeCheckStatements f cat sts =
     let t = sem_Root (Root $ expandStarsStatements cat sts)
         ta = wrap_Root t Inh_Root {cat_Inh_Root = cat
+                                  ,flags_Inh_Root = f
                                   {-,lib_Inh_Root = emptyBindings
                                   ,idenv_Inh_Root = emptyIDEnv "tcs"-}}
         tl = annotatedTree_Syn_Root ta
@@ -15,9 +35,9 @@ typeCheckStatements cat sts =
     in case tl of
          Root r -> (cat1,r)
 -- | Typecheck a query expr
-typeCheckQueryExpr :: Catalog -> QueryExpr -> QueryExpr
-typeCheckQueryExpr cat qe =
-   let (_,[QueryStatement _ qe']) = typeCheckStatements cat [QueryStatement emptyAnnotation qe]
+typeCheckQueryExpr :: TypeCheckingFlags -> Catalog -> QueryExpr -> QueryExpr
+typeCheckQueryExpr f cat qe =
+   let (_,[QueryStatement _ qe']) = typeCheckStatements f cat [QueryStatement emptyAnnotation qe]
    in qe'
 
 -- | Not working yet. Typechecks a statement possibly containing ?
@@ -25,8 +45,8 @@ typeCheckQueryExpr cat qe =
 -- stType annotation on the return value can be used to get this info
 -- easily. Returns Left if the statement is not a query,insert,update or delete
 -- statement
-typeCheckParameterizedStatement :: Catalog -> Statement -> Either String Statement
-typeCheckParameterizedStatement cat st =
+typeCheckParameterizedStatement :: TypeCheckingFlags -> Catalog -> Statement -> Either String Statement
+typeCheckParameterizedStatement f cat st =
     case st of
       QueryStatement _ _ -> tc
       Insert _ _ _ _ _ -> tc
@@ -34,18 +54,19 @@ typeCheckParameterizedStatement cat st =
       Delete _ _ _ _ _ -> tc
       _ -> Left "requires select, update, insert or delete statement"
     where
-      tc = let tl = typeCheckStatements cat [st]
+      tc = let tl = typeCheckStatements f cat [st]
            in case tl of
                 (_,[st1]) -> Right st1
                 _ -> error "impossible happened in typeCheckPS!"
 
 
 -- | type check a scalar expr
-typeCheckScalarExpr :: Catalog -> ScalarExpr -> ScalarExpr
-typeCheckScalarExpr cat ex =
+typeCheckScalarExpr :: TypeCheckingFlags -> Catalog -> ScalarExpr -> ScalarExpr
+typeCheckScalarExpr f cat ex =
     let t = sem_ScalarExprRoot (ScalarExprRoot ex)
         rt = (annotatedTree_Syn_ScalarExprRoot
               (wrap_ScalarExprRoot t Inh_ScalarExprRoot {cat_Inh_ScalarExprRoot = cat
+                                                        ,flags_Inh_ScalarExprRoot = f
                                                         {-,lib_Inh_ScalarExprRoot = emptyBindings
                                                         ,idenv_Inh_ScalarExprRoot = emptyIDEnv "t
 cse"-}}))
@@ -62,6 +83,7 @@ main global attributes
 
 attr AllNodes Root ScalarExprRoot Annotation
   inh cat :: Catalog
+     ,flags :: TypeCheckingFlags
   syn annotatedTree :: SELF -- annotated tree is the output tree with the types added
      ,originalTree :: SELF -- this is the original tree, should not be changed
      ,expandedStars :: SELF -- expand stars in separate pass
@@ -70,6 +92,8 @@ attr AllNodes Root ScalarExprRoot Annotation
 expand stars: to expand stars, need to type check because of funtrefs
 but can't run ag on newly constructed identifiers in same pass, so for
 now just expand the stars in a separate pass
+
+This is going to be removed soon
 -}
 
 {

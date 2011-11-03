@@ -35,10 +35,12 @@ src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ScalarExprs.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/SimpleQueryExprs.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Joins.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Tpch.o \
 src/Database/HsSqlPpp/TypeChecker.o \
 src/Database/HsSqlPpp/Catalog.o \
 src/Database/HsSqlPpp/Types.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o \
 src/Database/HsSqlPpp/Quote.o
 	$(HC) $(HC_OPTS) -o src-extra/tests/Tests src-extra/tests/Tests.o \
 src-extra/tests/Database/HsSqlPpp/Tests/Tests.o \
@@ -77,10 +79,12 @@ src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ScalarExprs.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/SimpleQueryExprs.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Joins.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Tpch.o \
 src/Database/HsSqlPpp/TypeChecker.o \
 src/Database/HsSqlPpp/Catalog.o \
 src/Database/HsSqlPpp/Types.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o \
 src/Database/HsSqlPpp/Quote.o
 src-extra/devel-util/MakeDefaultTemplate1Catalog : src-extra/devel-util/MakeDefaultTemplate1Catalog.o \
 src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.o \
@@ -289,10 +293,12 @@ src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ScalarExprs.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/SimpleQueryExprs.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Joins.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Tpch.o \
 src/Database/HsSqlPpp/TypeChecker.o \
 src/Database/HsSqlPpp/Catalog.o \
 src/Database/HsSqlPpp/Types.o \
-src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o
 	$(HC) $(HC_OPTS) -o src-extra/docutil/DevelTool src-extra/docutil/DevelTool.o \
 src-extra/docutil/MakeWebsite.o \
 src-extra/docutil/Text/DocTool/DocTool.o \
@@ -332,10 +338,12 @@ src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ScalarExprs.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/SimpleQueryExprs.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Joins.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Tpch.o \
 src/Database/HsSqlPpp/TypeChecker.o \
 src/Database/HsSqlPpp/Catalog.o \
 src/Database/HsSqlPpp/Types.o \
-src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o
 src-extra/examples/Parse3 : src-extra/examples/Parse3.o \
 src/Database/HsSqlPpp/Parser.o \
 src-extra/catalogReader/Database/HsSqlPpp/Utils/GroomNoAnns.o \
