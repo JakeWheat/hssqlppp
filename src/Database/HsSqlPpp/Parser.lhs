@@ -2,17 +2,20 @@
 Forward the public part of ParserInternal
 
 > -- | Functions to parse SQL.
-> module Database.HsSqlPpp.Parser (
->              -- * Main
->               parseStatements
->              ,parseStatementsWithPosition
->              ,parseStatementsFromFile
->              ,parseQueryExpr
->              -- * Testing
->              ,parseScalarExpr
->              ,parsePlpgsql
->              -- * errors
->              ,ParseErrorExtra(..)
->              )
->     where
+> module Database.HsSqlPpp.Parser
+>     (-- * Main
+>      parseStatements
+>     ,parseStatementsWithPosition
+>     ,parseStatementsFromFile
+>     ,parseQueryExpr
+>     ,parseScalarExpr
+>     ,parsePlpgsql
+>      -- * Parsing options
+>     ,ParseFlags(..)
+>     ,defaultParseFlags
+>     ,SQLSyntaxDialect(..)
+>      -- * errors
+>     ,ParseErrorExtra(..)
+>     ) where
+>
 > import Database.HsSqlPpp.Parsing.ParserInternal

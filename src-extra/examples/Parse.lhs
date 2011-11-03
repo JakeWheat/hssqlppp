@@ -6,5 +6,5 @@
 > main :: IO ()
 > main = do
 >   [f] <- getArgs
->   ast <- parseStatementsFromFile f
+>   ast <- parseStatementsFromFile defaultParseFlags f
 >   print ast

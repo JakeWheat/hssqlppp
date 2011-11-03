@@ -61,17 +61,23 @@ Unit test helpers
 > itemToTft :: Item -> Test.Framework.Test
 > itemToTft (Expr a b) = testParseScalarExpr a b
 > itemToTft (PgSqlStmt a b) = testParsePlpgsqlStatements a b
-> itemToTft (Stmt a b) = testParseStatements a b
+> itemToTft (Stmt a b) = testParseStatements PostgreSQLDialect a b
+> itemToTft (MSStmt a b) =
+>   testParseStatements (if False
+>                        then SQLServerDialect
+>                        else PostgreSQLDialect) a b
 > --itemToTft (MSStmt a b) = testParseStatements a b
 > itemToTft (Group s is) = testGroup s $ map itemToTft is
 >
 > testParseScalarExpr :: String -> ScalarExpr -> Test.Framework.Test
 > testParseScalarExpr src ast =
->   parseUtil src ast (parseScalarExpr "") (parseScalarExpr "") printScalarExpr
+>   parseUtil src ast (parseScalarExpr defaultParseFlags "") (parseScalarExpr defaultParseFlags "") (printScalarExpr defaultPPFlags)
 >
-> testParseStatements :: String -> [Statement] -> Test.Framework.Test
-> testParseStatements src ast =
->   parseUtil src ast (parseStatements "") (parseStatements "") printStatements
+> testParseStatements :: SQLSyntaxDialect -> String -> [Statement] -> Test.Framework.Test
+> testParseStatements flg src ast =
+>   let parse = parseStatements defaultParseFlags {pfDialect=flg} ""
+>       pp = printStatements defaultPPFlags {ppDialect=flg}
+>   in parseUtil src ast parse parse pp
 >
 > {-testParseMSStatements :: String -> [Statement] -> Test.Framework.Test
 > testParseMSStatements src ast =
@@ -85,7 +91,7 @@ Unit test helpers
 >
 > testParsePlpgsqlStatements :: String -> [Statement] -> Test.Framework.Test
 > testParsePlpgsqlStatements src ast =
->   parseUtil src ast (parsePlpgsql "") (parsePlpgsql "") printStatements
+>   parseUtil src ast (parsePlpgsql defaultParseFlags "") (parsePlpgsql defaultParseFlags "") (printStatements defaultPPFlags)
 >
 > parseUtil :: (Show t, Eq b, Show b, Data b) =>
 >              String

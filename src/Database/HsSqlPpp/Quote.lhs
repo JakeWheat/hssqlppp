@@ -53,7 +53,7 @@ public api: the quasiquote functions
 
 > -- | quotes Statements
 > sqlStmts :: QuasiQuoter
-> sqlStmts = makeQQ parseStatementsWithPosition
+> sqlStmts = makeQQ $ parseStatementsWithPosition defaultParseFlags
 >
 > -- | quotes a single Statement
 > sqlStmt :: QuasiQuoter
@@ -61,7 +61,7 @@ public api: the quasiquote functions
 >
 > -- | quotes plpgsql Statements
 > pgsqlStmts :: QuasiQuoter
-> pgsqlStmts = makeQQ parsePlpgsqlWithPosition
+> pgsqlStmts = makeQQ $ parsePlpgsqlWithPosition defaultParseFlags
 >
 > -- | quotes a plpgsql Statement
 > pgsqlStmt :: QuasiQuoter
@@ -69,7 +69,7 @@ public api: the quasiquote functions
 
 > -- | quotes a ScalarExpr
 > sqlExpr :: QuasiQuoter
-> sqlExpr = makeQQ parseScalarExprWithPosition
+> sqlExpr = makeQQ $ parseScalarExprWithPosition defaultParseFlags
 
 boilerplate utils to hook everything together
 
@@ -118,14 +118,14 @@ exactly one statement
 
 > parseOnePlpgsql :: Parser String Statement
 > parseOnePlpgsql f l c s =
->     case parsePlpgsqlWithPosition f l c s of
+>     case parsePlpgsqlWithPosition defaultParseFlags f l c s of
 >       Right [st] -> Right st
 >       Right _ -> Left "got multiple statements"
 >       Left e -> Left $ show e
 >
 > parseOneStatement :: Parser String Statement
 > parseOneStatement f l c s =
->     case parseStatementsWithPosition f l c s of
+>     case parseStatementsWithPosition defaultParseFlags f l c s of
 >       Right [st] -> Right st
 >       Right _ -> Left "got multiple statements"
 >       Left e -> Left $ show e

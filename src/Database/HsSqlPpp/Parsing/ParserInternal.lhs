@@ -11,10 +11,13 @@ right choice, but it seems to do the job pretty well at the moment.
 >     ,parseStatementsFromFile
 >     ,parseQueryExpr
 >     ,parsePlpgsqlWithPosition
->      -- * Testing
 >     ,parseScalarExpr
 >     ,parseScalarExprWithPosition
 >     ,parsePlpgsql
+>      -- * parsing flags
+>     ,ParseFlags(..)
+>     ,defaultParseFlags
+>     ,SQLSyntaxDialect(..)
 >      -- * errors
 >     ,ParseErrorExtra(..)
 >      -- other helpers for internal use
@@ -27,7 +30,7 @@ right choice, but it seems to do the job pretty well at the moment.
 >     ,commaSep
 >     ) where
 >
-> import Text.Parsec hiding(many, optional, (<|>), string, label)
+> import Text.Parsec hiding (many, optional, (<|>), string, label)
 > import Text.Parsec.Expr
 > import Text.Parsec.String
 > import Text.Parsec.Perm
@@ -54,36 +57,40 @@ right choice, but it seems to do the job pretty well at the moment.
 Top level parsing functions
 ===========================
 
-> parseStatements :: String -- ^ filename to use in errors
+> parseStatements :: ParseFlags -- ^ parse options
+>                 -> String -- ^ filename to use in errors
 >                 -> String -- ^ a string containing the sql to parse
 >                 -> Either ParseErrorExtra [Statement]
-> parseStatements f s =
->   parseIt l sqlStatements f Nothing s startState
+> parseStatements dl f s =
+>   parseIt l sqlStatements f Nothing s dl
 >   where l = lexSqlText f s
 >
-> parseStatementsWithPosition :: FilePath -- ^ filename to use in errors
+> parseStatementsWithPosition :: ParseFlags -- ^ parse options
+>                             -> FilePath -- ^ filename to use in errors
 >                             -> Int -- ^ adjust line number in errors by adding this
 >                             -> Int -- ^ adjust column in errors by adding this
 >                             -> String -- ^ a string containing the sql to parse
 >                             -> Either ParseErrorExtra [Statement]
-> parseStatementsWithPosition f l c s =
->   parseIt lx sqlStatements f (Just (l,c)) s startState
+> parseStatementsWithPosition dl f l c s =
+>   parseIt lx sqlStatements f (Just (l,c)) s dl
 >   where lx = lexSqlText f s
 > --parseAntiSql f l c s
 >
-> parseStatementsFromFile :: FilePath -- ^ file name of file containing sql
+> parseStatementsFromFile :: ParseFlags -- ^ parse options
+>                         -> FilePath -- ^ file name of file containing sql
 >                         -> IO (Either ParseErrorExtra [Statement])
-> parseStatementsFromFile fn = do
+> parseStatementsFromFile dl fn = do
 >   sc <- readFile fn
 >   x <- lexSqlFile fn
->   return $ parseIt x sqlStatements fn Nothing sc startState
+>   return $ parseIt x sqlStatements fn Nothing sc dl
 >
 
-> parseQueryExpr :: String -- ^ filename to use in errors
+> parseQueryExpr :: ParseFlags -- ^ parse options
+>                -> String -- ^ filename to use in errors
 >                -> String -- ^ a string containing the sql to parse
 >                -> Either ParseErrorExtra QueryExpr
-> parseQueryExpr f s =
->   parseIt l pqe f Nothing s startState
+> parseQueryExpr dl f s =
+>   parseIt l pqe f Nothing s dl
 >   where
 >     l = lexSqlText f s
 >     pqe :: SParser QueryExpr
@@ -94,46 +101,50 @@ Top level parsing functions
 >           return q
 
 > -- | Parse expression fragment, used for testing purposes
-> parseScalarExpr :: String -- ^ filename for error messages
+> parseScalarExpr :: ParseFlags -- ^ parse options
+>                 -> String -- ^ filename for error messages
 >                 -> String -- ^ sql string containing a single expression,
 >                           -- with no trailing ';'
 >                 -> Either ParseErrorExtra ScalarExpr
-> parseScalarExpr f s =
->   parseIt l (expr <* eof) f Nothing s startState
+> parseScalarExpr dl f s =
+>   parseIt l (expr <* eof) f Nothing s dl
 >   where l = lexSqlText f s
 >
 > -- | Parse plpgsql statements, used for testing purposes -
 > -- this can be used to parse a list of plpgsql statements which
 > -- aren't contained in a create function.
 > -- (The produced ast won't pass a type check.)
-> parsePlpgsql :: String
+> parsePlpgsql :: ParseFlags -- ^ parse options
+>              -> String
 >              -> String
 >              -> Either ParseErrorExtra [Statement]
-> parsePlpgsql f s =
->   parseIt l p f Nothing s startState
+> parsePlpgsql dl f s =
+>   parseIt l p f Nothing s dl
 >   where
 >     l = lexSqlText f s
 >     p = many plPgsqlStatement <* eof
 >
-> parsePlpgsqlWithPosition :: String
->                  -> Int
->                  -> Int
->                  -> String
->                  -> Either ParseErrorExtra [Statement]
-> parsePlpgsqlWithPosition f l c s =
->   parseIt lx p f ps s startState
+> parsePlpgsqlWithPosition :: ParseFlags -- ^ parse options
+>                          -> String
+>                          -> Int
+>                          -> Int
+>                          -> String
+>                          -> Either ParseErrorExtra [Statement]
+> parsePlpgsqlWithPosition dl f l c s =
+>   parseIt lx p f ps s dl
 >   where
 >     lx = lexSqlText f s
 >     p = many plPgsqlStatement <* eof
 >     ps = Just (l,c)
 >
-> parseScalarExprWithPosition :: String
->                     -> Int
->                     -> Int
->                     -> String
->                     -> Either ParseErrorExtra ScalarExpr
-> parseScalarExprWithPosition f l c s =
->   parseIt lx p f ps s startState
+> parseScalarExprWithPosition :: ParseFlags -- ^ parse options
+>                             -> String
+>                             -> Int
+>                             -> Int
+>                             -> String
+>                             -> Either ParseErrorExtra ScalarExpr
+> parseScalarExprWithPosition dl f l c s =
+>   parseIt lx p f ps s dl
 >   where
 >     lx = lexSqlText f s
 >     p = expr <* eof
@@ -278,8 +289,11 @@ bit convoluted to parse the into part
 >           d <- option Dupes (Distinct <$ keyword "distinct")
 >           -- hacky parsing of sql server 'top n' style select
 >           -- quiz: what happens when you use top n and limit at the same time?
->           tp <- optionMaybe $ try
->                 $ keyword "top" *> (NumberLit <$> pos <*> (show <$> integer))
+>           ss <- isSqlServer
+>           tp <- if ss
+>                 then optionMaybe $ try
+>                      $ keyword "top" *> (NumberLit <$> pos <*> (show <$> integer))
+>                 else return Nothing
 >           -- todo: work out how to make this work properly - need to return
 >           -- the into
 >           (sl,intoBit) <- if allowInto
@@ -307,6 +321,12 @@ bit convoluted to parse the into part
 >         offset = keyword "offset" *> expr
 >         values = Values <$> (pos <* keyword "values")
 >                         <*> commaSep1 (parens $ commaSep1 expr)
+
+> isSqlServer :: SParser Bool
+> isSqlServer = do
+>   ParseFlags {pfDialect = d} <- getState
+>   return $ d == SQLServerDialect
+
 
 > orderBy :: SParser [(ScalarExpr,Direction)]
 > orderBy = option []
@@ -674,7 +694,8 @@ rather than just a string.
 >                   fileName
 >                   (Just (line,col))
 >                   (extrStr body)
->                   () of
+>                   -- todo: use the outer flags
+>                   defaultParseFlags of
 >                      Left er@(ParseErrorExtra _ _ _) -> Left $ show er
 >                      Right body' -> Right body'
 >         -- sql function is just a list of statements, the last one
@@ -1136,11 +1157,7 @@ with a function, so you don't try an parse a keyword as a function name
 >       ,try interval
 >       ,try typedStringLit
 >       ,antiScalarExpr
->       -- want to parse any(...) and all(...) as functions
->       -- but these are reserved keywords, so do a workaround
->       -- (these get fixed to correct syntax in fixupTree below)
->       -- this will still allow some invalid syntax through atm
->       ,anyAll
+>       ,keywordFunction
 >       ,identifier
 >       ]
 
@@ -1465,12 +1482,19 @@ checking with aggregates at the moment so should fix it all together.
 >          (Nothing,[]) -> App p nameName as
 >          (d,o) -> AggregateApp p (fromMaybe Dupes d) (App p nameName as) o
 
-> anyAll :: SParser ScalarExpr
-> anyAll = try $ do
+these won't parse as normal functions because they use keywords so do
+a special case for them
+
+> keywordFunction :: SParser ScalarExpr
+> keywordFunction = try $ do
 >   p <- pos
->   i <- nameComponentAllows ["any","all"]
->   unless (i `elem` [Nmc "any", Nmc "all"]) $ fail "not any or all"
+>   i <- nameComponentAllows kfs
+>   unless (iskfs i) $ fail "not any or all"
 >   functionCallSuffix (Identifier p i)
+>   where
+>     kfs = ["any","all","isnull"]
+>     iskfs (Nmc n) | map toLower n `elem` kfs = True
+>     iskfs _ = False
 
 >
 > castKeyword :: SParser ScalarExpr
@@ -1727,11 +1751,14 @@ not sure how to do this properly, you must not be able to write
 strings in sql server using single quotes.
 
 > asAlias :: SParser NameComponent
-> asAlias =
->   choice [nameComponent
->          ,do
->          s <- stringN
->          return $ QNmc s]
+> asAlias = do
+>   ss <- isSqlServer
+>   if ss
+>     then choice [nameComponent
+>                 ,do
+>                  s <- stringN
+>                  return $ QNmc s]
+>     else nameComponent
 
 --------------------------------------------------------------------------------
 
@@ -2000,9 +2027,27 @@ be an array or subselect, etc)
 
 --------------------------------------------------------------------------------
 
-Parse state not currently used. Use these placeholders to add some.
+Parse state used for parse flags. Might be better to use a readerT
+somehow, but I'm not smart enough to work out how to do this. This
+state is never updated during parsing
 
-> type ParseState = ()
->
-> startState :: ()
-> startState = ()
+> -- | Settings to influence the parsing
+> data ParseFlags = ParseFlags
+>     {pfDialect :: SQLSyntaxDialect
+>     }
+
+> defaultParseFlags :: ParseFlags
+> defaultParseFlags = ParseFlags {pfDialect = PostgreSQLDialect}
+
+> -- | The dialect of SQL to parse. At the moment, switching to SQL Server
+> -- dialect parses a small number of sql server specific syntax only.
+> data SQLSyntaxDialect = PostgreSQLDialect
+>                       | SQLServerDialect
+>                         deriving Eq
+
+going to start adding options to these dialect ctors:
+e.g. postgresql: allow crud only, allow dll, allow plpgsql
+for sql server: quoted identifier
+
+
+> type ParseState = ParseFlags

@@ -21,9 +21,13 @@ Convert qgen output into sql server format
 
 > fixSql :: String -> String
 > fixSql sql =
->   let qe = either (error . show) id $ parseStatements "" sql
+>   let qe = either (error . show) id
+>            -- tpch outputs sql standard syntax
+>            -- which matches the default dialect for
+>            -- hssqlppp better that the sql server dialect
+>            $ parseStatements defaultParseFlags "" sql
 >       qe' = fixSqlAst qe
->   in printStatements qe'
+>   in printStatements defaultPPFlags {ppDialect = SQLServerDialect} qe'
 
 > fixSqlAst :: Data a => a -> a
 > fixSqlAst = fixDate . fixSubstring . fixExtract . fixIntervals

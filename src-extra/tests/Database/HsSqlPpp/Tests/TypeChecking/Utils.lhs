@@ -24,7 +24,7 @@
 
 > testScalarExprType :: String -> Either [TypeError] Type -> Test.Framework.Test
 > testScalarExprType src et = testCase ("typecheck " ++ src) $
->   let ast = case parseScalarExpr "" src of
+>   let ast = case parseScalarExpr defaultParseFlags "" src of
 >               Left e -> error $ show e
 >               Right l -> l
 >       aast = typeCheckScalarExpr defaultTemplate1Catalog ast
@@ -36,7 +36,7 @@
 
 > testQueryExprType :: [CatalogUpdate] -> String -> Either [TypeError] Type -> Test.Framework.Test
 > testQueryExprType cus src et = testCase ("typecheck " ++ src) $
->   let ast = case parseQueryExpr "" src of
+>   let ast = case parseQueryExpr defaultParseFlags "" src of
 >               Left e -> error $ show e
 >               Right l -> l
 >       Right cat = updateCatalog cus defaultTemplate1Catalog

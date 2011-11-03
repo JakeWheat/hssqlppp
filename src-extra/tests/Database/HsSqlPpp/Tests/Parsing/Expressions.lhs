@@ -126,6 +126,9 @@ test some more really basic expressions
 >      ,e "fn('test')" (app "fn" [stringQ "test"])
 >      ,e "fn(1,'test')" (app "fn" [num "1", stringQ "test"])
 >      ,e "fn('test')" (app "fn" [stringQ "test"])
+>         --- qualified names
+>      ,e "g.f()" (App ea (Name ea [Nmc "g", Nmc "f"]) [])
+>      ,e "h.g.f()" (App ea (Name ea [Nmc "h", Nmc "g", Nmc "f"]) [])
 >      ]
 >    ,Group "simple whitespace sanity checks" [
 >       e "fn (1)" (app "fn" [num "1"])

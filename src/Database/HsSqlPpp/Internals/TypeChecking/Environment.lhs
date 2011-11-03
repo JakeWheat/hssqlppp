@@ -72,7 +72,7 @@ catalog and combining environment values with updates
 > createJoinTrefEnvironment :: Catalog
 >                           -> Environment
 >                           -> Environment
->                           -> Maybe [NameComponent] -- | join ids: empty if cross join
+>                           -> Maybe [NameComponent] -- join ids: empty if cross join
 >                                                    -- nothing for natural join
 >                           -> Either [TypeError] Environment
 > createJoinTrefEnvironment cat tref0 tref1 jsc = do

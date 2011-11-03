@@ -9,14 +9,14 @@ typecheck against that database.
 > module Database.HsSqlPpp.Utils.CatalogReader
 >     (readCatalogFromDatabase) where
 >
-> import qualified Data.Map as M
-> import Data.Maybe
-> import Control.Applicative
+> --import qualified Data.Map as M
+> --import Data.Maybe
+> --import Control.Applicative
 > import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 > import Database.HsSqlPpp.Utils.PgUtils
 > --import Database.HsSqlPpp.Catalog
-> import Database.HsSqlPpp.Types
+> --import Database.HsSqlPpp.Types
 > import Data.List.Split
 >
 > -- | Creates an 'CatalogUpdate' list by reading the database given.

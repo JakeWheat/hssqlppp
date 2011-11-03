@@ -73,9 +73,6 @@ notes on what the types are for and how they are used in postgres.
 >                 -- typing or rough polymorphism substitute. They can refer to
 >                 -- values of named composite type, composite type or
 >                 -- anonymous composite type, not sure if non composite types as well.
->                 -- The type of a Record parameter or return value,
->                 -- and the type of a record variable which hasn't been assigned
->                 -- a value is Record Nothing.
 >                 | Record (Maybe Type)
 >                 -- | presumably used for the types of OLD and NEW in a trigger
 >                 -- function. Hssqlppp will probably use the Record type above

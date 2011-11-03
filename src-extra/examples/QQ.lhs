@@ -19,4 +19,4 @@
 >     typename = "text"
 
 > main :: IO ()
-> main = putStrLn $ printStatements [test]
+> main = putStrLn $ printStatements defaultPPFlags [test]

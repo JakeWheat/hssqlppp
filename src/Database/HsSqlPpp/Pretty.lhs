@@ -5,15 +5,17 @@
 >    Some effort is made produce human readable output.
 > -}
 > {-# LANGUAGE PatternGuards #-}
-> module Database.HsSqlPpp.Pretty (
->                       --convert a sql ast to text
->                       printStatements
->                      ,printStatementsAnn
->                      ,printQueryExpr
->                       --convert a single expression parse node to text
->                      ,printScalarExpr
->                      ,printQueryExprNice
->                      )
+> module Database.HsSqlPpp.Pretty
+>     (--convert a sql ast to text
+>      printStatements
+>     ,printStatementsAnn
+>     ,printQueryExpr
+>      --convert a single expression parse node to text
+>     ,printScalarExpr
+>     ,PrettyPrintFlags(..)
+>     ,defaultPPFlags
+>     ,SQLSyntaxDialect(..)
+>     )
 >     where
 >
 > import Text.PrettyPrint
@@ -23,39 +25,48 @@
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Utils.Utils
 
+> -- maybe the SQLSyntaxDialect data type should go in another file?
+> import Database.HsSqlPpp.Parsing.ParserInternal (SQLSyntaxDialect(..))
+
 --------------------------------------------------------------------------------
 
 Public functions
 
+> data PrettyPrintFlags =
+>   PrettyPrintFlags
+>   {ppDialect :: SQLSyntaxDialect
+>    -- | try to output in more readable form, not safe to use
+>    -- atm since it might produce incorrect sql
+>   ,unsafeReadable :: Bool
+>   }
+
+> defaultPPFlags :: PrettyPrintFlags
+> defaultPPFlags = PrettyPrintFlags {ppDialect = PostgreSQLDialect
+>                                   ,unsafeReadable = False}
+
 > -- | Convert an ast back to valid SQL source.
-> printStatements :: StatementList -> String
-> printStatements = printStatementsAnn (const "")
+> printStatements :: PrettyPrintFlags -> StatementList -> String
+> printStatements f = printStatementsAnn f (const "")
 >
 > -- | Convert the ast back to valid source, and convert any annotations to
 > -- text using the function provided and interpolate the output of
 > -- this function (inside comments) with the SQL source.
-> printStatementsAnn :: (Annotation -> String) -> StatementList -> String
-> printStatementsAnn f ast = render $ vcat (map (statement False True f) ast) <> text "\n"
+> printStatementsAnn :: PrettyPrintFlags -> (Annotation -> String) -> StatementList -> String
+> printStatementsAnn _flg f ast = render $ vcat (map (statement False True f) ast) <> text "\n"
 >
 
 > -- | pretty print a query expression
-> printQueryExpr :: QueryExpr -> String
-> printQueryExpr ast = render (queryExpr False True True Nothing ast <> statementEnd True)
+> printQueryExpr :: PrettyPrintFlags -> QueryExpr -> String
+> printQueryExpr _f ast = render (queryExpr False True True Nothing ast <> statementEnd True)
 
 > -- | pretty print a scalar expression
-> printScalarExpr :: ScalarExpr -> String
-> printScalarExpr = render . scalExpr False
+> printScalarExpr :: PrettyPrintFlags -> ScalarExpr -> String
+> printScalarExpr _f = render . scalExpr False
 
 todo: this function (printQueryExprNice) avoids outputting table
 aliases in some places - the code that uses this can avoid adding the
 table aliases until later on so it shouldn't need this. waiting for
 the new typechecker before fixing this.
-
-> -- | Try harder to make the output human readable, not necessary correct
-> -- sql output at the moment
-> printQueryExprNice :: QueryExpr -> String
-> printQueryExprNice ast = render (queryExpr True True True Nothing ast <> statementEnd True)
-
 
 -------------------------------------------------------------------------------
 

@@ -168,11 +168,11 @@ expressions
 Unit test helpers
 
 > itemToTft :: Item -> Test.Framework.Test
-> itemToTft (Expr a b) = testCase (printScalarExpr b) $ stripEqual a b
-> itemToTft (PgSqlStmt a b) = testCase (printStatements [b]) $ stripEqual a b
-> itemToTft (Stmt a b) = testCase (printStatements [b]) $  stripEqual a b
-> itemToTft (PgSqlStmts a b) = testCase (printStatements b) $ stripEqual a b
-> itemToTft (Stmts a b) = testCase (printStatements b) $ stripEqual a b
+> itemToTft (Expr a b) = testCase (printScalarExpr defaultPPFlags b) $ stripEqual a b
+> itemToTft (PgSqlStmt a b) = testCase (printStatements defaultPPFlags [b]) $ stripEqual a b
+> itemToTft (Stmt a b) = testCase (printStatements defaultPPFlags [b]) $  stripEqual a b
+> itemToTft (PgSqlStmts a b) = testCase (printStatements defaultPPFlags b) $ stripEqual a b
+> itemToTft (Stmts a b) = testCase (printStatements defaultPPFlags b) $ stripEqual a b
 > itemToTft (Group s is) = testGroup s $ map itemToTft is
 > stripEqual :: (Data a, Eq a, Show a) =>
 >               a -> a -> Assertion
