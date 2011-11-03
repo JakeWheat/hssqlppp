@@ -10,6 +10,13 @@ split functions and operators into different ctors (App, BinaryOp,
   PrefixOp, etc.)
 rename some badly named ctors in the syntax
 use names in LiftApp
+start supporting sql server as separate dialect. At the moment, a flag
+  passed to the parser enables additional sql server syntax to be
+  parsed, but no postgresql syntax is disabled. Support for sql server
+    specific constructs currently limited
+source code tree is better organised and documented
+run tests on ghc 6.12.3 and 7.0.4
+improved handling of reserved keywords
 
 0.4.0
 Released 30/09/2011

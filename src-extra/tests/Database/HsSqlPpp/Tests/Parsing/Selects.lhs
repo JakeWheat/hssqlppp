@@ -38,15 +38,6 @@
 >         (binop "!and"
 >          (binop "=" (ei "b") (num "2"))
 >          (binop "=" (ei "c") (num "3")))]
->      {-,MSStmt "select a from t;\ngo"
->          [QueryStatement ea $ selectFrom (selIL ["a"]) (Tref ea (i "t") (NoAlias ea))]
->      ,MSStmt "select a from t;\nset rowcount -1\ngo"
->          [QueryStatement ea $ selectFrom (selIL ["a"]) (Tref ea (i "t") (NoAlias ea))]
->      ,MSStmt "select a from t;\nset rowcount 10\ngo"
->       [QueryStatement ea $ Select ea Dupes
->        (sl (selIL ["a"]))
->        [Tref ea (i "t") (NoAlias ea)]
->        Nothing [] Nothing [] (Just (NumberLit ea "10")) Nothing]-}
 >      ,s "SELECT T.A::INT FROM TBL AS T;"
 >         [QueryStatement ea
 >          (Select ea Dupes

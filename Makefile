@@ -41,7 +41,8 @@ HC_BASIC_OPTS   = -Wall -XTupleSections -XScopedTypeVariables \
 -XDeriveDataTypeable -threaded -rtsopts
 SRC_DIRS = src src-extra/catalogReader src-extra/chaos \
 src-extra/devel-util src-extra/docutil src-extra/examples \
-src-extra/extensions src-extra/h7c src-extra/tests
+src-extra/extensions src-extra/h7c src-extra/tests \
+src-extra/chaos/extensions
 
 space :=
 space +=
@@ -71,12 +72,12 @@ EXE_FILES = src-extra/tests/Tests \
 	src-extra/examples/Parse2 \
 	src-extra/examples/QQ \
 	src-extra/docutil/DevelTool \
-	src-extra/examples/Parse3
+	src-extra/examples/Parse3 \
+	src-extra/h7c/h7c
 
 #	src-extra/examples/ShowCatalog \
 #	src-extra/examples/TypeCheck \
 #	src-extra/examples/TypeCheckDB \
-#	src-extra/h7c/h7c
 
 #	src-extra/chaos/build.lhs
 

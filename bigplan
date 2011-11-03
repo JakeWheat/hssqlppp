@@ -4,11 +4,10 @@ lots of improvements independent to the new typechecking have been
 made deadline: 1st jan 2012, if the new typechecking isn't ready for
 release 0.5.0, then backport the other fixes to master and release
 that with the old typechecking
-
-add flags to pretty print
-check with basic syntax, maybe [identifier]?
-make sure sql server stuff no longer works on postgresql dialect mode
-see sqlserver tests for todo for sql server syntax
+update: definitely don't want to do that, work hard to get crud +
+parameterized statements typechecking reasonably well, then will do
+release with some typechecking regressions in ddl, but no parsing
+regressions
 
 Urgency: want to get tpch typechecking again asap:
 shim in old typeconversion module for now

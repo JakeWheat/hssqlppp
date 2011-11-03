@@ -123,6 +123,7 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,setAtype
    ,errs
    ,setErrs
+   ,asrc
    ,setAsrc
 
 

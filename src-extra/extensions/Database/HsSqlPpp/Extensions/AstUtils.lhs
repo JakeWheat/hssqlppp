@@ -23,6 +23,7 @@ it and quits.
 >     ,replaceSourcePos1
 >     ,getTName
 >     ,resetAnnotations
+>     ,mname
 >     ) where
 >
 > import Data.Generics.Uniplate.Data
@@ -76,7 +77,7 @@ it and quits.
 >
 > -- this is wrong because we don't take into account function overloading
 > getFunctionRefs :: Data a => a -> [String]
-> getFunctionRefs ast = [getTName fn | FunCall _ fn _ <- universeBi ast]
+> getFunctionRefs ast = [getTName fn | App _ fn _ <- universeBi ast]
 >
 > listFunctions :: Data a => a -> [(String,Statement)]
 > listFunctions ast =
@@ -99,4 +100,7 @@ it and quits.
 >     where
 >       gsp :: SourcePosition
 >       gsp = fromMaybe ("unknown",1,1) $ asrc $ getAnnotation st
->       adjSp sp1 = updateAnnotation (\a -> a {asrc = Just sp1})
+>       adjSp sp1 = updateAnnotation (setAsrc $ Just sp1)
+
+> mname :: String -> Name
+> mname s = Name emptyAnnotation [Nmc s]

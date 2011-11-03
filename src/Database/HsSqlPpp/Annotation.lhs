@@ -21,6 +21,7 @@ functions (not including those that depend on the ast data types).
 >     ,setAtype
 >     ,errs
 >     ,setErrs
+>     ,asrc
 >     ,setAsrc
 >     ) where
 >

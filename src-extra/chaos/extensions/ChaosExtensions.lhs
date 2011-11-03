@@ -92,7 +92,7 @@ lookup table. TODO: rewrite this paragraph in english.
 >            select create_client_action_wrapper($s(actname)
 >                                               ,$s(actcall)); |]
 >             -> let actionname = "action_" ++ actname
->                    expr = case parseScalarExpr "" ("action_" ++ actcall) of
+>                    expr = case parseScalarExpr defaultParseFlags "" ("action_" ++ actcall) of
 >                             Left e -> error $ show e
 >                             Right e1 -> e1
 >                in replaceSourcePos1 s [sqlStmt|

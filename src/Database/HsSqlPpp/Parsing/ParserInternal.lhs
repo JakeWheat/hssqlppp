@@ -399,10 +399,27 @@ then you combine by seeing if there is a join looking prefix
 >                 ,return Nothing]
 >         palias = do
 >            p <- pos
->            option (NoAlias p)
+>            r <- option (NoAlias p)
 >                    (try $ optionalSuffix
 >                       (TableAlias p) (optional (keyword "as") *> nameComponent)
 >                       (FullAlias p) () (parens $ commaSep1 nameComponent))
+>            ss <- isSqlServer
+>            if ss
+>              then do
+>                _ <- optional tableHint
+>                return ()
+>              else
+>                return ()
+>            return r
+>         tableHint = do
+>   -- just acts as an incomplete recogniser for table hints:
+>   -- it doesn't accept all valid table hints
+>   -- and doesn't reject all invalid table hints
+>   -- and it doesn't return anything in the ast
+>           try $ keyword "with"
+>           -- just allows any list of identifiers
+>           _ <- parens $ commaSep1 idString
+>           return ()
 >
 > optParens :: SParser a
 >           -> SParser a
@@ -601,7 +618,7 @@ ddl
 >                                    ,"check"
 >                                    ,"foreign"
 >                                    ,"references"]
->                               then fail "not keyword (constraint name)"
+>                               then fail $ "not keyword (constraint name): " ++ x
 >                               else return x
 >
 > alterTable :: SParser Statement
@@ -1590,15 +1607,41 @@ parse x.y, x.y.z, etc.
 
 > qualIdSuffix :: ScalarExpr -> SParser ScalarExpr
 > qualIdSuffix (Identifier p i) = do
->     i1 <- symbol "." *> nameComponent
->     return $ QIdentifier p [i,i1]
+>   qualIdX [i]
 > qualIdSuffix (QIdentifier p is) = do
->     i1 <- symbol "." *> nameComponent
->     return $ QIdentifier p (is ++ [i1])
+>   qualIdX is
+
 > qualIdSuffix e = do
 >     p <- pos
 >     i1 <- symbol "." *> nameComponent
 >     return $ BinaryOp p (nm p ".") e (Identifier p i1)
+
+> qualIdX is = do
+>   ss <- isSqlServer
+>   if ss
+>     then sqls
+>     else regular
+>   where
+>     regular = do
+>               p <- pos
+>               i1 <- symbol "." *> nameComponent
+>               return $ QIdentifier p (is ++ [i1])
+>     sqls = do
+>            p <- pos
+>            numDots <- readNDots
+>            let eis = replicate (numDots - 1) (Nmc "")
+>            i1 <- nameComponent
+>            return $ QIdentifier p (is ++ eis ++ [i1])
+
+the cranky lexer lexes ......
+as mixtures of symbol "." and symbol ".."
+we just want to know how many dots in a row there are
+
+> readNDots :: SParser Int
+> readNDots = sum <$> many1 (choice [1 <$ symbol "."
+>                                   ,2 <$ symbol ".."])
+
+
 
 parse a single namecomponent as an identifier
 
@@ -1609,6 +1652,16 @@ see sql-keywords appendix in pg manual
 
 doesn't deal with non-reserved, and reserved with qualifications yet
 (e.g. the may be function or type catagory), and other categories
+
+I think the categories should be:
+reserved
+reserved but can be function or type
+not reserved but cannot be function or type
+
+these categories affect the parser and typechecker differently
+
+(the parser has to parse some reserved and 'not reserved but cannot be
+function or type' keywords as function names, maybe there are others)
 
 > reservedWords :: [String]
 > reservedWords = [
@@ -1712,7 +1765,24 @@ doesn't deal with non-reserved, and reserved with qualifications yet
 >        ,"loop"]
 
 > ncs :: SParser [NameComponent]
-> ncs = sepBy1 nameComponent (symbol ".")
+> ncs = do
+>   ss <- isSqlServer
+>   if ss
+>     then do
+>       -- what a mess
+>       let another = do
+>             numDots <- readNDots
+>             let empties = replicate (numDots - 1) (Nmc "")
+>             nc <- nameComponent
+>             suf <- choice [another
+>                           ,return []]
+>             return $ empties ++ [nc] ++ suf
+>       i <- nameComponent
+>       suf <- choice [another
+>                     ,return []]
+>       return (i:suf)
+>     else
+>       sepBy1 nameComponent (symbol ".")
 
 parse a complete name
 
@@ -1728,22 +1798,36 @@ instead of failing with a no keyword error
 
 > nameComponentAllows :: [String] -> SParser NameComponent
 > nameComponentAllows allows = do
+>   p <- pos
 >   x <- unrestrictedNameComponent
 >   case x of
 >     Nmc n | map toLower n `elem` allows -> return x
->           | map toLower n `elem` reservedWords -> fail "no keywords"
+>           | map toLower n `elem` reservedWords ->
+>               fail $ "no keywords " ++ show p ++ " " ++ n
 >     _ -> return x
 
 ignore reserved keywords completely
 
 > unrestrictedNameComponent :: SParser NameComponent
-> unrestrictedNameComponent = choice [Nmc <$> idString
->                                    ,QNmc <$> qidString
->                                    ,Nmc <$> spliceD
->                                    ,Nmc <$> ssplice]
->                 where
->                   ssplice = (\s -> "$i(" ++ s ++ ")") <$>
->                               (symbol "$i(" *> idString <* symbol ")")
+> unrestrictedNameComponent = do
+>   ss <- isSqlServer
+>   choice ((if ss
+>            then (tempTableIden :)
+>            else id) [Nmc <$> idString
+>                     ,QNmc <$> qidString
+>                     ,Nmc <$> spliceD
+>                     ,Nmc <$> ssplice])
+>   where
+>      ssplice = (\s -> "$i(" ++ s ++ ")") <$>
+>                (symbol "$i(" *> idString <* symbol ")")
+>      tempTableIden = try $ do
+>                        p <- pos
+>                        symbol "#"
+>                        -- not quite right since allows ws
+>                        -- between # and string
+>                        i <- idString
+>                        return $ Nmc ('#':i)
+
 
 quick hack to support identifiers like this: 'test' for sql server
 

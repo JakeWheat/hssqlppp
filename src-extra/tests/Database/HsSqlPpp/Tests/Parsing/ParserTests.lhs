@@ -63,7 +63,7 @@ Unit test helpers
 > itemToTft (PgSqlStmt a b) = testParsePlpgsqlStatements a b
 > itemToTft (Stmt a b) = testParseStatements PostgreSQLDialect a b
 > itemToTft (MSStmt a b) =
->   testParseStatements (if False
+>   testParseStatements (if True
 >                        then SQLServerDialect
 >                        else PostgreSQLDialect) a b
 > --itemToTft (MSStmt a b) = testParseStatements a b

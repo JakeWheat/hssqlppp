@@ -60,8 +60,12 @@ atype (Annotation _ a _ _ _ _) = a
 setAtype :: Maybe Type -> Annotation -> Annotation
 setAtype a (Annotation s _a e i st c) = Annotation s a e i st c
 
+asrc :: Annotation -> Maybe SourcePosition
+asrc (Annotation s _ _ _ _ _) = s
+
 setAsrc :: Maybe SourcePosition -> Annotation -> Annotation
 setAsrc s (Annotation _s a e i st c) = Annotation s a e i st c
+
 
 errs :: Annotation -> [TypeError]
 errs (Annotation _ _ e _ _ _) = e

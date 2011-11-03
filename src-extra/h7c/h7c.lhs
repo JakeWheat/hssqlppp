@@ -134,7 +134,7 @@ one or more precompiled dlls
 > main :: IO ()
 > main = do
 >   --files <- getArgs
->   eas <- mapM parseStatementsFromFile $ sourceFiles options
+>   eas <- mapM (parseStatementsFromFile defaultParseFlags) $ sourceFiles options
 >   let east :: Either ParseErrorExtra [Statement]
 >       east = do
 >              as <- sequence eas
@@ -143,7 +143,7 @@ one or more precompiled dlls
 >                 return
 >                 east
 >   let tast = extensions options ast
->   putStrLn $ printStatements tast
+>   putStrLn $ printStatements defaultPPFlags tast
 
 
 new:

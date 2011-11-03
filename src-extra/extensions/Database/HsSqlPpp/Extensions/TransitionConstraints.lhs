@@ -145,7 +145,7 @@ implementation
 >                     then [sqlExpr| null |]
 >                     else [sqlExpr| OLD |]
 >               expr = either (error . show) id
->                             $ parseScalarExpr "" expressionText
+>                             $ parseScalarExpr defaultParseFlags "" expressionText
 >           in [sqlStmts|
 
 \begin{code}

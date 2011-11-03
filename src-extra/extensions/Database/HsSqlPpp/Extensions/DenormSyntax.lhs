@@ -46,7 +46,7 @@ tests
 >         |] $ Right [ DTable "pieces" []
 >                        [AttributeDef ea
 >                         (Nmc "ptype")
->                         (SimpleTypeName ea "text")
+>                         (SimpleTypeName ea (mname "text"))
 >                         Nothing
 >                         [RowPrimaryKeyConstraint ea ""]]]
 >          ,ParseTest [here|
@@ -56,9 +56,9 @@ tests
 >         );
 >         |] $ Right [ DTable "creatures" ["pieces"]
 >                        [AttributeDef ea (Nmc "speed")
->                         (SimpleTypeName ea "int") Nothing []
+>                         (SimpleTypeName ea $ mname "int") Nothing []
 >                        ,AttributeDef ea (Nmc "agility")
->                         (SimpleTypeName ea "int") Nothing []]]
+>                         (SimpleTypeName ea $ mname "int") Nothing []]]
 >          ,ParseTest [here|
 >         mutually_exclusive(attackers,creatures);
 >         |] $ Right [ MutualExclusion "attackers" "creatures"]
@@ -70,9 +70,9 @@ tests
 >         );
 >         |] $ Right [ DTable "monsters" ["creatures", "attackers"]
 >                        [AttributeDef ea (Nmc "resistance")
->                         (SimpleTypeName ea "int") Nothing []
+>                         (SimpleTypeName ea $ mname "int") Nothing []
 >                        ,AttributeDef ea (Nmc "armour")
->                         (SimpleTypeName ea "int") Nothing []]]
+>                         (SimpleTypeName ea $ mname "int") Nothing []]]
 >          ,ParseTest [here|
 >         attacking_creatures : pieces,attackers;
 >         |] $ Right [ DTable "attacking_creatures" ["pieces","attackers"] []]
@@ -92,12 +92,10 @@ tests
 parsing code
 ============
 
-> type MyParser = GenParser Token ParseState
+> type MyParser = GenParser Token ParseFlags
 >
-> type ParseState = ()
->
-> startState :: ()
-> startState = ()
+> startState :: ParseFlags
+> startState = defaultParseFlags
 >
 > parseD6nf :: String -> Int -> Int -> String -> Either String [D6nfStatement]
 > parseD6nf f l c s = do

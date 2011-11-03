@@ -336,3 +336,57 @@ src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
 src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o
+src-extra/h7c/h7c : src-extra/h7c/h7c.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Pretty.o \
+src-extra/chaos/extensions/ChaosExtensions.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/ExtensionsUtils.o \
+src/Database/HsSqlPpp/Quote.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/TransitionConstraints.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/Modules.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/CreateAssertion.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/CreateVar.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/CardinalityRestrict.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/SimplifiedCatalog.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/Denormalized6nf.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/AstUtils.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/DenormSyntax.o \
+src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.o
+	$(HC) $(HC_OPTS) -o src-extra/h7c/h7c src-extra/h7c/h7c.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Pretty.o \
+src-extra/chaos/extensions/ChaosExtensions.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/ExtensionsUtils.o \
+src/Database/HsSqlPpp/Quote.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/TransitionConstraints.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/Modules.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/CreateAssertion.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/CreateVar.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/CardinalityRestrict.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/SimplifiedCatalog.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/Denormalized6nf.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/AstUtils.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/DenormSyntax.o \
+src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.o
