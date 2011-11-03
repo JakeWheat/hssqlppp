@@ -34,7 +34,7 @@ There are no tests for invalid syntax at the moment.
 > import Database.HsSqlPpp.Tests.Parsing.FunctionsDdl
 > import Database.HsSqlPpp.Tests.Parsing.Plpgsql
 > import Database.HsSqlPpp.Tests.Parsing.Misc
-
+> import Database.HsSqlPpp.Tests.Parsing.SqlServer
 > import Database.HsSqlPpp.Tests.TestUtils
 
 > parserTests :: Test.Framework.Test
@@ -51,6 +51,7 @@ There are no tests for invalid syntax at the moment.
 >                          ,functionsDdlParsingTestData]
 >             ,pgplsqlParsingTestData
 >             ,miscParserTestData
+>             ,sqlServerParseTests
 >             ]
 
 --------------------------------------------------------------------------------

@@ -47,13 +47,13 @@
 >        (sl (selIL ["a"]))
 >        [Tref ea (i "t") (NoAlias ea)]
 >        Nothing [] Nothing [] (Just (NumberLit ea "10")) Nothing]-}
->      ,s "SELECT T.A::INT FROM TABLE AS T;"
+>      ,s "SELECT T.A::INT FROM TBL AS T;"
 >         [QueryStatement ea
 >          (Select ea Dupes
 >           (SelectList ea
 >            [SelExp ea (Cast ea (QIdentifier ea [Nmc "T",Nmc "A"])
 >                        (SimpleTypeName ea $ name "INT"))])
->           [Tref ea (Name ea [Nmc "TABLE"]) (TableAlias ea (Nmc "T"))]
+>           [Tref ea (Name ea [Nmc "TBL"]) (TableAlias ea (Nmc "T"))]
 >           Nothing [] Nothing [] Nothing Nothing)]
 >      ]
 >
@@ -342,11 +342,6 @@
 >        (sl (selEL [Star ea]))
 >        [Tref ea (i "a") (NoAlias ea)]
 >        Nothing [] Nothing [(Identifier ea "c",Asc)] (Just (NumberLit ea "1")) Nothing]
->      ,s "select top 3 * from a order by c;"
->       [QueryStatement ea $ Select ea Dupes
->        (sl (selEL [Star ea]))
->        [Tref ea (i "a") (NoAlias ea)]
->        Nothing [] Nothing [(Identifier ea "c",Asc)] (Just (NumberLit ea "3")) Nothing]
 >      ,s "select * from a order by c offset 3;"
 >       [QueryStatement ea $ Select ea Dupes
 >        (sl (selEL [Star ea]))

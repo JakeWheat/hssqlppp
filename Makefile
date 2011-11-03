@@ -70,7 +70,8 @@ EXE_FILES = src-extra/tests/Tests \
 	src-extra/examples/Parse \
 	src-extra/examples/Parse2 \
 	src-extra/examples/QQ \
-	src-extra/docutil/DevelTool
+	src-extra/docutil/DevelTool \
+	src-extra/examples/Parse3
 
 #	src-extra/examples/ShowCatalog \
 #	src-extra/examples/TypeCheck \

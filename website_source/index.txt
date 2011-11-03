@@ -19,7 +19,10 @@ With some extra work:
 
 * generating documentation for SQL code
 * support running one dialect of SQL on a different DBMS using
-  automatic translation - portable SQL
+  automatic translation - portable SQL (less realistic alternatives
+  are: maintain two codebases, or use only SQL which both DBMSs
+  support, which I suppose works if all you are doing is simple
+  select/insert/update/delete statements).
 * typesafe database access from Haskell
 * lint or semantic analysis for SQL or PL/pgSQL
 
@@ -97,6 +100,7 @@ doesn't parse/typecheck correctly where relevant.
 Provisional future plans
 ========================
 
+* good support for SQL Server syntax also (probably including TSQL)
 * parameterized statements/typesafe haskell access
 * some simple syntax extension support for SQL
 * a 'compiler' command to help developing SQL

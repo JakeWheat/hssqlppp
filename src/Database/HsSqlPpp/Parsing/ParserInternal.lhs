@@ -46,7 +46,7 @@ right choice, but it seems to do the job pretty well at the moment.
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation as A
 > import Database.HsSqlPpp.Utils.Utils
-> import Database.HsSqlPpp.Catalog
+> --import Database.HsSqlPpp.Catalog
 > --import Debug.Trace
 
 --------------------------------------------------------------------------------
@@ -354,7 +354,7 @@ then you combine by seeing if there is a join looking prefix
 >                          <$> try (identifier >>= functionCallSuffix)
 >                          <*> palias
 >                         ,Tref p2
->                          <$> nonKeywordName
+>                          <$> name
 >                          <*> palias]
 >         joinKw :: SParser (Natural, JoinType)
 >         joinKw = do
@@ -381,7 +381,7 @@ then you combine by seeing if there is a join looking prefix
 >            p <- pos
 >            option (NoAlias p)
 >                    (try $ optionalSuffix
->                       (TableAlias p) (optional (keyword "as") *> nonKeywordNc)
+>                       (TableAlias p) (optional (keyword "as") *> nameComponent)
 >                       (FullAlias p) () (parens $ commaSep1 nameComponent))
 >
 > optParens :: SParser a
@@ -832,7 +832,7 @@ or after the whole list
 >     selectItem = pos >>= \p ->
 >                  optionalSuffix
 >                    (SelExp p) (starExpr <|> expr)
->                    (SelectItem p) () (keyword "as" *> nameComponent)
+>                    (SelectItem p) () (keyword "as" *> asAlias)
 
 should try to factor this into the standard expr parse (use a flag) so
 that can left factor the 'name component . '  part and avoid the try
@@ -1136,6 +1136,11 @@ with a function, so you don't try an parse a keyword as a function name
 >       ,try interval
 >       ,try typedStringLit
 >       ,antiScalarExpr
+>       -- want to parse any(...) and all(...) as functions
+>       -- but these are reserved keywords, so do a workaround
+>       -- (these get fixed to correct syntax in fixupTree below)
+>       -- this will still allow some invalid syntax through atm
+>       ,anyAll
 >       ,identifier
 >       ]
 
@@ -1434,25 +1439,39 @@ be caught during typechecking. The typechecker doesn't really do much
 checking with aggregates at the moment so should fix it all together.
 
 > functionCallSuffix :: ScalarExpr -> SParser ScalarExpr
-> functionCallSuffix (Identifier _ (Nmc fnName)) = do
+> functionCallSuffix ex =
+>  -- bit hacky, if exp is a identifier or qualified, then
+>  -- convert to function, also support antiquote for function name
+>    case ex of
+>      Identifier _ n -> fn [n]
+>      QIdentifier _ nms -> fn nms
+>      AntiScalarExpr n -> fn [Nmc $ "$(" ++ n ++ ")"]
+>      s -> fail $ "cannot make functioncall from " ++ show s
+>    where
+>      fn :: [NameComponent] -> SParser ScalarExpr
+>      fn fnName = do
+>        p <- pos
+>        (di,as,ob) <- parens
+>                      $ choice [ -- handle a single *
+>                                (Nothing,,[]) <$> ((:[]) <$> (Star <$> pos <* symbol "*"))
+>                               ,(,,)
+>                                <$> optionMaybe
+>                                     (choice [Distinct <$ keyword "distinct"
+>                                             ,Dupes <$ keyword "all"])
+>                                <*> commaSep expr
+>                                <*> orderBy]
+>        let nameName = Name p fnName
+>        return $ case (di,ob) of
+>          (Nothing,[]) -> App p nameName as
+>          (d,o) -> AggregateApp p (fromMaybe Dupes d) (App p nameName as) o
+
+> anyAll :: SParser ScalarExpr
+> anyAll = try $ do
 >   p <- pos
->   (di,as,ob) <- parens
->                 $ choice [ -- handle a single *
->                           (Nothing,,[]) <$> ((:[]) <$> (Star <$> pos <* symbol "*"))
->                          ,(,,)
->                           <$> optionMaybe
->                                (choice [Distinct <$ keyword "distinct"
->                                        ,Dupes <$ keyword "all"])
->                           <*> commaSep expr
->                           <*> orderBy]
->   return $ case (di,ob) of
->     (Nothing,[]) -> App p (nm p fnName) as
->     (d,o) -> AggregateApp p (fromMaybe Dupes d) (App p (nm p fnName) as) o
-> --hack for antiquoted function name
-> functionCallSuffix (AntiScalarExpr n) =
->   functionCallSuffix (Identifier emptyAnnotation (Nmc $ "$(" ++ n ++ ")"))
-> functionCallSuffix s =
->   fail $ "cannot make functioncall from " ++ show s
+>   i <- nameComponentAllows ["any","all"]
+>   unless (i `elem` [Nmc "any", Nmc "all"]) $ fail "not any or all"
+>   functionCallSuffix (Identifier p i)
+
 >
 > castKeyword :: SParser ScalarExpr
 > castKeyword = Cast
@@ -1541,78 +1560,178 @@ checking with aggregates at the moment so should fix it all together.
 
 ------------------------------------------------------------
 
-identifier wasteland
+identifier parsing, quite a few variations ...
+
+parse x.y, x.y.z, etc.
 
 > qualIdSuffix :: ScalarExpr -> SParser ScalarExpr
 > qualIdSuffix (Identifier p i) = do
 >     i1 <- symbol "." *> nameComponent
 >     return $ QIdentifier p [i,i1]
+> qualIdSuffix (QIdentifier p is) = do
+>     i1 <- symbol "." *> nameComponent
+>     return $ QIdentifier p (is ++ [i1])
 > qualIdSuffix e = do
 >     p <- pos
 >     i1 <- symbol "." *> nameComponent
 >     return $ BinaryOp p (nm p ".") e (Identifier p i1)
 
+parse a single namecomponent as an identifier
 
 > identifier :: SParser ScalarExpr
 > identifier = Identifier <$> pos <*> nameComponent
->
 
-bit hacky, avoid a bunch of keywords. Not exactly sure which keywords
-should be in the blacklist, and where this parser should be used
-instead of the full parser which allows keywords. Also not sure if
-keywords used in qualified names should be rejected the same as
-keywords which are unqualified.
+see sql-keywords appendix in pg manual
 
-> nonKeywordNc :: SParser NameComponent
-> nonKeywordNc = do
->   x <- nameComponent
->   if x `elem` badKeywords
->     then fail "not keyword (NameComponent)"
->     else return x
->   where
->     badKeywords = map Nmc
->                   ["as"
->                   ,"where"
->                   ,"except"
->                   ,"union"
->                   ,"intersect"
->                   ,"loop"
->                   ,"inner"
->                   ,"on"
->                   ,"left"
->                   ,"right"
->                   ,"full"
->                   ,"cross"
->                   ,"join"
->                   ,"natural"
->                   ,"order"
->                   ,"group"
->                   ,"limit"
->                   ,"using"
->                   ,"from"]
+doesn't deal with non-reserved, and reserved with qualifications yet
+(e.g. the may be function or type catagory), and other categories
 
-
-> nonKeywordNcs :: SParser [NameComponent]
-> nonKeywordNcs = sepBy1 nonKeywordNc (symbol ".")
+> reservedWords :: [String]
+> reservedWords = [
+>         "all"
+>        ,"analyse"
+>        ,"analyze"
+>        ,"and"
+>        ,"any"
+>        ,"array"
+>        ,"as"
+>        ,"asc"
+>        ,"symmetric"
+>        ,"authorization"
+>        ,"binary"
+>        ,"both"
+>        ,"case"
+>        ,"cast"
+>        ,"check"
+>        ,"collate"
+>        ,"column"
+>        ,"concurrently"
+>        ,"constraint"
+>        ,"create"
+>        ,"cross"
+>        ,"current_catalog"
+>        ,"current_date"
+>        ,"current_role"
+>        ,"current_time"
+>        ,"current_timestamp"
+>        ,"current_user"
+>        ,"default"
+>        ,"deferrable"
+>        ,"desc"
+>        ,"distinct"
+>        ,"do"
+>        ,"else"
+>        ,"end"
+>        ,"except"
+>        ,"false"
+>        ,"fetch"
+>        ,"for"
+>        ,"freeze"
+>        ,"from"
+>        ,"full"
+>        ,"grant"
+>        ,"group"
+>        ,"having"
+>        ,"ilike"
+>        ,"in"
+>        ,"initially"
+>        ,"inner"
+>        ,"intersect"
+>        ,"into"
+>        ,"is"
+>        ,"isnull"
+>        ,"join"
+>        ,"leading"
+>        ,"left"
+>        ,"like"
+>        ,"limit"
+>        ,"localtime"
+>        ,"localtimestamp"
+>        ,"natural"
+>        ,"not"
+>        ,"notnull"
+>        ,"null"
+>        ,"offset"
+>        ,"on"
+>        ,"only"
+>        ,"or"
+>        ,"order"
+>        ,"outer"
+>        ,"over"
+>        ,"overlaps"
+>        ,"placing"
+>        ,"primary"
+>        ,"references"
+>        ,"returning"
+>        ,"right"
+>        ,"select"
+>        ,"session_user"
+>        ,"similar"
+>        ,"some"
+>        ,"symmetric"
+>        ,"table"
+>        ,"then"
+>        ,"to"
+>        ,"trailing"
+>        ,"true"
+>        ,"union"
+>        ,"unique"
+>        ,"user"
+>        ,"using"
+>        ,"variadic"
+>        ,"verbose"
+>        ,"when"
+>        ,"where"
+>        ,"window"
+>        ,"with"
+>        --extras for hssqlppp: Todo: fix this
+>        ,"loop"]
 
 > ncs :: SParser [NameComponent]
 > ncs = sepBy1 nameComponent (symbol ".")
 
+parse a complete name
+
 > name :: SParser Name
 > name = Name <$> pos <*> ncs
 
-> nonKeywordName :: SParser Name
-> nonKeywordName = Name <$> pos <*> nonKeywordNcs
-
 > nameComponent :: SParser NameComponent
-> nameComponent = choice [Nmc <$> idString
->                        ,QNmc <$> qidString
->                        ,Nmc <$> spliceD
->                        ,Nmc <$> ssplice]
+> nameComponent = nameComponentAllows []
+
+parser for a name component where you supply the exceptions to the
+reserved identifier list to say you want these to parse successfully
+instead of failing with a no keyword error
+
+> nameComponentAllows :: [String] -> SParser NameComponent
+> nameComponentAllows allows = do
+>   x <- unrestrictedNameComponent
+>   case x of
+>     Nmc n | map toLower n `elem` allows -> return x
+>           | map toLower n `elem` reservedWords -> fail "no keywords"
+>     _ -> return x
+
+ignore reserved keywords completely
+
+> unrestrictedNameComponent :: SParser NameComponent
+> unrestrictedNameComponent = choice [Nmc <$> idString
+>                                    ,QNmc <$> qidString
+>                                    ,Nmc <$> spliceD
+>                                    ,Nmc <$> ssplice]
 >                 where
 >                   ssplice = (\s -> "$i(" ++ s ++ ")") <$>
 >                               (symbol "$i(" *> idString <* symbol ")")
 
+quick hack to support identifiers like this: 'test' for sql server
+
+not sure how to do this properly, you must not be able to write
+strings in sql server using single quotes.
+
+> asAlias :: SParser NameComponent
+> asAlias =
+>   choice [nameComponent
+>          ,do
+>          s <- stringN
+>          return $ QNmc s]
 
 --------------------------------------------------------------------------------
 

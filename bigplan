@@ -5,28 +5,19 @@ made deadline: 1st jan 2012, if the new typechecking isn't ready for
 release 0.5.0, then backport the other fixes to master and release
 that with the old typechecking
 
-docs: write a preprocessor for the .hs produced from the .ag
-want to add the LANGUAGE directives
-and also add the haddock docs which get stripped out
-and also convert some of the data type definitions to use record syntax
-want to do this automatically, not sure how can parse the original ag
-  though?
 
-start with annotation as example:
-have explicit list of data types in astinternal that want to do this for
-find the complete definition of annotation in astinternal.hs
-want to replace part of this, would like to avoid killing other
-comments in astinternal.hs
-find the original definition of annotation in the ag files
-a) parse out the haddock string for each field
-b) parse out the field name and type for each field
-replace the def in astinternal with the replacement:
-include haddock strings
-use record notation
+Urgency: want to get tpch typechecking again asap:
+shim in old typeconversion module for now
+add options to rewrite tree as typechecking:
+  qualifiers, tref aliases, selectitem names
+typechecking: main areas:
+work on scalar exprs
+more work on trefs: joins, subtrefs
+ (leave funtrefs for now)
+other areas:
+  group by, having, order by
+  basic combine query
 
-what to do this for:
-ctor with lots of components in the ast -> particularly queryexpr
-annotation is really poor without docs
 
 
 typechecking:
@@ -158,3 +149,27 @@ e.g. 'count(*)' is rewritten to 'count(*) as count'
 
 Most of these are mainly useful for code which wants to
 query/transform the ast.
+
+
+docs: write a preprocessor for the .hs produced from the .ag
+want to add the LANGUAGE directives
+and also add the haddock docs which get stripped out
+and also convert some of the data type definitions to use record syntax
+want to do this automatically, not sure how can parse the original ag
+  though?
+
+start with annotation as example:
+have explicit list of data types in astinternal that want to do this for
+find the complete definition of annotation in astinternal.hs
+want to replace part of this, would like to avoid killing other
+comments in astinternal.hs
+find the original definition of annotation in the ag files
+a) parse out the haddock string for each field
+b) parse out the field name and type for each field
+replace the def in astinternal with the replacement:
+include haddock strings
+use record notation
+
+what to do this for:
+ctor with lots of components in the ast -> particularly queryexpr
+annotation is really poor without docs
