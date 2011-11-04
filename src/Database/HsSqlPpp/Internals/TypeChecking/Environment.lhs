@@ -26,6 +26,8 @@ and variables, etc.
 > import Data.Char
 > import Data.Maybe
 > import Control.Monad
+> import Control.Arrow
+> import Data.List
 
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
@@ -90,8 +92,8 @@ catalog and combining environment values with updates
 >   -- todo: handle natural join case
 >   let jids = maybe (error "natural join ids") (map (nnm . (:[]))) jsc
 >   jts <- forM jids $ \i -> do
->            t0 <- envLookupIdentifier [QNmc i] tref0
->            t1 <- envLookupIdentifier [QNmc i] tref1
+>            (_,t0) <- envLookupIdentifier [QNmc i] tref0
+>            (_,t1) <- envLookupIdentifier [QNmc i] tref1
 >            fmap (i,) $ resolveResultSetType cat [t0,t1]
 >   -- todo: check type compatibility
 >   return $ JoinTref jts tref0 tref1
@@ -119,20 +121,23 @@ implicit correlation names, ambigous identifiers, etc.
 
 -----------------------------------------------------
 
-> envLookupIdentifier :: [NameComponent] -> Environment -> Either [TypeError] Type
+> envLookupIdentifier :: [NameComponent] -> Environment
+>                     -> Either [TypeError] ((String,String), Type)
 > envLookupIdentifier nmc EmptyEnvironment = Left [UnrecognisedIdentifier $ nnm nmc]
 
-> envLookupIdentifier nmc (SimpleTref _nm pub _prv) =
+> envLookupIdentifier nmc (SimpleTref nm pub prv) =
 >   let n = nnm nmc
->   in case lookup n pub of
->        Just t -> return t
->        Nothing -> Left [UnrecognisedIdentifier n]
+>   in case (lookup n pub,lookup n prv) of
+>        (Just _, Just _) -> Left [AmbiguousIdentifier n]
+>        (Just t,_) -> return ((nm,n),t)
+>        (_,Just t) -> return ((nm,n),t)
+>        (Nothing,Nothing) -> Left [UnrecognisedIdentifier n]
 
 > envLookupIdentifier nmc (SelectListEnv cols) =
 >     -- todo: this isn't right
 >   let n = nnm nmc
 >   in case lookup n cols of
->        Just t -> return t
+>        Just t -> return (("",n),t)
 >        Nothing -> Left [UnrecognisedIdentifier n]
 
 > envLookupIdentifier nmc (CSQEnv cenv env) =
@@ -148,9 +153,10 @@ implicit correlation names, ambigous identifiers, etc.
 >   in case (lookup n jids
 >           ,envLookupIdentifier nmc env0
 >           ,envLookupIdentifier nmc env1) of
->        -- not sure this is right, errors are ignored, hope
+>        -- not sure this is right, errors are ignored when the other
+>        -- tref returns something value, hope
 >        -- this doesn't hide something
->        (Just t, _, _) -> Right t
+>        (Just _, Right t, _) -> Right t -- by default qualify with the first name
 >        (_,Left _, Left _) -> Left [UnrecognisedIdentifier n]
 >        (_,Right t, Left _) -> Right t
 >        (_,Left _, Right t) -> Right t
@@ -158,15 +164,17 @@ implicit correlation names, ambigous identifiers, etc.
 
 -------------------------------------------------------
 
-> envExpandStar :: Maybe NameComponent -> Environment -> Either [TypeError] [(String,Type)]
+> envExpandStar :: Maybe NameComponent -> Environment -> Either [TypeError] [((String,String),Type)]
 > envExpandStar _nmc  EmptyEnvironment = Left [BadStarExpand]
 
-> envExpandStar _nmc (SelectListEnv cols) = Right cols
+> envExpandStar _nmc (SelectListEnv cols) = Right $ map (first ("",)) cols
+
+> envExpandStar nmc (CSQEnv _cenv env) = envExpandStar nmc env
 
 > envExpandStar nmc (SimpleTref nm pub _prv)
 >   | case nmc of
 >              Nothing -> True
->              Just x -> nnm [x] == nm = Right pub
+>              Just x -> nnm [x] == nm = Right $ map (first (nm,)) pub
 >   | otherwise = case nmc of
 >                    Nothing -> Left [BadStarExpand]
 >                    Just n -> Left [UnrecognisedCorrelationName $ nnm [n]]
@@ -178,12 +186,15 @@ implicit correlation names, ambigous identifiers, etc.
 >   -- type compatibility is checked
 >   -- then the env0 columns without any join cols
 >   -- then the env1 columns without any join cols
->   t0 <- noJs env0
->   t1 <- noJs env1
->   return $ jts ++ t0 ++ t1
+>   s0 <- envExpandStar nmc env0
+>   s1 <- envExpandStar nmc env1
+>   let (js,t0s) = partition isJ s0
+>       t1s = filter (not . isJ) s1
+>   return $ js ++ t0s ++ t1s
 >   where
->     noJs e = do
->              se <- envExpandStar nmc e
->              return $ filter ((`notElem` (map fst jts)) . fst) se
+>     isJ a = (snd . fst $ a) `elem` map fst jts
 
-> envExpandStar nmc (CSQEnv _cenv env) = envExpandStar nmc env
+(a -> a -> Bool) -> [a] -> [a] -> [a]
+
+filter ((`notElem` (map (snd.fst)fst jts)) . snd . fst) se
+

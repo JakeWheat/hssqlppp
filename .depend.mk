@@ -82,6 +82,7 @@ src/Database/HsSqlPpp/Pretty.o : src/Database/HsSqlPpp/Utils/Utils.hi
 src/Database/HsSqlPpp/Pretty.o : src/Database/HsSqlPpp/Annotation.hi
 src/Database/HsSqlPpp/Pretty.o : src/Database/HsSqlPpp/Ast.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.lhs
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.o : src-extra/catalogReader/Database/HsSqlPpp/Utils/GroomNoAnns.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.o : src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.o : src/Database/HsSqlPpp/Pretty.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.o : src/Database/HsSqlPpp/Types.hi
@@ -93,9 +94,15 @@ src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ScalarExprs.o : src-extra/t
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ScalarExprs.o : src/Database/HsSqlPpp/Types.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ScalarExprs.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/SimpleQueryExprs.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/SimpleQueryExprs.lhs
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/SimpleQueryExprs.o : src/Database/HsSqlPpp/TypeChecker.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/SimpleQueryExprs.o : src/Database/HsSqlPpp/Catalog.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/SimpleQueryExprs.o : src/Database/HsSqlPpp/Types.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/SimpleQueryExprs.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.hi
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Rewrites.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Rewrites.lhs
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Rewrites.o : src/Database/HsSqlPpp/TypeChecker.hi
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Rewrites.o : src/Database/HsSqlPpp/Catalog.hi
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Rewrites.o : src/Database/HsSqlPpp/Types.hi
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Rewrites.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Joins.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Joins.lhs
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Joins.o : src/Database/HsSqlPpp/Catalog.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Joins.o : src/Database/HsSqlPpp/Types.hi
@@ -107,6 +114,7 @@ src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Tpch.o : src/Database/HsSql
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.lhs
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Tpch.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Joins.hi
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Rewrites.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/SimpleQueryExprs.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ScalarExprs.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.hi

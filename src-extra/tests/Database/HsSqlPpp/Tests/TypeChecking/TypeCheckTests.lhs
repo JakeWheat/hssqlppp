@@ -11,6 +11,7 @@
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
 > import Database.HsSqlPpp.Tests.TypeChecking.ScalarExprs
 > import Database.HsSqlPpp.Tests.TypeChecking.SimpleQueryExprs
+> import Database.HsSqlPpp.Tests.TypeChecking.Rewrites
 > import Database.HsSqlPpp.Tests.TypeChecking.Joins
 > import Database.HsSqlPpp.Tests.TypeChecking.Tpch
 
@@ -20,7 +21,8 @@
 >     [scalarExprs
 >     ,simpleQueryExprs
 >     ,joins
->     ,tpch
+>     --,rewrites
+>     --,tpch
 >     ]
 
 > typeCheckTests :: Test.Framework.Test

@@ -415,7 +415,7 @@ expandStarsStatements cat sts =
          Root r -> r
 {-# LINE 417 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
 
-{-# LINE 155 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+{-# LINE 157 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
 
 tcAppLike :: Catalog -> Name -> [Maybe Type] -> Either [TypeError] Type
 tcAppLike cat anm args = do
@@ -5399,7 +5399,7 @@ sem_ScalarExpr_AggregateApp ann_ aggDistinct_ fn_ orderBy_  =
                { _fnOcat ->
                (case (fn_ _fnOcat _fnOdownEnv _fnOflags ) of
                 { ( _fnIannotatedTree,_fnIexpandedStars,_fnIoriginalTree,_fnIupType) ->
-                    (case (({-# LINE 149 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                    (case (({-# LINE 151 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                             case _fnIoriginalTree of
                               (App _ fnm@(Name _ [Nmc "count"]) [Star _]) ->
                                   tcAppLike _lhsIcat fnm [Just UnknownType]
@@ -5500,7 +5500,7 @@ sem_ScalarExpr_AntiScalarExpr string_  =
                       {-# LINE 5501 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _lhsOoriginalTree ->
-               (case (({-# LINE 217 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+               (case (({-# LINE 219 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                        Left []
                        {-# LINE 5506 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
@@ -5545,7 +5545,7 @@ sem_ScalarExpr_App ann_ funName_ args_  =
                                    {-# LINE 5546 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _originalTree ->
-                            (case (({-# LINE 135 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                            (case (({-# LINE 137 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                     case _originalTree of
                                       (App _ (Name _ [Nmc "count"]) [Star _]) ->
                                           tcAppLike _lhsIcat _funNameIoriginalTree [Just UnknownType]
@@ -5663,7 +5663,7 @@ sem_ScalarExpr_BinaryOp ann_ opName_ arg0_ arg1_  =
                      { ( _arg0IannotatedTree,_arg0IexpandedStars,_arg0IoriginalTree,_arg0IupType) ->
                          (case (opName_ ) of
                           { ( _opNameIoriginalTree,opName_1) ->
-                              (case (({-# LINE 141 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                              (case (({-# LINE 143 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                                       tcAppLike _lhsIcat _opNameIoriginalTree [_arg0IupType,_arg1IupType]
                                       {-# LINE 5669 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
@@ -5840,7 +5840,7 @@ sem_ScalarExpr_Case ann_ cases_ els_  =
                      {-# LINE 5841 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _casesOcat ->
-              (case (({-# LINE 217 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+              (case (({-# LINE 219 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                       Left []
                       {-# LINE 5846 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
@@ -5953,7 +5953,7 @@ sem_ScalarExpr_CaseSimple ann_ value_ cases_ els_  =
                         {-# LINE 5954 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _valueOcat ->
-                 (case (({-# LINE 217 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                 (case (({-# LINE 219 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                          Left []
                          {-# LINE 5959 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
@@ -6133,12 +6133,12 @@ sem_ScalarExpr_Exists ann_ sel_  =
                   {-# LINE 6134 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _selOcat ->
-           (case (({-# LINE 204 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+           (case (({-# LINE 206 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    Just _lhsIdownEnv
                    {-# LINE 6139 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _selOouterDownEnv ->
-            (case (({-# LINE 183 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+            (case (({-# LINE 185 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                     Right typeBool
                     {-# LINE 6144 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
@@ -6297,7 +6297,7 @@ sem_ScalarExpr_Identifier ann_ i_  =
        _lhsIdownEnv
        _lhsIflags ->
          (case (({-# LINE 121 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
-                 envLookupIdentifier [i_] _lhsIdownEnv
+                 fmap snd $ envLookupIdentifier [i_] _lhsIdownEnv
                  {-# LINE 6302 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tpe ->
@@ -6395,7 +6395,7 @@ sem_ScalarExpr_InPredicate ann_ expr_ i_ list_  =
                       {-# LINE 6396 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _exprOcat ->
-               (case (({-# LINE 217 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+               (case (({-# LINE 219 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                        Left []
                        {-# LINE 6401 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
@@ -6552,7 +6552,7 @@ sem_ScalarExpr_LiftApp ann_ oper_ flav_ args_  =
                    {-# LINE 6553 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _argsOcat ->
-            (case (({-# LINE 217 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+            (case (({-# LINE 219 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                     Left []
                     {-# LINE 6558 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
@@ -6846,7 +6846,7 @@ sem_ScalarExpr_PositionalArg ann_ p_  =
     (\ _lhsIcat
        _lhsIdownEnv
        _lhsIflags ->
-         (case (({-# LINE 217 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+         (case (({-# LINE 219 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  Left []
                  {-# LINE 6852 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
@@ -6933,7 +6933,7 @@ sem_ScalarExpr_PostfixOp ann_ opName_ arg_  =
              { ( _argIannotatedTree,_argIexpandedStars,_argIoriginalTree,_argIupType) ->
                  (case (opName_ ) of
                   { ( _opNameIoriginalTree,opName_1) ->
-                      (case (({-# LINE 145 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                      (case (({-# LINE 147 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                               tcAppLike _lhsIcat _opNameIoriginalTree [_argIupType]
                               {-# LINE 6939 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
@@ -7037,7 +7037,7 @@ sem_ScalarExpr_PrefixOp ann_ opName_ arg_  =
              { ( _argIannotatedTree,_argIexpandedStars,_argIoriginalTree,_argIupType) ->
                  (case (opName_ ) of
                   { ( _opNameIoriginalTree,opName_1) ->
-                      (case (({-# LINE 143 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                      (case (({-# LINE 145 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                               tcAppLike _lhsIcat _opNameIoriginalTree [_argIupType]
                               {-# LINE 7043 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
@@ -7121,8 +7121,8 @@ sem_ScalarExpr_QIdentifier ann_ is_  =
     (\ _lhsIcat
        _lhsIdownEnv
        _lhsIflags ->
-         (case (({-# LINE 217 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
-                 Left []
+         (case (({-# LINE 124 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                 fmap snd $ envLookupIdentifier is_ _lhsIdownEnv
                  {-# LINE 7127 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tpe ->
@@ -7188,7 +7188,7 @@ sem_ScalarExpr_QStar ann_ q_  =
     (\ _lhsIcat
        _lhsIdownEnv
        _lhsIflags ->
-         (case (({-# LINE 217 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+         (case (({-# LINE 219 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  Left []
                  {-# LINE 7194 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
@@ -7265,14 +7265,14 @@ sem_ScalarExpr_ScalarSubQuery ann_ sel_  =
                   {-# LINE 7266 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _selOcat ->
-           (case (({-# LINE 202 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+           (case (({-# LINE 204 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    Just _lhsIdownEnv
                    {-# LINE 7271 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _selOouterDownEnv ->
             (case (sel_ _selOcat _selOflags _selOouterDownEnv ) of
              { ( _selIannotatedTree,_selIexpandedStars,_selIoriginalTree,_selIupType) ->
-                 (case (({-# LINE 193 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                 (case (({-# LINE 195 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                          do
                          selType <- maybe (Left []) Right _selIupType
                          case length selType of
@@ -7364,7 +7364,7 @@ sem_ScalarExpr_SpecialOp ann_ opName_ args_  =
              { ( _argsIannotatedTree,_argsIexpandedStars,_argsIoriginalTree,_argsIupTypes) ->
                  (case (opName_ ) of
                   { ( _opNameIoriginalTree,opName_1) ->
-                      (case (({-# LINE 147 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                      (case (({-# LINE 149 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                               tcAppLike _lhsIcat _opNameIoriginalTree _argsIupTypes
                               {-# LINE 7370 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
@@ -7447,7 +7447,7 @@ sem_ScalarExpr_Star ann_  =
     (\ _lhsIcat
        _lhsIdownEnv
        _lhsIflags ->
-         (case (({-# LINE 217 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+         (case (({-# LINE 219 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                  Left []
                  {-# LINE 7453 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
@@ -7709,7 +7709,7 @@ sem_ScalarExpr_WindowApp ann_ fn_ partitionBy_ orderBy_ frm_  =
                          {-# LINE 7710 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _fnOcat ->
-                  (case (({-# LINE 217 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
+                  (case (({-# LINE 219 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                           Left []
                           {-# LINE 7715 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                           )) of
@@ -9044,7 +9044,7 @@ sem_SelectItem_SelExp ann_ ex_  =
                                               case _exIoriginalTree of
                                                 Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
                                                    let a = _annIoriginalTree
-                                                   in map (\(n,_) -> SelExp a (Identifier a (QNmc n))) is
+                                                   in map (\((q,n),_) -> SelExp a (QIdentifier a [QNmc q,QNmc n])) is
                                                 _ -> [_originalTree]
                                               {-# LINE 9050 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of

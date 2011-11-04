@@ -65,6 +65,22 @@
 >         $ Right [Just ([], [("a", typeInt)
 >                            ,("b", typeInt)
 >                            ,("d", typeNumeric)])]
+
+todo:
+from cross join no common:
+select *
+select a.*
+select b.*
+select *,a.*,b.*
+same with common attr
+select a.x -- common attrs
+select b.x
+select x -> ambiguous
+same all for natural join common attrs
+unrecognised id
+bogus qualifier for real id
+
+
 >       --fixme: result set compatilibity check
 >      {-,s "select * from (select 1 as a1, 2 as b) a\n\
 >         \ natural inner join (select true as a1, 4.5 as d) b;"

@@ -114,12 +114,14 @@ simplish ctors
 {-
 
 ---------------------------------------
-identifier
+identifiers
 
 -}
     | Identifier
-         loc.tpe = envLookupIdentifier [@i] @lhs.downEnv
+         loc.tpe = fmap snd $ envLookupIdentifier [@i] @lhs.downEnv
 
+    | QIdentifier
+         loc.tpe = fmap snd $ envLookupIdentifier @is @lhs.downEnv
 
 
 {-
@@ -212,6 +214,6 @@ fallback for unimplemented ctors
 -- temp
 sem ScalarExpr
     | PositionalArg Star QStar
-      QIdentifier Case CaseSimple
+      Case CaseSimple
       WindowApp InPredicate LiftApp AntiScalarExpr
         loc.tpe = Left []
