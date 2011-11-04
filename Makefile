@@ -33,6 +33,9 @@
 # need to regenerate the defaultTemplate1Catalog module, this is
 # never automatic, use 'make regenDefaultTemplate1Catalog'
 
+# the reason regenDefaultTemplate1Catalog and depend and exe_depend
+# are manual only is because they are very slow
+
 ######################################################
 
 # this makefile is probably written wrong since I don't know how to do

@@ -14,6 +14,7 @@
 > import Database.HsSqlPpp.Tests.TypeChecking.Rewrites
 > import Database.HsSqlPpp.Tests.TypeChecking.Joins
 > import Database.HsSqlPpp.Tests.TypeChecking.Tpch
+> import Database.HsSqlPpp.Tests.TypeChecking.TrefIdentifiers
 
 > typeCheckTestData :: Item
 > typeCheckTestData =
@@ -21,6 +22,7 @@
 >     [scalarExprs
 >     ,simpleQueryExprs
 >     ,joins
+>     ,trefIdentifiers
 >     --,rewrites
 >     --,tpch
 >     ]

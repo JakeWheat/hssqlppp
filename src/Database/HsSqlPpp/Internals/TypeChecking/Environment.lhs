@@ -23,11 +23,12 @@ and variables, etc.
 >     ) where
 
 > import Data.Data
-> import Data.Char
+> --import Data.Char
 > import Data.Maybe
 > import Control.Monad
 > import Control.Arrow
 > import Data.List
+> --import Debug.Trace
 
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
@@ -90,7 +91,15 @@ catalog and combining environment values with updates
 >                           -> Either [TypeError] Environment
 > createJoinTrefEnvironment cat tref0 tref1 jsc = do
 >   -- todo: handle natural join case
->   let jids = maybe (error "natural join ids") (map (nnm . (:[]))) jsc
+>   (jids::[String]) <- case jsc of
+>             Nothing -> do
+>                        j0 <- fmap (map (snd . fst)) $ envExpandStar Nothing tref0
+>                        j1 <- fmap (map (snd . fst)) $ envExpandStar Nothing tref1
+>                        return $ j0 `intersect` j1
+>             Just x -> return $ map ncStr x
+
+>  --         maybe (error "natural join ids") (map (nnm . (:[]))) jsc
+
 >   jts <- forM jids $ \i -> do
 >            (_,t0) <- envLookupIdentifier [QNmc i] tref0
 >            (_,t1) <- envLookupIdentifier [QNmc i] tref1
@@ -115,23 +124,38 @@ implicit correlation names, ambigous identifiers, etc.
 
 > nnm :: [NameComponent] -> String
 > nnm [] = error "Env: empty name component"
-> nnm ns = case last ns of
->            Nmc n -> map toLower n
->            QNmc n -> n
+> nnm ns = ncStr $ last ns
 
 -----------------------------------------------------
+
+problem with these query functions:
+all the functions return errors
+
+but they want to recurse, when recursing want to differentiate between
+error and no answer
+
+solution: have public wrapper which returns error
+and internal recursive functions which can also return Nothing and the
+wrapper converts nothing into the appropriate error
 
 > envLookupIdentifier :: [NameComponent] -> Environment
 >                     -> Either [TypeError] ((String,String), Type)
 > envLookupIdentifier nmc EmptyEnvironment = Left [UnrecognisedIdentifier $ nnm nmc]
 
-> envLookupIdentifier nmc (SimpleTref nm pub prv) =
->   let n = nnm nmc
->   in case (lookup n pub,lookup n prv) of
->        (Just _, Just _) -> Left [AmbiguousIdentifier n]
->        (Just t,_) -> return ((nm,n),t)
->        (_,Just t) -> return ((nm,n),t)
->        (Nothing,Nothing) -> Left [UnrecognisedIdentifier n]
+> envLookupIdentifier [q,i] t@(SimpleTref nm _ _)
+>   | ncStr q == nm = envLookupIdentifier [i] t
+>   | otherwise = Left [UnrecognisedCorrelationName $ ncStr q]
+
+> envLookupIdentifier [i] (SimpleTref nm pub prv) =
+>       let n = ncStr i
+>       in case (lookup n pub,lookup n prv) of
+>              (Just _, Just _) -> Left [AmbiguousIdentifier n]
+>              (Just t,_) -> return ((nm,n),t)
+>              (_,Just t) -> return ((nm,n),t)
+>              (Nothing,Nothing) -> Left [UnrecognisedIdentifier n]
+
+> envLookupIdentifier i (SimpleTref {}) =
+>   Left [UnrecognisedIdentifier $ show i]
 
 > envLookupIdentifier nmc (SelectListEnv cols) =
 >     -- todo: this isn't right
@@ -165,32 +189,47 @@ implicit correlation names, ambigous identifiers, etc.
 -------------------------------------------------------
 
 > envExpandStar :: Maybe NameComponent -> Environment -> Either [TypeError] [((String,String),Type)]
-> envExpandStar _nmc  EmptyEnvironment = Left [BadStarExpand]
 
-> envExpandStar _nmc (SelectListEnv cols) = Right $ map (first ("",)) cols
+> envExpandStar nmc env = {-let r =-} envExpandStar' nmc env
+>                         {-in trace ("env expand star: " ++ show nmc ++ " " ++ show r)
+>                            r-}
 
-> envExpandStar nmc (CSQEnv _cenv env) = envExpandStar nmc env
+> envExpandStar' :: Maybe NameComponent -> Environment -> Either [TypeError] [((String,String),Type)]
 
-> envExpandStar nmc (SimpleTref nm pub _prv)
->   | case nmc of
+> envExpandStar' _nmc  EmptyEnvironment = Left [BadStarExpand]
+
+> envExpandStar' _nmc (SelectListEnv cols) = Right $ map (first ("",)) cols
+
+> envExpandStar' nmc (CSQEnv _cenv env) = envExpandStar nmc env
+
+> envExpandStar' nmc (SimpleTref nm pub _prv)
+>   | {-trace ("expand tref" ++ show nmc ++ " " ++ show nm) $ -}
+>     case nmc of
 >              Nothing -> True
 >              Just x -> nnm [x] == nm = Right $ map (first (nm,)) pub
 >   | otherwise = case nmc of
 >                    Nothing -> Left [BadStarExpand]
 >                    Just n -> Left [UnrecognisedCorrelationName $ nnm [n]]
 
-> envExpandStar nmc (JoinTref jts env0 env1) = do
+> envExpandStar' nmc (JoinTref jts env0 env1) = do
 >   -- have to get the columns in the right order:
 >   -- join columns first (have to get the types of these also - should
 >   -- probably do that > -- in createjointrefenv since that is where the
 >   -- type compatibility is checked
 >   -- then the env0 columns without any join cols
 >   -- then the env1 columns without any join cols
->   s0 <- envExpandStar nmc env0
->   s1 <- envExpandStar nmc env1
+>   (s0,s1) <- case (envExpandStar nmc env0, envExpandStar nmc env1) of
+>                (Right a, Right b) -> Right (a,b)
+>                (Right a, Left _) -> Right (a, [])
+>                (Left _, Right a) -> Right ([],a)
+>                (Left a, Left _b) -> Left a
 >   let (js,t0s) = partition isJ s0
->       t1s = filter (not . isJ) s1
->   return $ js ++ t0s ++ t1s
+>       (j1s,t1s) = partition isJ s1
+>   -- bit hacky, to fix with the wrapper above
+>   return $ let a = js ++ t0s
+>            in if null a
+>               then j1s ++ t1s
+>               else a ++ t1s
 >   where
 >     isJ a = (snd . fst $ a) `elem` map fst jts
 

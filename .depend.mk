@@ -101,7 +101,6 @@ src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/SimpleQueryExprs.o : src-ex
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Rewrites.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Rewrites.lhs
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Rewrites.o : src/Database/HsSqlPpp/TypeChecker.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Rewrites.o : src/Database/HsSqlPpp/Catalog.hi
-src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Rewrites.o : src/Database/HsSqlPpp/Types.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Rewrites.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Joins.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Joins.lhs
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Joins.o : src/Database/HsSqlPpp/Catalog.hi
@@ -111,7 +110,12 @@ src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Tpch.o : src-extra/tests/Da
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Tpch.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Tpch.o : src-extra/tests/Database/HsSqlPpp/Tests/TpchData.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Tpch.o : src/Database/HsSqlPpp/Types.hi
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TrefIdentifiers.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TrefIdentifiers.lhs
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TrefIdentifiers.o : src/Database/HsSqlPpp/Catalog.hi
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TrefIdentifiers.o : src/Database/HsSqlPpp/Types.hi
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TrefIdentifiers.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.lhs
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TrefIdentifiers.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Tpch.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Joins.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Rewrites.hi

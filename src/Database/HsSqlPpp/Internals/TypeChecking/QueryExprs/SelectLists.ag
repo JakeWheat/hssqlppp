@@ -126,4 +126,7 @@ sem SelectItem
            Star _ | Right is <- envExpandStar Nothing @lhs.downEnv ->
               let a = @ann.originalTree
               in map (\((q,n),_) -> SelExp a (QIdentifier a [QNmc q,QNmc n])) is
+           QStar _ q | Right is <- envExpandStar (Just q) @lhs.downEnv ->
+              let a = @ann.originalTree
+              in map (\((q',n),_) -> SelExp a (QIdentifier a [QNmc q',QNmc n])) is
            _ -> [@originalTree]
