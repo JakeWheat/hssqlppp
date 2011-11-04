@@ -79,16 +79,6 @@ Unit test helpers
 >       pp = printStatements defaultPPFlags {ppDialect=flg}
 >   in parseUtil src ast parse parse pp
 >
-> {-testParseMSStatements :: String -> [Statement] -> Test.Framework.Test
-> testParseMSStatements src ast =
->   parseUtil src ast parseMsQuery (parseStatements "") printStatements
->   where
->     parseMsQuery :: String -> Either ParseErrorExtra [Statement]
->     parseMsQuery s =
->       (\p' -> [QueryStatement ea p'])
->       `fmap` parseSqlServerQueryExpr "" s-}
-
->
 > testParsePlpgsqlStatements :: String -> [Statement] -> Test.Framework.Test
 > testParsePlpgsqlStatements src ast =
 >   parseUtil src ast (parsePlpgsql defaultParseFlags "") (parsePlpgsql defaultParseFlags "") (printStatements defaultPPFlags)

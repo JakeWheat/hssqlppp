@@ -16,10 +16,22 @@ include "TypeChecking/QueryExprs/SelectLists.ag"
 
 attr QueryExpr
   syn upType :: {Maybe [(String,Type)]}
+
+--support for correlated subqueries
+attr QueryExpr
+  inh outerDownEnv :: {Maybe Environment}
+sem Statement
+  | QueryStatement ex.outerDownEnv = Nothing
+sem TableRef
+  | SubTref sel.outerDownEnv = Nothing
+sem WithQuery
+  | WithQuery ex.outerDownEnv = Nothing
+sem InList
+  | InQueryExpr sel.outerDownEnv = Nothing
+
 sem QueryExpr
     | Select
         selSelectList.downEnv = @selTref.upEnv
-        selWhere.downEnv = @selTref.upEnv
         selGroupBy.downEnv = @selTref.upEnv
         selHaving.downEnv = @selTref.upEnv
         selOrderBy.downEnv = @selSelectList.upEnv
@@ -31,6 +43,11 @@ sem QueryExpr
         -- unwrap it straight after, so the tpe and the uptype aren't the same
         -- but are equivalent
         lhs.upType = @selSelectList.upType
+        -- correlated subquery support - combine the identifiers
+        -- coming from outside the query expr
+        selWhere.downEnv = maybe @selTref.upEnv
+                            (\e -> createCorrelatedSubqueryEnvironment e @selTref.upEnv)
+                            @lhs.outerDownEnv
 
 sem QueryExpr
     | Select CombineQueryExpr Values WithQueryExpr

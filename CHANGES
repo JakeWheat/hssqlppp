@@ -1,4 +1,4 @@
-HEAD
+UNRELEASED
 
 start rewriting the Catalog module, Annotation type, typechecking code
   and typeconversion code from scratch - should be much clearer code
@@ -17,11 +17,15 @@ start supporting sql server as separate dialect. At the moment, a flag
 source code tree is better organised and documented
 run tests on ghc 6.12.3 and 7.0.4
 improved handling of reserved keywords
+add flags to typechecking to control the tree rewrites:
+  add qualifiers to identifiers
+  add full tableref aliases
+  add select item aliases
 
 0.4.0
 Released 30/09/2011
 
-lots of breaking changes to the ast types
+lots of compatibility breaking changes to the ast types
 change ast for into statements
 change ast for update statements
 add support for distinct and order by in aggregate calls

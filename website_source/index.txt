@@ -9,8 +9,9 @@ Possible uses of this library include:
 
 * type-checker can help with SQL development and catch bugs which
   aren't statically detected by Postgres
+* front end for a sql dbms
 * generating SQL code programmatically/ generating SQL from some other
-  source
+  source, e.g. for implementing non sql code on a sql dbms
 * transforming SQL code, possibly using quasiquoting, e.g. writing
   PL/pgSQL with less boilerplate, or optimisation rewrites
 * viewing the catalog produced by some SQL code

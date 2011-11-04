@@ -51,12 +51,17 @@ sem SelectItem
   | SelectItem
       -- explicit aliased column
       lhs.col = fmap (nm @name,) @ex.upType
-
-sem SelectItem
   | SelExp
       -- implicitly named column, try to get a column name
       -- from the syntax of @ex
-      lhs.col = fmap (columnName @ex.originalTree,) @ex.upType
+      loc.colName = columnName @ex.originalTree
+      lhs.col = fmap (@loc.colName,) @ex.upType
+      lhs.annotatedTree =
+        case tcfAddSelectItemAliases @lhs.flags of
+          False -> @annotatedTree
+          True -> SelectItem @ann.annotatedTree
+                             @ex.annotatedTree
+                             (Nmc @loc.colName)
 
 {
 

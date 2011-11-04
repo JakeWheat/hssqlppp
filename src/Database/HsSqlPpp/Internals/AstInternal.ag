@@ -854,15 +854,4 @@ makeSelect :::: Statement
 makeSelect = Select Dupes (SelectList [SelExp (Identifier "*")] [])
                    Nothing Nothing [] Nothing [] Asc Nothing Nothing
 
-
----------------------------
-
-Future plans:
-
-Investigate how much mileage can get out of making these nodes the
-parse tree nodes, and using a separate ast. Hinges on how much extra
-value can get from making the types more restrictive for the ast nodes
-compared to the parse tree. Starting to think this won't be worth it.
-
-
 -}

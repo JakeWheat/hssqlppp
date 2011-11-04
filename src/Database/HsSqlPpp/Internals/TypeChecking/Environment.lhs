@@ -16,6 +16,7 @@ and variables, etc.
 >     ,envCreateTrefEnvironment
 >     ,createJoinTrefEnvironment
 >     ,envSelectListEnvironment
+>     ,createCorrelatedSubqueryEnvironment
 >      -- * environment query functions
 >     ,envLookupIdentifier
 >     ,envExpandStar
@@ -48,6 +49,9 @@ and variables, etc.
 >                  | JoinTref [(String,Type)] -- join ids
 >                             Environment Environment
 >                  | SelectListEnv [(String,Type)]
+>                    -- | correlated subquery environment
+>                  | CSQEnv Environment -- outerenv
+>                           Environment -- main env
 >                    deriving (Data,Typeable,Show,Eq)
 
 
@@ -92,6 +96,10 @@ catalog and combining environment values with updates
 >   -- todo: check type compatibility
 >   return $ JoinTref jts tref0 tref1
 
+> createCorrelatedSubqueryEnvironment :: Environment -> Environment -> Environment
+> createCorrelatedSubqueryEnvironment cenv env =
+>   CSQEnv cenv env
+
 
 
 -------------------------------------------------------
@@ -127,6 +135,13 @@ implicit correlation names, ambigous identifiers, etc.
 >        Just t -> return t
 >        Nothing -> Left [UnrecognisedIdentifier n]
 
+> envLookupIdentifier nmc (CSQEnv cenv env) =
+>   case (envLookupIdentifier nmc cenv
+>        ,envLookupIdentifier nmc env) of
+>      (r@(Right _), _) -> r
+>      (_,r@(Right _)) -> r
+>      (r,_) -> r
+
 
 > envLookupIdentifier nmc (JoinTref jids env0 env1) =
 >   let n = nnm nmc
@@ -145,6 +160,8 @@ implicit correlation names, ambigous identifiers, etc.
 
 > envExpandStar :: Maybe NameComponent -> Environment -> Either [TypeError] [(String,Type)]
 > envExpandStar _nmc  EmptyEnvironment = Left [BadStarExpand]
+
+> envExpandStar _nmc (SelectListEnv cols) = Right cols
 
 > envExpandStar nmc (SimpleTref nm pub _prv)
 >   | case nmc of
@@ -169,3 +186,4 @@ implicit correlation names, ambigous identifiers, etc.
 >              se <- envExpandStar nmc e
 >              return $ filter ((`notElem` (map fst jts)) . fst) se
 
+> envExpandStar nmc (CSQEnv _cenv env) = envExpandStar nmc env

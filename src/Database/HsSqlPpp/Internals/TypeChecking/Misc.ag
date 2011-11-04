@@ -64,3 +64,4 @@ check that the type can accept one or two modifiers
         loc.tpe = catLookupType @lhs.cat (nameComponents @tn.originalTree)
      | Prec2TypeName
         loc.tpe = catLookupType @lhs.cat (nameComponents @tn.originalTree)
+

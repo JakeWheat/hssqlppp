@@ -10,7 +10,9 @@ data TypeCheckingFlags =
      -- | add full aliases to every tableref and subselect
     ,tcfAddFullTablerefAliases :: Bool
      -- | add explicit aliases to all select items
-    ,tcfAddSelectItemAliases :: Bool}
+    ,tcfAddSelectItemAliases :: Bool
+     -- | expand stars in select lists to explicit list columns
+    ,tcfExpandStars :: Bool}
 
 -- | reasonable defaults for type checking, doesn't add anything
 -- optional
@@ -19,7 +21,8 @@ defaultTypeCheckingFlags =
     TypeCheckingFlags
     {tcfAddQualifiers = False
     ,tcfAddFullTablerefAliases = False
-    ,tcfAddSelectItemAliases = False}
+    ,tcfAddSelectItemAliases = False
+    ,tcfExpandStars = False}
 
 -- | Typechecks the ast, and returns the updated catalog (which
 -- includes changes from any ddl statements in the ast).

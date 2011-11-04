@@ -20,7 +20,8 @@
 >     [scalarExprs
 >     ,simpleQueryExprs
 >     ,joins
->     ,tpch]
+>     ,tpch
+>     ]
 
 > typeCheckTests :: Test.Framework.Test
 > typeCheckTests =

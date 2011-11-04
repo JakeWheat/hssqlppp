@@ -164,7 +164,47 @@ tcAppLike cat anm args = do
 
 }
 {-
+--------------------------------------------
 
+case
+
+-}
+
+{-
+---------------------------------
+
+subqueries
+
+-}
+
+-- exists: will work on any subselect so no checking needed
+sem ScalarExpr
+    | Exists
+        loc.tpe = Right typeBool
+
+{-
+== scalarsubquery
+1 col -> type of that col
+2 + cols -> row type with those components
+-}
+
+sem ScalarExpr
+    | ScalarSubQuery
+        loc.tpe =
+            do
+            selType <- maybe (Left []) Right @sel.upType
+            case length selType of
+              0 -> Left [InternalError "no columns in scalar subquery?"]
+              1 -> Right $ snd $ head selType
+              _ -> Right $ AnonymousCompositeType $ map snd selType
+
+        -- support for correlated subqueries
+        sel.outerDownEnv = Just @lhs.downEnv
+    | Exists
+        sel.outerDownEnv = Just @lhs.downEnv
+
+{-
+-----------------------------------------------
 fallback for unimplemented ctors
 
 -}
@@ -172,6 +212,6 @@ fallback for unimplemented ctors
 -- temp
 sem ScalarExpr
     | PositionalArg Star QStar
-      QIdentifier Case CaseSimple Exists
-      WindowApp InPredicate LiftApp ScalarSubQuery AntiScalarExpr
+      QIdentifier Case CaseSimple
+      WindowApp InPredicate LiftApp AntiScalarExpr
         loc.tpe = Left []

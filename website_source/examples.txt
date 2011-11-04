@@ -1,8 +1,8 @@
 
 These examples should be kept up to date, but if any are out of date,
 you can see the latest versions in the examples folder in the repo
-(theseh should compile and run fine with the latest version of
-hssqlppp):
+(the files there should definitely compile and run fine with the
+latest version of hssqlppp):
 <https://github.com/JakeWheat/hssqlppp/tree/master/src-extra/examples>
 
 Parsing

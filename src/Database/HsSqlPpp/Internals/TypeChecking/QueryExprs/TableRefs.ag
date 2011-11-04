@@ -49,6 +49,7 @@ sem TableRef
                       -- cross join
                       _ -> Just []
       --onExpr.downEnv2 = either emptyEnvironment id @loc.eEnv
+      onExpr.downEnv = emptyEnvironment
   | SubTref
       loc.eEnv = maybe (Left []) id
                  $ fmap envSelectListEnvironment @sel.upType
