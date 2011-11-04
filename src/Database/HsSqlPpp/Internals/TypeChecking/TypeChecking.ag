@@ -14,6 +14,7 @@ data TypeCheckingFlags =
      -- | expand stars in select lists to explicit list columns
     ,tcfExpandStars :: Bool}
 
+
 -- | reasonable defaults for type checking, doesn't add anything
 -- optional
 defaultTypeCheckingFlags :: TypeCheckingFlags

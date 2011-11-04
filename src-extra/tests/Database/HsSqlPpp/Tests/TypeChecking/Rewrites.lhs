@@ -10,6 +10,7 @@ item aliases
 > import Database.HsSqlPpp.TypeChecker
 
 
+
 > rewrites :: Item
 > rewrites =
 >   Group "rewrites"
@@ -23,13 +24,13 @@ item aliases
 >          [CatCreateTable "t" [("a", "int4")
 >                              ,("b", "text")]]
 >    "select * from t"
->    "select \"a\",\"b\" from t"
+>    "select t.a,t.b from t"
 
->   ,RewriteQueryExpr defaultTypeCheckingFlags {tcfAddFullTablerefAliases = True}
+>   {-,RewriteQueryExpr defaultTypeCheckingFlags {tcfAddFullTablerefAliases = True}
 >          [CatCreateTable "t" [("a", "int4")
 >                              ,("b", "text")]]
 >    "select * from t"
->    "select * from t as t(a,b)"
+>    "select * from t as t(a,b)"-}
 
 >   ,RewriteQueryExpr defaultTypeCheckingFlags {tcfAddQualifiers = True}
 >          [CatCreateTable "t" [("a", "int4")
@@ -37,13 +38,13 @@ item aliases
 >    "select a,b from t"
 >    "select t.a,t.b from t"
 
->   ,RewriteQueryExpr defaultTypeCheckingFlags {tcfAddQualifiers = True
+>   {-,RewriteQueryExpr defaultTypeCheckingFlags {tcfAddQualifiers = True
 >                                              ,tcfAddSelectItemAliases = True
 >                                              ,tcfExpandStars = True
 >                                              ,tcfAddFullTablerefAliases = True}
 >          [CatCreateTable "t" [("a", "int4")
 >                              ,("b", "text")]]
 >    "select * from t"
->    "select t.a as a,t.b as b from t as t(a,b)"
+>    "select t.a as a,t.b as b from t as t(a,b)"-}
 
 >   ]

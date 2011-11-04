@@ -23,7 +23,7 @@
 >     ,simpleQueryExprs
 >     ,joins
 >     ,trefIdentifiers
->     --,rewrites
+>     ,rewrites
 >     --,tpch
 >     ]
 

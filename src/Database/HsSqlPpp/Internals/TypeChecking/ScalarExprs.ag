@@ -118,7 +118,16 @@ identifiers
 
 -}
     | Identifier
-         loc.tpe = fmap snd $ envLookupIdentifier [@i] @lhs.downEnv
+         loc.elkp = envLookupIdentifier [@i] @lhs.downEnv
+         loc.tpe = fmap snd @loc.elkp
+         lhs.annotatedTree =
+           fromMaybe @annotatedTree $ do
+               case tcfAddQualifiers @lhs.flags of
+                 False -> Nothing
+                 True -> do
+                        ((q,i),_) <- either (const Nothing) Just @loc.elkp
+                        -- todo: quote identifiers if needed
+                        return $ QIdentifier @ann.annotatedTree [Nmc q, Nmc i]
 
     | QIdentifier
          loc.tpe = fmap snd $ envLookupIdentifier @is @lhs.downEnv

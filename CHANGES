@@ -2,7 +2,8 @@ UNRELEASED
 
 start rewriting the Catalog module, Annotation type, typechecking code
   and typeconversion code from scratch - should be much clearer code
-  and more functionality
+  and more functionality. (Some of the old code hsa made it back in
+  temporarily for smoother transition)
 lots of improvements to the Type module, types and documentation
 better haddock documentation
 parser/syntax additions and fixes:

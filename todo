@@ -25,31 +25,45 @@ typename
 
 add support for enum types
 
+
+maybe start thinking about an alpha version:
+high quality postgresql dialect parsing for most sql and plpgsql
+good enough typechecking for select,insert,update,delete:
+  the goal is high quality result types for correct sql, but not
+  neccessarily catching all errors for incorrect sql
+definitely include typesafe embedded sql lib
+
+possibly good enough typechecking for ddl and plpgsql to handle chaos?
+
+then for version 2 can target high quality with errors, plus good
+support for ddl, and reasonable support for plpgsql (will always
+reject some correct plpgsql)
+
+make detailed todo list for this
+
+
 = 'arcs'
 
 == names
 
-the typechecker ignores the new name structure which is able to
-syntactically distinguish quoted identifiers and schema names
-
-alter some of the catalog data types and support functions to work on
-names or namecomponents instead of strings: mainly in the catalog and
-local binding stuff
+support schema qualification, and check the existing use of names
+carefully
 
 == localenv
 
-New approach to fixupidentifiers in IDEnv. Want to use this approach
-for typechecking local identifiers. Also can have more control over
-rewriting the syntax. At the moment, it always adds in aliases and
-correlation names all over the place. Want to make this optional, and
-the ability to only add correlation names and not aliases. Want to
-also get rid of the separate fixupidentifiers pass.
+finish off new typechecking for crud.
+
+== ddl and plpgsql
+
+typechecking has regressed to zero for these, bring them back up
 
 == typesafe wrapper
 
-write typesafe wrapper for haskell accessing database big question is
-which record system to use: haskell records, hlists, haskelldb
-records, maybe fc-labels?
+write typesafe wrapper for haskell accessing database
+want to use extensible records, not sure what the options are:
+could use haskell records or fc-labels and not use extensible records?
+other possible options are hlist, haskelldb records
+can fc-labels or a competitor be used with extensible records?
 
 nullability inference would be useful here, also possibly single
 column in result specialisation, and static check of single tuple in
@@ -57,9 +71,13 @@ result (e.g. where on key, or non grouped aggregates).
 
 
 == api
-review api names, docs and other aspects
+
+review api names, docs and other aspects, lots of suspect/bizarrely
+named types and ctors
 
 == website nav
+
+especially useful when source, chaos example working again
 
 == examples
 
@@ -76,32 +94,29 @@ some renames - try to follow the sql standard reference better
 
 split out the plpgsql statements to separate ast node
 
-have parens explicit in the ast?
+have parens explicit in the ast - this is a requirement to support
+user operators with user defined fixity
 
 more faithful representation of source code? This is mainly for
 defaults, e.g. can't tell after parsing if an order by element was
 explicitly asc, or implicitly asc. This might be useful for lint
-checking e.g..
+checking e.g.. Also might make it easier to handle different sql
+dialects with different defaults.
 
 == ag - review code add fixmes
+
 review ag code (and other code?) add fixme notes
 
-== ag - literal source and haskell syntax
+== ag - preprocessing?
 
-change the ag code to use .lag, and to use the haskell syntax
-option. This should make understanding the code much more simple. One
-possible goal to work towards is to make the main ast source file look
-just like haskell, and to be able to edit it as if it was
-haskell. This may need an additional codegenerator for compiling to
-add in the ag boilerplate.
+want to add the language pragma in the make file to simplify the ghc
+calls and manual compilation
+also would like to use record syntax for a lot of the data types in
+the ag, and not lose the haddock documentation.
 
-== ag - typechecking flow
-
-the ag attributes and flow between sem rules is a bit confused at the
-moment. In particular want to remove the extra 'inferred type'
-annotation, also want to remove the cycles reported by uuagc by being
-a bit more regular and disciplined (the cycles don't seem to have
-caused any real issues however).
+not sure if uuagc supports this, it would be easy to add to uuagc, or
+if a separate preprocessor which runs on the ag and the hs after uuagc
+is the easiest way
 
 == typechecking regressions fix
 lots of disabled tests, get them all passing again
@@ -147,10 +162,9 @@ so
 
 == quasiquote work
 
-in addition to fixing the anticonstructor hiding above, want to add a
-lot more quasiquotes. Good start would be to review all the
-extensions, and translation examples, codegen, etc.. and make sure you
-never need to write asts out explicitly, and can always use
+want to add a lot more quasiquotes. Good start would be to review all
+the extensions, and translation examples, codegen, etc.. and make sure
+you never need to write asts out explicitly, and can always use
 quasiquotes.
 
 Another thing to add is full haskell syntax inside quasiquotes. No
@@ -161,8 +175,8 @@ look at the source there.
 
 review the code and refactor the crufty bits. Also want much better
 documentation in the .lhs. Main code to completely rewrite is
-TypeConversion.lhs which was written when I didn't know haskell very
-well.
+TypeConversion.lhs which was written when I didn't know haskell (or
+postgresql typechecking) very well.
 
 == error handling
 
@@ -237,10 +251,6 @@ independent ddl source, show used catalog, modules for sql source
 == lint
 
 lint tool framework - so want to make it easy to add new rules
-
-== separate parse tree?
-consider having separate parse tree to the ast - can this be
-automatic, or should it be a 'fake' parse tree
 
 == better annotation approach?
 

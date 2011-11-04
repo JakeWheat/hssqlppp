@@ -10,17 +10,14 @@ release with some typechecking regressions in ddl, but no parsing
 regressions
 
 Urgency: want to get tpch typechecking again asap:
-options to rewrite tree as typechecking:
-  qualifiers, tref aliases, selectitem names
-  get these working
-get old join tests working
-main blockers for remaining tpch queries:
+tackle expand stars properly without separate pass
+handle trefaliases
+  find better way for queryexpr with alias?
 onexpr trickiness
 case exprs
-correlated subquery outer env
-then do add implicit casts
-then check if it works
-
+implicit casts
+parameterized queries should be easy at this point
+finish of tpch and check using
 
 then dml
 then ddl and plpgsql
