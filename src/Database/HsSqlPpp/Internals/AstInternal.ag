@@ -114,6 +114,7 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,typeCheckQueryExpr
    ,TypeCheckingFlags(..)
    ,defaultTypeCheckingFlags
+   ,addExplicitCasts
    -- annotation
    ,Annotation(..)
    ,SourcePosition

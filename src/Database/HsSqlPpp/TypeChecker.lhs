@@ -12,7 +12,7 @@ This is the public module for the type checking functionality.
 >     ,typeCheckScalarExpr
 >     ,TypeCheckingFlags(..)
 >     ,defaultTypeCheckingFlags
->     --,addExplicitCasts
+>     ,addExplicitCasts
 >     ) where
 >
 > import Database.HsSqlPpp.Internals.AstInternal

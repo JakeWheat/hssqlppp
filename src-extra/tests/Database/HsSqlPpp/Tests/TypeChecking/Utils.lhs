@@ -24,6 +24,7 @@
 >           | ScalExpr String (Either [TypeError] Type)
 >           | QueryExpr [CatalogUpdate] String (Either [TypeError] Type)
 >           | RewriteQueryExpr TypeCheckingFlags [CatalogUpdate] String String
+>           | ImpCastsScalar String String
 
 > testScalarExprType :: String -> Either [TypeError] Type -> Test.Framework.Test
 > testScalarExprType src et = testCase ("typecheck " ++ src) $
@@ -40,6 +41,24 @@
 >   in (if et /= got
 >       then trace (groom{-AnnTypeOnly-} aast)
 >       else id) $ assertEqual "" et got
+
+> testImpCastsScalar :: String -> String -> Test.Framework.Test
+> testImpCastsScalar src wsrc = testCase ("typecheck " ++ src) $
+>   let ast = case parseScalarExpr defaultParseFlags "" src of
+>               Left e -> error $ show e
+>               Right l -> l
+>       aast = typeCheckScalarExpr defaultTypeCheckingFlags defaultTemplate1Catalog ast
+>       aast' = addExplicitCasts aast
+>       wast = case parseScalarExpr defaultParseFlags "" wsrc of
+>                Left e -> error $ show e
+>                Right l -> l
+>   in (if (resetAnnotations aast') /= (resetAnnotations wast)
+>       then trace ("\n*****************\n" ++
+>                   printScalarExpr defaultPPFlags aast'
+>                   ++ "\n" ++ printScalarExpr defaultPPFlags wast
+>                   ++ "\n*****************\n")
+>       else id) $ assertEqual "" (resetAnnotations aast') (resetAnnotations wast)
+
 
 > testQueryExprType :: [CatalogUpdate] -> String -> Either [TypeError] Type -> Test.Framework.Test
 > testQueryExprType cus src et = testCase ("typecheck " ++ src) $
@@ -83,6 +102,7 @@
 > itemToTft (ScalExpr s r) = testScalarExprType s r
 > itemToTft (QueryExpr cus s r) = testQueryExprType cus s r
 > itemToTft (RewriteQueryExpr f cus s s') = testRewrite f cus s s'
+> itemToTft (ImpCastsScalar s s') = testImpCastsScalar s s'
 > itemToTft (Group s is) = testGroup s $ map itemToTft is
 
 > groomAnnTypeOnly :: Show a => a -> String

@@ -97,15 +97,36 @@ attr AllNodes Root ScalarExprRoot Annotation
 
 attr Annotation
   inh tpe :: {Either [TypeError] Type}
+  inh imCast :: {Maybe Type}
 
 sem Annotation
   | Annotation
       lhs.annotatedTree =
           let t = either (const Nothing) Just @lhs.tpe
               es = either id (const []) @lhs.tpe
-          in Annotation @asrc t es @implicitCast @stType @catUpd
+          in Annotation @asrc t es @lhs.imCast @stType @catUpd
 
 
 include "TypeChecking/ScalarExprs.ag"
 include "TypeChecking/QueryExprs/QueryExprs.ag"
 include "TypeChecking/Misc.ag"
+
+
+{
+addExplicitCasts :: Data a => a -> a
+addExplicitCasts = transformBi addCast
+  where
+    addCast :: ScalarExpr -> ScalarExpr
+    addCast e = fromMaybe e $ do
+                  t <- implicitCast (getAnnotation e)
+                  n <- nameOfType t
+                  return $ Cast emptyAnnotation e n
+
+nameOfType :: Type -> Maybe TypeName
+nameOfType (ScalarType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc t])
+nameOfType (DomainType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc t])
+nameOfType (EnumType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc t])
+nameOfType (NamedCompositeType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc t])
+nameOfType _ = Nothing
+
+}

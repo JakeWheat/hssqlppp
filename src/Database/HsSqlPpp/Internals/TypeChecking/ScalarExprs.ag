@@ -25,6 +25,10 @@ sem ScalarExpr
         ann.tpe = @loc.tpe
         loc.upType = either (const Nothing) Just @loc.tpe
         lhs.upType = @loc.upType
+        ann.imCast = case @lhs.expectedType of
+                       t@(Just _) | trace ("check " ++ show ((t,@loc.upType)::(Maybe Type,Maybe Type)))
+                                    $ t /= @loc.upType -> t
+                       _ -> Nothing
 
 sem ScalarExpr
     | AntiScalarExpr
@@ -34,6 +38,7 @@ sem ScalarExpr
 attr ScalarExpr MaybeScalarExpr
   inh downEnv :: Environment -- the environment from the parent
   syn upType :: {Maybe Type} -- the type of this node made available to the parent node
+  inh expectedType :: {Maybe Type}
 
 sem MaybeScalarExpr
     | Nothing lhs.upType = Nothing
@@ -43,9 +48,14 @@ sem MaybeScalarExpr
 attr ScalarExprList
   inh downEnv :: Environment
   syn upTypes :: {[Maybe Type]}
+  inh expectedTypes :: {[Type]}
 
 sem ScalarExprList
     | Cons lhs.upTypes = @hd.upType : @tl.upTypes
+           (hd.expectedType,tl.expectedTypes) =
+              case @lhs.expectedTypes of
+                (x:xs) -> (Just x,xs)
+                [] -> (Nothing,[])
     | Nil lhs.upTypes = []
 
 
@@ -112,6 +122,8 @@ simplish ctors
 
     | TypedStringLit Cast
          loc.tpe = maybe (Left []) Right @tn.namedType
+    | Cast
+         expr.expectedType = @tn.namedType
     | Interval
          loc.tpe = Right $ ScalarType "interval"
     | Extract
@@ -121,6 +133,7 @@ simplish ctors
                    if x == typeDate
                      then Right typeFloat8
                      else Left [NoMatchingOperator "extract" [x]]
+         e.expectedType = Just typeDate
     | Placeholder
          loc.tpe = Right UnknownType
 {-
@@ -154,36 +167,48 @@ op calls, fn calls, etc.
 -}
 
 
+    | App BinaryOp PrefixOp PostfixOp SpecialOp
+         loc.ttpe :: {Either [TypeError] ([Type],Type)}
+         loc.tpe :: {Either [TypeError] Type}
+         loc.tpe = fmap snd @loc.ttpe
     | App
-         loc.tpe =
+         args.expectedTypes = either (const []) id $ fmap fst @loc.ttpe
+         loc.ttpe =
            case @originalTree of
              (App _ (Name _ [Nmc "count"]) [Star _]) ->
                  tcAppLike @lhs.cat @funName.originalTree [Just UnknownType]
              _ -> tcAppLike @lhs.cat @funName.originalTree @args.upTypes
     | BinaryOp
-         loc.tpe = tcAppLike @lhs.cat @opName.originalTree [@arg0.upType,@arg1.upType]
-    | PrefixOp
-         loc.tpe = tcAppLike @lhs.cat @opName.originalTree [@arg.upType]
-    | PostfixOp
-         loc.tpe = tcAppLike @lhs.cat @opName.originalTree [@arg.upType]
+         loc.ttpe = tcAppLike @lhs.cat @opName.originalTree [@arg0.upType,@arg1.upType]
+         (arg0.expectedType,arg1.expectedType) =
+            case @loc.ttpe of
+              Right ([t0,t1],_) -> (Just t0,Just t1)
+              _ -> (Nothing,Nothing)
+    | PrefixOp PostfixOp
+         loc.ttpe = tcAppLike @lhs.cat @opName.originalTree [@arg.upType]
+         arg.expectedType =
+            case @loc.ttpe of
+              Right ([t],_) -> Just t
+              _ -> Nothing
     | SpecialOp
-         loc.tpe = tcAppLike @lhs.cat @opName.originalTree @args.upTypes
+         loc.ttpe = tcAppLike @lhs.cat @opName.originalTree @args.upTypes
+         args.expectedTypes = either (const []) id $ fmap fst @loc.ttpe
     | AggregateApp
          loc.tpe =
            case @fn.originalTree of
              (App _ fnm@(Name _ [Nmc "count"]) [Star _]) ->
-                 tcAppLike @lhs.cat fnm [Just UnknownType]
+                  fmap snd $ tcAppLike @lhs.cat fnm [Just UnknownType]
              _ -> maybe (Left []) Right @fn.upType
 
 {
-tcAppLike :: Catalog -> Name -> [Maybe Type] -> Either [TypeError] Type
+tcAppLike :: Catalog -> Name -> [Maybe Type] -> Either [TypeError] ([Type],Type)
 tcAppLike cat anm args = do
   -- get the types of the arguments
   -- then lookup in TypeConversion.matchApp
   tys <- mapM (maybe (Left []) Right) args
   let Name _ ns = anm
-  (_,rt) <- matchApp cat ns tys
-  return rt
+  (ats,rt) <- matchApp cat ns tys
+  return (ats,rt)
 
 }
 {-
@@ -290,3 +315,20 @@ sem ScalarExpr
     | PositionalArg Star QStar
       WindowApp InPredicate LiftApp AntiScalarExpr
         loc.tpe = Left []
+
+
+--------------------------------
+
+sem ScalarExprRoot
+  | ScalarExprRoot expr.expectedType = Nothing
+
+sem JoinExpr
+  | JoinOn expr.expectedType = Just typeBool
+
+sem SelectItem
+  | SelExp SelectItem ex.expectedType = Nothing
+
+sem ScalarExpr
+  | AggregateApp WindowApp fn.expectedType = Nothing
+
+--inpredicate

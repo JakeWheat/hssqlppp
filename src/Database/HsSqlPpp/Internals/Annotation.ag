@@ -67,6 +67,9 @@ setAsrc :: Maybe SourcePosition -> Annotation -> Annotation
 setAsrc s (Annotation _s a e i st c) = Annotation s a e i st c
 
 
+implicitCast :: Annotation -> Maybe Type
+implicitCast (Annotation _ _ _ c _ _) = c
+
 errs :: Annotation -> [TypeError]
 errs (Annotation _ _ e _ _ _) = e
 

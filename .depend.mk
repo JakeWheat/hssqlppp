@@ -116,7 +116,12 @@ src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TrefIdentifiers.o : src-ext
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/CaseExpressions.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/CaseExpressions.lhs
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/CaseExpressions.o : src/Database/HsSqlPpp/Types.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/CaseExpressions.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.hi
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ImplicitCasts.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ImplicitCasts.lhs
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ImplicitCasts.o : src/Database/HsSqlPpp/TypeChecker.hi
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ImplicitCasts.o : src/Database/HsSqlPpp/Catalog.hi
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ImplicitCasts.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.lhs
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ImplicitCasts.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/CaseExpressions.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TrefIdentifiers.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Tpch.hi
