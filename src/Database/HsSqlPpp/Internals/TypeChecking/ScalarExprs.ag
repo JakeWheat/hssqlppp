@@ -31,10 +31,12 @@ sem ScalarExpr
         lhs.upType = either (const Nothing) Just @loc.tpe
 
 
-attr ScalarExpr
+attr ScalarExpr MaybeScalarExpr
   inh downEnv :: Environment -- the environment from the parent
   syn upType :: {Maybe Type} -- the type of this node made available to the parent node
 
+sem MaybeScalarExpr
+    | Nothing lhs.upType = Nothing
 
 -- collect the uptypes for a list of scalarexprs
 
@@ -45,6 +47,15 @@ attr ScalarExprList
 sem ScalarExprList
     | Cons lhs.upTypes = @hd.upType : @tl.upTypes
     | Nil lhs.upTypes = []
+
+
+-- stop errors in the node being duplicated in the x::Name children
+-- nodes
+sem ScalarExpr
+    | App
+        funName.tpe = Left []
+    | PrefixOp PostfixOp BinaryOp SpecialOp
+        opName.tpe = Left []
 
 
 {-
@@ -180,7 +191,60 @@ tcAppLike cat anm args = do
 
 case
 
+for simple case, check all the when parts are compatible with the
+value to check against, and the check the then types are compatible
+
+for non simple, check all the when expression are bool, and check all
+the then types are compatible
+
 -}
+
+attr CaseScalarExprListScalarExprPairList
+  syn whenTypes :: {[[Maybe Type]]}
+     ,thenTypes :: {[Maybe Type]}
+
+sem CaseScalarExprListScalarExprPairList
+  | Cons lhs.whenTypes = @hd.whenTypes : @tl.whenTypes
+         lhs.thenTypes = @hd.thenType : @tl.thenTypes
+  | Nil lhs.whenTypes = []
+        lhs.thenTypes = []
+
+attr CaseScalarExprListScalarExprPair
+  syn whenTypes :: {[Maybe Type]}
+     ,thenType :: {Maybe Type}
+
+sem CaseScalarExprListScalarExprPair
+    | Tuple lhs.whenTypes = @x1.upTypes
+            lhs.thenType = @x2.upType
+
+attr CaseScalarExprListScalarExprPairList CaseScalarExprListScalarExprPair
+  inh downEnv :: Environment
+  syn upTypes :: {[Maybe Type]}
+
+sem ScalarExpr
+    | Case CaseSimple
+        loc.whenTypes = @cases.whenTypes
+        loc.thenTypes = @cases.thenTypes ++ maybe [] ((:[]) . Just) @els.upType
+
+    | Case
+        loc.tpe = do
+                  wt <- mapM (maybe (Left []) Right) $ concat @loc.whenTypes
+                  -- probably the when types should be checked inside each when node
+                  -- and type errors attach there, and ignored here
+                  errorWhen (any (/= typeBool) wt)
+                      [WrongTypes typeBool wt]
+                  tt <- mapM (maybe (Left []) Right) @loc.thenTypes
+                  resolveResultSetType @lhs.cat tt
+    | CaseSimple
+        loc.tpe =
+          do
+          wt <- mapM (maybe (Left []) Right) $ concat @loc.whenTypes
+          vt <- maybe (Left []) Right @value.upType
+          _ <- resolveResultSetType @lhs.cat (vt : wt)
+          tt <- mapM (maybe (Left []) Right) @loc.thenTypes
+          resolveResultSetType @lhs.cat tt
+
+
 
 {-
 ---------------------------------
@@ -224,6 +288,5 @@ fallback for unimplemented ctors
 -- temp
 sem ScalarExpr
     | PositionalArg Star QStar
-      Case CaseSimple
       WindowApp InPredicate LiftApp AntiScalarExpr
         loc.tpe = Left []

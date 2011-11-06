@@ -10,8 +10,7 @@ release with some typechecking regressions in ddl, but no parsing
 regressions
 
 Urgency: want to get tpch typechecking again asap:
-handle trefaliases
-  find better way for queryexpr with alias?
+handle full trefaliases
 onexpr trickiness
 case exprs
 implicit casts

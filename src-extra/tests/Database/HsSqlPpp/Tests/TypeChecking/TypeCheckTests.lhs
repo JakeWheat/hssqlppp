@@ -15,6 +15,7 @@
 > import Database.HsSqlPpp.Tests.TypeChecking.Joins
 > import Database.HsSqlPpp.Tests.TypeChecking.Tpch
 > import Database.HsSqlPpp.Tests.TypeChecking.TrefIdentifiers
+> import Database.HsSqlPpp.Tests.TypeChecking.CaseExpressions
 
 > typeCheckTestData :: Item
 > typeCheckTestData =
@@ -24,6 +25,7 @@
 >     ,joins
 >     ,trefIdentifiers
 >     ,rewrites
+>     ,caseExpressions
 >     --,tpch
 >     ]
 

@@ -34,8 +34,12 @@
 >       ty = atype $ getAnnotation aast
 >       er :: [TypeError]
 >       er = universeBi aast
->       got = if null er then Right ty else Left er
->   in assertEqual "" (either Left (Right . Just) et) got
+>       got = case () of
+>               _ | null er -> maybe (Left []) Right ty
+>                 | otherwise -> Left er
+>   in (if et /= got
+>       then trace (groom{-AnnTypeOnly-} aast)
+>       else id) $ assertEqual "" et got
 
 > testQueryExprType :: [CatalogUpdate] -> String -> Either [TypeError] Type -> Test.Framework.Test
 > testQueryExprType cus src et = testCase ("typecheck " ++ src) $

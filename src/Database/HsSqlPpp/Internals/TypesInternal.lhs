@@ -95,7 +95,7 @@ The possible type errors. This is a bit unorganised, at some point if
 better error messages are wanted, then a lot more information could be
 added.
 
-> data TypeError = {-WrongTypes Type [Type]
+> data TypeError = {-
 >                | UnknownTypeError Type
 >                | UnknownTypeName String
 >                | NoMatchingOperator String [Type]
@@ -127,6 +127,7 @@ type conversion errors
 >                | IncompatibleTypeSet [Type]
 >                | IncompatibleTypes Type Type
 >                | WrongNumberOfColumns
+>                | WrongTypes Type [Type]
 
 
 old catalog type errors: to be replaced when the catalog code is

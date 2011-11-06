@@ -60,8 +60,7 @@ sem QueryExpr
         loc.tpe = Left []
 
 attr MaybeBoolExpr ScalarExprDirectionPairList ScalarExprDirectionPair
-     JoinExpr InList CaseScalarExprListScalarExprPair
-     CaseScalarExprListScalarExprPairList
+     JoinExpr InList
   inh downEnv :: Environment
 
 sem InList

@@ -38,6 +38,7 @@ src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Rewrites.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Joins.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Tpch.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TrefIdentifiers.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/CaseExpressions.o \
 src/Database/HsSqlPpp/TypeChecker.o \
 src/Database/HsSqlPpp/Catalog.o \
 src/Database/HsSqlPpp/Types.o \
@@ -84,6 +85,7 @@ src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Rewrites.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Joins.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Tpch.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TrefIdentifiers.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/CaseExpressions.o \
 src/Database/HsSqlPpp/TypeChecker.o \
 src/Database/HsSqlPpp/Catalog.o \
 src/Database/HsSqlPpp/Types.o \
@@ -300,6 +302,7 @@ src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Rewrites.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Joins.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Tpch.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TrefIdentifiers.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/CaseExpressions.o \
 src/Database/HsSqlPpp/TypeChecker.o \
 src/Database/HsSqlPpp/Catalog.o \
 src/Database/HsSqlPpp/Types.o \
@@ -347,6 +350,7 @@ src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Rewrites.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Joins.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Tpch.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TrefIdentifiers.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/CaseExpressions.o \
 src/Database/HsSqlPpp/TypeChecker.o \
 src/Database/HsSqlPpp/Catalog.o \
 src/Database/HsSqlPpp/Types.o \
