@@ -97,7 +97,13 @@ attr AllNodes Root ScalarExprRoot Annotation
 
 attr Annotation
   inh tpe :: {Either [TypeError] Type}
+
+attr AllNodes Annotation
   inh imCast :: {Maybe Type}
+
+sem Root
+   | Root
+       statements.imCast = Nothing
 
 sem Annotation
   | Annotation
@@ -114,13 +120,17 @@ include "TypeChecking/Misc.ag"
 
 {
 addExplicitCasts :: Data a => a -> a
-addExplicitCasts = transformBi addCast
+addExplicitCasts = transformBi removeDoubleCasts . transformBi addCast
   where
     addCast :: ScalarExpr -> ScalarExpr
     addCast e = fromMaybe e $ do
                   t <- implicitCast (getAnnotation e)
                   n <- nameOfType t
                   return $ Cast emptyAnnotation e n
+    removeDoubleCasts :: ScalarExpr -> ScalarExpr
+    removeDoubleCasts e = case e of
+      (Cast a (Cast a1 e t1) t) -> Cast a e t
+      e' -> e'
 
 nameOfType :: Type -> Maybe TypeName
 nameOfType (ScalarType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc t])

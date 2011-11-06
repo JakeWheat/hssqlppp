@@ -26,8 +26,8 @@ sem ScalarExpr
         loc.upType = either (const Nothing) Just @loc.tpe
         lhs.upType = @loc.upType
         ann.imCast = case @lhs.expectedType of
-                       t@(Just _) | trace ("check " ++ show ((t,@loc.upType)::(Maybe Type,Maybe Type)))
-                                    $ t /= @loc.upType -> t
+                       t@(Just _) | -- trace ("check " ++ show ((t,@loc.upType)::(Maybe Type,Maybe Type))) $
+                                    t /= @loc.upType -> t
                        _ -> Nothing
 
 sem ScalarExpr
@@ -181,6 +181,7 @@ op calls, fn calls, etc.
     | BinaryOp
          loc.ttpe = tcAppLike @lhs.cat @opName.originalTree [@arg0.upType,@arg1.upType]
          (arg0.expectedType,arg1.expectedType) =
+            trace ("binop: " ++ show @loc.ttpe) $
             case @loc.ttpe of
               Right ([t0,t1],_) -> (Just t0,Just t1)
               _ -> (Nothing,Nothing)
@@ -332,3 +333,42 @@ sem ScalarExpr
   | AggregateApp WindowApp fn.expectedType = Nothing
 
 --inpredicate
+
+sem ScalarExprDirectionPair
+  | Tuple x1.expectedType = Nothing
+
+sem MaybeBoolExpr
+  | Just just.expectedType = Nothing -- Just typeBool
+
+sem QueryExpr
+  | Select
+      selGroupBy.expectedTypes = []
+      selLimit.expectedType = Nothing
+      selOffset.expectedType = Nothing
+
+sem ScalarExpr
+  | LiftApp args.expectedTypes = []
+
+sem CaseScalarExprListScalarExprPair
+  | Tuple x1.expectedTypes = []
+          x2.expectedType = Nothing
+
+{-sem Root
+   | Root
+       loc.imCast = Nothing
+-}
+sem InList
+  | InList ann.imCast = Nothing
+           exprs.expectedTypes = []
+  | InQueryExpr ann.imCast = Nothing
+
+{-sem JoinExpr
+    | JoinOn JoinUsing ann.imCast = Nothing
+
+sem Name
+    | Name ann.imCast = Nothing
+sem QueryExpr
+    | Select ann.imCast = Nothing
+
+
+-}
