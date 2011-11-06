@@ -26,9 +26,9 @@ and variables, etc.
 > --import Data.Char
 > import Data.Maybe
 > import Control.Monad
-> import Control.Arrow
+> --import Control.Arrow
 > import Data.List
-> --import Debug.Trace
+> import Debug.Trace
 
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
@@ -122,118 +122,113 @@ context free contributions of each part of the ast to the current
 environment, and these query functions do all the work of resolving
 implicit correlation names, ambigous identifiers, etc.
 
-> nnm :: [NameComponent] -> String
-> nnm [] = error "Env: empty name component"
-> nnm ns = ncStr $ last ns
+for each environment type, provide two functions which do identifier
+lookup and star expansion
 
------------------------------------------------------
+> listBindingsTypes :: Environment -> ((Maybe String,String) -> [((String,String),Type)]
+>                                     ,Maybe String -> [((String,String),Type)] -- star expand
+>                                     )
+> listBindingsTypes EmptyEnvironment = (const [],const [])
 
-problem with these query functions:
-all the functions return errors
+> listBindingsTypes (SimpleTref nm pus pvs) =
+>   (\(q,n) -> let m (n',t) = (q `elem` [Nothing,Just nm])
+>                             && n == n'
+>              in addQual nm $ filter m $ pus ++ pvs
+>   ,\q -> case () of
+>            _ | q `elem` [Nothing, Just nm] -> addQual nm pus
+>              | otherwise -> [])
 
-but they want to recurse, when recursing want to differentiate between
-error and no answer
+> listBindingsTypes (JoinTref jids env0 env1) =
+>   (idens,starexp)
+>   where
 
-solution: have public wrapper which returns error
-and internal recursive functions which can also return Nothing and the
-wrapper converts nothing into the appropriate error
+>     idens k = let i0 = is0 k
+>                   i1 = is1 k
+>               in if (not (null i0) && (snd k) `elem` jnames)
+>                  then i0
+>                  else i0 ++ i1
 
-> envLookupIdentifier :: [NameComponent] -> Environment
->                     -> Either [TypeError] ((String,String), Type)
-> envLookupIdentifier nmc EmptyEnvironment = Left [UnrecognisedIdentifier $ nnm nmc]
+>     useResolvedType tr@((q,n),_) = case lookup n jids of
+>                                    Just t' -> ((q,n),t')
+>                                    Nothing -> tr
+>     jnames = map fst jids
+>     isJ ((_,n),_) = n `elem` jnames
 
-> envLookupIdentifier [q,i] t@(SimpleTref nm _ _)
->   | ncStr q == nm = envLookupIdentifier [i] t
->   | otherwise = Left [UnrecognisedCorrelationName $ ncStr q]
+todo: use useResolvedType
 
-> envLookupIdentifier [i] (SimpleTref nm pub prv) =
->       let n = ncStr i
->       in case (lookup n pub,lookup n prv) of
->              (Just _, Just _) -> Left [AmbiguousIdentifier n]
->              (Just t,_) -> return ((nm,n),t)
->              (_,Just t) -> return ((nm,n),t)
->              (Nothing,Nothing) -> Left [UnrecognisedIdentifier n]
+unqualified star:
+reorder the ids so that the join columns are first
 
-> envLookupIdentifier i (SimpleTref {}) =
->   Left [UnrecognisedIdentifier $ show i]
+>     starexp Nothing = let (aj,anj) = partition isJ (st0 Nothing)
+>                           bnj = filter (not . isJ) (st1 Nothing)
+>                       in aj ++ anj ++ bnj
+>     starexp q@(Just _) =
+>       let s0 = st0 q
+>           s1 = st1 q
+>       in case (s0,s1) of
+>            -- if we only get ids from one side, then don't
+>            -- reorder them (is this right?)
+>            (_:_,[]) -> s0
+>            ([], _:_) -> s1
+>            -- have ids coming from both sides
+>            -- no idea how this is supposed to work
+>            _ -> let (aj,anj) = partition isJ s0
+>                     bnj = filter (not . isJ) s1
+>                 in aj ++ anj ++ bnj
+>     (is0,st0) = listBindingsTypes env0
+>     (is1,st1) = listBindingsTypes env1
 
-> envLookupIdentifier nmc (SelectListEnv cols) =
->     -- todo: this isn't right
->   let n = nnm nmc
->   in case lookup n cols of
->        Just t -> return (("",n),t)
->        Nothing -> Left [UnrecognisedIdentifier n]
+selectlistenv: not quite right, but should always have an alias so the
+empty qualifier never gets very far
 
-> envLookupIdentifier nmc (CSQEnv cenv env) =
->   case (envLookupIdentifier nmc cenv
->        ,envLookupIdentifier nmc env) of
->      (r@(Right _), _) -> r
->      (_,r@(Right _)) -> r
->      (r,_) -> r
+> listBindingsTypes (SelectListEnv is) =
+>   (\(_,n) -> addQual "" $ filter ((==n).fst) is
+>   ,const $ addQual "" is)
+
+csq just uses standard shadowing for iden lookup
+for star expand, the outer env is ignored
+
+> listBindingsTypes (CSQEnv outerenv env) =
+>   (\k -> case (fst (listBindingsTypes env) k
+>               ,fst (listBindingsTypes outerenv) k) of
+>            (x,_) | not (null x) -> x
+>            (_, x) | not (null x)  -> x
+>            _ -> []
+>   ,snd $ listBindingsTypes env)
 
 
-> envLookupIdentifier nmc (JoinTref jids env0 env1) =
->   let n = nnm nmc
->   in case (lookup n jids
->           ,envLookupIdentifier nmc env0
->           ,envLookupIdentifier nmc env1) of
->        -- not sure this is right, errors are ignored when the other
->        -- tref returns something value, hope
->        -- this doesn't hide something
->        (Just _, Right t, _) -> Right t -- by default qualify with the first name
->        (_,Left _, Left _) -> Left [UnrecognisedIdentifier n]
->        (_,Right t, Left _) -> Right t
->        (_,Left _, Right t) -> Right t
->        (_,Right _, Right _) -> Left [AmbiguousIdentifier n]
+> addQual :: String -> [(String,Type)] -> [((String,String),Type)]
+> addQual q = map (\(n,t) -> ((q,n),t))
+
 
 -------------------------------------------------------
 
+use listBindingsTypes to implement expandstar and lookupid
+
 > envExpandStar :: Maybe NameComponent -> Environment -> Either [TypeError] [((String,String),Type)]
 
-> envExpandStar nmc env = {-let r =-} envExpandStar' nmc env
+> envExpandStar nmc env = {-let r =-} envExpandStar2 nmc env
 >                         {-in trace ("env expand star: " ++ show nmc ++ " " ++ show r)
 >                            r-}
 
-> envExpandStar' :: Maybe NameComponent -> Environment -> Either [TypeError] [((String,String),Type)]
+> envExpandStar2 :: Maybe NameComponent -> Environment -> Either [TypeError] [((String,String),Type)]
+> envExpandStar2 nmc env =
+>   let st = (snd $ listBindingsTypes env) $ fmap ncStr nmc
+>   in if null st
+>      then case nmc of
+>             Just x -> Left [UnrecognisedCorrelationName $ ncStr x]
+>             Nothing -> Left [BadStarExpand]
+>      else Right st
 
-> envExpandStar' _nmc  EmptyEnvironment = Left [BadStarExpand]
 
-> envExpandStar' _nmc (SelectListEnv cols) = Right $ map (first ("",)) cols
-
-> envExpandStar' nmc (CSQEnv _cenv env) = envExpandStar nmc env
-
-> envExpandStar' nmc (SimpleTref nm pub _prv)
->   | {-trace ("expand tref" ++ show nmc ++ " " ++ show nm) $ -}
->     case nmc of
->              Nothing -> True
->              Just x -> nnm [x] == nm = Right $ map (first (nm,)) pub
->   | otherwise = case nmc of
->                    Nothing -> Left [BadStarExpand]
->                    Just n -> Left [UnrecognisedCorrelationName $ nnm [n]]
-
-> envExpandStar' nmc (JoinTref jts env0 env1) = do
->   -- have to get the columns in the right order:
->   -- join columns first (have to get the types of these also - should
->   -- probably do that > -- in createjointrefenv since that is where the
->   -- type compatibility is checked
->   -- then the env0 columns without any join cols
->   -- then the env1 columns without any join cols
->   (s0,s1) <- case (envExpandStar nmc env0, envExpandStar nmc env1) of
->                (Right a, Right b) -> Right (a,b)
->                (Right a, Left _) -> Right (a, [])
->                (Left _, Right a) -> Right ([],a)
->                (Left a, Left _b) -> Left a
->   let (js,t0s) = partition isJ s0
->       (j1s,t1s) = partition isJ s1
->   -- bit hacky, to fix with the wrapper above
->   return $ let a = js ++ t0s
->            in if null a
->               then j1s ++ t1s
->               else a ++ t1s
->   where
->     isJ a = (snd . fst $ a) `elem` map fst jts
-
-(a -> a -> Bool) -> [a] -> [a] -> [a]
-
-filter ((`notElem` (map (snd.fst)fst jts)) . snd . fst) se
-
+> envLookupIdentifier :: [NameComponent] -> Environment
+>                      -> Either [TypeError] ((String,String), Type)
+> envLookupIdentifier nmc env = do
+>   k <- case nmc of
+>              [a,b] -> Right (Just $ ncStr a, ncStr b)
+>              [b] -> Right (Nothing, ncStr b)
+>              _ -> Left [InternalError "too many nmc components in envlookupiden"]
+>   case (fst $ listBindingsTypes env) k of
+>     [] -> Left [UnrecognisedIdentifier $ ncStr $ last nmc]
+>     [x] -> Right x
+>     _ -> Left [AmbiguousIdentifier $ ncStr $ last nmc]
