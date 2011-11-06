@@ -17,6 +17,7 @@ and variables, etc.
 >     ,createJoinTrefEnvironment
 >     ,envSelectListEnvironment
 >     ,createCorrelatedSubqueryEnvironment
+>     ,createTrefAliasedEnvironment
 >      -- * environment query functions
 >     ,envLookupIdentifier
 >     ,envExpandStar
@@ -28,7 +29,7 @@ and variables, etc.
 > import Control.Monad
 > --import Control.Arrow
 > import Data.List
-> import Debug.Trace
+> --import Debug.Trace
 
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
@@ -49,12 +50,16 @@ and variables, etc.
 >                  -- | represents the bindings introduced by a tableref:
 >                  -- the name, the public fields, the private fields
 >                  | SimpleTref String [(String,Type)] [(String,Type)]
+>                  -- | environment from joining two tables
 >                  | JoinTref [(String,Type)] -- join ids
 >                             Environment Environment
+>                  -- | environment from a sub select
 >                  | SelectListEnv [(String,Type)]
 >                    -- | correlated subquery environment
 >                  | CSQEnv Environment -- outerenv
 >                           Environment -- main env
+>                    -- | an aliased tref
+>                  | TrefAlias String (Maybe [String]) Environment
 >                    deriving (Data,Typeable,Show,Eq)
 
 
@@ -64,6 +69,8 @@ and variables, etc.
 Create/ update functions, these are shortcuts to create environment variables,
 the main purpose is to encapsulate looking up information in the
 catalog and combining environment values with updates
+
+TODO: remove the create prefixes
 
 > emptyEnvironment :: Environment
 > emptyEnvironment = EmptyEnvironment
@@ -111,6 +118,10 @@ catalog and combining environment values with updates
 > createCorrelatedSubqueryEnvironment cenv env =
 >   CSQEnv cenv env
 
+> createTrefAliasedEnvironment :: String -> Maybe [String] -> Environment -> Environment
+> createTrefAliasedEnvironment = TrefAlias
+
+
 
 
 -------------------------------------------------------
@@ -129,6 +140,14 @@ lookup and star expansion
 >                                     ,Maybe String -> [((String,String),Type)] -- star expand
 >                                     )
 > listBindingsTypes EmptyEnvironment = (const [],const [])
+
+> listBindingsTypes (TrefAlias ta Nothing env) =
+>   (\(q,n) -> if q `elem` [Nothing, Just ta]
+>              then fst (listBindingsTypes env) (Nothing,n)
+>              else []
+>   ,\q -> if q `elem` [Nothing, Just ta]
+>          then snd (listBindingsTypes env) Nothing
+>          else [])
 
 > listBindingsTypes (SimpleTref nm pus pvs) =
 >   (\(q,n) -> let m (n',t) = (q `elem` [Nothing,Just nm])

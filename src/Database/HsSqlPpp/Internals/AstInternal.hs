@@ -12822,7 +12822,7 @@ sem_TableAlias_FullAlias :: T_Annotation  ->
 sem_TableAlias_FullAlias ann_ tb_ cols_  =
     (\ _lhsIcat
        _lhsIflags ->
-         (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+         (case (({-# LINE 75 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                  Left []
                  {-# LINE 12828 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
@@ -12867,7 +12867,7 @@ sem_TableAlias_NoAlias :: T_Annotation  ->
 sem_TableAlias_NoAlias ann_  =
     (\ _lhsIcat
        _lhsIflags ->
-         (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+         (case (({-# LINE 75 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                  Left []
                  {-# LINE 12873 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
@@ -12913,7 +12913,7 @@ sem_TableAlias_TableAlias :: T_Annotation  ->
 sem_TableAlias_TableAlias ann_ tb_  =
     (\ _lhsIcat
        _lhsIflags ->
-         (case (({-# LINE 65 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+         (case (({-# LINE 75 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                  Left []
                  {-# LINE 12919 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
@@ -12972,6 +12972,7 @@ sem_TableAlias_TableAlias ann_ tb_  =
             local eEnv        : {Either [TypeError] Environment}
             local annotatedTree : _
             local originalTree : _
+            local eEnv2       : _
       alternative JoinTref:
          child ann            : Annotation 
          child tbl0           : TableRef 
@@ -12984,6 +12985,7 @@ sem_TableAlias_TableAlias ann_ tb_  =
             local eEnv        : {Either [TypeError] Environment}
             local annotatedTree : _
             local originalTree : _
+            local eEnv2       : _
       alternative SubTref:
          child ann            : Annotation 
          child sel            : QueryExpr 
@@ -12992,6 +12994,7 @@ sem_TableAlias_TableAlias ann_ tb_  =
             local eEnv        : {Either [TypeError] Environment}
             local annotatedTree : _
             local originalTree : _
+            local eEnv2       : _
       alternative Tref:
          child ann            : Annotation 
          child tbl            : Name 
@@ -13000,6 +13003,7 @@ sem_TableAlias_TableAlias ann_ tb_  =
             local eEnv        : {Either [TypeError] Environment}
             local annotatedTree : _
             local originalTree : _
+            local eEnv2       : _
 -}
 data TableRef  = FunTref (Annotation ) (ScalarExpr ) (TableAlias ) 
                | JoinTref (Annotation ) (TableRef ) (Natural) (JoinType) (TableRef ) (OnExpr ) (TableAlias ) 
@@ -13038,37 +13042,37 @@ sem_TableRef_FunTref ann_ fn_ alias_  =
        _lhsIflags ->
          (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIflags
-                 {-# LINE 13042 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 13046 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _fnOflags ->
           (case (({-# LINE 35 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                   error "missing rule: TableRef.FunTref.fn.downEnv"
-                  {-# LINE 13047 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 13051 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _fnOdownEnv ->
            (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    _lhsIcat
-                   {-# LINE 13052 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 13056 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _fnOcat ->
-            (case (({-# LINE 61 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+            (case (({-# LINE 71 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                     Left []
-                    {-# LINE 13057 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 13061 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _eEnv ->
-             (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+             (case (({-# LINE 38 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                      either Left (const $ Left []) _eEnv
-                     {-# LINE 13062 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 13066 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _annOtpe ->
               (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _lhsIflags
-                      {-# LINE 13067 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 13071 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _aliasOflags ->
                (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        _lhsIcat
-                       {-# LINE 13072 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 13076 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _aliasOcat ->
                 (case (alias_ _aliasOcat _aliasOflags ) of
@@ -13079,42 +13083,55 @@ sem_TableRef_FunTref ann_ fn_ alias_  =
                            { ( _annIoriginalTree,ann_1) ->
                                (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        _lhsIflags
-                                       {-# LINE 13083 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 13087 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _annOflags ->
                                 (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         _lhsIcat
-                                        {-# LINE 13088 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 13092 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _annOcat ->
                                  (case (ann_1 _annOcat _annOflags _annOtpe ) of
                                   { ( _annIannotatedTree) ->
                                       (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                               FunTref _annIannotatedTree _fnIannotatedTree _aliasIannotatedTree
-                                              {-# LINE 13095 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 13099 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _annotatedTree ->
                                        (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                _annotatedTree
-                                               {-# LINE 13100 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 13104 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _lhsOannotatedTree ->
                                         (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 FunTref _annIoriginalTree _fnIoriginalTree _aliasIoriginalTree
-                                                {-# LINE 13105 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 13109 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _originalTree ->
                                          (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                  _originalTree
-                                                 {-# LINE 13110 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                 {-# LINE 13114 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                  )) of
                                           { _lhsOoriginalTree ->
-                                          (case (({-# LINE 30 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
-                                                  either (const emptyEnvironment) id _eEnv
-                                                  {-# LINE 13115 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          (case (({-# LINE 27 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+                                                  case _aliasIoriginalTree of
+                                                    NoAlias _ -> _eEnv
+                                                    TableAlias _ t ->
+                                                      fmap (createTrefAliasedEnvironment (ncStr t) Nothing)
+                                                           _eEnv
+                                                    FullAlias _ t cs ->
+                                                      fmap (createTrefAliasedEnvironment (ncStr t)
+                                                                                         (Just $ map ncStr cs))
+                                                           _eEnv
+                                                  {-# LINE 13127 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                   )) of
-                                           { _lhsOupEnv ->
-                                           ( _lhsOannotatedTree,_lhsOoriginalTree,_lhsOupEnv) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
+                                           { _eEnv2 ->
+                                           (case (({-# LINE 40 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+                                                   either (const emptyEnvironment) id _eEnv2
+                                                   {-# LINE 13132 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                   )) of
+                                            { _lhsOupEnv ->
+                                            ( _lhsOannotatedTree,_lhsOoriginalTree,_lhsOupEnv) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
 sem_TableRef_JoinTref :: T_Annotation  ->
                          T_TableRef  ->
                          Natural ->
@@ -13128,37 +13145,37 @@ sem_TableRef_JoinTref ann_ tbl0_ nat_ joinType_ tbl1_ onExpr_ alias_  =
        _lhsIflags ->
          (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIflags
-                 {-# LINE 13132 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 13149 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _onExprOflags ->
           (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 13137 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 13154 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _onExprOcat ->
            (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    _lhsIflags
-                   {-# LINE 13142 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 13159 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _tbl1Oflags ->
             (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _lhsIcat
-                    {-# LINE 13147 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 13164 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _tbl1Ocat ->
              (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                      _lhsIflags
-                     {-# LINE 13152 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 13169 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _tbl0Oflags ->
               (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                       _lhsIcat
-                      {-# LINE 13157 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 13174 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _tbl0Ocat ->
-               (case (({-# LINE 52 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+               (case (({-# LINE 62 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                        emptyEnvironment
-                       {-# LINE 13162 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 13179 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _onExprOdownEnv ->
                 (case (onExpr_ _onExprOcat _onExprOdownEnv _onExprOflags ) of
@@ -13167,29 +13184,29 @@ sem_TableRef_JoinTref ann_ tbl0_ nat_ joinType_ tbl1_ onExpr_ alias_  =
                       { ( _tbl1IannotatedTree,_tbl1IoriginalTree,_tbl1IupEnv) ->
                           (case (tbl0_ _tbl0Ocat _tbl0Oflags ) of
                            { ( _tbl0IannotatedTree,_tbl0IoriginalTree,_tbl0IupEnv) ->
-                               (case (({-# LINE 42 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+                               (case (({-# LINE 52 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                                        createJoinTrefEnvironment _lhsIcat
                                          _tbl0IupEnv _tbl1IupEnv
                                          $ case (joinType_,_onExprIoriginalTree) of
                                             (x,Nothing) | x /= Cross -> Nothing
                                             (_,Just (JoinUsing _ nms)) -> Just nms
                                             _ -> Just []
-                                       {-# LINE 13178 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 13195 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _eEnv ->
-                                (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+                                (case (({-# LINE 38 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                                         either Left (const $ Left []) _eEnv
-                                        {-# LINE 13183 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 13200 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _annOtpe ->
                                  (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          _lhsIflags
-                                         {-# LINE 13188 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 13205 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _aliasOflags ->
                                   (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           _lhsIcat
-                                          {-# LINE 13193 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 13210 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _aliasOcat ->
                                    (case (alias_ _aliasOcat _aliasOflags ) of
@@ -13198,42 +13215,55 @@ sem_TableRef_JoinTref ann_ tbl0_ nat_ joinType_ tbl1_ onExpr_ alias_  =
                                          { ( _annIoriginalTree,ann_1) ->
                                              (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                      _lhsIflags
-                                                     {-# LINE 13202 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                     {-# LINE 13219 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                      )) of
                                               { _annOflags ->
                                               (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                       _lhsIcat
-                                                      {-# LINE 13207 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                      {-# LINE 13224 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                       )) of
                                                { _annOcat ->
                                                (case (ann_1 _annOcat _annOflags _annOtpe ) of
                                                 { ( _annIannotatedTree) ->
                                                     (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                             JoinTref _annIannotatedTree _tbl0IannotatedTree nat_ joinType_ _tbl1IannotatedTree _onExprIannotatedTree _aliasIannotatedTree
-                                                            {-# LINE 13214 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                            {-# LINE 13231 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                             )) of
                                                      { _annotatedTree ->
                                                      (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                              _annotatedTree
-                                                             {-# LINE 13219 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                             {-# LINE 13236 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                              )) of
                                                       { _lhsOannotatedTree ->
                                                       (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                               JoinTref _annIoriginalTree _tbl0IoriginalTree nat_ joinType_ _tbl1IoriginalTree _onExprIoriginalTree _aliasIoriginalTree
-                                                              {-# LINE 13224 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                              {-# LINE 13241 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                               )) of
                                                        { _originalTree ->
                                                        (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                                _originalTree
-                                                               {-# LINE 13229 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                               {-# LINE 13246 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                                )) of
                                                         { _lhsOoriginalTree ->
-                                                        (case (({-# LINE 30 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
-                                                                either (const emptyEnvironment) id _eEnv
-                                                                {-# LINE 13234 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                        (case (({-# LINE 27 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+                                                                case _aliasIoriginalTree of
+                                                                  NoAlias _ -> _eEnv
+                                                                  TableAlias _ t ->
+                                                                    fmap (createTrefAliasedEnvironment (ncStr t) Nothing)
+                                                                         _eEnv
+                                                                  FullAlias _ t cs ->
+                                                                    fmap (createTrefAliasedEnvironment (ncStr t)
+                                                                                                       (Just $ map ncStr cs))
+                                                                         _eEnv
+                                                                {-# LINE 13259 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                                 )) of
-                                                         { _lhsOupEnv ->
-                                                         ( _lhsOannotatedTree,_lhsOoriginalTree,_lhsOupEnv) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
+                                                         { _eEnv2 ->
+                                                         (case (({-# LINE 40 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+                                                                 either (const emptyEnvironment) id _eEnv2
+                                                                 {-# LINE 13264 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                                 )) of
+                                                          { _lhsOupEnv ->
+                                                          ( _lhsOannotatedTree,_lhsOoriginalTree,_lhsOupEnv) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
 sem_TableRef_SubTref :: T_Annotation  ->
                         T_QueryExpr  ->
                         T_TableAlias  ->
@@ -13243,40 +13273,40 @@ sem_TableRef_SubTref ann_ sel_ alias_  =
        _lhsIflags ->
          (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIflags
-                 {-# LINE 13247 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 13277 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _selOflags ->
           (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 13252 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 13282 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _selOcat ->
            (case (({-# LINE 26 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag" #-}
                    Nothing
-                   {-# LINE 13257 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 13287 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _selOouterDownEnv ->
             (case (sel_ _selOcat _selOflags _selOouterDownEnv ) of
              { ( _selIannotatedTree,_selIoriginalTree,_selIupType) ->
-                 (case (({-# LINE 54 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+                 (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                          maybe (Left []) id
                          $ fmap envSelectListEnvironment _selIupType
-                         {-# LINE 13265 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 13295 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _eEnv ->
-                  (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+                  (case (({-# LINE 38 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                           either Left (const $ Left []) _eEnv
-                          {-# LINE 13270 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                          {-# LINE 13300 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                           )) of
                    { _annOtpe ->
                    (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                            _lhsIflags
-                           {-# LINE 13275 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                           {-# LINE 13305 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                            )) of
                     { _aliasOflags ->
                     (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                             _lhsIcat
-                            {-# LINE 13280 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                            {-# LINE 13310 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                             )) of
                      { _aliasOcat ->
                      (case (alias_ _aliasOcat _aliasOflags ) of
@@ -13285,42 +13315,55 @@ sem_TableRef_SubTref ann_ sel_ alias_  =
                            { ( _annIoriginalTree,ann_1) ->
                                (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        _lhsIflags
-                                       {-# LINE 13289 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 13319 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _annOflags ->
                                 (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         _lhsIcat
-                                        {-# LINE 13294 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 13324 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _annOcat ->
                                  (case (ann_1 _annOcat _annOflags _annOtpe ) of
                                   { ( _annIannotatedTree) ->
                                       (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                               SubTref _annIannotatedTree _selIannotatedTree _aliasIannotatedTree
-                                              {-# LINE 13301 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 13331 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _annotatedTree ->
                                        (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                _annotatedTree
-                                               {-# LINE 13306 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 13336 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _lhsOannotatedTree ->
                                         (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 SubTref _annIoriginalTree _selIoriginalTree _aliasIoriginalTree
-                                                {-# LINE 13311 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 13341 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _originalTree ->
                                          (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                  _originalTree
-                                                 {-# LINE 13316 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                 {-# LINE 13346 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                  )) of
                                           { _lhsOoriginalTree ->
-                                          (case (({-# LINE 30 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
-                                                  either (const emptyEnvironment) id _eEnv
-                                                  {-# LINE 13321 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          (case (({-# LINE 27 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+                                                  case _aliasIoriginalTree of
+                                                    NoAlias _ -> _eEnv
+                                                    TableAlias _ t ->
+                                                      fmap (createTrefAliasedEnvironment (ncStr t) Nothing)
+                                                           _eEnv
+                                                    FullAlias _ t cs ->
+                                                      fmap (createTrefAliasedEnvironment (ncStr t)
+                                                                                         (Just $ map ncStr cs))
+                                                           _eEnv
+                                                  {-# LINE 13359 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                   )) of
-                                           { _lhsOupEnv ->
-                                           ( _lhsOannotatedTree,_lhsOoriginalTree,_lhsOupEnv) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
+                                           { _eEnv2 ->
+                                           (case (({-# LINE 40 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+                                                   either (const emptyEnvironment) id _eEnv2
+                                                   {-# LINE 13364 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                   )) of
+                                            { _lhsOupEnv ->
+                                            ( _lhsOannotatedTree,_lhsOoriginalTree,_lhsOupEnv) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
 sem_TableRef_Tref :: T_Annotation  ->
                      T_Name  ->
                      T_TableAlias  ->
@@ -13328,43 +13371,43 @@ sem_TableRef_Tref :: T_Annotation  ->
 sem_TableRef_Tref ann_ tbl_ alias_  =
     (\ _lhsIcat
        _lhsIflags ->
-         (case (({-# LINE 39 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+         (case (({-# LINE 49 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                  Left []
-                 {-# LINE 13334 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 13377 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tblOtpe ->
           (case (tbl_ ) of
            { ( _tblIoriginalTree,tbl_1) ->
-               (case (({-# LINE 38 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+               (case (({-# LINE 48 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                        envCreateTrefEnvironment _lhsIcat (nameComponents _tblIoriginalTree)
-                       {-# LINE 13341 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 13384 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _eEnv ->
-                (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+                (case (({-# LINE 38 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                         either Left (const $ Left []) _eEnv
-                        {-# LINE 13346 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 13389 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annOtpe ->
                  (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                          _lhsIflags
-                         {-# LINE 13351 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 13394 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _aliasOflags ->
                   (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                           _lhsIcat
-                          {-# LINE 13356 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                          {-# LINE 13399 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                           )) of
                    { _aliasOcat ->
                    (case (alias_ _aliasOcat _aliasOflags ) of
                     { ( _aliasIannotatedTree,_aliasIoriginalTree) ->
                         (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _lhsIflags
-                                {-# LINE 13363 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 13406 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _tblOflags ->
                          (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  _lhsIcat
-                                 {-# LINE 13368 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 13411 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _tblOcat ->
                           (case (tbl_1 _tblOcat _tblOflags _tblOtpe ) of
@@ -13373,42 +13416,55 @@ sem_TableRef_Tref ann_ tbl_ alias_  =
                                 { ( _annIoriginalTree,ann_1) ->
                                     (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             _lhsIflags
-                                            {-# LINE 13377 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 13420 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _annOflags ->
                                      (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              _lhsIcat
-                                             {-# LINE 13382 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 13425 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _annOcat ->
                                       (case (ann_1 _annOcat _annOflags _annOtpe ) of
                                        { ( _annIannotatedTree) ->
                                            (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                    Tref _annIannotatedTree _tblIannotatedTree _aliasIannotatedTree
-                                                   {-# LINE 13389 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                   {-# LINE 13432 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                    )) of
                                             { _annotatedTree ->
                                             (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                     _annotatedTree
-                                                    {-# LINE 13394 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                    {-# LINE 13437 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                     )) of
                                              { _lhsOannotatedTree ->
                                              (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                      Tref _annIoriginalTree _tblIoriginalTree _aliasIoriginalTree
-                                                     {-# LINE 13399 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                     {-# LINE 13442 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                      )) of
                                               { _originalTree ->
                                               (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                       _originalTree
-                                                      {-# LINE 13404 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                      {-# LINE 13447 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                       )) of
                                                { _lhsOoriginalTree ->
-                                               (case (({-# LINE 30 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
-                                                       either (const emptyEnvironment) id _eEnv
-                                                       {-# LINE 13409 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               (case (({-# LINE 27 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+                                                       case _aliasIoriginalTree of
+                                                         NoAlias _ -> _eEnv
+                                                         TableAlias _ t ->
+                                                           fmap (createTrefAliasedEnvironment (ncStr t) Nothing)
+                                                                _eEnv
+                                                         FullAlias _ t cs ->
+                                                           fmap (createTrefAliasedEnvironment (ncStr t)
+                                                                                              (Just $ map ncStr cs))
+                                                                _eEnv
+                                                       {-# LINE 13460 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                        )) of
-                                                { _lhsOupEnv ->
-                                                ( _lhsOannotatedTree,_lhsOoriginalTree,_lhsOupEnv) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
+                                                { _eEnv2 ->
+                                                (case (({-# LINE 40 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+                                                        either (const emptyEnvironment) id _eEnv2
+                                                        {-# LINE 13465 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                        )) of
+                                                 { _lhsOupEnv ->
+                                                 ( _lhsOannotatedTree,_lhsOoriginalTree,_lhsOupEnv) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
 -- TableRefList ------------------------------------------------
 {-
    visit 0:
@@ -13457,22 +13513,22 @@ sem_TableRefList_Cons hd_ tl_  =
        _lhsIflags ->
          (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIflags
-                 {-# LINE 13461 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 13517 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tlOflags ->
           (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 13466 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 13522 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _tlOcat ->
            (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    _lhsIflags
-                   {-# LINE 13471 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 13527 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _hdOflags ->
             (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _lhsIcat
-                    {-# LINE 13476 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 13532 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _hdOcat ->
              (case (tl_ _tlOcat _tlOflags ) of
@@ -13481,22 +13537,22 @@ sem_TableRefList_Cons hd_ tl_  =
                    { ( _hdIannotatedTree,_hdIoriginalTree,_hdIupEnv) ->
                        (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                (:) _hdIannotatedTree _tlIannotatedTree
-                               {-# LINE 13485 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 13541 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _annotatedTree ->
                         (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _annotatedTree
-                                {-# LINE 13490 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 13546 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOannotatedTree ->
                          (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  (:) _hdIoriginalTree _tlIoriginalTree
-                                 {-# LINE 13495 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 13551 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 13500 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 13556 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            (case (({-# LINE 15 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
@@ -13505,7 +13561,7 @@ sem_TableRefList_Cons hd_ tl_  =
                                    else
                                           either (error . show) id $
                                           createJoinTrefEnvironment _lhsIcat _hdIupEnv _tlIupEnv $ Just []
-                                   {-# LINE 13509 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                   {-# LINE 13565 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                    )) of
                             { _lhsOupEnv ->
                             ( _lhsOannotatedTree,_lhsOoriginalTree,_lhsOupEnv) }) }) }) }) }) }) }) }) }) }) }))
@@ -13515,27 +13571,27 @@ sem_TableRefList_Nil  =
        _lhsIflags ->
          (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  []
-                 {-# LINE 13519 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 13575 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 13524 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 13580 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    []
-                   {-# LINE 13529 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 13585 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _originalTree ->
             (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _originalTree
-                    {-# LINE 13534 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 13590 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOoriginalTree ->
              (case (({-# LINE 13 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                      emptyEnvironment
-                     {-# LINE 13539 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                     {-# LINE 13595 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                      )) of
               { _lhsOupEnv ->
               ( _lhsOannotatedTree,_lhsOoriginalTree,_lhsOupEnv) }) }) }) }) }))
@@ -13585,17 +13641,17 @@ sem_TypeAttributeDef_TypeAttDef ann_ name_ typ_  =
        _lhsIflags ->
          (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 13589 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 13645 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _typOcat ->
           (case (({-# LINE 99 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   error "missing rule: TypeAttributeDef.TypeAttDef.ann.tpe"
-                  {-# LINE 13594 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 13650 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    _lhsIflags
-                   {-# LINE 13599 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 13655 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _typOflags ->
             (case (typ_ _typOcat _typOflags ) of
@@ -13604,34 +13660,34 @@ sem_TypeAttributeDef_TypeAttDef ann_ name_ typ_  =
                   { ( _annIoriginalTree,ann_1) ->
                       (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIflags
-                              {-# LINE 13608 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 13664 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annOflags ->
                        (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                _lhsIcat
-                               {-# LINE 13613 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 13669 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _annOcat ->
                         (case (ann_1 _annOcat _annOflags _annOtpe ) of
                          { ( _annIannotatedTree) ->
                              (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      TypeAttDef _annIannotatedTree name_ _typIannotatedTree
-                                     {-# LINE 13620 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 13676 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _annotatedTree ->
                               (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       _annotatedTree
-                                      {-# LINE 13625 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 13681 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _lhsOannotatedTree ->
                                (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        TypeAttDef _annIoriginalTree name_ _typIoriginalTree
-                                       {-# LINE 13630 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 13686 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _originalTree ->
                                 (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         _originalTree
-                                        {-# LINE 13635 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 13691 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOoriginalTree ->
                                  ( _lhsOannotatedTree,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -13682,46 +13738,46 @@ sem_TypeAttributeDefList_Cons hd_ tl_  =
        _lhsIflags ->
          (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 13686 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 13742 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tlOcat ->
           (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 13691 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 13747 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _hdOcat ->
            (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    _lhsIflags
-                   {-# LINE 13696 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 13752 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _tlOflags ->
             (case (tl_ _tlOcat _tlOflags ) of
              { ( _tlIannotatedTree,_tlIoriginalTree) ->
                  (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                          _lhsIflags
-                         {-# LINE 13703 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 13759 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _hdOflags ->
                   (case (hd_ _hdOcat _hdOflags ) of
                    { ( _hdIannotatedTree,_hdIoriginalTree) ->
                        (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                (:) _hdIannotatedTree _tlIannotatedTree
-                               {-# LINE 13710 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 13766 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _annotatedTree ->
                         (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _annotatedTree
-                                {-# LINE 13715 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 13771 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOannotatedTree ->
                          (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  (:) _hdIoriginalTree _tlIoriginalTree
-                                 {-# LINE 13720 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 13776 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 13725 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 13781 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -13731,22 +13787,22 @@ sem_TypeAttributeDefList_Nil  =
        _lhsIflags ->
          (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  []
-                 {-# LINE 13735 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 13791 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 13740 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 13796 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    []
-                   {-# LINE 13745 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 13801 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _originalTree ->
             (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _originalTree
-                    {-# LINE 13750 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 13806 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOoriginalTree ->
              ( _lhsOannotatedTree,_lhsOoriginalTree) }) }) }) }))
@@ -13839,12 +13895,12 @@ sem_TypeName_ArrayTypeName ann_ typ_  =
        _lhsIflags ->
          (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 13843 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 13899 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _typOcat ->
           (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIflags
-                  {-# LINE 13848 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 13904 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _typOflags ->
            (case (typ_ _typOcat _typOflags ) of
@@ -13852,51 +13908,51 @@ sem_TypeName_ArrayTypeName ann_ typ_  =
                 (case (({-# LINE 58 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                         maybe (Left []) Right _typInamedType
                         >>=  Right . ArrayType
-                        {-# LINE 13856 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 13912 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _tpe ->
                  (case (({-# LINE 37 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                          either Left (const $ Left []) _tpe
-                         {-# LINE 13861 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 13917 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _annOtpe ->
                   (case (ann_ ) of
                    { ( _annIoriginalTree,ann_1) ->
                        (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                _lhsIflags
-                               {-# LINE 13868 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 13924 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _annOflags ->
                         (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _lhsIcat
-                                {-# LINE 13873 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 13929 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _annOcat ->
                          (case (ann_1 _annOcat _annOflags _annOtpe ) of
                           { ( _annIannotatedTree) ->
                               (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       ArrayTypeName _annIannotatedTree _typIannotatedTree
-                                      {-# LINE 13880 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 13936 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _annotatedTree ->
                                (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        _annotatedTree
-                                       {-# LINE 13885 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 13941 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _lhsOannotatedTree ->
                                 (case (({-# LINE 36 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                                         either (const Nothing) Just _tpe
-                                        {-# LINE 13890 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 13946 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOnamedType ->
                                  (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          ArrayTypeName _annIoriginalTree _typIoriginalTree
-                                         {-# LINE 13895 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 13951 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _originalTree ->
                                   (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           _originalTree
-                                          {-# LINE 13900 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 13956 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _lhsOoriginalTree ->
                                    ( _lhsOannotatedTree,_lhsOnamedType,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -13912,27 +13968,27 @@ sem_TypeName_Prec2TypeName ann_ tn_ prec_ prec1_  =
           { ( _tnIoriginalTree,tn_1) ->
               (case (({-# LINE 66 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                       catLookupType _lhsIcat (nameComponents _tnIoriginalTree)
-                      {-# LINE 13916 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 13972 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _tpe ->
                (case (({-# LINE 39 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                        Left []
-                       {-# LINE 13921 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 13977 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _tnOtpe ->
                 (case (({-# LINE 37 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                         either Left (const $ Left []) _tpe
-                        {-# LINE 13926 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 13982 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annOtpe ->
                  (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                          _lhsIflags
-                         {-# LINE 13931 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 13987 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _tnOflags ->
                   (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                           _lhsIcat
-                          {-# LINE 13936 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                          {-# LINE 13992 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                           )) of
                    { _tnOcat ->
                    (case (tn_1 _tnOcat _tnOflags _tnOtpe ) of
@@ -13941,39 +13997,39 @@ sem_TypeName_Prec2TypeName ann_ tn_ prec_ prec1_  =
                          { ( _annIoriginalTree,ann_1) ->
                              (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _lhsIflags
-                                     {-# LINE 13945 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 14001 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _annOflags ->
                               (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       _lhsIcat
-                                      {-# LINE 13950 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 14006 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _annOcat ->
                                (case (ann_1 _annOcat _annOflags _annOtpe ) of
                                 { ( _annIannotatedTree) ->
                                     (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             Prec2TypeName _annIannotatedTree _tnIannotatedTree prec_ prec1_
-                                            {-# LINE 13957 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 14013 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _annotatedTree ->
                                      (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              _annotatedTree
-                                             {-# LINE 13962 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 14018 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _lhsOannotatedTree ->
                                       (case (({-# LINE 36 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                                               either (const Nothing) Just _tpe
-                                              {-# LINE 13967 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 14023 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _lhsOnamedType ->
                                        (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                Prec2TypeName _annIoriginalTree _tnIoriginalTree prec_ prec1_
-                                               {-# LINE 13972 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 14028 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _originalTree ->
                                         (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 _originalTree
-                                                {-# LINE 13977 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 14033 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _lhsOoriginalTree ->
                                          ( _lhsOannotatedTree,_lhsOnamedType,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -13988,27 +14044,27 @@ sem_TypeName_PrecTypeName ann_ tn_ prec_  =
           { ( _tnIoriginalTree,tn_1) ->
               (case (({-# LINE 64 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                       catLookupType _lhsIcat (nameComponents _tnIoriginalTree)
-                      {-# LINE 13992 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 14048 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _tpe ->
                (case (({-# LINE 39 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                        Left []
-                       {-# LINE 13997 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 14053 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _tnOtpe ->
                 (case (({-# LINE 37 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                         either Left (const $ Left []) _tpe
-                        {-# LINE 14002 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 14058 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annOtpe ->
                  (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                          _lhsIflags
-                         {-# LINE 14007 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 14063 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _tnOflags ->
                   (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                           _lhsIcat
-                          {-# LINE 14012 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                          {-# LINE 14068 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                           )) of
                    { _tnOcat ->
                    (case (tn_1 _tnOcat _tnOflags _tnOtpe ) of
@@ -14017,39 +14073,39 @@ sem_TypeName_PrecTypeName ann_ tn_ prec_  =
                          { ( _annIoriginalTree,ann_1) ->
                              (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _lhsIflags
-                                     {-# LINE 14021 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 14077 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _annOflags ->
                               (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       _lhsIcat
-                                      {-# LINE 14026 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 14082 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _annOcat ->
                                (case (ann_1 _annOcat _annOflags _annOtpe ) of
                                 { ( _annIannotatedTree) ->
                                     (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             PrecTypeName _annIannotatedTree _tnIannotatedTree prec_
-                                            {-# LINE 14033 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 14089 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _annotatedTree ->
                                      (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              _annotatedTree
-                                             {-# LINE 14038 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 14094 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _lhsOannotatedTree ->
                                       (case (({-# LINE 36 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                                               either (const Nothing) Just _tpe
-                                              {-# LINE 14043 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 14099 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _lhsOnamedType ->
                                        (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                PrecTypeName _annIoriginalTree _tnIoriginalTree prec_
-                                               {-# LINE 14048 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 14104 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _originalTree ->
                                         (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 _originalTree
-                                                {-# LINE 14053 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 14109 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _lhsOoriginalTree ->
                                          ( _lhsOannotatedTree,_lhsOnamedType,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -14061,12 +14117,12 @@ sem_TypeName_SetOfTypeName ann_ typ_  =
        _lhsIflags ->
          (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 14065 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 14121 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _typOcat ->
           (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIflags
-                  {-# LINE 14070 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 14126 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _typOflags ->
            (case (typ_ _typOcat _typOflags ) of
@@ -14074,51 +14130,51 @@ sem_TypeName_SetOfTypeName ann_ typ_  =
                 (case (({-# LINE 61 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                         maybe (Left []) Right _typInamedType
                         >>=  Right . Pseudo . SetOfType
-                        {-# LINE 14078 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 14134 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _tpe ->
                  (case (({-# LINE 37 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                          either Left (const $ Left []) _tpe
-                         {-# LINE 14083 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 14139 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _annOtpe ->
                   (case (ann_ ) of
                    { ( _annIoriginalTree,ann_1) ->
                        (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                _lhsIflags
-                               {-# LINE 14090 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 14146 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _annOflags ->
                         (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _lhsIcat
-                                {-# LINE 14095 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 14151 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _annOcat ->
                          (case (ann_1 _annOcat _annOflags _annOtpe ) of
                           { ( _annIannotatedTree) ->
                               (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       SetOfTypeName _annIannotatedTree _typIannotatedTree
-                                      {-# LINE 14102 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 14158 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _annotatedTree ->
                                (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        _annotatedTree
-                                       {-# LINE 14107 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 14163 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _lhsOannotatedTree ->
                                 (case (({-# LINE 36 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                                         either (const Nothing) Just _tpe
-                                        {-# LINE 14112 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 14168 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOnamedType ->
                                  (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          SetOfTypeName _annIoriginalTree _typIoriginalTree
-                                         {-# LINE 14117 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 14173 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _originalTree ->
                                   (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                           _originalTree
-                                          {-# LINE 14122 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                          {-# LINE 14178 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                           )) of
                                    { _lhsOoriginalTree ->
                                    ( _lhsOannotatedTree,_lhsOnamedType,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -14132,27 +14188,27 @@ sem_TypeName_SimpleTypeName ann_ tn_  =
           { ( _tnIoriginalTree,tn_1) ->
               (case (({-# LINE 50 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                       catLookupType _lhsIcat (nameComponents _tnIoriginalTree)
-                      {-# LINE 14136 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                      {-# LINE 14192 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                       )) of
                { _tpe ->
                (case (({-# LINE 39 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                        Left []
-                       {-# LINE 14141 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 14197 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _tnOtpe ->
                 (case (({-# LINE 37 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                         either Left (const $ Left []) _tpe
-                        {-# LINE 14146 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 14202 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annOtpe ->
                  (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                          _lhsIflags
-                         {-# LINE 14151 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 14207 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _tnOflags ->
                   (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                           _lhsIcat
-                          {-# LINE 14156 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                          {-# LINE 14212 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                           )) of
                    { _tnOcat ->
                    (case (tn_1 _tnOcat _tnOflags _tnOtpe ) of
@@ -14161,39 +14217,39 @@ sem_TypeName_SimpleTypeName ann_ tn_  =
                          { ( _annIoriginalTree,ann_1) ->
                              (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _lhsIflags
-                                     {-# LINE 14165 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 14221 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _annOflags ->
                               (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       _lhsIcat
-                                      {-# LINE 14170 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 14226 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _annOcat ->
                                (case (ann_1 _annOcat _annOflags _annOtpe ) of
                                 { ( _annIannotatedTree) ->
                                     (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             SimpleTypeName _annIannotatedTree _tnIannotatedTree
-                                            {-# LINE 14177 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 14233 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _annotatedTree ->
                                      (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              _annotatedTree
-                                             {-# LINE 14182 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 14238 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _lhsOannotatedTree ->
                                       (case (({-# LINE 36 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                                               either (const Nothing) Just _tpe
-                                              {-# LINE 14187 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 14243 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _lhsOnamedType ->
                                        (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                SimpleTypeName _annIoriginalTree _tnIoriginalTree
-                                               {-# LINE 14192 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                               {-# LINE 14248 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                )) of
                                         { _originalTree ->
                                         (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                                 _originalTree
-                                                {-# LINE 14197 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                                {-# LINE 14253 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                                 )) of
                                          { _lhsOoriginalTree ->
                                          ( _lhsOannotatedTree,_lhsOnamedType,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -14244,46 +14300,46 @@ sem_TypeNameList_Cons hd_ tl_  =
        _lhsIflags ->
          (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 14248 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 14304 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tlOcat ->
           (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 14253 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 14309 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _hdOcat ->
            (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    _lhsIflags
-                   {-# LINE 14258 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 14314 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _tlOflags ->
             (case (tl_ _tlOcat _tlOflags ) of
              { ( _tlIannotatedTree,_tlIoriginalTree) ->
                  (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                          _lhsIflags
-                         {-# LINE 14265 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 14321 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _hdOflags ->
                   (case (hd_ _hdOcat _hdOflags ) of
                    { ( _hdIannotatedTree,_hdInamedType,_hdIoriginalTree) ->
                        (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                (:) _hdIannotatedTree _tlIannotatedTree
-                               {-# LINE 14272 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 14328 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _annotatedTree ->
                         (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _annotatedTree
-                                {-# LINE 14277 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 14333 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOannotatedTree ->
                          (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  (:) _hdIoriginalTree _tlIoriginalTree
-                                 {-# LINE 14282 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 14338 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 14287 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 14343 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -14293,22 +14349,22 @@ sem_TypeNameList_Nil  =
        _lhsIflags ->
          (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  []
-                 {-# LINE 14297 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 14353 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 14302 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 14358 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    []
-                   {-# LINE 14307 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 14363 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _originalTree ->
             (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _originalTree
-                    {-# LINE 14312 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 14368 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOoriginalTree ->
              ( _lhsOannotatedTree,_lhsOoriginalTree) }) }) }) }))
@@ -14379,41 +14435,41 @@ sem_VarDef_ParamAlias ann_ name_ i_  =
        _lhsIflags ->
          (case (({-# LINE 99 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  error "missing rule: VarDef.ParamAlias.ann.tpe"
-                 {-# LINE 14383 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 14439 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annOtpe ->
           (case (ann_ ) of
            { ( _annIoriginalTree,ann_1) ->
                (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                        _lhsIflags
-                       {-# LINE 14390 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                       {-# LINE 14446 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                        )) of
                 { _annOflags ->
                 (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                         _lhsIcat
-                        {-# LINE 14395 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 14451 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _annOcat ->
                  (case (ann_1 _annOcat _annOflags _annOtpe ) of
                   { ( _annIannotatedTree) ->
                       (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               ParamAlias _annIannotatedTree name_ i_
-                              {-# LINE 14402 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 14458 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annotatedTree ->
                        (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                _annotatedTree
-                               {-# LINE 14407 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 14463 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _lhsOannotatedTree ->
                         (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 ParamAlias _annIoriginalTree name_ i_
-                                {-# LINE 14412 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 14468 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _originalTree ->
                          (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  _originalTree
-                                 {-# LINE 14417 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 14473 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _lhsOoriginalTree ->
                           ( _lhsOannotatedTree,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }))
@@ -14426,24 +14482,24 @@ sem_VarDef_VarAlias ann_ name_ aliased_  =
        _lhsIflags ->
          (case (({-# LINE 46 "src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
                  error "missing rule: VarDef.VarAlias.aliased.tpe"
-                 {-# LINE 14430 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 14486 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _aliasedOtpe ->
           (case (({-# LINE 99 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   error "missing rule: VarDef.VarAlias.ann.tpe"
-                  {-# LINE 14435 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 14491 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (aliased_ ) of
             { ( _aliasedIoriginalTree,aliased_1) ->
                 (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                         _lhsIflags
-                        {-# LINE 14442 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                        {-# LINE 14498 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                         )) of
                  { _aliasedOflags ->
                  (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                          _lhsIcat
-                         {-# LINE 14447 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 14503 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _aliasedOcat ->
                   (case (aliased_1 _aliasedOcat _aliasedOflags _aliasedOtpe ) of
@@ -14452,34 +14508,34 @@ sem_VarDef_VarAlias ann_ name_ aliased_  =
                         { ( _annIoriginalTree,ann_1) ->
                             (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                     _lhsIflags
-                                    {-# LINE 14456 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                    {-# LINE 14512 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                     )) of
                              { _annOflags ->
                              (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      _lhsIcat
-                                     {-# LINE 14461 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 14517 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _annOcat ->
                               (case (ann_1 _annOcat _annOflags _annOtpe ) of
                                { ( _annIannotatedTree) ->
                                    (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                            VarAlias _annIannotatedTree name_ _aliasedIannotatedTree
-                                           {-# LINE 14468 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                           {-# LINE 14524 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                            )) of
                                     { _annotatedTree ->
                                     (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                             _annotatedTree
-                                            {-# LINE 14473 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                            {-# LINE 14529 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                             )) of
                                      { _lhsOannotatedTree ->
                                      (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                              VarAlias _annIoriginalTree name_ _aliasedIoriginalTree
-                                             {-# LINE 14478 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                             {-# LINE 14534 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                              )) of
                                       { _originalTree ->
                                       (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                               _originalTree
-                                              {-# LINE 14483 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                              {-# LINE 14539 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                               )) of
                                        { _lhsOoriginalTree ->
                                        ( _lhsOannotatedTree,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -14493,17 +14549,17 @@ sem_VarDef_VarDef ann_ name_ typ_ value_  =
        _lhsIflags ->
          (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 14497 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 14553 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _typOcat ->
           (case (({-# LINE 99 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   error "missing rule: VarDef.VarDef.ann.tpe"
-                  {-# LINE 14502 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 14558 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _annOtpe ->
            (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    _lhsIflags
-                   {-# LINE 14507 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 14563 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _typOflags ->
             (case (typ_ _typOcat _typOflags ) of
@@ -14512,34 +14568,34 @@ sem_VarDef_VarDef ann_ name_ typ_ value_  =
                   { ( _annIoriginalTree,ann_1) ->
                       (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                               _lhsIflags
-                              {-# LINE 14516 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                              {-# LINE 14572 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                               )) of
                        { _annOflags ->
                        (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                _lhsIcat
-                               {-# LINE 14521 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 14577 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _annOcat ->
                         (case (ann_1 _annOcat _annOflags _annOtpe ) of
                          { ( _annIannotatedTree) ->
                              (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                      VarDef _annIannotatedTree name_ _typIannotatedTree value_
-                                     {-# LINE 14528 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                     {-# LINE 14584 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                      )) of
                               { _annotatedTree ->
                               (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       _annotatedTree
-                                      {-# LINE 14533 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 14589 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _lhsOannotatedTree ->
                                (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        VarDef _annIoriginalTree name_ _typIoriginalTree value_
-                                       {-# LINE 14538 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 14594 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _originalTree ->
                                 (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         _originalTree
-                                        {-# LINE 14543 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 14599 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _lhsOoriginalTree ->
                                  ( _lhsOannotatedTree,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -14590,46 +14646,46 @@ sem_VarDefList_Cons hd_ tl_  =
        _lhsIflags ->
          (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIcat
-                 {-# LINE 14594 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 14650 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tlOcat ->
           (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 14599 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 14655 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _hdOcat ->
            (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    _lhsIflags
-                   {-# LINE 14604 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 14660 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _tlOflags ->
             (case (tl_ _tlOcat _tlOflags ) of
              { ( _tlIannotatedTree,_tlIoriginalTree) ->
                  (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                          _lhsIflags
-                         {-# LINE 14611 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                         {-# LINE 14667 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                          )) of
                   { _hdOflags ->
                   (case (hd_ _hdOcat _hdOflags ) of
                    { ( _hdIannotatedTree,_hdIoriginalTree) ->
                        (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                (:) _hdIannotatedTree _tlIannotatedTree
-                               {-# LINE 14618 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 14674 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _annotatedTree ->
                         (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _annotatedTree
-                                {-# LINE 14623 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 14679 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOannotatedTree ->
                          (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  (:) _hdIoriginalTree _tlIoriginalTree
-                                 {-# LINE 14628 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 14684 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 14633 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 14689 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -14639,22 +14695,22 @@ sem_VarDefList_Nil  =
        _lhsIflags ->
          (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  []
-                 {-# LINE 14643 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 14699 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 14648 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 14704 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    []
-                   {-# LINE 14653 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 14709 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _originalTree ->
             (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _originalTree
-                    {-# LINE 14658 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 14714 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOoriginalTree ->
              ( _lhsOannotatedTree,_lhsOoriginalTree) }) }) }) }))
@@ -14706,22 +14762,22 @@ sem_WithQuery_WithQuery ann_ name_ colAliases_ ex_  =
        _lhsIflags ->
          (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIflags
-                 {-# LINE 14710 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 14766 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _exOflags ->
           (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 14715 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 14771 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _exOcat ->
            (case (({-# LINE 99 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    error "missing rule: WithQuery.WithQuery.ann.tpe"
-                   {-# LINE 14720 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 14776 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _annOtpe ->
             (case (({-# LINE 28 "src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag" #-}
                     Nothing
-                    {-# LINE 14725 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 14781 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _exOouterDownEnv ->
              (case (ex_ _exOcat _exOflags _exOouterDownEnv ) of
@@ -14730,34 +14786,34 @@ sem_WithQuery_WithQuery ann_ name_ colAliases_ ex_  =
                    { ( _annIoriginalTree,ann_1) ->
                        (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                _lhsIflags
-                               {-# LINE 14734 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 14790 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _annOflags ->
                         (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _lhsIcat
-                                {-# LINE 14739 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 14795 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _annOcat ->
                          (case (ann_1 _annOcat _annOflags _annOtpe ) of
                           { ( _annIannotatedTree) ->
                               (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                       WithQuery _annIannotatedTree name_ colAliases_ _exIannotatedTree
-                                      {-# LINE 14746 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                      {-# LINE 14802 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                       )) of
                                { _annotatedTree ->
                                (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                        _annotatedTree
-                                       {-# LINE 14751 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                       {-# LINE 14807 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                        )) of
                                 { _lhsOannotatedTree ->
                                 (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                         WithQuery _annIoriginalTree name_ colAliases_ _exIoriginalTree
-                                        {-# LINE 14756 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                        {-# LINE 14812 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                         )) of
                                  { _originalTree ->
                                  (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                          _originalTree
-                                         {-# LINE 14761 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                         {-# LINE 14817 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                          )) of
                                   { _lhsOoriginalTree ->
                                   ( _lhsOannotatedTree,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }) }) }) }))
@@ -14808,22 +14864,22 @@ sem_WithQueryList_Cons hd_ tl_  =
        _lhsIflags ->
          (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  _lhsIflags
-                 {-# LINE 14812 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 14868 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _tlOflags ->
           (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _lhsIcat
-                  {-# LINE 14817 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 14873 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _tlOcat ->
            (case (({-# LINE 90 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    _lhsIflags
-                   {-# LINE 14822 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 14878 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _hdOflags ->
             (case (({-# LINE 89 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _lhsIcat
-                    {-# LINE 14827 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 14883 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _hdOcat ->
              (case (tl_ _tlOcat _tlOflags ) of
@@ -14832,22 +14888,22 @@ sem_WithQueryList_Cons hd_ tl_  =
                    { ( _hdIannotatedTree,_hdIoriginalTree) ->
                        (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                (:) _hdIannotatedTree _tlIannotatedTree
-                               {-# LINE 14836 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                               {-# LINE 14892 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                )) of
                         { _annotatedTree ->
                         (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                 _annotatedTree
-                                {-# LINE 14841 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                {-# LINE 14897 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                 )) of
                          { _lhsOannotatedTree ->
                          (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                  (:) _hdIoriginalTree _tlIoriginalTree
-                                 {-# LINE 14846 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                 {-# LINE 14902 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                  )) of
                           { _originalTree ->
                           (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                                   _originalTree
-                                  {-# LINE 14851 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                                  {-# LINE 14907 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                                   )) of
                            { _lhsOoriginalTree ->
                            ( _lhsOannotatedTree,_lhsOoriginalTree) }) }) }) }) }) }) }) }) }) }))
@@ -14857,22 +14913,22 @@ sem_WithQueryList_Nil  =
        _lhsIflags ->
          (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                  []
-                 {-# LINE 14861 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                 {-# LINE 14917 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                  )) of
           { _annotatedTree ->
           (case (({-# LINE 91 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                   _annotatedTree
-                  {-# LINE 14866 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                  {-# LINE 14922 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                   )) of
            { _lhsOannotatedTree ->
            (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                    []
-                   {-# LINE 14871 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   {-# LINE 14927 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )) of
             { _originalTree ->
             (case (({-# LINE 92 "src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
                     _originalTree
-                    {-# LINE 14876 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                    {-# LINE 14932 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                     )) of
              { _lhsOoriginalTree ->
              ( _lhsOannotatedTree,_lhsOoriginalTree) }) }) }) }))

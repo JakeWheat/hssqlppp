@@ -24,10 +24,20 @@ sem TableRefList
 sem TableRef
   | Tref JoinTref SubTref FunTref
       loc.eEnv :: {Either [TypeError] Environment}
+      loc.eEnv2 =
+        case @alias.originalTree of
+          NoAlias _ -> @loc.eEnv
+          TableAlias _ t ->
+            fmap (createTrefAliasedEnvironment (ncStr t) Nothing)
+                 @loc.eEnv
+          FullAlias _ t cs ->
+            fmap (createTrefAliasedEnvironment (ncStr t)
+                                               (Just $ map ncStr cs))
+                 @loc.eEnv
       -- pass any errors to the annotation
       ann.tpe = either Left (const $ Left []) @loc.eEnv
       -- todo: what to do here?
-      lhs.upEnv = either (const emptyEnvironment) id @loc.eEnv
+      lhs.upEnv = either (const emptyEnvironment) id @loc.eEnv2
 
 -- actual environment creation - this is the interesting bit in this file
 sem TableRef
