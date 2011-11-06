@@ -101,7 +101,7 @@ sem SelectItemList
           -- hack currently used probably isn't accurate:
           -- check if adding an explicit column name changes the
           -- name of a column then add it, otherwise use implicit
-            if n == columnName e
+            if n == columnName e && not (tcfAddSelectItemAliases @lhs.flags)
             then SelExp emptyAnnotation e
             else SelectItem emptyAnnotation e (Nmc n)
       else @annotatedTree

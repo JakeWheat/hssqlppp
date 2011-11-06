@@ -34,10 +34,53 @@ sem TableRef
             fmap (createTrefAliasedEnvironment (ncStr t)
                                                (Just $ map ncStr cs))
                  @loc.eEnv
+
       -- pass any errors to the annotation
       ann.tpe = either Left (const $ Left []) @loc.eEnv
       -- todo: what to do here?
       lhs.upEnv = either (const emptyEnvironment) id @loc.eEnv2
+
+  | JoinTref SubTref FunTref
+      -- try to add a full table alias if possible
+      -- not possible for some joins
+      alias.newAlias =
+        if tcfAddFullTablerefAliases @lhs.flags
+        then do
+          env <- either (const Nothing) Just @loc.eEnv2
+          cs <- either (const Nothing) Just $ envExpandStar Nothing env
+          let qs = map (fst . fst) cs
+          if all (== head qs) qs
+            then return (head qs, map (snd.fst) cs)
+            else Nothing
+        else Nothing
+  | Tref
+      -- special case for tref, the expand star will give the
+      -- system columns too, which we don't want
+      alias.newAlias =
+        if tcfAddFullTablerefAliases @lhs.flags
+        then do
+          (n,cs,_) <- either (const Nothing) Just
+                        $ catLookupTableAndAttrs @lhs.cat
+                        (nameComponents @tbl.originalTree)
+          return (n, (map fst cs))
+        else Nothing
+
+attr TableAlias
+  inh newAlias :: {Maybe (String,[String])}
+
+sem TableAlias
+  | NoAlias TableAlias FullAlias
+      lhs.annotatedTree =
+        case @lhs.newAlias of
+          Nothing -> @annotatedTree
+          Just (t,cs) -> underAlias @annotatedTree t cs
+
+{
+underAlias :: TableAlias -> String -> [String] -> TableAlias
+underAlias (NoAlias a) t cs = FullAlias a (Nmc t) (map Nmc cs)
+underAlias (TableAlias a t) _ cs = FullAlias a t (map Nmc cs)
+underAlias a@(FullAlias {}) _ _  = a
+}
 
 -- actual environment creation - this is the interesting bit in this file
 sem TableRef
