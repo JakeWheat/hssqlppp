@@ -129,12 +129,18 @@ a select item list
 -}
 sem SelectItemList
   | Nil lhs.colExprs = []
-        lhs.upType = Nothing
+        loc.upType = Nothing
   | Cons
         loc.colExprs = @hd.colExprs ++ @tl.colExprs
         lhs.colExprs = @loc.colExprs
-        lhs.upType = sequence $ flip map @loc.colExprs
+        loc.upType = sequence $ flip map @loc.colExprs
                      $ \(n,t,_) -> fmap (n,) t
+  | Nil Cons
+      lhs.upType = @loc.upType
+      lhs.upEnv = case fmap envSelectListEnvironment @loc.upType of
+                    (Just (Right e)) -> e
+                    _ -> emptyEnvironment
+
 
 -- temporary, lots of possible errors above which are currently
 -- dropped on the floor have to find their way into the tree

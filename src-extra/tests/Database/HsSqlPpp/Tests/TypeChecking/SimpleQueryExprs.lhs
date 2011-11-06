@@ -40,11 +40,11 @@
 >    "select u.* from t u"
 >    $ Right $ CompositeType [("a",typeInt)
 >                            ,("b", ScalarType "text")]
->   {-,QueryExpr [CatCreateTable "t" [("a", "int4")
+>   ,QueryExpr [CatCreateTable "t" [("a", "int4")
 >                                  ,("b", "text")]]
 >    "select * from t u(c,d)"
 >    $ Right $ CompositeType [("c",typeInt)
->                            ,("d", ScalarType "text")]-}
+>                            ,("d", ScalarType "text")]
 >   ,QueryExpr [CatCreateTable "t" [("a", "int4")
 >                                  ,("b", "text")]]
 >    "select u.a,u.b from t u"

@@ -175,10 +175,10 @@ depend : src/Database/HsSqlPpp/Internals/AstInternal.hs
 #specific rules for generated file astinternal.hs
 
 src/Database/HsSqlPpp/Internals/AstInternal.hs : $(AG_FILES)
-	uuagc -dcfspwm --cycle -O -P src/Database/HsSqlPpp/Internals/ \
+	uuagc -dcfspwm -P src/Database/HsSqlPpp/Internals/ \
 		--lckeywords --doublecolons --genlinepragmas \
 		src/Database/HsSqlPpp/Internals/AstInternal.ag
-
+#-dcfspwm --cycle -O
 # rule for the generated file
 # src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs
 # don't want to automatically keep this up to date, only regenerate it

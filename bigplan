@@ -12,7 +12,6 @@ regressions
 Urgency: want to get tpch typechecking again asap:
 handle full trefaliases
 onexpr trickiness
-case exprs
 implicit casts
 parameterized queries should be easy at this point
 finish of tpch and check using

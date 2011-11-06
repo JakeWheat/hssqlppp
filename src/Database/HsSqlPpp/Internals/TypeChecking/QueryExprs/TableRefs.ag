@@ -58,8 +58,8 @@ sem TableRef
                       (_,Just (JoinUsing _ nms)) -> Just nms
                       -- cross join
                       _ -> Just []
-      --onExpr.downEnv2 = either emptyEnvironment id @loc.eEnv
-      onExpr.downEnv = emptyEnvironment
+      -- this triggers uuagcs cycle detection, not sure why
+      onExpr.downEnv = either (const emptyEnvironment) id @loc.eEnv
   | SubTref
       loc.eEnv = maybe (Left []) id
                  $ fmap envSelectListEnvironment @sel.upType

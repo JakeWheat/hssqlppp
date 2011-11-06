@@ -26,7 +26,7 @@
 >     ,trefIdentifiers
 >     ,rewrites
 >     ,caseExpressions
->     --,tpch
+>     ,tpch
 >     ]
 
 > typeCheckTests :: Test.Framework.Test

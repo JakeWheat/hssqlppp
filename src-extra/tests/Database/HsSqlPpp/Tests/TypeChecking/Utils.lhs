@@ -56,7 +56,7 @@
 >               _ | null er -> maybe (Left []) Right ty
 >                 | otherwise -> Left er
 >   in (if et /= got
->       then trace (groom{-AnnTypeOnly-} aast)
+>       then trace (groomAnnTypeOnly aast)
 >       else id) $ assertEqual "" et got
 
 > testRewrite :: TypeCheckingFlags -> [CatalogUpdate] -> String -> String

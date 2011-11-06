@@ -149,8 +149,36 @@ lookup and star expansion
 >          then snd (listBindingsTypes env) Nothing
 >          else [])
 
+> listBindingsTypes (TrefAlias ta (Just cs) env) =
+>   (\(q,n) -> --trace ("lookup: " ++ show (q,n)) $
+>      if q `elem` [Nothing, Just ta]
+>      then    --really hacky, assume the ids come out of the star expansion in same order
+>              -- almost certainly wrong some of the time
+>              case findIndex (==n) cs of
+>                Just i -> let s :: [((String, String), Type)]
+>                              s = (snd (listBindingsTypes env) Nothing)
+>                          in {-trace ("getit : " ++ show (i,show s))
+>                                      $ -} take 1 $ drop i s
+>                Nothing -> []
+>      else []
+>   ,\q -> if q `elem` [Nothing, Just ta]
+>          then let -- if there are too many aliases for the aliased tref
+>                   -- the extras are ignored (not sure if this is correct)
+>                   -- if there are not enough, the extras are kept without
+>                   -- being renamed (think this is correct)
+>                   repColNames = map Just cs ++ repeat Nothing
+>                   aliasize :: [((String, String), Type)] -> [((String, String), Type)]
+>                   aliasize =
+>                     zipWith (\r ((_,n),t) ->
+>                              case r of
+>                                Just r' -> ((ta,r'),t)
+>                                Nothing -> ((ta,n),t)) repColNames
+>               in aliasize $ snd (listBindingsTypes env) Nothing
+>          else [])
+
+
 > listBindingsTypes (SimpleTref nm pus pvs) =
->   (\(q,n) -> let m (n',t) = (q `elem` [Nothing,Just nm])
+>   (\(q,n) -> let m (n',_) = (q `elem` [Nothing,Just nm])
 >                             && n == n'
 >              in addQual nm $ filter m $ pus ++ pvs
 >   ,\q -> case () of
