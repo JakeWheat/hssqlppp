@@ -1,72 +1,155 @@
 
--- main attributes used: downEnv which provides the non catalog bindings,
--- these mostly come from the tref
--- and the uptypes
-attr SelectList
-  inh downEnv :: Environment
-  syn upType :: {Maybe [(String,Type)]}
-     ,upEnv :: Environment
+{-
+select lists:
 
--- use cols to gather the list of String,Types
--- together in a select item list
--- and the uptype to produce the final set
--- to pass up to the queryexpr node parent
+select lists have to gather the column names of the select items along
+with their types, this is to produce the type and environment to the
+parent
 
-attr SelectItemList
-  inh downEnv :: Environment
-  syn cols :: {[Maybe (String,Type)]}
-  syn upType :: {Maybe [(String,Type)]}
+also have to deal with optionally expanding stars and adding explicit
+aliases
 
-attr SelectItem
-  inh downEnv :: Environment
-  syn col :: {Maybe (String,Type)}
+The main work is done in the scalarexpr nodes:
+each node produces:
 
-sem SelectList
-  | SelectList
-      lhs.upType = @items.upType
-      lhs.upEnv = let e = maybe (Left []) id
-                          $ fmap envSelectListEnvironment @items.upType
-                  in either (const emptyEnvironment) id e
--- select list doesn't currently get a type, maybe it should
--- get the items uptype?
-      ann.tpe = Left []
+a column name which is used if the node appears directly in a
+selectitem that select item has no explicit alias
 
-sem SelectItemList
-  | Nil lhs.cols = []
-        lhs.upType = Nothing
-  | Cons
-      -- for more Cons, pass the list of maybe string/types up
-      lhs.cols = @loc.cols
-      loc.cols = @hd.col : @tl.cols
-      -- for a selectlist parent, create a maybe [(string/type)]
-      lhs.upType = sequence @loc.cols
+a maybe type (this is just the uptype attr duplicated)
 
-sem SelectItem
-  | SelExp SelectItem
-      -- select item not currently given a type, but maybe should
-      -- have the type of the @ex
-      ann.tpe = Left []
+a scalar expr copy
+
+but since we have to handle stars, which produce a list of these, it
+produces a list of (name,type,expr) triples (so this is why the type
+and the expr itself are duplicated)
+
+These lists of triples are only used by selectitems.
+
+-}
+
+attr ScalarExpr
+  syn colExprs :: {[(String,Maybe Type,ScalarExpr)]}
+
+
+sem ScalarExpr
+    | NumberLit StringLit NullLit BooleanLit TypedStringLit Interval
+      Extract PositionalArg Placeholder Cast Identifier
+      QIdentifier Case CaseSimple Exists App AggregateApp
+      WindowApp InPredicate LiftApp ScalarSubQuery
+      BinaryOp PrefixOp PostfixOp SpecialOp
+      Star QStar
+      lhs.colExprs =
+          let a = @ann.originalTree --save the source position in the generated nodes
+              doStar is = -- todo: quote identifiers if needed
+                map (\((q,n),t) ->
+                      -- have to typecheck manually here since the generate nodes
+                      -- don't participate in the ag
+                  let a' = setAtype (Just t) a
+                      -- expanded stars always output qualifier
+                  in (n, Just t, QIdentifier a' [Nmc q,Nmc n])
+                  ) is
+          in case @originalTree of
+              Star _ | Right is <- envExpandStar Nothing @lhs.downEnv ->
+                 doStar is
+              QStar _ q | Right is <- envExpandStar (Just q) @lhs.downEnv ->
+                 doStar is
+              -- for everything other than star and qstar, just lift
+              -- the single expr info into a list
+              _ -> [(columnName @originalTree,@upType,@annotatedTree)]
+
+{-
+select items:
+
+1. adjust the colExprs data if the select item has an explicit column
+alias
+
+2. add an explicit column alias if there isn't one and the option to
+add them is set
+
+-}
 
 sem SelectItem
   | SelectItem
-      -- explicit aliased column
-      lhs.col = fmap (nm @name,) @ex.upType
+      lhs.colExprs =
+        case @ex.colExprs of
+          [(_,t,e)] -> [(ncStr @name, t,e)]
+          x -> x --todo: error if there is an alias and more that one col
   | SelExp
-      -- implicitly named column, try to get a column name
-      -- from the syntax of @ex
-      loc.colName = columnName @ex.originalTree
-      lhs.col = fmap (@loc.colName,) @ex.upType
       lhs.annotatedTree =
-        case tcfAddSelectItemAliases @lhs.flags of
-          False -> @annotatedTree
-          True -> SelectItem @ann.annotatedTree
-                             @ex.annotatedTree
-                             (Nmc @loc.colName)
+        if tcfAddSelectItemAliases @lhs.flags
+        then case @ex.colExprs of
+               [(n,_,_)] -> SelectItem @ann.annotatedTree @ex.annotatedTree (Nmc n)
+               _ -> -- todo: is this possible? what should happen?
+                    @annotatedTree
+        else @annotatedTree
+{-
+select item list:
+
+this is where the expanded stars are spliced back into the annotated
+tree attributes if that option is enabled
+-}
+sem SelectItemList
+  | Nil lhs.annotatedTree = []
+  | Cons lhs.annotatedTree =
+      if tcfExpandStars @lhs.flags
+      then flip map @colExprs $ \(n,_t,e) ->
+          -- todos: add sourceposition annotation
+          -- this adds aliases for all columns
+          -- want to keep the original select items
+          -- for each col which doesn't come from a star expand
+          -- and when add column aliases option is off
+          -- hack currently used probably isn't accurate:
+          -- check if adding an explicit column name changes the
+          -- name of a column then add it, otherwise use implicit
+            if n == columnName e
+            then SelExp emptyAnnotation e
+            else SelectItem emptyAnnotation e (Nmc n)
+      else @annotatedTree
+
+
+attr SelectItem
+  syn colExprs :: {[(String,Maybe Type,ScalarExpr)]}
+  inh downEnv :: Environment
+
+attr SelectItemList SelectList
+  inh downEnv :: Environment
+  syn colExprs :: {[(String,Maybe Type,ScalarExpr)]}
+  syn upType :: {Maybe [(String,Type)]}
+  syn upEnv :: Environment
+
+
+{-
+
+select item list: just concat the colExprs to produce the new colExprs
+used if this is the tail of a select item list
+
+create the uptype from the local colexprs used if this is the head of
+a select item list
+
+-}
+sem SelectItemList
+  | Nil lhs.colExprs = []
+        lhs.upType = Nothing
+  | Cons
+        loc.colExprs = @hd.colExprs ++ @tl.colExprs
+        lhs.colExprs = @loc.colExprs
+        lhs.upType = sequence $ flip map @loc.colExprs
+                     $ \(n,t,_) -> fmap (n,) t
+
+-- temporary, lots of possible errors above which are currently
+-- dropped on the floor have to find their way into the tree
+
+sem SelectList
+    | SelectList
+      ann.tpe = Left []
+sem SelectItem
+    | SelectItem SelExp
+      ann.tpe = Left []
 
 {
 
 -- | thet name to choose for a column in a select list which doesn't
--- have an explicit name - have to follow postgresql's rules for this
+-- have an explicit name - these are postgresql's rules
 columnName :: ScalarExpr -> String
 columnName (Identifier _ i) = nm i
 columnName (QIdentifier _ is) = nm $ last is
@@ -80,54 +163,3 @@ nm :: NameComponent -> String
 nm (Nmc n) = map toLower n
 nm (QNmc n) = n
 }
-
-{-
-
--------------------------------
-
-star expansion handling
-
-expand the stars in a separate pass
-TODO:
-this isn't going to work e.g.
-create view x as select * from t
-select * from t
-isn't going to type check since both stars can't be expanded in the
-  same pass
-so have to remove the extra pass and do it manually
-
--}
-
-
--- create an attribute to collect the star-expanded select item list
-attr SelectItem SelectItemList
-  syn slExpandedStars :: {[SelectItem]}
-
--- replace the unexpanded list with the replacement
-sem SelectList
-  | SelectList
-      lhs.expandedStars = SelectList @ann.originalTree @items.slExpandedStars
-
-
-sem SelectItemList
-  | Nil lhs.slExpandedStars = []
-  | Cons lhs.slExpandedStars = @hd.slExpandedStars ++ @tl.slExpandedStars
-
-sem SelectItem
-  | SelectItem
-      -- star with alias -> invalid syntax so do nothing, should catch this
-      -- in the main pass to add the appropriate error
-      lhs.slExpandedStars = [@expandedStars]
-
-  | SelExp
-      -- TODO: the error here if expand star fails gets lost
-      lhs.slExpandedStars =
-         let a = @ann.originalTree
-             doStar is = -- todo: quote identifiers if needed
-                         map (\((q,n),_) -> SelExp a (QIdentifier a [Nmc q,Nmc n])) is
-         in case @ex.originalTree of
-              Star _ | Right is <- envExpandStar Nothing @lhs.downEnv ->
-                 doStar is
-              QStar _ q | Right is <- envExpandStar (Just q) @lhs.downEnv ->
-                 doStar is
-              _ -> [@originalTree]

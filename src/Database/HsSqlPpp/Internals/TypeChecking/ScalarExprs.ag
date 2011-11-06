@@ -23,7 +23,8 @@ sem ScalarExpr
       WindowApp InPredicate LiftApp ScalarSubQuery
       BinaryOp PrefixOp PostfixOp SpecialOp
         ann.tpe = @loc.tpe
-        lhs.upType = either (const Nothing) Just @loc.tpe
+        loc.upType = either (const Nothing) Just @loc.tpe
+        lhs.upType = @loc.upType
 
 sem ScalarExpr
     | AntiScalarExpr

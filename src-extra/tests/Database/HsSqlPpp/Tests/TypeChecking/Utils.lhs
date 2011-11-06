@@ -13,7 +13,7 @@
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Pretty
-> --import Text.Groom
+> import Text.Groom
 > import Debug.Trace
 > import Database.HsSqlPpp.Tests.TestUtils
 
@@ -52,7 +52,7 @@
 >               _ | null er -> maybe (Left []) Right ty
 >                 | otherwise -> Left er
 >   in (if et /= got
->       then trace (groomAnnTypeOnly aast)
+>       then trace (groom{-AnnTypeOnly-} aast)
 >       else id) $ assertEqual "" et got
 
 > testRewrite :: TypeCheckingFlags -> [CatalogUpdate] -> String -> String
