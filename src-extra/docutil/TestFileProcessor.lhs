@@ -16,7 +16,8 @@ examples.
 > import qualified Language.Haskell.Exts as Exts
 > --import Data.Generics
 > import Data.Generics.Uniplate.Data
->
+> import Database.HsSqlPpp.Utils.GroomNoAnns
+
 > data Row = Row [[Text]]
 >          | HHeader String
 >
@@ -33,25 +34,11 @@ examples.
 
 >
 > mapParserTests :: PT.Item -> [Row]
-> mapParserTests (PT.Expr s e) = [Row [[Sql s],[Haskell (ppExprNoAnns e)]]]
-> mapParserTests (PT.Stmt s e) = [Row [[Sql s],[Haskell (ppExprNoAnns e)]]]
-> mapParserTests (PT.PgSqlStmt s e) = [Row [[Sql s],[Haskell (ppExprNoAnns e)]]]
+> mapParserTests (PT.Expr s e) = [Row [[Sql s],[Haskell (groomNoAnns e)]]]
+> mapParserTests (PT.Stmt s e) = [Row [[Sql s],[Haskell (groomNoAnns e)]]]
+> mapParserTests (PT.PgSqlStmt s e) = [Row [[Sql s],[Haskell (groomNoAnns e)]]]
 > mapParserTests (PT.Group n is) = HHeader n : concatMap mapParserTests is
-> --mapParserTests (PT.MSStmt s e) = [Row [[Sql s],[Haskell (ppExprNoAnns e)]]]
-
-> ppExprNoAnns :: Show a => a -> String
-> ppExprNoAnns = p stripA
->   where
->     stripA :: Exp -> Exp
->     stripA = transformBi $ \x ->
->                case x of
->                  (Paren (RecConstr (UnQual (Ident "Annotation")) _)) ->
->                           Con $ UnQual $ Ident "Ann"
->                  x1 -> x1
->     p f s =
->         case Exts.parseExp (show s) of
->           Exts.ParseOk ast -> Exts.prettyPrint (f ast)
->           x -> error $ show x
+> mapParserTests (PT.MSStmt s e) = [Row [[Sql s],[Haskell (groomNoAnns e)]]]
 
 
 need to use haskell-src-exts for the quasi quote tests since we want
@@ -59,9 +46,20 @@ to get the quasi quote source syntax, not the asts it produces at
 compile time.
 
 > mapTypeCheckTests :: TT.Item -> [Row]
-> mapTypeCheckTests (TT.Group n is) = HHeader n : concatMap mapTypeCheckTests is
-> mapTypeCheckTests (TT.ScalExpr s r) = [Row [[Sql s],[Haskell (groom r)]]]
-> mapTypeCheckTests (TT.QueryExpr c s r) = [Row [[Haskell (groom c),Sql s],[Haskell (groom r)]]]
+> mapTypeCheckTests (TT.Group n is) =
+>    HHeader n : concatMap mapTypeCheckTests is
+> mapTypeCheckTests (TT.ScalExpr s r) =
+>    [Row [[Sql s],[Haskell (groom r)]]]
+> mapTypeCheckTests (TT.QueryExpr c s r) =
+>    [Row [[Haskell (groom c),Sql s],[Haskell (groom r)]]]
+> mapTypeCheckTests (TT.RewriteQueryExpr fs cus s0 s1) =
+>    [Row [[Haskell (groom fs)
+>          ,Haskell (groom cus)]
+>         ,[Sql s0,Text "rewritten to",Sql s1]]]
+> mapTypeCheckTests (TT.ImpCastsScalar s0 s1) =
+>    [Row [[Sql s0]
+>         ,[Sql s1]]]
+
 > {-mapTypeCheckTests (TT.StmtType s r) = [Row [[Sql s],[Haskell (groom r)]]]
 > mapTypeCheckTests (TT.CatStmtType s c r) = [Row [[Haskell (groom c),Sql s],[Haskell (groom r)]]]
 > mapTypeCheckTests (TT.Ddl s c) = [Row [[Sql s],[Haskell (groom c)]]]-}
@@ -110,7 +108,7 @@ compile time.
 > parserIntro = [$here|
 >
 > The parser examples have the sql source on the left, and the ast that the parser produces
-> the right, the annotations have been replaced with a placeholder 'Ann' to make the output a bit more readable.
+> the right, the annotations have been replaced with a placeholder 'A' to make the output a bit more readable.
 >
 > The source this file is generated from is here:
 > [ParserTests.lhs](https://github.com/JakeWheat/hssqlppp/blob/master/src-extra/tests/Database/HsSqlPpp/Tests/ParserTests.lhs)

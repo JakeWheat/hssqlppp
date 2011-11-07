@@ -43,6 +43,8 @@ adjusted to reject postgres only syntax when in sql server dialect
 >    -- atm since it might produce incorrect sql
 >   ,unsafeReadable :: Bool
 >   }
+>   deriving (Show,Eq)
+
 
 > defaultPPFlags :: PrettyPrintFlags
 > defaultPPFlags = PrettyPrintFlags {ppDialect = PostgreSQLDialect

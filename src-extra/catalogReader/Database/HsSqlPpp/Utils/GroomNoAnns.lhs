@@ -20,7 +20,7 @@
 >                        (App (Con (UnQual (Ident "Annotation")))
 >                         _) _) _) _) _) _))
 >                       ->
->                           Con $ UnQual $ Ident "Ann"
+>                           Con $ UnQual $ Ident "A"
 >                  x1 -> x1
 >     p f s =
 >         case parseExp (show s) of

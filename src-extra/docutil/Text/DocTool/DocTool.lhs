@@ -26,7 +26,7 @@
 >   t <- getCurrentTime
 >   let tm = formatDateTime "%D %T" t
 >   children <- (newMVar [])
->   mapM_ (\f -> forkChild children (process "0.4.0" tm b f >> putStrLn (showOf f))) ofs
+>   mapM_ (\f -> forkChild children (process "0.5.0" tm b f >> putStrLn (showOf f))) ofs
 >   waitForChildren children
 >          where
 >            showOf (OutputFile (Text _) _ fp _) = fp
@@ -183,14 +183,6 @@ todo: add the last modified time for each file individually
 add some sample files: ag lhs hs txt sql
 show the pandoc ast
 try illuminate, need to write sql highlighter?
-
-
-> {-ppExpr :: Show s => s -> String
-> ppExpr s =
->   case Exts.parseExp (show s) of
->     Exts.ParseOk ast -> Exts.prettyPrint ast
->     x -> error $ show x-}
-
 
 
 > -- pure wrappers to do various rendering

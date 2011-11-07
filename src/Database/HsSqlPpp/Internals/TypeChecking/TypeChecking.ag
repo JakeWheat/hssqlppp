@@ -13,6 +13,7 @@ data TypeCheckingFlags =
     ,tcfAddSelectItemAliases :: Bool
      -- | expand stars in select lists to explicit list columns
     ,tcfExpandStars :: Bool}
+    deriving (Show,Eq)
 
 
 -- | reasonable defaults for type checking, doesn't add anything
@@ -119,6 +120,9 @@ include "TypeChecking/Misc.ag"
 
 
 {
+
+-- | run on a typechecked tree. Finds all the places where an implicit
+-- cast has been used in the typechecking and inserts an explicit cast
 addExplicitCasts :: Data a => a -> a
 addExplicitCasts = transformBi removeDoubleCasts . transformBi addCast
   where
@@ -127,6 +131,14 @@ addExplicitCasts = transformBi removeDoubleCasts . transformBi addCast
                   t <- implicitCast (getAnnotation e)
                   n <- nameOfType t
                   return $ Cast emptyAnnotation e n
+    -- addCast isn't very smart, so remove any unneeded casts
+    -- that it has inserted
+    -- not sure if this is correct, are there legitimate
+    -- uses of double casts?
+    -- one possible solution is to not add the implicit cast
+    -- annotation to items immediately in a cast
+    -- this might clash with the intended approach of typeing
+    -- parameterized statements?
     removeDoubleCasts :: ScalarExpr -> ScalarExpr
     removeDoubleCasts e = case e of
       (Cast a (Cast a1 e t1) t) -> Cast a e t

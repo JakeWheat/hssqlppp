@@ -2,6 +2,10 @@
 The main file for parsing sql, uses parsec. Not sure if parsec is the
 right choice, but it seems to do the job pretty well at the moment.
 
+todo: not sure if all the isSqlServer is slowing it down. don't have
+any benchmarks for the parsing speed atm and have no idea how to tell
+if it is quick or slow or what
+
 > {-# LANGUAGE FlexibleContexts,ExplicitForAll #-}
 > -- | Functions to parse SQL.
 > module Database.HsSqlPpp.Parsing.ParserInternal
@@ -208,9 +212,7 @@ Parsing top level statements
 >              choice [
 >                 dropSomething
 >                ,dropFunction]]
->     <* (if reqSemi
->           then symbol ";" >> return ()
->           else optional (symbol ";") >> return ()))
+>     <* stmtEnd (not reqSemi))
 >    <|> copyData
 
 --------------------------------------------------------------------------------
@@ -923,6 +925,13 @@ that can left factor the 'name component . '  part and avoid the try
 >                             Restrict <$ keyword "restrict"
 >                            ,Cascade <$ keyword "cascade"])
 
+> stmtEnd :: Bool -> SParser ()
+> stmtEnd alwaysOptional = do
+>   ss <- isSqlServer
+>   if alwaysOptional || ss
+>     then optional (symbol ";") >>= \_ -> return ()
+>     else symbol ";" >>= \_ -> return ()
+
 --------------------------------------------------------------------------------
 
 plpgsql statements
@@ -937,7 +946,7 @@ plpgsql statements
 >        ,choice [insert
 >                ,update
 >                ,delete] >>= intoSuffix
->        ] <* symbol ";"
+>        ] <* stmtEnd False
 >     -- regular sql statements
 >     ,sqlStatement True
 >     -- regular plpgsql statements
@@ -953,7 +962,7 @@ plpgsql statements
 >          ,labelPrefixed
 >          ,nullStatement
 >          ,exitStatement]
->          <* symbol ";"
+>          <* stmtEnd False
 >     ]
 >    where
 >      intoSuffix e =
@@ -1606,9 +1615,9 @@ identifier parsing, quite a few variations ...
 parse x.y, x.y.z, etc.
 
 > qualIdSuffix :: ScalarExpr -> SParser ScalarExpr
-> qualIdSuffix (Identifier p i) = do
+> qualIdSuffix (Identifier _p i) = do
 >   qualIdX [i]
-> qualIdSuffix (QIdentifier p is) = do
+> qualIdSuffix (QIdentifier _p is) = do
 >   qualIdX is
 
 > qualIdSuffix e = do
@@ -1616,6 +1625,7 @@ parse x.y, x.y.z, etc.
 >     i1 <- symbol "." *> nameComponent
 >     return $ BinaryOp p (nm p ".") e (Identifier p i1)
 
+> qualIdX :: [NameComponent] -> SParser ScalarExpr
 > qualIdX is = do
 >   ss <- isSqlServer
 >   if ss
@@ -1663,9 +1673,12 @@ these categories affect the parser and typechecker differently
 (the parser has to parse some reserved and 'not reserved but cannot be
 function or type' keywords as function names, maybe there are others)
 
-> reservedWords :: [String]
-> reservedWords = [
->         "all"
+> reservedWords :: SParser [String]
+> reservedWords = do
+>   ss <- isSqlServer
+>   if not ss
+>     then return
+>        ["all"
 >        ,"analyse"
 >        ,"analyze"
 >        ,"and"
@@ -1764,6 +1777,192 @@ function or type' keywords as function names, maybe there are others)
 >        --extras for hssqlppp: Todo: fix this
 >        ,"loop"]
 
+sql server keywords from this page:
+http://msdn.microsoft.com/en-us/library/ms189822.aspx
+(this is the list for 2008 R2)
+
+>     else return
+>        ["add"
+>        ,"all"
+>        ,"alter"
+>        ,"and"
+>        ,"any"
+>        ,"as"
+>        ,"asc"
+>        ,"authorization"
+>        ,"backup"
+>        ,"begin"
+>        ,"between"
+>        ,"break"
+>        ,"browse"
+>        ,"bulk"
+>        ,"by"
+>        ,"cascade"
+>        ,"case"
+>        ,"check"
+>        ,"checkpoint"
+>        ,"close"
+>        ,"clustered"
+>        ,"coalesce"
+>        ,"collate"
+>        ,"column"
+>        ,"commit"
+>        ,"compute"
+>        ,"constraint"
+>        ,"contains"
+>        ,"containstable"
+>        ,"continue"
+>        ,"convert"
+>        ,"create"
+>        ,"cross"
+>        ,"current"
+>        ,"current_date"
+>        ,"current_time"
+>        ,"current_timestamp"
+>        ,"current_user"
+>        ,"cursor"
+>        ,"database"
+>        ,"dbcc"
+>        ,"deallocate"
+>        ,"declare"
+>        ,"default"
+>        ,"delete"
+>        ,"deny"
+>        ,"desc"
+>        ,"disk"
+>        ,"distinct"
+>        ,"distributed"
+>        ,"double"
+>        ,"drop"
+>        ,"dump"
+>        ,"else"
+>        ,"end"
+>        ,"errlvl"
+>        ,"escape"
+>        ,"except"
+>        ,"exec"
+>        ,"execute"
+>        ,"exists"
+>        ,"exit"
+>        ,"external"
+>        ,"fetch"
+>        ,"file"
+>        ,"fillfactor"
+>        ,"for"
+>        ,"foreign"
+>        ,"freetext"
+>        ,"freetexttable"
+>        ,"from"
+>        ,"full"
+>        ,"function"
+>        ,"goto"
+>        ,"grant"
+>        ,"group"
+>        ,"having"
+>        ,"holdlock"
+>        ,"identity"
+>        ,"identity_insert"
+>        ,"identitycol"
+>        ,"if"
+>        ,"in"
+>        ,"index"
+>        ,"inner"
+>        ,"insert"
+>        ,"intersect"
+>        ,"into"
+>        ,"is"
+>        ,"join"
+>        ,"key"
+>        ,"kill"
+>        ,"left"
+>        ,"like"
+>        ,"lineno"
+>        ,"load"
+>        ,"merge"
+>        ,"national"
+>        ,"nocheck"
+>        ,"nonclustered"
+>        ,"not"
+>        ,"null"
+>        ,"nullif"
+>        ,"of"
+>        ,"off"
+>        ,"offsets"
+>        ,"on"
+>        ,"open"
+>        ,"opendatasource"
+>        ,"openquery"
+>        ,"openrowset"
+>        ,"openxml"
+>        ,"option"
+>        ,"or"
+>        ,"order"
+>        ,"outer"
+>        ,"over"
+>        ,"percent"
+>        ,"pivot"
+>        ,"plan"
+>        ,"precision"
+>        ,"primary"
+>        ,"print"
+>        ,"proc"
+>        ,"procedure"
+>        ,"public"
+>        ,"raiserror"
+>        ,"read"
+>        ,"readtext"
+>        ,"reconfigure"
+>        ,"references"
+>        ,"replication"
+>        ,"restore"
+>        ,"restrict"
+>        ,"return"
+>        ,"revert"
+>        ,"revoke"
+>        ,"right"
+>        ,"rollback"
+>        ,"rowcount"
+>        ,"rowguidcol"
+>        ,"rule"
+>        ,"save"
+>        ,"schema"
+>        ,"securityaudit"
+>        ,"select"
+>        ,"session_user"
+>        ,"set"
+>        ,"setuser"
+>        ,"shutdown"
+>        ,"some"
+>        ,"statistics"
+>        ,"system_user"
+>        ,"table"
+>        ,"tablesample"
+>        ,"textsize"
+>        ,"then"
+>        ,"to"
+>        ,"top"
+>        ,"tran"
+>        ,"transaction"
+>        ,"trigger"
+>        ,"truncate"
+>        ,"tsequal"
+>        ,"union"
+>        ,"unique"
+>        ,"unpivot"
+>        ,"update"
+>        ,"updatetext"
+>        ,"use"
+>        ,"user"
+>        ,"values"
+>        ,"varying"
+>        ,"view"
+>        ,"waitfor"
+>        ,"when"
+>        ,"where"
+>        ,"while"
+>        ,"with"
+>        ,"writetext"]
+
 > ncs :: SParser [NameComponent]
 > ncs = do
 >   ss <- isSqlServer
@@ -1800,9 +1999,10 @@ instead of failing with a no keyword error
 > nameComponentAllows allows = do
 >   p <- pos
 >   x <- unrestrictedNameComponent
+>   rw <- reservedWords
 >   case x of
 >     Nmc n | map toLower n `elem` allows -> return x
->           | map toLower n `elem` reservedWords ->
+>           | map toLower n `elem` rw ->
 >               fail $ "no keywords " ++ show p ++ " " ++ n
 >     _ -> return x
 
@@ -1821,7 +2021,6 @@ ignore reserved keywords completely
 >      ssplice = (\s -> "$i(" ++ s ++ ")") <$>
 >                (symbol "$i(" *> idString <* symbol ")")
 >      tempTableIden = try $ do
->                        p <- pos
 >                        symbol "#"
 >                        -- not quite right since allows ws
 >                        -- between # and string
@@ -1872,7 +2071,6 @@ identifier which happens to start with a complete keyword
 >            ]
 >   where
 >     ids = mytoken (\tok -> case tok of
->                                      IdStringTok "not" -> Nothing
 >                                      IdStringTok i -> Just i
 >                                      -- have to go through and fix every
 >                                      -- use of idString to make this work correctly
@@ -1884,6 +2082,11 @@ identifier which happens to start with a complete keyword
 >     choice [(\l -> "$(" ++ l ++ ")")
 >             <$> (symbol "$(" *> idString <* symbol ")")
 >            ,ids
+>            ,try $ do
+>               ss <- isSqlServer
+>               if ss
+>                 then squares idString
+>                 else fail "not this branch"
 >            ]
 >   where
 >     ids = mytoken (\tok -> case tok of
@@ -2119,6 +2322,7 @@ state is never updated during parsing
 > data ParseFlags = ParseFlags
 >     {pfDialect :: SQLSyntaxDialect
 >     }
+>     deriving (Show,Eq)
 
 > defaultParseFlags :: ParseFlags
 > defaultParseFlags = ParseFlags {pfDialect = PostgreSQLDialect}
@@ -2127,7 +2331,7 @@ state is never updated during parsing
 > -- dialect parses a small number of sql server specific syntax only.
 > data SQLSyntaxDialect = PostgreSQLDialect
 >                       | SQLServerDialect
->                         deriving Eq
+>                         deriving (Show,Eq)
 
 going to start adding options to these dialect ctors:
 e.g. postgresql: allow crud only, allow dll, allow plpgsql

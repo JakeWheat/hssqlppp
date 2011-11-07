@@ -11,6 +11,7 @@ queryexpr:
 withqueryexpr
 combineQueryExpr
 values
+funtrefs
 
 
 not sure what else?

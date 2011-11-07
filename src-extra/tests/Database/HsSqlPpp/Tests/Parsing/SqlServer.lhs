@@ -75,6 +75,31 @@ server...obj
 >   ,MSStmt "select a from #tbl;"
 >       [QueryStatement ea $ selectFrom (selIL ["a"]) (Tref ea (i "#tbl") (NoAlias ea))]
 
->   ]
+>   ,s "CREATE TABLE [schema].[table_name](\n\
+>      \             [fieldname] [typename])"
+>    $ [CreateTable ea (Name ea [QNmc "schema",QNmc "table_name"])
+>       [AttributeDef ea (QNmc "fieldname")
+>        (SimpleTypeName ea (Name ea [QNmc "typename"])) Nothing []] []]
 
-  #identifer
+>   ,s "select a from t  -- no semi colon\n\
+>      \select b from t"
+>    $ [QueryStatement ea
+>       $ selectFrom [SelExp ea (ei "a")]
+>                     (Tref ea (i "t")
+>                     (NoAlias ea))
+>      ,QueryStatement ea
+>       $ selectFrom [SelExp ea (ei "b")]
+>                     (Tref ea (i "t")
+>                     (NoAlias ea))]
+
+
+>   ]
+>   where
+>     s = MSStmt
+
+if statement
+create index ++
+declare
+set
+parse select into to create table as (do this for postgresql non
+  plpgsql also

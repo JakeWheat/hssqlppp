@@ -1,9 +1,15 @@
-UNRELEASED
+unreleased development
 
+Focus: clean up some of the api
+       complete haddocks
+       clean up/rewrite lots of the typechecking internals
+       start taking the sql server syntax support a bit more seriously
+typechecking has regressed further, focus is on rock solid
+  typechecking of queryexprs and dml statements only (typechecking of
+  ddl and plpgsql are completely broken)
 start rewriting the Catalog module, Annotation type, typechecking code
   and typeconversion code from scratch - should be much clearer code
-  and more functionality. (Some of the old code hsa made it back in
-  temporarily for smoother transition)
+  and more functionality.
 lots of improvements to the Type module, types and documentation
 better haddock documentation
 parser/syntax additions and fixes:
@@ -11,17 +17,20 @@ split functions and operators into different ctors (App, BinaryOp,
   PrefixOp, etc.)
 rename some badly named ctors in the syntax
 use names in LiftApp
-start supporting sql server as separate dialect. At the moment, a flag
-  passed to the parser enables additional sql server syntax to be
-  parsed, but no postgresql syntax is disabled. Support for sql server
-    specific constructs currently limited
+limited explicit support for sql server syntax/tsql as separate
+  dialect using flag passed to parser and pretty printer
 source code tree is better organised and documented
-run tests on ghc 6.12.3 and 7.0.4
+tests are compiled and run successfully on ghc 6.12.3, 7.0.4 and
+  recent 7.3.x
 improved handling of reserved keywords
 add flags to typechecking to control the tree rewrites:
   add qualifiers to identifiers
   add full tableref aliases
   add select item aliases
+  replace * in select list with expanded identifier list
+better parsing for operators without whitespace, e.g. is now able to
+  parse a<>-1 as a <> -1
+
 
 0.4.0
 Released 30/09/2011
