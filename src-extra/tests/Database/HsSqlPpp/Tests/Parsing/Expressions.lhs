@@ -224,6 +224,13 @@ and dollar quoting, including nesting.
 >                                               ,ei "y"])
 >                                   (SimpleTypeName ea $ name "z")])])))
 >      ]
+>    ,Group "tricky operator parsing" [
+>       e "2 <>-1"
+>         $ binop "<>" (num "2") (prefop "u-" (num "1"))
+>      ,e "a <-> b"
+>         $ binop "<->" (ei "a") (ei "b")
+>    ]
+
 >      ]
 >  where
 >    e = Expr

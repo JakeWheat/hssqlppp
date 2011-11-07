@@ -450,3 +450,75 @@ src-extra/extensions/Database/HsSqlPpp/Extensions/Denormalized6nf.o \
 src-extra/extensions/Database/HsSqlPpp/Extensions/AstUtils.o \
 src-extra/extensions/Database/HsSqlPpp/Extensions/DenormSyntax.o \
 src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.o
+src-extra/examples/Lex : src-extra/examples/Lex.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o
+	$(HC) $(HC_OPTS) -o src-extra/examples/Lex src-extra/examples/Lex.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o
+temp : temp.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/TypeChecker.o \
+src/Database/HsSqlPpp/Catalog.o \
+src/Database/HsSqlPpp/Types.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Ast.o \
+src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.o \
+src-extra/catalogReader/Database/HsSqlPpp/Utils/GroomNoAnns.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o
+	$(HC) $(HC_OPTS) -o temp temp.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/TypeChecker.o \
+src/Database/HsSqlPpp/Catalog.o \
+src/Database/HsSqlPpp/Types.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Ast.o \
+src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.o \
+src-extra/catalogReader/Database/HsSqlPpp/Utils/GroomNoAnns.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o

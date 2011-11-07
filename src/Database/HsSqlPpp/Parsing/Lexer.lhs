@@ -231,9 +231,31 @@ deals with this.
 >                         ,try $ string "$(" -- antiquote standard splice
 >                         ,try $ string "$s(" -- antiquote string splice
 >                         ,string "$i(" -- antiquote identifier splice
->                         ,many1 (oneOf "+-*/<>=~!@#%^&|`?")
+>                          --cut down version: don't allow operator to contain + or -
+>                         ,anotherOp
 >                         ])
->
+>   where
+>     anotherOp = do
+>       -- first char can be any, this is always a valid operator name
+>       c0 <- oneOf "*/<>=~!@#%^&|`?+-"
+>       --recurse:
+>       let r = choice
+>               [do
+>                c1 <- oneOf "*/<>=~!@#%^&|`?"
+>                choice [do
+>                        x <- r
+>                        return $ c1 : x
+>                       ,return [c1]]
+>               ,try $ do
+>                a <- oneOf "+-"
+>                b <- r
+>                return $ a : b]
+>       choice [do
+>               tl <- r
+>               return $ c0 : tl
+>              ,return [c0]]
+
+
 
 parse a number:
 digits

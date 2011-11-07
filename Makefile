@@ -88,7 +88,9 @@ EXE_FILES = src-extra/tests/Tests \
 	src-extra/examples/QQ \
 	src-extra/docutil/DevelTool \
 	src-extra/examples/Parse3 \
-	src-extra/h7c/h7c
+	src-extra/h7c/h7c \
+	src-extra/examples/Lex \
+	temp
 
 #	src-extra/examples/ShowCatalog \
 #	src-extra/examples/TypeCheck \

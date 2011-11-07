@@ -308,7 +308,7 @@ functions and not in catalog values themselves.
 
 > data NameComponent = Nmc String
 >                    | QNmc String -- quoted
->                      deriving (Data,Eq,Show,Typeable)
+>                      deriving (Data,Eq,Show,Typeable,Ord)
 > -- this is a transition function
 > -- it should be removed when ready, since all the code
 > -- should be working with NameComponents directly
