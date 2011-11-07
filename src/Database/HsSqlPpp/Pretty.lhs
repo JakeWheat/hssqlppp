@@ -34,6 +34,10 @@ Public functions
 
 > data PrettyPrintFlags =
 >   PrettyPrintFlags
+
+todo: actually use the dialect. this will forced when the parser is
+adjusted to reject postgres only syntax when in sql server dialect
+
 >   {ppDialect :: SQLSyntaxDialect
 >    -- | try to output in more readable form, not safe to use
 >    -- atm since it might produce incorrect sql
@@ -52,16 +56,20 @@ Public functions
 > -- text using the function provided and interpolate the output of
 > -- this function (inside comments) with the SQL source.
 > printStatementsAnn :: PrettyPrintFlags -> (Annotation -> String) -> StatementList -> String
-> printStatementsAnn _flg f ast = render $ vcat (map (statement False True f) ast) <> text "\n"
->
+> printStatementsAnn flg f ast =
+>   render $ vcat (map (statement nice True f) ast) <> text "\n"
+>   where nice = unsafeReadable flg
 
 > -- | pretty print a query expression
 > printQueryExpr :: PrettyPrintFlags -> QueryExpr -> String
-> printQueryExpr _f ast = render (queryExpr False True True Nothing ast <> statementEnd True)
+> printQueryExpr f ast = render (queryExpr nice True True Nothing ast <> statementEnd True)
+>   where nice = unsafeReadable f
 
 > -- | pretty print a scalar expression
 > printScalarExpr :: PrettyPrintFlags -> ScalarExpr -> String
-> printScalarExpr _f = render . scalExpr False
+> printScalarExpr f = render . scalExpr nice
+>   where nice = unsafeReadable f
+
 
 todo: this function (printQueryExprNice) avoids outputting table
 aliases in some places - the code that uses this can avoid adding the
@@ -687,8 +695,9 @@ Statement components
 > scalExpr nice (BinaryOp _ n e0 e1) =
 >    case getTName n of
 >      Just "!and" | nice -> doLeftAnds e0 e1
->                  | otherwise -> parens (scalExpr nice e0)
->                                 <+> text "and" <+> scalExpr nice e1
+>                  | otherwise -> sep [parens (scalExpr nice e0)
+>                                     ,text "and"
+>                                     ,scalExpr nice e1]
 >      Just n' | Just n'' <- lookup n' [("!or","or")
 >                                      ,("!like","like")
 >                                      ,("!notlike","not like")] ->

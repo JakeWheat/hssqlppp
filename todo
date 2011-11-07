@@ -16,7 +16,7 @@ start thinking about how to support both postgresql and sql server better
 
 idea for :: cast
 
--> parse typenames as scalarexpressions by embeddeding them in
+-> parse typenames as scalarexpressions by embeding them in
    numberlits (hacky but should be unambiguous)
 then transform to cast after parsing. This can then use the proper
 precedence in buildExpressionParser to parse ::. Also produce parse

@@ -11,12 +11,19 @@ regressions
 
 Urgency: want to get tpch typechecking again asap:
 with
-implicit casts
+list all the nodes under queryexpr which aren't typechecking yet
+
 parameterized queries should be easy at this point
 finish of tpch and check using
 
 then dml
 then ddl and plpgsql
+
+sql server parsing:
+CREATE TABLE [schema].[table_name](
+            [fieldname] [typename])
+
+
 
 
 tree sketch of target set of ag files

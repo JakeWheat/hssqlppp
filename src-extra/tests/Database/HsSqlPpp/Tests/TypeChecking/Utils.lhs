@@ -11,11 +11,13 @@
 > import Database.HsSqlPpp.TypeChecker
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.Ast hiding (App)
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Pretty
 > import Text.Groom
 > import Debug.Trace
 > import Database.HsSqlPpp.Tests.TestUtils
+> import Control.Monad
 
 > import Database.HsSqlPpp.Utils.GroomNoAnns
 > import Language.Haskell.Exts hiding (Type)
@@ -27,7 +29,7 @@
 >           | ImpCastsScalar String String
 
 > testScalarExprType :: String -> Either [TypeError] Type -> Test.Framework.Test
-> testScalarExprType src et = testCase ("typecheck " ++ src) $
+> testScalarExprType src et = testCase ("typecheck " ++ src) $ do
 >   let ast = case parseScalarExpr defaultParseFlags "" src of
 >               Left e -> error $ show e
 >               Right l -> l
@@ -38,9 +40,22 @@
 >       got = case () of
 >               _ | null er -> maybe (Left []) Right ty
 >                 | otherwise -> Left er
->   in (if et /= got
->       then trace (groom{-AnnTypeOnly-} aast)
->       else id) $ assertEqual "" et got
+
+>       noTypeSEs :: [ScalarExpr]
+>       noTypeSEs = [x | x <- universeBi got
+>                      , atype (getAnnotation x) == Nothing]
+>       noTypeQEs :: [QueryExpr]
+>       noTypeQEs = [x | x <- universeBi got
+>                      , atype (getAnnotation x) == Nothing]
+>       allTyped = case et of
+>                    Left _ -> True -- don't check if everything is typed
+>                                   -- if expecting a type error
+>                    Right _ -> null noTypeSEs && null noTypeQEs
+>   unless allTyped $
+>        trace ("MISSING TYPES: " ++ groomAnnTypeOnly aast)
+>        $ assertBool "" allTyped
+>   unless (et == got) $ trace (groomAnnTypeOnly aast) $ return ()
+>   assertEqual "" et got
 
 > testImpCastsScalar :: String -> String -> Test.Framework.Test
 > testImpCastsScalar src wsrc = testCase ("typecheck " ++ src) $
@@ -61,7 +76,7 @@
 
 
 > testQueryExprType :: [CatalogUpdate] -> String -> Either [TypeError] Type -> Test.Framework.Test
-> testQueryExprType cus src et = testCase ("typecheck " ++ src) $
+> testQueryExprType cus src et = testCase ("typecheck " ++ src) $ do
 >   let ast = case parseQueryExpr defaultParseFlags "" src of
 >               Left e -> error $ show e
 >               Right l -> l
@@ -74,9 +89,21 @@
 >       got = case () of
 >               _ | null er -> maybe (Left []) Right ty
 >                 | otherwise -> Left er
->   in (if et /= got
->       then trace (groomAnnTypeOnly aast)
->       else id) $ assertEqual "" et got
+>       noTypeSEs :: [ScalarExpr]
+>       noTypeSEs = [x | x <- universeBi aast
+>                      , atype (getAnnotation x) == Nothing]
+>       noTypeQEs :: [QueryExpr]
+>       noTypeQEs = [x | x <- universeBi aast
+>                      , atype (getAnnotation x) == Nothing]
+>       allTyped = case et of
+>                    Left _ -> True -- don't check if everything is typed
+>                                   -- if expecting a type error
+>                    Right _ -> null noTypeSEs && null noTypeQEs
+>   unless allTyped $
+>        trace ("MISSING TYPES: " ++ groomAnnTypeOnly aast)
+>        $ assertBool "" allTyped
+>   unless (et == got) $ trace (groomAnnTypeOnly aast) $ return ()
+>   assertEqual "" et got
 
 > testRewrite :: TypeCheckingFlags -> [CatalogUpdate] -> String -> String
 >             -> Test.Framework.Test

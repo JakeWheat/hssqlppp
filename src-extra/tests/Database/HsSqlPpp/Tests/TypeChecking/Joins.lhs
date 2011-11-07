@@ -57,21 +57,24 @@
 >         $ Right $ CompositeType [("a", typeInt)
 >                                 ,("b", typeInt)
 >                                 ,("d", typeNumeric)]
+>         -- todo: need to fix this so that the star
+>         -- expand error doesn't appear: better error
+>         -- handling in the environment
 >   ,qe "select * from (select 1 as a1, 2 as b) a\n\
 >         \ natural inner join (select true as a1, 4.5 as d) b;"
->         $ Left [IncompatibleTypeSet [ScalarType "int4"
+>         $ Left [BadStarExpand,IncompatibleTypeSet [ScalarType "int4"
 >                                     ,ScalarType "bool"]]
 >   ,qe "select * from (select 1 as a1, 2 as b) a\n\
 >         \ natural inner join (select true as a1, 4.5 as d) b;"
->         $ Left [IncompatibleTypeSet [ScalarType "int4"
+>         $ Left [BadStarExpand,IncompatibleTypeSet [ScalarType "int4"
 >                                     ,ScalarType "bool"]]
 >   ,qe "select * from (select 1 as a1) a, (select 2 as a2) b;"
 >         $ Right $ CompositeType [("a1", typeInt)
 >                                 ,("a2", typeInt)]
 >   -- needs tref aliases in env
->   {-,qe "select * from (select 1 as a1) a, (select 2 as a1) b;"
+>   ,qe "select * from (select 1 as a1) a, (select 2 as a1) b;"
 >         $ Right $ CompositeType [("a1", typeInt)
->                                 ,("a1", typeInt)]-}
+>                                 ,("a1", typeInt)]
 >   ,qe "select a1 from (select 1 as a1) a,  (select 2 as a1) b;"
 >         $ Left [AmbiguousIdentifier "a1"]
 

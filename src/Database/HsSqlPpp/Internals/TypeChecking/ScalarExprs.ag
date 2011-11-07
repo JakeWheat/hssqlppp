@@ -181,7 +181,6 @@ op calls, fn calls, etc.
     | BinaryOp
          loc.ttpe = tcAppLike @lhs.cat @opName.originalTree [@arg0.upType,@arg1.upType]
          (arg0.expectedType,arg1.expectedType) =
-            trace ("binop: " ++ show @loc.ttpe) $
             case @loc.ttpe of
               Right ([t0,t1],_) -> (Just t0,Just t1)
               _ -> (Nothing,Nothing)
@@ -261,14 +260,32 @@ sem ScalarExpr
                       [WrongTypes typeBool wt]
                   tt <- mapM (maybe (Left []) Right) @loc.thenTypes
                   resolveResultSetType @lhs.cat tt
+        cases.whenExpectedType = Just typeBool
+        cases.thenExpectedType = either (const Nothing) Just @loc.tpe
+        els.expectedType = either (const Nothing) Just @loc.tpe
     | CaseSimple
-        loc.tpe =
+        loc.whent =
           do
           wt <- mapM (maybe (Left []) Right) $ concat @loc.whenTypes
           vt <- maybe (Left []) Right @value.upType
-          _ <- resolveResultSetType @lhs.cat (vt : wt)
+          resolveResultSetType @lhs.cat (vt : wt)
+        loc.tpe =
+          do
+          _ <- @loc.whent
           tt <- mapM (maybe (Left []) Right) @loc.thenTypes
           resolveResultSetType @lhs.cat tt
+        cases.whenExpectedType = either (const Nothing) Just @loc.whent
+        value.expectedType = either (const Nothing) Just @loc.whent
+        cases.thenExpectedType = either (const Nothing) Just @loc.tpe
+        els.expectedType = either (const Nothing) Just @loc.tpe
+
+attr CaseScalarExprListScalarExprPairList CaseScalarExprListScalarExprPair
+  inh thenExpectedType :: {Maybe Type}
+  inh whenExpectedType :: {Maybe Type}
+
+sem CaseScalarExprListScalarExprPair
+  | Tuple x1.expectedTypes = maybe [] repeat @lhs.whenExpectedType
+          x2.expectedType = @lhs.thenExpectedType
 
 
 
@@ -306,6 +323,69 @@ sem ScalarExpr
         sel.outerDownEnv = Just @lhs.downEnv
 
 {-
+== inlist
+todo: make the ast and typechecking a special case of lifted operator
+-}
+
+attr InList
+  inh expectedType :: {Maybe Type}
+  syn listType :: {Either [TypeError] Type}
+
+
+sem ScalarExpr
+    | InPredicate
+        loc.rt :: {Either [TypeError] Type}
+        loc.rt = do
+                 lt <- @list.listType
+                 expt <- maybe (Left []) Right @expr.upType
+                 resolveResultSetType @lhs.cat [expt, lt]
+        loc.tpe = do
+                  _ <- @loc.rt
+                  return typeBool
+        list.expectedType = either (const Nothing) Just @loc.rt
+        expr.expectedType = either (const Nothing) Just @loc.rt
+
+sem InList
+    | InList
+        lhs.listType = mapM (maybe (Left []) Right) @exprs.upTypes
+                       >>= resolveResultSetType @lhs.cat
+        exprs.expectedTypes = maybe [] repeat @lhs.expectedType
+
+    | InQueryExpr
+        lhs.listType =
+            do
+            st <- maybe (Left []) Right (map snd <$> @sel.upType)
+            case length st of
+                      0 -> Left [InternalError
+                                 "got subquery with no columns? in inselect"]
+                      1 -> Right $ head st
+                      _ -> Right $ AnonymousCompositeType st
+
+{-
+----------------------------------------------------
+bit hacky: for star and qstar, when expand stars isn't on
+want to annotated the star or qstar with a type, so
+get the cols and wrap in composite type
+TODO: the envExpandStar is shared with the select list stuff
+want to put the proper error from the catalog in the tpe here
+instead of ignoring it and setting left badstarexpand
+-}
+sem ScalarExpr
+    | Star QStar
+        loc.tpe :: {Either [TypeError] Type}
+        loc.tpe = case @originalTree of
+                    Star _ ->
+                      envExpandStar Nothing @lhs.downEnv
+                      >>= @loc.starCS
+                    QStar _ q -> do
+                      envExpandStar (Just q) @lhs.downEnv
+                      >>= @loc.starCS
+                    _ -> Left [InternalError "wrong ctor in sem rule for star, qstar in scalarexprs.ag"]
+
+        loc.starCS = Right . CompositeType . map (\((_q,n),t) -> (n,t))
+
+
+{-
 -----------------------------------------------
 fallback for unimplemented ctors
 
@@ -313,8 +393,8 @@ fallback for unimplemented ctors
 
 -- temp
 sem ScalarExpr
-    | PositionalArg Star QStar
-      WindowApp InPredicate LiftApp AntiScalarExpr
+    | PositionalArg
+      WindowApp LiftApp AntiScalarExpr
         loc.tpe = Left []
 
 
@@ -349,9 +429,6 @@ sem QueryExpr
 sem ScalarExpr
   | LiftApp args.expectedTypes = []
 
-sem CaseScalarExprListScalarExprPair
-  | Tuple x1.expectedTypes = []
-          x2.expectedType = Nothing
 
 {-sem Root
    | Root
@@ -359,7 +436,6 @@ sem CaseScalarExprListScalarExprPair
 -}
 sem InList
   | InList ann.imCast = Nothing
-           exprs.expectedTypes = []
   | InQueryExpr ann.imCast = Nothing
 
 {-sem JoinExpr
