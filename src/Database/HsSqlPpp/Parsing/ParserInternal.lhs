@@ -1052,13 +1052,16 @@ plpgsql statements
 > declareStatement = do
 >   DeclareStatement
 >   <$> pos
->   <*> (keyword "declare" *> symbol "@" *> (('@':) <$> idString))
->   <*> typeName
-
+>   <*> (keyword "declare"
+>        *> commaSep1 de)
+>   where
+>     de = (,,) <$> (symbol "@" *> (('@':) <$> idString))
+>               <*> typeName
+>               <*> optional (symbol "=" *> expr)
 
 --------------------------------------------------------------------------------
 
-expressions
+expressionsb
 ===========
 
 This is the bit that makes it the most obvious that I don't really
@@ -1467,10 +1470,24 @@ a special case for them
 
 >
 > castKeyword :: SParser ScalarExpr
-> castKeyword = Cast
->               <$> pos <* keyword "cast" <* symbol "("
->               <*> expr
->               <*> (keyword "as" *> typeName <* symbol ")")
+> castKeyword =
+>    choice
+>    [do
+>     -- parse tsql convert function to cast ast
+>     isSqlServer >>= guard
+>     p <- pos
+>     _ <- keyword "convert" <* symbol "("
+>     tn <- typeName
+>     _ <- symbol ","
+>     e <- expr
+>     -- ignores the style
+>     _ <- optional $ symbol "," *> integer
+>     _ <- symbol ")"
+>     return $ Cast p e tn
+>    ,Cast
+>     <$> pos <* keyword "cast" <* symbol "("
+>     <*> expr
+>     <*> (keyword "as" *> typeName <* symbol ")")]
 >
 > castSuffix :: ScalarExpr -> SParser ScalarExpr
 > castSuffix ex = pos >>= \p -> Cast p ex <$> (symbol "::" *> typeName)

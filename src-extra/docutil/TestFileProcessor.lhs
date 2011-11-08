@@ -38,7 +38,7 @@ examples.
 > mapParserTests (PT.Stmt s e) = [Row [[Sql s],[Haskell (groomNoAnns e)]]]
 > mapParserTests (PT.PgSqlStmt s e) = [Row [[Sql s],[Haskell (groomNoAnns e)]]]
 > mapParserTests (PT.Group n is) = HHeader n : concatMap mapParserTests is
-> mapParserTests (PT.MSStmt s e) = [Row [[Sql s],[Haskell (groomNoAnns e)]]]
+> mapParserTests (PT.TSQL s e) = [Row [[Sql s],[Haskell (groomNoAnns e)]]]
 
 
 need to use haskell-src-exts for the quasi quote tests since we want

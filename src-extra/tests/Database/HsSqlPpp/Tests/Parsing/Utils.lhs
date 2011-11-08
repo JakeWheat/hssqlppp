@@ -102,3 +102,6 @@ shortcuts for constructing test data and asts
 > lTrue = BooleanLit ea True
 > lFalse = BooleanLit ea False
 > lNull = NullLit ea
+
+> st :: String -> TypeName
+> st n = SimpleTypeName ea (Name ea [Nmc n])

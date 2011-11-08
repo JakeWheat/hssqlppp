@@ -341,7 +341,7 @@ data Statement
     | Block ann::Annotation lb::{Maybe String} vars::VarDefList sts :: StatementList
 
     | AntiStatement String
-    | DeclareStatement ann::Annotation vn::String tn::TypeName
+    | DeclareStatement ann::Annotation ds::{[(String,TypeName,Maybe ScalarExpr)]}
 
 -- =============================================================================
 

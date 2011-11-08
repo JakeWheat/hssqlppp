@@ -105,15 +105,37 @@ server...obj
 >                     (NoAlias ea))]
 
 >   ,s "declare @nm int"
->      $ [DeclareStatement ea "@nm" $ SimpleTypeName ea (Name ea [Nmc "int"])]
+>      $ [DeclareStatement ea [("@nm"
+>                              ,SimpleTypeName ea (Name ea [Nmc "int"])
+>                              ,Nothing)]]
+
+>   ,s "declare @nm int = 3, @nm2 datetime = '1/1/2000'"
+>      $ [DeclareStatement ea [("@nm"
+>                              ,SimpleTypeName ea (Name ea [Nmc "int"])
+>                              ,Just (num "3"))
+>                             ,("@nm2"
+>                              ,SimpleTypeName ea (Name ea [Nmc "datetime"])
+>                              ,Just $ StringLit ea "1/1/2000")
+>                             ]]
 
 >   ,s "set @nm=3"
 >      $ [Assignment ea (name "@nm") (num "3")]
+>   ,s "select convert (INT,5) from t"
+>      $ [QueryStatement ea
+>         $ selectFrom [SelExp ea (Cast ea (num "5") (st "INT"))]
+>                      (Tref ea (i "t")
+>                      (NoAlias ea))]
+
+>   ,s "select convert (time,something,108) from t"
+>      $ [QueryStatement ea
+>         $ selectFrom [SelExp ea (Cast ea (ei "something") (st "time"))]
+>                      (Tref ea (i "t")
+>                      (NoAlias ea))]
+
 >   ]
 >   where
 >     s = TSQL
 
 create index ++
-set
 parse select into to create table as (do this for postgresql non
   plpgsql also)

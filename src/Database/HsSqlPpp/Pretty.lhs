@@ -463,9 +463,13 @@ Conversion routines - convert Sql asts into Docs
 >       elseStatement = ifNotEmpty (\s -> text "else"
 >                                      $+$ nestedStatements flg ca s)
 
-> statement flg se ca (DeclareStatement ann nm ty) =
+> statement flg _se ca (DeclareStatement ann des) =
 >   annot ca ann <+>
->   text "declare" <+> text nm <+> typeName ty
+>   text "declare" <+> sepCsvMap de des
+>   where
+>     de (nm,ty,val) =
+>       text nm <+> typeName ty
+>       <+> maybe empty (\e -> text "=" <+> scalExpr flg e) val
 
 >
 > -- misc
