@@ -60,10 +60,10 @@ Unit test helpers
 
 > itemToTft :: Item -> Test.Framework.Test
 > itemToTft (Expr a b) = testParseScalarExpr a b
-> itemToTft (PgSqlStmt a b) = testParsePlpgsqlStatements a b
+> itemToTft (PgSqlStmt a b) = testParsePlpgsqlStatements PostgreSQLDialect a b
 > itemToTft (Stmt a b) = testParseStatements PostgreSQLDialect a b
-> itemToTft (MSStmt a b) =
->   testParseStatements (if True
+> itemToTft (TSQL a b) =
+>   testParsePlpgsqlStatements (if True
 >                        then SQLServerDialect
 >                        else PostgreSQLDialect) a b
 > --itemToTft (MSStmt a b) = testParseStatements a b
@@ -81,11 +81,11 @@ Unit test helpers
 >       pp = printStatements defaultPPFlags {ppDialect=flg}
 >   in parseUtil src ast parse parse pp
 >
-> testParsePlpgsqlStatements :: String -> [Statement] -> Test.Framework.Test
-> testParsePlpgsqlStatements src ast =
->   parseUtil src ast (parsePlpgsql defaultParseFlags "" Nothing)
->                     (parsePlpgsql defaultParseFlags "" Nothing)
->                     (printStatements defaultPPFlags)
+> testParsePlpgsqlStatements :: SQLSyntaxDialect -> String -> [Statement] -> Test.Framework.Test
+> testParsePlpgsqlStatements flg src ast =
+>   parseUtil src ast (parsePlpgsql defaultParseFlags {pfDialect=flg} "" Nothing)
+>                     (parsePlpgsql defaultParseFlags {pfDialect=flg} "" Nothing)
+>                     (printStatements defaultPPFlags {ppDialect=flg})
 >
 > parseUtil :: (Show t, Eq b, Show b, Data b) =>
 >              String

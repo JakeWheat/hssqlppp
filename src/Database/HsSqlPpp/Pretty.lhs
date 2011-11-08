@@ -59,18 +59,15 @@ adjusted to reject postgres only syntax when in sql server dialect
 > -- this function (inside comments) with the SQL source.
 > printStatementsAnn :: PrettyPrintFlags -> (Annotation -> String) -> StatementList -> String
 > printStatementsAnn flg f ast =
->   render $ vcat (map (statement nice True f) ast) <> text "\n"
->   where nice = unsafeReadable flg
+>   render $ vcat (map (statement flg True f) ast) <> text "\n"
 
 > -- | pretty print a query expression
 > printQueryExpr :: PrettyPrintFlags -> QueryExpr -> String
-> printQueryExpr f ast = render (queryExpr nice True True Nothing ast <> statementEnd True)
->   where nice = unsafeReadable f
+> printQueryExpr f ast = render (queryExpr f True True Nothing ast <> statementEnd True)
 
 > -- | pretty print a scalar expression
 > printScalarExpr :: PrettyPrintFlags -> ScalarExpr -> String
-> printScalarExpr f = render . scalExpr nice
->   where nice = unsafeReadable f
+> printScalarExpr f = render . scalExpr f
 
 
 todo: this function (printQueryExprNice) avoids outputting table
@@ -84,42 +81,42 @@ Conversion routines - convert Sql asts into Docs
 
 > -- Statements
 >
-> statement :: Bool -> Bool -> (Annotation -> String) -> Statement -> Doc
-> statement _nice _se _ca (AntiStatement s) = text $ "$(" ++ s ++ ")"
+> statement :: PrettyPrintFlags -> Bool -> (Annotation -> String) -> Statement -> Doc
+> statement _flg _se _ca (AntiStatement s) = text $ "$(" ++ s ++ ")"
 >
 > -- selects
 >
-> statement nice se ca (QueryStatement ann s) =
+> statement flg se ca (QueryStatement ann s) =
 >   annot ca ann <+>
->   queryExpr nice True True Nothing s <> statementEnd se
+>   queryExpr flg True True Nothing s <> statementEnd se
 >
 > --dml
 >
-> statement nice se pa (Insert ann tb atts idata rt) =
+> statement flg se pa (Insert ann tb atts idata rt) =
 >   annot pa ann <+>
 >   text "insert into" <+> name tb
 >   <+> ifNotEmpty (parens . sepCsvMap nmc) atts
->   $+$ queryExpr nice True True Nothing idata
->   $+$ returning nice rt
+>   $+$ queryExpr flg True True Nothing idata
+>   $+$ returning flg rt
 >   <> statementEnd se
 >
-> statement nice se ca (Update ann tb scs fr wh rt) =
+> statement flg se ca (Update ann tb scs fr wh rt) =
 >    annot ca ann <+>
 >    text "update" <+> name tb <+> text "set"
->    <+> sepCsvMap (set nice) scs
->    <+> ifNotEmpty (\_ -> text "from" <+> sepCsvMap (tref nice) fr) fr
->    <+> whr nice wh
->    $+$ returning nice rt <> statementEnd se
+>    <+> sepCsvMap (set flg) scs
+>    <+> ifNotEmpty (\_ -> text "from" <+> sepCsvMap (tref flg) fr) fr
+>    <+> whr flg wh
+>    $+$ returning flg rt <> statementEnd se
 >
-> statement nice se ca (Delete ann tbl us wh rt) =
+> statement flg se ca (Delete ann tbl us wh rt) =
 >    annot ca ann <+>
 >    text "delete from" <+> name tbl
->    <+> ifNotEmpty (\_ -> text "using" <+> sepCsvMap (tref nice) us) us
->    <+> whr nice wh
->    $+$ returning nice rt
+>    <+> ifNotEmpty (\_ -> text "using" <+> sepCsvMap (tref flg) us) us
+>    <+> whr flg wh
+>    $+$ returning flg rt
 >    <> statementEnd se
 >
-> statement _nice se ca (Truncate ann names ri casc) =
+> statement _flg se ca (Truncate ann names ri casc) =
 >     annot ca ann <+>
 >     text "truncate"
 >     <+> sepCsvMap name names
@@ -131,23 +128,23 @@ Conversion routines - convert Sql asts into Docs
 >
 > -- ddl
 >
-> statement nice se ca (CreateTable ann tbl atts cns) =
+> statement flg se ca (CreateTable ann tbl atts cns) =
 >     annot ca ann <+>
 >     text "create table"
 >     <+> name tbl <+> lparen
->     $+$ nest 2 (vcat (csv (map attrDef atts ++ map (constraint nice) cns)))
+>     $+$ nest 2 (vcat (csv (map attrDef atts ++ map (constraint flg) cns)))
 >     $+$ rparen <> statementEnd se
 >     where
 >       attrDef (AttributeDef _ n t def cons) =
 >         nmc n <+> typeName t
->         <+> maybePrint (\e -> text "default" <+> scalExpr nice e) def
+>         <+> maybePrint (\e -> text "default" <+> scalExpr flg e) def
 >         <+> hsep (map cCons cons)
 >       cCons (NullConstraint _ cn) =
 >         mname cn <+> text "null"
 >       cCons (NotNullConstraint _ cn) =
 >         mname cn <+> text "not null"
 >       cCons (RowCheckConstraint _ cn ew) =
->         mname cn <+> text "check" <+> parens (scalExpr nice ew)
+>         mname cn <+> text "check" <+> parens (scalExpr flg ew)
 >       cCons (RowUniqueConstraint _ cn) =
 >         mname cn <+> text "unique"
 >       cCons (RowPrimaryKeyConstraint _ cn) =
@@ -158,18 +155,18 @@ Conversion routines - convert Sql asts into Docs
 >         <+> text "on delete" <+> cascade ondel
 >         <+> text "on update" <+> cascade onupd
 >
-> statement nice se ca (AlterTable ann nm act) =
+> statement flg se ca (AlterTable ann nm act) =
 >     annot ca ann <+>
 >     text "alter table" <+> name nm
 >     <+> hcatCsvMap alterAction act <> statementEnd se
 >     where
 >       alterAction (AlterColumnDefault _ cnm def) =
 >           text "alter column" <+> nmc cnm
->           <+> text "set default" <+> scalExpr nice def
+>           <+> text "set default" <+> scalExpr flg def
 >       alterAction (AddConstraint _ con) =
->           text "add " <+> constraint nice con
+>           text "add " <+> constraint flg con
 >
-> statement _nice se ca (CreateSequence ann nm incr _ _ start cache) =
+> statement _flg se ca (CreateSequence ann nm incr _ _ start cache) =
 >     annot ca ann <+>
 >     text "create sequence" <+> name nm <+>
 >     text "increment" <+> text (show incr) <+>
@@ -178,19 +175,19 @@ Conversion routines - convert Sql asts into Docs
 >     text "start" <+> text (show start) <+>
 >     text "cache" <+> text (show cache) <> statementEnd se
 >
-> statement _nice se ca (AlterSequence ann nm o) =
+> statement _flg se ca (AlterSequence ann nm o) =
 >     annot ca ann <+>
 >     text "alter sequence" <+> name nm
 >     <+> text "owned by" <+> name o <> statementEnd se
 >
-> statement nice se ca (CreateTableAs ann t sel) =
+> statement flg se ca (CreateTableAs ann t sel) =
 >     annot ca ann <+>
 >     text "create table"
 >     <+> name t <+> text "as"
->     $+$ queryExpr nice True True Nothing sel
+>     $+$ queryExpr flg True True Nothing sel
 >     <> statementEnd se
 >
-> statement nice se ca (CreateFunction ann nm args retType rep lang body vol) =
+> statement flg se ca (CreateFunction ann nm args retType rep lang body vol) =
 >     annot ca ann <+>
 >     text ("create " ++ (case rep of
 >                          Replace -> "or replace "
@@ -211,51 +208,51 @@ Conversion routines - convert Sql asts into Docs
 >     where
 >       functionBody (SqlFnBody ann1 sts) =
 >         annot ca ann1 <+>
->         nestedStatements nice ca sts
+>         nestedStatements flg ca sts
 >       functionBody (PlpgsqlFnBody ann1 blk) =
 >           annot ca ann1 <+>
->           statement nice True ca blk
+>           statement flg True ca blk
 >       paramDefn (ParamDef _ n t) = nmc n <+> typeName t
 >       paramDefn  (ParamDefTp _ t) = typeName t
 >
-> statement nice se ca (Block ann lb decls sts) =
+> statement flg se ca (Block ann lb decls sts) =
 >   annot ca ann <+>
 >   label lb <>
 >   ifNotEmpty (\l -> text "declare"
 >                   $+$ nest 2 (vcat $ map varDefn l)) decls
 >   $+$ text "begin"
->   $+$ nestedStatements nice ca sts
+>   $+$ nestedStatements flg ca sts
 >   $+$ text "end" <> statementEnd se
 >   where
 >       varDefn (VarDef _ n t v) =
 >         nmc n <+> typeName t
->         <+> maybePrint (\x -> text ":=" <+> scalExpr nice x) v <> semi
+>         <+> maybePrint (\x -> text ":=" <+> scalExpr flg x) v <> semi
 >       varDefn (VarAlias _ n n1) =
 >         nmc n <+> text "alias for" <+> name n1 <> semi
 >       varDefn (ParamAlias _ n p) =
 >         nmc n <+> text "alias for $" <> text (show p) <> semi
 >
 >
-> statement nice se ca (CreateView ann nm cols sel) =
+> statement flg se ca (CreateView ann nm cols sel) =
 >     annot ca ann <+>
 >     text "create view" <+> name nm
 >     <> case cols of
 >          Nothing -> empty
 >          Just cs -> parens (sepCsvMap nmc cs)
 >     <+> text "as"
->     $+$ nest 2 (queryExpr nice True True Nothing sel) <> statementEnd se
+>     $+$ nest 2 (queryExpr flg True True Nothing sel) <> statementEnd se
 >
-> statement nice se ca (CreateDomain ann nm tp n ex) =
+> statement flg se ca (CreateDomain ann nm tp n ex) =
 >     annot ca ann <+>
 >     text "create domain" <+> name nm <+> text "as"
 >     <+> typeName tp <+> cname <+> checkExp ex <> statementEnd se
 >     where
->       checkExp = maybePrint (\e -> text "check" <+> parens (scalExpr nice e))
+>       checkExp = maybePrint (\e -> text "check" <+> parens (scalExpr flg e))
 >       cname = if n == ""
 >                then empty
 >                else text "constraint" <+> text n
 >
-> statement _nice se ca (DropFunction ann ifE fns casc) =
+> statement _flg se ca (DropFunction ann ifE fns casc) =
 >   annot ca ann <+>
 >   text "drop function"
 >   <+> ifExists ifE
@@ -266,7 +263,7 @@ Conversion routines - convert Sql asts into Docs
 >     doFunction (nm,types) =
 >       name nm <> parens (sepCsvMap typeName types)
 >
-> statement _nice se ca (DropSomething ann dropType ifE names casc) =
+> statement _flg se ca (DropSomething ann dropType ifE names casc) =
 >     annot ca ann <+>
 >     text "drop"
 >     <+> text (case dropType of
@@ -279,18 +276,18 @@ Conversion routines - convert Sql asts into Docs
 >     <+> cascade casc
 >     <> statementEnd se
 >
-> statement _nice se ca (CreateType ann nm atts) =
+> statement _flg se ca (CreateType ann nm atts) =
 >     annot ca ann <+>
 >     text "create type" <+> name nm <+> text "as" <+> lparen
 >     $+$ nest 2 (vcat (csv
 >           (map (\(TypeAttDef _ n t) -> nmc n <+> typeName t)  atts)))
 >     $+$ rparen <> statementEnd se
 >
-> statement _nice se ca (CreateLanguage ann nm) =
+> statement _flg se ca (CreateLanguage ann nm) =
 >     annot ca ann <+>
 >     text "create language" <+> text nm <> statementEnd se
 >
-> statement nice se ca (CreateTrigger ann nm wh events tbl firing fnName fnArgs) =
+> statement flg se ca (CreateTrigger ann nm wh events tbl firing fnName fnArgs) =
 >     annot ca ann <+>
 >     text "create trigger" <+> nmc nm
 >     <+> text (case wh of
@@ -302,7 +299,7 @@ Conversion routines - convert Sql asts into Docs
 >                                         EachRow -> "row"
 >                                         EachStatement -> "statement")
 >     <+> text "execute procedure" <+> name fnName
->     <> parens (sepCsvMap (scalExpr nice) fnArgs) <> statementEnd se
+>     <> parens (sepCsvMap (scalExpr flg) fnArgs) <> statementEnd se
 >     where
 >       evs = sep $ punctuate (text " or ") $ map
 >             (text . (\e -> case e of
@@ -313,21 +310,21 @@ Conversion routines - convert Sql asts into Docs
 >
 > -- plpgsql
 >
-> statement _nice se ca (NullStatement ann) =
+> statement _flg se ca (NullStatement ann) =
 >   annot ca ann <+> text "null" <> statementEnd se
-> statement _nice se ca (ExitStatement ann lb) =
+> statement _flg se ca (ExitStatement ann lb) =
 >   annot ca ann <+> text "exit"
 >     <+> maybe empty text lb <> statementEnd se
 >
 
-> statement nice se ca (Into ann str is (QueryStatement _ q)) =
+> statement flg se ca (Into ann str is (QueryStatement _ q)) =
 >   annot ca ann <+>
->   queryExpr nice True True (Just (str,is)) q <> statementEnd se
+>   queryExpr flg True True (Just (str,is)) q <> statementEnd se
 
 
-> statement nice se ca (Into ann str into st) =
+> statement flg se ca (Into ann str into st) =
 >   annot ca ann <+>
->   statement nice False ca st
+>   statement flg False ca st
 >   <+> text "into"
 >   <> (if str
 >       then empty <+> text "strict"
@@ -336,73 +333,73 @@ Conversion routines - convert Sql asts into Docs
 >   <> statementEnd se
 >   --fixme, should be insert,update,delete,execute
 
-> statement nice se ca (Assignment ann nm val) =
+> statement flg se ca (Assignment ann nm val) =
 >     annot ca ann <+>
->     name nm <+> text ":=" <+> scalExpr nice val <> statementEnd se
+>     name nm <+> text ":=" <+> scalExpr flg val <> statementEnd se
 >
-> statement nice se ca (Return ann ex) =
+> statement flg se ca (Return ann ex) =
 >     annot ca ann <+>
->     text "return" <+> maybePrint (scalExpr nice) ex <> statementEnd se
+>     text "return" <+> maybePrint (scalExpr flg) ex <> statementEnd se
 >
-> statement nice se ca (ReturnNext ann ex) =
+> statement flg se ca (ReturnNext ann ex) =
 >     annot ca ann <+>
->     text "return" <+> text "next" <+> scalExpr nice ex <> statementEnd se
+>     text "return" <+> text "next" <+> scalExpr flg ex <> statementEnd se
 >
-> statement nice se ca (ReturnQuery ann sel) =
+> statement flg se ca (ReturnQuery ann sel) =
 >     annot ca ann <+>
 >     text "return" <+> text "query"
->     <+> queryExpr nice True True Nothing sel <> statementEnd se
+>     <+> queryExpr flg True True Nothing sel <> statementEnd se
 >
-> statement nice se ca (Raise ann rt st exps) =
+> statement flg se ca (Raise ann rt st exps) =
 >     annot ca ann <+>
 >     text "raise"
 >     <+> case rt of
 >                 RNotice -> text "notice"
 >                 RException -> text "exception"
 >                 RError -> text "error"
->     <+> scalExpr nice (StringLit emptyAnnotation st)
->     <> ifNotEmpty (\e -> comma <+> csvExp nice e) exps
+>     <+> scalExpr flg (StringLit emptyAnnotation st)
+>     <> ifNotEmpty (\e -> comma <+> csvExp flg e) exps
 >     <> statementEnd se
 >
-> statement nice se ca (ForQueryStatement ann lb i sel stmts) =
+> statement flg se ca (ForQueryStatement ann lb i sel stmts) =
 >     annot ca ann <+>
 >     label lb <>
 >     text "for" <+> nmc i <+> text "in"
->     <+> queryExpr nice True True Nothing sel <+> text "loop"
->     $+$ nestedStatements nice ca stmts
+>     <+> queryExpr flg True True Nothing sel <+> text "loop"
+>     $+$ nestedStatements flg ca stmts
 >     $+$ text "end loop" <> statementEnd se
 >
-> statement nice se ca (ForIntegerStatement ann lb var st en stmts) =
+> statement flg se ca (ForIntegerStatement ann lb var st en stmts) =
 >     annot ca ann <+>
 >     label lb <>
 >     text "for" <+> nmc var <+> text "in"
->     <+> scalExpr nice st <+> text ".." <+> scalExpr nice en <+> text "loop"
->     $+$ nestedStatements nice ca stmts
+>     <+> scalExpr flg st <+> text ".." <+> scalExpr flg en <+> text "loop"
+>     $+$ nestedStatements flg ca stmts
 >     $+$ text "end loop" <> statementEnd se
 >
-> statement nice se ca (WhileStatement ann lb ex stmts) =
+> statement flg se ca (WhileStatement ann lb ex stmts) =
 >     annot ca ann <+>
 >     label lb <>
->     text "while" <+> scalExpr nice ex <+> text "loop"
->     $+$ nestedStatements nice ca stmts
+>     text "while" <+> scalExpr flg ex <+> text "loop"
+>     $+$ nestedStatements flg ca stmts
 >     $+$ text "end loop" <> statementEnd se
-> statement nice se ca (LoopStatement ann lb stmts) =
+> statement flg se ca (LoopStatement ann lb stmts) =
 >     annot ca ann <+>
 >     label lb <>
 >     text "loop"
->     $+$ nestedStatements nice ca stmts
+>     $+$ nestedStatements flg ca stmts
 >     $+$ text "end loop" <> statementEnd se
 >
-> statement _nice se ca (ContinueStatement ann lb) =
+> statement _flg se ca (ContinueStatement ann lb) =
 >     annot ca ann <+> text "continue"
 >       <+> maybe empty text lb <> statementEnd se
-> statement nice se ca (Perform ann f@(App _ _ _)) =
+> statement flg se ca (Perform ann f@(App _ _ _)) =
 >     annot ca ann <+>
->     text "perform" <+> scalExpr nice f <> statementEnd se
+>     text "perform" <+> scalExpr flg f <> statementEnd se
 > statement _ _ _ (Perform _ x) =
 >    error $ "internal error: statement not supported for " ++ show x
 >
-> statement _nice se ca (Copy ann tb cols src) =
+> statement _flg se ca (Copy ann tb cols src) =
 >     annot ca ann <+>
 >     text "copy" <+> name tb
 >     <+> ifNotEmpty (parens . sepCsvMap nmc) cols
@@ -415,33 +412,45 @@ Conversion routines - convert Sql asts into Docs
 >     annot ca ann <+>
 >     text s <> text "\\." <> newline
 >
-> statement nice se ca (If ann conds els) =
->    annot ca ann <+>
->    text "if" <+> constraintd (head conds)
->    $+$ vcat (map (\c -> text "elseif" <+> constraintd c) $ tail conds)
->    $+$ ifNotEmpty (\e -> text "else" $+$ nestedStatements nice ca e) els
->    $+$ text "end if" <> statementEnd se
->     where
->       constraintd (ex, sts) = scalExpr nice ex <+> text "then"
->                            $+$ nestedStatements nice ca sts
-> statement nice se ca (Execute ann s) =
+> statement flg se ca (If ann conds els) =
+>    if tsql
+>    then
+>      annot ca ann <+>
+>      text "if" <+> scalExpr flg (fst $ head conds)
+>                <+> blck (snd $ head conds)
+>      $+$ ifNotEmpty (\e -> text "else" <+> blck e) els
+>      <> statementEnd se
+>    else
+>      annot ca ann <+>
+>      text "if" <+> constraintd (head conds)
+>      $+$ vcat (map (\c -> text "elseif" <+> constraintd c) $ tail conds)
+>      $+$ ifNotEmpty (\e -> text "else" $+$ nestedStatements flg ca e) els
+>      $+$ text "end if" <> statementEnd se
+>    where
+>      constraintd (ex, sts) = scalExpr flg ex <+> text "then"
+>                              $+$ nestedStatements flg ca sts
+>      tsql = ppDialect flg == SQLServerDialect
+>      blck sts = sep [text "begin"
+>                     ,nestedStatements flg ca sts
+>                     ,text "end"]
+> statement flg se ca (Execute ann s) =
 >     annot ca ann <+>
->     text "execute" <+> scalExpr nice s <> statementEnd se
+>     text "execute" <+> scalExpr flg s <> statementEnd se
 >
 >
-> statement nice se ca (CaseStatementSimple ann c conds els) =
+> statement flg se ca (CaseStatementSimple ann c conds els) =
 >     annot ca ann <+>
->     text "case" <+> scalExpr nice c
+>     text "case" <+> scalExpr flg c
 >     $+$ nest 2 (
 >                 vcat (map (uncurry whenStatement) conds)
 >                 $+$ elseStatement els
 >                 ) $+$ text "end case" <> statementEnd se
 >     where
->       whenStatement ex sts = text "when" <+> sepCsvMap (scalExpr nice) ex
->                           <+> text "then" $+$ nestedStatements nice ca sts
+>       whenStatement ex sts = text "when" <+> sepCsvMap (scalExpr flg) ex
+>                           <+> text "then" $+$ nestedStatements flg ca sts
 >       elseStatement = ifNotEmpty (\s -> text "else"
->                                      $+$ nestedStatements nice ca s)
-> statement nice se ca (CaseStatement ann conds els) =
+>                                      $+$ nestedStatements flg ca s)
+> statement flg se ca (CaseStatement ann conds els) =
 >     annot ca ann <+>
 >     text "case"
 >     $+$ nest 2 (
@@ -449,15 +458,19 @@ Conversion routines - convert Sql asts into Docs
 >                 $+$ elseStatement els
 >                 ) $+$ text "end case" <> statementEnd se
 >     where
->       whenStatement ex sts = text "when" <+> sepCsvMap (scalExpr nice) ex
->                           <+> text "then" $+$ nestedStatements nice ca sts
+>       whenStatement ex sts = text "when" <+> sepCsvMap (scalExpr flg) ex
+>                           <+> text "then" $+$ nestedStatements flg ca sts
 >       elseStatement = ifNotEmpty (\s -> text "else"
->                                      $+$ nestedStatements nice ca s)
+>                                      $+$ nestedStatements flg ca s)
+
+> statement flg se ca (DeclareStatement ann nm ty) =
+>   annot ca ann <+>
+>   text "declare" <+> text nm <+> typeName ty
 
 >
 > -- misc
 >
-> statement _nice se _ (Set _ n vs) =
+> statement _flg se _ (Set _ n vs) =
 >   text "set" <+> text n <+> text "="
 >   <+> sepCsvMap (text . dv) vs <> statementEnd se
 >   where
@@ -465,7 +478,7 @@ Conversion routines - convert Sql asts into Docs
 >     dv (SetId _ i) = i
 >     dv (SetNum _ nm) = show nm
 >
-> statement _nice se _ (Notify _ n) =
+> statement _flg se _ (Notify _ n) =
 >   text "notify" <+> text n  <> statementEnd se
 >
 > statementEnd :: Bool -> Doc
@@ -479,8 +492,8 @@ Statement components
 
 > -- selects
 >
-> queryExpr :: Bool -> Bool -> Bool -> Maybe (Bool,[Name]) -> QueryExpr -> Doc
-> queryExpr nice writeSelect _ intoi (Select _ dis l tb wh grp hav
+> queryExpr :: PrettyPrintFlags -> Bool -> Bool -> Maybe (Bool,[Name]) -> QueryExpr -> Doc
+> queryExpr flg writeSelect _ intoi (Select _ dis l tb wh grp hav
 >                                     order lim off) =
 >   (text (if writeSelect then "select" else "")
 >          <+> (case dis of
@@ -492,41 +505,41 @@ Statement components
 >                            then text "strict"
 >                            else empty)
 >                       <+> sepCsvMap name is) intoi
->   ,Just $ nest 2 $ selectList nice l
+>   ,Just $ nest 2 $ selectList flg l
 >   ,Just $ if null tb
 >           then empty
->           else text "from" $+$ nest 2 (sepCsvMap (tref nice) tb)
->   ,Just $ whr nice wh
+>           else text "from" $+$ nest 2 (sepCsvMap (tref flg) tb)
+>   ,Just $ whr flg wh
 >   ,case grp of
 >      [] -> Nothing
->      g -> Just $ text "group by" $+$ nest 2 (sepCsvMap (scalExpr nice) g)
->   ,flip fmap hav $ \h -> text "having" $+$ nest 2 (scalExpr nice h)
->   ,Just $ orderBy nice order
->   ,flip fmap lim $ \lm -> text "limit" <+> scalExpr nice lm
->   ,flip fmap off $ \offs -> text "offset" <+> scalExpr nice offs
+>      g -> Just $ text "group by" $+$ nest 2 (sepCsvMap (scalExpr flg) g)
+>   ,flip fmap hav $ \h -> text "having" $+$ nest 2 (scalExpr flg h)
+>   ,Just $ orderBy flg order
+>   ,flip fmap lim $ \lm -> text "limit" <+> scalExpr flg lm
+>   ,flip fmap off $ \offs -> text "offset" <+> scalExpr flg offs
 >   ])
 >
-> queryExpr nice writeSelect topLev _ (CombineQueryExpr _ tp s1 s2) =
->   let p = queryExpr nice writeSelect False Nothing  s1
+> queryExpr flg writeSelect topLev _ (CombineQueryExpr _ tp s1 s2) =
+>   let p = queryExpr flg writeSelect False Nothing  s1
 >           $+$ (case tp of
 >                        Except -> text "except"
 >                        Union -> text "union"
 >                        UnionAll -> text "union" <+> text "all"
 >                        Intersect -> text "intersect")
->           $+$ queryExpr nice True False Nothing s2
+>           $+$ queryExpr flg True False Nothing s2
 >   in if topLev then p else parens p
-> queryExpr nice _ _ _ (Values _ expss) =
->   text "values" $$ nest 2 (vcat $ csv $ map (parens . csvExp nice) expss)
-> queryExpr nice _ _ _ (WithQueryExpr _ wqs ex) =
+> queryExpr flg _ _ _ (Values _ expss) =
+>   text "values" $$ nest 2 (vcat $ csv $ map (parens . csvExp flg) expss)
+> queryExpr flg _ _ _ (WithQueryExpr _ wqs ex) =
 >   text "with" $$ nest 2 (vcat $ csv $ map pwq wqs)
->        $+$ queryExpr nice True False Nothing ex
+>        $+$ queryExpr flg True False Nothing ex
 >   where
 >     pwq (WithQuery _ nm cs ex1) =
 >       nmc nm <> case cs of
 >                    Nothing -> empty
 >                    Just cs' -> parens $ sepCsvMap nmc cs'
 >       <+> text "as"
->       <+> parens (queryExpr nice True False Nothing ex1)
+>       <+> parens (queryExpr flg True False Nothing ex1)
 
 > name :: Name -> Doc
 > name (Name _ ns) = nmcs ns
@@ -539,16 +552,16 @@ Statement components
 > nmc (QNmc ns) = doubleQuotes $ text ns
 
 >
-> tref :: Bool -> TableRef -> Doc
-> {-tref nice (Tref _ f@(SQIdentifier _ t) (TableAlias _ ta))
->   | nice, last t == ta = name f
+> tref :: PrettyPrintFlags -> TableRef -> Doc
+> {-tref flg (Tref _ f@(SQIdentifier _ t) (TableAlias _ ta))
+>   | flg, last t == ta = name f
 >   -- slightly bad hack:
-> tref nice (Tref _ f@(SQIdentifier _ t) (FullAlias _ ta _))
->   | nice, last t == ta = name f-}
+> tref flg (Tref _ f@(SQIdentifier _ t) (FullAlias _ ta _))
+>   | flg, last t == ta = name f-}
 
-> tref nice (Tref _ f a) = name f <+> trefAlias nice a
-> tref nice (JoinTref _ t1 nat jt t2 ex a) =
->         parens (tref nice t1
+> tref flg (Tref _ f a) = name f <+> trefAlias flg a
+> tref flg (JoinTref _ t1 nat jt t2 ex a) =
+>         parens (tref flg t1
 >         $+$ (case nat of
 >                       Natural -> text "natural"
 >                       Unnatural -> empty)
@@ -559,51 +572,53 @@ Statement components
 >                           RightOuter -> "right outer"
 >                           FullOuter -> "full outer")
 >         <+> text "join"
->         <+> tref nice t2
+>         <+> tref flg t2
 >         <+> maybePrint (nest 2 . joinScalarExpr) ex
->         <+> trefAlias nice a)
+>         <+> trefAlias flg a)
 >         where
->           joinScalarExpr (JoinOn _ e) = text "on" <+> scalExpr nice e
+>           joinScalarExpr (JoinOn _ e) = text "on" <+> scalExpr flg e
 >           joinScalarExpr (JoinUsing _ ids) =
 >               text "using" <+> parens (sepCsvMap nmc ids)
 >
-> tref nice (SubTref _ sub alias) =
->         parens (queryExpr nice True True Nothing sub)
->         <+> text "as" <+> trefAlias nice alias
-> tref nice (FunTref _ f@(App _ _ _) a) = scalExpr nice f <+> trefAlias nice a
-> tref _nice (FunTref _ x _) =
+> tref flg (SubTref _ sub alias) =
+>         parens (queryExpr flg True True Nothing sub)
+>         <+> text "as" <+> trefAlias flg alias
+> tref flg (FunTref _ f@(App _ _ _) a) = scalExpr flg f <+> trefAlias flg a
+> tref _flg (FunTref _ x _) =
 >       error $ "internal error: node not supported in function tref: "
 >             ++ show x
 >
-> trefAlias :: Bool -> TableAlias -> Doc
+> trefAlias :: PrettyPrintFlags -> TableAlias -> Doc
 > trefAlias _ (NoAlias _) = empty
 > trefAlias _ (TableAlias _ t) = nmc t
 > -- hack this out for now. When the type checking is fixed, can try
 > -- to eliminate unneeded aliases?
-> trefAlias nice (FullAlias _ t s) =
->   nmc t <> (if nice
->              then empty
->              else parens (sepCsvMap nmc s))
+> trefAlias flg (FullAlias _ t s) =
+>   nmc t <> (if unsafeReadable flg
+>             then empty
+>             else parens (sepCsvMap nmc s))
 
 > direction :: Direction -> Doc
 > direction d = text $ case d of
 >                           Asc -> "asc"
 >                           Desc -> "desc"
 >
-> whr :: Bool -> Maybe ScalarExpr -> Doc
-> whr nice (Just ex) = text "where" $+$ nest 2 (scalExpr nice ex)
+> whr :: PrettyPrintFlags -> Maybe ScalarExpr -> Doc
+> whr flg (Just ex) = text "where" $+$ nest 2 (scalExpr flg ex)
 > whr _ Nothing = empty
 >
-> selectList :: Bool -> SelectList -> Doc
-> selectList nice (SelectList _ ex) =
+> selectList :: PrettyPrintFlags -> SelectList -> Doc
+> selectList flg (SelectList _ ex) =
 >   sepCsvMap selectItem ex
 >   -- <+> ifNotEmpty (\i -> text "into" <+> hcatCsvMap scalExpr i) into
 >   where
 >     -- try to avoid printing alias if not necessary
->     selectItem (SelectItem _ ex1@(QIdentifier _ is) nm) | nice, last is == nm = scalExprSl nice ex1
->     selectItem (SelectItem _ ex1@(Identifier _ i) nm) | nice, i == nm = scalExprSl nice ex1
->     selectItem (SelectItem _ ex1 nm) = scalExprSl nice ex1 <+> text "as" <+> nmc nm
->     selectItem (SelExp _ e) = scalExprSl nice e
+>     selectItem (SelectItem _ ex1@(QIdentifier _ is) nm)
+>       | unsafeReadable flg, last is == nm = scalExprSl flg ex1
+>     selectItem (SelectItem _ ex1@(Identifier _ i) nm)
+>       | unsafeReadable flg, i == nm = scalExprSl flg ex1
+>     selectItem (SelectItem _ ex1 nm) = scalExprSl flg ex1 <+> text "as" <+> nmc nm
+>     selectItem (SelExp _ e) = scalExprSl flg e
 >
 > cascade :: Cascade -> Doc
 > cascade casc = text $ case casc of
@@ -611,17 +626,17 @@ Statement components
 >                                  Restrict -> "restrict"
 > -- ddl
 >
-> constraint :: Bool -> Constraint -> Doc
-> constraint _nice (UniqueConstraint _ n c) =
+> constraint :: PrettyPrintFlags -> Constraint -> Doc
+> constraint _flg (UniqueConstraint _ n c) =
 >         mname n <+> text "unique"
 >         <+> parens (sepCsvMap nmc c)
-> constraint _nice (PrimaryKeyConstraint _ n p) =
+> constraint _flg (PrimaryKeyConstraint _ n p) =
 >         mname n <+>
 >         text "primary key"
 >         <+> parens (sepCsvMap nmc p)
-> constraint nice (CheckConstraint _ n c) =
->         mname n <+> text "check" <+> parens (scalExpr nice c)
-> constraint _nice (ReferenceConstraint _ n at tb rat ondel onupd) =
+> constraint flg (CheckConstraint _ n c) =
+>         mname n <+> text "check" <+> parens (scalExpr flg c)
+> constraint _flg (ReferenceConstraint _ n at tb rat ondel onupd) =
 >         mname n <+>
 >         text "foreign key" <+> parens (sepCsvMap nmc at)
 >         <+> text "references" <+> name tb
@@ -634,10 +649,10 @@ Statement components
 >           then empty
 >           else text "constraint" <+> text n
 >
-> returning :: Bool -> Maybe SelectList -> Doc
-> returning nice l = case l of
+> returning :: PrettyPrintFlags -> Maybe SelectList -> Doc
+> returning flg l = case l of
 >                 Nothing -> empty
->                 Just ls -> nest 2 (text "returning" <+> selectList nice ls)
+>                 Just ls -> nest 2 (text "returning" <+> selectList flg ls)
 >
 > ifExists :: IfExists -> Doc
 > ifExists i = case i of
@@ -646,8 +661,8 @@ Statement components
 >
 > -- plpgsql
 >
-> nestedStatements :: Bool -> (Annotation -> String) -> StatementList -> Doc
-> nestedStatements nice pa = nest 2 . vcat . map (statement nice True pa)
+> nestedStatements :: PrettyPrintFlags -> (Annotation -> String) -> StatementList -> Doc
+> nestedStatements flg pa = nest 2 . vcat . map (statement flg True pa)
 >
 > typeName :: TypeName -> Doc
 > typeName (SimpleTypeName _ s) = name s
@@ -658,14 +673,14 @@ Statement components
 >
 > -- expressions
 >
-> scalExpr :: Bool -> ScalarExpr -> Doc
+> scalExpr :: PrettyPrintFlags -> ScalarExpr -> Doc
 > scalExpr _ (AntiScalarExpr s) = text $ "$(" ++ s ++ ")"
 > scalExpr _ (Star _) = text "*"
 > scalExpr _ (QStar _ i) = nmc i <> text ".*"
 
 > scalExpr _ (Identifier _ i) = nmc i
-> scalExpr _nice (QIdentifier _a [i1, i]) = parens (nmc i1) <> text "." <> nmc i
-> scalExpr _nice (QIdentifier _a _) = error "only supports 2 part qualified identifers atm"
+> scalExpr _flg (QIdentifier _a [i1, i]) = parens (nmc i1) <> text "." <> nmc i
+> scalExpr _flg (QIdentifier _a _) = error "only supports 2 part qualified identifers atm"
 
 > scalExpr _ (NumberLit _ n) = text n
 > scalExpr _ (StringLit _ s) = -- needs some thought about using $$?
@@ -673,97 +688,97 @@ Statement components
 >                           where
 >                             replaceQuotes = replace "'" "''" s
 >
-> scalExpr nice (SpecialOp _ n es) =
+> scalExpr flg (SpecialOp _ n es) =
 >    case getTName n of
->      Just "!arrayctor" -> text "array" <> brackets (csvExp nice es)
->      Just "!between" -> scalExpr nice (head es) <+> text "between"
->                         <+> parens (scalExpr nice (es !! 1))
+>      Just "!arrayctor" -> text "array" <> brackets (csvExp flg es)
+>      Just "!between" -> scalExpr flg (head es) <+> text "between"
+>                         <+> parens (scalExpr flg (es !! 1))
 >                         <+> text "and"
->                         <+> parens (scalExpr nice (es !! 2))
+>                         <+> parens (scalExpr flg (es !! 2))
 >      Just "!substring" -> text "substring"
->                      <> parens (scalExpr nice (head es)
->                                 <+> text "from" <+> scalExpr nice (es !! 1)
->                                 <+> text "for" <+> scalExpr nice (es !! 2))
+>                      <> parens (scalExpr flg (head es)
+>                                 <+> text "from" <+> scalExpr flg (es !! 1)
+>                                 <+> text "for" <+> scalExpr flg (es !! 2))
 >      Just "!arraysub" ->
 >        case es of
 >                (Identifier _ i : es1) -> nmc i
->                                          <> brackets (csvExp nice es1)
->                (e:es') -> parens (scalExpr nice e)
->                           <> brackets (csvExp nice es')
+>                                          <> brackets (csvExp flg es1)
+>                (e:es') -> parens (scalExpr flg e)
+>                           <> brackets (csvExp flg es')
 >                _ -> error $ "bad args to !arraysub: " ++ show es
->      Just "!rowctor" -> text "row" <> parens (sepCsvMap (scalExpr nice) es)
+>      Just "!rowctor" -> text "row" <> parens (sepCsvMap (scalExpr flg) es)
 >      x -> error $ "bad special operator name: " ++ show x
 
-> scalExpr nice (BinaryOp _ n e0 e1) =
+> scalExpr flg (BinaryOp _ n e0 e1) =
 >    case getTName n of
->      Just "!and" | nice -> doLeftAnds e0 e1
->                  | otherwise -> sep [parens (scalExpr nice e0)
+>      Just "!and" | unsafeReadable flg -> doLeftAnds e0 e1
+>                  | otherwise -> sep [parens (scalExpr flg e0)
 >                                     ,text "and"
->                                     ,scalExpr nice e1]
+>                                     ,scalExpr flg e1]
 >      Just n' | Just n'' <- lookup n' [("!or","or")
 >                                      ,("!like","like")
 >                                      ,("!notlike","not like")] ->
->        parens (scalExpr nice e0 <+> text n''
->               <+> scalExpr nice e1)
+>        parens (scalExpr flg e0 <+> text n''
+>               <+> scalExpr flg e1)
 >      Just "."   -- special case to avoid ws around '.'. Don't know if this is important
 >                 -- or just cosmetic
->          -> parens (scalExpr nice e0) <> text "." <> scalExpr nice e1
->      Just n' -> parens (scalExpr nice e0 <+> text n' <+> scalExpr nice e1)
+>          -> parens (scalExpr flg e0) <> text "." <> scalExpr flg e1
+>      Just n' -> parens (scalExpr flg e0 <+> text n' <+> scalExpr flg e1)
 >      Nothing -> error $ "bad binary operator name:" ++ show n
 >    where
 >      -- try to write a series of ands in a vertical line with slightly less parens
 >      doLeftAnds a b = let as = and' a
->                       in vcat ((scalExpr nice (head as)
->                                 : map (\x -> text "and" <+> scalExpr nice x) (tail as))
->                                ++ [text "and" <+> scalExpr nice b])
+>                       in vcat ((scalExpr flg (head as)
+>                                 : map (\x -> text "and" <+> scalExpr flg x) (tail as))
+>                                ++ [text "and" <+> scalExpr flg b])
 >      and' a = case a of
 >                 BinaryOp _ f x y | Just "!and" <- getTName f -> and' x ++ and' y
 >                 _ -> [a]
 
-> scalExpr nice (PrefixOp _ n e0)
+> scalExpr flg (PrefixOp _ n e0)
 >   | Just "!not" <- getTName n =
->       parens (text "not" <+> parens (scalExpr nice e0))
+>       parens (text "not" <+> parens (scalExpr flg e0))
 >   | Just n' <- getTName n =
 >       parens (text (if n' == "u-"
 >                     then "-"
 >                     else n')
->               <+> parens (scalExpr nice e0))
+>               <+> parens (scalExpr flg e0))
 >   | otherwise = error $ "bad prefix operator name:" ++ show n
 
 
-> scalExpr nice (PostfixOp _ n e0)
+> scalExpr flg (PostfixOp _ n e0)
 >   | Just n' <- getTName n >>= flip lookup [("!isnull", "is null")
 >                                           ,("!isnotnull", "is not null")] =
->        parens (scalExpr nice e0 <+> text n')
+>        parens (scalExpr flg e0 <+> text n')
 >   | Just n' <- getTName n =
->       parens (scalExpr nice e0 <+> text n')
+>       parens (scalExpr flg e0 <+> text n')
 >   | otherwise = error $ "bad postfix operator name:" ++ show n
 
-> scalExpr nice (App _ n es) =
->   name n <> parens (csvExp nice es)
+> scalExpr flg (App _ n es) =
+>   name n <> parens (csvExp flg es)
 
 >
 > scalExpr _ (BooleanLit _ b) = bool b
-> scalExpr nice (InPredicate _ att t lst) =
->   scalExpr nice att <+> (if not t then text "not" else empty) <+> text "in"
+> scalExpr flg (InPredicate _ att t lst) =
+>   scalExpr flg att <+> (if not t then text "not" else empty) <+> text "in"
 >   <+> parens (case lst of
->                        InList _ expr -> csvExp nice expr
->                        InQueryExpr _ sel -> queryExpr nice True True Nothing sel)
-> scalExpr nice (LiftApp _ op flav args) =
->   scalExpr nice (head args) <+> name op
+>                        InList _ expr -> csvExp flg expr
+>                        InQueryExpr _ sel -> queryExpr flg True True Nothing sel)
+> scalExpr flg (LiftApp _ op flav args) =
+>   scalExpr flg (head args) <+> name op
 >   <+> text (case flav of
 >               LiftAny -> "any"
 >               LiftAll -> "all")
->   <+> parens (scalExpr nice $ head $ tail args)
-> scalExpr nice (ScalarSubQuery _ s) = parens (queryExpr nice True True Nothing s)
+>   <+> parens (scalExpr flg $ head $ tail args)
+> scalExpr flg (ScalarSubQuery _ s) = parens (queryExpr flg True True Nothing s)
 > scalExpr _ (NullLit _) = text "null"
-> scalExpr nice (WindowApp _ fn part order frm) =
->   scalExpr nice fn <+> text "over"
+> scalExpr flg (WindowApp _ fn part order frm) =
+>   scalExpr flg fn <+> text "over"
 >   <+> parens (if hp || ho
 >               then (if hp
->                     then text "partition by" <+> csvExp nice part
+>                     then text "partition by" <+> csvExp flg part
 >                     else empty)
->                     <+> orderBy nice order
+>                     <+> orderBy flg order
 >                     <+> frameStuff
 >               else empty)
 >   where
@@ -774,44 +789,44 @@ Statement components
 >                 FrameUnboundedFull -> text "range between unbounded preceding and unbounded following"
 >                 FrameRowsUnboundedPreceding -> text "rows unbounded preceding"
 >
-> scalExpr nice (AggregateApp _ d (App _ fn es) o) =
+> scalExpr flg (AggregateApp _ d (App _ fn es) o) =
 >   name fn <> parens ((case d of
 >                         Dupes -> text "all"
 >                         Distinct -> text "distinct")
->                      <+> csvExp nice es
->                      <+> orderBy nice o)
+>                      <+> csvExp flg es
+>                      <+> orderBy flg o)
 > scalExpr _ (AggregateApp _ _ _ _) = error "bad syntax for aggregate function"
-> scalExpr nice (Case _ whens els) =
+> scalExpr flg (Case _ whens els) =
 >   text "case"
 >   $+$ nest 2 (vcat (map whn whens)
->               $+$ maybePrint (\e -> text "else" <+> scalExpr nice e) els)
+>               $+$ maybePrint (\e -> text "else" <+> scalExpr flg e) els)
 >   $+$ text "end"
 >       where
 >         whn (ex1, ex2) =
->             text "when" <+> sepCsvMap (scalExpr nice) ex1
->             <+> text "then" <+> scalExpr nice ex2
+>             text "when" <+> sepCsvMap (scalExpr flg) ex1
+>             <+> text "then" <+> scalExpr flg ex2
 >
-> scalExpr nice (CaseSimple _ val whens els) =
->   text "case" <+> scalExpr nice val
+> scalExpr flg (CaseSimple _ val whens els) =
+>   text "case" <+> scalExpr flg val
 >   $+$ nest 2 (vcat (map whn whens)
->               $+$ maybePrint (\e -> text "else" <+> scalExpr nice e) els)
+>               $+$ maybePrint (\e -> text "else" <+> scalExpr flg e) els)
 >   $+$ text "end"
 >       where
 >         whn (ex1, ex2) =
->             text "when" <+> sepCsvMap (scalExpr nice) ex1
->             <+> text "then" <+> scalExpr nice ex2
+>             text "when" <+> sepCsvMap (scalExpr flg) ex1
+>             <+> text "then" <+> scalExpr flg ex2
 >
 > scalExpr _ (PositionalArg _ a) = text "$" <> integer a
 > scalExpr _ (Placeholder _) = text "?"
-> scalExpr nice (Exists _ s) =
->   text "exists" <+> parens (queryExpr nice True True Nothing s)
-> scalExpr nice (Cast _ ex t) = text "cast" <> parens (scalExpr nice ex
+> scalExpr flg (Exists _ s) =
+>   text "exists" <+> parens (queryExpr flg True True Nothing s)
+> scalExpr flg (Cast _ ex t) = text "cast" <> parens (scalExpr flg ex
 >                                              <+> text "as"
 >                                              <+> typeName t)
-> scalExpr nice (TypedStringLit a t s) =
->   typeName t <+> scalExpr nice (StringLit a s)
-> scalExpr nice (Interval a v f p) =
->   text "interval" <+> scalExpr nice (StringLit a v)
+> scalExpr flg (TypedStringLit a t s) =
+>   typeName t <+> scalExpr flg (StringLit a s)
+> scalExpr flg (Interval a v f p) =
+>   text "interval" <+> scalExpr flg (StringLit a v)
 >   <+> intervalField <+> precision
 >   where
 >     intervalField =
@@ -832,9 +847,9 @@ Statement components
 >     precision = case p of
 >                  Nothing -> empty
 >                  Just i -> parens (int i)
-> scalExpr nice (Extract _ f e) =
+> scalExpr flg (Extract _ f e) =
 >   text "extract"
->   <> parens (text field <+> text "from" <+> scalExpr nice e)
+>   <> parens (text field <+> text "from" <+> scalExpr flg e)
 >   where
 >     field =
 >       case f of
@@ -861,27 +876,27 @@ Statement components
 >              ExtractYear -> "year"
 
 
-> scalExprSl :: Bool ->  ScalarExpr -> Doc
-> scalExprSl nice (App _ f es) | Just "." <- getTName f
+> scalExprSl :: PrettyPrintFlags ->  ScalarExpr -> Doc
+> scalExprSl flg (App _ f es) | Just "." <- getTName f
 >                                 , [a@(Identifier _ _), b] <- es =
->   parens (scalExprSl nice a) <> text "." <> scalExprSl nice b
-> scalExprSl nice x = scalExpr nice x
+>   parens (scalExprSl flg a) <> text "." <> scalExprSl flg b
+> scalExprSl flg x = scalExpr flg x
 
 >
-> set :: Bool -> SetClause -> Doc
-> set nice (SetClause _ a e) =
->   nmc a <+> text "=" <+> scalExpr nice e
-> set nice (MultiSetClause _ is (SpecialOp _ f es)) | Just "!rowctor" <- getTName f =
+> set :: PrettyPrintFlags -> SetClause -> Doc
+> set flg (SetClause _ a e) =
+>   nmc a <+> text "=" <+> scalExpr flg e
+> set flg (MultiSetClause _ is (SpecialOp _ f es)) | Just "!rowctor" <- getTName f =
 >   parens (sepCsvMap nmc is) <+> text "="
->   <+> parens (sepCsvMap (scalExpr nice) es)
+>   <+> parens (sepCsvMap (scalExpr flg) es)
 > set _ a = error $ "bad expression in set in update: " ++ show a
 >
 > --utils
 >
 > -- convert a list of expressions to horizontal csv
 >
-> csvExp :: Bool -> [ScalarExpr] -> Doc
-> csvExp nice = hcatCsvMap (scalExpr nice)
+> csvExp :: PrettyPrintFlags -> [ScalarExpr] -> Doc
+> csvExp flg = hcatCsvMap (scalExpr flg)
 >
 > maybePrint :: (t -> Doc) -> Maybe t -> Doc
 > maybePrint f c =
@@ -907,11 +922,11 @@ Statement components
 > sepCsvMap :: (a -> Doc) -> [a] -> Doc
 > sepCsvMap ex = sepCsv . map ex
 
-> orderBy :: Bool -> [(ScalarExpr,Direction)] -> Doc
+> orderBy :: PrettyPrintFlags -> [(ScalarExpr,Direction)] -> Doc
 > orderBy _ [] = empty
-> orderBy nice os =
+> orderBy flg os =
 >   text "order by"
->   $+$ nest 2 (sepCsvMap (\(oe,od) -> scalExpr nice oe
+>   $+$ nest 2 (sepCsvMap (\(oe,od) -> scalExpr flg oe
 >                                      <+> direction od) os)
 
 > --vcatCsvMap :: (a -> Doc) -> [a] -> Doc

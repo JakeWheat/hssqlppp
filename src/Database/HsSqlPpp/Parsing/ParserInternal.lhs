@@ -2,10 +2,6 @@
 The main file for parsing sql, uses parsec. Not sure if parsec is the
 right choice, but it seems to do the job pretty well at the moment.
 
-todo: not sure if all the isSqlServer is slowing it down. don't have
-any benchmarks for the parsing speed atm and have no idea how to tell
-if it is quick or slow or what
-
 > {-# LANGUAGE FlexibleContexts,ExplicitForAll #-}
 > -- | Functions to parse SQL.
 > module Database.HsSqlPpp.Parsing.ParserInternal
@@ -129,7 +125,7 @@ Parsing top level statements
 >     ,delete
 >     ,truncateSt
 >     ,copy
->     ,set
+>     ,try set
 >     ,notify
 >     ,keyword "create" *>
 >              choice [
@@ -220,11 +216,12 @@ maybe it should still do this since it would probably be a lot clearer
 >           d <- option Dupes (Distinct <$ keyword "distinct")
 >           -- hacky parsing of sql server 'top n' style select
 >           -- quiz: what happens when you use top n and limit at the same time?
->           ss <- isSqlServer
->           tp <- if ss
->                 then optionMaybe $ try
+>           tp <- choice
+>                 [do
+>                  isSqlServer >>= guard
+>                  optionMaybe $ try
 >                      $ keyword "top" *> (NumberLit <$> pos <*> (show <$> integer))
->                 else return Nothing
+>                 ,return Nothing]
 >           -- todo: work out how to make this work properly - need to return
 >           -- the into
 >           (sl,intoBit) <- if allowInto
@@ -445,10 +442,10 @@ misc
 
 > set :: SParser Statement
 > set = Set <$> pos
->           <*> (keyword "set" *> idString)
->           <*> ((keyword "to" <|> symbol "=") *>
->               commaSep1 sv)
->       where
+>       <*> (keyword "set" *> idString)
+>       <*> ((keyword "to" <|> symbol "=") *>
+>            commaSep1 sv)
+>   where
 >         sv = choice [
 >               SetStr <$> pos <*> stringN
 >              ,SetId <$> pos <*> idString
@@ -874,7 +871,9 @@ plpgsql statements
 >     ,sqlStatement True
 >     -- regular plpgsql statements
 >     ,choice [
->           continue
+>           declareStatement
+>          ,setAssign
+>          ,continue
 >          ,execute >>= intoSuffix
 >          ,caseStatement
 >          ,assignment
@@ -942,6 +941,14 @@ plpgsql statements
 >              -- assignment statement
 >              <*> try (name <* (symbol ":=" <|> symbol "="))
 >              <*> expr
+
+> setAssign :: SParser Statement
+> setAssign = do
+>   isSqlServer >>= guard
+>   Assignment <$> (pos <* keyword "set")
+>              <*> name
+>              <*> (symbol "=" *> expr)
+
 >
 > returnSt :: SParser Statement
 > returnSt = pos >>= \p -> keyword "return" >>
@@ -987,19 +994,42 @@ plpgsql statements
 
 >
 > ifStatement :: SParser Statement
-> ifStatement = If
->               <$> (pos <* keyword "if")
->               <*> (ifPart <:> elseifParts)
->               <*> (elsePart <* endIf)
+> ifStatement = do
+>   ss <- isSqlServer
+>   if ss
+>     -- no else if in sql server
+>     -- no end if in sql server
+>     then If
+>          <$> (pos <* keyword "if")
+>          <*> ((:[]) <$> (expr <.> someStatements ss))
+>          <*> elsePart ss
+>     else If
+>          <$> (pos <* keyword "if")
+>          <*> (ifPart ss <:> elseifParts ss)
+>          <*> (elsePart ss <* endIf)
 >   where
->     ifPart = expr <.> (thn *> many plPgsqlStatement)
->     elseifParts = many ((elseif *> expr) <.> (thn *> many plPgsqlStatement))
->     elsePart = option [] (keyword "else" *> many plPgsqlStatement)
+>     ifPart ss =
+>       if ss
+>       -- no then keyword in tsql
+>       then expr <.> someStatements ss
+>       else expr <.> (thn *> someStatements ss)
+>     elseifParts ss = many ((elseif *> expr) <.> (thn *> someStatements ss))
+>     elsePart ss = option [] (keyword "else" *> someStatements ss)
 >     endIf = keyword "end" <* keyword "if"
 >     thn = keyword "then"
 >     elseif = keyword "elseif" <|> keyword "elsif"
 >     (<.>) a b = (,) <$> a <*> b
->
+>     someStatements ss =
+>       if ss
+>       then do
+>           -- sql server only allows multiple statements if wrapped
+>           -- in a begin end block
+>           choice [keyword "begin"
+>                   *> many plPgsqlStatement
+>                   <* keyword "end"
+>                  ,(:[]) <$> plPgsqlStatement]
+>       else many plPgsqlStatement
+
 > caseStatement :: SParser Statement
 > caseStatement = do
 >     p <- pos
@@ -1017,6 +1047,14 @@ plpgsql statements
 >       whenSt = keyword "when" >>
 >                (,) <$> commaSep1 expr
 >                    <*> (keyword "then" *> many plPgsqlStatement)
+
+> declareStatement :: SParser Statement
+> declareStatement = do
+>   DeclareStatement
+>   <$> pos
+>   <*> (keyword "declare" *> symbol "@" *> (('@':) <$> idString))
+>   <*> typeName
+
 
 --------------------------------------------------------------------------------
 
@@ -1891,7 +1929,14 @@ http://msdn.microsoft.com/en-us/library/ms189822.aspx
 parse a complete name
 
 > name :: SParser Name
-> name = Name <$> pos <*> ncs
+> name = choice
+>        [do
+>         isSqlServer >>= guard
+>         Name <$> pos
+>              <*> ((:[]) <$>
+>                   (Nmc <$> (symbol "@" *> (('@':) <$> idString))))
+>         ,Name <$> pos <*> ncs
+>        ]
 
 > nameComponent :: SParser NameComponent
 > nameComponent = nameComponentAllows []
@@ -1977,10 +2022,8 @@ Utility parsers
 >             <$> (symbol "$(" *> idString <* symbol ")")
 >            ,ids
 >            ,try $ do
->               ss <- isSqlServer
->               if ss
->                 then squares idString
->                 else fail "not this branch"
+>               isSqlServer >>= guard
+>               squares idString
 >            ]
 >   where
 >     ids = mytoken (\tok -> case tok of

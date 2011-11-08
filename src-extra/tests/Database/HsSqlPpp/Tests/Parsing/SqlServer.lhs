@@ -13,17 +13,17 @@
 > sqlServerParseTests :: Item
 > sqlServerParseTests =
 >   Group "parse sql server"
->   [MSStmt "select top 3 * from a order by c;"
+>   [TSQL "select top 3 * from a order by c;"
 >       [QueryStatement ea $ Select ea Dupes
 >        (sl (selEL [Star ea]))
 >        [Tref ea (i "a") (NoAlias ea)]
 >        Nothing [] Nothing [(Identifier ea "c",Asc)] (Just (NumberLit ea "3")) Nothing]
->   ,MSStmt "select r.dn as 'rg' from tbl;"
+>   ,TSQL "select r.dn as 'rg' from tbl;"
 >       [QueryStatement ea
 >        $ selectFrom [SelectItem ea (eqi "r" "dn") $ QNmc "rg"]
 >                     (Tref ea (i "tbl")
 >                     (NoAlias ea))]
->   ,MSStmt "select r.dn as 'check the pretty printing' from tbl;"
+>   ,TSQL "select r.dn as 'check the pretty printing' from tbl;"
 >       [QueryStatement ea
 >        $ selectFrom [SelectItem ea (eqi "r" "dn") $ QNmc "check the pretty printing"]
 >                     (Tref ea (i "tbl")
@@ -37,19 +37,19 @@ server.db.sc.obj
 server...obj
 => three dots max
 
->   ,MSStmt "select a..b() from t;"
+>   ,TSQL "select a..b() from t;"
 >        [QueryStatement ea
 >        $ selectFrom [SelExp ea (App ea (Name ea [Nmc "a",Nmc "", Nmc "b"])
 >                                     [])]
 >                     (Tref ea (i "t")
 >                     (NoAlias ea))]
->   ,MSStmt "select a...b() from t;"
+>   ,TSQL "select a...b() from t;"
 >        [QueryStatement ea
 >        $ selectFrom [SelExp ea (App ea (Name ea [Nmc "a",Nmc "", Nmc "", Nmc "b"])
 >                                     [])]
 >                     (Tref ea (i "t")
 >                     (NoAlias ea))]
->   ,MSStmt "select * from a join x..b;"
+>   ,TSQL "select * from a join x..b;"
 >        [QueryStatement ea
 >        $ selectFrom (selEL [Star ea])
 >           (JoinTref ea (Tref ea (Name ea [Nmc "a"]) (NoAlias ea))
@@ -58,7 +58,7 @@ server...obj
 >            Nothing (NoAlias ea))
 >        ]
 
->   ,MSStmt "select * from a join x...b;"
+>   ,TSQL "select * from a join x...b;"
 >        [QueryStatement ea
 >        $ selectFrom (selEL [Star ea])
 >           (JoinTref ea (Tref ea (Name ea [Nmc "a"]) (NoAlias ea))
@@ -66,14 +66,14 @@ server...obj
 >            (Tref ea (Name ea [Nmc "x",Nmc "",Nmc "",Nmc "b"]) (NoAlias ea))
 >            Nothing (NoAlias ea))
 >        ]
->   ,MSStmt "select a from t with(nolock);"
+>   ,TSQL "select a from t with(nolock);"
 >     -- with is just (sort of) recognised, and not parsed to abstract
 >     -- syntax
 >        [QueryStatement ea
 >        $ selectFrom [SelExp ea (ei "a")]
 >                     (Tref ea (i "t")
 >                     (NoAlias ea))]
->   ,MSStmt "select a from #tbl;"
+>   ,TSQL "select a from #tbl;"
 >       [QueryStatement ea $ selectFrom (selIL ["a"]) (Tref ea (i "#tbl") (NoAlias ea))]
 
 >   ,s "CREATE TABLE [schema].[table_name](\n\
@@ -93,19 +93,27 @@ server...obj
 >                     (Tref ea (i "t")
 >                     (NoAlias ea))]
 
->   {-,s "IF (1==1)\n\
->      \   drop table #temp"
->    $ [CreateTable ea (Name ea [QNmc "schema",QNmc "table_name"])
->       [AttributeDef ea (QNmc "fieldname")
->        (SimpleTypeName ea (Name ea [QNmc "typename"])) Nothing []] []]-}
 
+>   ,s "if 1=1\n\
+>      \   drop table #temp\n\
+>      \select b from t"
+>    $ [If ea [(binop "=" (num "1") (num "1")
+>              ,[DropSomething ea Table Require [Name ea [Nmc "#temp"]] Restrict])] []
+>      ,QueryStatement ea
+>       $ selectFrom [SelExp ea (ei "b")]
+>                     (Tref ea (i "t")
+>                     (NoAlias ea))]
+
+>   ,s "declare @nm int"
+>      $ [DeclareStatement ea "@nm" $ SimpleTypeName ea (Name ea [Nmc "int"])]
+
+>   ,s "set @nm=3"
+>      $ [Assignment ea (name "@nm") (num "3")]
 >   ]
 >   where
->     s = MSStmt
+>     s = TSQL
 
-if statement
 create index ++
-declare
 set
 parse select into to create table as (do this for postgresql non
   plpgsql also)
