@@ -13,6 +13,7 @@ float
 copy payload (used to lex copy from stdin data)
 ~~~~
 
+> {-# LANGUAGE FlexibleContexts #-}
 > module Database.HsSqlPpp.Parsing.Lexer (
 >               Token
 >              ,Tok(..)
@@ -34,6 +35,7 @@ copy payload (used to lex copy from stdin data)
 > import Database.HsSqlPpp.Parsing.ParseErrors
 > import Database.HsSqlPpp.Utils.Utils
 > -- import Database.HsSqlPpp.Ast.Name
+> import Database.HsSqlPpp.Parsing.SqlDialect
 
 ================================================================================
 
@@ -67,15 +69,15 @@ can be lost (e.g. something like "0.2" parsing to 0.199999999 float.
 > type LexState = [Tok]
 > type Parser = ParsecT String LexState Identity
 >
-> lexSql :: String -> Maybe (Int,Int) -> String
->            -> Either ParseErrorExtra [Token]
-> lexSql f sp src =
+> lexSql :: SQLSyntaxDialect -> String -> Maybe (Int,Int) -> String
+>        -> Either ParseErrorExtra [Token]
+> lexSql d f sp src =
 >   either (Left . toParseErrorExtra f sp) Right
 >   $ runParser lx [] f src
 >   where
 >     lx :: Parser [Token]
 >     lx = maybe (return ()) (\(l,c) -> setPosition (newPos f l c)) sp
->          >> sqlTokens
+>          >> (sqlTokens d)
 
 ================================================================================
 
@@ -84,11 +86,11 @@ can be lost (e.g. something like "0.2" parsing to 0.199999999 float.
 lexer for tokens, contains a hack for copy from stdin with inline
 table data.
 
-> sqlTokens :: Parser [Token]
-> sqlTokens =
+> sqlTokens :: SQLSyntaxDialect -> Parser [Token]
+> sqlTokens d =
 >   setState [] >>
 >   whiteSpace >>
->   many sqlToken <* eof
+>   many (sqlToken d) <* eof
 
 Lexer for an individual token.
 
@@ -99,18 +101,18 @@ so as a work around, you use the state to trap if we've just seen 'from
 stdin;', if so, you read the copy payload as one big token, otherwise
 we read a normal token.
 
-> sqlToken :: Parser Token
-> sqlToken = do
+> sqlToken :: SQLSyntaxDialect -> Parser Token
+> sqlToken d = do
 >            sp <- getPosition
 >            sta <- getState
 >            t <- if sta == [ft,st,mt]
 >                 then copyPayload
 >                 else try sqlNumber
 >                  <|> try sqlString
->                  <|> try idString
->                  <|> try qidString
+>                  <|> try (idString d)
+>                  <|> try (qidString d)
 >                  <|> try positionalArg
->                  <|> try sqlSymbol
+>                  <|> try (sqlSymbol d)
 >            updateState $ \stt ->
 >              case () of
 >                      _ | stt == [] && t == ft -> [ft]
@@ -157,11 +159,28 @@ parse a dollar quoted string
 >                       (try $ char '$' <* string tag <* char '$')
 >                return $ StringTok ("$" ++ tag ++ "$") s
 >
-> idString :: Parser Tok
-> idString = IdStringTok <$> identifierString
+> idString :: SQLSyntaxDialect -> Parser Tok
+> idString d =
+>   choice
+>   [do
+>    guard (d == SQLServerDialect)
+>    IdStringTok <$> tsqlPrefix identifierString
+>   ,IdStringTok <$> identifierString
+>   ]
 
-> qidString :: Parser Tok
-> qidString = QIdStringTok <$> qidentifierString
+> tsqlPrefix :: Parser String -> Parser String
+> tsqlPrefix p =
+>    choice
+>    [char '@' *> (('@':) <$> p)
+>    ,char '#' *> (('#':) <$> p)]
+
+> qidString :: SQLSyntaxDialect -> Parser Tok
+> qidString d =
+>   choice
+>   [do
+>    guard (d == SQLServerDialect)
+>    QIdStringTok <$> tsqlPrefix identifierString
+>   ,QIdStringTok <$> qidentifierString d]
 
 
 >
@@ -211,10 +230,12 @@ deals with this.
 
 ~~~~
 
-> sqlSymbol :: Parser Tok
-> sqlSymbol =
+> sqlSymbol :: SQLSyntaxDialect -> Parser Tok
+> sqlSymbol d =
 >   SymbolTok <$> lexeme (choice [
->                          replicate 1 <$> oneOf "()[],;"
+>                          replicate 1 <$> oneOf (if d == SQLServerDialect
+>                                                 then "(),;"
+>                                                 else "()[],;")
 >                         ,try $ string ".."
 >                         ,string "."
 >                         ,try $ string "::"
@@ -224,16 +245,39 @@ deals with this.
 >                         ,try $ string "$s(" -- antiquote string splice
 >                         ,string "$i(" -- antiquote identifier splice
 >                          --cut down version: don't allow operator to contain + or -
->                         ,anotherOp
+>                         ,anotherOp d
 >                         ])
 >   where
->     anotherOp = do
+>     anotherOp PostgreSQLDialect = do
 >       -- first char can be any, this is always a valid operator name
 >       c0 <- oneOf "*/<>=~!@#%^&|`?+-"
 >       --recurse:
 >       let r = choice
 >               [do
 >                c1 <- oneOf "*/<>=~!@#%^&|`?"
+>                choice [do
+>                        x <- r
+>                        return $ c1 : x
+>                       ,return [c1]]
+>               ,try $ do
+>                a <- oneOf "+-"
+>                b <- r
+>                return $ a : b]
+>       choice [do
+>               tl <- r
+>               return $ c0 : tl
+>              ,return [c0]]
+
+todo: just hacked copy and paste of pg version (removed @,#), but sql
+server has a much more limited range of operators
+
+>     anotherOp SQLServerDialect = do
+>       -- first char can be any, this is always a valid operator name
+>       c0 <- oneOf "*/<>=~!%^&|`?+-"
+>       --recurse:
+>       let r = choice
+>               [do
+>                c1 <- oneOf "*/<>=~!%^&|`?"
 >                choice [do
 >                        x <- r
 >                        return $ c1 : x
@@ -319,8 +363,13 @@ todo:
 select adrelid as "a""a" from pg_attrdef;
 creates a column named: 'a"a' with a double quote in it
 
-> qidentifierString :: Parser String
-> qidentifierString = lexeme $ char '"' *> many (noneOf "\"") <* char '"'
+> qidentifierString :: SQLSyntaxDialect -> Parser String
+> qidentifierString d =
+>   choice
+>   [do
+>    guard (d == SQLServerDialect)
+>    lexeme $ char '[' *> many (noneOf "]") <* char ']'
+>   ,lexeme $ char '"' *> many (noneOf "\"") <* char '"']
 
 
 parse the block of inline data for a copy from stdin, ends with \. on

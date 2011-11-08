@@ -45,6 +45,7 @@ right choice, but it seems to do the job pretty well at the moment.
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation as A
 > import Database.HsSqlPpp.Utils.Utils
+> import Database.HsSqlPpp.Parsing.SqlDialect
 > --import Database.HsSqlPpp.Catalog
 > --import Debug.Trace
 
@@ -99,11 +100,31 @@ Top level parsing functions
 >          -> String
 >          -> Either ParseErrorExtra a
 > parseIt' ps flg fn sp src = do
->   lxd <- lexSql fn sp src
+>   lxd <- lexSql (pfDialect flg) fn sp src
 >   psd <- either (\e -> Left $ ParseErrorExtra e sp fn) Right
 >          $ runParser ps flg fn lxd
 >   return $ fixupTree psd
 
+Parse state used for parse flags. Might be better to use a readerT
+somehow, but I'm not smart enough to work out how to do this. This
+state is never updated during parsing
+
+> -- | Settings to influence the parsing
+> data ParseFlags = ParseFlags
+>     {pfDialect :: SQLSyntaxDialect
+>     }
+>     deriving (Show,Eq)
+
+> defaultParseFlags :: ParseFlags
+> defaultParseFlags = ParseFlags {pfDialect = PostgreSQLDialect}
+
+
+> type ParseState = ParseFlags
+
+> isSqlServer :: SParser Bool
+> isSqlServer = do
+>   ParseFlags {pfDialect = d} <- getState
+>   return $ d == SQLServerDialect
 
 --------------------------------------------------------------------------------
 
@@ -125,7 +146,9 @@ Parsing top level statements
 >     ,delete
 >     ,truncateSt
 >     ,copy
->     ,try set
+>     ,do
+>      isSqlServer >>= return . not >>= guard
+>      set
 >     ,notify
 >     ,keyword "create" *>
 >              choice [
@@ -1066,9 +1089,13 @@ plpgsql statements
 >     <*> (keyword "declare"
 >          *> commaSep1 de)
 >   where
->     de = (,,) <$> (symbol "@" *> (('@':) <$> idString))
+>     de = (,,) <$> localVarName
 >               <*> typeName
 >               <*> optional (symbol "=" *> expr)
+>     localVarName = do
+>       i <- idString
+>       guard (head i == '@')
+>       return i
 
 
 only limited support for tsql create index atm
@@ -2028,30 +2055,13 @@ ignore reserved keywords completely
 
 > unrestrictedNameComponent :: SParser NameComponent
 > unrestrictedNameComponent = do
->   choice [tempTableIden
->          ,localVar
->          ,Nmc <$> idString
+>   choice [Nmc <$> idString
 >          ,QNmc <$> qidString
 >          ,Nmc <$> spliceD
 >          ,Nmc <$> ssplice]
 >   where
 >      ssplice = (\s -> "$i(" ++ s ++ ")") <$>
 >                (symbol "$i(" *> idString <* symbol ")")
->      tempTableIden = try $ do
->                      isSqlServer >>= guard
->                      -- TODO: not quite right since allows ws
->                      -- between # and string
->                      -- need help from the lexer to do this properly
->                      let i = symbol "#" *> (('#':) <$> idString)
->                      choice [squares (QNmc <$> i)
->                             ,Nmc <$> i]
->      localVar = try $ do
->                      isSqlServer >>= guard
->                      symbol "@"
->                      --TODO: same comments apply as with #iden
->                      i <- idString
->                      return $ Nmc ('@':i)
-
 
 quick hack to support identifiers like this: 'test' for sql server
 
@@ -2095,9 +2105,6 @@ Utility parsers
 >     choice [(\l -> "$(" ++ l ++ ")")
 >             <$> (symbol "$(" *> idString <* symbol ")")
 >            ,ids
->            ,try $ do
->               isSqlServer >>= guard
->               squares idString
 >            ]
 >   where
 >     ids = mytoken (\tok -> case tok of
@@ -2319,37 +2326,3 @@ be an array or subselect, etc)
 >                                  _ -> Nothing
 >                -> LiftApp an op flav ([expr1,expr2s] ++ expr3s)
 >              x1 -> x1
-
---------------------------------------------------------------------------------
-
-Parse state used for parse flags. Might be better to use a readerT
-somehow, but I'm not smart enough to work out how to do this. This
-state is never updated during parsing
-
-> -- | Settings to influence the parsing
-> data ParseFlags = ParseFlags
->     {pfDialect :: SQLSyntaxDialect
->     }
->     deriving (Show,Eq)
-
-> defaultParseFlags :: ParseFlags
-> defaultParseFlags = ParseFlags {pfDialect = PostgreSQLDialect}
-
-
-> -- | The dialect of SQL to parse. At the moment, switching to SQL Server
-> -- dialect parses a additional small amount of sql server specific syntax only.
-> data SQLSyntaxDialect = PostgreSQLDialect
->                       | SQLServerDialect
->                         deriving (Show,Eq)
-
-going to start adding options to these dialect ctors:
-e.g. postgresql: allow crud only, allow dll, allow plpgsql
-for sql server: quoted identifier
-
-
-> type ParseState = ParseFlags
-
-> isSqlServer :: SParser Bool
-> isSqlServer = do
->   ParseFlags {pfDialect = d} <- getState
->   return $ d == SQLServerDialect

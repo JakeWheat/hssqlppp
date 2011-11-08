@@ -14,12 +14,12 @@
 > main = do
 >   [cs] <- getArgs
 >   cus <- readCatalogFromDatabase cs
->   let Right cat = updateCatalog defaultCatalog cus
+>   let Right cat = updateCatalog cus defaultCatalog
 >       query = "select * from t"
 >       ast :: QueryExpr
->       Right ast = parseQueryExpr "" query
+>       Right ast = parseQueryExpr defaultParseFlags "" Nothing query
 >       aast :: QueryExpr
->       aast = typeCheckQueryExpr cat ast
+>       aast = typeCheckQueryExpr defaultTypeCheckingFlags cat ast
 >       ann :: Annotation
 >       ann = getAnnotation aast
 >       ty :: Maybe Type

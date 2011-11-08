@@ -10,16 +10,17 @@
 > main = do
 >   let query = "select * from t"
 >       ast :: QueryExpr
->       Right ast = parseQueryExpr "" query
+>       Right ast = parseQueryExpr defaultParseFlags "" Nothing query
 >       aast :: QueryExpr
->       aast = typeCheckQueryExpr cat ast
+>       aast = typeCheckQueryExpr defaultTypeCheckingFlags cat ast
 >       ann :: Annotation
 >       ann = getAnnotation aast
 >       ty :: Maybe Type
 >       ty = atype ann
 >   print ty
 >   where
->     Right cat = updateCatalog defaultTemplate1Catalog
->                   [CatCreateTable "t" [("a", typeInt)
->                                       ,("b", typeInt)
->                                       ] []]
+>     Right cat = updateCatalog
+>                   [CatCreateTable "t" [("a", "int")
+>                                       ,("b", "int")
+>                                       ]]
+>                   defaultTemplate1Catalog

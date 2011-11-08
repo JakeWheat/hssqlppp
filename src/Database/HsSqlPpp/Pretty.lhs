@@ -25,8 +25,7 @@
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Utils.Utils
 
-> -- maybe the SQLSyntaxDialect data type should go in another file?
-> import Database.HsSqlPpp.Parsing.ParserInternal (SQLSyntaxDialect(..))
+> import Database.HsSqlPpp.Parsing.SqlDialect
 
 --------------------------------------------------------------------------------
 

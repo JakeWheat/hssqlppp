@@ -90,12 +90,11 @@ EXE_FILES = src-extra/tests/Tests \
 	src-extra/examples/Parse3 \
 	src-extra/h7c/h7c \
 	src-extra/examples/Lex \
-	temp
+	src-extra/examples/TypeCheck2 \
+	src-extra/examples/TypeCheck \
+	src-extra/examples/TypeCheckDB
 
 #	src-extra/examples/ShowCatalog \
-#	src-extra/examples/TypeCheck \
-#	src-extra/examples/TypeCheckDB \
-
 #	src-extra/chaos/build.lhs
 
 # used for dependency generation with ghc -M
