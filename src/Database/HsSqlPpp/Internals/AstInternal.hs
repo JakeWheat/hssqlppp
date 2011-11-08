@@ -7470,8 +7470,8 @@ sem_ScalarExpr_Case ann_ cases_ els_  =
                   ({-# LINE 255 "src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
                    do
                    wt <- mapM (maybe (Left []) Right) $ concat _whenTypes
-                   errorWhen (any (/= typeBool) wt)
-                       [WrongTypes typeBool wt]
+                   when (any (/= typeBool) wt)
+                       $ Left [WrongTypes typeBool wt]
                    tt <- mapM (maybe (Left []) Right) _thenTypes
                    resolveResultSetType _lhsIcat tt
                    {-# LINE 7478 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}

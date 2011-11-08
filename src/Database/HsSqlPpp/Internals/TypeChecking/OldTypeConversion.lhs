@@ -38,6 +38,7 @@ off.
 > import Data.Either
 > --import Debug.Trace
 > import Data.Char
+> import Control.Monad
 >
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
@@ -547,11 +548,11 @@ code is not as much of a mess as findCallMatch
 
 > resolveResultSetType :: Catalog -> [Type] -> Either [TypeError] Type
 > resolveResultSetType cat inArgs = do
->   errorWhen (null inArgs) [TypelessEmptyArray]
+>   when (null inArgs) $ Left [TypelessEmptyArray]
 >   returnWhen allSameType (head inArgs) $ do
 >   returnWhen allSameBaseType (head inArgsBase) $ do
 >   --returnWhen allUnknown (UnknownType) $ do
->   errorWhen (not allSameCat) [IncompatibleTypeSet inArgs]
+>   when (not allSameCat) $ Left [IncompatibleTypeSet inArgs]
 >   returnWhen (isJust targetType &&
 >               allConvertibleToFrom (fromMaybe (error "TypeConversion.resolveresultsettype 1: fromJust") targetType) inArgs)
 >               (fromMaybe (error "TypeConversion.resolveresultsettype 2: fromJust") targetType) $ do
@@ -601,10 +602,9 @@ cast empty array, where else can an empty array work?
 >     let f = case to of
 >                    [t] | isCompositeType t -> [AnonymousCompositeType from]
 >                    _ -> from
->     errorWhen (length f /= length to)
->               [WrongNumberOfColumns]
+>     when (length f /= length to) $ Left [WrongNumberOfColumns]
 >     let ls = concat $ lefts $ zipWith (checkAssignmentValid cat) f to
->     errorWhen (not (null ls)) ls
+>     when (not (null ls)) $ Left ls
 
 
 ================================================================================

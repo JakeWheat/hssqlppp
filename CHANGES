@@ -4,6 +4,8 @@ Focus: clean up some of the api
        complete haddocks
        clean up/rewrite lots of the typechecking internals
        start taking the sql server syntax support a bit more seriously
+lots of api changes, including the parsing and typechecking functions
+  and the ast
 typechecking has regressed further, focus is on rock solid
   typechecking of queryexprs and dml statements only (typechecking of
   ddl and plpgsql are completely broken)
@@ -21,7 +23,8 @@ limited explicit support for sql server syntax/tsql as separate
   dialect using flag passed to parser and pretty printer
 source code tree is better organised and documented
 tests are compiled and run successfully on ghc 6.12.3, 7.0.4 and
-  recent 7.3.x
+  the library builds on a recent 7.3.x (no tests yet since the
+  dependencies don't build on 7.3.x)
 improved handling of reserved keywords
 add flags to typechecking to control the tree rewrites:
   add qualifiers to identifiers

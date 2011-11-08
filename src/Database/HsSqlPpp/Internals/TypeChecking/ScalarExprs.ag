@@ -256,8 +256,8 @@ sem ScalarExpr
                   wt <- mapM (maybe (Left []) Right) $ concat @loc.whenTypes
                   -- probably the when types should be checked inside each when node
                   -- and type errors attach there, and ignored here
-                  errorWhen (any (/= typeBool) wt)
-                      [WrongTypes typeBool wt]
+                  when (any (/= typeBool) wt)
+                      $ Left [WrongTypes typeBool wt]
                   tt <- mapM (maybe (Left []) Right) @loc.thenTypes
                   resolveResultSetType @lhs.cat tt
         cases.whenExpectedType = Just typeBool

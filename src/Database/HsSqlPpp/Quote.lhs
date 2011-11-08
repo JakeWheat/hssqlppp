@@ -53,7 +53,7 @@ public api: the quasiquote functions
 
 > -- | quotes Statements
 > sqlStmts :: QuasiQuoter
-> sqlStmts = makeQQ $ parseStatementsWithPosition defaultParseFlags
+> sqlStmts = makeQQ $ parseStatements defaultParseFlags
 >
 > -- | quotes a single Statement
 > sqlStmt :: QuasiQuoter
@@ -61,7 +61,7 @@ public api: the quasiquote functions
 >
 > -- | quotes plpgsql Statements
 > pgsqlStmts :: QuasiQuoter
-> pgsqlStmts = makeQQ $ parsePlpgsqlWithPosition defaultParseFlags
+> pgsqlStmts = makeQQ $ parsePlpgsql defaultParseFlags
 >
 > -- | quotes a plpgsql Statement
 > pgsqlStmt :: QuasiQuoter
@@ -69,13 +69,12 @@ public api: the quasiquote functions
 
 > -- | quotes a ScalarExpr
 > sqlExpr :: QuasiQuoter
-> sqlExpr = makeQQ $ parseScalarExprWithPosition defaultParseFlags
+> sqlExpr = makeQQ $ parseScalarExpr defaultParseFlags
 
 boilerplate utils to hook everything together
 
 > type Parser e a = (String
->                    -> Int
->                    -> Int
+>                    -> Maybe (Int,Int)
 >                    -> String
 >                    -> Either e a)
 >
@@ -111,21 +110,21 @@ and converts left to fail
 > parseSql' :: (Data a, Show e) => Parser e a -> String -> Q a
 > parseSql' p s = do
 >     Loc fn _ _ (l,c) _ <- location
->     either (fail . show) return (p fn l c s)
+>     either (fail . show) return (p fn (Just (l,c)) s)
 
 wrappers - the Parser module doesn't expose methods which parse
 exactly one statement
 
 > parseOnePlpgsql :: Parser String Statement
-> parseOnePlpgsql f l c s =
->     case parsePlpgsqlWithPosition defaultParseFlags f l c s of
+> parseOnePlpgsql f sp s =
+>     case parsePlpgsql defaultParseFlags f sp s of
 >       Right [st] -> Right st
 >       Right _ -> Left "got multiple statements"
 >       Left e -> Left $ show e
 >
 > parseOneStatement :: Parser String Statement
-> parseOneStatement f l c s =
->     case parseStatementsWithPosition defaultParseFlags f l c s of
+> parseOneStatement f sp s =
+>     case parseStatements defaultParseFlags f sp s of
 >       Right [st] -> Right st
 >       Right _ -> Left "got multiple statements"
 >       Left e -> Left $ show e

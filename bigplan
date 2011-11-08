@@ -24,7 +24,13 @@ working again
 perhaps instead of having chaos embedded in the hssqlppp source code,
 keep it all in separate project
 
-
+tidy up in quasi quotes:
+antiscalar
+antiname
+antinamecomponent
+antistatement
+antitriggerevent
+get rid of the quote/antistring, quote/antiidentifier stuff
 
 
 don't work on ddl, plpgsql until this is sorted

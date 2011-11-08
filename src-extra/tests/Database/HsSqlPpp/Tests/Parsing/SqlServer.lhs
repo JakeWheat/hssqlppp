@@ -67,7 +67,8 @@ server...obj
 >            Nothing (NoAlias ea))
 >        ]
 >   ,MSStmt "select a from t with(nolock);"
->           -- with is just recognised, and not parsed to abstract syntax
+>     -- with is just (sort of) recognised, and not parsed to abstract
+>     -- syntax
 >        [QueryStatement ea
 >        $ selectFrom [SelExp ea (ei "a")]
 >                     (Tref ea (i "t")
@@ -92,6 +93,11 @@ server...obj
 >                     (Tref ea (i "t")
 >                     (NoAlias ea))]
 
+>   {-,s "IF (1==1)\n\
+>      \   drop table #temp"
+>    $ [CreateTable ea (Name ea [QNmc "schema",QNmc "table_name"])
+>       [AttributeDef ea (QNmc "fieldname")
+>        (SimpleTypeName ea (Name ea [QNmc "typename"])) Nothing []] []]-}
 
 >   ]
 >   where
@@ -102,4 +108,4 @@ create index ++
 declare
 set
 parse select into to create table as (do this for postgresql non
-  plpgsql also
+  plpgsql also)

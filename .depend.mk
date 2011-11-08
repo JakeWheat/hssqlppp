@@ -34,6 +34,8 @@ src/Database/HsSqlPpp/Utils/Utils.o : src/Database/HsSqlPpp/Utils/Utils.lhs
 src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/Parsing/Lexer.lhs
 src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/Utils/Utils.hi
 src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/Parsing/ParseErrors.hi
+src-extra/examples/Lex.o : src-extra/examples/Lex.lhs
+src-extra/examples/Lex.o : src/Database/HsSqlPpp/Parsing/Lexer.hi
 src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o : src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.lhs
 src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o : src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.hi
 src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o : src/Database/HsSqlPpp/Utils/Utils.hi
@@ -76,9 +78,6 @@ src-extra/examples/Parse2.o : src/Database/HsSqlPpp/Parser.hi
 src-extra/examples/Parse3.o : src-extra/examples/Parse3.lhs
 src-extra/examples/Parse3.o : src-extra/catalogReader/Database/HsSqlPpp/Utils/GroomNoAnns.hi
 src-extra/examples/Parse3.o : src/Database/HsSqlPpp/Parser.hi
-src-extra/examples/Lex.o : src-extra/examples/Lex.lhs
-src-extra/examples/Lex.o : src/Database/HsSqlPpp/Parser.hi
-src-extra/examples/Lex.o : src/Database/HsSqlPpp/Parsing/Lexer.hi
 src/Database/HsSqlPpp/Pretty.o : src/Database/HsSqlPpp/Pretty.lhs
 src/Database/HsSqlPpp/Pretty.o : src/Database/HsSqlPpp/Parsing/ParserInternal.hi
 src/Database/HsSqlPpp/Pretty.o : src/Database/HsSqlPpp/Utils/Utils.hi
@@ -221,6 +220,7 @@ src-extra/tests/Database/HsSqlPpp/Tests/Tests.o : src-extra/tests/Database/HsSql
 src-extra/tests/Tests.o : src-extra/tests/Tests.lhs
 src-extra/tests/Tests.o : src-extra/tests/Database/HsSqlPpp/Tests/Tests.hi
 src-extra/docutil/TestFileProcessor.o : src-extra/docutil/TestFileProcessor.lhs
+src-extra/docutil/TestFileProcessor.o : src-extra/catalogReader/Database/HsSqlPpp/Utils/GroomNoAnns.hi
 src-extra/docutil/TestFileProcessor.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.hi
 src-extra/docutil/TestFileProcessor.o : src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.hi
 src-extra/docutil/TestFileProcessor.o : src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.hi

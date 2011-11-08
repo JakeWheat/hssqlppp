@@ -178,7 +178,7 @@ to make it work right.
 >    makeConstraintDdl :: ConstraintRecord -> String -> String -> (ConstraintRecord, [Statement])
 >    makeConstraintDdl cons name exprText =
 >      let expr = either (error . show) id
->                   $ parseScalarExpr defaultParseFlags "" exprText
+>                   $ parseScalarExpr defaultParseFlags "" Nothing exprText
 >      in (newcons cons (tableNames expr) name
 >         ,reverse (makeCheckFn name expr : extras cons name expr))
 >    extras :: ConstraintRecord -> String -> ScalarExpr -> [Statement]

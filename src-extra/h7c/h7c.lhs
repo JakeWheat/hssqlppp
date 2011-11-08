@@ -134,7 +134,11 @@ one or more precompiled dlls
 > main :: IO ()
 > main = do
 >   --files <- getArgs
->   eas <- mapM (parseStatementsFromFile defaultParseFlags) $ sourceFiles options
+>   
+>   eas <- mapM (\fn -> do
+>                src <- readFile fn
+>                return $ parseStatements defaultParseFlags fn Nothing src)
+>            $ sourceFiles options
 >   let east :: Either ParseErrorExtra [Statement]
 >       east = do
 >              as <- sequence eas

@@ -8,7 +8,6 @@ plus output error location in emacs friendly format.
 >     ,ParseErrorExtra(..)) where
 >
 > import Text.Parsec
-> import Control.Monad.Error
 >
 > showPE :: ParseError -> Maybe (Int,Int) -> String -> String
 > showPE pe sp src = show pe ++ "\n" ++ pePosToEmacs pe
@@ -65,12 +64,5 @@ plus output error location in emacs friendly format.
 > instance Show ParseErrorExtra where
 >     show (ParseErrorExtra pe sp src) = showPE pe sp src
 >
-> instance Error ParseErrorExtra where
->   noMsg = ParseErrorExtra (error "instance Error ParseErrorExtra") Nothing "unknown"
->   strMsg = ParseErrorExtra (error "instance Error ParseErrorExtra") Nothing
->
-> toParseErrorExtra :: Either ParseError b -> Maybe (Int,Int) -> String
->                   -> Either ParseErrorExtra b
-> toParseErrorExtra a sp src = case a of
->                                Left pe -> Left $ ParseErrorExtra pe sp src
->                                Right x -> Right x
+> toParseErrorExtra :: String -> Maybe (Int,Int) -> ParseError -> ParseErrorExtra
+> toParseErrorExtra fn sp e = ParseErrorExtra e sp fn

@@ -5,8 +5,6 @@ Forward the public part of ParserInternal
 > module Database.HsSqlPpp.Parser
 >     (-- * Main
 >      parseStatements
->     ,parseStatementsWithPosition
->     ,parseStatementsFromFile
 >     ,parseQueryExpr
 >     ,parseScalarExpr
 >     ,parsePlpgsql

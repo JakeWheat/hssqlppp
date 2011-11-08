@@ -99,7 +99,7 @@ parsing code
 >
 > parseD6nf :: String -> Int -> Int -> String -> Either String [D6nfStatement]
 > parseD6nf f l c s = do
->     toks <- tsl $ lexSqlTextWithPosition f l c s
+>     toks <- tsl $ lexSql f (Just (l,c)) s
 >     tsl $ runParser statements startState "" toks
 >
 > statements :: MyParser [D6nfStatement]

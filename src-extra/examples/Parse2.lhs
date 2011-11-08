@@ -9,20 +9,19 @@
 > main :: IO ()
 > main = do
 >   [f] <- getArgs
->   ast <- parseStatementsFromFile defaultParseFlags f
->   putStrLn $ showNoAnns ast
+>   src <- readFile f
+>   let ast = parseStatements defaultParseFlags f Nothing src
+>   putStrLn $ either show showNoAnns ast
 
 
 > showNoAnns :: Show a => a -> String
-> showNoAnns = p stripA
+> showNoAnns s =
+>   case parseExp (show s) of
+>     ParseOk ast -> prettyPrint (stripA ast)
+>     x -> error $ show x
 >   where
->     stripA :: Exp -> Exp
 >     stripA = transformBi $ \x ->
 >                case x of
 >                  (Paren (RecConstr (UnQual (Ident "Annotation")) _)) ->
->                           Con $ UnQual $ Ident "Ann"
->                  x1 -> x1
->     p f s =
->         case parseExp (show s) of
->           ParseOk ast -> prettyPrint (f ast)
->           x -> error $ show x
+>                           Con $ UnQual $ Ident "A"
+>                  x' -> x'

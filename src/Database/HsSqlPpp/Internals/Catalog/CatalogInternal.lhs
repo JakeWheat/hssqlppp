@@ -518,7 +518,7 @@ to new code or deleted as typeconversion is rewritten
 >   case M.lookup ty $ catDomainTypes cat of
 >     Just n -> Right $ ScalarType n
 >     Nothing -> Left [DomainDefNotFound $ ScalarType ty]
-> catDomainBaseType cat ty = Left [DomainDefNotFound ty]
+> catDomainBaseType _cat ty = Left [DomainDefNotFound ty]
 >
 > catLookupFns :: Catalog -> String -> [OperatorPrototype]
 > catLookupFns cat name =

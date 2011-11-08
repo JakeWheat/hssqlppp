@@ -71,17 +71,21 @@ Unit test helpers
 >
 > testParseScalarExpr :: String -> ScalarExpr -> Test.Framework.Test
 > testParseScalarExpr src ast =
->   parseUtil src ast (parseScalarExpr defaultParseFlags "") (parseScalarExpr defaultParseFlags "") (printScalarExpr defaultPPFlags)
+>   parseUtil src ast (parseScalarExpr defaultParseFlags "" Nothing)
+>                     (parseScalarExpr defaultParseFlags "" Nothing)
+>                     (printScalarExpr defaultPPFlags)
 >
 > testParseStatements :: SQLSyntaxDialect -> String -> [Statement] -> Test.Framework.Test
 > testParseStatements flg src ast =
->   let parse = parseStatements defaultParseFlags {pfDialect=flg} ""
+>   let parse = parseStatements defaultParseFlags {pfDialect=flg} "" Nothing
 >       pp = printStatements defaultPPFlags {ppDialect=flg}
 >   in parseUtil src ast parse parse pp
 >
 > testParsePlpgsqlStatements :: String -> [Statement] -> Test.Framework.Test
 > testParsePlpgsqlStatements src ast =
->   parseUtil src ast (parsePlpgsql defaultParseFlags "") (parsePlpgsql defaultParseFlags "") (printStatements defaultPPFlags)
+>   parseUtil src ast (parsePlpgsql defaultParseFlags "" Nothing)
+>                     (parsePlpgsql defaultParseFlags "" Nothing)
+>                     (printStatements defaultPPFlags)
 >
 > parseUtil :: (Show t, Eq b, Show b, Data b) =>
 >              String

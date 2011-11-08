@@ -16,9 +16,7 @@ copy payload (used to lex copy from stdin data)
 > module Database.HsSqlPpp.Parsing.Lexer (
 >               Token
 >              ,Tok(..)
->              ,lexSqlFile
->              ,lexSqlText
->              ,lexSqlTextWithPosition
+>              ,lexSql
 >              ,identifierString
 >              ,LexState
 >              ) where
@@ -69,21 +67,15 @@ can be lost (e.g. something like "0.2" parsing to 0.199999999 float.
 > type LexState = [Tok]
 > type Parser = ParsecT String LexState Identity
 >
-> lexSqlFile :: FilePath -> IO (Either ParseErrorExtra [Token])
-> lexSqlFile f = do
->   te <- readFile f
->   let x = runParser sqlTokens [] f te
->   return $ toParseErrorExtra x Nothing te
->
-> lexSqlText :: String -> String -> Either ParseErrorExtra [Token]
-> lexSqlText f s = toParseErrorExtra (runParser sqlTokens [] f s) Nothing s
->
-> lexSqlTextWithPosition :: String -> Int -> Int -> String
->                        -> Either ParseErrorExtra [Token]
-> lexSqlTextWithPosition f l c s =
->   toParseErrorExtra (runParser (do
->                                 setPosition (newPos f l c)
->                                 sqlTokens) [] f s) (Just (l,c)) s
+> lexSql :: String -> Maybe (Int,Int) -> String
+>            -> Either ParseErrorExtra [Token]
+> lexSql f sp src =
+>   either (Left . toParseErrorExtra f sp) Right
+>   $ runParser lx [] f src
+>   where
+>     lx :: Parser [Token]
+>     lx = maybe (return ()) (\(l,c) -> setPosition (newPos f l c)) sp
+>          >> sqlTokens
 
 ================================================================================
 

@@ -27,17 +27,16 @@ With some extra work:
 Status
 ======
 
-Pre-alpha in the traditional sense (not yet feature complete for a
-gamma version). Support for parsing SQL is patchy, but solid on a
-large subset. Supports queries/DML and DDL. Here is an extract from
-the parsing tests which gives some examples of what can currently be
-parsed:
+Pre-alpha in the traditional sense (not yet feature complete). Support
+for parsing SQL solid on a large subset of SQL. Supports queries/DML
+and DDL. Here is an extract from the parsing tests which gives some
+examples of what can currently be parsed:
 
 * [Parsing examples](ParserTests.html)
 
 The type checker is currently still being fixed after some reworking
-of parsing and ast types. It should handle a lot of queries and dml
-fine though.
+of parsing and ast types. It is pretty solid on a wide range of
+queries.
 
 Extract from the type checking tests:
 

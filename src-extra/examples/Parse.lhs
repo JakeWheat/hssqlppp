@@ -6,5 +6,6 @@
 > main :: IO ()
 > main = do
 >   [f] <- getArgs
->   ast <- parseStatementsFromFile defaultParseFlags f
+>   src <- readFile f
+>   let ast = parseStatements defaultParseFlags f Nothing src
 >   print ast

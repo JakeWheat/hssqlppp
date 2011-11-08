@@ -30,7 +30,7 @@
 
 > testScalarExprType :: String -> Either [TypeError] Type -> Test.Framework.Test
 > testScalarExprType src et = testCase ("typecheck " ++ src) $ do
->   let ast = case parseScalarExpr defaultParseFlags "" src of
+>   let ast = case parseScalarExpr defaultParseFlags "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
 >       aast = typeCheckScalarExpr defaultTypeCheckingFlags defaultTemplate1Catalog ast
@@ -59,12 +59,12 @@
 
 > testImpCastsScalar :: String -> String -> Test.Framework.Test
 > testImpCastsScalar src wsrc = testCase ("typecheck " ++ src) $
->   let ast = case parseScalarExpr defaultParseFlags "" src of
+>   let ast = case parseScalarExpr defaultParseFlags "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
 >       aast = typeCheckScalarExpr defaultTypeCheckingFlags defaultTemplate1Catalog ast
 >       aast' = addExplicitCasts aast
->       wast = case parseScalarExpr defaultParseFlags "" wsrc of
+>       wast = case parseScalarExpr defaultParseFlags "" Nothing wsrc of
 >                Left e -> error $ show e
 >                Right l -> l
 >   in (if (resetAnnotations aast') /= (resetAnnotations wast)
@@ -77,7 +77,7 @@
 
 > testQueryExprType :: [CatalogUpdate] -> String -> Either [TypeError] Type -> Test.Framework.Test
 > testQueryExprType cus src et = testCase ("typecheck " ++ src) $ do
->   let ast = case parseQueryExpr defaultParseFlags "" src of
+>   let ast = case parseQueryExpr defaultParseFlags "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
 >       Right cat = updateCatalog cus defaultTemplate1Catalog
@@ -108,13 +108,13 @@
 > testRewrite :: TypeCheckingFlags -> [CatalogUpdate] -> String -> String
 >             -> Test.Framework.Test
 > testRewrite f cus src src' = testCase ("rewrite " ++ src) $
->   let ast = case parseQueryExpr defaultParseFlags "" src of
+>   let ast = case parseQueryExpr defaultParseFlags "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
 >       Right cat = updateCatalog cus defaultTemplate1Catalog
 >       aast = typeCheckQueryExpr f cat ast
 >       astrw = resetAnnotations aast
->       ast' = case parseQueryExpr defaultParseFlags "" src' of
+>       ast' = case parseQueryExpr defaultParseFlags "" Nothing src' of
 >               Left e -> error $ show e
 >               Right l -> resetAnnotations l
 >   in (if astrw /= ast'

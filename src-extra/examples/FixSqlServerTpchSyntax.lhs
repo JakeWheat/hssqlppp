@@ -25,7 +25,7 @@ Convert qgen output into sql server format
 >            -- tpch outputs sql standard syntax
 >            -- which matches the default dialect for
 >            -- hssqlppp better that the sql server dialect
->            $ parseStatements defaultParseFlags "" sql
+>            $ parseStatements defaultParseFlags "" Nothing sql
 >       qe' = fixSqlAst qe
 >   in printStatements defaultPPFlags {ppDialect = SQLServerDialect} qe'
 

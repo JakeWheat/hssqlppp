@@ -19,8 +19,8 @@ order of application stays the same instead of going backwards when
 > (|>) :: (a -> b) -> (b -> c) -> a -> c
 > (|>) = flip (.)
 >
-> errorWhen :: (Error a) => Bool -> a -> Either a ()
-> errorWhen cond = when cond . Left
+> --errorWhen :: (Error a) => Bool -> a -> Either a ()
+> --errorWhen cond = when cond . Left
 >
 > returnWhen :: (Monad m) => Bool -> a -> m a -> m a
 > returnWhen c t t1 = if c then return t else t1

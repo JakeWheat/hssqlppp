@@ -6,8 +6,6 @@ notes on what the types are for and how they are used in postgres.
 >
 > module Database.HsSqlPpp.Internals.TypesInternal where
 >
-> import Control.Monad.Trans.Error
->
 > import Data.Data
 > import Data.Generics.Uniplate.Data
 > import Data.Char
@@ -144,14 +142,8 @@ gutted and rewritten
 >                | BadStarExpand
 >                | InternalError String
 >                | AmbiguousIdentifier String
->                 --shoved in to humour the Either Monad
->                | MiscError String
 >                  deriving (Eq,Show,Ord,Typeable,Data)
 >
-
-> instance ErrorList TypeError where
->    listMsg s = [MiscError s]
-
 
 > -- | Using these gives the hssqlppp canonical names of these
 > -- types, which have multiple names in postgres and SQL. The actual names follow
