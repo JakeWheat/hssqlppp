@@ -94,9 +94,6 @@ some renames - try to follow the sql standard reference better
 
 split out the plpgsql statements to separate ast node
 
-have parens explicit in the ast - this is a requirement to support
-user operators with user defined fixity
-
 more faithful representation of source code? This is mainly for
 defaults, e.g. can't tell after parsing if an order by element was
 explicitly asc, or implicitly asc. This might be useful for lint

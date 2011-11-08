@@ -354,6 +354,7 @@ data Statement
 --Statement components
 
 data Name | Name ann::Annotation is::{[NameComponent]}
+          | AntiName String
 
 {
 nameComponents :: Name -> [NameComponent]

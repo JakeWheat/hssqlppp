@@ -13,6 +13,7 @@ combineQueryExpr
 values
 funtrefs
 
+fix order by env (see add qualifiers on tpch sql order bys)
 
 not sure what else?
 
@@ -31,6 +32,11 @@ antinamecomponent
 antistatement
 antitriggerevent
 get rid of the quote/antistring, quote/antiidentifier stuff
+1) comment out qq tests
+2) fix in lexer: splices are parses to tokens in lexers
+3) fix parser to use these tokens
+4) write new version of the qq tests
+5) get chaos working again
 
 
 don't work on ddl, plpgsql until this is sorted
@@ -38,7 +44,7 @@ don't work on ddl, plpgsql until this is sorted
 possible targets for ddl, plpgsql is getting chaos typechecking again,
 not sure if will target this for 0.5.0
 
-have slidden on rewriting catalog and typeconversion, want to revist
+have backslidden on rewriting catalog and typeconversion, want to revist
 these and rewrite properly, not sure whether to target this for 0.5.0,
 but should probably be done at same time as getting chaos typechecking
 again

@@ -63,6 +63,10 @@ and variables, etc.
 >                    -- | an aliased tref
 >                  | TrefAlias String (Maybe [String]) Environment
 >                  | BrokeEnvironment
+>                    -- order by: can use the name of a select list column
+>                    -- or anything from the same environment which select
+>                    -- list operates on
+>                  | OrderByEnvironment Environment Environment
 >                    deriving (Data,Typeable,Show,Eq)
 
 ---------------------------------------------------
