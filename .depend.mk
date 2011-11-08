@@ -87,6 +87,9 @@ src/Database/HsSqlPpp/Pretty.o : src/Database/HsSqlPpp/SqlDialect.hi
 src/Database/HsSqlPpp/Pretty.o : src/Database/HsSqlPpp/Utils/Utils.hi
 src/Database/HsSqlPpp/Pretty.o : src/Database/HsSqlPpp/Annotation.hi
 src/Database/HsSqlPpp/Pretty.o : src/Database/HsSqlPpp/Ast.hi
+src-extra/examples/PPPTest.o : src-extra/examples/PPPTest.lhs
+src-extra/examples/PPPTest.o : src/Database/HsSqlPpp/Pretty.hi
+src-extra/examples/PPPTest.o : src/Database/HsSqlPpp/Parser.hi
 src/Database/HsSqlPpp/Quote.o : src/Database/HsSqlPpp/Quote.lhs
 src/Database/HsSqlPpp/Quote.o : src/Database/HsSqlPpp/Ast.hi
 src/Database/HsSqlPpp/Quote.o : src/Database/HsSqlPpp/Annotation.hi
@@ -128,6 +131,13 @@ src-extra/examples/TypeCheckDB.o : src/Database/HsSqlPpp/Types.hi
 src-extra/examples/TypeCheckDB.o : src/Database/HsSqlPpp/Catalog.hi
 src-extra/examples/TypeCheckDB.o : src/Database/HsSqlPpp/TypeChecker.hi
 src-extra/examples/TypeCheckDB.o : src/Database/HsSqlPpp/Parser.hi
+src-extra/examples/TypeCheckMystery.o : src-extra/examples/TypeCheckMystery.lhs
+src-extra/examples/TypeCheckMystery.o : src/Database/HsSqlPpp/Ast.hi
+src-extra/examples/TypeCheckMystery.o : src/Database/HsSqlPpp/Annotation.hi
+src-extra/examples/TypeCheckMystery.o : src/Database/HsSqlPpp/Types.hi
+src-extra/examples/TypeCheckMystery.o : src/Database/HsSqlPpp/Catalog.hi
+src-extra/examples/TypeCheckMystery.o : src/Database/HsSqlPpp/TypeChecker.hi
+src-extra/examples/TypeCheckMystery.o : src/Database/HsSqlPpp/Parser.hi
 src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.o : src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs
 src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.hi
 src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.o : src/Database/HsSqlPpp/Quote.hi

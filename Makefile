@@ -92,7 +92,9 @@ EXE_FILES = src-extra/tests/Tests \
 	src-extra/examples/Lex \
 	src-extra/examples/TypeCheck2 \
 	src-extra/examples/TypeCheck \
-	src-extra/examples/TypeCheckDB
+	src-extra/examples/TypeCheckDB \
+	src-extra/examples/PPPTest \
+	src-extra/examples/TypeCheckMystery
 
 #	src-extra/examples/ShowCatalog \
 #	src-extra/chaos/build.lhs

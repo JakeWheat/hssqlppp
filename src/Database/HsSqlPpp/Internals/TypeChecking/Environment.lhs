@@ -25,7 +25,7 @@ and variables, etc.
 >     ) where
 
 > import Data.Data
-> --import Data.Char
+> import Data.Char
 > import Data.Maybe
 > import Control.Monad
 > --import Control.Arrow
@@ -34,7 +34,7 @@ and variables, etc.
 
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
-> import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+> import Database.HsSqlPpp.Internals.Catalog.CatalogInternal hiding (ncStr)
 > import Data.Generics.Uniplate.Data
 
 ---------------------------------
@@ -104,7 +104,7 @@ TODO: remove the create prefixes
 >                        j0 <- fmap (map (snd . fst)) $ envExpandStar Nothing tref0
 >                        j1 <- fmap (map (snd . fst)) $ envExpandStar Nothing tref1
 >                        return $ j0 `intersect` j1
->             Just x -> return $ map ncStr x
+>             Just x -> return $ map nmcString x
 
 >  --         maybe (error "natural join ids") (map (nnm . (:[]))) jsc
 
@@ -270,13 +270,16 @@ use listBindingsTypes to implement expandstar and lookupid
 >   if isBroken env
 >   then Left []
 >   else
->     let st = (snd $ listBindingsTypes env) $ fmap ncStr nmc
+>     let st = (snd $ listBindingsTypes env) $ fmap nmcString nmc
 >     in if null st
 >        then case nmc of
->               Just x -> Left [UnrecognisedCorrelationName $ ncStr x]
+>               Just x -> Left [UnrecognisedCorrelationName $ nmcString x]
 >               Nothing -> Left [BadStarExpand]
 >        else Right st
 
+> nmcString :: NameComponent -> String
+> nmcString (QNmc n) = n
+> nmcString (Nmc n) = map toLower n
 
 > envLookupIdentifier :: [NameComponent] -> Environment
 >                      -> Either [TypeError] ((String,String), Type)
@@ -285,10 +288,10 @@ use listBindingsTypes to implement expandstar and lookupid
 >   then Left []
 >   else do
 >     k <- case nmc of
->                [a,b] -> Right (Just $ ncStr a, ncStr b)
->                [b] -> Right (Nothing, ncStr b)
+>                [a,b] -> Right (Just $ nmcString a, nmcString b)
+>                [b] -> Right (Nothing, nmcString b)
 >                _ -> Left [InternalError "too many nmc components in envlookupiden"]
 >     case (fst $ listBindingsTypes env) k of
->       [] -> Left [UnrecognisedIdentifier $ ncStr $ last nmc]
+>       [] -> Left [UnrecognisedIdentifier $ nmcString $ last nmc]
 >       [x] -> Right x
->       _ -> Left [AmbiguousIdentifier $ ncStr $ last nmc]
+>       _ -> Left [AmbiguousIdentifier $ nmcString $ last nmc]
