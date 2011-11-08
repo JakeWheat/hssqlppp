@@ -194,8 +194,7 @@ against.
 >       lookupReturnType :: String -> [Type] -> Either [TypeError] Type
 >       lookupReturnType s1 args = fmap (\(_,_,r,_) -> r) $ lookupFn s1 args
 >       lookupFn :: String -> [Type] -> Either [TypeError] OperatorPrototype
->       lookupFn s1 = findCallMatch1 cat
->                              (if s1 == "u-" then "-" else s1)
+>       lookupFn s1 = findCallMatch1 cat s1
 >       fnName = map toLower fnName'
 >       -- help the type inference for rowCtors. pretty unfinished. If we compare
 >       -- two compatible row constructors, then replace any unknown types with the

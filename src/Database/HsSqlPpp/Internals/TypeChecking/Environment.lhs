@@ -18,6 +18,7 @@ and variables, etc.
 >     ,envSelectListEnvironment
 >     ,createCorrelatedSubqueryEnvironment
 >     ,createTrefAliasedEnvironment
+>     ,brokeEnvironment
 >      -- * environment query functions
 >     ,envLookupIdentifier
 >     ,envExpandStar
@@ -34,6 +35,7 @@ and variables, etc.
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+> import Data.Generics.Uniplate.Data
 
 ---------------------------------
 
@@ -60,9 +62,8 @@ and variables, etc.
 >                           Environment -- main env
 >                    -- | an aliased tref
 >                  | TrefAlias String (Maybe [String]) Environment
+>                  | BrokeEnvironment
 >                    deriving (Data,Typeable,Show,Eq)
-
-
 
 ---------------------------------------------------
 
@@ -121,8 +122,13 @@ TODO: remove the create prefixes
 > createTrefAliasedEnvironment :: String -> Maybe [String] -> Environment -> Environment
 > createTrefAliasedEnvironment = TrefAlias
 
+> -- | represents type check failure upstream, don't produce additional
+> -- type check errors
+> brokeEnvironment :: Environment
+> brokeEnvironment = BrokeEnvironment
 
-
+> isBroken :: Environment -> Bool
+> isBroken env = not $ null $ [() | BrokeEnvironment <- universeBi env]
 
 -------------------------------------------------------
 
@@ -140,6 +146,7 @@ lookup and star expansion
 >                                     ,Maybe String -> [((String,String),Type)] -- star expand
 >                                     )
 > listBindingsTypes EmptyEnvironment = (const [],const [])
+> listBindingsTypes BrokeEnvironment = (const [],const [])
 
 > listBindingsTypes (TrefAlias ta Nothing env) =
 >   (\(q,n) -> if q `elem` [Nothing, Just ta]
@@ -260,22 +267,28 @@ use listBindingsTypes to implement expandstar and lookupid
 
 > envExpandStar2 :: Maybe NameComponent -> Environment -> Either [TypeError] [((String,String),Type)]
 > envExpandStar2 nmc env =
->   let st = (snd $ listBindingsTypes env) $ fmap ncStr nmc
->   in if null st
->      then case nmc of
->             Just x -> Left [UnrecognisedCorrelationName $ ncStr x]
->             Nothing -> Left [BadStarExpand]
->      else Right st
+>   if isBroken env
+>   then Left []
+>   else
+>     let st = (snd $ listBindingsTypes env) $ fmap ncStr nmc
+>     in if null st
+>        then case nmc of
+>               Just x -> Left [UnrecognisedCorrelationName $ ncStr x]
+>               Nothing -> Left [BadStarExpand]
+>        else Right st
 
 
 > envLookupIdentifier :: [NameComponent] -> Environment
 >                      -> Either [TypeError] ((String,String), Type)
-> envLookupIdentifier nmc env = do
->   k <- case nmc of
->              [a,b] -> Right (Just $ ncStr a, ncStr b)
->              [b] -> Right (Nothing, ncStr b)
->              _ -> Left [InternalError "too many nmc components in envlookupiden"]
->   case (fst $ listBindingsTypes env) k of
->     [] -> Left [UnrecognisedIdentifier $ ncStr $ last nmc]
->     [x] -> Right x
->     _ -> Left [AmbiguousIdentifier $ ncStr $ last nmc]
+> envLookupIdentifier nmc env =
+>   if isBroken env
+>   then Left []
+>   else do
+>     k <- case nmc of
+>                [a,b] -> Right (Just $ ncStr a, ncStr b)
+>                [b] -> Right (Nothing, ncStr b)
+>                _ -> Left [InternalError "too many nmc components in envlookupiden"]
+>     case (fst $ listBindingsTypes env) k of
+>       [] -> Left [UnrecognisedIdentifier $ ncStr $ last nmc]
+>       [x] -> Right x
+>       _ -> Left [AmbiguousIdentifier $ ncStr $ last nmc]

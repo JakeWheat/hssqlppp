@@ -127,6 +127,7 @@ inner join pg_type rt
   on oprright = rt.oid
 inner join pg_type res
   on oprresult = res.oid
+where oprleft = 0
 order by oprname;
 \end{code}
 >                                     |] []
@@ -143,6 +144,7 @@ inner join pg_type lt
   on oprleft = lt.oid
 inner join pg_type res
   on oprresult = res.oid
+where oprright = 0
 order by oprname;
 \end{code}
 >                                     |] []

@@ -105,6 +105,9 @@ attr AllNodes Annotation
 sem Root
    | Root
        statements.imCast = Nothing
+sem ScalarExprRoot
+   | ScalarExprRoot
+       expr.imCast = Nothing
 
 sem Annotation
   | Annotation
@@ -117,7 +120,7 @@ sem Annotation
 include "TypeChecking/ScalarExprs.ag"
 include "TypeChecking/QueryExprs/QueryExprs.ag"
 include "TypeChecking/Misc.ag"
-
+include  "TypeChecking/Statements.ag"
 
 {
 

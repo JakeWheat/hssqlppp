@@ -751,9 +751,7 @@ Statement components
 >   | Just "!not" <- getTName n =
 >       text "not" <+> scalExpr flg e0
 >   | Just n' <- getTName n =
->       text (if n' == "u-"
->             then "-"
->             else n')
+>       text n'
 >     <+> scalExpr flg e0
 >   | otherwise = error $ "bad prefix operator name:" ++ show n
 

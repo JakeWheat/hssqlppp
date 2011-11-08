@@ -38,7 +38,7 @@ sem TableRef
       -- pass any errors to the annotation
       ann.tpe = either Left (const $ Left []) @loc.eEnv
       -- todo: what to do here?
-      lhs.upEnv = either (const emptyEnvironment) id @loc.eEnv2
+      lhs.upEnv = either (const brokeEnvironment) id @loc.eEnv2
 
   | JoinTref SubTref FunTref
       -- try to add a full table alias if possible
@@ -102,7 +102,7 @@ sem TableRef
                       -- cross join
                       _ -> Just []
       -- this triggers uuagcs cycle detection, not sure why
-      onExpr.downEnv = either (const emptyEnvironment) id @loc.eEnv
+      onExpr.downEnv = either (const brokeEnvironment) id @loc.eEnv
   | SubTref
       loc.eEnv = maybe (Left []) id
                  $ fmap envSelectListEnvironment @sel.upType

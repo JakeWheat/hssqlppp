@@ -139,7 +139,7 @@ sem SelectItemList
       lhs.upType = @loc.upType
       lhs.upEnv = case fmap envSelectListEnvironment @loc.upType of
                     (Just (Right e)) -> e
-                    _ -> emptyEnvironment
+                    _ -> brokeEnvironment
 
 
 -- temporary, lots of possible errors above which are currently

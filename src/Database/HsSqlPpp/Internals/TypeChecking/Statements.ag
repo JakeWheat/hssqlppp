@@ -1,0 +1,12 @@
+
+
+sem Statement
+  | QueryStatement DeclareStatement If
+    Insert Update Delete Copy Truncate
+    Assignment ExecStatement CreateIndexTSQL
+    DropSomething Into
+    ann.tpe = Left []
+
+  | Assignment
+    target.tpe = Left []
+    value.downEnv = emptyEnvironment

@@ -151,8 +151,14 @@ identifiers
                  False -> Nothing
                  True -> do
                         ((q,i),_) <- either (const Nothing) Just @loc.elkp
-                        -- todo: quote identifiers if needed
-                        return $ QIdentifier @ann.annotatedTree [Nmc q, Nmc i]
+                        -- small hack: select lists don't return qualifiers
+                        -- so this breaks the order by
+                        -- todo: fix this: if a qualifier in an order by
+                        -- comes from a tref then should be able to add a qualifier
+                        if q /= ""
+                          then -- todo: quote identifiers if needed
+                               return $ QIdentifier @ann.annotatedTree [Nmc q, Nmc i]
+                          else return @annotatedTree
 
     | QIdentifier
          loc.tpe = fmap snd $ envLookupIdentifier @is @lhs.downEnv

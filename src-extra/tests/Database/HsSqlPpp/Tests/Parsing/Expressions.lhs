@@ -23,9 +23,9 @@
 >      ]
 >    ,Group "basic expressions" [
 >       e "1" (num "1")
->      ,e "-1" (prefop "u-" $ num "1")
+>      ,e "-1" (prefop "-" $ num "1")
 >      ,e "1.1" (num "1.1")
->      ,e "-1.1" (prefop "u-" $ num "1.1")
+>      ,e "-1.1" (prefop "-" $ num "1.1")
 >      ,e " 1 + 1 " (binop "+" (num "1")
 >                              (num "1"))
 >      ,e "1+1+1" (binop "+" (binop "+" (num "1")
@@ -227,7 +227,7 @@ and dollar quoting, including nesting.
 >      ]
 >    ,Group "tricky operator parsing" [
 >       e "2 <>-1"
->         $ binop "<>" (num "2") (prefop "u-" (num "1"))
+>         $ binop "<>" (num "2") (prefop "-" (num "1"))
 >      ,e "a <-> b"
 >         $ binop "<->" (ei "a") (ei "b")
 >    ]

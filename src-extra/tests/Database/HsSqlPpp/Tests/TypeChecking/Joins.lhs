@@ -62,11 +62,11 @@
 >         -- handling in the environment
 >   ,qe "select * from (select 1 as a1, 2 as b) a\n\
 >         \ natural inner join (select true as a1, 4.5 as d) b;"
->         $ Left [BadStarExpand,IncompatibleTypeSet [ScalarType "int4"
+>         $ Left [IncompatibleTypeSet [ScalarType "int4"
 >                                     ,ScalarType "bool"]]
 >   ,qe "select * from (select 1 as a1, 2 as b) a\n\
 >         \ natural inner join (select true as a1, 4.5 as d) b;"
->         $ Left [BadStarExpand,IncompatibleTypeSet [ScalarType "int4"
+>         $ Left [IncompatibleTypeSet [ScalarType "int4"
 >                                     ,ScalarType "bool"]]
 >   ,qe "select * from (select 1 as a1) a, (select 2 as a2) b;"
 >         $ Right $ CompositeType [("a1", typeInt)

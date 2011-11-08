@@ -706,7 +706,7 @@ data FrameClause = FrameUnboundedPreceding
                    deriving (Show,Eq,Typeable,Data)
 }
 {-
-
+NEEDS UPDATING
 list of expression flavours from postgresql with the equivalents in this ast
 pg                                here
 --                                ----

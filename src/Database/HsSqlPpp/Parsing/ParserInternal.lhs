@@ -1241,7 +1241,7 @@ bit better
 > tableAB d isB = [[{-binary "." AssocLeft-}]
 >          --[binary "::" (BinOpCall Cast) AssocLeft]
 >          --missing [] for array element select
->         ,[prefix "-" "u-"]
+>         ,[prefix "-" "-"]
 >         ,[binary "^" AssocLeft]
 >         ,[binary "*" AssocLeft
 >          ,idHackBinary "*" AssocLeft

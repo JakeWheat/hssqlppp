@@ -23,6 +23,7 @@
 >     ]
 >   ,Group "function application"
 >     [ScalExpr "length('test')" $ Right typeInt
+>     ,ScalExpr "-5" $ Right typeInt
 >     ]
 >   ,Group "function application like"
 >     [ScalExpr "extract(year from date '2000-01-01')" $ Right typeFloat8
