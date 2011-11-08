@@ -484,7 +484,15 @@ Conversion routines - convert Sql asts into Docs
 >
 > statement _flg se _ (Notify _ n) =
 >   text "notify" <+> text n  <> statementEnd se
->
+
+> statement flg _se _ (ExecStatement _ nm args) =
+>   text "exec" <+> nmcs nm <+> sepCsvMap (scalExpr flg) args
+
+> statement _flg _se _ (CreateIndexTSQL _ nm obj cols) =
+>   text "create" <+> text "index"
+>   <+> nmc nm <+> text "on"
+>   <+> nmcs obj <+> parens (sepCsvMap nmc cols)
+
 > statementEnd :: Bool -> Doc
 > statementEnd b = if b
 >                  then semi <> newline

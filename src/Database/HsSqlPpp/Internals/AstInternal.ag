@@ -342,6 +342,12 @@ data Statement
 
     | AntiStatement String
     | DeclareStatement ann::Annotation ds::{[(String,TypeName,Maybe ScalarExpr)]}
+    | ExecStatement ann::Annotation spName::{[NameComponent]} args::ScalarExprList
+    | CreateIndexTSQL ann::Annotation
+                      nm::NameComponent
+                      obj::{[NameComponent]}
+                      cols::{[NameComponent]}
+
 
 -- =============================================================================
 

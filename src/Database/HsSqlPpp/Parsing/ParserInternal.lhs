@@ -136,7 +136,8 @@ Parsing top level statements
 >                ,createView
 >                ,createDomain
 >                ,createLanguage
->                ,createTrigger]
+>                ,createTrigger
+>                ,createIndex]
 >     ,keyword "alter" *>
 >              choice [
 >                 alterSequence
@@ -929,9 +930,18 @@ plpgsql statements
 > perform :: SParser Statement
 > perform = Perform <$> (pos <* keyword "perform") <*> expr
 >
+
 > execute :: SParser Statement
-> execute = Execute <$> (pos <* keyword "execute")
->          <*> expr
+> execute =
+>   choice
+>   [do
+>    isSqlServer >>= guard
+>    _ <- keyword "exec" <|> keyword "execute"
+>    ExecStatement <$> pos
+>      <*> ncs
+>      <*> commaSep expr
+>   ,Execute <$> (pos <* keyword "execute")
+>            <*> expr]
 >
 > assignment :: SParser Statement
 > assignment = Assignment
@@ -1050,14 +1060,52 @@ plpgsql statements
 
 > declareStatement :: SParser Statement
 > declareStatement = do
+>   isSqlServer >>= guard
 >   DeclareStatement
->   <$> pos
->   <*> (keyword "declare"
->        *> commaSep1 de)
+>     <$> pos
+>     <*> (keyword "declare"
+>          *> commaSep1 de)
 >   where
 >     de = (,,) <$> (symbol "@" *> (('@':) <$> idString))
 >               <*> typeName
 >               <*> optional (symbol "=" *> expr)
+
+
+only limited support for tsql create index atm
+
+> createIndex :: SParser Statement
+> createIndex =
+>   CreateIndexTSQL
+>   <$> try (pos <* flavs <* keyword "index")
+>   <*> nameComponent
+>   <*> (keyword "on" *> ncs)
+>   <*> parens (commaSep1 nameComponent) <* opts
+>   where
+>     flavs = do
+>       _ <- optional $ keyword "unique"
+>       _ <- optional (keyword "clustered" <|> keyword "nonclustered")
+>       return ()
+>     opts = do
+>       _ <- optional $ do
+>              _ <- keyword "include"
+>              _ <- parens (commaSep1 nameComponent)
+>              return ()
+>       return ()
+
+    | CreateIndexTSQL nm::String obj::{[NameComponent]} cols::{[NameComponent]}
+
+Create Relational Index 
+CREATE [ UNIQUE ] [ CLUSTERED | NONCLUSTERED ] INDEX index_name 
+    ON <object> ( column [ ASC | DESC ] [ ,...n ] ) 
+    [ INCLUDE ( column_name [ ,...n ] ) ]
+    [ WITH ( <relational_index_option> [ ,...n ] ) ]
+    [ ON { partition_scheme_name ( column_name ) 
+         | filegroup_name 
+         | default 
+         }
+    ]
+[ ; ]
+
 
 --------------------------------------------------------------------------------
 
@@ -1070,7 +1118,9 @@ from haskell-cafe and mainly just kept changing it until it seemed to
 work
 
 > expr :: SParser ScalarExpr
-> expr = buildExpressionParser table factor
+> expr = do
+>   ParseFlags {pfDialect = d} <- getState
+>   buildExpressionParser (table d) factor
 >        <?> "expression"
 
 >
@@ -1155,8 +1205,13 @@ binary depending on the types of their operands
 The full list of operators from a standard template1 database should
 be used here.
 
-> tableAB :: Bool -> [[Operator [Token] ParseState Identity ScalarExpr]]
-> tableAB isB = [[{-binary "." AssocLeft-}]
+TODO: handle the completely different list of sql server operators a
+bit better
+
+> tableAB :: SQLSyntaxDialect
+>         -> Bool
+>         -> [[Operator [Token] ParseState Identity ScalarExpr]]
+> tableAB d isB = [[{-binary "." AssocLeft-}]
 >          --[binary "::" (BinOpCall Cast) AssocLeft]
 >          --missing [] for array element select
 >         ,[prefix "-" "u-"]
@@ -1174,9 +1229,10 @@ be used here.
 >         ,[binary "<->" AssocNone
 >          ,binary "<=" AssocRight
 >          ,binary ">=" AssocRight
->          ,binary "||" AssocLeft
->          ,prefix "@" "@"
->          ]
+>          ,binary "||" AssocLeft]
+>          ++ if d == PostgreSQLDialect
+>             then [prefix "@" "@"]
+>             else []
 >          --in should be here, but is treated as a factor instead
 >          --between
 >          --overlaps
@@ -1241,17 +1297,19 @@ From postgresql src/backend/parser/gram.y
 
 ~~~~~
 
-> table :: [[Operator [Token] ParseState Identity ScalarExpr]]
-> table = tableAB False
+> table :: SQLSyntaxDialect -> [[Operator [Token] ParseState Identity ScalarExpr]]
+> table d = tableAB d False
 
-> tableB :: [[Operator [Token] ParseState Identity ScalarExpr]]
-> tableB = tableAB True
+> tableB :: SQLSyntaxDialect -> [[Operator [Token] ParseState Identity ScalarExpr]]
+> tableB d = tableAB d True
 
 use the same factors
 
 > b_expr :: SParser ScalarExpr
-> b_expr = buildExpressionParser tableB factor
->        <?> "expression"
+> b_expr = do
+>          ParseFlags {pfDialect = d} <- getState
+>          buildExpressionParser (tableB d) factor
+>          <?> "expression"
 >
 
 factor parsers
@@ -1946,14 +2004,7 @@ http://msdn.microsoft.com/en-us/library/ms189822.aspx
 parse a complete name
 
 > name :: SParser Name
-> name = choice
->        [do
->         isSqlServer >>= guard
->         Name <$> pos
->              <*> ((:[]) <$>
->                   (Nmc <$> (symbol "@" *> (('@':) <$> idString))))
->         ,Name <$> pos <*> ncs
->        ]
+> name = Name <$> pos <*> ncs
 
 > nameComponent :: SParser NameComponent
 > nameComponent = nameComponentAllows []
@@ -1977,23 +2028,29 @@ ignore reserved keywords completely
 
 > unrestrictedNameComponent :: SParser NameComponent
 > unrestrictedNameComponent = do
->   ss <- isSqlServer
->   choice ((if ss
->            then (tempTableIden :)
->            else id) [Nmc <$> idString
->                     ,QNmc <$> qidString
->                     ,Nmc <$> spliceD
->                     ,Nmc <$> ssplice])
+>   choice [tempTableIden
+>          ,localVar
+>          ,Nmc <$> idString
+>          ,QNmc <$> qidString
+>          ,Nmc <$> spliceD
+>          ,Nmc <$> ssplice]
 >   where
 >      ssplice = (\s -> "$i(" ++ s ++ ")") <$>
 >                (symbol "$i(" *> idString <* symbol ")")
 >      tempTableIden = try $ do
->                        symbol "#"
->                        -- TODO: not quite right since allows ws
->                        -- between # and string
->                        -- need help from the lexer to do this properly
->                        i <- idString
->                        return $ Nmc ('#':i)
+>                      isSqlServer >>= guard
+>                      -- TODO: not quite right since allows ws
+>                      -- between # and string
+>                      -- need help from the lexer to do this properly
+>                      let i = symbol "#" *> (('#':) <$> idString)
+>                      choice [squares (QNmc <$> i)
+>                             ,Nmc <$> i]
+>      localVar = try $ do
+>                      isSqlServer >>= guard
+>                      symbol "@"
+>                      --TODO: same comments apply as with #iden
+>                      i <- idString
+>                      return $ Nmc ('@':i)
 
 
 quick hack to support identifiers like this: 'test' for sql server
