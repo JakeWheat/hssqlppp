@@ -63,6 +63,7 @@ Library
                      Database.HsSqlPpp.Internals.TypeChecking.OldTypeConversion
                      Database.HsSqlPpp.Internals.TypeChecking.OldTediousTypeUtils
                      Database.HsSqlPpp.Internals.AstInternal
+                     Database.HsSqlPpp.SqlDialect
 
   extensions:        TupleSections
                      DeriveDataTypeable,

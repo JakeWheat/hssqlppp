@@ -37,7 +37,7 @@
 check some basic parens use wrt naked values and row constructors
 these tests reflect how pg seems to interpret the variants.
 
->       e "(1)" (num "1")
+>       e "(1)" (Parens ea (num "1"))
 >      ,e "row ()" (specop "!rowctor" [])
 >      ,e "row (1)" (specop "!rowctor" [num "1"])
 >      ,e "row (1,2)" (specop "!rowctor" [num "1",num "2"])
@@ -103,7 +103,7 @@ test some more really basic expressions
 >      ,e "substring(a from 0 for (5 - 3))"
 >         (specop "!substring" [ei "a"
 >                               ,num "0"
->                               ,binop "-" (num "5") (num "3")])
+>                               ,Parens ea (binop "-" (num "5") (num "3"))])
 >      ,e "substring(a,b,c)"
 >         (app "substring" [ei "a"
 >                          ,ei "b"
@@ -213,16 +213,17 @@ and dollar quoting, including nesting.
 >      ,e "'spl$$it'" (stringQ "spl$$it")
 >      ]
 >    ,Group "bracketed things" [
->       e "(p).x" (eqi "p" "x")
+>       e "(p).x" $ parenQual (ei "p") (ei "x")
 >      ,e "(select f(((a).x, y)::z))"
 >         (ScalarSubQuery ea
 >          (selectE (sl
 >                    [SelExp ea
->                     (app "f" [Cast ea
->                                   (specop "!rowctor"
->                                               [eqi "a" "x"
->                                               ,ei "y"])
->                                   (SimpleTypeName ea $ name "z")])])))
+>                    $ app "f" [Cast ea
+>                               (specop "!rowctor"
+>                                [parenQual (ei "a") (ei "x")
+>                                ,ei "y"])
+>                               (st "z")]
+>                     ])))
 >      ]
 >    ,Group "tricky operator parsing" [
 >       e "2 <>-1"

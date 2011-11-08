@@ -25,7 +25,7 @@
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Utils.Utils
 
-> import Database.HsSqlPpp.Parsing.SqlDialect
+> import Database.HsSqlPpp.SqlDialect
 
 --------------------------------------------------------------------------------
 
@@ -685,13 +685,13 @@ Statement components
 > -- expressions
 >
 > scalExpr :: PrettyPrintFlags -> ScalarExpr -> Doc
+> scalExpr flg (Parens _ e) = parens (scalExpr flg e)
 > scalExpr _ (AntiScalarExpr s) = text $ "$(" ++ s ++ ")"
 > scalExpr _ (Star _) = text "*"
 > scalExpr _ (QStar _ i) = nmc i <> text ".*"
 
 > scalExpr _ (Identifier _ i) = nmc i
-> scalExpr _flg (QIdentifier _a [i1, i]) = parens (nmc i1) <> text "." <> nmc i
-> scalExpr _flg (QIdentifier _a _) = error "only supports 2 part qualified identifers atm"
+> scalExpr _flg (QIdentifier _a is) = hcat (punctuate (text ".") (map nmc is))
 
 > scalExpr _ (NumberLit _ n) = text n
 > scalExpr _ (StringLit _ s) = -- needs some thought about using $$?
@@ -703,9 +703,9 @@ Statement components
 >    case getTName n of
 >      Just "!arrayctor" -> text "array" <> brackets (csvExp flg es)
 >      Just "!between" -> scalExpr flg (head es) <+> text "between"
->                         <+> parens (scalExpr flg (es !! 1))
+>                         <+> scalExpr flg (es !! 1)
 >                         <+> text "and"
->                         <+> parens (scalExpr flg (es !! 2))
+>                         <+> scalExpr flg (es !! 2)
 >      Just "!substring" -> text "substring"
 >                      <> parens (scalExpr flg (head es)
 >                                 <+> text "from" <+> scalExpr flg (es !! 1)
@@ -714,7 +714,7 @@ Statement components
 >        case es of
 >                (Identifier _ i : es1) -> nmc i
 >                                          <> brackets (csvExp flg es1)
->                (e:es') -> parens (scalExpr flg e)
+>                (e:es') -> scalExpr flg e
 >                           <> brackets (csvExp flg es')
 >                _ -> error $ "bad args to !arraysub: " ++ show es
 >      Just "!rowctor" -> text "row" <> parens (sepCsvMap (scalExpr flg) es)
@@ -723,21 +723,22 @@ Statement components
 > scalExpr flg (BinaryOp _ n e0 e1) =
 >    case getTName n of
 >      Just "!and" | unsafeReadable flg -> doLeftAnds e0 e1
->                  | otherwise -> sep [parens (scalExpr flg e0)
+>                  | otherwise -> sep [scalExpr flg e0
 >                                     ,text "and"
 >                                     ,scalExpr flg e1]
 >      Just n' | Just n'' <- lookup n' [("!or","or")
 >                                      ,("!like","like")
 >                                      ,("!notlike","not like")] ->
->        parens (scalExpr flg e0 <+> text n''
->               <+> scalExpr flg e1)
+>        scalExpr flg e0
+>        <+> text n''
+>        <+> scalExpr flg e1
 >      Just "."   -- special case to avoid ws around '.'. Don't know if this is important
 >                 -- or just cosmetic
->          -> parens (scalExpr flg e0) <> text "." <> scalExpr flg e1
->      Just n' -> parens (scalExpr flg e0 <+> text n' <+> scalExpr flg e1)
+>          -> scalExpr flg e0 <> text "." <> scalExpr flg e1
+>      Just n' -> scalExpr flg e0 <+> text n' <+> scalExpr flg e1
 >      Nothing -> error $ "bad binary operator name:" ++ show n
 >    where
->      -- try to write a series of ands in a vertical line with slightly less parens
+>      -- try to write a series of ands in a vertical line
 >      doLeftAnds a b = let as = and' a
 >                       in vcat ((scalExpr flg (head as)
 >                                 : map (\x -> text "and" <+> scalExpr flg x) (tail as))
@@ -748,21 +749,21 @@ Statement components
 
 > scalExpr flg (PrefixOp _ n e0)
 >   | Just "!not" <- getTName n =
->       parens (text "not" <+> parens (scalExpr flg e0))
+>       text "not" <+> scalExpr flg e0
 >   | Just n' <- getTName n =
->       parens (text (if n' == "u-"
->                     then "-"
->                     else n')
->               <+> parens (scalExpr flg e0))
+>       text (if n' == "u-"
+>             then "-"
+>             else n')
+>     <+> scalExpr flg e0
 >   | otherwise = error $ "bad prefix operator name:" ++ show n
 
 
 > scalExpr flg (PostfixOp _ n e0)
 >   | Just n' <- getTName n >>= flip lookup [("!isnull", "is null")
 >                                           ,("!isnotnull", "is not null")] =
->        parens (scalExpr flg e0 <+> text n')
+>        scalExpr flg e0 <+> text n'
 >   | Just n' <- getTName n =
->       parens (scalExpr flg e0 <+> text n')
+>       scalExpr flg e0 <+> text n'
 >   | otherwise = error $ "bad postfix operator name:" ++ show n
 
 > scalExpr flg (App _ n es) =
@@ -890,7 +891,7 @@ Statement components
 > scalExprSl :: PrettyPrintFlags ->  ScalarExpr -> Doc
 > scalExprSl flg (App _ f es) | Just "." <- getTName f
 >                                 , [a@(Identifier _ _), b] <- es =
->   parens (scalExprSl flg a) <> text "." <> scalExprSl flg b
+>   scalExprSl flg a <> text "." <> scalExprSl flg b
 > scalExprSl flg x = scalExpr flg x
 
 >

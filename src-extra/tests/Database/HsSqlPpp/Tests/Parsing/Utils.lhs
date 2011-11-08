@@ -105,3 +105,6 @@ shortcuts for constructing test data and asts
 
 > st :: String -> TypeName
 > st n = SimpleTypeName ea (Name ea [Nmc n])
+
+> parenQual :: ScalarExpr -> ScalarExpr -> ScalarExpr
+> parenQual a b = BinaryOp ea (name ".") (Parens ea a) b

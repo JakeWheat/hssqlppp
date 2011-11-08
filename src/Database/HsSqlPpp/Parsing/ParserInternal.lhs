@@ -45,7 +45,7 @@ right choice, but it seems to do the job pretty well at the moment.
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation as A
 > import Database.HsSqlPpp.Utils.Utils
-> import Database.HsSqlPpp.Parsing.SqlDialect
+> import Database.HsSqlPpp.SqlDialect
 > --import Database.HsSqlPpp.Catalog
 > --import Debug.Trace
 
@@ -1183,7 +1183,7 @@ a row constructor looking thing, then finally vanilla parens
 
 >        scalarSubQuery
 >       ,try rowCtor
->       ,parens expr
+>       ,Parens <$> pos <*> parens expr
 
 try a few random things which can't start a different expression
 

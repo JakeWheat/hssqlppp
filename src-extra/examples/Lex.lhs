@@ -3,7 +3,7 @@
 > --import Database.HsSqlPpp.Parser
 > import Text.Groom
 > import System.Environment
-> import Database.HsSqlPpp.Parsing.SqlDialect
+> import Database.HsSqlPpp.SqlDialect
 
 > main :: IO ()
 > main = do

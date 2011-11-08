@@ -395,13 +395,13 @@
 >      ]
 >    ,Group "some misc stuff" [
 >       s "select (p).x, (p).y from pos;"
->         [QueryStatement ea $ selectFrom (selEL [eqi "p" "x"
->                                                ,eqi "p" "y"])
+>         [QueryStatement ea $ selectFrom (selEL [parenQual (ei "p") (ei "x")
+>                                                ,parenQual (ei "p") (ei "y")])
 >                                          (Tref ea (i "pos") (NoAlias ea))]
 >      ,s "select ($1).x, ($1).y from pos;"
 >         [QueryStatement ea $ selectFrom
->          (selEL [member (PositionalArg ea 1) (Identifier ea "x")
->                 ,member (PositionalArg ea 1) (Identifier ea "y")])
+>          (selEL [member (Parens ea $ PositionalArg ea 1) (Identifier ea "x")
+>                 ,member (Parens ea $ PositionalArg ea 1) (Identifier ea "y")])
 >          (Tref ea (i "pos") (NoAlias ea))]
 >      ,s "select row_number() over(), x from tb;"
 >       [QueryStatement ea $ selectFrom

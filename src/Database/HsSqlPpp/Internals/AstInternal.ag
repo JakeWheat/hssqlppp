@@ -381,6 +381,8 @@ data QueryExpr
                     withs :: WithQueryList
                     ex :: QueryExpr
 
+--    | QueryExprParens ex:: QueryExpr
+
 type WithQueryList = [WithQuery]
 data WithQuery | WithQuery ann :: Annotation
                            name :: NameComponent
@@ -647,6 +649,8 @@ data ScalarExpr | NumberLit ann::Annotation d::String
                 | ScalarSubQuery ann::Annotation -- scalar meaning scalar context not scalar valued...
                                  sel :: QueryExpr
                 | AntiScalarExpr String
+                | Parens ann::Annotation
+                         ex :: ScalarExpr
 {
 data LiftFlavour = LiftAny | LiftAll
                    deriving (Show,Eq,Typeable,Data)

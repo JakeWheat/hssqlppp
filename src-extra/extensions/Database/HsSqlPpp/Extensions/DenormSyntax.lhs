@@ -27,7 +27,7 @@ File to parse the denormalized6nf syntax
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Extensions.AstUtils
-> import Database.HsSqlPpp.Parsing.SqlDialect
+> import Database.HsSqlPpp.SqlDialect
 >
 > data D6nfStatement = DTable String [String] [AttributeDef]
 >                    | MutualExclusion String String

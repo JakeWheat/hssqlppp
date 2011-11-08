@@ -35,7 +35,7 @@ copy payload (used to lex copy from stdin data)
 > import Database.HsSqlPpp.Parsing.ParseErrors
 > import Database.HsSqlPpp.Utils.Utils
 > -- import Database.HsSqlPpp.Ast.Name
-> import Database.HsSqlPpp.Parsing.SqlDialect
+> import Database.HsSqlPpp.SqlDialect
 
 ================================================================================
 
