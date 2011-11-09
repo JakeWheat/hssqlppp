@@ -38,9 +38,9 @@ Instead of:
 
 > fixIntervals :: Data a => a -> a
 > fixIntervals = transformBi $ \x -> case x of
->   [$sqlExpr| $(a) + $(b) |] | Just (i,v,d) <- dateInfo a b ->
+>   [$sqlExpr| $e(a) + $e(b) |] | Just (i,v,d) <- dateInfo a b ->
 >      [$sqlExpr| dateAdd($i(i),$(v),$s(d))|]
->   [$sqlExpr| $(a) - $(b) |]| Just (i,v,d) <- dateInfo a b ->
+>   [$sqlExpr| $e(a) - $e(b) |]| Just (i,v,d) <- dateInfo a b ->
 >      [$sqlExpr| dateAdd($i(i),-$(v),$s(d))|]
 >   x' -> x'
 >   where
@@ -58,8 +58,8 @@ Instead of:
 
 > fixExtract :: Data a => a -> a
 > fixExtract = transformBi $ \x -> case x of
->   [$sqlExpr| extract(year from $(expr) ) |] ->
->       [$sqlExpr| datepart(year,$(expr)) |]
+>   [$sqlExpr| extract(year from $e(expr) ) |] ->
+>       [$sqlExpr| datepart(year,$e(expr)) |]
 >   x' -> x'
 
 
@@ -69,8 +69,8 @@ Instead of:
 
 > fixSubstring :: Data a => a -> a
 > fixSubstring = transformBi $ \x -> case x of
->   [$sqlExpr| substring($(i) from $(a) for $(b)) |] ->
->       [$sqlExpr| substring($(i),$(a),$(b)) |]
+>   [$sqlExpr| substring($e(i) from $e(a) for $e(b)) |] ->
+>       [$sqlExpr| substring($e(i),$e(a),$e(b)) |]
 >   x' -> x'
 
  ‘1998-12-01’

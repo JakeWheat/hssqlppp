@@ -85,7 +85,7 @@ to deal with nulls/ maybe types?
 > denormalized6nf =
 >   transformBi $ \x ->
 >       case x of
->         st@[sqlStmt| select create6nf($(stuff)); |] : tl
+>         st@[sqlStmt| select create6nf($e(stuff)); |] : tl
 >             -> let (f,l,c) = fromMaybe ("",1,1) $ asrc $ getAnnotation stuff
 >                    (StringLit _ s) = stuff
 >                in replaceSourcePos st (createStatements f l c s) ++ tl
@@ -150,7 +150,7 @@ to deal with nulls/ maybe types?
 >              if noNewFields || null allFields || null (tail allFields)
 >              then Nothing
 >              else Just $ CheckConstraint ea (tn ++ "_fields")
->                           [sqlExpr| ($(nulls)) or ($(nots)) |]
+>                           [sqlExpr| ($e(nulls)) or ($e(nots)) |]
 >         makeView :: (String,[(String,[ScalarExpr])]) -> Statement
 >         makeView (tn, flds) =
 >           let allFields = nub $ concatMap snd flds
@@ -160,13 +160,15 @@ to deal with nulls/ maybe types?
 >               expr = -- constraints mean we only need to check one field
 >                      andTogether $ map makeNotNull allFirstFields
 >                      --makeNotNull $ head allFields
+>               tnx = Name ea [Nmc tn]
+>               bottomTableNamex = Name ea [Nmc bottomTableName]
 >           in fixSelectList (baseAttrIds ++ allFields)
->                [sqlStmt| create view $(tn) as
->                           select selectList from $(bottomTableName)
->                             where $(expr); |]
+>                [sqlStmt| create view $n(tnx) as
+>                           select selectList from $n(bottomTableNamex)
+>                             where $e(expr); |]
 >     in (mapMaybe makeConstraint (getExtraFields subt)
->        ,fixSelectList baseAttrIds [sqlStmt| create view $(baseName) as
->                                  select selectList from $(bottomTableName);|] :
+>        ,fixSelectList baseAttrIds [sqlStmt| create view $n(baseName) as
+>                                  select selectList from $n(bottomTableName);|] :
 >         map makeView (getExtraFields subt))
 >     where
 >       idFromAttr = Identifier ea . Nmc . attributeName
@@ -189,17 +191,17 @@ first.
 
 >
 > makeNotNull :: ScalarExpr -> ScalarExpr
-> makeNotNull x = [sqlExpr| $(x) is not null |]
+> makeNotNull x = [sqlExpr| $e(x) is not null |]
 >
 > makeNull :: ScalarExpr -> ScalarExpr
-> makeNull x = [sqlExpr| $(x) is null |]
+> makeNull x = [sqlExpr| $e(x) is null |]
 
 > andTogether :: [ScalarExpr] -> ScalarExpr
 > andTogether = let t = [sqlExpr| True |]
 >               in foldr (\a b ->
 >                          if b == t
 >                          then a
->                          else [sqlExpr| $(a) and $(b) |]) t
+>                          else [sqlExpr| $e(a) and $e(b) |]) t
 
 > ea :: Annotation
 > ea = emptyAnnotation

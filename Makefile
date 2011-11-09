@@ -81,20 +81,21 @@ HC_OPTS = $(HC_BASIC_OPTS) $(HC_INCLUDE_DIRS) $(HC_PACKAGES)
 
 EXE_FILES = src-extra/tests/Tests \
 	src-extra/devel-util/MakeDefaultTemplate1Catalog \
-	src-extra/examples/FixSqlServerTpchSyntax \
 	src-extra/examples/MakeSelect \
 	src-extra/examples/Parse \
 	src-extra/examples/Parse2 \
-	src-extra/examples/QQ \
 	src-extra/docutil/DevelTool \
 	src-extra/examples/Parse3 \
-	src-extra/h7c/h7c \
 	src-extra/examples/Lex \
 	src-extra/examples/TypeCheck2 \
 	src-extra/examples/TypeCheck \
 	src-extra/examples/TypeCheckDB \
 	src-extra/examples/PPPTest \
 	src-extra/examples/TypeCheckMystery
+
+#	src-extra/examples/FixSqlServerTpchSyntax 
+#	src-extra/examples/QQ 
+#	src-extra/h7c/h7c 
 
 #	src-extra/examples/ShowCatalog \
 #	src-extra/chaos/build.lhs

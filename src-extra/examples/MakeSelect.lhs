@@ -18,7 +18,7 @@
 >                (NoAlias emptyAnnotation)]
 >     si i = SelExp emptyAnnotation
 >                   (Identifier emptyAnnotation
->                               (Nmc i))
+>                               (Name emptyAnnotation [Nmc i]))
 
 > main :: IO ()
 > main = do
