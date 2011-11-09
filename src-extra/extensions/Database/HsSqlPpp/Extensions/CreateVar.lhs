@@ -43,24 +43,28 @@ database.
 > createVar =
 >     transformBi $ \x ->
 >       case x of
->         s@[sqlStmt| select create_var($s(varname)
->                                      ,$s(typename)); |] : tl
->             -> let tablename = varname ++ "_table"
->                    fnname = "get_" ++ varname
->                    conname = varname ++ "_table_01_tuple"
->                    expr = printScalarExpr defaultPPFlags
->                              [sqlExpr| (select count(*) from $(tablename)) <= 1 |]
+>         s@[sqlStmt| select create_var($e(varnamex)
+>                                      ,$e(typenamex)); |] : tl
+>             -> let StringLit _ varname = varnamex
+>                    varnamey = Nmc varname
+>                    StringLit _ typename = typenamex
+>                    typenamey = Name emptyAnnotation [Nmc typename]
+>                    tablename = Name emptyAnnotation [Nmc $ varname ++ "_table"]
+>                    fnname = Name emptyAnnotation [Nmc $ "get_" ++ varname]
+>                    conname = StringLit emptyAnnotation $  varname ++ "_table_01_tuple"
+>                    expr = StringLit emptyAnnotation $ printScalarExpr defaultPPFlags
+>                              [sqlExpr| (select count(*) from $n(tablename)) <= 1 |]
 >                in replaceSourcePos s [sqlStmts|
 >
->   create table $(tablename) (
->    $(varname) $(typename) primary key
+>   create table $n(tablename) (
+>    $m(varnamey) $n(typenamey) primary key
 >   );
 >
->   create function $(fnname)() returns $(typename) as $a$
->     select * from $(tablename);
+>   create function $n(fnname)() returns $n(typenamey) as $a$
+>     select * from $n(tablename);
 >   $a$ language sql stable;
 >
->   select create_assertion($s(conname), $s(expr));
+>   select create_assertion($e(conname), $e(expr));
 >
 >                    |] ++ tl
 >         x1 -> x1

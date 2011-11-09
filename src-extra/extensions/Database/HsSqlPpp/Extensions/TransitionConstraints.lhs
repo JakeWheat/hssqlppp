@@ -116,53 +116,56 @@ implementation
 > transitionConstraints =
 >     transformBi $ \x ->
 >       case x of
->         s@[sqlStmt| select $(fn)($s(tablename)
->                                ,$s(constraintname)
->                                ,$s(expressiontext));|] : tl
->             | fn == "create_insert_transition_tuple_constraint" ->
+>         s@[sqlStmt| select $m(fn)($e(tablename)
+>                                  ,$e(constraintname)
+>                                  ,$e(expressiontext));|] : tl
+>             | fn == Nmc "create_insert_transition_tuple_constraint" ->
 >                  replaceSourcePos s (
 >                  gen TInsert tablename constraintname expressiontext) ++ tl
->             | fn == "create_update_transition_tuple_constraint" ->
+>             | fn == Nmc "create_update_transition_tuple_constraint" ->
 >                  replaceSourcePos s (
 >                  gen TUpdate tablename constraintname expressiontext) ++ tl
->             | fn == "create_delete_transition_tuple_constraint" ->
+>             | fn == Nmc "create_delete_transition_tuple_constraint" ->
 >                  replaceSourcePos s (
 >                  gen TDelete tablename constraintname expressiontext) ++ tl
 >         x1 -> x1
 >     where
->       gen :: TriggerEvent -> String -> String -> String -> [Statement]
->       gen tct tablename constraintName expressionText =
->           let spliceFnName = "check_" ++ constraintName
+>       gen :: TriggerEvent -> ScalarExpr -> ScalarExpr -> ScalarExpr -> [Statement]
+>       gen tct tablename constraintName expr =
+>           let un (StringLit _ x) = x
+>               tblname = Nmc $ un tablename
+>               n x = Name emptyAnnotation [Nmc x]
+>               spliceFnName = n $ "check_" ++ un constraintName
 >               ttname = case tct of
 >                           TInsert -> "insert"
 >                           TUpdate -> "update"
 >                           TDelete -> "delete"
 >                           AntiTriggerEvent s -> "$(" ++ s ++ ")"
->               spliceErrMsg = ttname ++ " on " ++ tablename ++
->                        " violates transition constraint " ++ constraintName
->               spliceTriggerName = tablename ++ "_" ++ ttname ++ "_transition_trigger"
+>               spliceErrMsg = ttname ++ " on " ++ un tablename ++
+>                        " violates transition constraint " ++ un constraintName
+>               spliceTriggerName = Nmc $ un tablename ++ "_" ++ ttname ++ "_transition_trigger"
 >               ret = if tct == TDelete
 >                     then [sqlExpr| null |]
 >                     else [sqlExpr| OLD |]
->               expr = either (error . show) id
->                             $ parseScalarExpr defaultParseFlags "" Nothing expressionText
+>               --expr = either (error . show) id
+>               --              $ parseScalarExpr defaultParseFlags "" Nothing expressionText
 >           in [sqlStmts|
 
 \begin{code}
 
-      create function $(spliceFnName)() returns trigger as $a$
+      create function $n(spliceFnName)() returns trigger as $a$
       begin
-        if not ( $(expr)) then
-            raise exception '$(spliceErrMsg)';
+        if not ( $e(expr)) then
+            raise exception $s(spliceErrMsg);
         end if;
-        return $(ret);
+        return $e(ret);
       end;
       $a$ language plpgsql volatile;
 
-      create trigger $(spliceTriggerName)
-        after $(tct) on $(tablename)
+      create trigger $m(spliceTriggerName)
+        after $t(tct) on $m(tblname)
         for each row
-        execute procedure $(spliceFnName)();
+        execute procedure $n(spliceFnName)();
 
 \end{code}
 

@@ -1,7 +1,5 @@
 
-> {- | A quasiquoter for SQL. Antiquoting is a bit inconsistent. The
-> splice variable names must be all lower case because of a limitation
-> in the parser.
+> {- | A quasiquoter for SQL. Antiquoting is a bit inconsistent.
 >
 > Example:
 >
@@ -14,25 +12,46 @@
 > > test :: Statement
 > > test = [$sqlStmt|
 > >
-> >   create table $(tablename) (
-> >    $(varname) $(typename)
+> >   create table $n(tablename) (
+> >    $m(varname) $n(typename)
 > >   );
 > >
 > >         |]
 > >   where
-> >     tablename = "my_table"
-> >     varname = "my_field"
-> >     typename = "text"
+> >     tablename = [sqlName| my_table |]
+> >     varname = [sqlNameComponent| my_field |]
+> >     typename = [sqlName| text |]
 > >
 >
 > See <http://jakewheat.github.com/hssqlppp/QuasiQuoteTests.html>
 > for more simple examples
+>
+> The splices are:
+>
+> * $e(scalarexpression)
+>
+> * $s(string)
+>
+> * $t(triggerevent)
+>
+> * $s(statement)
+>
+> * $n(name)
+>
+> * $m(namecomponent)
+>
+> You can use $m() in a name context, and $n() or $m() in a scalar
+> expression context. You can only use a single variable name in a
+> splice atm.
 >      -}
 
 , and
 <http://jakewheat.github.com/hssqlppp/source/examples/Database/HsSqlPpp/Examples/Extensions/>
 for some example files which use quasiquotation to do ast
 transformations which implement syntax extensions to sql
+these files need fixing up before ready for public consumption
+
+
 
 >
 > {-# LANGUAGE ScopedTypeVariables #-}
@@ -43,7 +62,7 @@ transformations which implement syntax extensions to sql
 > import Language.Haskell.TH.Quote
 > import Language.Haskell.TH
 > import Data.Generics
-> --import Data.List
+> import Data.List
 >
 > import Database.HsSqlPpp.Parsing.ParserInternal
 > import Database.HsSqlPpp.Annotation
@@ -81,8 +100,6 @@ public api: the quasiquote functions
 > sqlNameComponent = makeQQ $ parseNameComponent defaultParseFlags
 
 
-
-
 boilerplate utils to hook everything together
 
 > type Parser e a = (String
@@ -95,20 +112,12 @@ boilerplate utils to hook everything together
 > makeQQ p = QuasiQuoter {quoteExp = parseExprExp p
 >                        ,quotePat = parseExprPat p}
 
-> {-extQE = dataToExpQ (const Nothing
->                     `extQ` antiExpE
->                     -- `extQ` antiStrE
->                     `extQ` antiTriggerEventE
->                     `extQ` antiStatementE
->                     `extQ` antiNameE
->                     `extQ` antiNameComponentE)-}
-
 > parseExprExp :: (Show e, Data a) =>
 >                 Parser e a -> String -> Q Exp
 > parseExprExp p s = parseSql' p s
 >                    >>= dataToExpQ (const Nothing
 >                                     `extQ` antiExpE
->                                     -- `extQ` antiStrE
+>                                     `extQ` antiStrE
 >                                     `extQ` antiTriggerEventE
 >                                     `extQ` antiStatementE
 >                                     `extQ` antiNameE
@@ -119,15 +128,19 @@ boilerplate utils to hook everything together
 > parseExprPat p s = parseSql' p s
 >                    >>=  dataToPatQ (const Nothing
 >                                     `extQ` antiExpP
->                                     -- `extQ` antiStrE
+>                                     `extQ` antiStrP
 >                                     `extQ` antiTriggerEventP
 >                                     `extQ` antiStatementP
 >                                     `extQ` antiNameP
->                                     `extQ` antiNameComponentP)
+>                                     `extQ` antiNameComponentP
+>                                     `extQ` annotToWildCard)
 >
 
 wrapper for all the different parsers which sets the source location
 and converts left to fail
+
+todo: error messages not coming out nicely from ghc when doing
+fail.show.
 
 > parseSql' :: (Data a, Show e) => Parser e a -> String -> Q a
 > parseSql' p s = do
@@ -207,6 +220,7 @@ position from the matched statements.
 > antiStatement _ = Nothing
 
 
+
 antistatements not working ...
 trying to replace a single antistatement node with multiple statement
 nodes and my generics skills aren't up to the task.
@@ -228,7 +242,7 @@ nodes and my generics skills aren't up to the task.
 > antiStatementE _ = Nothing-}
 
 
-> {-antiStrE :: String -> Maybe ExpQ
+> antiStrE :: String -> Maybe ExpQ
 > antiStrE v = fmap varE $ antiStr v
 
 > antiStrP :: String -> Maybe PatQ
@@ -239,13 +253,9 @@ nodes and my generics skills aren't up to the task.
 >   fmap mkName $ getSpliceName v
 >   where
 >     getSpliceName s
->       | isPrefixOf "$(" s && last s == ')' =
->           Just $ drop 2 $ init s
 >       | isPrefixOf "$s(" s && last s == ')' =
 >           Just $ drop 3 $ init s
->       | isPrefixOf "$i(" s && last s == ')' =
->           Just $ drop 3 $ init s
->       | otherwise = Nothing-}
+>       | otherwise = Nothing
 
 >
 > antiTriggerEventE :: TriggerEvent -> Maybe ExpQ

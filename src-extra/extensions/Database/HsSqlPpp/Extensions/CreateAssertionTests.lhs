@@ -422,10 +422,10 @@ that bad?
 >                            field text
 >                         ); |]
 >       constraint :: String -> String -> String -> Statement
->       constraint nm t1 t2 = let cn = conname nm
->                                 exs = exprs t1 t2
+>       constraint nm t1 t2 = let cn = Nmc $ conname nm
+>                                 exs = Nmc $ exprs t1 t2
 >                             in [$sqlStmt|
->                     select create_assertion('$(cn)','$(exs)');
+>                     select create_assertion($m(cn),$m(exs));
 >                                 |]
 >       conname nm = "valid_" ++ nm
 >       exprs t1 t2 = printScalarExpr $ exprn t1 t2
@@ -452,7 +452,7 @@ that bad?
 >                         create function $(nm)() returns trigger as $xxx$
 >                         begin
 >                           if not $(cn) then
->                             raise exception '$(errMsg)';
+>                             raise exception $s(errMsg);
 >                           end if;
 >                           return OLD;
 >                         end;
@@ -467,10 +467,10 @@ that bad?
 >                         create or replace function $(nm)() returns trigger as $xxx$
 >                         begin
 >                           if not $(c2n) then
->                             raise exception '$(errMsg2)';
+>                             raise exception $s(errMsg2);
 >                           end if;
 >                           if not $(c1n) then
->                             raise exception '$(errMsg1)';
+>                             raise exception $s(errMsg1);
 >                          end if;
 >                           return OLD;
 >                         end;

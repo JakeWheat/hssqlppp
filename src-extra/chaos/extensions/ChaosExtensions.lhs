@@ -17,6 +17,7 @@ chaos working again then will review approach.
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Parser
+> import Database.HsSqlPpp.Pretty
 > import Database.HsSqlPpp.Annotation
 >
 > import Database.HsSqlPpp.Extensions.ExtensionsUtils
@@ -89,16 +90,17 @@ lookup table. TODO: rewrite this paragraph in english.
 >     transformBi $ \x ->
 >       case x of
 >         s@[sqlStmt|
->            select create_client_action_wrapper($s(actname)
->                                               ,$s(actcall)); |]
->             -> let actionname = "action_" ++ actname
->                    expr = case parseScalarExpr defaultParseFlags "" Nothing ("action_" ++ actcall) of
+>            select create_client_action_wrapper($m(actname)
+>                                               ,$e(expr)); |]
+>             -> let un (Nmc x) = x
+>                    actionname = Nmc $ "action_" ++ un actname
+>                    {-expr = case parseScalarExpr defaultParseFlags "" Nothing ("action_" ++ actcall) of
 >                             Left e -> error $ show e
->                             Right e1 -> e1
+>                             Right e1 -> e1-}
 >                in replaceSourcePos1 s [sqlStmt|
->                    create function $(actionname)() returns void as $$
+>                    create function $m(actionname)() returns void as $$
 >                    begin
->                      perform $(expr);
+>                      perform $e(expr);
 >                    end;
 >                    $$ language plpgsql volatile;
 >                    |]
@@ -139,16 +141,19 @@ multiple updates.
 > noDelIns =
 >     transformBi $ \x ->
 >       case x of
->         s@[sqlStmt| select no_deletes_inserts_except_new_game($s(table));|] : tl ->
->           let icn = table ++ "_no_insert"
->               dcn = table ++ "_no_delete"
->               exprt = "exists(select 1 from creating_new_game_table\n\
->                       \       where creating_new_game = true)"
+>         s@[sqlStmt| select no_deletes_inserts_except_new_game($e(tablex));|] : tl
+>           | StringLit _ table <- tablex ->
+>           let un (Nmc n) = n
+>               icn = StringLit emptyAnnotation $ table ++ "_no_insert"
+>               dcn = StringLit emptyAnnotation $ table ++ "_no_delete"
+>               expr = StringLit emptyAnnotation $ printScalarExpr defaultPPFlags
+>                       [sqlExpr|exists(select 1 from creating_new_game_table
+>                               where creating_new_game = true) |]
 >           in replaceSourcePos s [sqlStmts|
 >               select create_insert_transition_tuple_constraint
->                    ($s(table),$s(icn),$s(exprt));
+>                    ($e(tablex),$e(icn),$e(expr));
 >               select create_delete_transition_tuple_constraint
->                    ($s(table),$s(dcn),$s(exprt));
+>                    ($e(tablex),$e(dcn),$e(expr));
 >               |] ++ tl
 >         x1 -> x1
 
@@ -257,14 +262,16 @@ readonly tables/ compile time constant relations stuff
 >       case x of
 >         s@[sqlStmt| select generate_spell_choice_actions(); |] : tl
 >             -> flip map spells (\spell ->
->                let actionname = "choose_" ++ spell ++ "_spell"
->                    wrappername = "action_" ++ actionname
+>                let un (Nmc x) = x
+>                    actionname = Nmc $ "choose_" ++ spell ++ "_spell"
+>                    wrappername = Nmc $ "action_" ++ un actionname
+>                    spellx = Nmc spell
 >                in replaceSourcePos1 s [sqlStmt|
 >
-> create function $(wrappername)() returns void as $$
+> create function $m(wrappername)() returns void as $$
 > begin
->   perform check_can_run_action($s(actionname));
->   perform action_choose_spell($s(spell));
+>   perform check_can_run_action($m(actionname));
+>   perform action_choose_spell($m(spellx));
 > end;
 > $$ language plpgsql volatile;
 >

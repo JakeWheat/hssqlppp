@@ -125,8 +125,10 @@ to deal with nulls/ maybe types?
 > makeViews :: [D6nfStatement] -> ([Constraint], [Statement])
 > makeViews dss =
 >     let (bottomTableName,f2) = head [(s1,f1) | DTable s1 [] f1 <- universeBi dss]
+>         bottomTableNamex = Name ea [Nmc bottomTableName]
 >         subt = [(tn,sts,f1) | DTable tn sts f1 <- universeBi dss, tn /= bottomTableName]
 >         baseName = bottomTableName ++ "_base"
+>         baseNamex = Name ea [Nmc baseName]
 >         baseAttrIds = map idFromAttr f2
 >         fixSelectList attrs st =
 >           flip transformBi st $ \x ->
@@ -161,17 +163,16 @@ to deal with nulls/ maybe types?
 >                      andTogether $ map makeNotNull allFirstFields
 >                      --makeNotNull $ head allFields
 >               tnx = Name ea [Nmc tn]
->               bottomTableNamex = Name ea [Nmc bottomTableName]
 >           in fixSelectList (baseAttrIds ++ allFields)
 >                [sqlStmt| create view $n(tnx) as
 >                           select selectList from $n(bottomTableNamex)
 >                             where $e(expr); |]
 >     in (mapMaybe makeConstraint (getExtraFields subt)
->        ,fixSelectList baseAttrIds [sqlStmt| create view $n(baseName) as
->                                  select selectList from $n(bottomTableName);|] :
+>        ,fixSelectList baseAttrIds [sqlStmt| create view $n(baseNamex) as
+>                                  select selectList from $n(bottomTableNamex);|] :
 >         map makeView (getExtraFields subt))
 >     where
->       idFromAttr = Identifier ea . Nmc . attributeName
+>       idFromAttr = Identifier ea . Name ea . (:[]) . Nmc . attributeName
 >       getExtraFields :: [(String,[String],[AttributeDef])] -> [(String,[(String,[ScalarExpr])])] -- table name, sourcetable,fieldlist
 >       getExtraFields tinfo = let t1 = map gef tinfo
 >                              in map (\a@((tn,_):_) -> (tn, reverse a)) t1 --first reverse here

@@ -166,8 +166,10 @@ to make it work right.
 > createAssertion ast = reverse $
 >  (\f -> evalState (transformBiM f (reverse ast)) ([] :: ConstraintRecord)) $ \x ->
 >       case x of
->         s@[sqlStmt| select create_assertion($s(name)
->                                           ,$s(exprtext));|] : tl -> do
+>         s@[sqlStmt| select create_assertion($e(namex)
+>                                           ,$e(exprtextx));|] : tl
+>             | StringLit _ name <- namex
+>             , StringLit _ exprtext <- exprtextx -> do
 >             existing <- get
 >             let (new, rast) = makeConstraintDdl existing name exprtext
 >             put new
@@ -197,23 +199,23 @@ to make it work right.
 >
 > makeCheckFn :: String -> ScalarExpr -> Statement
 > makeCheckFn name expr =
->     let checkfn = "check_con_" ++ name
+>     let checkfn = Name emptyAnnotation [Nmc $ "check_con_" ++ name]
 >     in [sqlStmt|
->              create function $(checkfn)() returns bool as $xxx$
+>              create function $n(checkfn)() returns bool as $xxx$
 >              begin
->                return $(expr);
+>                return $e(expr);
 >              end;
 >              $xxx$ language plpgsql stable;
 >            |]
 >
 > makeTriggerFn :: Bool -> String -> [String] -> Statement
 > makeTriggerFn r tn nms =
->   let trigopname = tn ++ "_constraint_trigger_operator"
+>   let trigopname = Name emptyAnnotation [Nmc $ tn ++ "_constraint_trigger_operator"]
 >       ifs :: [Statement]
 >       ifs = map makeIf nms
 >       -- using template approach cos can't get antistatement -> [statement] working
 >       template = [sqlStmt|
->                   create function $(trigopname)() returns trigger as $xxx$
+>                   create function $n(trigopname)() returns trigger as $xxx$
 >                   begin
 >                     null;
 >                     return OLD;
@@ -231,20 +233,21 @@ to make it work right.
 >              NullStatement _ : tl -> ifs ++ tl
 >              x1 -> x1
 >   where
->     makeIf nm = let chk = "check_con_" ++ nm
+>     makeIf nm = let chk = Name emptyAnnotation [Nmc $ "check_con_" ++ nm]
 >                     errMsg = "update violates database constraint " ++ nm
 >                 in [pgsqlStmt|
->                    if not $(chk)() then
->                       raise exception '$(errMsg)';
+>                    if not $n(chk)() then
+>                       raise exception $s(errMsg);
 >                    end if;
 >                    |]
 >
 > makeTrigger :: String -> Statement
-> makeTrigger tn = let trigname = tn ++ "_constraint_trigger"
->                      opname = tn ++ "_constraint_trigger_operator"
+> makeTrigger tn = let trigname = Nmc $ tn ++ "_constraint_trigger"
+>                      opname = Name emptyAnnotation [Nmc $ tn ++ "_constraint_trigger_operator"]
+>                      tnx = Name emptyAnnotation [Nmc tn]
 >                  in [sqlStmt|
->   create trigger $(trigname)
->     after insert or update or delete on $(tn)
+>   create trigger $m(trigname)
+>     after insert or update or delete on $n(tnx)
 >     for each statement
->     execute procedure $(opname)();
+>     execute procedure $n(opname)();
 >                        |]

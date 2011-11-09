@@ -58,6 +58,7 @@ hidden, without having to create a separate module.
 > import Database.HsSqlPpp.Quote
 > import Database.HsSqlPpp.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.Extensions.AstUtils
+> import Debug.Trace
 >
 > modulesExample :: ExtensionTest
 > modulesExample =
@@ -103,12 +104,13 @@ hidden, without having to create a separate module.
 >     ); |])
 >     ++ reverse (((\f -> evalState (transformBiM f (reverse st)) "no_module") $ \x ->
 >             case x of
->                s@[sqlStmt| select module($s(modname)); |] : tl
->                    -> do
->                       put modname
+>                s@[sqlStmt| select module($e(modname)); |] : tl
+>                  | StringLit _ modname' <- modname -> do
+>                       --let nm = StringLit emptyAnnotation modname'
+>                       put modname'
 >                       return $ replaceSourcePos1 s [sqlStmt|
 >                                 insert into modules (module_name)
->                                 values ($s(modname));|] : tl
+>                                 values ($e(modname));|] : tl
 >                s@(CreateTable _ n _ _) : tl -> insertIt s tl (getTName n) "table"
 >                s@(CreateView _ n _ _) : tl -> insertIt s tl (getTName n) "view"
 >                s@(CreateType _ n _) : tl -> insertIt s tl (getTName n) "type"
@@ -119,6 +121,9 @@ hidden, without having to create a separate module.
 >     where
 >       insertIt s tl nm ty = do
 >          m <- get
+>          let nmx = StringLit emptyAnnotation nm
+>          let tyx = StringLit emptyAnnotation ty
+>          let mx = StringLit emptyAnnotation m
 >          return $ replaceSourcePos1 s ([sqlStmt|
 >                    insert into all_module_objects (object_name,object_type,module_name)
->                    values ($s(nm),$s(ty), $s(m));|]) : s : tl
+>                    values ($e(nmx),$e(tyx), $e(mx));|]) : s : tl

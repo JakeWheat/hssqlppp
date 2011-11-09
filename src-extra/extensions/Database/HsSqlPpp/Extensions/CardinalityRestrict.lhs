@@ -53,15 +53,18 @@ select restrict_cardinality('tablename', '>=5 && <= 10');
 >     transformBi $ \x ->
 >       case x of
 >         s@[sqlStmt|
->           select restrict_cardinality($s(tablename), $(num)); |]
+>           select restrict_cardinality($e(tablenamex), $e(num)); |]
 >             -> let --i = [$sqlExpr| $(num) |]
->                    expr = printScalarExpr defaultPPFlags
->                             [sqlExpr| (select count(*) from $(tablename))
->                                         <= $(num) |]
->                    conname = tablename ++ "_card"
+>                    StringLit _ tablenamey = tablenamex
+>                    tablename = Nmc tablenamey
+>                    expr = StringLit emptyAnnotation $ printScalarExpr defaultPPFlags
+>                             [sqlExpr| (select count(*) from $m(tablename))
+>                                         <= $e(num) |]
+>                    --Name _ [Nmc tnn] = tablename
+>                    conname = StringLit emptyAnnotation $ tablenamey ++ "_card"
 >                in replaceSourcePos1 s [sqlStmt|
 >
->                   select create_assertion($s(conname), $s(expr));
+>                   select create_assertion($e(conname), $e(expr));
 >
 >                    |]
 >         x1 -> x1

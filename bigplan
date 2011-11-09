@@ -19,8 +19,6 @@ fix order by env (see add qualifiers on tpch sql order bys)
 error messages are broken for lexing,parsing? -> check from command
 line runner, and from quoting
 
-fixup the qq example for the new qq syntax
-
 not sure what else?
 
 get parameterized query typechecking working well enough to use
@@ -30,19 +28,6 @@ parameterized queries? Another target is to get actual chaos game
 working again
 perhaps instead of having chaos embedded in the hssqlppp source code,
 keep it all in separate project
-
-tidy up in quasi quotes:
-antiscalar
-antiname
-antinamecomponent
-antistatement
-antitriggerevent
-get rid of the quote/antistring, quote/antiidentifier stuff
-1) comment out qq tests
-2) fix in lexer: splices are parses to tokens in lexers
-3) fix parser to use these tokens
-4) write new version of the qq tests
-5) get chaos working again
 
 
 don't work on ddl, plpgsql until this is sorted

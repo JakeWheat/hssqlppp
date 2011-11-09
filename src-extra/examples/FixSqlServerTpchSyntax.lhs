@@ -39,17 +39,18 @@ Instead of:
 > fixIntervals :: Data a => a -> a
 > fixIntervals = transformBi $ \x -> case x of
 >   [$sqlExpr| $e(a) + $e(b) |] | Just (i,v,d) <- dateInfo a b ->
->      [$sqlExpr| dateAdd($i(i),$(v),$s(d))|]
+>      [$sqlExpr| dateAdd($e(i),$e(v),$e(d))|]
 >   [$sqlExpr| $e(a) - $e(b) |]| Just (i,v,d) <- dateInfo a b ->
->      [$sqlExpr| dateAdd($i(i),-$(v),$s(d))|]
+>      [$sqlExpr| dateAdd($e(i),-$e(v),$e(d))|]
 >   x' -> x'
 >   where
->     dateInfo (TypedStringLit _ (SimpleTypeName _ (Name _ [Nmc "date"])) d)
+>     dateInfo [$sqlExpr| $n(date) $s(d)|]
 >              (Interval _ v i _)
->              | Just i' <- lookup i [(IntervalDay,"day")
->                                    ,(IntervalMonth,"month")
->                                    ,(IntervalYear,"year")]
->              = Just (i',NumberLit emptyAnnotation v,d)
+>              | Just i' <- lookup i [(IntervalDay,[sqlExpr| day |])
+>                                    ,(IntervalMonth,[sqlExpr|month|])
+>                                    ,(IntervalYear,[sqlExpr|year|])]
+>              , Name _ [Nmc "date"] <- date
+>              = Just (i',NumberLit emptyAnnotation v,StringLit emptyAnnotation d)
 >     dateInfo _ _ = Nothing
 
  datepart(year,l_shipdate)

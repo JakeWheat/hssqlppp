@@ -8,15 +8,15 @@
 > test :: Statement
 > test = [$sqlStmt|
 >
->   create table $(tablename) (
->    $(varname) $(typename)
+>   create table $m(tablename) (
+>    $m(varname) $m(typename)
 >   );
 >
 >         |]
 >   where
->     tablename = "my_table"
->     varname = "my_field"
->     typename = "text"
+>     tablename = [sqlNameComponent|my_table|]
+>     varname = [sqlNameComponent|my_field|]
+>     typename = [sqlNameComponent|text|]
 
 > main :: IO ()
 > main = putStrLn $ printStatements defaultPPFlags [test]

@@ -29,12 +29,12 @@ Tests mainly for antiquotation, plus examples of where antiquotes work.
 > quasiQuoteTestData =
 >   Group "quasiQuoteTests" [
 
->     let tablename = [sqlName| my_table |]
+>     let tableName = [sqlName| my_table |]
 >         varname = [sqlNameComponent| my_field |]
 >         typename = [sqlName| text |]
 >     in Stmt [$sqlStmt|
 >
->      create table $n(tablename) (
+>      create table $n(tableName) (
 >        $m(varname) $n(typename)
 >      );
 >
@@ -120,92 +120,15 @@ Tests mainly for antiquotation, plus examples of where antiquotes work.
 >     ,let x = [$sqlName|splicedIdentifier|]
 >      in Expr [$sqlExpr| $n(x) |]
 >              [$sqlExpr| splicedIdentifier |]
->     {-,let errMsg = "this splice is slighty dodgy"
->      in PgSqlStmt [$pgsqlStmt|
->      if true then
->        raise exception '$(errMsg)';
->      end if;|]
->      [$pgsqlStmt|
->      if true then
->        raise exception 'this splice is slighty dodgy';
->      end if;|]-}
-
->     {-,let errMsg = "this splice isn't too dodgy"
+>     ,let errMsg = "string splice"
 >      in PgSqlStmt [$pgsqlStmt| raise exception $s(errMsg); |]
->                   [$pgsqlStmt| raise exception 'this splice isn''t too dodgy'; |]-}
+>                   [$pgsqlStmt| raise exception 'string splice'; |]
 
 
 
 --------------------------------------------------------------------------------
 
 expressions
-
->    {-
->
->     ,let errMsg = "this splice is slighty dodgy"
->      in PgSqlStmt [$pgsqlStmt|
->      if true then
->        raise exception '$(errMsg)';
->      end if;|]
->      [$pgsqlStmt|
->      if true then
->        raise exception 'this splice is slighty dodgy';
->      end if;|]
->
->     ,let tablename = "lotsastuff"
->      in Expr [$sqlExpr|(select count(*) from $(tablename))|]
->              [$sqlExpr|(select count(*) from lotsastuff)|]
->
->     ,let trigname = "tbl_trig1"
->          tablename = "tbl"
->          tevent = TUpdate
->          fn = "checkit"
->      in Stmt [$sqlStmt|
->      create trigger $(trigname)
->         after $(tevent) on $(tablename)
->         for each row
->         execute procedure $(fn)();
->             |] [$sqlStmt|
->      create trigger tbl_trig1
->         after update on tbl
->         for each row
->         execute procedure checkit();
->             |]
->     ,let x = "fnname"
->      in Expr [$sqlExpr| $(x)('a') |]
->              [$sqlExpr| fnname('a') |]
->     ,let x = "splicedstring"
->      in Expr [$sqlExpr| $s(x) |]
->              (StringLit ea "splicedstring")
->     ,let x = "splicedIdentifier"
->      in Expr [$sqlExpr| $i(x) |]
->              (Identifier ea $ Nmc "splicedIdentifier")
->     ,let errMsg = "this splice isn't too dodgy"
->      in PgSqlStmt [$pgsqlStmt| raise exception $s(errMsg); |]
->                   [$pgsqlStmt| raise exception 'this splice isn''t too dodgy'; |]-}
-
->     {-,let s1 = [sqlStmts| select * from tbl; |]
->      in Stmts [sqlStmts|
->      select 1;
->      $(s1);
->      select 2;|]
->        [sqlStmts|
->      select 1;
->      select * from tbl;
->      select 2;|]
-
->     ,let s1 = [$sqlStmt| select * from tbl; |]
->          s2 = [s1,s2]
->      in Stmts [sqlStmts|
->      select 1;
->      $(s2);
->      select 2;|]
->        [sqlStmts|
->      select 1;
->      select * from tbl;
->      select * from tbl;
->      select 2;|]-}
-
 
 >   ]
 

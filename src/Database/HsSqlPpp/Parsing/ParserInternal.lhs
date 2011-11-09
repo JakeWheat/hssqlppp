@@ -1138,24 +1138,9 @@ only limited support for tsql create index atm
 >              return ()
 >       return ()
 
-    | CreateIndexTSQL nm::String obj::{[NameComponent]} cols::{[NameComponent]}
-
-Create Relational Index 
-CREATE [ UNIQUE ] [ CLUSTERED | NONCLUSTERED ] INDEX index_name 
-    ON <object> ( column [ ASC | DESC ] [ ,...n ] ) 
-    [ INCLUDE ( column_name [ ,...n ] ) ]
-    [ WITH ( <relational_index_option> [ ,...n ] ) ]
-    [ ON { partition_scheme_name ( column_name ) 
-         | filegroup_name 
-         | default 
-         }
-    ]
-[ ; ]
-
-
 --------------------------------------------------------------------------------
 
-expressionsb
+expressions
 ===========
 
 This is the bit that makes it the most obvious that I don't really
@@ -2070,9 +2055,6 @@ ignore reserved keywords completely
 >   choice [Nmc <$> idString
 >          ,QNmc <$> qidString
 >          ,AntiNameComponent <$> splice 'm']
->   {-where
->      ssplice = (\s -> "$i(" ++ s ++ ")") <$>
->                (symbol "$i(" *> idString <* symbol ")")-}
 
 quick hack to support identifiers like this: 'test' for sql server
 
@@ -2102,23 +2084,11 @@ Utility parsers
 >                         lcase = map toLower
 >
 > idString :: SParser String
-> idString =
->     choice [{-(\l -> "$(" ++ l ++ ")")
->             <$> (symbol "$(" *> idString <* symbol ")")
->            ,-}ids
->            ]
->   where
->     ids = mytoken (\tok -> case tok of
+> idString = mytoken (\tok -> case tok of
 >                                      IdStringTok i -> Just i
 >                                      _ -> Nothing)
 > qidString :: SParser String
-> qidString =
->     choice [{-(\l -> "$(" ++ l ++ ")")
->             <$> (symbol "$(" *> idString <* symbol ")")
->            ,-}ids
->            ]
->   where
->     ids = mytoken (\tok -> case tok of
+> qidString = mytoken (\tok -> case tok of
 >                                      QIdStringTok i -> Just i
 >                                      _ -> Nothing)
 
@@ -2127,13 +2097,6 @@ Utility parsers
 >                                SpliceTok c' i | c == c' -> Just i
 >                                _ -> Nothing)
 
-
->
-> {-spliceD :: SParser String
-> spliceD = (\x -> "$(" ++ x ++ ")") <$> splice
->
-> splice :: SParser String
-> splice = symbol "$(" *> idString <* symbol ")"-}
 >
 > symbol :: String -> SParser ()
 > symbol c = mytoken (\tok -> case tok of
@@ -2168,12 +2131,12 @@ Utility parsers
 >                            _ -> Nothing)
 
 > stringLit :: SParser ScalarExpr
-> stringLit = StringLit <$> pos <*> liftStringTok
->             {-<|>
->             (StringLit <$> pos <*> ssplice)-}
->              {-ere
->                ssplice = (\s -> "$s(" ++ s ++ ")") <$>
->                            (symbol "$s(" *> idString <* symbol ")")-}
+> stringLit = choice
+>             [StringLit <$> pos <*> liftStringTok
+>              -- bit crap at the moment, not sure how to fix without
+>              -- mangling the ast types
+>             ,StringLit <$> pos <*> ((\s -> "$s(" ++ s ++ ")") <$> splice 's')
+>             ]
 >
 > stringN :: SParser String
 > stringN = mytoken (\tok ->
