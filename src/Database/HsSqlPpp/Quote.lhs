@@ -38,16 +38,17 @@ transformations which implement syntax extensions to sql
 > {-# LANGUAGE ScopedTypeVariables #-}
 >
 > module Database.HsSqlPpp.Quote
->     (sqlStmts,sqlStmt,pgsqlStmts,pgsqlStmt,sqlExpr) where
+>     (sqlStmts,sqlStmt,pgsqlStmts,pgsqlStmt,sqlExpr,sqlName,sqlNameComponent) where
 
 > import Language.Haskell.TH.Quote
 > import Language.Haskell.TH
 > import Data.Generics
-> import Data.List
+> --import Data.List
 >
 > import Database.HsSqlPpp.Parsing.ParserInternal
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Ast hiding (Name)
+> import qualified  Database.HsSqlPpp.Ast as A
 
 public api: the quasiquote functions
 
@@ -71,6 +72,17 @@ public api: the quasiquote functions
 > sqlExpr :: QuasiQuoter
 > sqlExpr = makeQQ $ parseScalarExpr defaultParseFlags
 
+> -- | quotes a Name
+> sqlName :: QuasiQuoter
+> sqlName = makeQQ $ parseName defaultParseFlags
+
+> -- | quotes a Name
+> sqlNameComponent :: QuasiQuoter
+> sqlNameComponent = makeQQ $ parseNameComponent defaultParseFlags
+
+
+
+
 boilerplate utils to hook everything together
 
 > type Parser e a = (String
@@ -83,25 +95,35 @@ boilerplate utils to hook everything together
 > makeQQ p = QuasiQuoter {quoteExp = parseExprExp p
 >                        ,quotePat = parseExprPat p}
 
+> {-extQE = dataToExpQ (const Nothing
+>                     `extQ` antiExpE
+>                     -- `extQ` antiStrE
+>                     `extQ` antiTriggerEventE
+>                     `extQ` antiStatementE
+>                     `extQ` antiNameE
+>                     `extQ` antiNameComponentE)-}
+
 > parseExprExp :: (Show e, Data a) =>
 >                 Parser e a -> String -> Q Exp
 > parseExprExp p s = parseSql' p s
->                    >>=  dataToExpQ (const Nothing
+>                    >>= dataToExpQ (const Nothing
 >                                     `extQ` antiExpE
->                                     `extQ` antiStrE
+>                                     -- `extQ` antiStrE
 >                                     `extQ` antiTriggerEventE
->                                     `extQ` antiStatementE)
->
+>                                     `extQ` antiStatementE
+>                                     `extQ` antiNameE
+>                                     `extQ` antiNameComponentE)
+
 > parseExprPat :: (Show e, Data a) =>
 >                 Parser e a ->  String -> Q Pat
 > parseExprPat p s = parseSql' p s
 >                    >>=  dataToPatQ (const Nothing
->                                     `extQ` antiExprP
->                                     `extQ` antiStrP
->                                     `extQ` annotToWildCard
->                                     --`extQ` antiTriggerEventE
->                                     --`extQ` antiStatementE
->                                    )
+>                                     `extQ` antiExpP
+>                                     -- `extQ` antiStrE
+>                                     `extQ` antiTriggerEventP
+>                                     `extQ` antiStatementP
+>                                     `extQ` antiNameP
+>                                     `extQ` antiNameComponentP)
 >
 
 wrapper for all the different parsers which sets the source location
@@ -144,31 +166,69 @@ position from the matched statements.
 > antiExpE :: ScalarExpr -> Maybe ExpQ
 > antiExpE v = fmap varE (antiExp v)
 >
-> antiExprP :: ScalarExpr -> Maybe PatQ
-> antiExprP v = fmap varP $ antiExp v
+> antiExpP :: ScalarExpr -> Maybe PatQ
+> antiExpP v = fmap varP $ antiExp v
 >
 > antiExp :: ScalarExpr -> Maybe Name
 > antiExp (AntiScalarExpr v) = Just $ mkName v
 > antiExp _ = Nothing
 
+
+> antiNameE :: A.Name -> Maybe ExpQ
+> antiNameE v = fmap varE (antiName v)
+>
+> antiNameP :: A.Name -> Maybe PatQ
+> antiNameP v = fmap varP $ antiName v
+>
+> antiName :: A.Name -> Maybe Name
+> antiName (AntiName v) = Just $ mkName v
+> antiName _ = Nothing
+
+> antiNameComponentE :: NameComponent -> Maybe ExpQ
+> antiNameComponentE v = fmap varE (antiNameComponent v)
+>
+> antiNameComponentP :: NameComponent -> Maybe PatQ
+> antiNameComponentP v = fmap varP $ antiNameComponent v
+>
+> antiNameComponent :: NameComponent -> Maybe Name
+> antiNameComponent (AntiNameComponent v) = Just $ mkName v
+> antiNameComponent _ = Nothing
+
+
+
+> antiStatementE :: Statement -> Maybe ExpQ
+> antiStatementE v = fmap varE (antiStatement v)
+>
+> antiStatementP :: Statement -> Maybe PatQ
+> antiStatementP v = fmap varP $ antiStatement v
+>
+> antiStatement :: Statement -> Maybe Name
+> antiStatement (AntiStatement v) = Just $ mkName v
+> antiStatement _ = Nothing
+
+
 antistatements not working ...
 trying to replace a single antistatement node with multiple statement
 nodes and my generics skills aren't up to the task.
 
-> antiStatementE :: [Statement] -> Maybe ExpQ
+
+> {-antiStatementE :: [Statement] -> Maybe ExpQ
 > antiStatementE (AntiStatement v : tl) =
 >    Just (listE (vref : conArgs))
 >    where
 >      conArgs = gmapQ (dataToExpQ (const Nothing
->                        `extQ` antiExpE
->                        `extQ` antiStrE
->                        `extQ` antiTriggerEventE
->                        `extQ` antiStatementE)) tl
+>                                     `extQ` antiExpE
+>                                     -- `extQ` antiStrE
+>                                     `extQ` antiTriggerEventE
+>                                     `extQ` antiStatementE
+>                                     `extQ` antiNameE
+>                                     `extQ` antiNameComponentE)) tl
 >      vref :: ExpQ
 >      vref = varE $ mkName v
-> antiStatementE _ = Nothing
+> antiStatementE _ = Nothing-}
 
-> antiStrE :: String -> Maybe ExpQ
+
+> {-antiStrE :: String -> Maybe ExpQ
 > antiStrE v = fmap varE $ antiStr v
 
 > antiStrP :: String -> Maybe PatQ
@@ -185,12 +245,16 @@ nodes and my generics skills aren't up to the task.
 >           Just $ drop 3 $ init s
 >       | isPrefixOf "$i(" s && last s == ')' =
 >           Just $ drop 3 $ init s
->       | otherwise = Nothing
+>       | otherwise = Nothing-}
 
 >
 > antiTriggerEventE :: TriggerEvent -> Maybe ExpQ
 > antiTriggerEventE (AntiTriggerEvent v) = Just $ varE $ mkName v
 > antiTriggerEventE _ = Nothing
+
+> antiTriggerEventP :: TriggerEvent -> Maybe PatQ
+> antiTriggerEventP (AntiTriggerEvent v) = Just $ varP $ mkName v
+> antiTriggerEventP _ = Nothing
 
 
 what needs to be done to support _ in pattern quasiquotes? -> I think

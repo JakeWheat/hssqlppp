@@ -15,6 +15,12 @@ funtrefs
 
 fix order by env (see add qualifiers on tpch sql order bys)
 
+
+error messages are broken for lexing,parsing? -> check from command
+line runner, and from quoting
+
+fixup the qq example for the new qq syntax
+
 not sure what else?
 
 get parameterized query typechecking working well enough to use

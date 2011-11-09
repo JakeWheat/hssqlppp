@@ -29,18 +29,13 @@ Tests mainly for antiquotation, plus examples of where antiquotes work.
 > quasiQuoteTestData =
 >   Group "quasiQuoteTests" [
 
---------------------------------------------------------------------------------
-
-expressions
-
->    Group "stuff" [
->      let tablename = "my_table"
->          varname = "my_field"
->          typename = "text"
->      in Stmt [$sqlStmt|
+>     let tablename = [sqlName| my_table |]
+>         varname = [sqlNameComponent| my_field |]
+>         typename = [sqlName| text |]
+>     in Stmt [$sqlStmt|
 >
->      create table $(tablename) (
->        $(varname) $(typename)
+>      create table $n(tablename) (
+>        $m(varname) $n(typename)
 >      );
 >
 >      |]
@@ -49,14 +44,15 @@ expressions
 >        my_field text
 >      );
 >      |]
->
->     ,let fnname = "my_function"
->          tablename = "my_table"
->          typename = "int"
+
+
+>     ,let fnname = [sqlName| my_function |]
+>          tablename = [sqlName| my_table |]
+>          typename = [sqlName| int |]
 >      in Stmt [$sqlStmt|
 >
->   create function $(fnname)() returns $(typename) as $a$
->     select * from $(tablename);
+>   create function $n(fnname)() returns $n(typename) as $a$
+>     select * from $n(tablename);
 >   $a$ language sql stable;
 >
 >      |]
@@ -65,20 +61,86 @@ expressions
 >     select * from my_table;
 >   $a$ language sql stable;
 >      |]
->
->     ,let fnname = "my_function"
->      in Stmt [$sqlStmt| drop function $(fnname)();|]
+
+
+>     ,let fnname = [sqlName|my_function|]
+>      in Stmt [$sqlStmt| drop function $n(fnname)();|]
 >              [$sqlStmt| drop function my_function();|]
 >
 >     ,let expr = StringLit ea "testing"
->      in PgSqlStmt [$pgsqlStmt| return $(expr); |]
+>      in PgSqlStmt [$pgsqlStmt| return $e(expr); |]
 >                   [$pgsqlStmt| return 'testing'; |]
->
->     ,let expr = (BinaryOp ea (Name ea [Nmc "+"])
->                              (NumberLit ea "3")
->                              (NumberLit ea "4"))
->      in PgSqlStmt [$pgsqlStmt| return $(expr); |]
+
+>     ,let expr = [sqlExpr| 3 + 4 |]
+>      in PgSqlStmt [$pgsqlStmt| return $e(expr); |]
 >                   [$pgsqlStmt| return 3 + 4; |]
+>
+
+>     ,let triggername = [sqlNameComponent|my_trigger|]
+>          tablename = [sqlName|my_table|]
+>          opname = [sqlName|my_function|]
+>      in Stmt [$sqlStmt|
+>   create trigger $m(triggername)
+>     after insert or update or delete on $n(tablename)
+>     for each statement
+>     execute procedure $n(opname)();
+>             |]
+>              [$sqlStmt|
+>   create trigger my_trigger
+>     after insert or update or delete on my_table
+>     for each statement
+>     execute procedure my_function();
+>             |]
+
+>     ,let tablename = [sqlName|lotsastuff|]
+>      in Expr [$sqlExpr|(select count(*) from $n(tablename))|]
+>              [$sqlExpr|(select count(*) from lotsastuff)|]
+>
+>     ,let trigname = [sqlNameComponent|tbl_trig1|]
+>          tablename = [sqlName|tbl|]
+>          tevent = TUpdate
+>          fn = [sqlName|checkit|]
+>      in Stmt [$sqlStmt|
+>      create trigger $m(trigname)
+>         after $t(tevent) on $n(tablename)
+>         for each row
+>         execute procedure $n(fn)();
+>             |] [$sqlStmt|
+>      create trigger tbl_trig1
+>         after update on tbl
+>         for each row
+>         execute procedure checkit();
+>             |]
+>     ,let x = [sqlName| fnname |]
+>      in Expr [$sqlExpr| $n(x)('a') |]
+>              [$sqlExpr| fnname('a') |]
+>     ,let x = StringLit ea "splicedstring"
+>      in Expr [$sqlExpr| $e(x) |]
+>              [$sqlExpr| 'splicedstring' |]
+>     ,let x = [$sqlName|splicedIdentifier|]
+>      in Expr [$sqlExpr| $n(x) |]
+>              [$sqlExpr| splicedIdentifier |]
+>     {-,let errMsg = "this splice is slighty dodgy"
+>      in PgSqlStmt [$pgsqlStmt|
+>      if true then
+>        raise exception '$(errMsg)';
+>      end if;|]
+>      [$pgsqlStmt|
+>      if true then
+>        raise exception 'this splice is slighty dodgy';
+>      end if;|]-}
+
+>     {-,let errMsg = "this splice isn't too dodgy"
+>      in PgSqlStmt [$pgsqlStmt| raise exception $s(errMsg); |]
+>                   [$pgsqlStmt| raise exception 'this splice isn''t too dodgy'; |]-}
+
+
+
+--------------------------------------------------------------------------------
+
+expressions
+
+>    {-
 >
 >     ,let errMsg = "this splice is slighty dodgy"
 >      in PgSqlStmt [$pgsqlStmt|
@@ -90,21 +152,6 @@ expressions
 >        raise exception 'this splice is slighty dodgy';
 >      end if;|]
 >
->     ,let triggername = "my_trigger"
->          tablename = "my_table"
->          opname = "my_function"
->      in Stmt [$sqlStmt|
->   create trigger $(triggername)
->     after insert or update or delete on $(tablename)
->     for each statement
->     execute procedure $(opname)();
->             |]
->              [$sqlStmt|
->   create trigger my_trigger
->     after insert or update or delete on my_table
->     for each statement
->     execute procedure my_function();
->             |]
 >     ,let tablename = "lotsastuff"
 >      in Expr [$sqlExpr|(select count(*) from $(tablename))|]
 >              [$sqlExpr|(select count(*) from lotsastuff)|]
@@ -135,7 +182,7 @@ expressions
 >              (Identifier ea $ Nmc "splicedIdentifier")
 >     ,let errMsg = "this splice isn't too dodgy"
 >      in PgSqlStmt [$pgsqlStmt| raise exception $s(errMsg); |]
->                   [$pgsqlStmt| raise exception 'this splice isn''t too dodgy'; |]
+>                   [$pgsqlStmt| raise exception 'this splice isn''t too dodgy'; |]-}
 
 >     {-,let s1 = [sqlStmts| select * from tbl; |]
 >      in Stmts [sqlStmts|
@@ -160,7 +207,7 @@ expressions
 >      select 2;|]-}
 
 
->   ]]
+>   ]
 
 
 ================================================================================

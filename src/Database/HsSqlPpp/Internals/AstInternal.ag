@@ -224,7 +224,7 @@ data Statement
                      start::Integer
                      cache::Integer
     | AlterSequence ann::Annotation
-                    name::Name
+                   name::Name
                     ownedBy:: Name
     | CreateTableAs ann::Annotation
                     name :: Name
@@ -342,10 +342,10 @@ data Statement
 
     | AntiStatement String
     | DeclareStatement ann::Annotation ds::{[(String,TypeName,Maybe ScalarExpr)]}
-    | ExecStatement ann::Annotation spName::{[NameComponent]} args::ScalarExprList
+    | ExecStatement ann::Annotation spName::Name args::ScalarExprList
     | CreateIndexTSQL ann::Annotation
                       nm::NameComponent
-                      obj::{[NameComponent]}
+                      obj::Name
                       cols::{[NameComponent]}
 
 
@@ -598,13 +598,13 @@ data ScalarExpr | NumberLit ann::Annotation d::String
                        tn::TypeName
                 | Star ann::Annotation
                 | QStar ann::Annotation q::NameComponent -- e.g. a.*
+                  -- the parser produces an identifier when all the
+                  -- components are quoted or unquoted name components
+                  -- when there are parens or other expressions in the
+                  -- mix it produces binaryop "."
+
                 | Identifier ann::Annotation -- e.g. tbl
-                             i::NameComponent
-                -- qualified identifiers are usually represented using
-                -- QIdentifier and dot selectors on non identifers are
-                -- represented using FunCall "."  so there is a bit of
-                -- multiple ways to represent the same thing there
-                | QIdentifier ann::Annotation is::{[NameComponent]} -- e.g. tbl.a
+                             i::Name
                 | Case ann::Annotation
                        cases :: CaseScalarExprListScalarExprPairList
                        els :: MaybeScalarExpr

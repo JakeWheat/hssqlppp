@@ -19,7 +19,7 @@ to help with getting the type of ? placeholders, and for inserting
 sem ScalarExpr
     | NumberLit StringLit NullLit BooleanLit TypedStringLit Interval
       Extract PositionalArg Placeholder Cast Star QStar Identifier
-      QIdentifier Case CaseSimple Exists App AggregateApp
+      Case CaseSimple Exists App AggregateApp
       WindowApp InPredicate LiftApp ScalarSubQuery
       BinaryOp PrefixOp PostfixOp SpecialOp
         ann.tpe = @loc.tpe
@@ -143,7 +143,7 @@ identifiers
 
 -}
     | Identifier
-         loc.elkp = envLookupIdentifier [@i] @lhs.downEnv
+         loc.elkp = envLookupIdentifier (nameComponents @i.originalTree) @lhs.downEnv
          loc.tpe = fmap snd @loc.elkp
          lhs.annotatedTree =
            fromMaybe @annotatedTree $ do
@@ -157,11 +157,14 @@ identifiers
                         -- comes from a tref then should be able to add a qualifier
                         if q /= ""
                           then -- todo: quote identifiers if needed
-                               return $ QIdentifier @ann.annotatedTree [Nmc q, Nmc i]
+                               return $ Identifier @ann.annotatedTree
+                                          (Name emptyAnnotation [Nmc q, Nmc i])
                           else return @annotatedTree
+         i.tpe = Left []
 
-    | QIdentifier
-         loc.tpe = fmap snd $ envLookupIdentifier @is @lhs.downEnv
+ {-   | Identifier
+        
+        loc.tpe = fmap snd $ envLookupIdentifier (nameComponents @nm.annotatedTree) @lhs.downEnv-}
 
 
 {-

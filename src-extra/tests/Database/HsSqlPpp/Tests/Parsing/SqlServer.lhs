@@ -133,11 +133,11 @@ server...obj
 >                      (NoAlias ea))]
 
 >   ,s "CREATE NONCLUSTERED INDEX idx ON tbl (col) INCLUDE (Gap)"
->      $ [CreateIndexTSQL ea (Nmc "idx") [Nmc "tbl"] [Nmc "col"]]
+>      $ [CreateIndexTSQL ea (Nmc "idx") (Name ea [Nmc "tbl"]) [Nmc "col"]]
 
 >   ,s "CREATE NONCLUSTERED INDEX idx ON [dbo].[#tmp] (col) INCLUDE (Gap)"
->      $ [CreateIndexTSQL ea (Nmc "idx") [QNmc "dbo"
->                                        ,QNmc "#tmp"] [Nmc "col"]]
+>      $ [CreateIndexTSQL ea (Nmc "idx") (Name ea [QNmc "dbo"
+>                                                 ,QNmc "#tmp"]) [Nmc "col"]]
 >   ,s "select y -@test from t"
 >      $ [QueryStatement ea
 >         $ selectFrom [SelExp ea (binop "-" (ei "y") (ei "@test"))]

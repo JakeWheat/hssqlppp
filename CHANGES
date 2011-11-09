@@ -16,7 +16,9 @@ lots of improvements to the Type module, types and documentation
 better haddock documentation
 parser/syntax additions and fixes:
 split functions and operators into different ctors (App, BinaryOp,
-  PrefixOp, etc.)
+  PrefixOp, etc.), now parses prefix - as "-" instead of hacky "u-"
+  because of this
+represent parens in scalarexpr in the ast
 rename some badly named ctors in the syntax
 use names in LiftApp
 limited explicit support for sql server syntax/tsql as separate

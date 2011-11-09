@@ -92,6 +92,7 @@ src-extra/examples/PPPTest.o : src/Database/HsSqlPpp/Pretty.hi
 src-extra/examples/PPPTest.o : src/Database/HsSqlPpp/Parser.hi
 src/Database/HsSqlPpp/Quote.o : src/Database/HsSqlPpp/Quote.lhs
 src/Database/HsSqlPpp/Quote.o : src/Database/HsSqlPpp/Ast.hi
+src/Database/HsSqlPpp/Quote.o : src/Database/HsSqlPpp/Ast.hi
 src/Database/HsSqlPpp/Quote.o : src/Database/HsSqlPpp/Annotation.hi
 src/Database/HsSqlPpp/Quote.o : src/Database/HsSqlPpp/Parsing/ParserInternal.hi
 src-extra/examples/FixSqlServerTpchSyntax.o : src-extra/examples/FixSqlServerTpchSyntax.lhs

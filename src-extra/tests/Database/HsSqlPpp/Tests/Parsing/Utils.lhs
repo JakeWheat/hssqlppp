@@ -40,16 +40,16 @@ shortcuts for constructing test data and asts
 > dqi x = Name ea [Nmc x]
 
 > eqi :: String -> String -> ScalarExpr
-> eqi c x = QIdentifier ea [Nmc c, Nmc x]
+> eqi c x = Identifier ea (Name ea [Nmc c, Nmc x])
 
 > ei :: String -> ScalarExpr
-> ei = Identifier ea . Nmc
+> ei j = Identifier ea (Name ea [Nmc j])
 >
 > qi :: String -> String -> Name
 > qi c n = Name ea [Nmc c, Nmc n]
 >
 > selI :: String -> SelectItem
-> selI = SelExp ea . Identifier ea . Nmc
+> selI = SelExp ea . ei
 >
 > sl :: SelectItemList -> SelectList
 > sl = SelectList ea
@@ -73,6 +73,10 @@ shortcuts for constructing test data and asts
 
 > instance IsString NameComponent where
 >     fromString = Nmc
+
+> instance IsString Name where
+>     fromString j = Name ea [Nmc j]
+
 
 > member :: ScalarExpr -> ScalarExpr -> ScalarExpr
 > member a b = BinaryOp ea (name ".") a b

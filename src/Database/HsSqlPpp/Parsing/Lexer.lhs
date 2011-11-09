@@ -64,6 +64,7 @@ can be lost (e.g. something like "0.2" parsing to 0.199999999 float.
 >          | NumberTok String
 
 >          | CopyPayloadTok String -- support copy from stdin; with inline data
+>          | SpliceTok Char String
 >            deriving (Eq,Show)
 >
 > type LexState = [Tok]
@@ -103,28 +104,39 @@ we read a normal token.
 
 > sqlToken :: SQLSyntaxDialect -> Parser Token
 > sqlToken d = do
->            sp <- getPosition
->            sta <- getState
->            t <- if sta == [ft,st,mt]
->                 then copyPayload
->                 else try sqlNumber
->                  <|> try sqlString
->                  <|> try (idString d)
->                  <|> try (qidString d)
->                  <|> try positionalArg
->                  <|> try (sqlSymbol d)
->            updateState $ \stt ->
+>   sp <- getPosition
+>   sta <- getState
+>   t <- if sta == [ft,st,mt]
+>        then copyPayload
+>        else choice
+>             [try sqlNumber
+>             ,try positionalArg
+>             ,try splice
+>             ,try (sqlString)
+>             ,try (idString d)
+>             ,try (qidString d)
+>             ,sqlSymbol d]
+>   updateState $ \stt ->
 >              case () of
 >                      _ | stt == [] && t == ft -> [ft]
 >                        | stt == [ft] && t == st -> [ft,st]
 >                        | stt == [ft,st] && t == mt -> [ft,st,mt]
 >                        | otherwise -> []
 >
->            return (sp,t)
->            where
->              ft = IdStringTok "from"
->              st = IdStringTok "stdin"
->              mt = SymbolTok ";"
+>   return (sp,t)
+>   where
+>     ft = IdStringTok "from"
+>     st = IdStringTok "stdin"
+>     mt = SymbolTok ";"
+
+> splice :: Parser Tok
+> splice = lexeme $ do
+>   _ <- char '$'
+>   c <- letter
+>   _ <- char '('
+>   sn <- identifierString
+>   _ <- char ')'
+>   return $ SpliceTok c sn
 
 == specialized token parsers
 
@@ -241,9 +253,9 @@ deals with this.
 >                         ,try $ string "::"
 >                         ,try $ string ":="
 >                         ,string ":"
->                         ,try $ string "$(" -- antiquote standard splice
->                         ,try $ string "$s(" -- antiquote string splice
->                         ,string "$i(" -- antiquote identifier splice
+>                         --,try $ string "$(" -- antiquote standard splice
+>                         --,try $ string "$s(" -- antiquote string splice
+>                         --,string "$i(" -- antiquote identifier splice
 >                          --cut down version: don't allow operator to contain + or -
 >                         ,anotherOp d
 >                         ])
@@ -415,11 +427,8 @@ the fields are not used at all (like identifier and operator stuff)
 >                            ,P.identStart = letter <|> char '_'
 >                            ,P.identLetter    = alphaNum <|> oneOf "_"
 >                            ,P.opStart        = P.opLetter emptyDef
->                            ,P.opLetter       = oneOf opLetters
+>                            ,P.opLetter       = oneOf ".:^*/%+-<>=|!"
 >                            ,P.reservedOpNames= []
 >                            ,P.reservedNames  = []
 >                            ,P.caseSensitive  = False
 >                            })
->
-> opLetters :: String
-> opLetters = ".:^*/%+-<>=|!"

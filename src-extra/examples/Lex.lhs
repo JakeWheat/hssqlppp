@@ -8,5 +8,6 @@
 > main :: IO ()
 > main = do
 >   [s] <- getArgs
->   putStrLn $ groom $ lexSql PostgreSQLDialect "" Nothing s
+>   f <- readFile s
+>   putStrLn $ groom $ lexSql PostgreSQLDialect "" Nothing f
 >   --putStrLn $ groom $ parsePlpgsql "" s

@@ -4,16 +4,6 @@ see bigplan for some details
 
 review and fix some of the syntax?
 
-start thinking about how to support both postgresql and sql server better
-  maybe stick with postgresql as guide for abstract syntax
-  add bits from sql server where they don't have a parallel in postgres
-  add a flag to only parse postgres or sql server constructs
-  add a flag to pretty print in postgres or sql server
-  maybe add a syntax check to check an ast value is valid
-    - this check could cover a bunch of other things which are
-      syntactically possible because of the design of the ast types,
-      but don't represent valid concrete syntax
-
 idea for :: cast
 
 -> parse typenames as scalarexpressions by embeding them in

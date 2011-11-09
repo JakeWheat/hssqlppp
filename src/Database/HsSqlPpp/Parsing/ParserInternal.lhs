@@ -24,6 +24,8 @@ right choice, but it seems to do the job pretty well at the moment.
 >     ,idString
 >     ,commaSep1
 >     ,commaSep
+>     ,parseName
+>     ,parseNameComponent
 >     ) where
 >
 > import Text.Parsec hiding (many, optional, (<|>), string, label)
@@ -125,6 +127,23 @@ state is never updated during parsing
 > isSqlServer = do
 >   ParseFlags {pfDialect = d} <- getState
 >   return $ d == SQLServerDialect
+
+couple of wrapper functions for the quoting
+
+> parseName :: ParseFlags
+>           -> FilePath
+>           -> Maybe (Int,Int)
+>           -> String
+>           -> Either ParseErrorExtra Name
+> parseName = parseIt' $ name <* eof
+
+> parseNameComponent :: ParseFlags
+>           -> FilePath
+>           -> Maybe (Int,Int)
+>           -> String
+>           -> Either ParseErrorExtra NameComponent
+> parseNameComponent = parseIt' $ nameComponent <* eof
+
 
 --------------------------------------------------------------------------------
 
@@ -780,7 +799,7 @@ variable declarations in a plpgsql function
 >                    ,TriggerAfter <$ keyword "after"]
 >     tevents :: SParser [TriggerEvent]
 >     tevents = sepBy1 (choice [
->                          AntiTriggerEvent <$> splice
+>                          AntiTriggerEvent <$> splice 't'
 >                         ,TInsert <$ keyword "insert"
 >                         ,TUpdate <$ keyword "update"
 >                         ,TDelete <$ keyword "delete"]) (keyword "or")
@@ -794,7 +813,7 @@ anti statement
 --------------
 
 > antiStatement :: SParser Statement
-> antiStatement = AntiStatement <$> splice
+> antiStatement = AntiStatement <$> splice 's'
 
 --------------------------------------------------------------------------------
 
@@ -961,7 +980,7 @@ plpgsql statements
 >    isSqlServer >>= guard
 >    _ <- keyword "exec" <|> keyword "execute"
 >    ExecStatement <$> pos
->      <*> ncs
+>      <*> name
 >      <*> commaSep expr
 >   ,Execute <$> (pos <* keyword "execute")
 >            <*> expr]
@@ -1105,7 +1124,7 @@ only limited support for tsql create index atm
 >   CreateIndexTSQL
 >   <$> try (pos <* flavs <* keyword "index")
 >   <*> nameComponent
->   <*> (keyword "on" *> ncs)
+>   <*> (keyword "on" *> name)
 >   <*> parens (commaSep1 nameComponent) <* opts
 >   where
 >     flavs = do
@@ -1209,6 +1228,7 @@ with a function, so you don't try an parse a keyword as a function name
 >       ,antiScalarExpr
 >       ,keywordFunction
 >       ,identifier
+>       ,Identifier <$> pos <*> (AntiName <$> splice 'n')
 >       ]
 
 operator table
@@ -1430,12 +1450,9 @@ and () is a syntax error.
 >                    <*> squares (commaSep expr)
 >
 > arraySubSuffix :: ScalarExpr -> SParser ScalarExpr
-> arraySubSuffix e = case e of
->                      Identifier _ (Nmc "array") -> fail "can't use array \
->                                                         \as identifier name"
->                      _ -> SpecialOp <$> pos
->                                   <*> (nm <$> pos <*> return "!arraysub")
->                                   <*> ((e:) <$> squares (commaSep1 expr))
+> arraySubSuffix e = SpecialOp <$> pos
+>                    <*> (nm <$> pos <*> return "!arraysub")
+>                    <*> ((e:) <$> squares (commaSep1 expr))
 >
 > windowFnSuffix :: ScalarExpr -> SParser ScalarExpr
 > windowFnSuffix e = WindowApp <$> pos <*> return e
@@ -1517,12 +1534,10 @@ checking with aggregates at the moment so should fix it all together.
 >  -- bit hacky, if exp is a identifier or qualified, then
 >  -- convert to function, also support antiquote for function name
 >    case ex of
->      Identifier _ n -> fn [n]
->      QIdentifier _ nms -> fn nms
->      AntiScalarExpr n -> fn [Nmc $ "$(" ++ n ++ ")"]
+>      Identifier _ nm' -> fn nm'
 >      s -> fail $ "cannot make functioncall from " ++ show s
 >    where
->      fn :: [NameComponent] -> SParser ScalarExpr
+>      fn :: Name -> SParser ScalarExpr
 >      fn fnName = do
 >        p <- pos
 >        (di,as,ob) <- parens
@@ -1534,10 +1549,9 @@ checking with aggregates at the moment so should fix it all together.
 >                                             ,Dupes <$ keyword "all"])
 >                                <*> commaSep expr
 >                                <*> orderBy]
->        let nameName = Name p fnName
 >        return $ case (di,ob) of
->          (Nothing,[]) -> App p nameName as
->          (d,o) -> AggregateApp p (fromMaybe Dupes d) (App p nameName as) o
+>          (Nothing,[]) -> App p fnName as
+>          (d,o) -> AggregateApp p (fromMaybe Dupes d) (App p fnName as) o
 
 these won't parse as normal functions because they use keywords so do
 a special case for them
@@ -1547,7 +1561,7 @@ a special case for them
 >   p <- pos
 >   i <- nameComponentAllows kfs
 >   unless (iskfs i) $ fail "not any or all"
->   functionCallSuffix (Identifier p i)
+>   functionCallSuffix (Identifier p (Name p [i]))
 >   where
 >     kfs = ["any","all","isnull"]
 >     iskfs (Nmc n) | map toLower n `elem` kfs = True
@@ -1660,15 +1674,13 @@ identifier parsing, quite a few variations ...
 parse x.y, x.y.z, etc.
 
 > qualIdSuffix :: ScalarExpr -> SParser ScalarExpr
-> qualIdSuffix (Identifier _p i) = do
->   qualIdX [i]
-> qualIdSuffix (QIdentifier _p is) = do
+> qualIdSuffix (Identifier _p (Name _ is)) = do
 >   qualIdX is
 
 > qualIdSuffix e = do
 >     p <- pos
 >     i1 <- symbol "." *> nameComponent
->     return $ BinaryOp p (nm p ".") e (Identifier p i1)
+>     return $ BinaryOp p (nm p ".") e (Identifier p (Name p [i1]))
 
 > qualIdX :: [NameComponent] -> SParser ScalarExpr
 > qualIdX is = do
@@ -1680,13 +1692,13 @@ parse x.y, x.y.z, etc.
 >     regular = do
 >               p <- pos
 >               i1 <- symbol "." *> nameComponent
->               return $ QIdentifier p (is ++ [i1])
+>               return $ Identifier p (Name p (is ++ [i1]))
 >     sqls = do
 >            p <- pos
 >            numDots <- readNDots
 >            let eis = replicate (numDots - 1) (Nmc "")
 >            i1 <- nameComponent
->            return $ QIdentifier p (is ++ eis ++ [i1])
+>            return $ Identifier p (Name p (is ++ eis ++ [i1]))
 
 the cranky lexer lexes lots of dots ......
 as mixtures of symbol "." and symbol ".."
@@ -1698,10 +1710,8 @@ we just want to know how many dots in a row there are
 
 
 
-parse a single namecomponent as an identifier
-
 > identifier :: SParser ScalarExpr
-> identifier = Identifier <$> pos <*> nameComponent
+> identifier = Identifier <$> pos <*> name
 
 see sql-keywords appendix in pg manual
 
@@ -2031,7 +2041,9 @@ http://msdn.microsoft.com/en-us/library/ms189822.aspx
 parse a complete name
 
 > name :: SParser Name
-> name = Name <$> pos <*> ncs
+> name = choice [AntiName <$> splice 'n'
+>               ,Name <$> pos <*> ncs
+>               ]
 
 > nameComponent :: SParser NameComponent
 > nameComponent = nameComponentAllows []
@@ -2057,11 +2069,10 @@ ignore reserved keywords completely
 > unrestrictedNameComponent = do
 >   choice [Nmc <$> idString
 >          ,QNmc <$> qidString
->          ,Nmc <$> spliceD
->          ,Nmc <$> ssplice]
->   where
+>          ,AntiNameComponent <$> splice 'm']
+>   {-where
 >      ssplice = (\s -> "$i(" ++ s ++ ")") <$>
->                (symbol "$i(" *> idString <* symbol ")")
+>                (symbol "$i(" *> idString <* symbol ")")-}
 
 quick hack to support identifiers like this: 'test' for sql server
 
@@ -2092,9 +2103,9 @@ Utility parsers
 >
 > idString :: SParser String
 > idString =
->     choice [(\l -> "$(" ++ l ++ ")")
+>     choice [{-(\l -> "$(" ++ l ++ ")")
 >             <$> (symbol "$(" *> idString <* symbol ")")
->            ,ids
+>            ,-}ids
 >            ]
 >   where
 >     ids = mytoken (\tok -> case tok of
@@ -2102,22 +2113,27 @@ Utility parsers
 >                                      _ -> Nothing)
 > qidString :: SParser String
 > qidString =
->     choice [(\l -> "$(" ++ l ++ ")")
+>     choice [{-(\l -> "$(" ++ l ++ ")")
 >             <$> (symbol "$(" *> idString <* symbol ")")
->            ,ids
+>            ,-}ids
 >            ]
 >   where
 >     ids = mytoken (\tok -> case tok of
 >                                      QIdStringTok i -> Just i
 >                                      _ -> Nothing)
 
+> splice :: Char -> SParser String
+> splice c = mytoken (\tok -> case tok of
+>                                SpliceTok c' i | c == c' -> Just i
+>                                _ -> Nothing)
+
 
 >
-> spliceD :: SParser String
+> {-spliceD :: SParser String
 > spliceD = (\x -> "$(" ++ x ++ ")") <$> splice
 >
 > splice :: SParser String
-> splice = symbol "$(" *> idString <* symbol ")"
+> splice = symbol "$(" *> idString <* symbol ")"-}
 >
 > symbol :: String -> SParser ()
 > symbol c = mytoken (\tok -> case tok of
@@ -2134,7 +2150,7 @@ Utility parsers
 > positionalArg = PositionalArg <$> pos <*> liftPositionalArgTok
 >
 > antiScalarExpr :: SParser ScalarExpr
-> antiScalarExpr = AntiScalarExpr <$> splice
+> antiScalarExpr = AntiScalarExpr <$> splice 'e'
 >
 > placeholder :: SParser ScalarExpr
 > placeholder = (Placeholder <$> pos) <* symbol "?"
@@ -2152,12 +2168,12 @@ Utility parsers
 >                            _ -> Nothing)
 
 > stringLit :: SParser ScalarExpr
-> stringLit = (StringLit <$> pos <*> liftStringTok)
->             <|>
->             (StringLit <$> pos <*> ssplice)
->              where
+> stringLit = StringLit <$> pos <*> liftStringTok
+>             {-<|>
+>             (StringLit <$> pos <*> ssplice)-}
+>              {-ere
 >                ssplice = (\s -> "$s(" ++ s ++ ")") <$>
->                            (symbol "$s(" *> idString <* symbol ")")
+>                            (symbol "$s(" *> idString <* symbol ")")-}
 >
 > stringN :: SParser String
 > stringN = mytoken (\tok ->

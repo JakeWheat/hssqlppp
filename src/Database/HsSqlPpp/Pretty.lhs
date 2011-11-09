@@ -485,12 +485,12 @@ Conversion routines - convert Sql asts into Docs
 >   text "notify" <+> text n  <> statementEnd se
 
 > statement flg _se _ (ExecStatement _ nm args) =
->   text "exec" <+> nmcs nm <+> sepCsvMap (scalExpr flg) args
+>   text "exec" <+> name nm <+> sepCsvMap (scalExpr flg) args
 
 > statement _flg _se _ (CreateIndexTSQL _ nm obj cols) =
 >   text "create" <+> text "index"
 >   <+> nmc nm <+> text "on"
->   <+> nmcs obj <+> parens (sepCsvMap nmc cols)
+>   <+> name obj <+> parens (sepCsvMap nmc cols)
 
 > statementEnd :: Bool -> Doc
 > statementEnd b = if b
@@ -624,10 +624,8 @@ Statement components
 >   -- <+> ifNotEmpty (\i -> text "into" <+> hcatCsvMap scalExpr i) into
 >   where
 >     -- try to avoid printing alias if not necessary
->     selectItem (SelectItem _ ex1@(QIdentifier _ is) nm)
->       | unsafeReadable flg, last is == nm = scalExprSl flg ex1
->     selectItem (SelectItem _ ex1@(Identifier _ i) nm)
->       | unsafeReadable flg, i == nm = scalExprSl flg ex1
+>     selectItem (SelectItem _ ex1@(Identifier _ is) nm)
+>       | unsafeReadable flg, last (nameComponents is) == nm = scalExprSl flg ex1
 >     selectItem (SelectItem _ ex1 nm) = scalExprSl flg ex1 <+> text "as" <+> nmc nm
 >     selectItem (SelExp _ e) = scalExprSl flg e
 >
@@ -690,8 +688,8 @@ Statement components
 > scalExpr _ (Star _) = text "*"
 > scalExpr _ (QStar _ i) = nmc i <> text ".*"
 
-> scalExpr _ (Identifier _ i) = nmc i
-> scalExpr _flg (QIdentifier _a is) = hcat (punctuate (text ".") (map nmc is))
+> scalExpr _flg (Identifier _a (Name _ is)) =
+>   hcat (punctuate (text ".") (map nmc is))
 
 > scalExpr _ (NumberLit _ n) = text n
 > scalExpr _ (StringLit _ s) = -- needs some thought about using $$?
@@ -712,7 +710,7 @@ Statement components
 >                                 <+> text "for" <+> scalExpr flg (es !! 2))
 >      Just "!arraysub" ->
 >        case es of
->                (Identifier _ i : es1) -> nmc i
+>                (Identifier _ i : es1) -> name i
 >                                          <> brackets (csvExp flg es1)
 >                (e:es') -> scalExpr flg e
 >                           <> brackets (csvExp flg es')

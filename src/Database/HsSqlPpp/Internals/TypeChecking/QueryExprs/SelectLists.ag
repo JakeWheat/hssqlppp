@@ -34,7 +34,7 @@ attr ScalarExpr
 sem ScalarExpr
     | NumberLit StringLit NullLit BooleanLit TypedStringLit Interval
       Extract PositionalArg Placeholder Cast Identifier
-      QIdentifier Case CaseSimple Exists App AggregateApp
+      Case CaseSimple Exists App AggregateApp
       WindowApp InPredicate LiftApp ScalarSubQuery
       BinaryOp PrefixOp PostfixOp SpecialOp
       Star QStar
@@ -46,7 +46,7 @@ sem ScalarExpr
                       -- don't participate in the ag
                   let a' = setAtype (Just t) a
                       -- expanded stars always output qualifier
-                  in (n, Just t, QIdentifier a' [Nmc q,Nmc n])
+                  in (n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
                   ) is
           in case @originalTree of
               Star _ | Right is <- envExpandStar Nothing @lhs.downEnv ->
@@ -157,8 +157,7 @@ sem SelectItem
 -- | thet name to choose for a column in a select list which doesn't
 -- have an explicit name - these are postgresql's rules
 columnName :: ScalarExpr -> String
-columnName (Identifier _ i) = nm i
-columnName (QIdentifier _ is) = nm $ last is
+columnName (Identifier _ i) = nm $ last $ nameComponents i
 columnName (App _ (Name _ ncs) _) = nm $ last ncs
 columnName (Cast _ _ (SimpleTypeName _ (Name _ ncs))) = nm $ last ncs
 columnName (WindowApp _ (App _ (Name _ ncs) _) _ _ _) = nm $ last ncs

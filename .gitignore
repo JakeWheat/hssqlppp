@@ -21,3 +21,8 @@
 /src-extra/devel-util/GenerateExeRules
 /src-extra/h7c/h7c
 /.depend.mk.bak
+/src-extra/docutil/DevelTool
+/src-extra/examples/Lex
+/src-extra/examples/PPPTest
+/src-extra/examples/Parse3
+/src-extra/examples/TypeCheck2
