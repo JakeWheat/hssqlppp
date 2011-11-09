@@ -24,10 +24,10 @@ File to parse the denormalized6nf syntax
 > import Database.HsSqlPpp.Parsing.ParserInternal
 > import Database.HsSqlPpp.Parsing.Lexer
 > import Database.HsSqlPpp.Utils.Here
-> import Database.HsSqlPpp.Utils.Utils
+> --import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Extensions.AstUtils
-> import Database.HsSqlPpp.SqlDialect
+> --import Database.HsSqlPpp.SqlDialect
 >
 > data D6nfStatement = DTable String [String] [AttributeDef]
 >                    | MutualExclusion String String
@@ -100,8 +100,8 @@ parsing code
 >
 > parseD6nf :: String -> Int -> Int -> String -> Either String [D6nfStatement]
 > parseD6nf f l c s = do
->     toks <- tsl $ lexSql PostgreSQLDialect f (Just (l,c)) s
->     tsl $ runParser statements startState "" toks
+>     toks <- either (Left . show) Right $ lexSql PostgreSQLDialect f (Just (l,c)) s
+>     either (Left . show) Right $ runParser statements startState "" toks
 >
 > statements :: MyParser [D6nfStatement]
 > statements = many1 statement

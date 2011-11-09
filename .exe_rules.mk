@@ -471,11 +471,11 @@ src-extra/catalogReader/Database/HsSqlPpp/Utils/PgUtils.o
 src-extra/examples/PPPTest : src-extra/examples/PPPTest.o \
 src/Database/HsSqlPpp/Parser.o \
 src/Database/HsSqlPpp/Pretty.o \
+src/Database/HsSqlPpp/Annotation.o \
 src/Database/HsSqlPpp/Parsing/ParserInternal.o \
 src/Database/HsSqlPpp/Parsing/Lexer.o \
 src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/Ast.o \
-src/Database/HsSqlPpp/Annotation.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/SqlDialect.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \
@@ -488,11 +488,11 @@ src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o
 	$(HC) $(HC_OPTS) -o src-extra/examples/PPPTest src-extra/examples/PPPTest.o \
 src/Database/HsSqlPpp/Parser.o \
 src/Database/HsSqlPpp/Pretty.o \
+src/Database/HsSqlPpp/Annotation.o \
 src/Database/HsSqlPpp/Parsing/ParserInternal.o \
 src/Database/HsSqlPpp/Parsing/Lexer.o \
 src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/Ast.o \
-src/Database/HsSqlPpp/Annotation.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/SqlDialect.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \

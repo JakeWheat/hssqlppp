@@ -430,7 +430,7 @@ addExplicitCasts = transformBi removeDoubleCasts . transformBi addCast
     -- parameterized statements?
     removeDoubleCasts :: ScalarExpr -> ScalarExpr
     removeDoubleCasts e = case e of
-      (Cast a (Cast a1 e t1) t) -> Cast a e t
+      (Cast a (Cast a1 e' _t1) t) -> Cast a e' t
       e' -> e'
 
 nameOfType :: Type -> Maybe TypeName

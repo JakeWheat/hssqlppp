@@ -264,12 +264,12 @@ order by proname;
 >                                     |] []
 
 
->   casts <- map (\[f,t,c] -> let cs "a" = AssignmentCastContext
->                                 cs "i" = ImplicitCastContext
->                                 cs "e" = ExplicitCastContext
->                                 cs x = error $ "internal error: unknown \
+>   casts <- map (\[f,t,c] -> let cst "a" = AssignmentCastContext
+>                                 cst "i" = ImplicitCastContext
+>                                 cst "e" = ExplicitCastContext
+>                                 cst x = error $ "internal error: unknown \
 >                                                \cast context " ++ x
->                             in CatCreateCast f t (cs c)
+>                             in CatCreateCast f t (cst c)
 >                          ) `fmap`
 >         selectRelation conn [$here|
 \begin{code}

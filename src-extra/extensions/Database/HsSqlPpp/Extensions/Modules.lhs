@@ -58,7 +58,7 @@ hidden, without having to create a separate module.
 > import Database.HsSqlPpp.Quote
 > import Database.HsSqlPpp.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.Extensions.AstUtils
-> import Debug.Trace
+> --import Debug.Trace
 >
 > modulesExample :: ExtensionTest
 > modulesExample =

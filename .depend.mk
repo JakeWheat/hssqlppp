@@ -23,17 +23,8 @@ src-extra/devel-util/MakeDefaultTemplate1Catalog.o : src-extra/devel-util/MakeDe
 src-extra/devel-util/MakeDefaultTemplate1Catalog.o : src-extra/catalogReader/Database/HsSqlPpp/Utils/PgUtils.hi
 src-extra/devel-util/MakeDefaultTemplate1Catalog.o : src-extra/catalogReader/Database/HsSqlPpp/Utils/CatalogReader.hi
 src-extra/devel-util/MakeDefaultTemplate1Catalog.o : src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.hi
-src/Database/HsSqlPpp/Catalog.o : src/Database/HsSqlPpp/Catalog.lhs
-src/Database/HsSqlPpp/Catalog.o : src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.hi
-src/Database/HsSqlPpp/Catalog.o : src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.hi
-src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o : src-extra/tests/Database/HsSqlPpp/Tests/TpchData.lhs
-src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o : src/Database/HsSqlPpp/Types.hi
-src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o : src/Database/HsSqlPpp/Catalog.hi
-src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o : src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.hi
-src/Database/HsSqlPpp/Utils/Utils.o : src/Database/HsSqlPpp/Utils/Utils.lhs
 src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o : src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.lhs
 src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o : src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.hi
-src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o : src/Database/HsSqlPpp/Utils/Utils.hi
 src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o : src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.hi
 src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o : src/Database/HsSqlPpp/Internals/TypesInternal.hi
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o : src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.lhs
@@ -44,6 +35,13 @@ src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o : src/Database/HsSqlP
 src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o : src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.hi
 src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o : src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.hi
 src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o : src/Database/HsSqlPpp/Internals/TypesInternal.hi
+src/Database/HsSqlPpp/Catalog.o : src/Database/HsSqlPpp/Catalog.lhs
+src/Database/HsSqlPpp/Catalog.o : src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.hi
+src/Database/HsSqlPpp/Catalog.o : src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.hi
+src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o : src-extra/tests/Database/HsSqlPpp/Tests/TpchData.lhs
+src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o : src/Database/HsSqlPpp/Catalog.hi
+src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o : src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.hi
+src/Database/HsSqlPpp/Utils/Utils.o : src/Database/HsSqlPpp/Utils/Utils.lhs
 src/Database/HsSqlPpp/SqlDialect.o : src/Database/HsSqlPpp/SqlDialect.lhs
 src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/Parsing/Lexer.lhs
 src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/SqlDialect.hi
@@ -88,6 +86,7 @@ src/Database/HsSqlPpp/Pretty.o : src/Database/HsSqlPpp/Utils/Utils.hi
 src/Database/HsSqlPpp/Pretty.o : src/Database/HsSqlPpp/Annotation.hi
 src/Database/HsSqlPpp/Pretty.o : src/Database/HsSqlPpp/Ast.hi
 src-extra/examples/PPPTest.o : src-extra/examples/PPPTest.lhs
+src-extra/examples/PPPTest.o : src/Database/HsSqlPpp/Annotation.hi
 src-extra/examples/PPPTest.o : src/Database/HsSqlPpp/Pretty.hi
 src-extra/examples/PPPTest.o : src/Database/HsSqlPpp/Parser.hi
 src/Database/HsSqlPpp/Quote.o : src/Database/HsSqlPpp/Quote.lhs
@@ -268,7 +267,6 @@ src-extra/extensions/Database/HsSqlPpp/Extensions/TransitionConstraints.o : src-
 src-extra/extensions/Database/HsSqlPpp/Extensions/TransitionConstraints.o : src/Database/HsSqlPpp/Quote.hi
 src-extra/extensions/Database/HsSqlPpp/Extensions/TransitionConstraints.o : src-extra/extensions/Database/HsSqlPpp/Extensions/ExtensionsUtils.hi
 src-extra/extensions/Database/HsSqlPpp/Extensions/TransitionConstraints.o : src/Database/HsSqlPpp/Annotation.hi
-src-extra/extensions/Database/HsSqlPpp/Extensions/TransitionConstraints.o : src/Database/HsSqlPpp/Parser.hi
 src-extra/extensions/Database/HsSqlPpp/Extensions/TransitionConstraints.o : src/Database/HsSqlPpp/Ast.hi
 src-extra/extensions/Database/HsSqlPpp/Extensions/Modules.o : src-extra/extensions/Database/HsSqlPpp/Extensions/Modules.lhs
 src-extra/extensions/Database/HsSqlPpp/Extensions/Modules.o : src-extra/extensions/Database/HsSqlPpp/Extensions/AstUtils.hi
@@ -305,10 +303,8 @@ src-extra/extensions/Database/HsSqlPpp/Extensions/SimplifiedCatalog.o : src/Data
 src-extra/extensions/Database/HsSqlPpp/Extensions/SimplifiedCatalog.o : src/Database/HsSqlPpp/Annotation.hi
 src-extra/extensions/Database/HsSqlPpp/Extensions/SimplifiedCatalog.o : src/Database/HsSqlPpp/Ast.hi
 src-extra/extensions/Database/HsSqlPpp/Extensions/DenormSyntax.o : src-extra/extensions/Database/HsSqlPpp/Extensions/DenormSyntax.lhs
-src-extra/extensions/Database/HsSqlPpp/Extensions/DenormSyntax.o : src/Database/HsSqlPpp/SqlDialect.hi
 src-extra/extensions/Database/HsSqlPpp/Extensions/DenormSyntax.o : src-extra/extensions/Database/HsSqlPpp/Extensions/AstUtils.hi
 src-extra/extensions/Database/HsSqlPpp/Extensions/DenormSyntax.o : src/Database/HsSqlPpp/Annotation.hi
-src-extra/extensions/Database/HsSqlPpp/Extensions/DenormSyntax.o : src/Database/HsSqlPpp/Utils/Utils.hi
 src-extra/extensions/Database/HsSqlPpp/Extensions/DenormSyntax.o : src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.hi
 src-extra/extensions/Database/HsSqlPpp/Extensions/DenormSyntax.o : src/Database/HsSqlPpp/Parsing/Lexer.hi
 src-extra/extensions/Database/HsSqlPpp/Extensions/DenormSyntax.o : src/Database/HsSqlPpp/Parsing/ParserInternal.hi
@@ -332,7 +328,6 @@ src-extra/chaos/extensions/ChaosExtensions.o : src/Database/HsSqlPpp/Quote.hi
 src-extra/chaos/extensions/ChaosExtensions.o : src-extra/extensions/Database/HsSqlPpp/Extensions/ExtensionsUtils.hi
 src-extra/chaos/extensions/ChaosExtensions.o : src/Database/HsSqlPpp/Annotation.hi
 src-extra/chaos/extensions/ChaosExtensions.o : src/Database/HsSqlPpp/Pretty.hi
-src-extra/chaos/extensions/ChaosExtensions.o : src/Database/HsSqlPpp/Parser.hi
 src-extra/chaos/extensions/ChaosExtensions.o : src/Database/HsSqlPpp/Ast.hi
 src-extra/h7c/h7c.o : src-extra/h7c/h7c.lhs
 src-extra/h7c/h7c.o : src-extra/chaos/extensions/ChaosExtensions.hi

@@ -7,7 +7,7 @@
 
 > import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Catalog
-> import Database.HsSqlPpp.Types
+> --import Database.HsSqlPpp.Types
 
 > tpchQueries :: [(String,String)]
 > tpchQueries =

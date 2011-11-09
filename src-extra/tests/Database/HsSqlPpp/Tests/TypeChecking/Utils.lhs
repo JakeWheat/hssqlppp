@@ -14,7 +14,7 @@
 > import Database.HsSqlPpp.Ast hiding (App)
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Pretty
-> import Text.Groom
+> --import Text.Groom
 > import Debug.Trace
 > import Database.HsSqlPpp.Tests.TestUtils
 > import Control.Monad

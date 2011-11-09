@@ -19,7 +19,7 @@ temporal relations.
 > import Data.Generics.Uniplate.Data
 >
 > import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.Parser
+> --import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Extensions.ExtensionsUtils
 > import Database.HsSqlPpp.Quote
@@ -133,6 +133,7 @@ implementation
 >       gen :: TriggerEvent -> ScalarExpr -> ScalarExpr -> ScalarExpr -> [Statement]
 >       gen tct tablename constraintName expr =
 >           let un (StringLit _ x) = x
+>               un y = error $ "bad stringlit: " ++ show y
 >               tblname = Nmc $ un tablename
 >               n x = Name emptyAnnotation [Nmc x]
 >               spliceFnName = n $ "check_" ++ un constraintName

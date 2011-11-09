@@ -13,7 +13,7 @@ examples.
 > import Database.HsSqlPpp.Tests.Parsing.ParserTests as PT
 > import Database.HsSqlPpp.Tests.TypeChecking.TypeCheckTests as TT
 > import Language.Haskell.Exts hiding (String)
-> import qualified Language.Haskell.Exts as Exts
+> --import qualified Language.Haskell.Exts as Exts
 > --import Data.Generics
 > import Data.Generics.Uniplate.Data
 > import Database.HsSqlPpp.Utils.GroomNoAnns

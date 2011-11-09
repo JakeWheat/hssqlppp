@@ -42,7 +42,7 @@ off.
 >
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
-> import Database.HsSqlPpp.Utils.Utils
+> --import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Internals.TypeChecking.OldTediousTypeUtils
 
  > traceIt :: Show a => String -> a -> a
@@ -310,9 +310,11 @@ against.
 >                               (case () of
 >                                  _ | ia == ca -> ExactMatch
 >                                    | castableFromTo cat ImplicitCastContext ia ca ->
->                                        if forceRight (catPreferredType cat ca)
->                                          then ImplicitToPreferred
->                                          else ImplicitToNonPreferred
+>                                        either (error . show)
+>                                               (\b ->  if b
+>                                                       then ImplicitToPreferred
+>                                                       else ImplicitToNonPreferred)
+>                                               (catPreferredType cat ca)
 >                                    | otherwise -> CannotCast
 >                               ) : listCastPairs' ias cas
 >                           listCastPairs' [] [] = []
@@ -387,11 +389,11 @@ against.
 >                     typeList = catMaybes $ flip map argPairs
 >                                  $ \(ia,fa) -> case fa of
 >                                                   Pseudo Any -> if isArrayType ia
->                                                                 then eitherToMaybe $ unwrapArray ia
+>                                                                 then either (const Nothing) Just $ unwrapArray ia
 >                                                                 else Just ia
->                                                   Pseudo AnyArray -> eitherToMaybe $ unwrapArray ia
+>                                                   Pseudo AnyArray -> either (const Nothing) Just $ unwrapArray ia
 >                                                   Pseudo AnyElement -> if isArrayType ia
->                                                                        then eitherToMaybe $ unwrapArray ia
+>                                                                        then either (const Nothing) Just $ unwrapArray ia
 >                                                                        else Just ia
 >                                                   Pseudo AnyEnum -> Nothing
 >                                                   Pseudo AnyNonArray -> Just ia
@@ -463,7 +465,7 @@ against.
 >                   getCandsCatAt :: Int -> Either () String
 >                   getCandsCatAt n' =
 >                       let typesAtN = map (!!n') candArgLists
->                           catsAtN = map (forceRight . catTypeCategory cat) typesAtN
+>                           catsAtN = map (either (error . show) id . catTypeCategory cat) typesAtN
 >                       in case () of
 >                            --if any are string choose string
 >                            _ | any (== "S") catsAtN -> Right "S"
@@ -487,7 +489,7 @@ against.
 >                            catMatches = filter (\c -> Right (getCatForArgN n c) ==
 >                                                      (cats !! n)) cands
 >                            prefMatches :: [ProtArgCast]
->                            prefMatches = filter (forceRight . catPreferredType cat .
+>                            prefMatches = filter (either (error . show) id . catPreferredType cat .
 >                                                    getTypeForArgN n) catMatches
 >                            keepMatches :: [ProtArgCast]
 >                            keepMatches = if length prefMatches > 0
@@ -497,7 +499,7 @@ against.
 >            getTypeForArgN :: Int -> ProtArgCast -> Type
 >            getTypeForArgN n ((_,a,_,_),_) = a !! n
 >            getCatForArgN :: Int -> ProtArgCast -> String
->            getCatForArgN n = forceRight . catTypeCategory cat . getTypeForArgN n
+>            getCatForArgN n = either (error . show) id . catTypeCategory cat . getTypeForArgN n
 >
 >       -- utils
 >       -- filter a candidate/cast flavours pair by a predicate on each
@@ -548,13 +550,14 @@ code is not as much of a mess as findCallMatch
 > resolveResultSetType :: Catalog -> [Type] -> Either [TypeError] Type
 > resolveResultSetType cat inArgs = do
 >   when (null inArgs) $ Left [TypelessEmptyArray]
->   returnWhen allSameType (head inArgs) $ do
->   returnWhen allSameBaseType (head inArgsBase) $ do
+>   if allSameType then return (head inArgs) else do
+>   if allSameBaseType then return (head inArgsBase) else do
 >   --returnWhen allUnknown (UnknownType) $ do
 >   when (not allSameCat) $ Left [IncompatibleTypeSet inArgs]
->   returnWhen (isJust targetType &&
->               allConvertibleToFrom (fromMaybe (error "TypeConversion.resolveresultsettype 1: fromJust") targetType) inArgs)
->               (fromMaybe (error "TypeConversion.resolveresultsettype 2: fromJust") targetType) $ do
+>   if (isJust targetType
+>       && allConvertibleToFrom (fromMaybe (error "TypeConversion.resolveresultsettype 1: fromJust") targetType) inArgs)
+>     then return (fromMaybe (error "TypeConversion.resolveresultsettype 2: fromJust") targetType)
+>     else do
 >   Left [IncompatibleTypeSet inArgs]
 >   where
 >      allSameType = all (== head inArgs) inArgs -- &&
@@ -569,7 +572,7 @@ code is not as much of a mess as findCallMatch
 >      targetType = case catMaybes [firstPreferred, lastAllConvertibleTo] of
 >                     [] -> Nothing
 >                     (x:_) -> Just x
->      firstPreferred = find (forceRight . catPreferredType cat) knownTypes
+>      firstPreferred = find (either (error . show) id . catPreferredType cat) knownTypes
 >      lastAllConvertibleTo = firstAllConvertibleTo (reverse knownTypes)
 >      firstAllConvertibleTo (x:xs) = if allConvertibleToFrom x xs
 >                                       then Just x
@@ -626,10 +629,10 @@ wrapper around the catalog to add a bunch of extra valid casts
 >       && castableFromTo cat cc (replaceWithBase cat from)
 >                                (replaceWithBase cat to))
 >   -- check the casts listed in the catalog
->   || forceRight (catCast cat cc from to)
+>   || either (error . show) id (catCast cat cc from to)
 >   -- implicitcast => assignment cast
 >   || (cc == AssignmentCastContext
->       && forceRight (catCast cat ImplicitCastContext from to))
+>       && either (error . show) id (catCast cat ImplicitCastContext from to))
 >   -- can assign composite to record
 >   || (cc == AssignmentCastContext
 >       && isCompOrSetoOfComp from
@@ -651,7 +654,7 @@ wrapper around the catalog to add a bunch of extra valid casts
 >   where
 >
 >     getCompositeTypes (NamedCompositeType n) =
->         Just $ map snd $ fromRight [] $ catCompositePublicAttrs cat [] n
+>         Just $ map snd $ either (const []) id  $ catCompositePublicAttrs cat [] n
 >     getCompositeTypes (CompositeType t) = Just $ map snd t
 >     getCompositeTypes (AnonymousCompositeType t) = Just t
 >     getCompositeTypes (Pseudo (Record Nothing)) = Nothing
@@ -673,5 +676,5 @@ wrapper around the catalog to add a bunch of extra valid casts
 >     recurseTransTo = maybe False (castableFromTo cat cc from)
 >
 > replaceWithBase :: Catalog -> Type -> Type
-> replaceWithBase cat t@(DomainType _) = forceRight $ catDomainBaseType cat t
+> replaceWithBase cat t@(DomainType _) = either (error . show) id $ catDomainBaseType cat t
 > replaceWithBase _ t = t

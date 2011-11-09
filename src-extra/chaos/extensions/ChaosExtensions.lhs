@@ -16,7 +16,7 @@ chaos working again then will review approach.
 > import Data.List
 >
 > import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.Parser
+> --import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.Pretty
 > import Database.HsSqlPpp.Annotation
 >
@@ -92,7 +92,8 @@ lookup table. TODO: rewrite this paragraph in english.
 >         s@[sqlStmt|
 >            select create_client_action_wrapper($m(actname)
 >                                               ,$e(expr)); |]
->             -> let un (Nmc x) = x
+>             -> let un (Nmc z) = z
+>                    un y = error $ "bad nmc " ++ show y
 >                    actionname = Nmc $ "action_" ++ un actname
 >                    {-expr = case parseScalarExpr defaultParseFlags "" Nothing ("action_" ++ actcall) of
 >                             Left e -> error $ show e
@@ -143,8 +144,7 @@ multiple updates.
 >       case x of
 >         s@[sqlStmt| select no_deletes_inserts_except_new_game($e(tablex));|] : tl
 >           | StringLit _ table <- tablex ->
->           let un (Nmc n) = n
->               icn = StringLit emptyAnnotation $ table ++ "_no_insert"
+>           let icn = StringLit emptyAnnotation $ table ++ "_no_insert"
 >               dcn = StringLit emptyAnnotation $ table ++ "_no_delete"
 >               expr = StringLit emptyAnnotation $ printScalarExpr defaultPPFlags
 >                       [sqlExpr|exists(select 1 from creating_new_game_table
@@ -262,7 +262,8 @@ readonly tables/ compile time constant relations stuff
 >       case x of
 >         s@[sqlStmt| select generate_spell_choice_actions(); |] : tl
 >             -> flip map spells (\spell ->
->                let un (Nmc x) = x
+>                let un (Nmc z) = z
+>                    un y = error $ "bad nmc: " ++ show y
 >                    actionname = Nmc $ "choose_" ++ spell ++ "_spell"
 >                    wrappername = Nmc $ "action_" ++ un actionname
 >                    spellx = Nmc spell
