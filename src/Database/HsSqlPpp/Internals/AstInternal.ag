@@ -1,5 +1,9 @@
-{-
 
+optpragmas {
+{-# LANGUAGE TupleSections,ScopedTypeVariables,DeriveDataTypeable #-}
+}
+
+{-
 
 This file contains the ast nodes, and the api functions to pass an ast
 and get back type information.
@@ -22,11 +26,11 @@ http://jakewheat.github.com/hssqlppp/devel.txt.html
 
 -}
 
-{- | test
--}
+
+
+
 module {Database.HsSqlPpp.Internals.AstInternal}
 {
-    -- {-# LANGUAGE DeriveDataTypeable,ScopedTypeVariables #-}
     --from the ag files:
     --ast nodes
     Statement (..)
@@ -122,17 +126,6 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,getAnnotation
    ,updateAnnotation
    ,emptyAnnotation
-   ,atype
-   ,setAtype
-   ,errs
-   ,setErrs
-   ,asrc
-   ,setAsrc
-
-
-   --,fixUpIdentifiers
-   --,fixUpIdentifiersQE
-   --,fixUpIdentifiersSE
 }
 
 {
@@ -158,6 +151,7 @@ import Database.HsSqlPpp.Internals.TypeChecking.Environment
 import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 import Database.HsSqlPpp.Utils.Utils
 }
+
 
 {-
 ================================================================================

@@ -1,13 +1,36 @@
 = next release, 0.5.0
 
-see bigplan for some details
+complete basic typechecking for queryexpr and scalexpr
+add typechecking for dml
+parameterized query typechecking
+go through old tests and redo most of them?
 
-review and fix some of the syntax?
+rough todo for exprs:
+scalar expr:
+liftapp
+queryexpr:
+withqueryexpr
+combineQueryExpr
+values
+funtrefs
+
+fix order by env (see add qualifiers on tpch sql order bys)
+group by qualifier issue
+
+error messages are broken for lexing,parsing? -> check from command
+line runner, and from quoting
+
+postprocessor for uuagc output?
+
+get ghc 6.12.x working again: think it is just adding the
+   control.monad.error stuff back it
+
+make file build out of tree
 
 idea for :: cast
 
 -> parse typenames as scalarexpressions by embeding them in
-   numberlits (hacky but should be unambiguous)
+   numberlits (hacky but should be unambiguous) - or antictors?
 then transform to cast after parsing. This can then use the proper
 precedence in buildExpressionParser to parse ::. Also produce parse
 errors if after parsing, you try to cast to something which isn't a
@@ -15,8 +38,14 @@ typename
 
 add support for enum types
 
+= 'arcs'
 
-maybe start thinking about an alpha version:
+== continue with rewrite of catalog and typeconversion
+
+typeconversion code is a complete mess
+
+== alpha version
+
 high quality postgresql dialect parsing for most sql and plpgsql
 good enough typechecking for select,insert,update,delete:
   the goal is high quality result types for correct sql, but not
@@ -29,10 +58,8 @@ then for version 2 can target high quality with errors, plus good
 support for ddl, and reasonable support for plpgsql (will always
 reject some correct plpgsql)
 
-make detailed todo list for this
+todo: make detailed todo list for this
 
-
-= 'arcs'
 
 == names
 
@@ -73,6 +100,42 @@ especially useful when source, chaos example working again
 
 add compilation of examples to automated tests, also add tests in the
 documentation
+
+=== adding syntax example
+
+provide some more hacking examples and support in the code:
+add a new ctor to existing node
+add a new kind of node
+include simple instructions to fail gracefully at typechecking, so new
+  syntax plus parsing and pretty printing can be easily added
+review parsing code and try to make it clearer for the confusing bits,
+  also the lexer
+
+== uuagc ?postprocessor
+
+docs: write a preprocessor for the .hs produced from the .ag
+want to add the LANGUAGE directives
+and also add the haddock docs which get stripped out
+and also convert some of the data type definitions to use record syntax
+want to do this automatically, not sure how can parse the original ag
+  though?
+
+have explicit list of data types in astinternal that want to do this for
+start with annotation as example:
+find the complete definition of annotation in astinternal.hs
+want to replace part of this, would like to avoid killing other
+comments in astinternal.hs
+find the original definition of annotation in the ag files
+a) parse out the haddock string for each field
+b) parse out the field name and type for each field
+replace the def in astinternal with the replacement:
+include haddock strings
+use record syntax for data def
+
+what to do this for:
+ctor with lots of components in the ast -> particularly queryexpr
+annotation is really poor without docs
+
 
 == nullablity inference in type checker
 

@@ -27,7 +27,8 @@ type ParameterizedStatementType = ([Type],[(String,Type)])
 -- | Annotation type - one of these is attached to most of the
 -- data types used in the ast.
 -- the fields in order are:
-data Annotation | Annotation -- | source position for this node
+data Annotation | Annotation
+                             -- | source position for this node
                              asrc :: {Maybe SourcePosition}
                              -- | type of the node, 'Nothing' if the tree hasn't been typechecked or if a type error prevents determining the type
                              atype :: {Maybe Type}
@@ -35,11 +36,12 @@ data Annotation | Annotation -- | source position for this node
                              errs :: {[TypeError]}
                              -- | if an implicit cast is needed between this node an its parent, this the target type of cast. If no implicit cast is needed, this is Nothing
                              implicitCast :: {Maybe Type}
-                             -- | used for getting the in and out types of a parameterized statement, useful only in Statements containing ? placeholders
-                             stType :: {Maybe ParameterizedStatementType}
                              -- | any catalog updates that a statement produces, used only for ddl Statements
                              catUpd :: {[CatalogUpdate]}
 deriving Annotation: Eq,Show,Typeable,Data
+
+-- a magic devel routine outputs the annotation as record syntax
+-- src-extra/devel-util/PostprocessUuagc
 
 {
 
@@ -48,33 +50,11 @@ deriving Annotation: Eq,Show,Typeable,Data
 
 -- | An annotation value with no information.
 emptyAnnotation :: Annotation
-emptyAnnotation = Annotation Nothing Nothing [] Nothing Nothing []
+emptyAnnotation = Annotation Nothing Nothing [] Nothing []
 
 -- | get the annotation for the root element of the tree passed
 getAnnotation :: Data a => a -> Annotation
 getAnnotation = head . childrenBi
-
-atype :: Annotation -> Maybe Type
-atype (Annotation _ a _ _ _ _) = a
-
-setAtype :: Maybe Type -> Annotation -> Annotation
-setAtype a (Annotation s _a e i st c) = Annotation s a e i st c
-
-asrc :: Annotation -> Maybe SourcePosition
-asrc (Annotation s _ _ _ _ _) = s
-
-setAsrc :: Maybe SourcePosition -> Annotation -> Annotation
-setAsrc s (Annotation _s a e i st c) = Annotation s a e i st c
-
-
-implicitCast :: Annotation -> Maybe Type
-implicitCast (Annotation _ _ _ c _ _) = c
-
-errs :: Annotation -> [TypeError]
-errs (Annotation _ _ e _ _ _) = e
-
-setErrs :: [TypeError] -> Annotation -> Annotation
-setErrs e (Annotation s a _e i st c) = Annotation s a e i st c
 
 --don't know how to do this one with uniplate
 

@@ -3,6 +3,9 @@ src-extra/docutil/Text/DocTool/Parser.o : src-extra/docutil/Text/DocTool/Parser.
 src-extra/docutil/Text/DocTool/DocTool.o : src-extra/docutil/Text/DocTool/DocTool.lhs
 src-extra/docutil/Text/DocTool/DocTool.o : src-extra/docutil/Text/DocTool/Parser.hi
 src/Database/HsSqlPpp/Parsing/ParseErrors.o : src/Database/HsSqlPpp/Parsing/ParseErrors.lhs
+src-extra/devel-util/UUAGCHaddocks.o : src-extra/devel-util/UUAGCHaddocks.lhs
+src-extra/devel-util/PostprocessUuagc.o : src-extra/devel-util/PostprocessUuagc.lhs
+src-extra/devel-util/PostprocessUuagc.o : src-extra/devel-util/UUAGCHaddocks.hi
 src-extra/catalogReader/Database/HsSqlPpp/Utils/GroomNoAnns.o : src-extra/catalogReader/Database/HsSqlPpp/Utils/GroomNoAnns.lhs
 src-extra/catalogReader/Database/HsSqlPpp/Utils/PgUtils.o : src-extra/catalogReader/Database/HsSqlPpp/Utils/PgUtils.lhs
 src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.o : src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.lhs

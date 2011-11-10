@@ -42,8 +42,7 @@
 # makefiles
 
 HC              = ghc
-HC_BASIC_OPTS   = -Wall -XTupleSections -XScopedTypeVariables \
--XDeriveDataTypeable -threaded -rtsopts
+HC_BASIC_OPTS   = -Wall -threaded -rtsopts
 
 # add new source roots to this
 SRC_DIRS = src src-extra/catalogReader src-extra/chaos \
@@ -94,7 +93,8 @@ EXE_FILES = src-extra/tests/Tests \
 	src-extra/examples/TypeCheckMystery \
 	src-extra/h7c/h7c \
 	src-extra/examples/FixSqlServerTpchSyntax \
-	src-extra/examples/QQ
+	src-extra/examples/QQ \
+	src-extra/devel-util/PostprocessUuagc
 
 #	src-extra/examples/ShowCatalog \
 #	src-extra/chaos/build.lhs
@@ -177,10 +177,12 @@ depend : src/Database/HsSqlPpp/Internals/AstInternal.hs
 
 #specific rules for generated file astinternal.hs
 
-src/Database/HsSqlPpp/Internals/AstInternal.hs : $(AG_FILES)
+src/Database/HsSqlPpp/Internals/AstInternal.hs : $(AG_FILES) src-extra/devel-util/PostprocessUuagc
 	uuagc -dcfspwm -P src/Database/HsSqlPpp/Internals/ \
 		--lckeywords --doublecolons --genlinepragmas \
 		src/Database/HsSqlPpp/Internals/AstInternal.ag
+	src-extra/devel-util/PostprocessUuagc
+
 #-dcfspwm --cycle -O
 # rule for the generated file
 # src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs

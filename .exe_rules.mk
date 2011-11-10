@@ -672,3 +672,7 @@ src/Database/HsSqlPpp/Parsing/ParserInternal.o \
 src/Database/HsSqlPpp/Parsing/Lexer.o \
 src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/SqlDialect.o
+src-extra/devel-util/PostprocessUuagc : src-extra/devel-util/PostprocessUuagc.o \
+src-extra/devel-util/UUAGCHaddocks.o
+	$(HC) $(HC_OPTS) -o src-extra/devel-util/PostprocessUuagc src-extra/devel-util/PostprocessUuagc.o \
+src-extra/devel-util/UUAGCHaddocks.o

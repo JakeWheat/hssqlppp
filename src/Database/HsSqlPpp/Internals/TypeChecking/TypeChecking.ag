@@ -114,7 +114,7 @@ sem Annotation
       lhs.annotatedTree =
           let t = either (const Nothing) Just @lhs.tpe
               es = either id (const []) @lhs.tpe
-          in Annotation @asrc t es @lhs.imCast @stType @catUpd
+          in Annotation @asrc t es @lhs.imCast @catUpd
 
 
 include "TypeChecking/ScalarExprs.ag"

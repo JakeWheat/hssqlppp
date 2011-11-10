@@ -2,7 +2,7 @@
 The main file for parsing sql, uses parsec. Not sure if parsec is the
 right choice, but it seems to do the job pretty well at the moment.
 
-> {-# LANGUAGE FlexibleContexts,ExplicitForAll #-}
+> {-# LANGUAGE FlexibleContexts,ExplicitForAll,TupleSections #-}
 > -- | Functions to parse SQL.
 > module Database.HsSqlPpp.Parsing.ParserInternal
 >     (-- * Main
@@ -2260,7 +2260,7 @@ parser combinator to return the current position as an ast annotation
 
 > pos :: SParser Annotation
 > pos =
->   (\a -> setAsrc (Just a) emptyAnnotation) <$> toMySp <$> getPosition
+>   (\a -> emptyAnnotation {asrc = Just a}) <$> toMySp <$> getPosition
 
 == lexer stuff
 
