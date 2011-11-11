@@ -23,7 +23,7 @@ There are no tests for invalid syntax at the moment.
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.Pretty
 >
-> import Database.HsSqlPpp.Utils.GroomNoAnns
+> import Database.HsSqlPpp.Utils.GroomUtils
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
 > import Database.HsSqlPpp.Tests.Parsing.Expressions

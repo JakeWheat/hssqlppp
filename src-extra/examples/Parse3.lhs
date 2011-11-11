@@ -5,7 +5,7 @@
 > --import Data.Generics.Uniplate.Data
 
 > import Database.HsSqlPpp.Parser
-> import Database.HsSqlPpp.Utils.GroomNoAnns
+> import Database.HsSqlPpp.Utils.GroomUtils
 > import Text.Groom
 
 > main :: IO ()

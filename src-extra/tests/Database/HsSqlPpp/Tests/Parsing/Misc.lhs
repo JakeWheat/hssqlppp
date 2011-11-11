@@ -15,49 +15,47 @@ There are no tests for invalid syntax at the moment.
 >
 > miscParserTestData :: Item
 > miscParserTestData =
->   Group "miscParserTests" [
-
->     Group "multiple statements" [
->       s "select 1;\nselect 2;" [QueryStatement ea $ selectE $ sl [SelExp ea (NumberLit ea "1")]
->                                ,QueryStatement ea $ selectE $ sl [SelExp ea (NumberLit ea "2")]]
->      ]
->    ,Group "comments" [
->       s "" []
->      ,s "-- this is a test" []
->      ,s "/* this is\n\
->         \a test*/" []
->      ,s "select 1;\n\
->         \-- this is a test\n\
->         \select -- this is a test\n\
->         \2;" [QueryStatement ea $ selectE $ sl [SelExp ea (NumberLit ea "1")]
->              ,QueryStatement ea $ selectE $ sl [SelExp ea (NumberLit ea "2")]
->              ]
->      ,s "select 1;\n\
->         \/* this is\n\
->         \a test*/\n\
->         \select /* this is a test*/2;"
->                     [QueryStatement ea $ selectE $ sl [SelExp ea (NumberLit ea "1")]
->                     ,QueryStatement ea $ selectE $ sl [SelExp ea (NumberLit ea "2")]
->                     ]
->      ]
+>   Group "miscParserTests"
+>   [Group "multiple statements"
+>    [s "select 1;\nselect 2;"
+>     [QueryStatement ea $ makeSelect {selSelectList = sl [si $ num "1"]}
+>     ,QueryStatement ea $ makeSelect {selSelectList = sl [si $ num "2"]}]
+>    ]
+>   ,Group "comments"
+>    [s "" []
+>    ,s "-- this is a test" []
+>    ,s "/* this is\n\
+>       \a test*/" []
+>    ,s "select 1;\n\
+>       \-- this is a test\n\
+>       \select -- this is a test\n\
+>       \2;"
+>     [QueryStatement ea $ makeSelect {selSelectList = sl [si $ num "1"]}
+>     ,QueryStatement ea $ makeSelect {selSelectList = sl [si $ num "2"]}]
+>    ,s "select 1;\n\
+>       \/* this is\n\
+>       \a test*/\n\
+>       \select /* this is a test*/2;"
+>     [QueryStatement ea $ makeSelect {selSelectList = sl [si $ num "1"]}
+>     ,QueryStatement ea $ makeSelect {selSelectList = sl [si $ num "2"]}]
+>    ]
 
 --------------------------------------------------------------------------------
 
 ddl statements
 
 
->    ,Group "misc" [
->       s "SET search_path TO my_schema, public;"
->         [Set ea "search_path" [SetId ea "my_schema"
->                               ,SetId ea "public"]]
->      ,s "SET t1 = 3;"
->         [Set ea "t1" [SetNum ea 3]]
->      ,s "SET t1 = 'stuff';"
->         [Set ea "t1" [SetStr ea "stuff"]]
->      ,s "create language plpgsql;"
->         [CreateLanguage ea "plpgsql"]
->
+>    ,Group "misc"
+>     [s "SET search_path TO my_schema, public;"
+>      [Set ea "search_path" [SetId ea "my_schema"
+>                            ,SetId ea "public"]]
+>     ,s "SET t1 = 3;"
+>      [Set ea "t1" [SetNum ea 3]]
+>     ,s "SET t1 = 'stuff';"
+>      [Set ea "t1" [SetStr ea "stuff"]]
+>     ,s "create language plpgsql;"
+>      [CreateLanguage ea "plpgsql"]
 >     ]
->     ]
+>    ]
 >  where
 >    s = Stmt

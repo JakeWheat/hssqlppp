@@ -16,7 +16,7 @@ examples.
 > --import qualified Language.Haskell.Exts as Exts
 > --import Data.Generics
 > import Data.Generics.Uniplate.Data
-> import Database.HsSqlPpp.Utils.GroomNoAnns
+> import Database.HsSqlPpp.Utils.GroomUtils
 
 > data Row = Row [[Text]]
 >          | HHeader String

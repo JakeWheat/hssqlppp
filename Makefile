@@ -86,6 +86,7 @@ EXE_FILES = src-extra/tests/Tests \
 	src-extra/docutil/DevelTool \
 	src-extra/examples/Parse3 \
 	src-extra/examples/Lex \
+	src-extra/examples/TypeCheck3 \
 	src-extra/examples/TypeCheck2 \
 	src-extra/examples/TypeCheck \
 	src-extra/examples/TypeCheckDB \

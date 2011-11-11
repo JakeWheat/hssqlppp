@@ -20,15 +20,15 @@ from in update, using in delete (+ type check these)
 >        [Insert ea
 >         (dqi "testtable")
 >         [Nmc "columna", Nmc "columnb"]
->         (Values ea [[NumberLit ea "1", NumberLit ea "2"]])
+>         (Values ea [[num "1", num "2"]])
 >         Nothing]
 
 multi row insert, test the stand alone values statement first, maybe
 that should be in the select section?
 
 >      ,s "values (1,2), (3,4);"
->      [QueryStatement ea $ Values ea [[NumberLit ea "1", NumberLit ea "2"]
->              ,[NumberLit ea "3", NumberLit ea "4"]]]
+>      [QueryStatement ea $ Values ea [[num "1", num "2"]
+>                                     ,[num "3", num "4"]]]
 >
 >      ,s "insert into testtable\n\
 >         \(columna,columnb)\n\
@@ -36,8 +36,8 @@ that should be in the select section?
 >       [Insert ea
 >         (dqi "testtable")
 >         [Nmc "columna", Nmc "columnb"]
->         (Values ea [[NumberLit ea "1", NumberLit ea "2"]
->                 ,[NumberLit ea "3", NumberLit ea "4"]])
+>         (Values ea [[num "1", num "2"]
+>                    ,[num "3", num "4"]])
 >         Nothing]
 
 insert from select
@@ -45,7 +45,9 @@ insert from select
 >      ,s "insert into a\n\
 >          \    select b from c;"
 >       [Insert ea (dqi "a") []
->        (selectFrom [selI "b"] (Tref ea (i "c") (NoAlias ea)))
+>        (makeSelect
+>         {selSelectList = sl [si $ ei "b"]
+>         ,selTref = [tref "c"]})
 >        Nothing]
 >
 >      ,s "insert into testtable\n\
@@ -54,39 +56,39 @@ insert from select
 >       [Insert ea
 >         (dqi "testtable")
 >         [Nmc "columna", Nmc "columnb"]
->         (Values ea [[NumberLit ea "1", NumberLit ea "2"]])
->         (Just $ sl [selI "id"])]
+>         (Values ea [[num "1", num "2"]])
+>         (Just $ sl [si $ ei "id"])]
 >      ]
 >
 >     ,Group "update" [
 >       s "update tb\n\
 >         \  set x = 1, y = 2;"
->       [Update ea (dqi "tb") [SetClause ea (Nmc "x") $ NumberLit ea "1"
->                             ,SetClause ea (Nmc "y") $ NumberLit ea "2"]
+>       [Update ea (dqi "tb") [set "x" $ num "1"
+>                             ,set "y" $ num "2"]
 >        [] Nothing Nothing]
 >      ,s "update tb\n\
 >         \  set x = 1, y = 2 where z = true;"
->       [Update ea (dqi "tb") [SetClause ea (Nmc "x") $ NumberLit ea "1"
->                             ,SetClause ea (Nmc "y") $ NumberLit ea "2"]
+>       [Update ea (dqi "tb") [set "x" $ num "1"
+>                             ,set "y" $ num "2"]
 >        []
 >        (Just $ binop "=" (ei "z") lTrue)
 >        Nothing]
 >      ,s "update tb\n\
 >         \  set x = 1, y = 2 returning id;"
->       [Update ea (dqi "tb") [SetClause ea (Nmc "x") $ NumberLit ea "1"
->                             ,SetClause ea (Nmc "y") $ NumberLit ea "2"]
+>       [Update ea (dqi "tb") [set "x" $ num "1"
+>                             ,set "y" $ num "2"]
 >        [] Nothing (Just $ sl [selI "id"])]
 >      ,s "update tb\n\
 >         \  set (x,y) = (1,2);"
 >       [Update ea (dqi "tb")
 >        [MultiSetClause ea [Nmc "x",Nmc "y"]
->         $ SpecialOp ea (name "!rowctor") [NumberLit ea "1"
->                                          ,NumberLit ea "2"]]
+>         $ specop "!rowctor" [num "1"
+>                             ,num "2"]]
 >        []
 >        Nothing Nothing]
 >      ]
 
-App ea "=" [App ea "!rowctor" [Identifier ea "x",Identifier ea "y"],App ea "!rowctor" [NumberLit ea "1",NumberLit ea "2"]])
+App ea "=" [App ea "!rowctor" [Identifier ea "x",Identifier ea "y"],App ea "!rowctor" [num "1",num "2"]])
 
 
 >

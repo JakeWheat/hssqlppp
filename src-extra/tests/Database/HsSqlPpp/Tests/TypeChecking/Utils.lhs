@@ -19,7 +19,7 @@
 > import Database.HsSqlPpp.Tests.TestUtils
 > import Control.Monad
 
-> import Database.HsSqlPpp.Utils.GroomNoAnns
+> import Database.HsSqlPpp.Utils.GroomUtils
 > import Language.Haskell.Exts hiding (Type)
 
 > data Item = Group String [Item]
@@ -52,9 +52,9 @@
 >                                   -- if expecting a type error
 >                    Right _ -> null noTypeSEs && null noTypeQEs
 >   unless allTyped $
->        trace ("MISSING TYPES: " ++ groomAnnTypeOnly aast)
+>        trace ("MISSING TYPES: " ++ groomTypes aast)
 >        $ assertBool "" allTyped
->   unless (et == got) $ trace (groomAnnTypeOnly aast) $ return ()
+>   unless (et == got) $ trace (groomTypes aast) $ return ()
 >   assertEqual "" et got
 
 > testImpCastsScalar :: String -> String -> Test.Framework.Test
@@ -100,9 +100,9 @@
 >                                   -- if expecting a type error
 >                    Right _ -> null noTypeSEs && null noTypeQEs
 >   unless allTyped $
->        trace ("MISSING TYPES: " ++ groomAnnTypeOnly aast)
+>        trace ("MISSING TYPES: " ++ groomTypes aast)
 >        $ assertBool "" allTyped
->   unless (et == got) $ trace (groomAnnTypeOnly aast) $ return ()
+>   unless (et == got) $ trace (groomTypes aast) $ return ()
 >   assertEqual "" et got
 
 > testRewrite :: TypeCheckingFlags -> [CatalogUpdate] -> String -> String
@@ -131,28 +131,3 @@
 > itemToTft (RewriteQueryExpr f cus s s') = testRewrite f cus s s'
 > itemToTft (ImpCastsScalar s s') = testImpCastsScalar s s'
 > itemToTft (Group s is) = testGroup s $ map itemToTft is
-
-> groomAnnTypeOnly :: Show a => a -> String
-> groomAnnTypeOnly d =
->   groomF tte d
->   where
->     tte :: Exp -> Exp
->     tte (Paren
->                   (App
->                    (App
->                     (App
->                      (App
->                       (App
->                        (App (Con (UnQual (Ident "Annotation")))
->                         _) t) te) _) _) _))
->          = case (t,te) of
->               (Con (UnQual (Ident "Nothing")) ,List []) ->
->                  Con (UnQual (Ident "A"))
->               (y,List []) -> y
->               (_,x) -> x
->            {-trace ("\n*************\n"
->                   ++ groom t
->                   ++ "\n*************\n"
->                   ++ groom te
->                   ++ "\n*************\n") $ Tuple [t,te]-}
->     tte x = x

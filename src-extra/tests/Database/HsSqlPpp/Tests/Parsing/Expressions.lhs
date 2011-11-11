@@ -73,16 +73,16 @@ test some more really basic expressions
 >      ,e "'a' || 'b'" (binop "||" (stringQ "a")
 >                                  (stringQ "b"))
 >      ,e "'stuff'::text"
->       (Cast ea (stringQ "stuff") (SimpleTypeName ea $ name "text"))
+>       (Cast ea (stringQ "stuff") (st "text"))
 >      ,e "245::float(24)" (Cast ea (num "245") (PrecTypeName ea (name "float") 24))
 >      ,e "245.1::numeric(5,3)"
 >       (Cast ea (num "245.1") (Prec2TypeName ea (name "numeric") 5 3))
 >      ,e "245::double precision"
->       (Cast ea (num "245") (SimpleTypeName ea $ name "double precision"))
+>       (Cast ea (num "245") (st "double precision"))
 >      ,e "'test'::character varying(6)"
 >       (Cast ea (StringLit ea "test") (PrecTypeName ea (name "character varying") 6))
 >      ,e "date '1998-12-01'"
->       (TypedStringLit ea (SimpleTypeName ea $ name "date") "1998-12-01")
+>       (TypedStringLit ea (st "date") "1998-12-01")
 >      ,e "interval '63' day" (Interval ea "63" IntervalDay Nothing)
 >      ,e "interval '63' day (3)" (Interval ea "63" IntervalDay $ Just 3)
 >      ,e "extract(year from a)" (Extract ea ExtractYear $ ei "a")
@@ -95,15 +95,15 @@ test some more really basic expressions
 >                            ,binop "+" (num "7")
 >                                       (num "1")])
 >      ,e "cast(a as text)"
->         (Cast ea (ei "a") (SimpleTypeName ea $ name "text"))
+>         (Cast ea (ei "a") (st "text"))
 >      ,e "@ a"
 >         (prefop "@" (ei "a"))
 >      ,e "substring(a from 0 for 3)"
 >         (specop "!substring" [ei "a", num "0", num "3"])
 >      ,e "substring(a from 0 for (5 - 3))"
 >         (specop "!substring" [ei "a"
->                               ,num "0"
->                               ,Parens ea (binop "-" (num "5") (num "3"))])
+>                              ,num "0"
+>                              ,Parens ea (binop "-" (num "5") (num "3"))])
 >      ,e "substring(a,b,c)"
 >         (app "substring" [ei "a"
 >                          ,ei "b"
@@ -126,8 +126,9 @@ test some more really basic expressions
 >      ,e "fn('test')" (app "fn" [stringQ "test"])
 >      ,e "fn(1,'test')" (app "fn" [num "1", stringQ "test"])
 >      ,e "fn('test')" (app "fn" [stringQ "test"])
->         --- qualified names
->      ,e "g.f()" (App ea (Name ea [Nmc "g", Nmc "f"]) [])
+>         --- qualified names, check that the . is binding
+>         -- more tightly than the ()
+>      ,e "g.f()" $ (App ea (Name ea [Nmc "g", Nmc "f"]) [])
 >      ,e "h.g.f()" (App ea (Name ea [Nmc "h", Nmc "g", Nmc "f"]) [])
 >      ]
 >    ,Group "simple whitespace sanity checks" [
@@ -165,8 +166,13 @@ test some more really basic expressions
 >      ]
 >    ,Group "exists" [
 >       e "exists (select 1 from a)"
->       (Exists ea (selectFrom [SelExp ea (num "1")]
->                   (Tref ea (i "a") (NoAlias ea))))
+>       (Exists ea (makeSelect
+>                   {selSelectList = sl [si $ num "1"]
+>                   ,selTref = [tref "a"]}))
+
+selectFrom [SelExp ea (num "1")]
+                   (Tref ea (i "a") (NoAlias ea))))
+
 >      ]
 >    ,Group "in variants" [
 >       e "t in (1,2)"
@@ -206,24 +212,23 @@ and dollar quoting, including nesting.
 >      ,e "'test'''" (stringQ "test'")
 >      ,e "'''test'" (stringQ "'test")
 >      ,e "'te''st'" (stringQ "te'st")
->      ,e "$$test$$" (StringLit ea "test")
->      ,e "$$te'st$$" (StringLit ea "te'st")
->      ,e "$st$test$st$" (StringLit ea "test")
->      ,e "$outer$te$$yup$$st$outer$" (StringLit ea "te$$yup$$st")
+>      ,e "$$test$$" (str "test")
+>      ,e "$$te'st$$" (str "te'st")
+>      ,e "$st$test$st$" (str "test")
+>      ,e "$outer$te$$yup$$st$outer$" (str "te$$yup$$st")
 >      ,e "'spl$$it'" (stringQ "spl$$it")
 >      ]
 >    ,Group "bracketed things" [
 >       e "(p).x" $ parenQual (ei "p") (ei "x")
 >      ,e "(select f(((a).x, y)::z))"
 >         (ScalarSubQuery ea
->          (selectE (sl
->                    [SelExp ea
->                    $ app "f" [Cast ea
+>          (makeSelect
+>           {selSelectList =
+>             sl [si $ app "f" [Cast ea
 >                               (specop "!rowctor"
 >                                [parenQual (ei "a") (ei "x")
 >                                ,ei "y"])
->                               (st "z")]
->                     ])))
+>                               (st "z")]]}))
 >      ]
 >    ,Group "tricky operator parsing" [
 >       e "2 <>-1"

@@ -112,3 +112,35 @@ shortcuts for constructing test data and asts
 
 > parenQual :: ScalarExpr -> ScalarExpr -> ScalarExpr
 > parenQual a b = BinaryOp ea (name ".") (Parens ea a) b
+
+> tref :: String -> TableRef
+> tref s = Tref ea (name s) (NoAlias ea)
+
+> trefa :: String -> String -> TableRef
+> trefa t a = Tref ea (name t) (TableAlias ea $ Nmc a)
+
+
+> qtref :: String -> String -> TableRef
+> qtref q i = Tref ea (qi q i) (NoAlias ea)
+
+> si :: ScalarExpr -> SelectItem
+> si = SelExp ea
+
+> str :: String -> ScalarExpr
+> str = StringLit ea
+
+> set :: String -> ScalarExpr -> SetClause
+> set n v = SetClause ea (Nmc n) v
+
+> varDef :: String -> TypeName -> VarDef
+> varDef nm t = VarDef ea (Nmc nm) t Nothing
+
+> varDefv :: String -> TypeName -> ScalarExpr -> VarDef
+> varDefv nm t v = VarDef ea (Nmc nm) t (Just v)
+
+> paramDef :: String -> TypeName -> ParamDef
+> paramDef nm t = ParamDef ea (Nmc nm) t
+
+> at :: String -> TypeName
+> at = ArrayTypeName ea . st
+

@@ -14,22 +14,28 @@
 >         \select a,b from t;"
 >       [CreateView ea
 >        (dqi "v1") Nothing
->        (selectFrom [selI "a", selI "b"] (Tref ea (i "t") (NoAlias ea)))]
+>        (makeSelect
+>         {selSelectList = sl [si $ ei "a"
+>                             ,si $ ei "b"]
+>         ,selTref = [tref "t"]})]
 >      ,s "create view v1(c,d) as\n\
 >         \select a,b from t;"
 >       [CreateView ea
 >        (dqi "v1") (Just [Nmc "c",Nmc "d"])
->        (selectFrom [selI "a", selI "b"] (Tref ea (i "t") (NoAlias ea)))]
+>        (makeSelect
+>         {selSelectList = sl [si $ ei "a"
+>                             ,si $ ei "b"]
+>         ,selTref = [tref "t"]})]
 >      ,s "create domain td as text check (value in ('t1', 't2'));"
->       [CreateDomain ea (dqi "td") (SimpleTypeName ea $ name "text") ""
+>       [CreateDomain ea (dqi "td") (st "text") ""
 >        (Just (InPredicate ea (Identifier ea "value") True
 >               (InList ea [stringQ "t1" ,stringQ "t2"])))]
 >      ,s "create type tp1 as (\n\
 >         \  f1 text,\n\
 >         \  f2 text\n\
 >         \);"
->       [CreateType ea (dqi "tp1") [TypeAttDef ea (Nmc "f1") (SimpleTypeName ea $ name "text")
->                                  ,TypeAttDef ea (Nmc "f2") (SimpleTypeName ea $ name "text")]]
+>       [CreateType ea (dqi "tp1") [TypeAttDef ea (Nmc "f1") (st "text")
+>                                  ,TypeAttDef ea (Nmc "f2") (st "text")]]
 >
 >      ,s "create sequence s start with 5 increment by 4 no maxvalue no minvalue cache 1;"
 >         [CreateSequence ea (dqi "s") 4 1 ((2::Integer) ^ (63::Integer) - 1) 5 1]
@@ -41,7 +47,8 @@
 >          \after insert or delete on tb\n\
 >          \for each statement\n\
 >          \execute procedure fb();"
->         [CreateTrigger ea (Nmc "tr") TriggerAfter [TInsert,TDelete] (dqi "tb") EachStatement (dqi "fb") []]
+>         [CreateTrigger ea (Nmc "tr") TriggerAfter [TInsert,TDelete]
+>          (dqi "tb") EachStatement (dqi "fb") []]
 >      ]
 >
 >     ,Group "drops" [
