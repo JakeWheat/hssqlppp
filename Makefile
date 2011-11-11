@@ -93,8 +93,7 @@ EXE_FILES = src-extra/tests/Tests \
 	src-extra/examples/TypeCheckMystery \
 	src-extra/h7c/h7c \
 	src-extra/examples/FixSqlServerTpchSyntax \
-	src-extra/examples/QQ \
-	src-extra/devel-util/PostprocessUuagc
+	src-extra/examples/QQ
 
 #	src-extra/examples/ShowCatalog \
 #	src-extra/chaos/build.lhs
@@ -182,6 +181,19 @@ src/Database/HsSqlPpp/Internals/AstInternal.hs : $(AG_FILES) src-extra/devel-uti
 		--lckeywords --doublecolons --genlinepragmas \
 		src/Database/HsSqlPpp/Internals/AstInternal.ag
 	src-extra/devel-util/PostprocessUuagc
+
+# custom rule for this build exe to avoid loop if uses usual exe rule,
+# then have loop where 'make depend' depends on AstInternal.hs, but
+# AstInternal.hs depends on this exe, which depends on 'make depend'
+# running correctly
+
+src-extra/devel-util/PostprocessUuagc : src-extra/devel-util/UUAGCHaddocks.lhs src-extra/devel-util/UUAGCHaddocks.hi src-extra/devel-util/UUAGCHaddocks.o src-extra/devel-util/PostprocessUuagc.lhs src-extra/devel-util/PostprocessUuagc.hi src-extra/devel-util/PostprocessUuagc.o
+	$(HC) $(HC_OPTS) src-extra/devel-util/PostprocessUuagc
+
+src-extra/devel-util/UUAGCHaddocks.o : src-extra/devel-util/UUAGCHaddocks.lhs
+src-extra/devel-util/PostprocessUuagc.o : src-extra/devel-util/PostprocessUuagc.lhs
+src-extra/devel-util/PostprocessUuagc.o : src-extra/devel-util/UUAGCHaddocks.hi
+
 
 #-dcfspwm --cycle -O
 # rule for the generated file

@@ -100,7 +100,7 @@ it and quits.
 >     where
 >       gsp :: SourcePosition
 >       gsp = fromMaybe ("unknown",1,1) $ asrc $ getAnnotation st
->       adjSp sp1 = updateAnnotation (setAsrc $ Just sp1)
+>       adjSp sp1 = updateAnnotation (\a -> a {asrc = Just sp1})
 
 > mname :: String -> Name
 > mname s = Name emptyAnnotation [Nmc s]

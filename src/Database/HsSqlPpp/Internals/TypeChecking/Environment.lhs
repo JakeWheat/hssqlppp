@@ -6,7 +6,7 @@ catalog (so it is slightly misnamed), but focuses only on identifiers
 introduced by things like tablerefs, sub selects, plpgsql parameters
 and variables, etc.
 
-> {-# LANGUAGE DeriveDataTypeable #-}
+> {-# LANGUAGE DeriveDataTypeable,TupleSections,ScopedTypeVariables #-}
 > module Database.HsSqlPpp.Internals.TypeChecking.Environment
 >     (-- * abstract environment value
 >      Environment

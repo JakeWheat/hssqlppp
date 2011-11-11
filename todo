@@ -1,9 +1,14 @@
 = next release, 0.5.0
 
-complete basic typechecking for queryexpr and scalexpr
-add typechecking for dml
-parameterized query typechecking + get param type util fn
-go through old tests and redo most of them?
+complete type checking for crud
+param query type fn
+order by, group by qualifier bugs
+see if can fix error messages from lex/parse in qq
+
+get ghc 6.12.x working again: think it is just adding the
+   control.monad.error stuff back it
+
+go through old typecheck tests and reinsert most of them?
 -> want to get much better coverage of typechecking
 
 rough todo for exprs:
@@ -15,14 +20,15 @@ combineQueryExpr
 values
 funtrefs
 
-fix order by env (see add qualifiers on tpch sql order bys)
-group by qualifier issue
 
-error messages are broken for lexing,parsing? when used in quoting
 
-get ghc 6.12.x working again: think it is just adding the
-   control.monad.error stuff back it
+= 'arcs'
 
+== continue with rewrite of catalog and typeconversion
+
+typeconversion code is a complete mess
+
+== misc small bits
 
 idea for :: cast
 
@@ -36,12 +42,6 @@ typename
 could do something similar for other operators: '.', [], in?
 
 add support for enum types
-
-= 'arcs'
-
-== continue with rewrite of catalog and typeconversion
-
-typeconversion code is a complete mess
 
 == alpha version
 
@@ -61,16 +61,12 @@ todo: make detailed todo list for this
 
 == out of tree builds
 
-make file build out of tree
+make file build out of source tree
 
 == names
 
 support schema qualification, and check the existing use of names
 carefully
-
-== localenv
-
-finish off new typechecking for crud.
 
 == ddl and plpgsql
 
