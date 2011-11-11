@@ -16,13 +16,13 @@
 >       $ stbl {selSelectList = sl [si $ ei "a"
 >                                  ,si $ ei "b"]}
 >    ,q "select a as b from tbl"
->       $ stbl {selSelectList = sl [sia (ei "a") "b"]}
+>       $ stbl {selSelectList = sl [sia (ei "a") $ Nmc "b"]}
 >    ,q "select * from tbl"
 >       $ stbl {selSelectList = sl [si $ Star ea]}
 >    ,q "select tbl.* from tbl"
 >       $ stbl {selSelectList = sl [si $ QStar ea (Nmc "tbl")]}
 >    ,q "select a + b as b from tbl;"
->       $ stbl {selSelectList = sl [sia (binop "+" (ei "a") (ei "b")) "b"]}
+>       $ stbl {selSelectList = sl [sia (binop "+" (ei "a") (ei "b")) $ Nmc "b"]}
 
 >    -- window stuff
 >    ,q "select row_number() over(order by a) as place from tbl;"
@@ -32,7 +32,7 @@
 >                     (app "row_number" [])
 >                     []
 >                     [(ei "a", Asc)] FrameUnboundedPreceding)
->               "place"]}
+>               $ Nmc "place"]}
 >    ,q "select row_number() over(order by a asc) as place from tbl;"
 >       $ stbl
 >         {selSelectList =
@@ -40,7 +40,7 @@
 >                     (app "row_number" [])
 >                     []
 >                     [(ei "a", Asc)] FrameUnboundedPreceding)
->               "place"]}
+>               $ Nmc "place"]}
 >    ,q "select row_number() over(order by a desc) as place from tbl;"
 >       $ stbl
 >         {selSelectList =
@@ -48,7 +48,7 @@
 >                     (app "row_number" [])
 >                     []
 >                     [(ei "a", Desc)] FrameUnboundedPreceding)
->               "place"]}
+>               $ Nmc "place"]}
 >    ,q "select row_number()\n\
 >         \over(partition by a,b order by c) as place\n\
 >         \from tbl;"
@@ -58,7 +58,7 @@
 >                                   [ei "a", ei "b"]
 >                                   [(ei "c", Asc)]
 >                                   FrameUnboundedPreceding)
->                              "place"]}
+>                              (Nmc "place")]}
 >    ,q "select row_number() over(), x from tbl;"
 >       $ stbl
 >         {selSelectList = sl [si $ WindowApp ea
@@ -87,7 +87,7 @@ aggregates, group by, having
 >    ,q "select a, count(b) as cnt from tbl group by a having cnt > 4;"
 >       $ stbl {selSelectList =
 >               sl [si $ ei "a"
->                  ,sia (app "count" [ei "b"]) "cnt"]
+>                  ,sia (app "count" [ei "b"]) $ Nmc "cnt"]
 >              ,selGroupBy = [ei "a"]
 >              ,selHaving = Just $ binop  ">" (ei "cnt") (num "4")}
 >    ]

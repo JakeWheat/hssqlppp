@@ -14,7 +14,7 @@
 >       s "create function t1(text) returns text as $$\n\
 >         \select a from t1 where b = $1;\n\
 >         \$$ language sql stable;"
->       [CreateFunction ea (dqi "t1") [ParamDefTp ea $ st "text"]
+>       [CreateFunction ea (name "t1") [ParamDefTp ea $ st "text"]
 >        (st "text") NoReplace Sql
 >        (SqlFnBody ea
 >         [QueryStatement ea $
@@ -31,7 +31,7 @@
 >         \  null;\n\
 >         \end;\n\
 >         \$$ language plpgsql volatile;"
->       [CreateFunction ea (dqi "fn") [] (st "void") NoReplace Plpgsql
+>       [CreateFunction ea (name "fn") [] (st "void") NoReplace Plpgsql
 >        (PlpgsqlFnBody ea (Block ea Nothing [varDef "a" (st "int")
 >                                            ,varDef "b" (st "text")]
 >                           [NullStatement ea]))
@@ -44,7 +44,7 @@
 >         \  null;\n\
 >         \end;\n\
 >         \$$ language plpgsql volatile;"
->       [CreateFunction ea (dqi "fn") [] (st "void") NoReplace Plpgsql
+>       [CreateFunction ea (name "fn") [] (st "void") NoReplace Plpgsql
 >        (PlpgsqlFnBody ea
 >         (Block ea Nothing [varDef "a" (st "int")
 >                           ,varDef "b" (st "text")]
@@ -57,7 +57,7 @@
 >         \  null;\n\
 >         \end;\n\
 >         \$$ language plpgsql immutable;"
->       [CreateFunction ea (dqi "fn")
+>       [CreateFunction ea (name "fn")
 >        [paramDef "a" $ at "text"]
 >        (at "int") NoReplace Plpgsql
 >        (PlpgsqlFnBody ea
@@ -72,7 +72,7 @@
 >         \  null;\n\
 >         \end;\n\
 >         \' language plpgsql stable;"
->       [CreateFunction ea (dqi "fn") [] (st "void") NoReplace Plpgsql
+>       [CreateFunction ea (name "fn") [] (st "void") NoReplace Plpgsql
 >        (PlpgsqlFnBody ea
 >         (Block ea Nothing
 >          [varDefv "a" (st "int") (num "3")]
@@ -85,7 +85,7 @@
 >         \  null;\n\
 >         \end;\n\
 >         \' language plpgsql stable;"
->       [CreateFunction ea (dqi "fn")
+>       [CreateFunction ea (name "fn")
 >        [ParamDefTp ea $ st "int"]
 >        (st "void") NoReplace Plpgsql
 >        (PlpgsqlFnBody ea
@@ -100,12 +100,12 @@
 >         \  null;\n\
 >         \end;\n\
 >         \' language plpgsql stable;"
->       [CreateFunction ea (dqi "fn")
+>       [CreateFunction ea (name "fn")
 >        [ParamDef ea (Nmc "b") $ st "int"]
 >        (st "void") NoReplace Plpgsql
 >        (PlpgsqlFnBody ea
 >         (Block ea Nothing
->          [VarAlias ea (Nmc "a") (dqi "b")]
+>          [VarAlias ea (Nmc "a") (name "b")]
 >          [NullStatement ea]))
 >        Stable]
 >      ,s "create function fn() returns setof int as $$\n\
@@ -113,7 +113,7 @@
 >         \  null;\n\
 >         \end;\n\
 >         \$$ language plpgsql stable;"
->       [CreateFunction ea (dqi "fn") []
+>       [CreateFunction ea (name "fn") []
 >        (SetOfTypeName ea $ st "int") NoReplace Plpgsql
 >        (PlpgsqlFnBody ea (Block ea Nothing [] [NullStatement ea]))
 >        Stable]
@@ -122,7 +122,7 @@
 >         \  null;\n\
 >         \end\n\
 >         \$$ language plpgsql stable;"
->       [CreateFunction ea (dqi "fn") []
+>       [CreateFunction ea (name "fn") []
 >        (st "void") NoReplace Plpgsql
 >        (PlpgsqlFnBody ea (Block ea Nothing [] [NullStatement ea]))
 >        Stable]
@@ -131,18 +131,18 @@
 >         \  null;\n\
 >         \end\n\
 >         \$$ language plpgsql stable;"
->       [CreateFunction ea (dqi "fn") []
+>       [CreateFunction ea (name "fn") []
 >        (st "void") Replace Plpgsql
 >        (PlpgsqlFnBody ea (Block ea Nothing [] [NullStatement ea]))
 >        Stable]
 >      ,s "drop function test(text);"
->       [DropFunction ea Require [(dqi "test",[st "text"])] Restrict]
+>       [DropFunction ea Require [(name "test",[st "text"])] Restrict]
 >      ,s "drop function test(int,int);"
->       [DropFunction ea Require [(dqi "test",[st "int"
+>       [DropFunction ea Require [(name "test",[st "int"
 >                                             ,st "int"])] Restrict]
 >      ,s "drop function if exists a(),test(text) cascade;"
->       [DropFunction ea IfExists [(dqi "a",[])
->                                 ,(dqi "test",[st "text"])] Cascade]
+>       [DropFunction ea IfExists [(name "a",[])
+>                                 ,(name "test",[st "text"])] Cascade]
 >     ]]
 >  where
 >    s = Stmt

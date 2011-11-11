@@ -31,10 +31,10 @@
 >     stbl {selTref = [FunTref ea (app "gen" []) (TableAlias ea $ Nmc "t")]}
 
 >    ,q "select a from (select a from tbl) as d;"
->     stbl {selTref = [SubTref ea stbl (TableAlias ea "d")]}
+>     stbl {selTref = [SubTref ea stbl (TableAlias ea $ Nmc "d")]}
 
 >    ,q "select a from (select a from tbl) d;"
->     stbl {selTref = [SubTref ea stbl (TableAlias ea "d")]}
+>     stbl {selTref = [SubTref ea stbl (TableAlias ea $ Nmc "d")]}
 
 >    ]
 >    where

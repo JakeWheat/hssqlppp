@@ -62,8 +62,8 @@
 >    ,s "select ($1).x, ($1).y from pos;"
 >           $ makeSelect
 >                   {selSelectList = sl
->                    [si $ member (Parens ea $ PositionalArg ea 1) (Identifier ea "x")
->                    ,si $ member (Parens ea $ PositionalArg ea 1) (Identifier ea "y")]
+>                    [si $ member (Parens ea $ PositionalArg ea 1) (ei "x")
+>                    ,si $ member (Parens ea $ PositionalArg ea 1) (ei "y")]
 >                   ,selTref = [tref "pos"]}
 >    ]
 >  where

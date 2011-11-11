@@ -1,9 +1,12 @@
 
+test item data type
+
+shortcuts for constructing test data and asts
+
 > module Database.HsSqlPpp.Tests.Parsing.Utils where
 
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
-> import GHC.Exts (IsString(..))
 
 > data Item = Expr String ScalarExpr
 >           | Stmt String [Statement]
@@ -12,65 +15,21 @@
 >           | PgSqlStmt String [Statement]
 >           | Group String [Item]
 
-{-
-todo: rename all the dodgy bits
-get rid of the select and sel variations
-especially rename i, poor name for an exported utility function
-maybe think about a module included with hssqlppp library
-get rid of the cheesy isstring instances for name and nmc
-
--}
-
--------------------------------------------------------------------------------
-
-shortcuts for constructing test data and asts
-
 > stringQ :: String -> ScalarExpr
 > stringQ = StringLit ea
 >
-> selectFrom :: SelectItemList
->            -> TableRef
->            -> QueryExpr
-> selectFrom selList frm = Select ea Dupes (SelectList ea selList)
->                            [frm] Nothing [] Nothing [] Nothing Nothing
->
-> selectE :: SelectList -> QueryExpr
-> selectE selList = Select ea Dupes selList
->                     [] Nothing [] Nothing [] Nothing Nothing
->
-> selIL :: [String] -> [SelectItem]
-> selIL = map selI
-> selEL :: [ScalarExpr] -> [SelectItem]
-> selEL = map (SelExp ea)
->
-> i :: String -> Name
-> i x = Name ea [Nmc x]
-
-> dqi :: String -> Name
-> dqi x = Name ea [Nmc x]
-
 > eqi :: String -> String -> ScalarExpr
-> eqi c x = Identifier ea (Name ea [Nmc c, Nmc x])
+> eqi c x = Identifier ea $ qn c x
 
 > ei :: String -> ScalarExpr
-> ei j = Identifier ea (Name ea [Nmc j])
+> ei j = Identifier ea $ name j
 >
-> qi :: String -> String -> Name
-> qi c n = Name ea [Nmc c, Nmc n]
->
-> selI :: String -> SelectItem
-> selI = SelExp ea . ei
+> qn :: String -> String -> Name
+> qn c n = Name ea [Nmc c, Nmc n]
 >
 > sl :: SelectItemList -> SelectList
 > sl = SelectList ea
 >
-> selectFromWhere :: SelectItemList
->                 -> TableRef
->                 -> ScalarExpr
->                 -> QueryExpr
-> selectFromWhere selList frm whr =
->     Select ea Dupes (SelectList ea selList)
->                [frm] (Just whr) [] Nothing [] Nothing Nothing
 >
 > att :: String -> String -> AttributeDef
 > att n t = AttributeDef ea (Nmc n) (SimpleTypeName ea $ name t) Nothing []
@@ -81,17 +40,8 @@ shortcuts for constructing test data and asts
 > name :: String -> Name
 > name n = Name ea [Nmc n]
 
-> instance IsString NameComponent where
->     fromString = Nmc
-
-> instance IsString Name where
->     fromString j = Name ea [Nmc j]
-
-
 > member :: ScalarExpr -> ScalarExpr -> ScalarExpr
 > member a b = BinaryOp ea (name ".") a b
-
-
 
 > num :: String -> ScalarExpr
 > num n = NumberLit ea n
@@ -134,7 +84,7 @@ shortcuts for constructing test data and asts
 
 
 > qtref :: String -> String -> TableRef
-> qtref q i = Tref ea (qi q i) (NoAlias ea)
+> qtref q i = Tref ea (qn q i) (NoAlias ea)
 
 > si :: ScalarExpr -> SelectItem
 > si = SelExp ea
