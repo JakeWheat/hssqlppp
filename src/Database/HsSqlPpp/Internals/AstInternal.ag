@@ -153,13 +153,442 @@ import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 import Database.HsSqlPpp.Utils.Utils
 }
 
+{-
+----------------------------------------------------
+
+= TOC of this file
+
+* ScalarExprs
+* QueryExprs
+* Statements
+* DML extras
+* DDL/ utility extras
+* PlPgsql extras
+
+-------------------------------------------------------------
+
+= ScalarExprs
+
+Doesn't follow the syntax of postgres exactly, here is a rough table
+of equivalents
+
+pg                                here
+--                                ----
+constant/literal                  integerlit, floatlit, unknownstringlit, nulllit, boollit
+column reference                  identifier
+positional parameter reference    positionalarg
+subscripted expression            specialop
+field selection expression        identifier/binaryop "."
+normal operator invocation        binaryop,prefixop,postfixop
+special operators (e.g. between)  specialop
+function call                     app
+aggregate expression              app/ aggregate app
+window function call              windowapp
+type cast                         cast
+scalar subquery                   scalarsubquery
+other subquery in scalar context  scalarsubquery
+array constructor                 specialop
+row constructor                   specialop
+
+Anything that is represented in the ast as some sort of name plus a
+list of expressions as arguments is mostly treated as App if it looks
+mostly like [Identifier](csv of args). Operators are represented by
+binaryop, prefixop, postfix op. Keyword operators and other non
+regular syntax are represented using binaryop,prefixop,postfixop if
+they look like an operator call with text instead of symbols, and
+specialop otherwise.
+
+This includes
+keyword operators e.g. and, like (ones which can be parsed as normal
+  syntactic operators)
+unusual syntax operators, e.g. between
+unusual syntax function calls e.g. substring(x from 5 for 3)
+arrayctors e.g. array[3,5,6]
+rowctors e.g. ROW (2,4,6)
+array subscripting
+
+list of keyword operators (regular prefix, infix and postfix)::
+and, or, not
+is null, is not null, isnull, notnull
+is distinct from, is not distinct from
+is true, is not true,is false, is not false, is unknown, is not unknown
+like, not like, ilike, not ilike
+similar to, not similar to
+in, not in (don't include these here since the argument isn't always an expr)
+
+unusual syntax operators and fn calls
+between, not between, between symmetric
+overlay, substring, trim
+any, some, all
+
+Some of unusual syntax forms and keywords operators are not yet
+supported
+
+Keyword operators are represented in the at with the operator name as
+a ! followed by a string, e.g.
+operator 'and' -> BinaryOp "!and" ...
+
+This is a leftover from a previous version of the ast to avoid
+ambiguities but isn't ambiguous anymore so should be fixed.
+
+TODO: create a complete table of nonregular functions and operators;
+the above text is badly written and hard to follow.
+
+Also: for the specialoperators, create a data type instead of using
+string to represent these since there will always be a small finite
+number of these (fortunately, unlike most things you can't add custom
+operator syntax to postgres in plpgsql).
+
+Lots of invalid expressions can be expressed using this type.
+
+-}
+
+data ScalarExpr | NumberLit ann::Annotation d::String
+                | StringLit ann::Annotation
+                            value :: String
+                | NullLit ann::Annotation
+                | BooleanLit ann::Annotation b::Bool
+                -- could probably represent typed string lit
+                -- as a string lit and a cast?
+                | TypedStringLit ann::Annotation
+                                 tn :: TypeName
+                                 value :: String
+                | Interval ann::Annotation
+                           value :: String
+                           field :: IntervalField
+                           prec :: {Maybe Int}
+                | Extract ann::Annotation
+                          field :: ExtractField
+                          e :: ScalarExpr
+                | PositionalArg ann::Annotation p::Integer
+                | Placeholder ann::Annotation -- represents a '?'
+                | Cast ann::Annotation
+                       expr::ScalarExpr
+                       tn::TypeName
+                | Star ann::Annotation
+                | QStar ann::Annotation q::NameComponent -- e.g. a.*
+                  -- the parser produces an identifier when all the
+                  -- components are quoted or unquoted name components
+                  -- when there are parens or other expressions in the
+                  -- mix it produces binaryop "."
+                  -- probably should just support both for pretty printing
+                  -- and for typechecking
+                | Identifier ann::Annotation -- e.g. tbl
+                             i::Name
+                  -- case: the 'then' parts are boolean valued checks
+                | Case ann::Annotation
+                       cases :: CaseScalarExprListScalarExprPairList
+                       els :: MaybeScalarExpr
+                  -- case simple: supply a comparison value,
+                  -- the 'then' parts are the same type as this value
+                | CaseSimple ann::Annotation
+                             value :: ScalarExpr
+                             cases :: CaseScalarExprListScalarExprPairList
+                             els :: MaybeScalarExpr
+                | Exists ann::Annotation
+                         sel :: QueryExpr
+                  -- App variations
+                  -- app is used for regular function calls
+                | App ann::Annotation
+                          funName::Name
+                          args::ScalarExprList
+                  -- operator variants are used for regular looking
+                  -- prefix, postfix and binary operators,
+                  -- and for keyword operators which fit regular pattern
+                  -- also
+                | PrefixOp ann :: Annotation
+                           opName :: Name
+                           arg :: ScalarExpr
+                | PostfixOp ann :: Annotation
+                            opName :: Name
+                            arg :: ScalarExpr
+                | BinaryOp ann :: Annotation
+                           opName :: Name
+                           arg0 :: ScalarExpr
+                           arg1 :: ScalarExpr
+                  -- built in operators, keywords operators, etc. which don't
+                  -- look like pref/post/bin ops
+                | SpecialOp ann :: Annotation
+                            opName :: Name -- change this to a sum type?
+                            args::ScalarExprList
+                  -- aggregate calls can also have a distinct
+                  -- and an order by list as well as a regular function
+                  -- call looking part. The fn :: ScalarExpr
+                  -- should always be an App
+                | AggregateApp ann::Annotation
+                              aggDistinct :: Distinct
+                              fn :: ScalarExpr
+                              orderBy :: ScalarExprDirectionPairList
+                  -- similar comments as aggregate, the fn :: ScalarExpr
+                  -- should always be an App
+                | WindowApp ann::Annotation
+                           fn :: ScalarExpr
+                           partitionBy :: ScalarExprList
+                           orderBy :: ScalarExprDirectionPairList
+                           frm :: FrameClause
+                  -- represents in query or in list
+                | InPredicate ann::Annotation
+                              expr::ScalarExpr
+                              i::Bool
+                              list::InList
+                  -- lift app: e.g. x = any (a,2,4)
+                | LiftApp ann::Annotation
+                               oper::Name
+                               flav::LiftFlavour
+                               args::ScalarExprList
+                -- scalar meaning appearing in a scalar context not
+                -- scalar valued query expr
+                | ScalarSubQuery ann::Annotation
+                                 sel :: QueryExpr
+                | AntiScalarExpr String
+                | Parens ann::Annotation
+                         ex :: ScalarExpr
 
 {-
-================================================================================
 
-SQL top level statements
+== Name and TypeName
+
+name could be designed better: the name component list should not be
+empty
+
+-}
+
+data Name | Name ann::Annotation is::{[NameComponent]}
+          | AntiName String
+{
+nameComponents :: Name -> [NameComponent]
+nameComponents (Name _ is) = is
+}
+
+data TypeName | SimpleTypeName ann::Annotation tn::Name
+              | PrecTypeName ann::Annotation tn::Name prec::Integer
+              | Prec2TypeName ann::Annotation tn::Name prec::Integer prec1::Integer
+              | ArrayTypeName ann::Annotation typ::TypeName
+              | SetOfTypeName ann::Annotation typ::TypeName
+{-
+== additional data types for scalar exprs
+-}
+
+--todo: use liftoperator to represent inlist?
+data InList | InList ann::Annotation exprs :: ScalarExprList
+            | InQueryExpr ann::Annotation sel :: QueryExpr
+
+{
+
+
+data LiftFlavour = LiftAny | LiftAll
+                   deriving (Show,Eq,Typeable,Data)
+
+data Direction = Asc | Desc
+                 deriving (Show,Eq,Typeable,Data)
+
+-- todo: rename Dupes to all?
+data Distinct = Distinct | Dupes
+                deriving (Show,Eq,Typeable,Data)
+
+-- maybe should improve this, since you can have at least union
+-- distinct and union all just like select distinct and select all
+
+data CombineType = Except | Union | Intersect | UnionAll
+                   deriving (Show,Eq,Typeable,Data)
+
+data IntervalField = IntervalYear
+                   | IntervalMonth
+                   | IntervalDay
+                   | IntervalHour
+                   | IntervalMinute
+                   | IntervalSecond
+                   | IntervalYearToMonth
+                   | IntervalDayToHour
+                   | IntervalDayToMinute
+                   | IntervalDayToSecond
+                   | IntervalHourToMinute
+                   | IntervalHourToSecond
+                   | IntervalMinuteToSecond
+                     deriving (Show,Eq,Typeable,Data)
+
+data ExtractField = ExtractCentury
+                  | ExtractDay
+                  | ExtractDecade
+                  | ExtractDow
+                  | ExtractDoy
+                  | ExtractEpoch
+                  | ExtractHour
+                  | ExtractIsodow
+                  | ExtractIsoyear
+                  | ExtractMicroseconds
+                  | ExtractMillennium
+                  | ExtractMilliseconds
+                  | ExtractMinute
+                  | ExtractMonth
+                  | ExtractQuarter
+                  | ExtractSecond
+                  | ExtractTimezone
+                  | ExtractTimezoneHour
+                  | ExtractTimezoneMinute
+                  | ExtractWeek
+                  | ExtractYear
+                    deriving (Show,Eq,Typeable,Data)
+
+data FrameClause = FrameUnboundedPreceding
+                 | FrameUnboundedFull
+                 | FrameRowsUnboundedPreceding
+                   deriving (Show,Eq,Typeable,Data)
+}
+{-
+-----------------------------------------------------------
+
+= query expressions
+
+-}
+
+data QueryExpr
+    | Select ann::Annotation
+             selDistinct :: Distinct
+             selSelectList :: SelectList
+             selTref :: TableRefList
+             selWhere :: MaybeBoolExpr
+             selGroupBy :: ScalarExprList
+             selHaving :: MaybeBoolExpr
+             selOrderBy :: ScalarExprDirectionPairList
+             selLimit :: MaybeScalarExpr
+             selOffset :: MaybeScalarExpr
+    | CombineQueryExpr ann::Annotation
+                       cqType :: CombineType
+                       cqQe0 :: QueryExpr
+                       cqQe1 :: QueryExpr
+    | Values ann::Annotation
+             qeValues::ScalarExprListList
+    | WithQueryExpr ann :: Annotation
+                    withs :: WithQueryList
+                    withQe :: QueryExpr
+
+-- todo: represent parens explicitly in queryexpr
+--    | QueryExprParens ex:: QueryExpr
+
+type WithQueryList = [WithQuery]
+data WithQuery | WithQuery ann :: Annotation
+                           name :: NameComponent
+                           colAliases :: {Maybe [NameComponent]}
+                           ex :: QueryExpr
+
+{-
+
+== Select lists
+
+
+-}
+data SelectList | SelectList ann::Annotation items::SelectItemList
+
+data SelectItem | SelExp ann::Annotation ex::ScalarExpr
+                | SelectItem ann::Annotation ex::ScalarExpr name::NameComponent
+
+
+{-
+
+== Tablerefs
+
+arguably the most complex part of queryexprs (syntactically and
+semantically)
+
+todo: represent parens explicitly in tablerefs
+might need to rearrange the tref type for this
+
+-}
+
+data TableRef | Tref ann::Annotation
+                     tbl::Name
+                     alias :: TableAlias
+              | JoinTref ann::Annotation
+                         tbl0 :: TableRef
+                         nat :: Natural
+                         joinType :: JoinType
+                         tbl1 :: TableRef
+                         onExpr :: OnExpr
+                         alias :: TableAlias
+              | SubTref ann::Annotation
+                        sel :: QueryExpr
+                        alias :: TableAlias
+              | FunTref ann::Annotation
+                        fn::ScalarExpr
+                        alias :: TableAlias
+
+data TableAlias | NoAlias ann::Annotation
+                | TableAlias ann::Annotation tb::NameComponent
+                | FullAlias ann::Annotation tb::NameComponent cols::{[NameComponent]}
+
+data JoinExpr | JoinOn ann::Annotation expr::ScalarExpr
+              | JoinUsing ann::Annotation x::{[NameComponent]}
+
+{
+data JoinType = Inner | LeftOuter| RightOuter | FullOuter | Cross
+                deriving (Show,Eq,Typeable,Data)
+data Natural = Natural | Unnatural
+               deriving (Show,Eq,Typeable,Data)
+
+}
+
+{-
+
+== other queryexpr support types
+
+-}
+
+
+-- TODO: change the def and docs to use record notation to init
+-- makeSelect
+
+{
+-- | 'default' valued select, use for creating select values
+--
+-- > makeSelect = Select emptyAnnotation Dupes
+-- >                     (SelectList emptyAnnotation []) []
+-- >                     Nothing [] Nothing [] Nothing Nothing
+--
+-- use something like this
+--
+-- > s = let a = emptyAnnotation
+-- >         sl = SelectList a
+-- >         se = SelExp a
+-- >         i = Identifier a
+-- >         tref t = Tref a (Name a [Nmc t]) (NoAlias a)
+-- >     in makeSelect {selSelectList = sl [se $ i "a"]
+-- >                   ,selTref = [tref "t"]}
+
+makeSelect :: QueryExpr
+makeSelect = Select emptyAnnotation Dupes
+                    (SelectList emptyAnnotation []) []
+                    Nothing [] Nothing [] Nothing Nothing
+}
+
+{-
+
+-------------------------------------------------
+
+
+= SQL top level statements
 
 everything is chucked in here: dml, ddl, plpgsql statements
+todo: maybe split plpgsql out
+would be nice to have crud and ddl separate, but also quite tedious
+
+possible categories:
+queryexpr: already supported
+crudStatement: querystatement, insert, update, delete, truncate, copy, ...?
+
+sqlStatement: crudStatement | ddl stuff
+
+plpgsqlStatement = sqlStatement | plpgsql stuff
+
+would this be worth it?
+
+Think best compromise is just sql and plpgsql split
+
+because might want utility statements mixed up with sql statements
+(e.g. set, transaction stuff)
+might want plpgsql without ddl
+etc.
+too many variants to produce a sane set of types
 
 -}
 
@@ -344,85 +773,13 @@ data Statement
                       cols::{[NameComponent]}
 
 
--- =============================================================================
+{-
 
---Statement components
+------------------------------------------------
 
-data Name | Name ann::Annotation is::{[NameComponent]}
-          | AntiName String
+= dml components
 
-{
-nameComponents :: Name -> [NameComponent]
-nameComponents (Name _ is) = is
-}
-
-data QueryExpr
-    | Select ann::Annotation
-             selDistinct :: Distinct
-             selSelectList :: SelectList
-             selTref :: TableRefList
-             selWhere :: MaybeBoolExpr
-             selGroupBy :: ScalarExprList
-             selHaving :: MaybeBoolExpr
-             selOrderBy :: ScalarExprDirectionPairList
-             selLimit :: MaybeScalarExpr
-             selOffset :: MaybeScalarExpr
-    | CombineQueryExpr ann::Annotation
-                       ctype :: CombineType
-                       sel1 :: QueryExpr
-                       sel2 :: QueryExpr
-    | Values ann::Annotation
-             vll::ScalarExprListList
-    | WithQueryExpr ann :: Annotation
-                    withs :: WithQueryList
-                    ex :: QueryExpr
-
---    | QueryExprParens ex:: QueryExpr
-
-type WithQueryList = [WithQuery]
-data WithQuery | WithQuery ann :: Annotation
-                           name :: NameComponent
-                           colAliases :: {Maybe [NameComponent]}
-                           ex :: QueryExpr
-
-data FnBody | SqlFnBody ann::Annotation sts :: StatementList
-            | PlpgsqlFnBody ann::Annotation blk :: Statement
-
-data TableRef | Tref ann::Annotation
-                     tbl::Name
-                     alias :: TableAlias
-              | JoinTref ann::Annotation
-                         tbl0 :: TableRef
-                         nat :: Natural
-                         joinType :: JoinType
-                         tbl1 :: TableRef
-                         onExpr :: OnExpr
-                         alias :: TableAlias
-              | SubTref ann::Annotation
-                        sel :: QueryExpr
-                        alias :: TableAlias
-              | FunTref ann::Annotation
-                        fn::ScalarExpr
-                        alias :: TableAlias
-
-data TableAlias | NoAlias ann::Annotation
-                | TableAlias ann::Annotation tb::NameComponent
-                | FullAlias ann::Annotation tb::NameComponent cols::{[NameComponent]}
-
-data JoinExpr | JoinOn ann::Annotation expr::ScalarExpr
-              | JoinUsing ann::Annotation x::{[NameComponent]}
-
-{
-data JoinType = Inner | LeftOuter| RightOuter | FullOuter | Cross
-                deriving (Show,Eq,Typeable,Data)
-}
-
--- select columns, into columns
-
-data SelectList | SelectList ann::Annotation items::SelectItemList
-
-data SelectItem | SelExp ann::Annotation ex::ScalarExpr
-                | SelectItem ann::Annotation ex::ScalarExpr name::NameComponent
+-}
 
 {
 data CopySource = CopyFilename String
@@ -437,6 +794,14 @@ data SetClause | SetClause ann::Annotation
                                 setTargets::{[NameComponent]}
                                 ex::ScalarExpr
 
+
+{-
+
+------------------------------------------------
+
+= ddl, utility components
+
+-}
 --name type default null constraint
 
 data AttributeDef | AttributeDef ann::Annotation
@@ -481,6 +846,7 @@ data AlterTableAction | AlterColumnDefault ann::Annotation
                                            def :: ScalarExpr
                       | AddConstraint ann:: Annotation
                                       con:: Constraint
+
 {
 data SetValue
     = SetStr Annotation String
@@ -495,7 +861,55 @@ data TriggerEvent = TInsert| TUpdate | TDelete | AntiTriggerEvent String
                     deriving (Show,Eq,Typeable,Data)
 data TriggerFire = EachRow | EachStatement
                    deriving (Show,Eq,Typeable,Data)
+
+data DropType = Table
+              | Domain
+              | View
+              | Type
+                deriving (Show,Eq,Typeable,Data)
+
+data Cascade = Cascade | Restrict
+               deriving (Show,Eq,Typeable,Data)
+
+
+
+data IfExists = Require | IfExists
+                deriving (Show,Eq,Typeable,Data)
+
+
+data RestartIdentity = RestartIdentity | ContinueIdentity
+                       deriving (Show,Eq,Typeable,Data)
 }
+
+{-
+== create function stuff
+
+-}
+{
+data Replace = Replace | NoReplace
+               deriving (Show,Eq,Typeable,Data)
+
+data Volatility = Volatile | Stable | Immutable
+                  deriving (Show,Eq,Typeable,Data)
+
+-- todo: fix the fn body to support to support other languages
+-- just as as string for now
+-- probably change Language to be a string also
+
+data Language = Sql | Plpgsql
+                deriving (Show,Eq,Typeable,Data)
+}
+
+data FnBody | SqlFnBody ann::Annotation sts :: StatementList
+            | PlpgsqlFnBody ann::Annotation blk :: Statement
+
+{-
+
+------------------------------------------------
+
+= plpgsql components
+
+-}
 
 data ParamDef | ParamDef ann::Annotation name::NameComponent typ::TypeName
               | ParamDefTp ann::Annotation typ::TypeName
@@ -514,253 +928,15 @@ data VarDef | VarDef ann::Annotation
 data RaiseType = RNotice | RException | RError
                  deriving (Show,Eq,Typeable,Data)
 
-data CombineType = Except | Union | Intersect | UnionAll
-                   deriving (Show,Eq,Typeable,Data)
-
-data Volatility = Volatile | Stable | Immutable
-                  deriving (Show,Eq,Typeable,Data)
-
-data Language = Sql | Plpgsql
-                deriving (Show,Eq,Typeable,Data)
 }
 
-data TypeName | SimpleTypeName ann::Annotation tn::Name
-              | PrecTypeName ann::Annotation tn::Name prec::Integer
-              | Prec2TypeName ann::Annotation tn::Name prec::Integer prec1::Integer
-              | ArrayTypeName ann::Annotation typ::TypeName
-              | SetOfTypeName ann::Annotation typ::TypeName
-{
-data DropType = Table
-              | Domain
-              | View
-              | Type
-                deriving (Show,Eq,Typeable,Data)
-
-data Cascade = Cascade | Restrict
-               deriving (Show,Eq,Typeable,Data)
-
-data Direction = Asc | Desc
-                 deriving (Show,Eq,Typeable,Data)
-
-data Distinct = Distinct | Dupes
-                deriving (Show,Eq,Typeable,Data)
-
-data Natural = Natural | Unnatural
-               deriving (Show,Eq,Typeable,Data)
-
-data IfExists = Require | IfExists
-                deriving (Show,Eq,Typeable,Data)
-
-data Replace = Replace | NoReplace
-               deriving (Show,Eq,Typeable,Data)
-
-data RestartIdentity = RestartIdentity | ContinueIdentity
-                       deriving (Show,Eq,Typeable,Data)
-
-}
 {-
-================================================================================
 
-ScalarExprs
+--------------------------------------------
 
-Similarly to the statement type, all expressions are chucked into one
-even though there are many restrictions on which expressions can
-appear in different places.  Maybe this should be called scalar
-expression?
+= boilerplate
 
 -}
-data ScalarExpr | NumberLit ann::Annotation d::String
-                | StringLit ann::Annotation
-                            value :: String
-                | NullLit ann::Annotation
-                | BooleanLit ann::Annotation b::Bool
-                -- could probably represent typed string lit
-                -- as a string lit and a cast?
-                | TypedStringLit ann::Annotation
-                                 tn :: TypeName
-                                 value :: String
-                | Interval ann::Annotation
-                           value :: String
-                           field :: IntervalField
-                           prec :: {Maybe Int}
-                | Extract ann::Annotation
-                          field :: ExtractField
-                          e :: ScalarExpr
-                | PositionalArg ann::Annotation p::Integer
-                | Placeholder ann::Annotation -- represents a '?'
-                | Cast ann::Annotation
-                       expr::ScalarExpr
-                       tn::TypeName
-                | Star ann::Annotation
-                | QStar ann::Annotation q::NameComponent -- e.g. a.*
-                  -- the parser produces an identifier when all the
-                  -- components are quoted or unquoted name components
-                  -- when there are parens or other expressions in the
-                  -- mix it produces binaryop "."
-
-                | Identifier ann::Annotation -- e.g. tbl
-                             i::Name
-                | Case ann::Annotation
-                       cases :: CaseScalarExprListScalarExprPairList
-                       els :: MaybeScalarExpr
-                | CaseSimple ann::Annotation
-                             value :: ScalarExpr
-                             cases :: CaseScalarExprListScalarExprPairList
-                             els :: MaybeScalarExpr
-                | Exists ann::Annotation
-                         sel :: QueryExpr
-                | App ann::Annotation
-                          funName::Name
-                          args::ScalarExprList
-                | PrefixOp ann :: Annotation
-                           opName :: Name
-                           arg :: ScalarExpr
-                | PostfixOp ann :: Annotation
-                            opName :: Name
-                            arg :: ScalarExpr
-                | BinaryOp ann :: Annotation
-                           opName :: Name
-                           arg0 :: ScalarExpr
-                           arg1 :: ScalarExpr
-                | SpecialOp ann :: Annotation -- built in operators, etc. which don't
-                           opName :: Name     -- look like pref/post/bin ops
-                           args::ScalarExprList
-                | AggregateApp ann::Annotation
-                              aggDistinct :: Distinct
-                              fn :: ScalarExpr
-                              orderBy :: ScalarExprDirectionPairList
-                | WindowApp ann::Annotation
-                           fn :: ScalarExpr
-                           partitionBy :: ScalarExprList
-                           orderBy :: ScalarExprDirectionPairList
-                           frm :: FrameClause
-                | InPredicate ann::Annotation
-                              expr::ScalarExpr
-                              i::Bool
-                              list::InList
-                | LiftApp ann::Annotation
-                               oper::Name
-                               flav::LiftFlavour
-                               args::ScalarExprList
-                | ScalarSubQuery ann::Annotation -- scalar meaning scalar context not scalar valued...
-                                 sel :: QueryExpr
-                | AntiScalarExpr String
-                | Parens ann::Annotation
-                         ex :: ScalarExpr
-{
-data LiftFlavour = LiftAny | LiftAll
-                   deriving (Show,Eq,Typeable,Data)
-
-data IntervalField = IntervalYear
-                   | IntervalMonth
-                   | IntervalDay
-                   | IntervalHour
-                   | IntervalMinute
-                   | IntervalSecond
-                   | IntervalYearToMonth
-                   | IntervalDayToHour
-                   | IntervalDayToMinute
-                   | IntervalDayToSecond
-                   | IntervalHourToMinute
-                   | IntervalHourToSecond
-                   | IntervalMinuteToSecond
-                     deriving (Show,Eq,Typeable,Data)
-
-data ExtractField = ExtractCentury
-                  | ExtractDay
-                  | ExtractDecade
-                  | ExtractDow
-                  | ExtractDoy
-                  | ExtractEpoch
-                  | ExtractHour
-                  | ExtractIsodow
-                  | ExtractIsoyear
-                  | ExtractMicroseconds
-                  | ExtractMillennium
-                  | ExtractMilliseconds
-                  | ExtractMinute
-                  | ExtractMonth
-                  | ExtractQuarter
-                  | ExtractSecond
-                  | ExtractTimezone
-                  | ExtractTimezoneHour
-                  | ExtractTimezoneMinute
-                  | ExtractWeek
-                  | ExtractYear
-                    deriving (Show,Eq,Typeable,Data)
-
-}
-
---todo:: use liftoperator to implement inlist?
-data InList | InList ann::Annotation exprs :: ScalarExprList
-            | InQueryExpr ann::Annotation sel :: QueryExpr
-
-{
-data FrameClause = FrameUnboundedPreceding
-                 | FrameUnboundedFull
-                 | FrameRowsUnboundedPreceding
-                   deriving (Show,Eq,Typeable,Data)
-}
-{-
-NEEDS UPDATING
-list of expression flavours from postgresql with the equivalents in this ast
-pg                                here
---                                ----
-constant/literal                  integerlit, floatlit, unknownstringlit, nulllit, boollit
-column reference                  identifier
-positional parameter reference    positionalarg
-subscripted expression            funcall
-field selection expression        identifier
-operator invocation               funcall
-function call                     funcall
-aggregate expression              funcall
-window function call              windowfn
-type cast                         cast
-scalar subquery                   scalarsubquery
-array constructor                 funcall
-row constructor                   funall
-
-Anything that is represented in the ast as some sort of name plus a
-list of expressions as arguments is treated as the same type of node::
-FunCall.
-
-This includes
-symbol operators
-regular function calls
-keyword operators e.g. and, like (ones which can be parsed as normal
-  syntactic operators)
-unusual syntax operators, e.g. between
-unusual syntax function calls e.g. substring(x from 5 for 3)
-arrayctors e.g. array[3,5,6]
-rowctors e.g. ROW (2,4,6)
-array subscripting
-
-list of keyword operators (regular prefix, infix and postfix)::
-and, or, not
-is null, is not null, isnull, notnull
-is distinct from, is not distinct from
-is true, is not true,is false, is not false, is unknown, is not unknown
-like, not like, ilike, not ilike
-similar to, not similar to
-in, not in (don't include these here since the argument isn't always an expr)
-
-unusual syntax operators and fn calls
-between, not between, between symmetric
-overlay, substring, trim
-any, some, all
-
-Most of unusual syntax forms and keywords operators are not yet
-supported, so this is mainly a todo list.
-
-Keyword operators are encoded with the function name as a ! followed
-by a string
-e.g.
-operator 'and' -> FunCall "!and" ...
-see keywordOperatorTypes value in AstUtils.lhs for the list of
-currently supported keyword operators.
-
--}
-
 -- some list nodes, not sure if all of these are needed as separately
 -- named node types
 
@@ -812,9 +988,6 @@ data ScalarExprRoot | ScalarExprRoot expr::ScalarExpr
 deriving ScalarExprRoot: Show
 
 {-
-================================================================================
-
-=some basic bookkeeping
 
 attributes which every node has
 -}
@@ -848,13 +1021,3 @@ deriving AllNodes: Show,Eq,Typeable,Data
 
 include "Annotation.ag"
 include "TypeChecking/TypeChecking.ag"
-
-{
--- | helper for working with selects, this default value has everything empty
--- so you can just replace the parts you need instead of having to write thing like
--- Select ... Nothing [] Nothing [] Nothing Nothing
-makeSelect :: QueryExpr
-makeSelect = Select emptyAnnotation Dupes
-                    (SelectList emptyAnnotation[]) []
-                    Nothing [] Nothing [] Nothing Nothing
-}

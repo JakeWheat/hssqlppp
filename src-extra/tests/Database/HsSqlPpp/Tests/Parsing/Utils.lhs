@@ -11,6 +11,15 @@
 >           | PgSqlStmt String [Statement]
 >           | Group String [Item]
 
+{-
+todo: rename all the dodgy bits
+get rid of the select and sel variations
+especially rename i, poor name for an exported utility function
+maybe think about a module included with hssqlppp library
+get rid of the cheesy isstring instances for name and nmc
+
+-}
+
 -------------------------------------------------------------------------------
 
 shortcuts for constructing test data and asts
@@ -126,6 +135,10 @@ shortcuts for constructing test data and asts
 > si :: ScalarExpr -> SelectItem
 > si = SelExp ea
 
+> sia :: ScalarExpr -> NameComponent -> SelectItem
+> sia e a = SelectItem ea e a
+
+
 > str :: String -> ScalarExpr
 > str = StringLit ea
 
@@ -144,3 +157,11 @@ shortcuts for constructing test data and asts
 > at :: String -> TypeName
 > at = ArrayTypeName ea . st
 
+> innerJoin :: Natural -> TableRef -> TableRef -> TableRef
+> innerJoin n a b = JoinTref ea a n Inner b Nothing (NoAlias ea)
+
+> with :: [(String,QueryExpr)] -> QueryExpr -> QueryExpr
+> with ws e =
+>   WithQueryExpr ea
+>    (map (\(n,e) -> WithQuery ea (Nmc n) Nothing e) ws)
+>    e

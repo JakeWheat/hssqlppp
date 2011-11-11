@@ -110,44 +110,54 @@
 >      ,s "select 1 union (select 2 union select 3);"
 >       [qs
 >        (CombineQueryExpr ea Union
->         (selectE (SelectList ea [SelExp ea (NumberLit ea "1")]))
+>         (makeSelect {selSelectList = sl [si $ num "1"]})
 >         (CombineQueryExpr ea Union
->          (selectE (SelectList ea [SelExp ea (NumberLit ea "2")]))
->          (selectE (SelectList ea [SelExp ea (NumberLit ea "3")]))))]
+>          (makeSelect {selSelectList = sl [si $ num "2"]})
+>          (makeSelect {selSelectList = sl [si $ num "3"]})))]
+
 >      ,s [$here|
 >          with a as (select 1 as a1),
 >               b as (select * from a)
 >               select * from b; |]
->          [qs
->           (WithQueryExpr ea
->            [WithQuery ea (Nmc "a") Nothing (selectE $ SelectList ea
->                                             [SelectItem ea (NumberLit ea "1") (Nmc "a1")])
->            ,WithQuery ea (Nmc "b") Nothing (selectFrom (selEL [Star ea]) (Tref ea (i "a") (NoAlias ea)))]
->            (selectFrom (selEL [Star ea]) (Tref ea (i "b") (NoAlias ea))))]
+>          [qs $
+>           with [("a",makeSelect {selSelectList = sl [sia (num "1") "a1"]})
+>                ,("b",makeSelect {selSelectList = sl [si $ Star ea]
+>                                 ,selTref = [tref "a"]})]
+>           $ makeSelect {selSelectList = sl [si $ Star ea]
+>                        ,selTref = [tref "b"]}]
+
 >      ,s [$here|
 >          with a as (select 1 as a1),
 >               b as (select * from a)
 >               select * from a
 >               union select * from b; |]
->          [qs
->           (WithQueryExpr ea
->            [WithQuery ea (Nmc "a") Nothing (selectE $ SelectList ea
->                                             [SelectItem ea (NumberLit ea "1") (Nmc "a1")])
->            ,WithQuery ea (Nmc "b") Nothing (selectFrom (selEL [Star ea]) (Tref ea (i "a") (NoAlias ea)))]
->            (CombineQueryExpr ea Union
->              (selectFrom (selEL [Star ea]) (Tref ea (i "a") (NoAlias ea)))
->              (selectFrom (selEL [Star ea]) (Tref ea (i "b") (NoAlias ea)))))]
+>          [qs $
+>           with [("a",makeSelect {selSelectList = sl [sia (num "1") "a1"]})
+>                ,("b",makeSelect {selSelectList = sl [si $ Star ea]
+>                                 ,selTref = [tref "a"]})]
+>           $ CombineQueryExpr ea Union
+>             (makeSelect {selSelectList = sl [si $ Star ea]
+>                        ,selTref = [tref "a"]})
+>             (makeSelect {selSelectList = sl [si $ Star ea]
+>                        ,selTref = [tref "b"]})]
 >      ,s "select a as b from tbl;"
->       [qs $ selectFrom [SelectItem ea (Identifier ea "a") (Nmc "b")] (Tref ea (i "tbl") (NoAlias ea))]
+>       [qs $
+>        makeSelect {selSelectList = sl [sia (ei "a") "b"]
+>                   ,selTref = [tref "tbl"]}]
 >      ,s "select a + b as b from tbl;"
->       [qs $ selectFrom
->        [SelectItem ea
->         (binop "+" (ei "a") (ei "b")) (Nmc "b")]
->        (Tref ea (i "tbl") (NoAlias ea))]
+>       [qs $
+>        makeSelect {selSelectList = sl [sia (binop "+" (ei "a") (ei "b")) "b"]
+>                   ,selTref = [tref "tbl"]}]
 >      ,s "select a.* from tbl a;"
->       [qs $ selectFrom (selEL [QStar ea (Nmc "a")]) (Tref ea (i "tbl") (TableAlias ea (Nmc "a")))]
+>       [qs $
+>        makeSelect {selSelectList = sl [si $ QStar ea (Nmc "a")]
+>                   ,selTref = [trefa "tbl" "a"]}]
+
 >      ,s "select a.* from tbl a(b,c);"
->       [qs $ selectFrom (selEL [QStar ea (Nmc "a")]) (Tref ea (i "tbl") (FullAlias ea (Nmc "a") [Nmc "b",Nmc "c"]))]
+>       [qs $
+>        makeSelect {selSelectList = sl [si $ QStar ea (Nmc "a")]
+>                   ,selTref = [Tref ea (name "tbl")
+>                               $ (FullAlias ea (Nmc "a") [Nmc "b",Nmc "c"])]}]
 
 >      ,s "select * from t1 a, t2 b;"
 >             [qs

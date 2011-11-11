@@ -86,7 +86,7 @@
 >         \null;\n\
 >         \end loop;"
 >       [ForQueryStatement ea Nothing (Nmc "r")
->        (selectFromWhere [selI "a"] (Tref ea (i "tbl") (NoAlias ea)) (BooleanLit ea True))
+>        (selectFromWhere [selI "a"] (Tref ea (i "tbl") (NoAlias ea)) lTrue)
 >        [NullStatement ea]]
 >      ,f "for r in 1 .. 10 loop\n\
 >         \null;\n\

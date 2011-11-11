@@ -52,6 +52,13 @@ transformations which implement syntax extensions to sql
 these files need fixing up before ready for public consumption
 
 
+improvements to qq:
+quasi quotes and antiquotes for?:
+tablerefs
+select lists
+multiple statements
+
+use haskell syntax inside antiquotes
 
 >
 > {-# LANGUAGE ScopedTypeVariables #-}

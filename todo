@@ -11,17 +11,49 @@ get ghc 6.12.x working again: think it is just adding the
 go through old typecheck tests and reinsert most of them?
 -> want to get much better coverage of typechecking
 
-rough todo for exprs:
-scalar expr:
-liftapp
-queryexpr:
-withqueryexpr
-combineQueryExpr
+want to try to get the syntax and parsing more stable, so do the
+   following for next relese:
+add parens to table refs(?) and queryexprs, probably need to rewrite
+   tableref type for this. also get the parser working for stuff like
+  select * from (a join b) as c;
+do the split:
+sqlstatement
+plpgsqlstatement
+remove the ! on operator names
+change the special op name to be an enum
+change parsing of typed string literal since this is just a cast, get
+   rid of seperate ctor
+rename Dupes
+review unionall and others
+
+
+
+
+want to be ready to do comprehensive review of pg syntax for 0.6.0
+
+
+
+think of a better names for *plpgsql* since will also support tsql and
+   maybe others going forward (not so much of a distintion between sql
+   and tsql in sql server though)
+
+add parens to queryexpr and tablerefs?
+
+rough todo/checklist for exprs:
+combinequeryexpr
 values
+withqueryexpr, withquery
+jointref variations
+join onexprs
 funtrefs
+table aliases
+aggregates, windows
+ + add checks for aggregates/group by
+liftapp
+inlist, inqueryexpr?
 
-review examples: add new examples, clean up code
-
+review examples: add new examples, clean up code, and example page on
+   website. Add simple parsing and typechecking example to index page
 
 
 = 'arcs'
