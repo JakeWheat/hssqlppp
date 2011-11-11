@@ -2,7 +2,7 @@
 
 > {-# LANGUAGE QuasiQuotes,OverloadedStrings #-}
 >
-> module Database.HsSqlPpp.Tests.Parsing.SqlServer (sqlServerParseTests) where
+> module Database.HsSqlPpp.Tests.Parsing.SqlServer (sqlServer) where
 >
 > --import Database.HsSqlPpp.Utils.Here
 >
@@ -10,8 +10,8 @@
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
 
-> sqlServerParseTests :: Item
-> sqlServerParseTests =
+> sqlServer :: Item
+> sqlServer =
 >   Group "parse sql server"
 >   [TSQL "select top 3 * from a order by c;"
 >       [qs $ makeSelect
@@ -49,16 +49,16 @@ server...obj
 >   ,TSQL "select * from a join x..b;"
 >    [qs $ makeSelect
 >            {selSelectList = sl [si $ Star ea]
->            ,selTref = [innerJoin Unnatural (tref "a")
+>            ,selTref = [innerJoin (tref "a")
 >                       (Tref ea (Name ea [Nmc "x",Nmc "",Nmc "b"])
->                        (NoAlias ea))]}]
+>                        (NoAlias ea)) Nothing]}]
 
 >   ,TSQL "select * from a join x...b;"
 >    [qs $ makeSelect
 >            {selSelectList = sl [si $ Star ea]
->            ,selTref = [innerJoin Unnatural (tref "a")
+>            ,selTref = [innerJoin (tref "a")
 >                       (Tref ea (Name ea [Nmc "x",Nmc "",Nmc "",Nmc "b"])
->                        (NoAlias ea))]}]
+>                        (NoAlias ea)) Nothing]}]
 >   ,TSQL "select a from t with(nolock);"
 >     -- with is just (sort of) recognised, and not parsed to abstract
 >     -- syntax

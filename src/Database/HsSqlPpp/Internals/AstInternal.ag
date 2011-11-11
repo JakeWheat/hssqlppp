@@ -358,6 +358,7 @@ data Name | Name ann::Annotation is::{[NameComponent]}
 {
 nameComponents :: Name -> [NameComponent]
 nameComponents (Name _ is) = is
+-- todo: don't use errornameComponents (AntiName _) = error "tried to get namecomponents of antiname"
 }
 
 data TypeName | SimpleTypeName ann::Annotation tn::Name

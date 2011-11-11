@@ -1,14 +1,14 @@
 
 
 > {-# LANGUAGE OverloadedStrings #-}
-> module Database.HsSqlPpp.Tests.Parsing.Plpgsql (pgplsqlParsingTestData) where
+> module Database.HsSqlPpp.Tests.Parsing.Plpgsql (pgplsql) where
 >
 > import Database.HsSqlPpp.Ast
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
 
-> pgplsqlParsingTestData:: Item
-> pgplsqlParsingTestData =
+> pgplsql :: Item
+> pgplsql =
 >   Group "plpgsql" [
 >     Group "simple plpgsql statements" [
 >       f "success := true;"

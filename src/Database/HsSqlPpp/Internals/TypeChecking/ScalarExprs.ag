@@ -162,10 +162,6 @@ identifiers
                           else return @annotatedTree
          i.tpe = Left []
 
- {-   | Identifier
-        
-        loc.tpe = fmap snd $ envLookupIdentifier (nameComponents @nm.annotatedTree) @lhs.downEnv-}
-
 
 {-
 

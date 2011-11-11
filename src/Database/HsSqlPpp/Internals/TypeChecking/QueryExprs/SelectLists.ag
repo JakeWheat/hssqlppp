@@ -157,14 +157,10 @@ sem SelectItem
 -- | thet name to choose for a column in a select list which doesn't
 -- have an explicit name - these are postgresql's rules
 columnName :: ScalarExpr -> String
-columnName (Identifier _ i) = nm $ last $ nameComponents i
-columnName (App _ (Name _ ncs) _) = nm $ last ncs
-columnName (Cast _ _ (SimpleTypeName _ (Name _ ncs))) = nm $ last ncs
-columnName (WindowApp _ (App _ (Name _ ncs) _) _ _ _) = nm $ last ncs
-columnName (AggregateApp _ _ (App _ (Name _ ncs) _) _) = nm $ last ncs
+columnName (Identifier _ i) = ncStr $ last $ nameComponents i
+columnName (App _ (Name _ ncs) _) = ncStr $ last ncs
+columnName (Cast _ _ (SimpleTypeName _ (Name _ ncs))) = ncStr $ last ncs
+columnName (WindowApp _ (App _ (Name _ ncs) _) _ _ _) = ncStr $ last ncs
+columnName (AggregateApp _ _ (App _ (Name _ ncs) _) _) = ncStr $ last ncs
 columnName _ = "?column?"
--- quick hack together
-nm :: NameComponent -> String
-nm (Nmc n) = map toLower n
-nm (QNmc n) = n
 }

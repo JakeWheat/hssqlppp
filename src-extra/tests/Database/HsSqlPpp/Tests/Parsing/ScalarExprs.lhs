@@ -1,7 +1,7 @@
 
 > {-# LANGUAGE QuasiQuotes,OverloadedStrings #-}
 >
-> module Database.HsSqlPpp.Tests.Parsing.Expressions (expressionParsingTestData) where
+> module Database.HsSqlPpp.Tests.Parsing.ScalarExprs (scalarExprs) where
 >
 > import Database.HsSqlPpp.Utils.Here
 >
@@ -9,8 +9,8 @@
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
 
-> expressionParsingTestData:: Item
-> expressionParsingTestData =
+> scalarExprs:: Item
+> scalarExprs =
 >    Group "parse expressions" [
 >     Group "numbers" [
 >       e "42" (num "42")

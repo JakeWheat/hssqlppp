@@ -1,14 +1,14 @@
 
 
 > {-# LANGUAGE OverloadedStrings #-}
-> module Database.HsSqlPpp.Tests.Parsing.FunctionsDdl (functionsDdlParsingTestData) where
+> module Database.HsSqlPpp.Tests.Parsing.FunctionsDdl (functionsDdl) where
 >
 > import Database.HsSqlPpp.Ast
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
 
-> functionsDdlParsingTestData:: Item
-> functionsDdlParsingTestData =
+> functionsDdl:: Item
+> functionsDdl =
 >    Group "functionsddl" [
 >      Group "basics" [
 >       s "create function t1(text) returns text as $$\n\

@@ -44,6 +44,8 @@ This needs a lot more tests
 >     nm = case last nmcs of
 >            Nmc n -> map toLower n
 >            QNmc n -> n
+>            AntiNameComponent _ -> -- todo: use left instead of error
+>              error $ "tried to find function matching an antinamecomponent"
 
  findCallMatch :: Catalog -> String -> [Type] ->  Either [TypeError] OperatorPrototype
  findCallMatch cat fnName' argsType =

@@ -19,6 +19,7 @@ and variables, etc.
 >     ,createCorrelatedSubqueryEnvironment
 >     ,createTrefAliasedEnvironment
 >     ,brokeEnvironment
+>     ,orderByEnvironment
 >      -- * environment query functions
 >     ,envLookupIdentifier
 >     ,envExpandStar
@@ -134,6 +135,9 @@ TODO: remove the create prefixes
 > isBroken :: Environment -> Bool
 > isBroken env = not $ null $ [() | BrokeEnvironment <- universeBi env]
 
+> orderByEnvironment :: Environment -> Environment -> Environment
+> orderByEnvironment sl tr = OrderByEnvironment sl tr
+
 -------------------------------------------------------
 
 
@@ -206,7 +210,7 @@ lookup and star expansion
 >                  then i0
 >                  else i0 ++ i1
 
->     useResolvedType tr@((q,n),_) = case lookup n jids of
+>     _useResolvedType tr@((q,n),_) = case lookup n jids of
 >                                    Just t' -> ((q,n),t')
 >                                    Nothing -> tr
 >     jnames = map fst jids
@@ -242,6 +246,21 @@ empty qualifier never gets very far
 > listBindingsTypes (SelectListEnv is) =
 >   (\(_,n) -> addQual "" $ filter ((==n).fst) is
 >   ,const $ addQual "" is)
+
+not quite right, see queryexprs.ag
+
+> listBindingsTypes (OrderByEnvironment sl tr) =
+>   (\i ->
+>      -- hack: return the tref first so that
+>      -- a qualifier can be added. This
+>      -- is probably more wrong than the other
+>      -- way round
+>      case (fst (listBindingsTypes tr) i
+>           ,fst (listBindingsTypes sl) i) of
+>        ([],x) -> x
+>        (y,_) -> y
+>   ,const [])
+
 
 csq just uses standard shadowing for iden lookup
 for star expand, the outer env is ignored
@@ -284,6 +303,8 @@ use listBindingsTypes to implement expandstar and lookupid
 > nmcString :: NameComponent -> String
 > nmcString (QNmc n) = n
 > nmcString (Nmc n) = map toLower n
+> -- todo: don't use error
+> nmcString (AntiNameComponent _) = error "tried to get ncstr of antinamecomponent"
 
 > envLookupIdentifier :: [NameComponent] -> Environment
 >                      -> Either [TypeError] ((String,String), Type)

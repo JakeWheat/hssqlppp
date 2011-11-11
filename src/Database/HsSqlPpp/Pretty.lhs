@@ -21,7 +21,7 @@
 > import Text.PrettyPrint
 > import Data.Maybe
 >
-> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Ast hiding (ann)
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Utils.Utils
 
@@ -554,6 +554,7 @@ Statement components
 
 > name :: Name -> Doc
 > name (Name _ ns) = nmcs ns
+> name (AntiName n) = text ("$n(" ++ n ++ ")")
 
 > nmcs :: [NameComponent] -> Doc
 > nmcs ns = hcat $ punctuate (text ".") $ map nmc ns
@@ -561,6 +562,7 @@ Statement components
 > nmc :: NameComponent -> Doc
 > nmc (Nmc ns) = text ns
 > nmc (QNmc ns) = doubleQuotes $ text ns
+> nmc (AntiNameComponent n) = text ("$m(" ++ n ++ ")")
 
 >
 > tref :: PrettyPrintFlags -> TableRef -> Doc
@@ -690,6 +692,7 @@ Statement components
 
 > scalExpr _flg (Identifier _a (Name _ is)) =
 >   hcat (punctuate (text ".") (map nmc is))
+
 
 > scalExpr _ (NumberLit _ n) = text n
 > scalExpr _ (StringLit _ s) = -- needs some thought about using $$?

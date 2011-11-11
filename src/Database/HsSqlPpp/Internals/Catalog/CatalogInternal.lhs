@@ -316,6 +316,10 @@ functions and not in catalog values themselves.
 > ncStr :: NameComponent -> String
 > ncStr (Nmc n) = n
 > ncStr (QNmc n) = n
+> ncStr (AntiNameComponent _n) =
+>   error $ "tried to get the name component string of an anti name component"
+
+todo: use left or something instead of error
 
 ------------------------------------------------------
 

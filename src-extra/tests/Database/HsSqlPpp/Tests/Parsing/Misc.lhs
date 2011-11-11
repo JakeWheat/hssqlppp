@@ -7,14 +7,14 @@ reflects.
 
 There are no tests for invalid syntax at the moment.
 
-> module Database.HsSqlPpp.Tests.Parsing.Misc (miscParserTestData) where
+> module Database.HsSqlPpp.Tests.Parsing.Misc (misc) where
 >
 > import Database.HsSqlPpp.Ast
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
 >
-> miscParserTestData :: Item
-> miscParserTestData =
+> misc :: Item
+> misc =
 >   Group "miscParserTests"
 >   [Group "multiple statements"
 >    [s "select 1;\nselect 2;"

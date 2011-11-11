@@ -25,18 +25,18 @@ at some point soon.
 
 > import System.FilePath
 > import System.Directory
-> import Debug.Trace
+> --import Debug.Trace
 > import Data.List
 > import Data.Char
 > import Data.Maybe
 
-> import Text.Parsec hiding(many, optional, (<|>))
-> import qualified Text.Parsec.Token as P
-> import Text.Parsec.Language
+> --import Text.Parsec hiding(many, optional, (<|>))
+> --import qualified Text.Parsec.Token as P
+> --import Text.Parsec.Language
 > --import Text.Parsec.String
-> import Text.Parsec.Pos
+> --import Text.Parsec.Pos
 >
-> import Control.Applicative
+> --import Control.Applicative
 > import Control.Monad.Identity
 
 > postprocessUuagc :: [FilePath] -> [(String,[String])] -> FilePath -> IO ()
@@ -83,7 +83,7 @@ preceeding comments
 >     ls = concatMap lines agSources
 >     -- replace ls with array/vector since working backwards
 >     def :: (String,[String]) -> (String,String)
->     def (nm,ctrs) =
+>     def (nm,_ctrs) = --TODO: don't ignore the ctors list
 >              let si = fromMaybe (error $ "definition not found: " ++ nm)
 >                       $ findIndex (isPrefixOf ("data " ++ nm)) ls
 >                  (prefix,start) = splitAt si ls
@@ -130,7 +130,8 @@ parse state
 >     ,nextMem :: Bool -- looking for another member?
 >     ,readCtorName :: Bool} -- looking for a ctor name
 
-> transformDef st [] = "\n    } deriving (Eq,Show,Data,Typeable)\n"
+> transformDef :: TST -> String -> String
+> transformDef _st [] = "\n    } deriving (Eq,Show,Data,Typeable)\n"
 
 skip comments
 

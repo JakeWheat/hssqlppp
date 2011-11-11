@@ -7,6 +7,7 @@
 
 > data Item = Expr String ScalarExpr
 >           | Stmt String [Statement]
+>           | QueryExpr String QueryExpr
 >           | TSQL String [Statement]
 >           | PgSqlStmt String [Statement]
 >           | Group String [Item]
@@ -128,6 +129,9 @@ shortcuts for constructing test data and asts
 > trefa :: String -> String -> TableRef
 > trefa t a = Tref ea (name t) (TableAlias ea $ Nmc a)
 
+> treffa :: String -> String -> [String] -> TableRef
+> treffa t a cs = Tref ea (name t) (FullAlias ea (Nmc a) $ map Nmc cs)
+
 
 > qtref :: String -> String -> TableRef
 > qtref q i = Tref ea (qi q i) (NoAlias ea)
@@ -157,11 +161,23 @@ shortcuts for constructing test data and asts
 > at :: String -> TypeName
 > at = ArrayTypeName ea . st
 
-> innerJoin :: Natural -> TableRef -> TableRef -> TableRef
-> innerJoin n a b = JoinTref ea a n Inner b Nothing (NoAlias ea)
+> innerJoin :: TableRef -> TableRef -> Maybe ScalarExpr -> TableRef
+> innerJoin a b o = JoinTref ea a Unnatural Inner b
+>                            (fmap (JoinOn ea) o) (NoAlias ea)
+
+> naturalInnerJoin :: TableRef -> TableRef -> TableRef
+> naturalInnerJoin a b  = JoinTref ea a Natural Inner b Nothing
+>                            (NoAlias ea)
+
+> usingInnerJoin :: TableRef -> TableRef -> [String] -> TableRef
+> usingInnerJoin a b us = JoinTref ea a Unnatural Inner b
+>                            (Just $ JoinUsing ea $ map Nmc us) (NoAlias ea)
+
+> join :: TableRef -> JoinType -> TableRef -> Maybe ScalarExpr -> TableRef
+> join a b c o = JoinTref ea a Unnatural b c (fmap (JoinOn ea) o) (NoAlias ea)
 
 > with :: [(String,QueryExpr)] -> QueryExpr -> QueryExpr
 > with ws e =
 >   WithQueryExpr ea
->    (map (\(n,e) -> WithQuery ea (Nmc n) Nothing e) ws)
+>    (map (\(n,ne) -> WithQuery ea (Nmc n) Nothing ne) ws)
 >    e

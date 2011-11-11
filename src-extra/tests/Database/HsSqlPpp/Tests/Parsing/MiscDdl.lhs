@@ -1,13 +1,13 @@
 
 > {-# LANGUAGE OverloadedStrings #-}
-> module Database.HsSqlPpp.Tests.Parsing.MiscDdl (miscDdlParsingTestData) where
+> module Database.HsSqlPpp.Tests.Parsing.MiscDdl (miscDdl) where
 >
 > import Database.HsSqlPpp.Ast
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
 
-> miscDdlParsingTestData:: Item
-> miscDdlParsingTestData =
+> miscDdl:: Item
+> miscDdl =
 >   Group "misc ddl" [
 >     Group "misc create" [
 >       s "create view v1 as\n\

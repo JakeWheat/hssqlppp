@@ -1,13 +1,13 @@
 
 > {-# LANGUAGE OverloadedStrings #-}
-> module Database.HsSqlPpp.Tests.Parsing.CreateTable (createTableParsingTestData) where
+> module Database.HsSqlPpp.Tests.Parsing.CreateTable (createTable) where
 >
 > import Database.HsSqlPpp.Ast
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
 
-> createTableParsingTestData:: Item
-> createTableParsingTestData =
+> createTable:: Item
+> createTable =
 >   Group "create table" [
 >      Group "simple tables" [
 >       s "create table test (\n\

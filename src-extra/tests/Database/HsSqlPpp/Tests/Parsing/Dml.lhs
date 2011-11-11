@@ -1,6 +1,6 @@
 
 > {-# LANGUAGE OverloadedStrings #-}
-> module Database.HsSqlPpp.Tests.Parsing.Dml (dmlParsingTestData) where
+> module Database.HsSqlPpp.Tests.Parsing.Dml (dml) where
 >
 > import Database.HsSqlPpp.Ast
 
@@ -10,8 +10,8 @@ TODO:
 
 from in update, using in delete (+ type check these)
 
-> dmlParsingTestData:: Item
-> dmlParsingTestData =
+> dml:: Item
+> dml =
 >    Group "dml" [
 >      Group "insert" [
 >       s "insert into testtable\n\

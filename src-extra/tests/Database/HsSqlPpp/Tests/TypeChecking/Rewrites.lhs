@@ -26,6 +26,26 @@ item aliases
 >    "select * from t"
 >    "select t.a,t.b from t"
 
+>   ,RewriteQueryExpr defaultTypeCheckingFlags {tcfAddQualifiers = True}
+>          [CatCreateTable "t" [("a", "int4")
+>                              ,("b", "text")]]
+>    "select b,count(a) from t group by b"
+>    "select t.b,count(t.a) from t group by t.b"
+
+>   ,RewriteQueryExpr defaultTypeCheckingFlags {tcfAddQualifiers = True}
+>          [CatCreateTable "t" [("a", "int4")
+>                              ,("b", "text")]]
+>    "select * from t where a > 3"
+>    "select * from t where t.a > 3"
+
+>   ,RewriteQueryExpr defaultTypeCheckingFlags {tcfAddQualifiers = True}
+>          [CatCreateTable "t" [("a", "int4")
+>                              ,("b", "text")]]
+>    "select * from t order by a"
+>    "select * from t order by t.a"
+
+
+
 >   ,RewriteQueryExpr defaultTypeCheckingFlags {tcfAddFullTablerefAliases = True}
 >          [CatCreateTable "t" [("a", "int4")
 >                              ,("b", "text")]]

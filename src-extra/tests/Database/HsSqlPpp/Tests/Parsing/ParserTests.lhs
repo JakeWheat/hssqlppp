@@ -26,15 +26,23 @@ There are no tests for invalid syntax at the moment.
 > import Database.HsSqlPpp.Utils.GroomUtils
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
-> import Database.HsSqlPpp.Tests.Parsing.Expressions
-> import Database.HsSqlPpp.Tests.Parsing.Selects
+> import Database.HsSqlPpp.Tests.Parsing.ScalarExprs
+> import Database.HsSqlPpp.Tests.Parsing.MiscQueryExprs
+> import Database.HsSqlPpp.Tests.Parsing.CombineQueryExprs
+> import Database.HsSqlPpp.Tests.Parsing.SelectLists
+> import Database.HsSqlPpp.Tests.Parsing.TableRefs
+> import Database.HsSqlPpp.Tests.Parsing.Joins
+
 > import Database.HsSqlPpp.Tests.Parsing.Dml
+> import Database.HsSqlPpp.Tests.Parsing.Misc
+
 > import Database.HsSqlPpp.Tests.Parsing.CreateTable
 > import Database.HsSqlPpp.Tests.Parsing.MiscDdl
 > import Database.HsSqlPpp.Tests.Parsing.FunctionsDdl
 > import Database.HsSqlPpp.Tests.Parsing.Plpgsql
-> import Database.HsSqlPpp.Tests.Parsing.Misc
+
 > import Database.HsSqlPpp.Tests.Parsing.SqlServer
+
 > import Database.HsSqlPpp.Tests.TestUtils
 
 > parserTests :: Test.Framework.Test
@@ -43,15 +51,19 @@ There are no tests for invalid syntax at the moment.
 > parserTestData :: Item
 > parserTestData =
 >   Group "parserTests" [
->              expressionParsingTestData
->             ,selectParsingTestData
->             ,dmlParsingTestData
->             ,Group "ddl" [createTableParsingTestData
->                          ,miscDdlParsingTestData
->                          ,functionsDdlParsingTestData]
->             ,pgplsqlParsingTestData
->             ,miscParserTestData
->             ,sqlServerParseTests
+>              scalarExprs
+>             ,miscQueryExprs
+>             ,combineQueryExprs
+>             ,selectLists
+>             ,tableRefs
+>             ,joins
+>             ,dml
+>             ,Group "ddl" [createTable
+>                          ,miscDdl
+>                          ,functionsDdl]
+>             ,pgplsql
+>             ,misc
+>             ,sqlServer
 >             ]
 
 --------------------------------------------------------------------------------
@@ -60,6 +72,7 @@ Unit test helpers
 
 > itemToTft :: Item -> Test.Framework.Test
 > itemToTft (Expr a b) = testParseScalarExpr a b
+> itemToTft (QueryExpr a b) = testParseQueryExpr a b
 > itemToTft (PgSqlStmt a b) = testParsePlpgsqlStatements PostgreSQLDialect a b
 > itemToTft (Stmt a b) = testParseStatements PostgreSQLDialect a b
 > itemToTft (TSQL a b) =
@@ -74,6 +87,12 @@ Unit test helpers
 >   parseUtil src ast (parseScalarExpr defaultParseFlags "" Nothing)
 >                     (parseScalarExpr defaultParseFlags "" Nothing)
 >                     (printScalarExpr defaultPPFlags)
+> testParseQueryExpr :: String -> QueryExpr -> Test.Framework.Test
+> testParseQueryExpr src ast =
+>   parseUtil src ast (parseQueryExpr defaultParseFlags "" Nothing)
+>                     (parseQueryExpr defaultParseFlags "" Nothing)
+>                     (printQueryExpr defaultPPFlags)
+
 >
 > testParseStatements :: SQLSyntaxDialect -> String -> [Statement] -> Test.Framework.Test
 > testParseStatements flg src ast =

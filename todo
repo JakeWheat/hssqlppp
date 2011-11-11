@@ -2,14 +2,16 @@
 
 complete type checking for crud
 param query type fn
-order by, group by qualifier bugs
-see if can fix error messages from lex/parse in qq
+see if can fix error messages from lex/parse in qq: come out all with
+   the string passed through show so can't read the error message
 
 get ghc 6.12.x working again: think it is just adding the
    control.monad.error stuff back it
 
 go through old typecheck tests and reinsert most of them?
 -> want to get much better coverage of typechecking
+
+better approach to parsing selects
 
 want to try to get the syntax and parsing more stable, so do the
    following for next relese:

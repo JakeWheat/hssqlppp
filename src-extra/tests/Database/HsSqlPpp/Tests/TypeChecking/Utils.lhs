@@ -20,7 +20,7 @@
 > import Control.Monad
 
 > import Database.HsSqlPpp.Utils.GroomUtils
-> import Language.Haskell.Exts hiding (Type)
+> --import Language.Haskell.Exts hiding (Type)
 
 > data Item = Group String [Item]
 >           | ScalExpr String (Either [TypeError] Type)
