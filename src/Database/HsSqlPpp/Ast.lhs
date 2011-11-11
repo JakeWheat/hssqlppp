@@ -16,6 +16,7 @@
 >     ,Statement (..)
 >     ,ScalarExpr (..)
 >     ,QueryExpr (..)
+>     ,makeSelect
 >      -- * Components
 >      -- ** Selects
 >     ,SelectList (..)

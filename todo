@@ -2,8 +2,9 @@
 
 complete basic typechecking for queryexpr and scalexpr
 add typechecking for dml
-parameterized query typechecking
+parameterized query typechecking + get param type util fn
 go through old tests and redo most of them?
+-> want to get much better coverage of typechecking
 
 rough todo for exprs:
 scalar expr:
@@ -17,15 +18,11 @@ funtrefs
 fix order by env (see add qualifiers on tpch sql order bys)
 group by qualifier issue
 
-error messages are broken for lexing,parsing? -> check from command
-line runner, and from quoting
-
-postprocessor for uuagc output?
+error messages are broken for lexing,parsing? when used in quoting
 
 get ghc 6.12.x working again: think it is just adding the
    control.monad.error stuff back it
 
-make file build out of tree
 
 idea for :: cast
 
@@ -35,6 +32,8 @@ then transform to cast after parsing. This can then use the proper
 precedence in buildExpressionParser to parse ::. Also produce parse
 errors if after parsing, you try to cast to something which isn't a
 typename
+
+could do something similar for other operators: '.', [], in?
 
 add support for enum types
 
@@ -60,6 +59,9 @@ reject some correct plpgsql)
 
 todo: make detailed todo list for this
 
+== out of tree builds
+
+make file build out of tree
 
 == names
 

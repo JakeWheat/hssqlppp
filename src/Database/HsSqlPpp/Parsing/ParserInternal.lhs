@@ -1254,7 +1254,6 @@ bit better
 >          ,binary "%" AssocLeft]
 >         ,[binary "+" AssocLeft
 >          ,binary "-" AssocLeft]
->          --should be is isnull and notnull
 >         ,[postfixks ["is", "not", "null"] "!isnotnull"
 >          ,postfixks ["is", "null"] "!isnull"]
 >          --other operators all added in this list according to the pg docs:

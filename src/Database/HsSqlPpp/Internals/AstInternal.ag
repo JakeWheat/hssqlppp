@@ -126,6 +126,7 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,getAnnotation
    ,updateAnnotation
    ,emptyAnnotation
+   ,makeSelect
 }
 
 {
@@ -848,17 +849,12 @@ deriving AllNodes: Show,Eq,Typeable,Data
 include "Annotation.ag"
 include "TypeChecking/TypeChecking.ag"
 
-{-
-
-================================================================================
-
-used to use record syntax to try to insulate code from field changes,
-and not have to write out loads of nothings and [] for simple selects,
-but don't know how to create haskell named records from uuagc data
-things
-
-makeSelect :::: Statement
-makeSelect = Select Dupes (SelectList [SelExp (Identifier "*")] [])
-                   Nothing Nothing [] Nothing [] Asc Nothing Nothing
-
--}
+{
+-- | helper for working with selects, this default value has everything empty
+-- so you can just replace the parts you need instead of having to write thing like
+-- Select ... Nothing [] Nothing [] Nothing Nothing
+makeSelect :: QueryExpr
+makeSelect = Select emptyAnnotation Dupes
+                    (SelectList emptyAnnotation[]) []
+                    Nothing [] Nothing [] Nothing Nothing
+}
