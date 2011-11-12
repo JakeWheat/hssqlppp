@@ -7,18 +7,15 @@
 
 > sqlGen :: MakeSelect -> QueryExpr
 > sqlGen (MakeSelect cols tb) =
->   Select emptyAnnotation Dupes
->          sl tr
->          Nothing [] Nothing [] Nothing Nothing
+>   makeSelect
+>   {selSelectList = SelectList emptyAnnotation
+>                    $ map si cols
+>   ,selTref = [Tref emptyAnnotation
+>               (Name emptyAnnotation [Nmc tb])]}
 >   where
->     sl = SelectList emptyAnnotation
->                     (map si cols)
->     tr = [Tref emptyAnnotation
->                (Name emptyAnnotation [Nmc tb])
->                (NoAlias emptyAnnotation)]
 >     si i = SelExp emptyAnnotation
->                   (Identifier emptyAnnotation
->                               (Name emptyAnnotation [Nmc i]))
+>              (Identifier emptyAnnotation
+>              (Name emptyAnnotation [Nmc i]))
 
 > main :: IO ()
 > main = do

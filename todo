@@ -11,16 +11,26 @@ get ghc 6.12.x working again: think it is just adding the
 go through old typecheck tests and reinsert most of them?
 -> want to get much better coverage of typechecking
 
-better approach to parsing selects
+better approach to parsing selects  ?what does this mean?
+
+tref, structure, parens, separate alias
+
+fix unsafereadable in pretty: always do improved whitespace layout
+  and add separate function to remove redundant aliases from a
+  typechecked ast
 
 want to try to get the syntax and parsing more stable, so do the
    following for next relese:
 add parens to table refs(?) and queryexprs, probably need to rewrite
    tableref type for this. also get the parser working for stuff like
   select * from (a join b) as c;
+  -> separate alias, parens ctors, plus the existing ctors without
+   aliases
+
 do the split:
 sqlstatement
 plpgsqlstatement
+
 remove the ! on operator names
 change the special op name to be an enum
 change parsing of typed string literal since this is just a cast, get

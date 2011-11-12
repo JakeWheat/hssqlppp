@@ -122,8 +122,8 @@ Unit test helpers
 >         putStrLn $ groomNoAnns $ resetAnnotations ast'
 >       assertEqual ("parse " ++ src) ast $ resetAnnotations ast'
 >       case reparser (printer ast) of
->         Left er -> assertFailure $ "reparse\n" ++ show er ++ "\n" -- ++ pp ++ "\n"
->         Right ast'' -> assertEqual ("reparse " ++ printer ast) ast $ resetAnnotations ast''
+>         Left er -> assertFailure $ "reparse\n" ++ (printer ast) ++ "\n" ++ show er ++ "\n" -- ++ pp ++ "\n"
+>         Right ast'' -> assertEqual ("reparse: " ++ printer ast) ast $ resetAnnotations ast''
 
 ~~~~
 TODO

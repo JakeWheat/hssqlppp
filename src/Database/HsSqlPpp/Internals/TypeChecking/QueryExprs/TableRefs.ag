@@ -7,6 +7,11 @@ attr TableRefList
 attr TableRef
      syn upEnv :: Environment
 
+-- support for passing environment down into onexprs
+attr OnExpr
+  inh downEnv :: Environment
+
+
 -- combine a tref list using cross joins
 
 sem TableRefList
@@ -22,25 +27,63 @@ sem TableRefList
 -- boilerplate: pass any error from the env to the annotation
 -- pass any successful env in the upEnv
 sem TableRef
-  | Tref JoinTref SubTref FunTref
+  | Tref FunTref SubTref JoinTref TableAlias FullAlias TableRefParens
       loc.eEnv :: {Either [TypeError] Environment}
-      loc.eEnv2 =
-        case @alias.originalTree of
-          NoAlias _ -> @loc.eEnv
-          TableAlias _ t ->
-            fmap (createTrefAliasedEnvironment (ncStr t) Nothing)
-                 @loc.eEnv
-          FullAlias _ t cs ->
-            fmap (createTrefAliasedEnvironment (ncStr t)
-                                               (Just $ map ncStr cs))
-                 @loc.eEnv
-
       -- pass any errors to the annotation
       ann.tpe = either Left (const $ Left []) @loc.eEnv
       -- todo: what to do here?
-      lhs.upEnv = either (const brokeEnvironment) id @loc.eEnv2
+      lhs.upEnv = either (const brokeEnvironment) id @loc.eEnv
 
-  | JoinTref SubTref FunTref
+-- create the actual environments
+
+  | Tref
+      -- if the referenced table doesn't exist, want to attach the error
+      -- only to the name node. So this code should be fixed to get a Maybe [NameComponent]
+      -- attribute from the @tbl or something
+      loc.eEnv = envCreateTrefEnvironment @lhs.cat (nameComponents @tbl.originalTree)
+      tbl.tpe = Left []
+
+  | JoinTref
+      loc.eEnv = createJoinTrefEnvironment @lhs.cat
+                   @tbl0.upEnv @tbl1.upEnv
+                   $ case (@joinType,@onExpr.originalTree) of
+                      -- natural join
+                      (x,Nothing) | x /= Cross -> Nothing
+                      -- using join
+                      (_,Just (JoinUsing _ nms)) -> Just nms
+                      -- cross join
+                      _ -> Just []
+      -- this triggers uuagcs cycle detection, not sure why
+      onExpr.downEnv = either (const brokeEnvironment) id @loc.eEnv
+  | SubTref
+      loc.eEnv = maybe (Left []) id
+                 $ fmap envSelectListEnvironment @sel.upType
+  | TableRefParens
+      loc.eEnv = Right $ @tbl.upEnv
+  | FullAlias
+      loc.eEnv = Right $ createTrefAliasedEnvironment
+                         (ncStr @tb) (Just $ map ncStr @cols) @tbl.upEnv
+  | TableAlias
+      loc.eEnv = Right $ createTrefAliasedEnvironment
+                         (ncStr @tb) Nothing @tbl.upEnv
+  | FunTref
+      loc.eEnv = Left []
+
+
+attr TableRef
+  syn aliasedAnnotatedTree :: TableRef
+
+-- todo: use this to implement adding aliases
+
+sem TableRef
+  | Tref FunTref SubTref JoinTref TableAlias FullAlias TableRefParens
+    lhs.aliasedAnnotatedTree = @annotatedTree
+
+
+-- createTrefAliasedEnvironment :: String -> Maybe [String] -> Environment -> Environment
+
+
+{-  | JoinTref SubTref FunTref
       -- try to add a full table alias if possible
       -- not possible for some joins
       alias.newAlias =
@@ -83,6 +126,7 @@ underAlias a@(FullAlias {}) _ _  = a
 }
 
 -- actual environment creation - this is the interesting bit in this file
+
 sem TableRef
   | Tref
       -- if the referenced table doesn't exist, want to attach the error
@@ -116,7 +160,6 @@ sem TableRef
 sem TableAlias
     | NoAlias TableAlias FullAlias
         ann.tpe = Left []
+-}
 
-attr OnExpr
-  inh downEnv :: Environment
 

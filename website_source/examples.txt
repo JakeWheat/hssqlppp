@@ -270,6 +270,8 @@ select
     t;
 ~~~~~
 
+TODO: add about use of helpers and approach in the parse test code
+
 Using quasiquotes
 =================
 

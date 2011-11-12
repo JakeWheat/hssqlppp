@@ -22,7 +22,6 @@
 >     ,SelectList (..)
 >     ,SelectItem (..)
 >     ,TableRef (..)
->     ,TableAlias(..)
 >     ,JoinExpr (..)
 >     ,JoinType (..)
 >     ,Natural (..)

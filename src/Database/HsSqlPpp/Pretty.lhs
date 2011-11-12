@@ -566,50 +566,41 @@ Statement components
 
 >
 > tref :: PrettyPrintFlags -> TableRef -> Doc
-> {-tref flg (Tref _ f@(SQIdentifier _ t) (TableAlias _ ta))
->   | flg, last t == ta = name f
->   -- slightly bad hack:
-> tref flg (Tref _ f@(SQIdentifier _ t) (FullAlias _ ta _))
->   | flg, last t == ta = name f-}
-
-> tref flg (Tref _ f a) = name f <+> trefAlias flg a
-> tref flg (JoinTref _ t1 nat jt t2 ex a) =
->         parens (tref flg t1
->         $+$ (case nat of
->                       Natural -> text "natural"
->                       Unnatural -> empty)
->         <+> text (case jt of
->                           Inner -> "inner"
->                           Cross -> "cross"
->                           LeftOuter -> "left outer"
->                           RightOuter -> "right outer"
->                           FullOuter -> "full outer")
->         <+> text "join"
->         <+> tref flg t2
->         <+> maybePrint (nest 2 . joinScalarExpr) ex
->         <+> trefAlias flg a)
->         where
->           joinScalarExpr (JoinOn _ e) = text "on" <+> scalExpr flg e
->           joinScalarExpr (JoinUsing _ ids) =
->               text "using" <+> parens (sepCsvMap nmc ids)
->
-> tref flg (SubTref _ sub alias) =
->         parens (queryExpr flg True True Nothing sub)
->         <+> text "as" <+> trefAlias flg alias
-> tref flg (FunTref _ f@(App _ _ _) a) = scalExpr flg f <+> trefAlias flg a
-> tref _flg (FunTref _ x _) =
+> tref _ (Tref _ f) = name f
+> tref flg (SubTref _ sub) =
+>   parens (queryExpr flg True True Nothing sub)
+> tref flg (FunTref _ f@(App _ _ _)) = scalExpr flg f
+> tref _flg (FunTref _ x) =
 >       error $ "internal error: node not supported in function tref: "
 >             ++ show x
->
-> trefAlias :: PrettyPrintFlags -> TableAlias -> Doc
-> trefAlias _ (NoAlias _) = empty
-> trefAlias _ (TableAlias _ t) = nmc t
+> tref flg (TableRefParens _ t) = parens (tref flg t)
+> tref flg (TableAlias _ t tr) = tref flg tr <+> text "as" <+> nmc t
 > -- hack this out for now. When the type checking is fixed, can try
 > -- to eliminate unneeded aliases?
-> trefAlias flg (FullAlias _ t s) =
->   nmc t <> (if unsafeReadable flg
->             then empty
->             else parens (sepCsvMap nmc s))
+> tref flg (FullAlias _ t s tr) =
+>   tref flg tr <+> text "as"
+>   <+> nmc t <> (if unsafeReadable flg
+>                 then empty
+>                 else parens (sepCsvMap nmc s))
+
+> tref flg (JoinTref _ t1 nat jt t2 ex) =
+>   sep [tref flg t1
+>       ,hsep [case nat of
+>                 Natural -> text "natural"
+>                 Unnatural -> empty
+>             ,text $ case jt of
+>                Inner -> "inner"
+>                Cross -> "cross"
+>                LeftOuter -> "left outer"
+>                RightOuter -> "right outer"
+>                FullOuter -> "full outer"
+>             ,text "join"]
+>       ,tref flg t2
+>       ,maybePrint (nest 2 . joinScalarExpr) ex]
+>   where
+>     joinScalarExpr (JoinOn _ e) = text "on" <+> scalExpr flg e
+>     joinScalarExpr (JoinUsing _ ids) =
+>         text "using" <+> parens (sepCsvMap nmc ids)
 
 > direction :: Direction -> Doc
 > direction d = text $ case d of
@@ -623,7 +614,6 @@ Statement components
 > selectList :: PrettyPrintFlags -> SelectList -> Doc
 > selectList flg (SelectList _ ex) =
 >   sepCsvMap selectItem ex
->   -- <+> ifNotEmpty (\i -> text "into" <+> hcatCsvMap scalExpr i) into
 >   where
 >     -- try to avoid printing alias if not necessary
 >     selectItem (SelectItem _ ex1@(Identifier _ is) nm)

@@ -74,17 +74,18 @@ shortcuts for constructing test data and asts
 > parenQual a b = BinaryOp ea (name ".") (Parens ea a) b
 
 > tref :: String -> TableRef
-> tref s = Tref ea (name s) (NoAlias ea)
+> tref s = Tref ea (name s)
 
 > trefa :: String -> String -> TableRef
-> trefa t a = Tref ea (name t) (TableAlias ea $ Nmc a)
+> trefa t a = TableAlias ea (Nmc a) $ Tref ea (name t)
 
 > treffa :: String -> String -> [String] -> TableRef
-> treffa t a cs = Tref ea (name t) (FullAlias ea (Nmc a) $ map Nmc cs)
+> treffa t a cs = FullAlias ea (Nmc a) (map Nmc cs)
+>                 $ Tref ea (name t)
 
 
 > qtref :: String -> String -> TableRef
-> qtref q i = Tref ea (qn q i) (NoAlias ea)
+> qtref q i = Tref ea (qn q i)
 
 > si :: ScalarExpr -> SelectItem
 > si = SelExp ea
@@ -113,21 +114,23 @@ shortcuts for constructing test data and asts
 
 > innerJoin :: TableRef -> TableRef -> Maybe ScalarExpr -> TableRef
 > innerJoin a b o = JoinTref ea a Unnatural Inner b
->                            (fmap (JoinOn ea) o) (NoAlias ea)
+>                            (fmap (JoinOn ea) o)
 
 > naturalInnerJoin :: TableRef -> TableRef -> TableRef
 > naturalInnerJoin a b  = JoinTref ea a Natural Inner b Nothing
->                            (NoAlias ea)
 
 > usingInnerJoin :: TableRef -> TableRef -> [String] -> TableRef
 > usingInnerJoin a b us = JoinTref ea a Unnatural Inner b
->                            (Just $ JoinUsing ea $ map Nmc us) (NoAlias ea)
+>                            (Just $ JoinUsing ea $ map Nmc us)
 
 > join :: TableRef -> JoinType -> TableRef -> Maybe ScalarExpr -> TableRef
-> join a b c o = JoinTref ea a Unnatural b c (fmap (JoinOn ea) o) (NoAlias ea)
+> join a b c o = JoinTref ea a Unnatural b c (fmap (JoinOn ea) o)
 
 > with :: [(String,QueryExpr)] -> QueryExpr -> QueryExpr
 > with ws e =
 >   WithQueryExpr ea
 >    (map (\(n,ne) -> WithQuery ea (Nmc n) Nothing ne) ws)
 >    e
+
+> tfp :: TableRef -> TableRef
+> tfp = TableRefParens ea

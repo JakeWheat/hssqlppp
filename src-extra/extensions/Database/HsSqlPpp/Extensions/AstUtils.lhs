@@ -70,7 +70,7 @@ it and quits.
 >       funrefs = getFunctionRefs a
 >
 > getTrefs :: Data a => a -> [String]
-> getTrefs ast = [getTName tbl| Tref _ tbl _ <- universeBi ast]
+> getTrefs ast = [getTName tbl| Tref _ tbl <- universeBi ast]
 >
 > getTName :: Name -> String
 > getTName (Name _ ns) = ncStr $ last ns

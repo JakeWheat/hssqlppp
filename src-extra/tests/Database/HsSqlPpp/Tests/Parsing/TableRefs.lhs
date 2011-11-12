@@ -24,20 +24,21 @@
 >     stbl {selTref = [treffa "tbl" "a" ["b","c"]]}
 
 >    ,q "select a from gen();"
->     stbl {selTref = [FunTref ea (app "gen" []) (NoAlias ea)]}
+>     stbl {selTref = [FunTref ea (app "gen" [])]}
 >    ,q "select a from gen() t;"
->     stbl {selTref = [FunTref ea (app "gen" []) (TableAlias ea $ Nmc "t")]}
+>     stbl {selTref = [ta $ FunTref ea (app "gen" [])]}
 >    ,q "select a from gen() as t;"
->     stbl {selTref = [FunTref ea (app "gen" []) (TableAlias ea $ Nmc "t")]}
+>     stbl {selTref = [ta $ FunTref ea (app "gen" [])]}
 
->    ,q "select a from (select a from tbl) as d;"
->     stbl {selTref = [SubTref ea stbl (TableAlias ea $ Nmc "d")]}
+>    ,q "select a from (select a from tbl) as t;"
+>     stbl {selTref = [ta $ SubTref ea stbl]}
 
->    ,q "select a from (select a from tbl) d;"
->     stbl {selTref = [SubTref ea stbl (TableAlias ea $ Nmc "d")]}
+>    ,q "select a from (select a from tbl) t;"
+>     stbl {selTref = [ta $ SubTref ea stbl]}
 
 >    ]
 >    where
+>      ta = TableAlias ea (Nmc "t")
 >      stbl = makeSelect
 >             {selSelectList = sl [si $ ei "a"]
 >             ,selTref = [tref "tbl"]}

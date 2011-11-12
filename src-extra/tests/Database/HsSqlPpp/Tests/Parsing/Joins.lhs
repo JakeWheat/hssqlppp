@@ -35,7 +35,7 @@ this?
 >   ,q "select a from t1 join t2"
 >    stbl {selTref = [join (tref "t1") Inner (tref "t2") Nothing]}
 >   ,q "select a from (b natural join c);"
->    stbl {selTref = [naturalInnerJoin (tref "b") (tref "c")]}
+>    stbl {selTref = [tfp $ naturalInnerJoin (tref "b") (tref "c")]}
 
 >   ,q "select a from a cross join b cross join c;"
 >    stbl {selTref = [join
@@ -44,31 +44,31 @@ this?
 >                     (tref "c") Nothing]}
 >   ,q "select a from (a cross join b) cross join c;"
 >    stbl {selTref = [join
->                     (join (tref "a") Cross (tref "b") Nothing)
+>                     (tfp $ join (tref "a") Cross (tref "b") Nothing)
 >                     Cross
 >                     (tref "c") Nothing]}
 >   ,q "select a from ((a cross join b) cross join c);"
->    stbl {selTref = [join
->                     (join (tref "a") Cross (tref "b") Nothing)
+>    stbl {selTref = [tfp $ join
+>                     (tfp $ join (tref "a") Cross (tref "b") Nothing)
 >                     Cross
 >                     (tref "c") Nothing]}
 
 >   ,q "select a from a cross join (b cross join c);"
 >    stbl {selTref = [join
 >                     (tref "a") Cross
->                     (join (tref "b") Cross (tref "c") Nothing)
+>                     (tfp $ join (tref "b") Cross (tref "c") Nothing)
 >                     Nothing]}
 
 >   ,q "select a from (a cross join (b cross join c));"
->    stbl {selTref = [join
+>    stbl {selTref = [tfp $ join
 >                     (tref "a") Cross
->                     (join (tref "b") Cross (tref "c") Nothing)
+>                     (tfp $ join (tref "b") Cross (tref "c") Nothing)
 >                     Nothing]}
 
 >   ,q "select a from ((a cross join b) cross join c) cross join d;"
 >    stbl {selTref = [join
->                     (join
->                      (join (tref "a") Cross (tref "b") Nothing)
+>                     (tfp $ join
+>                      (tfp $ join (tref "a") Cross (tref "b") Nothing)
 >                      Cross
 >                      (tref "c") Nothing)
 >                     Cross

@@ -41,7 +41,6 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,SetClause (..)
    ,SetClauseList
    ,TableRef (..)
-   ,TableAlias(..)
    ,JoinExpr (..)
    ,JoinType (..)
    ,SelectList (..)
@@ -488,35 +487,27 @@ data SelectItem | SelExp ann::Annotation ex::ScalarExpr
 {-
 
 == Tablerefs
-
-arguably the most complex part of queryexprs (syntactically and
-semantically)
-
-todo: represent parens explicitly in tablerefs
-might need to rearrange the tref type for this
-
+todo: rename tblx -> trefx
 -}
 
 data TableRef | Tref ann::Annotation
                      tbl::Name
-                     alias :: TableAlias
+              | FunTref ann::Annotation
+                        fn::ScalarExpr
+              | SubTref ann::Annotation
+                        sel :: QueryExpr
               | JoinTref ann::Annotation
                          tbl0 :: TableRef
                          nat :: Natural
                          joinType :: JoinType
                          tbl1 :: TableRef
                          onExpr :: OnExpr
-                         alias :: TableAlias
-              | SubTref ann::Annotation
-                        sel :: QueryExpr
-                        alias :: TableAlias
-              | FunTref ann::Annotation
-                        fn::ScalarExpr
-                        alias :: TableAlias
-
-data TableAlias | NoAlias ann::Annotation
-                | TableAlias ann::Annotation tb::NameComponent
-                | FullAlias ann::Annotation tb::NameComponent cols::{[NameComponent]}
+              | TableAlias ann::Annotation tb::NameComponent tbl::TableRef
+              | FullAlias ann::Annotation
+                          tb::NameComponent
+                          cols::{[NameComponent]}
+                          tbl::TableRef
+              | TableRefParens ann::Annotation tbl::TableRef
 
 data JoinExpr | JoinOn ann::Annotation expr::ScalarExpr
               | JoinUsing ann::Annotation x::{[NameComponent]}
@@ -1014,7 +1005,6 @@ set AllNodes = Statement QueryExpr FnBody TableRef
                ScalarExprDirectionPairList AlterTableActionList
                WithQueryList WithQuery
                Name
-               TableAlias
                SetClause SetClauseList
 
 

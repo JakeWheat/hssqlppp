@@ -305,44 +305,56 @@ maybe it should still do this since it would probably be a lot clearer
 
 
 table refs
-have to cope with:
-a simple tableref i.e just a name
-an aliased table ref e.g. select a.b from tbl as a
-a sub select e.g. select a from (select b from c)
- - these are handled in nonJoinTref
-then you combine by seeing if there is a join looking prefix
+
+only way of combining them is joins which parse left associative which
+makes it easy
 
 > tableRef :: SParser TableRef
-> tableRef =
->   trefTerm >>= maybeParseAnotherJoin
+> tableRef = nonJoin >>= optionalJoinSuffix
 >   where
->         maybeParseAnotherJoin tr1 =
->           choice [
->                 do
->                   p2 <- pos
->                   (nat,jt) <- joinKw
->                   JoinTref p2 tr1 nat jt
->                                    <$> trefTerm
->                                    <*> onExpr
->                                    <*> palias
->                     >>= maybeParseAnotherJoin
->                ,return tr1]
->         trefTerm = nonJoinTref
->                    <|> try (parens tableRef)
->         nonJoinTref = try $ optParens $ do
->                   p2 <- pos
->                   choice [
->                          SubTref p2
->                          <$> parens pQueryExpr
->                          <*> palias
->                         ,FunTref p2
->                          <$> try (identifier >>= functionCallSuffix)
->                          <*> palias
->                         ,Tref p2
->                          <$> name
->                          <*> palias]
->         joinKw :: SParser (Natural, JoinType)
->         joinKw = do
+>     nonJoin = do
+>               -- read parens and a subquery or tableref
+>               -- or a funtref or just a tref
+>               t <- choice
+>                    [do
+>                     p <- pos
+>                     parens $ choice [try $ SubTref p <$> pQueryExpr
+>                                     ,TableRefParens p <$> tableRef]
+>                     -- should combine the funtref and tref parsing
+>                    ,try $ FunTref <$> pos
+>                                   <*> (identifier >>= functionCallSuffix)
+>                    ,Tref <$> pos <*> name]
+>               optionalAlias t
+>     optionalAlias t = do
+>               -- try and read an alias
+>               a <- optionMaybe $ try alias
+>               -- ignore an optional hint if this is sql server
+>               _ <- choice [do isSqlServer >>= guard
+>                               _ <- try $ optional tableHint
+>                               return ()
+>                           ,return ()]
+>               -- wrap the tref from before with the alias
+>               -- if got one
+>               return $ maybe t (\f -> f t) a
+
+>     alias :: SParser (TableRef -> TableRef)
+>     alias = do
+>             p <- pos
+>             optionalSuffix
+>                  (TableAlias p) (optional (keyword "as") *> nameComponent)
+>                  (FullAlias p) (parens $ commaSep1 nameComponent)
+>     optionalJoinSuffix tr =
+>       choice [try (joinSuffix tr)
+>               >>= optionalAlias
+>               >>= optionalJoinSuffix
+>              ,return tr]
+>     joinSuffix tr = do
+>       let p = getAnnotation tr
+>       (nat,jt) <- joinKw
+>       JoinTref p tr nat jt
+>           <$> nonJoin
+>           <*> onExpr
+>     joinKw = do
 >              --look for the join flavour first
 >              n <- option Unnatural (Natural <$ keyword "natural")
 >              jt <- choice [
@@ -354,29 +366,15 @@ then you combine by seeing if there is a join looking prefix
 >                                       *> optional (keyword "outer"))
 >                    ,Cross <$ keyword "cross"
 >                    ,Inner <$ optional (keyword "inner")]
->              --recurse back to tref to read the table
 >              keyword "join"
 >              return (n,jt)
->         onExpr = choice [
->                  Just <$> (JoinOn <$> pos <*> (keyword "on" *> expr))
->                 ,Just <$> (JoinUsing <$> pos
->                            <*> (keyword "using" *> columnNameList))
->                 ,return Nothing]
->         palias = do
->            p <- pos
->            r <- option (NoAlias p)
->                    (try $ optionalSuffix
->                       (TableAlias p) (optional (keyword "as") *> nameComponent)
->                       (FullAlias p) (parens $ commaSep1 nameComponent))
->            ss <- isSqlServer
->            if ss
->              then do
->                _ <- optional tableHint
->                return ()
->              else
->                return ()
->            return r
->         tableHint = do
+>     onExpr = choice
+>              [Just <$> (JoinOn <$> pos <*> (keyword "on" *> expr))
+>              ,Just <$> (JoinUsing <$> pos
+>                                   <*> (keyword "using" *> columnNameList))
+>              ,return Nothing]
+
+>     tableHint = do
 
 just acts as an incomplete recogniser for table hints:
 it doesn't accept all valid table hints

@@ -50,15 +50,13 @@ server...obj
 >    [qs $ makeSelect
 >            {selSelectList = sl [si $ Star ea]
 >            ,selTref = [innerJoin (tref "a")
->                       (Tref ea (Name ea [Nmc "x",Nmc "",Nmc "b"])
->                        (NoAlias ea)) Nothing]}]
+>                       (Tref ea (Name ea [Nmc "x",Nmc "",Nmc "b"])) Nothing]}]
 
 >   ,TSQL "select * from a join x...b;"
 >    [qs $ makeSelect
 >            {selSelectList = sl [si $ Star ea]
 >            ,selTref = [innerJoin (tref "a")
->                       (Tref ea (Name ea [Nmc "x",Nmc "",Nmc "",Nmc "b"])
->                        (NoAlias ea)) Nothing]}]
+>                       (Tref ea (Name ea [Nmc "x",Nmc "",Nmc "",Nmc "b"])) Nothing]}]
 >   ,TSQL "select a from t with(nolock);"
 >     -- with is just (sort of) recognised, and not parsed to abstract
 >     -- syntax
