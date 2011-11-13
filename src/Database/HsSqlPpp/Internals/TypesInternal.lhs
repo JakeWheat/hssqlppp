@@ -146,8 +146,8 @@ gutted and rewritten
 >
 
 > -- | Using these gives the hssqlppp canonical names of these
-> -- types, which have multiple names in postgres and SQL. The actual names follow
-> -- what postgres uses in a dump.
+> -- types, which have multiple names in postgres and SQL. The names which
+> -- hssqlppp uses as canonical are the names that postgres uses in a pg_dump.
 > typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4,
 >   typeFloat8,typeVarChar,typeChar,typeBool,typeDate,
 >   typeInterval :: Type

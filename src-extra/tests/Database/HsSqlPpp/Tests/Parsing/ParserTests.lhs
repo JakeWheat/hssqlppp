@@ -22,6 +22,7 @@ There are no tests for invalid syntax at the moment.
 > --import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.Pretty
+> import Database.HsSqlPpp.Utility
 >
 > import Database.HsSqlPpp.Utils.GroomUtils
 

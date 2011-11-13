@@ -86,7 +86,7 @@ to deal with nulls/ maybe types?
 >   transformBi $ \x ->
 >       case x of
 >         st@[sqlStmt| select create6nf($e(stuff)); |] : tl
->             -> let (f,l,c) = fromMaybe ("",1,1) $ asrc $ getAnnotation stuff
+>             -> let (f,l,c) = fromMaybe ("",1,1) $ anSrc $ getAnnotation stuff
 >                    (StringLit _ s) = stuff
 >                in replaceSourcePos st (createStatements f l c s) ++ tl
 >         x1 -> x1

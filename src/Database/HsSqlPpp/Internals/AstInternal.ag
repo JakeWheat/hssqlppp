@@ -528,7 +528,7 @@ data Natural = Natural | Unnatural
 
 
 -- TODO: change the def and docs to use record notation to init
--- makeSelect
+-- makeSelect, maybe rename makeSelect to something better?
 
 {
 -- | 'default' valued select, use for creating select values

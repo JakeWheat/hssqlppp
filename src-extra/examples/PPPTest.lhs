@@ -10,6 +10,7 @@ that pretty print . parse == id
 
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.Pretty
+> import Database.HsSqlPpp.Utility
 > import Control.Monad
 > import Data.Algorithm.Diff
 > import Text.Groom
@@ -42,6 +43,3 @@ that pretty print . parse == id
 >                     F -> "- " ++ t
 >                     S -> "+ " ++ t
 >                     B -> t
-
-> resetAnnotations :: Data a => a -> a
-> resetAnnotations = transformBi (const emptyAnnotation)

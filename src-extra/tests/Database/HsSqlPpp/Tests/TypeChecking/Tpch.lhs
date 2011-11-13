@@ -11,8 +11,7 @@ moment.
 > tpch :: Item
 > tpch =
 >   Group "tpch" $
->         -- FIXME: 15 has with expression which doesn't quite work atm
->         -- (to do with fixup identifiers I think)
+>         -- FIXME: 15 has cte which isn't implemented yet
 >         let (s,e) = splitAt 14 t
 >         in s ++ drop 1 e
 >   where

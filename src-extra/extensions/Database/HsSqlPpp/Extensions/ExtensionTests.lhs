@@ -11,6 +11,7 @@ Gather together the examples from the extension modules and convert to regular t
 > --import Debug.Trace
 >
 > import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.Utility
 > import Database.HsSqlPpp.PrettyPrinter
 >
 > import Database.HsSqlPpp.Extensions.ExtensionsUtils

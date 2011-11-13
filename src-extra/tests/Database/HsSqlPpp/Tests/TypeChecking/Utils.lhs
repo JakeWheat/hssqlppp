@@ -6,17 +6,18 @@
 > import Test.Framework.Providers.HUnit
 > import Test.Framework
 > import Data.List
-> import Data.Generics.Uniplate.Data
+> --import Data.Generics.Uniplate.Data
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.TypeChecker
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Catalog
-> import Database.HsSqlPpp.Ast hiding (App)
+> --import Database.HsSqlPpp.Ast hiding (App)
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Pretty
+> import Database.HsSqlPpp.Utility
 > --import Text.Groom
 > import Debug.Trace
-> import Database.HsSqlPpp.Tests.TestUtils
+> --import Database.HsSqlPpp.Tests.TestUtils
 > import Control.Monad
 
 > import Database.HsSqlPpp.Utils.GroomUtils
@@ -34,19 +35,11 @@
 >               Left e -> error $ show e
 >               Right l -> l
 >       aast = typeCheckScalarExpr defaultTypeCheckingFlags defaultTemplate1Catalog ast
->       ty = atype $ getAnnotation aast
->       er :: [TypeError]
->       er = universeBi aast
+>       (ty,errs,noTypeQEs,noTypeSEs) = tcTreeInfo aast
+>       er = concatMap fst errs
 >       got = case () of
 >               _ | null er -> maybe (Left []) Right ty
 >                 | otherwise -> Left er
-
->       noTypeSEs :: [ScalarExpr]
->       noTypeSEs = [x | x <- universeBi got
->                      , atype (getAnnotation x) == Nothing]
->       noTypeQEs :: [QueryExpr]
->       noTypeQEs = [x | x <- universeBi got
->                      , atype (getAnnotation x) == Nothing]
 >       allTyped = case et of
 >                    Left _ -> True -- don't check if everything is typed
 >                                   -- if expecting a type error
@@ -82,19 +75,12 @@
 >               Right l -> l
 >       Right cat = updateCatalog cus defaultTemplate1Catalog
 >       aast = typeCheckQueryExpr defaultTypeCheckingFlags cat ast
->       ty = atype $ getAnnotation aast
->       er :: [TypeError]
->       er = universeBi aast
+>       (ty,errs,noTypeQEs,noTypeSEs) = tcTreeInfo aast
+>       er = concatMap fst errs
 >       got :: Either [TypeError] Type
 >       got = case () of
 >               _ | null er -> maybe (Left []) Right ty
 >                 | otherwise -> Left er
->       noTypeSEs :: [ScalarExpr]
->       noTypeSEs = [x | x <- universeBi aast
->                      , atype (getAnnotation x) == Nothing]
->       noTypeQEs :: [QueryExpr]
->       noTypeQEs = [x | x <- universeBi aast
->                      , atype (getAnnotation x) == Nothing]
 >       allTyped = case et of
 >                    Left _ -> True -- don't check if everything is typed
 >                                   -- if expecting a type error
@@ -104,6 +90,52 @@
 >        $ assertBool "" allTyped
 >   unless (et == got) $ trace (groomTypes aast) $ return ()
 >   assertEqual "" et got
+>   --testQueryExprRewrites cus src et
+
+rewrite the queryexpr with all the options true
+
+pretty print, then check that the resultant sql parses the same, and
+type checks properly and produces the same type
+
+> queryExprRewrites :: [CatalogUpdate] -> String -> Either [TypeError] Type -> IO () --Test.Framework.Test
+> queryExprRewrites cus src et = {-testCase ("rewrite expanded " ++ src) $-} do
+>   let ast = case parseQueryExpr defaultParseFlags "" Nothing src of
+>               Left e -> error $ "parse: " ++ src ++ "\n" ++ show e
+>               Right l -> l
+>   let Right cat = updateCatalog cus defaultTemplate1Catalog
+>       aast = typeCheckQueryExpr
+>                defaultTypeCheckingFlags {tcfAddQualifiers = True
+>                                         ,tcfAddSelectItemAliases = True
+>                                         ,tcfExpandStars = True
+>                                         ,tcfAddFullTablerefAliases = True}
+>                cat ast
+>       ty = anType $ getAnnotation aast
+>       -- print with rewritten tree
+>       pp = printQueryExpr defaultPPFlags aast
+>       astrw = case parseQueryExpr defaultParseFlags "" Nothing pp of
+>                 Left e -> error $ "parse: " ++ pp ++ "\n" ++ show e
+>                 Right l -> l
+>       aastrw = typeCheckQueryExpr
+>                  defaultTypeCheckingFlags
+>                  cat astrw
+>       tyrw = anType $ getAnnotation aast
+>   assertEqual "rewrite pp . parse" (resetAnnotations aast) (resetAnnotations aastrw)
+>   assertEqual "rewrite ty" ty tyrw
+>   let (_,errs,noTypeQEs,noTypeSEs) = tcTreeInfo aast
+>       er = concatMap fst errs
+>       allTyped = case et of
+>                    Left _ -> True -- don't check if everything is typed
+>                                   -- if expecting a type error
+>                    Right _ -> null noTypeSEs && null noTypeQEs
+>   unless (null er) $
+>        trace ("errors in tree: " ++ groomTypes aastrw)
+>        $ assertBool "" (null er)
+>   unless allTyped $
+>        trace ("MISSING TYPES: " ++ groomTypes aastrw)
+>        $ assertBool "" allTyped
+
+
+
 
 > testRewrite :: TypeCheckingFlags -> [CatalogUpdate] -> String -> String
 >             -> Test.Framework.Test

@@ -8,6 +8,13 @@ see if can fix error messages from lex/parse in qq: come out all with
 get ghc 6.12.x working again: think it is just adding the
    control.monad.error stuff back it
 
+rename SqlServerDialect and associated things to TSQLDialect?
+
+rearrange the exports in ast to match order in the astinternal.ag
+  so they come out with a sensible arrangement in the haddock
+
+review and rename the examples#
+
 go through old typecheck tests and reinsert most of them?
 -> want to get much better coverage of typechecking
 
@@ -18,6 +25,12 @@ tref, structure, parens, separate alias
 fix unsafereadable in pretty: always do improved whitespace layout
   and add separate function to remove redundant aliases from a
   typechecked ast
+
+tpch tests:
+add tests which parse, add all the extras, then reparse,pretty,parse,
+   and typecheck again
+
+junk tests to get working: extensions, roundtrip?
 
 want to try to get the syntax and parsing more stable, so do the
    following for next relese:

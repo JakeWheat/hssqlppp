@@ -1,17 +1,17 @@
 
-> import Control.Monad
-> import Data.Generics.Uniplate.Data
+> --import Control.Monad
+> --import Data.Generics.Uniplate.Data
 > import System.Environment
-> import Data.List
+> --import Data.List
 
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.TypeChecker
 > import Database.HsSqlPpp.Catalog
-> import Database.HsSqlPpp.Types
-> import Database.HsSqlPpp.Annotation
+> --import Database.HsSqlPpp.Types
+> --import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Utils.GroomUtils
-> import Text.Groom
+> --import Text.Groom
 > import Database.HsSqlPpp.Tests.TpchData
 
 > main :: IO ()

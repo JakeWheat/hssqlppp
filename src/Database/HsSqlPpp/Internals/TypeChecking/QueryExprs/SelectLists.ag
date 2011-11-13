@@ -44,7 +44,7 @@ sem ScalarExpr
                 map (\((q,n),t) ->
                       -- have to typecheck manually here since the generate nodes
                       -- don't participate in the ag
-                  let a' = a {atype = Just t}
+                  let a' = a {anType = Just t}
                       -- expanded stars always output qualifier
                   in (n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
                   ) is

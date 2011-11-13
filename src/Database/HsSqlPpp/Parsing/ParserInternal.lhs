@@ -60,7 +60,7 @@ Top level parsing functions
 > parseStatements :: ParseFlags -- ^ parse options
 >                 -> FilePath -- ^ filename to use in errors
 >                 -> Maybe (Int,Int) -- ^ set the line number and column number
->                                    -- of the first char in the source (used in errors)
+>                                    -- of the first char in the source (used in annotation)
 >                 -> String -- ^ a string containing the sql to parse
 >                 -> Either ParseErrorExtra [Statement]
 > parseStatements = parseIt' sqlStatements
@@ -69,7 +69,6 @@ Top level parsing functions
 > parseQueryExpr :: ParseFlags -- ^ parse options
 >                -> FilePath -- ^ filename to use in errors
 >                -> Maybe (Int,Int) -- ^ set the line number and column number
->                                   -- of the first char in the source (used in errors)
 >                -> String -- ^ a string containing the sql to parse
 >                -> Either ParseErrorExtra QueryExpr
 > parseQueryExpr =
@@ -79,7 +78,6 @@ Top level parsing functions
 > parseScalarExpr :: ParseFlags -- ^ parse options
 >                 -> FilePath -- ^ filename to use in errors
 >                 -> Maybe (Int,Int) -- ^ set the line number and column number
->                                    -- of the first char in the source (used in errors)
 >                 -> String -- ^ a string containing the sql to parse
 >                 -> Either ParseErrorExtra ScalarExpr
 > parseScalarExpr = parseIt' $ expr <* eof
@@ -89,7 +87,6 @@ Top level parsing functions
 > parsePlpgsql :: ParseFlags -- ^ parse options
 >              -> FilePath -- ^ filename to use in errors
 >              -> Maybe (Int,Int) -- ^ set the line number and column number
->                                 -- of the first char in the source (used in errors)
 >              -> String -- ^ a string containing the sql to parse
 >              -> Either ParseErrorExtra [Statement]
 > parsePlpgsql = parseIt' $ many plPgsqlStatement <* eof
@@ -2257,7 +2254,7 @@ parser combinator to return the current position as an ast annotation
 
 > pos :: SParser Annotation
 > pos =
->   (\a -> emptyAnnotation {asrc = Just a}) <$> toMySp <$> getPosition
+>   (\a -> emptyAnnotation {anSrc = Just a}) <$> toMySp <$> getPosition
 
 == lexer stuff
 

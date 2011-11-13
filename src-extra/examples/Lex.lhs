@@ -1,6 +1,5 @@
 
-> import Database.HsSqlPpp.Parsing.Lexer
-> --import Database.HsSqlPpp.Parser
+> import Database.HsSqlPpp.Utility
 > import Text.Groom
 > import System.Environment
 > import Database.HsSqlPpp.SqlDialect

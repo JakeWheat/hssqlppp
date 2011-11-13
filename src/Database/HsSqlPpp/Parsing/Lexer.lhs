@@ -43,34 +43,35 @@ copy payload (used to lex copy from stdin data)
 
 > type Token = (SourcePos, Tok)
 >
-> data Tok = StringTok String String --delim, value (delim will one of
->                                    --', $$, $[stuff]$
+> -- | the token type for lexing
+> data Tok = StringTok String String -- ^ delim, value ,delim will one of
+>                                    -- ', $$, $[stuff]$
 
->          | IdStringTok String -- either a identifier component (without .) or a *
->          | QIdStringTok String -- same as IdStringTok with quotes
+>          | IdStringTok String -- ^ a name component
+>          | QIdStringTok String -- ^ quoted namecomponent, also used
+>                                -- when parsing '@local', '#temp' in sql server dialect
 
->          | SymbolTok String -- operators, and ()[],;: and also .
->                             -- '*' is currently always lexed as an id
->                             --   rather than an operator
->                             -- this gets fixed in the parsing stage
-
->          | PositionalArgTok Integer -- used for $1, etc.
+>          | SymbolTok String -- ^ operators, and *()[],;: and also .
+>          | PositionalArgTok Integer -- ^ used for $1, etc.
 
 Use a numbertok with a string to parse numbers. This is mainly so that
 numeric constants can be parsed accurately - if they are parsed to
 floats in the ast then converted back to numeric, then the accuracy
 can be lost (e.g. something like "0.2" parsing to 0.199999999 float.
 
->          | NumberTok String
-
->          | CopyPayloadTok String -- support copy from stdin; with inline data
->          | SpliceTok Char String
+>          | NumberTok String -- ^ number
+>          | CopyPayloadTok String -- ^ hacky support support copy from stdin; with inline data
+>          | SpliceTok Char String -- ^ a splice token, the splice char and the string
+>                                  -- e.g. $e(stuff) -> SpliceTok \'e\' \"stuff\"
 >            deriving (Eq,Show)
 >
 > type LexState = [Tok]
 > type Parser = ParsecT String LexState Identity
 >
-> lexSql :: SQLSyntaxDialect -> String -> Maybe (Int,Int) -> String
+> lexSql :: SQLSyntaxDialect -- ^ dialect
+>        -> FilePath -- ^ filename to use in errors
+>        -> Maybe (Int,Int) -- ^ starting line and column no for positions
+>        -> String -- ^ source to lex
 >        -> Either ParseErrorExtra [Token]
 > lexSql d f sp src =
 >   either (Left . toParseErrorExtra f sp) Right

@@ -6,7 +6,7 @@
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Ast hiding (ann)
 
 > import Database.HsSqlPpp.Utils.CatalogReader
 
@@ -23,5 +23,5 @@
 >       ann :: Annotation
 >       ann = getAnnotation aast
 >       ty :: Maybe Type
->       ty = atype ann
+>       ty = anType ann
 >   print ty

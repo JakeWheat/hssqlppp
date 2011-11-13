@@ -21,6 +21,7 @@ File to parse the denormalized6nf syntax
 > --import Control.Monad.Error
 >
 > import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Utility
 > import Database.HsSqlPpp.Parsing.ParserInternal
 > import Database.HsSqlPpp.Parsing.Lexer
 > import Database.HsSqlPpp.Utils.Here

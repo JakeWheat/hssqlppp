@@ -22,7 +22,6 @@ it and quits.
 >     ,replaceSourcePos
 >     ,replaceSourcePos1
 >     ,getTName
->     ,resetAnnotations
 >     ,mname
 >     ) where
 >
@@ -46,8 +45,6 @@ it and quits.
 >                          (listViews ast)
 >                          (listTables ast)
 >
-> resetAnnotations :: Data a => a -> a
-> resetAnnotations = transformBi (const emptyAnnotation)
 
 > -- won't need this wrapper when the recursion loop detection logic
 > -- is in place
@@ -99,8 +96,8 @@ it and quits.
 >     map (adjSp gsp)
 >     where
 >       gsp :: SourcePosition
->       gsp = fromMaybe ("unknown",1,1) $ asrc $ getAnnotation st
->       adjSp sp1 = updateAnnotation (\a -> a {asrc = Just sp1})
+>       gsp = fromMaybe ("unknown",1,1) $ anSrc $ getAnnotation st
+>       adjSp sp1 = updateAnnotation (\a -> a {anSrc = Just sp1})
 
 > mname :: String -> Name
 > mname s = Name emptyAnnotation [Nmc s]

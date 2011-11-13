@@ -14,6 +14,7 @@ Tests mainly for antiquotation, plus examples of where antiquotes work.
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Pretty
 > import Database.HsSqlPpp.Quote
+> import Database.HsSqlPpp.Utility
 > import Database.HsSqlPpp.Tests.TestUtils
 >
 > data Item = Expr ScalarExpr ScalarExpr

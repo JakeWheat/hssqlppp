@@ -49,6 +49,7 @@ Library
                      Database.HsSqlPpp.Types
                      Database.HsSqlPpp.TypeChecker
                      Database.HsSqlPpp.Quote
+                     Database.HsSqlPpp.Utility
 
                      -- find src -iname '*hs' | sed -e "s@src/@@" | sed -e "s@/@.@g" |sed -e "s/.lhs//" |sed -e "s/.hs//"
   Other-Modules:     Database.HsSqlPpp.Utils.Utils

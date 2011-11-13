@@ -1,6 +1,6 @@
 
 > module Database.HsSqlPpp.Tests.TestUtils
->     (assertTrace,resetAnnotations) where
+>     (assertTrace) where
 >
 > import Test.HUnit
 > --import Test.Framework
@@ -25,6 +25,3 @@
 > assertTrace nem s a1 a2 = do
 >     when (a1 /= a2) $ trace nem $ return ()
 >     assertEqual s a1 a2
-
-> resetAnnotations :: Data a => a -> a
-> resetAnnotations = transformBi (const emptyAnnotation)

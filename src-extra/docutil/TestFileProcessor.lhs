@@ -35,6 +35,7 @@ examples.
 >
 > mapParserTests :: PT.Item -> [Row]
 > mapParserTests (PT.Expr s e) = [Row [[Sql s],[Haskell (groomNoAnns e)]]]
+> mapParserTests (PT.QueryExpr s e) = [Row [[Sql s],[Haskell (groomNoAnns e)]]]
 > mapParserTests (PT.Stmt s e) = [Row [[Sql s],[Haskell (groomNoAnns e)]]]
 > mapParserTests (PT.PgSqlStmt s e) = [Row [[Sql s],[Haskell (groomNoAnns e)]]]
 > mapParserTests (PT.Group n is) = HHeader n : concatMap mapParserTests is

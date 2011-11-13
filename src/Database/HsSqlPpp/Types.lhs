@@ -14,8 +14,6 @@ This is the public module to the SQL data types, mainly from TypeType.
 >     ,typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4
 >     ,typeFloat8,typeVarChar,typeChar,typeBool,typeDate
 >     ,typeInterval
->     ,canonicalizeTypeName
->     ,canonicalizeTypeNames
 >      -- * Type errors
 >     ,TypeError (..)
 >     ) where

@@ -4,7 +4,7 @@
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Ast hiding (ann)
 
 > main :: IO ()
 > main = do
@@ -16,7 +16,7 @@
 >       ann :: Annotation
 >       ann = getAnnotation aast
 >       ty :: Maybe Type
->       ty = atype ann
+>       ty = anType ann
 >   print ty
 >   where
 >     Right cat = updateCatalog

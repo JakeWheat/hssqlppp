@@ -23,6 +23,8 @@ sem TableRefList
                          either (error . show) id $
                          createJoinTrefEnvironment @lhs.cat @hd.upEnv @tl.upEnv $ Just []
 
+--  | Nil lhs.annotatedTree = []
+--  | Cons lhs.annotatedTree = @hd.aliasedAnnotatedTree : @tl.annotatedTree
 
 -- boilerplate: pass any error from the env to the annotation
 -- pass any successful env in the upEnv
@@ -70,26 +72,35 @@ sem TableRef
       loc.eEnv = Left []
 
 
-attr TableRef
-  syn aliasedAnnotatedTree :: TableRef
+--attr TableRef
+--  syn aliasedAnnotatedTree :: TableRef
 
 -- todo: use this to implement adding aliases
 
 sem TableRef
-  | Tref FunTref SubTref JoinTref TableAlias FullAlias TableRefParens
-    lhs.aliasedAnnotatedTree = @annotatedTree
+  | Tref FunTref JoinTref TableRefParens
+      lhs.annotatedTree =
+          let mk (q,is) = FullAlias emptyAnnotation
+                                   (Nmc q)
+                                   (map Nmc is)
+                                   @annotatedTree
+          in maybe @annotatedTree mk @loc.newAlias
 
+--  | SubTref
+
+--  | TableAlias FullAlias
+--      lhs.annotatedTree = @annotatedTree
 
 -- createTrefAliasedEnvironment :: String -> Maybe [String] -> Environment -> Environment
 
-
-{-  | JoinTref SubTref FunTref
+sem TableRef
+  | JoinTref FunTref TableRefParens
       -- try to add a full table alias if possible
       -- not possible for some joins
-      alias.newAlias =
+      loc.newAlias =
         if tcfAddFullTablerefAliases @lhs.flags
         then do
-          env <- either (const Nothing) Just @loc.eEnv2
+          env <- either (const Nothing) Just @loc.eEnv
           cs <- either (const Nothing) Just $ envExpandStar Nothing env
           let qs = map (fst . fst) cs
           if all (== head qs) qs
@@ -99,7 +110,7 @@ sem TableRef
   | Tref
       -- special case for tref, the expand star will give the
       -- system columns too, which we don't want
-      alias.newAlias =
+      loc.newAlias =
         if tcfAddFullTablerefAliases @lhs.flags
         then do
           (n,cs,_) <- either (const Nothing) Just
@@ -107,8 +118,9 @@ sem TableRef
                         (nameComponents @tbl.originalTree)
           return (n, (map fst cs))
         else Nothing
+  | FullAlias TableAlias
 
-attr TableAlias
+{-attr TableAlias
   inh newAlias :: {Maybe (String,[String])}
 
 sem TableAlias

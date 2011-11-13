@@ -29,15 +29,15 @@ type ParameterizedStatementType = ([Type],[(String,Type)])
 -- the fields in order are:
 data Annotation | Annotation
                              -- | source position for this node
-                             asrc :: {Maybe SourcePosition}
+                             anSrc :: {Maybe SourcePosition}
                              -- | type of the node, 'Nothing' if the tree hasn't been typechecked or if a type error prevents determining the type
-                             atype :: {Maybe Type}
+                             anType :: {Maybe Type}
                              -- | any type errors
-                             errs :: {[TypeError]}
+                             anErrs :: {[TypeError]}
                              -- | if an implicit cast is needed between this node an its parent, this the target type of cast. If no implicit cast is needed, this is Nothing
-                             implicitCast :: {Maybe Type}
+                             anImplicitCast :: {Maybe Type}
                              -- | any catalog updates that a statement produces, used only for ddl Statements
-                             catUpd :: {[CatalogUpdate]}
+                             anCatUpd :: {[CatalogUpdate]}
 deriving Annotation: Eq,Show,Typeable,Data
 
 -- a magic devel routine outputs the annotation as record syntax
