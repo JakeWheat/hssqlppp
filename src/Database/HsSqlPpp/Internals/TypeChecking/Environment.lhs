@@ -158,11 +158,13 @@ lookup and star expansion
 
 > listBindingsTypes (TrefAlias ta Nothing env) =
 >   (\(q,n) -> if q `elem` [Nothing, Just ta]
->              then fst (listBindingsTypes env) (Nothing,n)
+>              then req $ fst (listBindingsTypes env) (Nothing,n)
 >              else []
 >   ,\q -> if q `elem` [Nothing, Just ta]
->          then snd (listBindingsTypes env) Nothing
+>          then req $ snd (listBindingsTypes env) Nothing
 >          else [])
+>   where
+>     req = map (\((_,i),t) -> ((ta,i),t))
 
 > listBindingsTypes (TrefAlias ta (Just cs) env) =
 >   (\(q,n) -> --trace ("lookup: " ++ show (q,n)) $

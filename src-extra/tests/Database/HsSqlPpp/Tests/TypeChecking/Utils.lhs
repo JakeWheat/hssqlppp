@@ -90,7 +90,7 @@
 >        $ assertBool "" allTyped
 >   unless (et == got) $ trace (groomTypes aast) $ return ()
 >   assertEqual "" et got
->   --testQueryExprRewrites cus src et
+>   --queryExprRewrites cus src et
 
 rewrite the queryexpr with all the options true
 
@@ -139,7 +139,7 @@ type checks properly and produces the same type
 
 > testRewrite :: TypeCheckingFlags -> [CatalogUpdate] -> String -> String
 >             -> Test.Framework.Test
-> testRewrite f cus src src' = testCase ("rewrite " ++ src) $
+> testRewrite f cus src src' = testCase ("rewrite " ++ src) $ do
 >   let ast = case parseQueryExpr defaultParseFlags "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
@@ -149,12 +149,24 @@ type checks properly and produces the same type
 >       ast' = case parseQueryExpr defaultParseFlags "" Nothing src' of
 >               Left e -> error $ show e
 >               Right l -> resetAnnotations l
->   in (if astrw /= ast'
->       then trace ("\n*****************\n" ++
+>   (if astrw /= ast'
+>       then trace ("\n***************** expected\n" ++
 >                   printQueryExpr defaultPPFlags ast'
 >                   ++ "\n" ++ printQueryExpr defaultPPFlags astrw
->                   ++ "\n*****************\n")
+>                   ++ "\n\n" ++ groomTypes ast'
+>                   ++ "\n\n" ++ groomTypes astrw
+>                   ++ "\n***************** got\n")
 >       else id) $ assertEqual "" ast' astrw
+>   -- check second rewrite is idempotent
+>   let astrw2 = resetAnnotations $ typeCheckQueryExpr f cat astrw
+>   (if astrw /= astrw2
+>       then trace ("\nSECOND REWRITE\n***************** expected\n" ++
+>                   printQueryExpr defaultPPFlags astrw
+>                   ++ "\n" ++ printQueryExpr defaultPPFlags astrw2
+>                   ++ "\n\n" ++ groomTypes astrw
+>                   ++ "\n\n" ++ groomTypes astrw2
+>                   ++ "\n***************** got\n")
+>       else id) $ assertEqual "second rewrite" astrw astrw2
 
 
 > itemToTft :: Item -> Test.Framework.Test

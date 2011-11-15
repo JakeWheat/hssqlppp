@@ -82,6 +82,13 @@ this?
 >                      (tref "c") Nothing)
 >                     Cross
 >                     (tref "d") Nothing]}
+>   {-,q "select a from (t cross join u) x"
+>    stbl {selTref = [TableAlias ea (Nmc "x") $ tfp
+>                     $ (join (tref "t") Cross (tref "u") Nothing)]}
+>   ,q "select a from (t as t(a, b) cross join u as t(c, d)) as t(a, b, c, d);"
+>    stbl {selTref = [TableAlias ea (Nmc "x") $ tfp
+>                     $ (join (tref "t") Cross (tref "u") Nothing)]}-}
+
 
 >   ,q "select a from b\n\
 >       \    inner join c\n\

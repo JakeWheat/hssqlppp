@@ -23,9 +23,6 @@ sem TableRefList
                          either (error . show) id $
                          createJoinTrefEnvironment @lhs.cat @hd.upEnv @tl.upEnv $ Just []
 
---  | Nil lhs.annotatedTree = []
---  | Cons lhs.annotatedTree = @hd.aliasedAnnotatedTree : @tl.annotatedTree
-
 -- boilerplate: pass any error from the env to the annotation
 -- pass any successful env in the upEnv
 sem TableRef
@@ -47,7 +44,7 @@ sem TableRef
 
   | JoinTref
       loc.eEnv = createJoinTrefEnvironment @lhs.cat
-                   @tbl0.upEnv @tbl1.upEnv
+                   @tref0.upEnv @tref1.upEnv
                    $ case (@joinType,@onExpr.originalTree) of
                       -- natural join
                       (x,Nothing) | x /= Cross -> Nothing
@@ -61,40 +58,76 @@ sem TableRef
       loc.eEnv = maybe (Left []) id
                  $ fmap envSelectListEnvironment @sel.upType
   | TableRefParens
-      loc.eEnv = Right $ @tbl.upEnv
+      loc.eEnv = Right $ @tref.upEnv
   | FullAlias
       loc.eEnv = Right $ createTrefAliasedEnvironment
-                         (ncStr @tb) (Just $ map ncStr @cols) @tbl.upEnv
+                         (ncStr @tb) (Just $ map ncStr @cols) @tref.upEnv
   | TableAlias
       loc.eEnv = Right $ createTrefAliasedEnvironment
-                         (ncStr @tb) Nothing @tbl.upEnv
+                         (ncStr @tb) Nothing @tref.upEnv
   | FunTref
       loc.eEnv = Left []
 
-
---attr TableRef
---  syn aliasedAnnotatedTree :: TableRef
-
--- todo: use this to implement adding aliases
-
 sem TableRef
-  | Tref FunTref JoinTref TableRefParens
+  | Tref FunTref JoinTref TableRefParens SubTref
       lhs.annotatedTree =
           let mk (q,is) = FullAlias emptyAnnotation
                                    (Nmc q)
                                    (map Nmc is)
-                                   @annotatedTree
+                                   $ wrapIfJoin @annotatedTree
+              wrapIfJoin tr = case tr of
+                                 JoinTref {} -> TableRefParens emptyAnnotation tr
+                                 _ -> tr
           in maybe @annotatedTree mk @loc.newAlias
+{-
+fixing up isn't working
 
---  | SubTref
+new approach:
 
---  | TableAlias FullAlias
---      lhs.annotatedTree = @annotatedTree
+use inh attrs to signal whether there is a alias already, and what
+kind it is then have to do something extra to deal when there is a
+table alias only
+this will remove the need for the fixups above using mk
+will still be quite complicated
 
--- createTrefAliasedEnvironment :: String -> Maybe [String] -> Environment -> Environment
+
+-}
+
+
+  | FullAlias
+      -- full alias with another alias underneath, get rid of
+      -- the superfluous one. This mostly avoids adding a second
+      -- alias to a subtref. Quite hacky.
+      lhs.annotatedTree =
+          case @tref.annotatedTree of
+            -- hack: when an alias is auto added to a subtref,
+            -- end up with an invalid fullalias with the
+            -- qualifier being ""
+            -- a subtref is required to have an alias
+            -- when this is just a table alias
+            -- then have to take the table name out of this
+            -- to add to the full alias
+            -- haven't checked what happens if there is already a full
+            -- alias
+            FullAlias _ t _ tr -> FullAlias emptyAnnotation
+                                    (if @tb == Nmc "" then t else @tb) @cols {-$ @loc.wrapIfJoin-} tr
+            TableAlias _ _ tr -> FullAlias emptyAnnotation @tb @cols {-$ @loc.wrapIfJoin -} tr
+            -- also check: if alias of join, then need to add parens
+            -- otherwise will produce invalid syntax
+            --tr@(JoinTref {}) -> FullAlias emptyAnnotation @tb @cols tr
+                                -- $ @loc.wrapIfJoin tr
+            _ -> @annotatedTree
+
+  | TableAlias
+      lhs.annotatedTree =
+          case @tref.annotatedTree of
+            FullAlias _ _ c tr -> FullAlias emptyAnnotation @tb c tr -- $ @loc.wrapIfJoin tr
+            TableAlias _ _ tr -> TableAlias emptyAnnotation @tb tr -- $ @loc.wrapIfJoin tr
+            --tr@(JoinTref {}) -> TableAlias emptyAnnotation @tb $ @loc.wrapIfJoin tr
+            _ -> @annotatedTree
 
 sem TableRef
-  | JoinTref FunTref TableRefParens
+  | JoinTref FunTref TableRefParens SubTref
       -- try to add a full table alias if possible
       -- not possible for some joins
       loc.newAlias =
@@ -105,7 +138,9 @@ sem TableRef
           let qs = map (fst . fst) cs
           if all (== head qs) qs
             then return (head qs, map (snd.fst) cs)
-            else Nothing
+            else trace ("not all same:" ++ show qs
+                       ++ "\n" ++ groom @originalTree
+                       ++ "\n" ++ groom env) Nothing
         else Nothing
   | Tref
       -- special case for tref, the expand star will give the
@@ -118,60 +153,3 @@ sem TableRef
                         (nameComponents @tbl.originalTree)
           return (n, (map fst cs))
         else Nothing
-  | FullAlias TableAlias
-
-{-attr TableAlias
-  inh newAlias :: {Maybe (String,[String])}
-
-sem TableAlias
-  | NoAlias TableAlias FullAlias
-      lhs.annotatedTree =
-        case @lhs.newAlias of
-          Nothing -> @annotatedTree
-          Just (t,cs) -> underAlias @annotatedTree t cs
-
-{
-underAlias :: TableAlias -> String -> [String] -> TableAlias
-underAlias (NoAlias a) t cs = FullAlias a (Nmc t) (map Nmc cs)
-underAlias (TableAlias a t) _ cs = FullAlias a t (map Nmc cs)
-underAlias a@(FullAlias {}) _ _  = a
-}
-
--- actual environment creation - this is the interesting bit in this file
-
-sem TableRef
-  | Tref
-      -- if the referenced table doesn't exist, want to attach the error
-      -- only to the name node. So this code should be fixed to get a Maybe [NameComponent]
-      -- attribute from the @tbl or something
-      loc.eEnv = envCreateTrefEnvironment @lhs.cat (nameComponents @tbl.originalTree)
-      tbl.tpe = Left []
-
-  | JoinTref
-      loc.eEnv = createJoinTrefEnvironment @lhs.cat
-                   @tbl0.upEnv @tbl1.upEnv
-                   $ case (@joinType,@onExpr.originalTree) of
-                      -- natural join
-                      (x,Nothing) | x /= Cross -> Nothing
-                      -- using join
-                      (_,Just (JoinUsing _ nms)) -> Just nms
-                      -- cross join
-                      _ -> Just []
-      -- this triggers uuagcs cycle detection, not sure why
-      onExpr.downEnv = either (const brokeEnvironment) id @loc.eEnv
-  | SubTref
-      loc.eEnv = maybe (Left []) id
-                 $ fmap envSelectListEnvironment @sel.upType
-
-
--- temp until code written
-sem TableRef
-  | FunTref
-      loc.eEnv = Left []
-
-sem TableAlias
-    | NoAlias TableAlias FullAlias
-        ann.tpe = Left []
--}
-
-

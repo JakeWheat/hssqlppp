@@ -8,7 +8,7 @@
 > module Database.HsSqlPpp.Pretty
 >     (--convert a sql ast to text
 >      printStatements
->     ,printStatementsAnn
+>     --,printStatementsAnn
 >     ,printQueryExpr
 >      --convert a single expression parse node to text
 >     ,printScalarExpr
@@ -56,6 +56,9 @@ adjusted to reject postgres only syntax when in sql server dialect
 > -- | Convert the ast back to valid source, and convert any annotations to
 > -- text using the function provided and interpolate the output of
 > -- this function (inside comments) with the SQL source.
+
+this needs some work
+
 > printStatementsAnn :: PrettyPrintFlags -> (Annotation -> String) -> StatementList -> String
 > printStatementsAnn flg f ast =
 >   render $ vcat (map (statement flg True f) ast) <> text "\n"
@@ -508,7 +511,7 @@ Statement components
 >                                     order lim off) =
 >   (text (if writeSelect then "select" else "")
 >          <+> (case dis of
->                  Dupes -> empty
+>                  All -> empty
 >                  Distinct -> text "distinct"))
 >   $+$ nest 2 (vcat $ catMaybes
 >   [fmap (\(str,is) -> text "into"
@@ -574,11 +577,11 @@ Statement components
 >       error $ "internal error: node not supported in function tref: "
 >             ++ show x
 > tref flg (TableRefParens _ t) = parens (tref flg t)
-> tref flg (TableAlias _ t tr) = tref flg tr <+> text "as" <+> nmc t
+> tref flg (TableAlias _ t tr) = maybeParen flg tr <+> text "as" <+> nmc t
 > -- hack this out for now. When the type checking is fixed, can try
 > -- to eliminate unneeded aliases?
 > tref flg (FullAlias _ t s tr) =
->   tref flg tr <+> text "as"
+>   maybeParen flg tr <+> text "as"
 >   <+> nmc t <> (if unsafeReadable flg
 >                 then empty
 >                 else parens (sepCsvMap nmc s))
@@ -601,6 +604,14 @@ Statement components
 >     joinScalarExpr (JoinOn _ e) = text "on" <+> scalExpr flg e
 >     joinScalarExpr (JoinUsing _ ids) =
 >         text "using" <+> parens (sepCsvMap nmc ids)
+
+todo: don't want to do this here since it changes pretty . parse = id
+so if you don't add the parens explicitly you get incorrect/ invalid
+syntax maybe should error instead of silently breaking
+
+> maybeParen :: PrettyPrintFlags -> TableRef -> Doc
+> --maybeParen flg t@(JoinTref {}) = parens $ tref flg t
+> maybeParen flg t = tref flg t
 
 > direction :: Direction -> Doc
 > direction d = text $ case d of
@@ -792,7 +803,7 @@ Statement components
 >
 > scalExpr flg (AggregateApp _ d (App _ fn es) o) =
 >   name fn <> parens ((case d of
->                         Dupes -> text "all"
+>                         All -> text "all"
 >                         Distinct -> text "distinct")
 >                      <+> csvExp flg es
 >                      <+> orderBy flg o)

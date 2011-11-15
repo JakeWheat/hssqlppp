@@ -5,10 +5,10 @@
 >     (-- * ast utils
 >      resetAnnotations
 >     ,queryType
->      -- * typechecked ast utils
->     ,addExplicitCasts
 >     ,canonicalizeTypeName
 >     ,canonicalizeTypeNames
+>      -- * typechecked ast utils
+>     ,addExplicitCasts
 >     ,tcTreeInfo
 >     ,emacsShowErrors
 >      -- * lexing utils
@@ -42,8 +42,9 @@
 
 > -- | Gets some information useful for checking a typechecked tree
 > -- returns the type of the top level node, a list of type errors from
-> -- the tree, a list of queryexpr nodes which don't have a type set, and a
-> -- list of scalarexpr nodes which don't have a type set.
+> -- the tree, a list of the queryexpr nodes, and a list of the scalar
+> -- exprs respectively, which have their type as nothing which indicates
+> -- that the typechecking didn't complete successfully
 > tcTreeInfo :: Data a =>
 >               a
 >            -> (Maybe Type,[([TypeError],Maybe SourcePosition)]

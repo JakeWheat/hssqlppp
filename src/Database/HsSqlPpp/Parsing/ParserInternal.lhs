@@ -253,7 +253,8 @@ maybe it should still do this since it would probably be a lot clearer
 >                  ) AssocLeft
 >         selQuerySpec = do
 >           p <- pos <* keyword "select"
->           d <- option Dupes (Distinct <$ keyword "distinct")
+>           -- todo: support explicit all
+>           d <- option All (Distinct <$ keyword "distinct")
 >           -- hacky parsing of sql server 'top n' style select
 >           -- quiz: what happens when you use top n and limit at the same time?
 >           tp <- choice
@@ -1525,12 +1526,12 @@ checking with aggregates at the moment so should fix it all together.
 >                               ,(,,)
 >                                <$> optionMaybe
 >                                     (choice [Distinct <$ keyword "distinct"
->                                             ,Dupes <$ keyword "all"])
+>                                             ,All <$ keyword "all"])
 >                                <*> commaSep expr
 >                                <*> orderBy]
 >        return $ case (di,ob) of
 >          (Nothing,[]) -> App p fnName as
->          (d,o) -> AggregateApp p (fromMaybe Dupes d) (App p fnName as) o
+>          (d,o) -> AggregateApp p (fromMaybe All d) (App p fnName as) o
 
 these won't parse as normal functions because they use keywords so do
 a special case for them

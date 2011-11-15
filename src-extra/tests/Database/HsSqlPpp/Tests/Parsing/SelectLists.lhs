@@ -73,7 +73,7 @@ aggregates, group by, having
 >               sl [si $ AggregateApp ea Distinct (app "count" [ei "b"]) []]}
 >    ,q "select count(all b) from tbl;"
 >       $ stbl {selSelectList =
->               sl [si $ AggregateApp ea Dupes (app "count" [ei "b"]) []]}
+>               sl [si $ AggregateApp ea All (app "count" [ei "b"]) []]}
 >    ,q "select string_agg(distinct relname,',' order by relname1) from tbl;"
 >       $ stbl {selSelectList =
 >               sl [si $ AggregateApp ea Distinct

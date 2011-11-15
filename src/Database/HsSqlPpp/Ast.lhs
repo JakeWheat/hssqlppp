@@ -6,96 +6,97 @@
 >      the seemingly pointless type synonyms below, they are an
 >      artefact of using UUAGC. You can see labels for the fields by
 >      looking at the ag source here:
->      <http://jakewheat.github.com/hssqlppp/source/src/Database/HsSqlPpp/Internals/AstInternal.ag.html>
+>      <https://github.com/JakeWheat/hssqlppp/blob/master/src/Database/HsSqlPpp/Internals/AstInternal.ag>
 >      -}
 >
 > module Database.HsSqlPpp.Ast
 >     (
->      -- * Main nodes
->      StatementList
->     ,Statement (..)
->     ,ScalarExpr (..)
->     ,QueryExpr (..)
->     ,makeSelect
->      -- * Components
->      -- ** Selects
->     ,SelectList (..)
->     ,SelectItem (..)
->     ,TableRef (..)
->     ,JoinExpr (..)
->     ,JoinType (..)
->     ,Natural (..)
->     ,CombineType (..)
->     ,Direction (..)
->     ,Distinct (..)
->     ,InList (..)
->     ,LiftFlavour (..)
->     ,FrameClause(..)
->     ,WithQueryList
->     ,WithQuery(..)
+>      -- * Name and TypeName
+>      Name(..)
+>     ,NameComponent(..)
+>     ,nameComponents
+>     ,ncStr
+>     ,TypeName(..)
+>      -- * Scalar expressions
+>     ,ScalarExpr(..)
+>     ,InList(..)
+>     ,LiftFlavour(..)
+>     ,Direction(..)
+>     ,Distinct(..)
+>     ,CombineType(..)
 >     ,IntervalField(..)
 >     ,ExtractField(..)
->     ,Name(..)
->     ,nameComponents
->     ,NameComponent(..)
->     ,ncStr
->      -- ** dml
->     ,CopySource (..)
->     ,RestartIdentity (..)
+>     ,FrameClause(..)
+>      -- * Query expressions
+>     ,QueryExpr(..)
+>     ,makeSelect
+>     ,WithQuery(..)
+>     ,SelectList(..)
+>     ,SelectItem(..)
+>     ,TableRef(..)
+>     ,JoinExpr(..)
+>     ,JoinType(..)
+>     ,OnExpr
+>     ,Natural(..)
+>      -- * Statements
+>     ,Statement(..)
+>      -- ** dml components
+>     ,CopySource(..)
 >     ,SetClause(..)
->      -- ** ddl
->     ,AttributeDef (..)
->     ,RowConstraint (..)
->     ,Constraint (..)
+>      -- ** ddl components
+>     ,AttributeDef(..)
+>     ,RowConstraint(..)
+>     ,Constraint(..)
+>     ,TypeAttributeDef(..)
 >     ,AlterTableAction(..)
->     ,TypeAttributeDef (..)
->     ,TypeName (..)
->     ,DropType (..)
->     ,IfExists (..)
->     ,Replace(..)
->     ,Cascade (..)
 >     ,TriggerWhen(..)
 >     ,TriggerEvent(..)
 >     ,TriggerFire(..)
->      -- ** functions
->     ,FnBody (..)
->     ,ParamDef (..)
->     ,VarDef (..)
->     ,RaiseType (..)
->     ,Volatility (..)
->     ,Language (..)
->      -- ** misc
+>     ,DropType(..)
+>     ,Cascade(..)
+>     ,IfExists(..)
+>     ,RestartIdentity(..)
+>      -- *** function ddl components
+>     ,Replace(..)
+>     ,Volatility(..)
+>     ,Language(..)
+>     ,FnBody(..)
+>      -- ** PlPgsql components
+>     ,ParamDef(..)
+>     ,VarDef(..)
+>     ,RaiseType(..)
+>      -- * utility
 >     ,SetValue(..)
->     -- ,Name(..)
->      -- ** typedefs
->     ,ScalarExprListStatementListPairList
->     ,ScalarExprListStatementListPair
->     ,ScalarExprList
+>      -- * misc
+>     ,WithQueryList
 >     ,MaybeSelectList
->     --,StringList
->     ,ParamDefList
+>     ,TableRefList
+>     ,MaybeScalarExpr
+>     ,ScalarExprList
+>     ,ScalarExprListList
+>     ,SetClauseList
 >     ,AttributeDefList
 >     ,ConstraintList
 >     ,TypeAttributeDefList
+>     ,ParamDefList
 >     ,TypeNameList
 >     ,NameTypeNameListPair
 >     ,NameTypeNameListPairList
->     ,ScalarExprStatementListPairList
->     ,CaseScalarExprListScalarExprPairList
->     ,MaybeScalarExpr
->     ,MaybeBoolExpr
->     ,TableRefList
->     ,ScalarExprListList
->     ,SelectItemList
->     ,OnExpr
->     ,RowConstraintList
->     ,VarDefList
+>     ,ScalarExprListStatementListPair
+>     ,ScalarExprListStatementListPairList
 >     ,ScalarExprStatementListPair
+>     ,ScalarExprStatementListPairList
+>     ,VarDefList
+>     ,SelectItemList
+>     ,RowConstraintList
 >     ,CaseScalarExprListScalarExprPair
+>     ,CaseScalarExprListScalarExprPairList
+>     ,StatementList
 >     ,ScalarExprDirectionPair
 >     ,ScalarExprDirectionPairList
 >     ,AlterTableActionList
->     ,SetClauseList
+>     ,MaybeNameComponentList
+>     ,NameComponentList
 >     ) where
 >
 > import Database.HsSqlPpp.Internals.AstInternal

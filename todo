@@ -5,26 +5,45 @@ param query type fn
 see if can fix error messages from lex/parse in qq: come out all with
    the string passed through show so can't read the error message
 
+go through old typecheck tests and reinsert most of them?
+-> want to get much better coverage of typechecking
+
+better approach to parsing selects - the into stuff is a mess
+
+alter the postprocess for astinternal.hs: want to add haddock line for
+   the data type and each ctor for all the data defs in the file, but
+   not recordize them
+
+maybe this is a crazy idea: what about taking all the tree rewriting
+   out of the type checking and making it a separate pass, then it can
+   be written in uniplate style instead of messing around with the
+   tree at the same time as worrying about the attributes and also
+   having to deal with context in a more awkward way. works well for
+   the implicit casts.
+select item aliases: easy
+star expand: should be easy, all the info is in the type annotation
+full tableref aliases: the motivation for the change, should be much
+   easier after? - using the type annotation, or maybe not?
+qualifiers: much harder, but can store the information in the
+   annotation?
+maybe just try for tableref aliases at this time.
+
+
+== small fixes
+
 get ghc 6.12.x working again: think it is just adding the
    control.monad.error stuff back it
 
 rename SqlServerDialect and associated things to TSQLDialect?
 
-rearrange the exports in ast to match order in the astinternal.ag
-  so they come out with a sensible arrangement in the haddock
-
-review and rename the examples#
-
-go through old typecheck tests and reinsert most of them?
--> want to get much better coverage of typechecking
-
-better approach to parsing selects  ?what does this mean?
-
-tref, structure, parens, separate alias
+review and rename the examples
 
 fix unsafereadable in pretty: always do improved whitespace layout
   and add separate function to remove redundant aliases from a
   typechecked ast
+
+review docs, esp. haddock which contains all sorts of shockingly bad
+   typos, spellings, inconsistencies, etc.
 
 tpch tests:
 add tests which parse, add all the extras, then reparse,pretty,parse,
@@ -34,22 +53,17 @@ junk tests to get working: extensions, roundtrip?
 
 want to try to get the syntax and parsing more stable, so do the
    following for next relese:
-add parens to table refs(?) and queryexprs, probably need to rewrite
-   tableref type for this. also get the parser working for stuff like
-  select * from (a join b) as c;
-  -> separate alias, parens ctors, plus the existing ctors without
-   aliases
+add parens to queryexprs
+remove the ! on operator names
+change the special op name to be an enum
+change parsing of typed string literal since this is just a cast, get
+   rid of seperate ctor
+review unionall and others
 
 do the split:
 sqlstatement
 plpgsqlstatement
 
-remove the ! on operator names
-change the special op name to be an enum
-change parsing of typed string literal since this is just a cast, get
-   rid of seperate ctor
-rename Dupes
-review unionall and others
 
 
 

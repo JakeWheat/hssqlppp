@@ -5,20 +5,13 @@ optpragmas {
 
 {-
 
-This file contains the ast nodes, and the api functions to pass an ast
-and get back type information.
-
-It uses the Utrecht University Attribute Grammar system:
+This file contains the ast nodes definitions. It uses uuagc.
 
 * http://www.cs.uu.nl/wiki/bin/view/HUT/AttributeGrammarSystem
 * http://www.haskell.org/haskellwiki/The_Monad.Reader/Issue4/Why_Attribute_Grammars_Matter
 
-The attr and sem definitions are in TypeChecking.ag, which is included
-into this file.
-
-These ast nodes are both used as the result of successful parsing, and
-as the input to the type checker (and the output from the type
-checker), and the pretty printer.
+The attr and sem definitions are in TypeChecking.ag and the other .ag
+files, which are included into this file.
 
 see here for how to compile:
 
@@ -141,7 +134,7 @@ import Control.Arrow
 import Data.Generics
 import Data.Generics.Uniplate.Data
 import Debug.Trace
---import Text.Groom
+import Text.Groom
 
 
 import Database.HsSqlPpp.Internals.TypesInternal
@@ -357,7 +350,8 @@ data Name | Name ann::Annotation is::{[NameComponent]}
 {
 nameComponents :: Name -> [NameComponent]
 nameComponents (Name _ is) = is
--- todo: don't use errornameComponents (AntiName _) = error "tried to get namecomponents of antiname"
+-- todo: don't use error
+nameComponents (AntiName _) = error "tried to get namecomponents of antiname"
 }
 
 data TypeName | SimpleTypeName ann::Annotation tn::Name
@@ -383,7 +377,7 @@ data Direction = Asc | Desc
                  deriving (Show,Eq,Typeable,Data)
 
 -- todo: rename Dupes to all?
-data Distinct = Distinct | Dupes
+data Distinct = Distinct | All
                 deriving (Show,Eq,Typeable,Data)
 
 -- maybe should improve this, since you can have at least union
@@ -487,7 +481,7 @@ data SelectItem | SelExp ann::Annotation ex::ScalarExpr
 {-
 
 == Tablerefs
-todo: rename tblx -> trefx
+
 -}
 
 data TableRef | Tref ann::Annotation
@@ -497,27 +491,27 @@ data TableRef | Tref ann::Annotation
               | SubTref ann::Annotation
                         sel :: QueryExpr
               | JoinTref ann::Annotation
-                         tbl0 :: TableRef
+                         tref0 :: TableRef
                          nat :: Natural
                          joinType :: JoinType
-                         tbl1 :: TableRef
+                         tref1 :: TableRef
                          onExpr :: OnExpr
-              | TableAlias ann::Annotation tb::NameComponent tbl::TableRef
+              | TableAlias ann::Annotation tb::NameComponent tref::TableRef
               | FullAlias ann::Annotation
                           tb::NameComponent
                           cols::{[NameComponent]}
-                          tbl::TableRef
-              | TableRefParens ann::Annotation tbl::TableRef
+                          tref::TableRef
+              | TableRefParens ann::Annotation tref::TableRef
 
 data JoinExpr | JoinOn ann::Annotation expr::ScalarExpr
               | JoinUsing ann::Annotation x::{[NameComponent]}
+
 
 {
 data JoinType = Inner | LeftOuter| RightOuter | FullOuter | Cross
                 deriving (Show,Eq,Typeable,Data)
 data Natural = Natural | Unnatural
                deriving (Show,Eq,Typeable,Data)
-
 }
 
 {-
@@ -527,15 +521,26 @@ data Natural = Natural | Unnatural
 -}
 
 
--- TODO: change the def and docs to use record notation to init
--- makeSelect, maybe rename makeSelect to something better?
+-- TODO: maybe rename makeSelect to something better?
 
 {
 -- | 'default' valued select, use for creating select values
 --
--- > makeSelect = Select emptyAnnotation Dupes
--- >                     (SelectList emptyAnnotation []) []
--- >                     Nothing [] Nothing [] Nothing Nothing
+-- > makeSelect :: QueryExpr
+-- > makeSelect = Select
+-- >              {ann = emptyAnnotation
+-- >              ,selDistinct = All
+-- >              ,selSelectList = (SelectList emptyAnnotation [])
+-- >              ,selTref = []
+-- >              ,selWhere = Nothing
+-- >              ,selGroupBy = []
+-- >              ,selHaving = Nothing
+-- >              ,selOrderBy = []
+-- >              ,selLimit = Nothing
+-- >              ,selOffset = Nothing}
+--
+-- On its own, it isn't valid syntax: to use it you have to replace
+-- the select list at minimum
 --
 -- use something like this
 --
@@ -543,14 +548,22 @@ data Natural = Natural | Unnatural
 -- >         sl = SelectList a
 -- >         se = SelExp a
 -- >         i = Identifier a
--- >         tref t = Tref a (Name a [Nmc t]) (NoAlias a)
+-- >         tref t = Tref a (Name a [Nmc t])
 -- >     in makeSelect {selSelectList = sl [se $ i "a"]
 -- >                   ,selTref = [tref "t"]}
 
 makeSelect :: QueryExpr
-makeSelect = Select emptyAnnotation Dupes
-                    (SelectList emptyAnnotation []) []
-                    Nothing [] Nothing [] Nothing Nothing
+makeSelect = Select
+             {ann = emptyAnnotation
+             ,selDistinct = All
+             ,selSelectList = (SelectList emptyAnnotation [])
+             ,selTref = []
+             ,selWhere = Nothing
+             ,selGroupBy = []
+             ,selHaving = Nothing
+             ,selOrderBy = []
+             ,selLimit = Nothing
+             ,selOffset = Nothing}
 }
 
 {-
