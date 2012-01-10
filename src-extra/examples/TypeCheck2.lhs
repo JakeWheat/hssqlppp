@@ -11,6 +11,7 @@
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Utility
+> import Text.Groom
 
 > main :: IO ()
 > main = do

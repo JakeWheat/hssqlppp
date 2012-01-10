@@ -17,6 +17,7 @@
 > import Database.HsSqlPpp.Tests.TypeChecking.TrefIdentifiers
 > import Database.HsSqlPpp.Tests.TypeChecking.CaseExpressions
 > import Database.HsSqlPpp.Tests.TypeChecking.ImplicitCasts
+> import Database.HsSqlPpp.Tests.TypeChecking.TSQL
 
 > typeCheckTestData :: Item
 > typeCheckTestData =
@@ -29,6 +30,7 @@
 >     ,caseExpressions
 >     ,tpch
 >     ,impCasts
+>     ,tsqlQueryExprs
 >     ]
 
 > typeCheckTests :: Test.Framework.Test

@@ -6,6 +6,12 @@ manual chapter 10:
 
 http://www.postgresql.org/docs/8.4/interactive/typeconv.html
 
+sql server todo: want to match sql server implicit cast rules better
+when doing tsql type checking. Follows a completely different approach, possible info here:
+http://msdn.microsoft.com/en-us/library/ms187928.aspx
+http://msdn.microsoft.com/en-us/library/ms190309.aspx
+linked from here:
+http://blogs.msdn.com/b/craigfr/archive/2010/01/20/more-on-implicit-conversions.aspx
 
 > {-# LANGUAGE PatternGuards #-}
 > module Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
@@ -25,6 +31,7 @@ http://www.postgresql.org/docs/8.4/interactive/typeconv.html
 > --import Database.HsSqlPpp.Internals.TediousTypeUtils
 
 > import Database.HsSqlPpp.Internals.TypeChecking.OldTypeConversion
+> import Database.HsSqlPpp.SqlDialect
 
 ------------------------------------------------------------------
 
@@ -33,11 +40,22 @@ matching operator/function
 
 This needs a lot more tests
 
-> matchApp :: Catalog
+> matchApp :: SQLSyntaxDialect
+>          -> Catalog
 >          -> [NameComponent]
 >          -> [Type]
 >          -> Either [TypeError] ([Type],Type)
-> matchApp cat nmcs pts = do
+> -- hack in support for sql server datediff function
+> -- need to think of a better way to handle this when
+> -- have a better idea of all the weird syntax used in
+> -- tsql
+> matchApp SQLServerDialect _cat [Nmc dd] [_,ScalarType "date",ScalarType "date"] | map toLower dd == "datediff" =
+>   -- check there are 3 args
+>   -- first is identifier from list
+>   -- other two are date types
+>   Right ([typeInt,typeDate,typeDate], typeInt)
+
+> matchApp _d cat nmcs pts = do
 >   (_,ps,r,_) <- findCallMatch cat nm pts
 >   return (ps,r)
 >   where

@@ -16,7 +16,6 @@ groomTypes: show anns as Type|TypeErrors
 
 > --groomAAnns = undefined
 
-
 > groomNoAnns :: Show a => a -> String
 > groomNoAnns = groomF $ const $ Con $ UnQual $ Ident "A"
 
@@ -37,8 +36,8 @@ groomTypes: show anns as Type|TypeErrors
 > groomTypes = groomF $ \x -> case x of
 >   RecConstr (UnQual (Ident "Annotation"))
 >    [FieldUpdate _ _,
->     FieldUpdate (UnQual (Ident "atype")) t,
->     FieldUpdate (UnQual (Ident "errs")) (List errs),
+>     FieldUpdate (UnQual (Ident "anType")) t,
+>     FieldUpdate (UnQual (Ident "anErrs")) (List errs),
 >     FieldUpdate _ _,
 >     FieldUpdate _ _] -> case (t,errs) of
 >                              (Con (UnQual (Ident "Nothing")),[]) ->

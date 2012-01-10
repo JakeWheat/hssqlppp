@@ -1,58 +1,15 @@
 = next release, 0.5.0
 
-complete type checking for crud
-param query type fn
-see if can fix error messages from lex/parse in qq: come out all with
-   the string passed through show so can't read the error message
+== syntax
 
-go through old typecheck tests and reinsert most of them?
--> want to get much better coverage of typechecking
-
-better approach to parsing selects - the into stuff is a mess
-
-alter the postprocess for astinternal.hs: want to add haddock line for
-   the data type and each ctor for all the data defs in the file, but
-   not recordize them
-
-maybe this is a crazy idea: what about taking all the tree rewriting
-   out of the type checking and making it a separate pass, then it can
-   be written in uniplate style instead of messing around with the
-   tree at the same time as worrying about the attributes and also
-   having to deal with context in a more awkward way. works well for
-   the implicit casts.
-select item aliases: easy
-star expand: should be easy, all the info is in the type annotation
-full tableref aliases: the motivation for the change, should be much
-   easier after? - using the type annotation, or maybe not?
-qualifiers: much harder, but can store the information in the
-   annotation?
-maybe just try for tableref aliases at this time.
-
-
-== small fixes
-
-get ghc 6.12.x working again: think it is just adding the
-   control.monad.error stuff back it
-
+get the new tref adding stuff working
+rename SubTref to QueryTref or something
+rename ScalarSubQuery to something better
+review other names in syntax
 rename SqlServerDialect and associated things to TSQLDialect?
+tpch tests: add tests which parse, add all the extras, then
+   reparse,pretty,parse, and typecheck again
 
-review and rename the examples
-
-fix unsafereadable in pretty: always do improved whitespace layout
-  and add separate function to remove redundant aliases from a
-  typechecked ast
-
-review docs, esp. haddock which contains all sorts of shockingly bad
-   typos, spellings, inconsistencies, etc.
-
-tpch tests:
-add tests which parse, add all the extras, then reparse,pretty,parse,
-   and typecheck again
-
-junk tests to get working: extensions, roundtrip?
-
-want to try to get the syntax and parsing more stable, so do the
-   following for next relese:
 add parens to queryexprs
 remove the ! on operator names
 change the special op name to be an enum
@@ -60,24 +17,21 @@ change parsing of typed string literal since this is just a cast, get
    rid of seperate ctor
 review unionall and others
 
-do the split:
-sqlstatement
-plpgsqlstatement
+fix unsafereadable in pretty: always do improved whitespace layout
+  and add separate function to remove redundant aliases from a
+  typechecked ast - no more flag for unsafe readable
 
-
-
-
-
-want to be ready to do comprehensive review of pg syntax for 0.6.0
-
-
-
-think of a better names for *plpgsql* since will also support tsql and
+think of a better names for plpgsql* since will also support tsql and
    maybe others going forward (not so much of a distintion between sql
-   and tsql in sql server though)
+   and tsql in sql server though?)
 
-add parens to queryexpr and tablerefs?
+better way to do accessor and setter for annotations (use typeclass?)
 
+
+== typechecking
+
+complete type checking for crud
+param query type fn
 rough todo/checklist for exprs:
 combinequeryexpr
 values
@@ -90,9 +44,38 @@ aggregates, windows
  + add checks for aggregates/group by
 liftapp
 inlist, inqueryexpr?
+go through old typecheck tests and reinsert most of them?
+-> want to get much better coverage of typechecking
+
+== small fixes
+
+see if can fix error messages from lex/parse in qq: come out all with
+   the string passed through show so can't read the error message
+
+
+better approach to parsing selects - the into stuff is a mess
+
+alter the postprocess for astinternal.hs: want to add haddock line for
+   the data type and each ctor for all the data defs in the file, but
+   not recordize them
+
+get ghc 6.12.x working again: think it is just adding the
+   control.monad.error stuff back it
 
 review examples: add new examples, clean up code, and example page on
    website. Add simple parsing and typechecking example to index page
+rename examples
+
+review docs, esp. haddock which contains all sorts of shockingly bad
+   typos, spellings, inconsistencies, etc.
+
+junk tests to get working: extensions, roundtrip?
+
+want to be ready to do comprehensive review of pg syntax support for
+   0.6.0, so can work through and get a reasonably comprehensive list
+   of what is missing
+
+
 
 
 = 'arcs'

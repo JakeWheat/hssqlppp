@@ -26,6 +26,7 @@
 > data Item = Group String [Item]
 >           | ScalExpr String (Either [TypeError] Type)
 >           | QueryExpr [CatalogUpdate] String (Either [TypeError] Type)
+>           | TSQLQueryExpr [CatalogUpdate] String (Either [TypeError] Type)
 >           | RewriteQueryExpr TypeCheckingFlags [CatalogUpdate] String String
 >           | ImpCastsScalar String String
 
@@ -68,13 +69,18 @@
 >       else id) $ assertEqual "" (resetAnnotations aast') (resetAnnotations wast)
 
 
-> testQueryExprType :: [CatalogUpdate] -> String -> Either [TypeError] Type -> Test.Framework.Test
-> testQueryExprType cus src et = testCase ("typecheck " ++ src) $ do
+> testQueryExprType :: Bool -> [CatalogUpdate] -> String -> Either [TypeError] Type -> Test.Framework.Test
+> testQueryExprType pg cus src et = testCase ("typecheck " ++ src) $ do
 >   let ast = case parseQueryExpr defaultParseFlags "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
->       Right cat = updateCatalog cus defaultTemplate1Catalog
->       aast = typeCheckQueryExpr defaultTypeCheckingFlags cat ast
+>       Right cat = updateCatalog cus $ if pg
+>                                       then defaultTemplate1Catalog
+>                                       else defaultTSQLCatalog
+>       flg = if pg
+>             then defaultTypeCheckingFlags
+>             else defaultTypeCheckingFlags {tcfDialect = SQLServerDialect}
+>       aast = typeCheckQueryExpr flg cat ast
 >       (ty,errs,noTypeQEs,noTypeSEs) = tcTreeInfo aast
 >       er = concatMap fst errs
 >       got :: Either [TypeError] Type
@@ -158,7 +164,7 @@ type checks properly and produces the same type
 >                   ++ "\n***************** got\n")
 >       else id) $ assertEqual "" ast' astrw
 >   -- check second rewrite is idempotent
->   let astrw2 = resetAnnotations $ typeCheckQueryExpr f cat astrw
+>   {-let astrw2 = resetAnnotations $ typeCheckQueryExpr f cat astrw
 >   (if astrw /= astrw2
 >       then trace ("\nSECOND REWRITE\n***************** expected\n" ++
 >                   printQueryExpr defaultPPFlags astrw
@@ -166,12 +172,13 @@ type checks properly and produces the same type
 >                   ++ "\n\n" ++ groomTypes astrw
 >                   ++ "\n\n" ++ groomTypes astrw2
 >                   ++ "\n***************** got\n")
->       else id) $ assertEqual "second rewrite" astrw astrw2
+>       else id) $ assertEqual "second rewrite" astrw astrw2-}
 
 
 > itemToTft :: Item -> Test.Framework.Test
 > itemToTft (ScalExpr s r) = testScalarExprType s r
-> itemToTft (QueryExpr cus s r) = testQueryExprType cus s r
+> itemToTft (QueryExpr cus s r) = testQueryExprType True cus s r
+> itemToTft (TSQLQueryExpr cus s r) = testQueryExprType False cus s r
 > itemToTft (RewriteQueryExpr f cus s s') = testRewrite f cus s s'
 > itemToTft (ImpCastsScalar s s') = testImpCastsScalar s s'
 > itemToTft (Group s is) = testGroup s $ map itemToTft is

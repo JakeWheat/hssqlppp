@@ -35,6 +35,7 @@ Forward the public part of CatalogInternal.
 >     ,emptyCatalog
 >     ,defaultCatalog
 >     ,defaultTemplate1Catalog
+>     ,defaultTSQLCatalog
 >      -- * Catalog comparison
 >     --,CatalogDiff(..)
 >     --,compareCatalogs
@@ -46,3 +47,4 @@ Forward the public part of CatalogInternal.
 >
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 > import Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
+> import Database.HsSqlPpp.Internals.Catalog.DefaultTSQLCatalog

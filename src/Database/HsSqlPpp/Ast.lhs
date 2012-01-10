@@ -97,6 +97,7 @@
 >     ,AlterTableActionList
 >     ,MaybeNameComponentList
 >     ,NameComponentList
+>     ,MaybeBoolExpr
 >     ) where
 >
 > import Database.HsSqlPpp.Internals.AstInternal

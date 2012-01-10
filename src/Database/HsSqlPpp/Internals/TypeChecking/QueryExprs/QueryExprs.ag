@@ -29,6 +29,9 @@ sem WithQuery
 sem InList
   | InQueryExpr sel.outerDownEnv = Nothing
 
+sem WithQuery
+  | WithQuery ann.tpe = Left []
+
 sem QueryExpr
     | Select
         selSelectList.downEnv = @selTref.upEnv

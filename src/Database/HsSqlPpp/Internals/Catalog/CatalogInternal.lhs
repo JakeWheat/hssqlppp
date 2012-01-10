@@ -314,7 +314,7 @@ functions and not in catalog values themselves.
 > -- it should be removed when ready, since all the code
 > -- should be working with NameComponents directly
 > ncStr :: NameComponent -> String
-> ncStr (Nmc n) = n
+> ncStr (Nmc n) = map toLower n
 > ncStr (QNmc n) = n
 > ncStr (AntiNameComponent _n) =
 >   error $ "tried to get the name component string of an anti name component"

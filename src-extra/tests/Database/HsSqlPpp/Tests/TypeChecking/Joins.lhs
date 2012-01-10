@@ -78,9 +78,15 @@
 >   ,qe "select a1 from (select 1 as a1) a,  (select 2 as a1) b;"
 >         $ Left [AmbiguousIdentifier "a1"]
 
+>   ,qe "select a from t0 inner join t1 on t0.a = t1.c;"
+>       $ Right $ CompositeType [("a", typeInt)]
+>   ,qe "select x.a from (select * from t0) x \n\
+>       \ inner join t1 Y on X.a = Y.C"
+>       $ Right $ CompositeType [("a", typeInt)]
+
 >   ]
 >   where
 >     qe = QueryExpr [CatCreateTable "t0" [("a", "int4")
->                                        ,("b", "text")]
+>                                         ,("b", "text")]
 >                    ,CatCreateTable "t1" [("c", "int4")
 >                                         ,("d", "text")]]

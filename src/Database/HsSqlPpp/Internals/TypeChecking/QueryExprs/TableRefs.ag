@@ -28,12 +28,9 @@ sem TableRefList
 sem TableRef
   | Tref FunTref SubTref JoinTref TableAlias FullAlias TableRefParens
       loc.eEnv :: {Either [TypeError] Environment}
-      -- pass any errors to the annotation
       ann.tpe = either Left (const $ Left []) @loc.eEnv
       -- todo: what to do here?
       lhs.upEnv = either (const brokeEnvironment) id @loc.eEnv
-
--- create the actual environments
 
   | Tref
       -- if the referenced table doesn't exist, want to attach the error
@@ -138,9 +135,9 @@ sem TableRef
           let qs = map (fst . fst) cs
           if all (== head qs) qs
             then return (head qs, map (snd.fst) cs)
-            else trace ("not all same:" ++ show qs
+            else {-trace ("not all same:" ++ show qs
                        ++ "\n" ++ groom @originalTree
-                       ++ "\n" ++ groom env) Nothing
+                       ++ "\n" ++ groom env) -} Nothing
         else Nothing
   | Tref
       -- special case for tref, the expand star will give the

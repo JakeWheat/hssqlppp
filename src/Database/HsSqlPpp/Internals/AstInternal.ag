@@ -143,6 +143,8 @@ import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
 import Database.HsSqlPpp.Internals.TypeChecking.Environment
 import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 import Database.HsSqlPpp.Utils.Utils
+import Database.HsSqlPpp.SqlDialect
+
 }
 
 {-

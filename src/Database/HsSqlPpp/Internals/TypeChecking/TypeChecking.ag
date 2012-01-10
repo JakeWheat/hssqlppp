@@ -12,7 +12,8 @@ data TypeCheckingFlags =
      -- | add explicit aliases to all select items
     ,tcfAddSelectItemAliases :: Bool
      -- | expand stars in select lists to explicit list columns
-    ,tcfExpandStars :: Bool}
+    ,tcfExpandStars :: Bool
+    ,tcfDialect :: SQLSyntaxDialect}
     deriving (Show,Eq)
 
 
@@ -24,7 +25,8 @@ defaultTypeCheckingFlags =
     {tcfAddQualifiers = False
     ,tcfAddFullTablerefAliases = False
     ,tcfAddSelectItemAliases = False
-    ,tcfExpandStars = False}
+    ,tcfExpandStars = False
+    ,tcfDialect = PostgreSQLDialect}
 
 -- | Typechecks the ast, and returns the updated catalog (which
 -- includes changes from any ddl statements in the ast).
@@ -38,7 +40,7 @@ typeCheckStatements f cat sts =
         tl = annotatedTree_Syn_Root ta
         cat1 = cat --producedCat_Syn_Root ta
     in case tl of
-         Root r -> (cat1,r)
+         Root r -> (cat1,addTrefAliases $ fixTree r)
 -- | Typecheck a query expr
 typeCheckQueryExpr :: TypeCheckingFlags -> Catalog -> QueryExpr -> QueryExpr
 typeCheckQueryExpr f cat qe =
@@ -61,7 +63,7 @@ typeCheckParameterizedStatement f cat st =
     where
       tc = let tl = typeCheckStatements f cat [st]
            in case tl of
-                (_,[st1]) -> Right st1
+                (_,[st1]) -> Right $ addTrefAliases st1
                 _ -> error "impossible happened in typeCheckPS!"
 
 
@@ -76,7 +78,7 @@ typeCheckScalarExpr f cat ex =
                                                         ,idenv_Inh_ScalarExprRoot = emptyIDEnv "t
 cse"-}}))
     in case rt of
-         ScalarExprRoot e -> e
+         ScalarExprRoot e -> addTrefAliases $ fixTree e
 
 }
 
@@ -120,7 +122,11 @@ sem Annotation
 include "TypeChecking/ScalarExprs.ag"
 include "TypeChecking/QueryExprs/QueryExprs.ag"
 include "TypeChecking/Misc.ag"
-include  "TypeChecking/Statements.ag"
+include "TypeChecking/Statements.ag"
+--include "TypeChecking/AddTrefAliases.ag"
+{
+addTrefAliases = id
+}
 
 {
 
@@ -154,4 +160,26 @@ nameOfType (EnumType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnot
 nameOfType (NamedCompositeType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc t])
 nameOfType _ = Nothing
 
+-- hack for various fixups
+fixTree :: Data a => a -> a
+fixTree = fixDateDiff
+
+{-
+
+fix up datediff for sql server: set the type for the first argument to
+type in if it is in the acceptable list
+-}
+
+fixDateDiff :: Data a => a -> a
+fixDateDiff = transformBi $ \x -> case x of
+  App aa nm@(Name _ [Nmc fn]) [Identifier ai tn@(Name _ [Nmc tnn]),a,b]
+    | map toLower fn == "datediff"
+    , map toLower tnn `elem` ["hour"] ->
+    App aa nm [Identifier ai' tn,a,b]
+      where
+        ai' = ai {anType = Just typeInt
+                 ,anErrs = []}
+  x' -> x'
+
 }
+

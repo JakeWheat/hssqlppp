@@ -29,9 +29,10 @@ and variables, etc.
 > import Data.Char
 > import Data.Maybe
 > import Control.Monad
-> --import Control.Arrow
+> import Control.Arrow
 > import Data.List
 > --import Debug.Trace
+> --import Text.Groom
 
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
@@ -92,7 +93,7 @@ TODO: remove the create prefixes
 
 > envSelectListEnvironment :: [(String,Type)] -> Either [TypeError] Environment
 > envSelectListEnvironment cols = do
->   return $ SelectListEnv cols
+>   return $ SelectListEnv $ map (first $ map toLower) cols
 
 
 > -- | create an environment as two envs joined together
@@ -310,7 +311,7 @@ use listBindingsTypes to implement expandstar and lookupid
 
 > envLookupIdentifier :: [NameComponent] -> Environment
 >                      -> Either [TypeError] ((String,String), Type)
-> envLookupIdentifier nmc env =
+> envLookupIdentifier nmc env = --trace ("lookup: " ++ show nmc  ++ "\n" ++ groom env) $
 >   if isBroken env
 >   then Left []
 >   else do
