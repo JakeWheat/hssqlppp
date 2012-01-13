@@ -50,6 +50,7 @@ src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TrefIdentifiers.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/CaseExpressions.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ImplicitCasts.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TSQL.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Issues.o \
 src/Database/HsSqlPpp/TypeChecker.o \
 src/Database/HsSqlPpp/Types.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o \
@@ -106,6 +107,7 @@ src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TrefIdentifiers.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/CaseExpressions.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ImplicitCasts.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TSQL.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Issues.o \
 src/Database/HsSqlPpp/TypeChecker.o \
 src/Database/HsSqlPpp/Types.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o \
@@ -268,6 +270,7 @@ src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TrefIdentifiers.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/CaseExpressions.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ImplicitCasts.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TSQL.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Issues.o \
 src/Database/HsSqlPpp/TypeChecker.o \
 src/Database/HsSqlPpp/Types.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o
@@ -325,6 +328,7 @@ src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TrefIdentifiers.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/CaseExpressions.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ImplicitCasts.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TSQL.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Issues.o \
 src/Database/HsSqlPpp/TypeChecker.o \
 src/Database/HsSqlPpp/Types.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o
@@ -632,6 +636,7 @@ src/Database/HsSqlPpp/Types.o \
 src/Database/HsSqlPpp/Annotation.o \
 src/Database/HsSqlPpp/Ast.o \
 src/Database/HsSqlPpp/Utility.o \
+src/Database/HsSqlPpp/Pretty.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o \
 src-extra/tests/Database/HsSqlPpp/Utils/GroomUtils.o \
 src/Database/HsSqlPpp/Parsing/ParserInternal.o \
@@ -655,6 +660,7 @@ src/Database/HsSqlPpp/Types.o \
 src/Database/HsSqlPpp/Annotation.o \
 src/Database/HsSqlPpp/Ast.o \
 src/Database/HsSqlPpp/Utility.o \
+src/Database/HsSqlPpp/Pretty.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o \
 src-extra/tests/Database/HsSqlPpp/Utils/GroomUtils.o \
 src/Database/HsSqlPpp/Parsing/ParserInternal.o \

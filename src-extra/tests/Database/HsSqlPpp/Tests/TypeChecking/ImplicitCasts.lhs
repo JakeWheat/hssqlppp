@@ -17,6 +17,10 @@
 >      "1.5 :: numeric between 1.1 and 2 :: numeric"
 >   ,e "'aa'::text = 'bb'"
 >      "'aa'::text = 'bb'::text"
+>   -- check for bad cast being inserted into wheres
+>   ,s "select * from t where 1 = 1;"
+>      "select * from t where 1 = 1;"
 >   ]
 >   where
 >     e = ImpCastsScalar
+>     s = ImpCastsQuery

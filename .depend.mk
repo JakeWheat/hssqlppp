@@ -7,11 +7,6 @@ src-extra/tests/Database/HsSqlPpp/Utils/GroomUtils.o : src-extra/tests/Database/
 src-extra/catalogReader/Database/HsSqlPpp/Utils/PgUtils.o : src-extra/catalogReader/Database/HsSqlPpp/Utils/PgUtils.lhs
 src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.o : src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.lhs
 src/Database/HsSqlPpp/Utils/Utils.o : src/Database/HsSqlPpp/Utils/Utils.lhs
-src/Database/HsSqlPpp/SqlDialect.o : src/Database/HsSqlPpp/SqlDialect.lhs
-src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/Parsing/Lexer.lhs
-src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/SqlDialect.hi
-src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/Utils/Utils.hi
-src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/Parsing/ParseErrors.hi
 src/Database/HsSqlPpp/Internals/TypesInternal.o : src/Database/HsSqlPpp/Internals/TypesInternal.lhs
 src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o : src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.lhs
 src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o : src/Database/HsSqlPpp/Internals/TypesInternal.hi
@@ -43,6 +38,11 @@ src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o : src/Database/
 src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o : src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.hi
 src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o : src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.hi
 src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o : src/Database/HsSqlPpp/Internals/TypesInternal.hi
+src/Database/HsSqlPpp/SqlDialect.o : src/Database/HsSqlPpp/SqlDialect.lhs
+src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/Parsing/Lexer.lhs
+src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/SqlDialect.hi
+src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/Utils/Utils.hi
+src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/Parsing/ParseErrors.hi
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o : src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.lhs
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o : src/Database/HsSqlPpp/SqlDialect.hi
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o : src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.hi
@@ -60,6 +60,7 @@ src/Database/HsSqlPpp/Internals/AstInternal.o : src/Database/HsSqlPpp/Internals/
 src/Database/HsSqlPpp/Internals/AstInternal.o : src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.hi
 src/Database/HsSqlPpp/Internals/AstInternal.o : src/Database/HsSqlPpp/Internals/TypesInternal.hi
 src/Database/HsSqlPpp/TypeChecker.o : src/Database/HsSqlPpp/TypeChecker.lhs
+src/Database/HsSqlPpp/TypeChecker.o : src/Database/HsSqlPpp/SqlDialect.hi
 src/Database/HsSqlPpp/TypeChecker.o : src/Database/HsSqlPpp/Internals/AstInternal.hi
 src/Database/HsSqlPpp/Annotation.o : src/Database/HsSqlPpp/Annotation.lhs
 src/Database/HsSqlPpp/Annotation.o : src/Database/HsSqlPpp/Internals/AstInternal.hi
@@ -144,7 +145,12 @@ src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TSQL.o : src-extra/tests/Da
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TSQL.o : src/Database/HsSqlPpp/Catalog.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TSQL.o : src/Database/HsSqlPpp/Types.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TSQL.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.hi
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Issues.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Issues.lhs
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Issues.o : src/Database/HsSqlPpp/Catalog.hi
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Issues.o : src/Database/HsSqlPpp/TypeChecker.hi
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Issues.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.lhs
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Issues.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TSQL.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ImplicitCasts.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/CaseExpressions.hi
@@ -197,6 +203,7 @@ src-extra/examples/TypeCheckDB.o : src/Database/HsSqlPpp/Parser.hi
 src-extra/examples/TypeCheckMystery.o : src-extra/examples/TypeCheckMystery.lhs
 src-extra/examples/TypeCheckMystery.o : src-extra/tests/Database/HsSqlPpp/Utils/GroomUtils.hi
 src-extra/examples/TypeCheckMystery.o : src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.hi
+src-extra/examples/TypeCheckMystery.o : src/Database/HsSqlPpp/Pretty.hi
 src-extra/examples/TypeCheckMystery.o : src/Database/HsSqlPpp/Utility.hi
 src-extra/examples/TypeCheckMystery.o : src/Database/HsSqlPpp/Ast.hi
 src-extra/examples/TypeCheckMystery.o : src/Database/HsSqlPpp/Annotation.hi

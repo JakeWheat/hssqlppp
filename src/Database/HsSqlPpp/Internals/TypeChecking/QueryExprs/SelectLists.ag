@@ -28,7 +28,7 @@ These lists of triples are only used by selectitems.
 -}
 
 attr ScalarExpr
-  syn colExprs :: {[(String,Maybe Type,ScalarExpr)]}
+  syn colExprs :: {[(NameComponent,Maybe Type,ScalarExpr)]}
 
 
 sem ScalarExpr
@@ -46,7 +46,7 @@ sem ScalarExpr
                       -- don't participate in the ag
                   let a' = a {anType = Just t}
                       -- expanded stars always output qualifier
-                  in (n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                  in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
                   ) is
           in case @originalTree of
               Star _ | Right is <- envExpandStar Nothing @lhs.downEnv ->
@@ -55,7 +55,42 @@ sem ScalarExpr
                  doStar is
               -- for everything other than star and qstar, just lift
               -- the single expr info into a list
-              _ -> [(columnName @originalTree,@upType,@annotatedTree)]
+              _ -> --trace ("annotated tree in colExprs: " ++ show @annotatedTree)
+                     [(columnName @originalTree,@upType,@annotatedTree)]
+
+{-
+loc.annotatedTree stuff in ScalarExprs.ag:
+
+not sure how this should work in uuagc
+but asking for the @annotatedTree
+for an identifier this should be set to the qualified version
+which is picked up fine in the case of something like
+select a + 1 from t
+->
+select t.a + 1 from t
+
+but when it is just an identifier, it misses the altered annotated
+tree for the identifier:
+
+select a from t
+->
+select a from t
+(no added 't.')
+
+for some reason, changing
+lhs.annotatedTree = ...
+in the Identifier sem rule in ScalarExprs.ag
+to
+lhs.annotatedTree = @loc.annotatedTree
+loc.annotatedTree = ...
+has fixed it?
+
+Think this is because @annotatedTree refers to @loc.annotatedTree,
+which is given some default value from somewhere implicitly if not
+defined, and this is not the same as the lhs.annotatedTree being set
+in that node.
+
+-}
 
 {-
 select items:
@@ -72,13 +107,13 @@ sem SelectItem
   | SelectItem
       lhs.colExprs =
         case @ex.colExprs of
-          [(_,t,e)] -> [(ncStr @name, t,e)]
+          [(_,t,e)] -> [(@name, t,e)]
           x -> x --todo: error if there is an alias and more that one col
   | SelExp
       lhs.annotatedTree =
         if tcfAddSelectItemAliases @lhs.flags
         then case @ex.colExprs of
-               [(n,_,_)] -> SelectItem @ann.annotatedTree @ex.annotatedTree (Nmc n)
+               [(n,_,_)] -> SelectItem @ann.annotatedTree @ex.annotatedTree n
                _ -> -- todo: is this possible? what should happen?
                     @annotatedTree
         else @annotatedTree
@@ -101,19 +136,19 @@ sem SelectItemList
           -- hack currently used probably isn't accurate:
           -- check if adding an explicit column name changes the
           -- name of a column then add it, otherwise use implicit
-            if n == columnName e && not (tcfAddSelectItemAliases @lhs.flags)
+            if ncStr n == ncStr (columnName e) && not (tcfAddSelectItemAliases @lhs.flags)
             then SelExp emptyAnnotation e
-            else SelectItem emptyAnnotation e (Nmc n)
+            else SelectItem emptyAnnotation e n
       else @annotatedTree
 
 
 attr SelectItem
-  syn colExprs :: {[(String,Maybe Type,ScalarExpr)]}
+  syn colExprs :: {[(NameComponent,Maybe Type,ScalarExpr)]}
   inh downEnv :: Environment
 
 attr SelectItemList SelectList
   inh downEnv :: Environment
-  syn colExprs :: {[(String,Maybe Type,ScalarExpr)]}
+  syn colExprs :: {[(NameComponent,Maybe Type,ScalarExpr)]}
   syn upType :: {Maybe [(String,Type)]}
   syn upEnv :: Environment
 
@@ -134,7 +169,7 @@ sem SelectItemList
         loc.colExprs = @hd.colExprs ++ @tl.colExprs
         lhs.colExprs = @loc.colExprs
         loc.upType = sequence $ flip map @loc.colExprs
-                     $ \(n,t,_) -> fmap (n,) t
+                     $ \(n,t,_) -> fmap (ncStr n,) t
   | Nil Cons
       lhs.upType = @loc.upType
       lhs.upEnv = case fmap envSelectListEnvironment @loc.upType of
@@ -156,11 +191,11 @@ sem SelectItem
 
 -- | thet name to choose for a column in a select list which doesn't
 -- have an explicit name - these are postgresql's rules
-columnName :: ScalarExpr -> String
-columnName (Identifier _ i) = ncStr $ last $ nameComponents i
-columnName (App _ (Name _ ncs) _) = ncStr $ last ncs
-columnName (Cast _ _ (SimpleTypeName _ (Name _ ncs))) = ncStr $ last ncs
-columnName (WindowApp _ (App _ (Name _ ncs) _) _ _ _) = ncStr $ last ncs
-columnName (AggregateApp _ _ (App _ (Name _ ncs) _) _) = ncStr $ last ncs
-columnName _ = "?column?"
+columnName :: ScalarExpr -> NameComponent
+columnName (Identifier _ i) = last $ nameComponents i
+columnName (App _ (Name _ ncs) _) = last ncs
+columnName (Cast _ _ (SimpleTypeName _ (Name _ ncs))) = last ncs
+columnName (WindowApp _ (App _ (Name _ ncs) _) _ _ _) = last ncs
+columnName (AggregateApp _ _ (App _ (Name _ ncs) _) _) = last ncs
+columnName _ = QNmc "?column?"
 }

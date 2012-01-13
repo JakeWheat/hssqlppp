@@ -145,8 +145,15 @@ identifiers
     | Identifier
          loc.elkp = envLookupIdentifier (nameComponents @i.originalTree) @lhs.downEnv
          loc.tpe = fmap snd @loc.elkp
-         lhs.annotatedTree =
-           fromMaybe @annotatedTree $ do
+         -- weird workaround, see selectlists.ag
+         lhs.annotatedTree = @loc.annotatedTree
+         loc.annotatedTree =
+           -- reconstruct the Identifier to avoid cycles, not sure
+           -- what exactly is happening here with implicit rules
+           -- to do with loc.annotatedTree, lhs.annotatedTree and
+           -- references to @lhs.annotatedTree, @annotatedTree, etc.
+           let t = Identifier @ann.annotatedTree @i.annotatedTree
+           in fromMaybe t $ do
                case tcfAddQualifiers @lhs.flags of
                  False -> Nothing
                  True -> do
@@ -159,7 +166,7 @@ identifiers
                           then -- todo: quote identifiers if needed
                                return $ Identifier @ann.annotatedTree
                                           (Name emptyAnnotation [Nmc q, Nmc i])
-                          else return @annotatedTree
+                          else return t
          i.tpe = Left []
 
 

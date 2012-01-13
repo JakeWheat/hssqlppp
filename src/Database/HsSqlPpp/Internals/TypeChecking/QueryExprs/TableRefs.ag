@@ -75,7 +75,7 @@ sem TableRef
               wrapIfJoin tr = case tr of
                                  JoinTref {} -> TableRefParens emptyAnnotation tr
                                  _ -> tr
-          in maybe @annotatedTree mk @loc.newAlias
+          in maybe @loc.annotatedTree mk @loc.newAlias
 {-
 fixing up isn't working
 

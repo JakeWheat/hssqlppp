@@ -29,6 +29,8 @@
 >           | TSQLQueryExpr [CatalogUpdate] String (Either [TypeError] Type)
 >           | RewriteQueryExpr TypeCheckingFlags [CatalogUpdate] String String
 >           | ImpCastsScalar String String
+>           | ImpCastsQuery String String
+
 
 > testScalarExprType :: String -> Either [TypeError] Type -> Test.Framework.Test
 > testScalarExprType src et = testCase ("typecheck " ++ src) $ do
@@ -67,6 +69,25 @@
 >                   ++ "\n" ++ printScalarExpr defaultPPFlags wast
 >                   ++ "\n*****************\n")
 >       else id) $ assertEqual "" (resetAnnotations aast') (resetAnnotations wast)
+
+
+> testImpCastsQuery :: String -> String -> Test.Framework.Test
+> testImpCastsQuery src wsrc = testCase ("typecheck " ++ src) $
+>   let ast = case parseQueryExpr defaultParseFlags "" Nothing src of
+>               Left e -> error $ show e
+>               Right l -> l
+>       aast = typeCheckQueryExpr defaultTypeCheckingFlags defaultTemplate1Catalog ast
+>       aast' = addExplicitCasts aast
+>       wast = case parseQueryExpr defaultParseFlags "" Nothing wsrc of
+>                Left e -> error $ show e
+>                Right l -> l
+>   in (if (resetAnnotations aast') /= (resetAnnotations wast)
+>       then trace ("\n*****************\n" ++
+>                   printQueryExpr defaultPPFlags aast'
+>                   ++ "\n" ++ printQueryExpr defaultPPFlags wast
+>                   ++ "\n*****************\n")
+>       else id) $ assertEqual "" (resetAnnotations aast') (resetAnnotations wast)
+
 
 
 > testQueryExprType :: Bool -> [CatalogUpdate] -> String -> Either [TypeError] Type -> Test.Framework.Test
@@ -181,4 +202,5 @@ type checks properly and produces the same type
 > itemToTft (TSQLQueryExpr cus s r) = testQueryExprType False cus s r
 > itemToTft (RewriteQueryExpr f cus s s') = testRewrite f cus s s'
 > itemToTft (ImpCastsScalar s s') = testImpCastsScalar s s'
+> itemToTft (ImpCastsQuery s s') = testImpCastsQuery s s'
 > itemToTft (Group s is) = testGroup s $ map itemToTft is

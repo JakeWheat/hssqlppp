@@ -41,6 +41,13 @@ item aliases
 >   ,RewriteQueryExpr defaultTypeCheckingFlags {tcfAddQualifiers = True}
 >          [CatCreateTable "t" [("a", "int4")
 >                              ,("b", "text")]]
+>    "select * from t u where a > 3"
+>    "select * from t u where u.a > 3"
+
+
+>   ,RewriteQueryExpr defaultTypeCheckingFlags {tcfAddQualifiers = True}
+>          [CatCreateTable "t" [("a", "int4")
+>                              ,("b", "text")]]
 >    "select * from t order by a"
 >    "select * from t order by t.a"
 

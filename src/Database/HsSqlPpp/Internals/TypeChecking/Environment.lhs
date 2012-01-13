@@ -176,7 +176,10 @@ lookup and star expansion
 >                Just i -> let s :: [((String, String), Type)]
 >                              s = (snd (listBindingsTypes env) Nothing)
 >                          in {-trace ("getit : " ++ show (i,show s))
->                                      $ -} take 1 $ drop i s
+>                                      $ -}
+>                             -- map to change the qualifier name to match
+>                             -- this alias not the source tref
+>                             map (\((_,i),t) -> ((ta,i),t)) $ take 1 $ drop i s
 >                Nothing -> []
 >      else []
 >   ,\q -> if q `elem` [Nothing, Just ta]
@@ -193,6 +196,9 @@ lookup and star expansion
 >                                Nothing -> ((ta,n),t)) repColNames
 >               in aliasize $ snd (listBindingsTypes env) Nothing
 >          else [])
+>   where
+>     -- not sure why this is here, code layout is a bit confusing
+>     req = map (\((_,i),t) -> ((ta,i),t))
 
 
 > listBindingsTypes (SimpleTref nm pus pvs) =
@@ -321,8 +327,23 @@ use listBindingsTypes to implement expandstar and lookupid
 >                _ -> Left [InternalError "too many nmc components in envlookupiden"]
 >     case (fst $ listBindingsTypes env) k of
 >       [] -> Left [UnrecognisedIdentifier $ nmcString $ last nmc]
->       [x] -> Right x
+>       [x] -> Right $ keepCasehack x
 >       _ -> Left [AmbiguousIdentifier $ nmcString $ last nmc]
+>   where
+>     keepCasehack x@((na,nb),t) =
+>       case nmc of
+>         [a,b] -> let x = ((keepcase a na,keepcase b nb),t)
+>                  in {-(if True -- map toLower nb == "ou_id"
+>                      then trace ("\n\n*********************\n\nlookup: " ++ show x ++ "\n\n********************************\n\n" ++ groom env ++ "\n\n********************************\n\n")
+>                      else id)-} x
+>         [b] -> ((na,keepcase b nb),t)
+>         _ -> error "too many nmc components in envlookupiden(2)"
+>     keepcase orig new = -- sanity check: make sure the nmcs are equal
+>                         if map toLower new == nmcString orig
+>                         then noLower orig
+>                         else new
+>     noLower (QNmc n) = n
+>     noLower (Nmc n) = n
 
 
 --------------------------
