@@ -14,18 +14,14 @@
 >              Right e -> e) $
 >      flip updateCatalog defaultTemplate1Catalog
 
->     [-- temporary partial work around for different
->      -- implicit cast rules in tsql
->      CatCreateBinaryOp ">=" "varchar" "int4" "bool"
->     ,CatCreateBinaryOp ">" "varchar" "int4" "bool"
->     ,CatCreateBinaryOp "<" "varchar" "int4" "bool"
->     ,CatCreateBinaryOp "+" "varchar" "varchar" "varchar"
->     ,CatCreateBinaryOp "=" "int4" "varchar" "bool"
-
+>     [CatCreateBinaryOp "+" "varchar" "varchar" "varchar"
 >     ,CatCreateFunction "getdate" [] False "date"
 >     ,CatCreateFunction "isnumeric" ["anyelement"] False "int4"
 >     ,CatCreateFunction "grt_lengthconv" ["int4"] False "int4"
 >     ,CatCreateFunction "isnull" ["anyelement","anyelement"] False "anyelement"
+>     -- put these in to stop use the text only version and a bunch of casts
+>     ,CatCreateFunction "replace" ["char", "char", "char"] False "char"
+>     ,CatCreateFunction "replace" ["varchar", "varchar", "varchar"] False "varchar"
 >     ]
 
 

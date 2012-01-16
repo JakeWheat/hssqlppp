@@ -164,6 +164,7 @@ catalog values
 > data CompositeFlavour = Composite | TableComposite | ViewComposite
 >                         deriving (Eq,Ord,Show)
 
+> -- | name, inparams, outtype, is variadic?
 > type OperatorPrototype = (CatName, [Type], Type, Bool)
 
 > -- | The main datatype, this holds the catalog and context

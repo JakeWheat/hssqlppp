@@ -4,23 +4,23 @@
 
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
 > --import Database.HsSqlPpp.Types
-> --import Database.HsSqlPpp.Catalog
-> --import Database.HsSqlPpp.TypeChecker
+> import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.TypeChecker
 
 
 
 > impCasts :: Item
 > impCasts =
 >   Group "impCasts"
->   [e "'1' + 2" "'1' :: int4 + 2"
->   ,e "1.5 :: numeric between 1.1 and 2"
->      "1.5 :: numeric between 1.1 and 2 :: numeric"
->   ,e "'aa'::text = 'bb'"
->      "'aa'::text = 'bb'::text"
->   -- check for bad cast being inserted into wheres
->   ,s "select * from t where 1 = 1;"
->      "select * from t where 1 = 1;"
+>   [e p "'1' + 2" "'1' :: int4 + 2"
+>   ,e p "1.5 :: numeric between 1.1 and 2"
+>        "1.5 :: numeric between 1.1 and 2 :: numeric"
+>   ,e p "'aa'::text = 'bb'"
+>        "'aa'::text = 'bb'::text"
+>   ,e s "cast(1 as int4) + cast('2' as varchar)"
+>        "cast(1 as int4) + cast(cast('2' as varchar) as int4)"
 >   ]
 >   where
 >     e = ImpCastsScalar
->     s = ImpCastsQuery
+>     p = defaultTypeCheckingFlags
+>     s = defaultTypeCheckingFlags {tcfDialect=SQLServerDialect}

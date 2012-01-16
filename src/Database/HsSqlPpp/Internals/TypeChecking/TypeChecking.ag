@@ -141,17 +141,15 @@ addExplicitCasts = transformBi removeDoubleCasts . transformBi addCast
                   n <- nameOfType t
                   return $ Cast emptyAnnotation e n
     -- addCast isn't very smart, so remove any unneeded casts
-    -- that it has inserted
-    -- not sure if this is correct, are there legitimate
-    -- uses of double casts?
-    -- one possible solution is to not add the implicit cast
-    -- annotation to items immediately in a cast
-    -- this might clash with the intended approach of typeing
-    -- parameterized statements?
+    -- that it has inserted. Only do this when have two
+    -- nested casts which cast to the same type, so this
+    -- shouldn't cause problems with sane sql
     removeDoubleCasts :: ScalarExpr -> ScalarExpr
     removeDoubleCasts e = case e of
-      (Cast a (Cast _ e' _t1) t) -> Cast a e' t
+      (Cast a (Cast _ e' t1) t)
+         | resetAnnotations t1 == resetAnnotations t -> Cast a e' t
       e' -> e'
+    resetAnnotations = transformBi (const emptyAnnotation)
 
 nameOfType :: Type -> Maybe TypeName
 nameOfType (ScalarType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc t])

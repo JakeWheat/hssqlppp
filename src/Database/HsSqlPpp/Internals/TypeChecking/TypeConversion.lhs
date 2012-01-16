@@ -32,6 +32,7 @@ http://blogs.msdn.com/b/craigfr/archive/2010/01/20/more-on-implicit-conversions.
 
 > import Database.HsSqlPpp.Internals.TypeChecking.OldTypeConversion
 > import Database.HsSqlPpp.SqlDialect
+> import qualified Database.HsSqlPpp.Internals.TypeChecking.SqlTypeConversion as TSQL
 
 ------------------------------------------------------------------
 
@@ -55,8 +56,10 @@ This needs a lot more tests
 >   -- other two are date types
 >   Right ([typeInt,typeDate,typeDate], typeInt)
 
-> matchApp _d cat nmcs pts = do
->   (_,ps,r,_) <- findCallMatch cat nm pts
+> matchApp d cat nmcs pts = {-trace ("matchapp: " ++ show (d,nmcs,pts)) $ -} do
+>   (_,ps,r,_) <- case d of
+>                   SQLServerDialect -> TSQL.findCallMatch cat nm pts
+>                   _ -> findCallMatch cat nm pts
 >   return (ps,r)
 >   where
 >     nm = case last nmcs of

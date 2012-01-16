@@ -28,8 +28,7 @@
 >           | QueryExpr [CatalogUpdate] String (Either [TypeError] Type)
 >           | TSQLQueryExpr [CatalogUpdate] String (Either [TypeError] Type)
 >           | RewriteQueryExpr TypeCheckingFlags [CatalogUpdate] String String
->           | ImpCastsScalar String String
->           | ImpCastsQuery String String
+>           | ImpCastsScalar TypeCheckingFlags String String
 
 
 > testScalarExprType :: String -> Either [TypeError] Type -> Test.Framework.Test
@@ -53,41 +52,27 @@
 >   unless (et == got) $ trace (groomTypes aast) $ return ()
 >   assertEqual "" et got
 
-> testImpCastsScalar :: String -> String -> Test.Framework.Test
-> testImpCastsScalar src wsrc = testCase ("typecheck " ++ src) $
+> testImpCastsScalar :: TypeCheckingFlags -> String -> String -> Test.Framework.Test
+> testImpCastsScalar f src wsrc = testCase ("typecheck " ++ src) $
 >   let ast = case parseScalarExpr defaultParseFlags "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
->       aast = typeCheckScalarExpr defaultTypeCheckingFlags defaultTemplate1Catalog ast
+>       aast = typeCheckScalarExpr f defaultTemplate1Catalog ast
 >       aast' = addExplicitCasts aast
 >       wast = case parseScalarExpr defaultParseFlags "" Nothing wsrc of
 >                Left e -> error $ show e
 >                Right l -> l
 >   in (if (resetAnnotations aast') /= (resetAnnotations wast)
->       then trace ("\n*****************\n" ++
->                   printScalarExpr defaultPPFlags aast'
->                   ++ "\n" ++ printScalarExpr defaultPPFlags wast
->                   ++ "\n*****************\n")
+>       then trace ("\n***************** got: \n"
+>                   ++ printScalarExpr defaultPPFlags aast'
+>                   ++ "\nwanted:\n" ++ printScalarExpr defaultPPFlags wast
+>                   ++ "\n*****************\n"
+>                   ++ "\n***************** got: \n"
+>                   ++ groomNoAnns aast'
+>                   ++ "\nwanted:\n" ++ groomNoAnns wast
+>                   ++ "\n*****************\n"
+>                   )
 >       else id) $ assertEqual "" (resetAnnotations aast') (resetAnnotations wast)
-
-
-> testImpCastsQuery :: String -> String -> Test.Framework.Test
-> testImpCastsQuery src wsrc = testCase ("typecheck " ++ src) $
->   let ast = case parseQueryExpr defaultParseFlags "" Nothing src of
->               Left e -> error $ show e
->               Right l -> l
->       aast = typeCheckQueryExpr defaultTypeCheckingFlags defaultTemplate1Catalog ast
->       aast' = addExplicitCasts aast
->       wast = case parseQueryExpr defaultParseFlags "" Nothing wsrc of
->                Left e -> error $ show e
->                Right l -> l
->   in (if (resetAnnotations aast') /= (resetAnnotations wast)
->       then trace ("\n*****************\n" ++
->                   printQueryExpr defaultPPFlags aast'
->                   ++ "\n" ++ printQueryExpr defaultPPFlags wast
->                   ++ "\n*****************\n")
->       else id) $ assertEqual "" (resetAnnotations aast') (resetAnnotations wast)
-
 
 
 > testQueryExprType :: Bool -> [CatalogUpdate] -> String -> Either [TypeError] Type -> Test.Framework.Test
@@ -201,6 +186,5 @@ type checks properly and produces the same type
 > itemToTft (QueryExpr cus s r) = testQueryExprType True cus s r
 > itemToTft (TSQLQueryExpr cus s r) = testQueryExprType False cus s r
 > itemToTft (RewriteQueryExpr f cus s s') = testRewrite f cus s s'
-> itemToTft (ImpCastsScalar s s') = testImpCastsScalar s s'
-> itemToTft (ImpCastsQuery s s') = testImpCastsQuery s s'
+> itemToTft (ImpCastsScalar f s s') = testImpCastsScalar f s s'
 > itemToTft (Group s is) = testGroup s $ map itemToTft is

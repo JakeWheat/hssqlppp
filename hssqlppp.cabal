@@ -64,8 +64,10 @@ Library
                      Database.HsSqlPpp.Internals.TypesInternal
                      Database.HsSqlPpp.Internals.TypeChecking.Environment
                      Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
+                     Database.HsSqlPpp.Internals.TypeChecking.SqlTypeConversion
                      Database.HsSqlPpp.Internals.TypeChecking.OldTypeConversion
                      Database.HsSqlPpp.Internals.TypeChecking.OldTediousTypeUtils
+                     Database.HsSqlPpp.Internals.TypeChecking.Environment
                      Database.HsSqlPpp.Internals.AstInternal
                      Database.HsSqlPpp.SqlDialect
 
