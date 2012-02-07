@@ -1,7 +1,7 @@
 
 
 {-# LANGUAGE TupleSections,ScopedTypeVariables,DeriveDataTypeable #-}
--- UUAGC 0.9.39.0 (src/Database/HsSqlPpp/Internals/AstInternal.ag)
+-- UUAGC 0.9.39.1 (src/Database/HsSqlPpp/Internals/AstInternal.ag)
 module Database.HsSqlPpp.Internals.AstInternal(
     --from the ag files:
     --ast nodes

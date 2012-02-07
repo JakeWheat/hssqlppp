@@ -27,6 +27,7 @@ think of a better names for plpgsql* since will also support tsql and
 
 better way to do accessor and setter for annotations (use typeclass?)
 
+switch to using postgresql-simple instead of hdbc?
 
 == typechecking
 

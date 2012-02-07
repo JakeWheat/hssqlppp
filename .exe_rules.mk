@@ -40,7 +40,7 @@ src/Database/HsSqlPpp/Annotation.o \
 src/Database/HsSqlPpp/Catalog.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o \
-src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.o \
+src-extra/utils/Database/HsSqlPpp/Utils/Here.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ScalarExprs.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/SimpleQueryExprs.o \
@@ -98,7 +98,7 @@ src/Database/HsSqlPpp/Annotation.o \
 src/Database/HsSqlPpp/Catalog.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o \
-src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.o \
+src-extra/utils/Database/HsSqlPpp/Utils/Here.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ScalarExprs.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/SimpleQueryExprs.o \
@@ -115,13 +115,13 @@ src/Database/HsSqlPpp/Types.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o \
 src/Database/HsSqlPpp/Quote.o
 src-extra/devel-util/MakeDefaultTemplate1Catalog : src-extra/devel-util/MakeDefaultTemplate1Catalog.o \
-src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.o \
+src-extra/utils/Database/HsSqlPpp/Utils/Here.o \
 src-extra/catalogReader/Database/HsSqlPpp/Utils/CatalogReader.o \
 src-extra/catalogReader/Database/HsSqlPpp/Utils/PgUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
 src/Database/HsSqlPpp/Internals/TypesInternal.o
 	$(HC) $(HC_OPTS) -o src-extra/devel-util/MakeDefaultTemplate1Catalog src-extra/devel-util/MakeDefaultTemplate1Catalog.o \
-src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.o \
+src-extra/utils/Database/HsSqlPpp/Utils/Here.o \
 src-extra/catalogReader/Database/HsSqlPpp/Utils/CatalogReader.o \
 src-extra/catalogReader/Database/HsSqlPpp/Utils/PgUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
@@ -230,7 +230,7 @@ src-extra/docutil/Text/DocTool/DocTool.o \
 src-extra/docutil/TestFileProcessor.o \
 src-extra/docutil/Text/DocTool/Parser.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
-src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.o \
+src-extra/utils/Database/HsSqlPpp/Utils/Here.o \
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o \
 src-extra/tests/Database/HsSqlPpp/Utils/GroomUtils.o \
@@ -289,7 +289,7 @@ src-extra/docutil/Text/DocTool/DocTool.o \
 src-extra/docutil/TestFileProcessor.o \
 src-extra/docutil/Text/DocTool/Parser.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
-src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.o \
+src-extra/utils/Database/HsSqlPpp/Utils/Here.o \
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o \
 src-extra/tests/Database/HsSqlPpp/Utils/GroomUtils.o \
@@ -443,7 +443,7 @@ src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o \
-src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.o
+src-extra/utils/Database/HsSqlPpp/Utils/Here.o
 	$(HC) $(HC_OPTS) -o src-extra/examples/TypeCheck3 src-extra/examples/TypeCheck3.o \
 src/Database/HsSqlPpp/Parser.o \
 src/Database/HsSqlPpp/TypeChecker.o \
@@ -467,7 +467,7 @@ src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o \
-src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.o
+src-extra/utils/Database/HsSqlPpp/Utils/Here.o
 src-extra/examples/TypeCheck2 : src-extra/examples/TypeCheck2.o \
 src/Database/HsSqlPpp/Parser.o \
 src/Database/HsSqlPpp/TypeChecker.o \
@@ -581,7 +581,7 @@ src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o \
-src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.o \
+src-extra/utils/Database/HsSqlPpp/Utils/Here.o \
 src-extra/catalogReader/Database/HsSqlPpp/Utils/PgUtils.o
 	$(HC) $(HC_OPTS) -o src-extra/examples/TypeCheckDB src-extra/examples/TypeCheckDB.o \
 src/Database/HsSqlPpp/Parser.o \
@@ -606,7 +606,7 @@ src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o \
-src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.o \
+src-extra/utils/Database/HsSqlPpp/Utils/Here.o \
 src-extra/catalogReader/Database/HsSqlPpp/Utils/PgUtils.o
 src-extra/examples/PPPTest : src-extra/examples/PPPTest.o \
 src/Database/HsSqlPpp/Parser.o \
@@ -733,7 +733,7 @@ src-extra/extensions/Database/HsSqlPpp/Extensions/Denormalized6nf.o \
 src-extra/extensions/Database/HsSqlPpp/Extensions/AstUtils.o \
 src-extra/extensions/Database/HsSqlPpp/Extensions/DenormSyntax.o \
 src/Database/HsSqlPpp/Utility.o \
-src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.o \
+src-extra/utils/Database/HsSqlPpp/Utils/Here.o \
 src/Database/HsSqlPpp/Catalog.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o
@@ -768,7 +768,7 @@ src-extra/extensions/Database/HsSqlPpp/Extensions/Denormalized6nf.o \
 src-extra/extensions/Database/HsSqlPpp/Extensions/AstUtils.o \
 src-extra/extensions/Database/HsSqlPpp/Extensions/DenormSyntax.o \
 src/Database/HsSqlPpp/Utility.o \
-src-extra/catalogReader/Database/HsSqlPpp/Utils/Here.o \
+src-extra/utils/Database/HsSqlPpp/Utils/Here.o \
 src/Database/HsSqlPpp/Catalog.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o

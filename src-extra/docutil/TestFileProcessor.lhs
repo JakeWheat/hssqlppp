@@ -57,7 +57,7 @@ compile time.
 >    [Row [[Haskell (groom fs)
 >          ,Haskell (groom cus)]
 >         ,[Sql s0,Text "rewritten to",Sql s1]]]
-> mapTypeCheckTests (TT.ImpCastsScalar s0 s1) =
+> mapTypeCheckTests (TT.ImpCastsScalar _ s0 s1) =
 >    [Row [[Sql s0]
 >         ,[Sql s1]]]
 

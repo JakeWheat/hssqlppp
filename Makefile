@@ -48,7 +48,7 @@ HC_BASIC_OPTS   = -Wall -threaded -rtsopts
 SRC_DIRS = src src-extra/catalogReader src-extra/chaos \
 src-extra/devel-util src-extra/docutil src-extra/examples \
 src-extra/extensions src-extra/h7c src-extra/tests \
-src-extra/chaos/extensions
+src-extra/chaos/extensions src-extra/utils
 
 space :=
 space +=

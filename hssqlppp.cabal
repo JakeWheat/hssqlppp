@@ -6,7 +6,7 @@ License-file:        LICENSE
 Author:              Jake Wheat
 Maintainer:          jakewheatmail@gmail.com
 Build-Type:          Simple
-Cabal-Version:       >=1.6
+Cabal-Version:       >=1.8
 copyright:           Copyright 2009-2011 Jake Wheat
 stability:           pre-alpha
 homepage:            http://jakewheat.github.com/hssqlppp/
@@ -23,7 +23,43 @@ Description:
 extra-source-files:  README
                      LICENSE
                      THANKS
-                     --find src/ -iname '*.ag' -o -iname '.sql' -o -iname '*.txt' -o -iname '*.hs' -o -iname '*.lhs'
+                     -- rough, extra source files for tests
+                     --find src-extra/tests src-extra/utils -iname '*hs'
+                     src-extra/tests/Tests.lhs
+                     src-extra/tests/Database/HsSqlPpp/Utils/GroomUtils.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/Tests.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/CaseExpressions.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TrefIdentifiers.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ScalarExprs.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Tpch.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Joins.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TSQL.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Rewrites.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/SimpleQueryExprs.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ImplicitCasts.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Issues.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/SqlServer.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/CreateTable.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Dml.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/FunctionsDdl.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ScalarExprs.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/SelectLists.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/CombineQueryExprs.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Misc.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Joins.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/MiscQueryExprs.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/TableRefs.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Utils.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Plpgsql.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/MiscDdl.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/TpchData.lhs
+                     src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.lhs
+                     src-extra/utils/Database/HsSqlPpp/Utils/Here.lhs
+
 
 source-repository head
   type:     git
@@ -34,7 +70,7 @@ Library
                      mtl >= 2.0.1.0 && < 2.1,
                      containers >= 0.3.0.0 && < 0.5,
                      parsec >= 3.1 && < 3.2,
-                     pretty >= 1.1 && < 1.2,
+                     pretty >= 1.0 && < 1.2,
                      syb >= 0.1.0.2 && < 0.4,
                      uniplate >= 1.6 && < 1.7,
                      transformers >= 0.2.2.0 && < 0.3,
@@ -70,6 +106,69 @@ Library
                      Database.HsSqlPpp.Internals.TypeChecking.Environment
                      Database.HsSqlPpp.Internals.AstInternal
                      Database.HsSqlPpp.SqlDialect
+
+  extensions:        TupleSections
+                     DeriveDataTypeable,
+                     ScopedTypeVariables,
+                     PatternGuards,
+                     FlexibleContexts
+
+
+Test-Suite Tests
+    type:       exitcode-stdio-1.0
+    main-is:    Tests.lhs
+    build-depends: base
+    hs-source-dirs:    src,src-extra/tests,src-extra/utils
+    Build-Depends:     base >= 4 && < 5,
+                     mtl >= 2.0.1.0 && < 2.1,
+                     containers >= 0.3.0.0 && < 0.5,
+                     parsec >= 3.1 && < 3.2,
+                     pretty >= 1.0 && < 1.2,
+                     syb >= 0.1.0.2 && < 0.4,
+                     uniplate >= 1.6 && < 1.7,
+                     transformers >= 0.2.2.0 && < 0.3,
+                     template-haskell,
+                     test-framework >= 0.5 && < 0.6,
+                     HUnit >= 1.2 && < 1.3,
+                     test-framework-hunit >= 0.2 && < 0.3,
+                     haskell-src-exts >= 1.11.2 && < 1.12,
+                     groom >=0.1 && < 0.2
+
+                     -- rough start:
+                     -- find src-extra/tests -iname '*hs' | sed -e "s@src-extra/tests/@@" | sed -e "s@/@.@g" |sed -e "s/.lhs//" |sed -e "s/.hs//"
+  Other-Modules:     Database.HsSqlPpp.Utils.Here
+                     Database.HsSqlPpp.Utils.GroomUtils
+                     Database.HsSqlPpp.Tests.Tests
+                     Database.HsSqlPpp.Tests.QuasiQuoteTests
+                     Database.HsSqlPpp.Tests.TypeChecking.CaseExpressions
+                     Database.HsSqlPpp.Tests.TypeChecking.TrefIdentifiers
+                     Database.HsSqlPpp.Tests.TypeChecking.ScalarExprs
+                     Database.HsSqlPpp.Tests.TypeChecking.Tpch
+                     Database.HsSqlPpp.Tests.TypeChecking.Joins
+                     Database.HsSqlPpp.Tests.TypeChecking.TSQL
+                     Database.HsSqlPpp.Tests.TypeChecking.Utils
+                     Database.HsSqlPpp.Tests.TypeChecking.Rewrites
+                     Database.HsSqlPpp.Tests.TypeChecking.SimpleQueryExprs
+                     Database.HsSqlPpp.Tests.TypeChecking.ImplicitCasts
+                     Database.HsSqlPpp.Tests.TypeChecking.TypeCheckTests
+                     Database.HsSqlPpp.Tests.TypeChecking.Issues
+                     Database.HsSqlPpp.Tests.Parsing.SqlServer
+                     Database.HsSqlPpp.Tests.Parsing.CreateTable
+                     Database.HsSqlPpp.Tests.Parsing.Dml
+                     Database.HsSqlPpp.Tests.Parsing.FunctionsDdl
+                     Database.HsSqlPpp.Tests.Parsing.ScalarExprs
+                     Database.HsSqlPpp.Tests.Parsing.SelectLists
+                     Database.HsSqlPpp.Tests.Parsing.CombineQueryExprs
+                     Database.HsSqlPpp.Tests.Parsing.Misc
+                     Database.HsSqlPpp.Tests.Parsing.Joins
+                     Database.HsSqlPpp.Tests.Parsing.MiscQueryExprs
+                     Database.HsSqlPpp.Tests.Parsing.TableRefs
+                     Database.HsSqlPpp.Tests.Parsing.Utils
+                     Database.HsSqlPpp.Tests.Parsing.Plpgsql
+                     Database.HsSqlPpp.Tests.Parsing.MiscDdl
+                     Database.HsSqlPpp.Tests.Parsing.ParserTests
+                     Database.HsSqlPpp.Tests.TpchData
+                     Database.HsSqlPpp.Tests.TestUtils
 
   extensions:        TupleSections
                      DeriveDataTypeable,
