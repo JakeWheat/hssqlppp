@@ -2,7 +2,7 @@
 The main file for parsing sql, uses parsec. Not sure if parsec is the
 right choice, but it seems to do the job pretty well at the moment.
 
-> {-# LANGUAGE FlexibleContexts,ExplicitForAll,TupleSections #-}
+> {-# LANGUAGE FlexibleContexts,ExplicitForAll,TupleSections,NoMonomorphismRestriction #-}
 > -- | Functions to parse SQL.
 > module Database.HsSqlPpp.Parsing.ParserInternal
 >     (-- * Main
@@ -50,6 +50,7 @@ right choice, but it seems to do the job pretty well at the moment.
 > import Database.HsSqlPpp.SqlDialect
 > --import Database.HsSqlPpp.Catalog
 > --import Debug.Trace
+> --import qualified Data.Text.Lazy as TL
 
 --------------------------------------------------------------------------------
 
@@ -57,46 +58,50 @@ Top level parsing functions
 ===========================
 
 > -- | Parse a list of statements
-> parseStatements :: ParseFlags -- ^ parse options
+> parseStatements :: Stream s Identity Char =>
+>                    ParseFlags -- ^ parse options
 >                 -> FilePath -- ^ filename to use in errors
 >                 -> Maybe (Int,Int) -- ^ set the line number and column number
 >                                    -- of the first char in the source (used in annotation)
->                 -> String -- ^ a string containing the sql to parse
+>                 -> s -- ^ a string containing the sql to parse
 >                 -> Either ParseErrorExtra [Statement]
 > parseStatements = parseIt' sqlStatements
 
 > -- | Parse a single query expr
-> parseQueryExpr :: ParseFlags -- ^ parse options
+> parseQueryExpr :: Stream s Identity Char =>
+>                   ParseFlags -- ^ parse options
 >                -> FilePath -- ^ filename to use in errors
 >                -> Maybe (Int,Int) -- ^ set the line number and column number
->                -> String -- ^ a string containing the sql to parse
+>                -> s -- ^ a string containing the sql to parse
 >                -> Either ParseErrorExtra QueryExpr
 > parseQueryExpr =
 >   parseIt' $ pQueryExpr <* optional (symbol ";") <* eof
 
 > -- | Parse a single scalar expr
-> parseScalarExpr :: ParseFlags -- ^ parse options
+> parseScalarExpr :: Stream s Identity Char =>
+>                    ParseFlags -- ^ parse options
 >                 -> FilePath -- ^ filename to use in errors
 >                 -> Maybe (Int,Int) -- ^ set the line number and column number
->                 -> String -- ^ a string containing the sql to parse
+>                 -> s -- ^ a string containing the sql to parse
 >                 -> Either ParseErrorExtra ScalarExpr
 > parseScalarExpr = parseIt' $ expr <* eof
 
 > -- | Parse a list of plpgsql statements (or tsql if you are using
 > -- sql server dialect)
-> parsePlpgsql :: ParseFlags -- ^ parse options
+> parsePlpgsql :: Stream s Identity Char =>
+>                 ParseFlags -- ^ parse options
 >              -> FilePath -- ^ filename to use in errors
 >              -> Maybe (Int,Int) -- ^ set the line number and column number
->              -> String -- ^ a string containing the sql to parse
+>              -> s -- ^ a string containing the sql to parse
 >              -> Either ParseErrorExtra [Statement]
 > parsePlpgsql = parseIt' $ many plPgsqlStatement <* eof
 
-> parseIt' :: Data a =>
+> parseIt' :: (Stream s Identity Char, Data a) =>
 >             SParser a
 >          -> ParseFlags
 >          -> FilePath
 >          -> Maybe (Int,Int)
->          -> String
+>          -> s
 >          -> Either ParseErrorExtra a
 > parseIt' ps flg fn sp src = do
 >   lxd <- lexSql (pfDialect flg) fn sp src
@@ -127,18 +132,20 @@ state is never updated during parsing
 
 couple of wrapper functions for the quoting
 
-> parseName :: ParseFlags
+> parseName :: Stream s Identity Char =>
+>              ParseFlags
 >           -> FilePath
 >           -> Maybe (Int,Int)
->           -> String
+>           -> s
 >           -> Either ParseErrorExtra Name
 > parseName = parseIt' $ name <* eof
 
-> parseNameComponent :: ParseFlags
->           -> FilePath
->           -> Maybe (Int,Int)
->           -> String
->           -> Either ParseErrorExtra NameComponent
+> parseNameComponent :: Stream s Identity Char =>
+>                       ParseFlags
+>                    -> FilePath
+>                    -> Maybe (Int,Int)
+>                    -> s
+>                    -> Either ParseErrorExtra NameComponent
 > parseNameComponent = parseIt' $ nameComponent <* eof
 
 

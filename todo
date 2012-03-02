@@ -13,8 +13,8 @@ tpch tests: add tests which parse, add all the extras, then
 add parens to queryexprs
 remove the ! on operator names
 change the special op name to be an enum
-change parsing of typed string literal since this is just a cast, get
-   rid of seperate ctor
+change parsing of typed string literal since this can be just a cast,
+   get rid of seperate ctor
 review unionall and others
 
 fix unsafereadable in pretty: always do improved whitespace layout
@@ -47,6 +47,7 @@ liftapp
 inlist, inqueryexpr?
 go through old typecheck tests and reinsert most of them?
 -> want to get much better coverage of typechecking
+start looking at getting the type errors back up to the old level
 
 == small fixes
 
@@ -61,7 +62,7 @@ alter the postprocess for astinternal.hs: want to add haddock line for
    not recordize them
 
 get ghc 6.12.x working again: think it is just adding the
-   control.monad.error stuff back it
+   control.monad.error stuff back it(?)
 
 review examples: add new examples, clean up code, and example page on
    website. Add simple parsing and typechecking example to index page

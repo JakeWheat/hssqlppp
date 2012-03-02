@@ -1,6 +1,7 @@
 
 > -- | This module contains a collection of utility functions
 
+> {-# LANGUAGE FlexibleContexts #-}
 > module Database.HsSqlPpp.Utility
 >     (-- * ast utils
 >      resetAnnotations
@@ -28,6 +29,8 @@
 > import Database.HsSqlPpp.Parsing.Lexer
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Parser
+> import Text.Parsec.Prim
+> import Control.Monad.Identity
 
 > -- | replace all the annotations in a tree with 'emptyAnnotation'
 > resetAnnotations :: Data a => a -> a
@@ -35,7 +38,8 @@
 
 > -- | Gets the type of the sql source passed in. Expects the string to contain
 > -- a query expr
-> queryType :: Catalog -> String -> Maybe Type
+> queryType :: Stream s Identity Char =>
+>              Catalog -> s -> Maybe Type
 > queryType cat src = do
 >   ast <- either (const Nothing) Just $ parseQueryExpr defaultParseFlags "" Nothing src
 >   anType $ getAnnotation $ typeCheckQueryExpr defaultTypeCheckingFlags cat ast
