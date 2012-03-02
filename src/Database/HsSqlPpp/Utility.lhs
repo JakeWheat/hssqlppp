@@ -23,6 +23,7 @@
 > import Data.Generics.Uniplate.Data
 > import Data.Data
 > import Data.List
+> import Data.Maybe
 
 > import Database.HsSqlPpp.Internals.AstInternal
 > import Database.HsSqlPpp.Internals.TypesInternal
@@ -56,10 +57,10 @@
 > tcTreeInfo ast =
 >   let noTypeSEs :: [ScalarExpr]
 >       noTypeSEs = [x | x <- universeBi ast
->                      , anType (getAnnotation x) == Nothing]
+>                      , isNothing (anType (getAnnotation x))]
 >       noTypeQEs :: [QueryExpr]
 >       noTypeQEs = [x | x <- universeBi ast
->                      , anType (getAnnotation x) == Nothing]
+>                      , isNothing (anType (getAnnotation x))]
 >       -- get the list of type errors with source positions
 >       -- from the typechecked ast
 >       tes :: [([TypeError],Maybe SourcePosition)]

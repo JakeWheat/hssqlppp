@@ -194,7 +194,7 @@ against.
 >       lookupReturnType :: String -> [Type] -> Either [TypeError] Type
 >       lookupReturnType s1 args = fmap (\(_,_,r,_) -> r) $ lookupFn s1 args
 >       lookupFn :: String -> [Type] -> Either [TypeError] OperatorPrototype
->       lookupFn s1 = findCallMatch1 cat s1
+>       lookupFn = findCallMatch1 cat
 >       fnName = map toLower fnName'
 >       -- help the type inference for rowCtors. pretty unfinished. If we compare
 >       -- two compatible row constructors, then replace any unknown types with the
@@ -303,7 +303,7 @@ against.
 >       -------------
 >
 >       listCastPairs :: [Type] -> [ArgCastFlavour]
->       listCastPairs l = listCastPairs' inArgs l
+>       listCastPairs = listCastPairs' inArgs
 >                         where
 >                           listCastPairs' :: [Type] -> [Type] -> [ArgCastFlavour]
 >                           listCastPairs' (ia:ias) (ca:cas) =
@@ -468,7 +468,7 @@ against.
 >                           catsAtN = map (either (error . show) id . catTypeCategory cat) typesAtN
 >                       in case () of
 >                            --if any are string choose string
->                            _ | any (== "S") catsAtN -> Right "S"
+>                            _ | "S" `elem` catsAtN -> Right "S"
 >                              -- if all are same cat choose that
 >                              | all (== head catsAtN) catsAtN -> Right $ head catsAtN
 >                              -- otherwise no match, this will be
@@ -553,12 +553,11 @@ code is not as much of a mess as findCallMatch
 >   if allSameType then return (head inArgs) else do
 >   if allSameBaseType then return (head inArgsBase) else do
 >   --returnWhen allUnknown (UnknownType) $ do
->   when (not allSameCat) $ Left [IncompatibleTypeSet inArgs]
->   if (isJust targetType
->       && allConvertibleToFrom (fromMaybe (error "TypeConversion.resolveresultsettype 1: fromJust") targetType) inArgs)
+>   unless allSameCat $ Left [IncompatibleTypeSet inArgs]
+>   if isJust targetType
+>       && allConvertibleToFrom (fromMaybe (error "TypeConversion.resolveresultsettype 1: fromJust") targetType) inArgs
 >     then return (fromMaybe (error "TypeConversion.resolveresultsettype 2: fromJust") targetType)
->     else do
->   Left [IncompatibleTypeSet inArgs]
+>     else Left [IncompatibleTypeSet inArgs]
 >   where
 >      allSameType = all (== head inArgs) inArgs -- &&
 >                      --head inArgs /= UnknownType
@@ -606,7 +605,7 @@ cast empty array, where else can an empty array work?
 >                    _ -> from
 >     when (length f /= length to) $ Left [WrongNumberOfColumns]
 >     let ls = concat $ lefts $ zipWith (checkAssignmentValid cat) f to
->     when (not (null ls)) $ Left ls
+>     unless (null ls) $ Left ls
 
 
 ================================================================================

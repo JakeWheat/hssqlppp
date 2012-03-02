@@ -35,6 +35,7 @@ right choice, but it seems to do the job pretty well at the moment.
 >
 > import Control.Applicative
 > import Control.Monad.Identity
+> --import Control.Monad
 >
 > import Data.Maybe
 > import Data.Char
@@ -170,7 +171,7 @@ Parsing top level statements
 >     ,truncateSt
 >     ,copy
 >     ,do
->      isSqlServer >>= return . not >>= guard
+>      not <$> isSqlServer >>= guard
 >      set
 >     ,notify
 >     ,keyword "create" *>
@@ -679,14 +680,14 @@ parse it
 >                                                        ,("sql",Sql)]
 >         parseBody :: ParseFlags -> Language -> ScalarExpr -> MySourcePos
 >                   -> Either String FnBody
->         parseBody flg lang body (fileName,line,col) = do
+>         parseBody flg lang body (fileName,line,col) =
 >             case parseIt'
 >                   (functionBody lang)
 >                   flg
 >                   fileName
 >                   (Just (line,col))
 >                   (extrStr body) of
->                      Left er@(ParseErrorExtra _ _ _) -> Left $ show er
+>                      Left er@(ParseErrorExtra {}) -> Left $ show er
 >                      Right body' -> Right body'
 >         -- sql function is just a list of statements, the last one
 >         -- has the trailing semicolon optional
@@ -1076,7 +1077,7 @@ plpgsql statements
 >     (<.>) a b = (,) <$> a <*> b
 >     someStatements ss =
 >       if ss
->       then do
+>       then
 >           -- sql server only allows multiple statements if wrapped
 >           -- in a begin end block
 >           choice [keyword "begin"
@@ -1264,9 +1265,7 @@ bit better
 >          ,binary "<=" AssocRight
 >          ,binary ">=" AssocRight
 >          ,binary "||" AssocLeft]
->          ++ if d == PostgreSQLDialect
->             then [prefix "@" "@"]
->             else []
+>          ++ [prefix "@" "@" | d == PostgreSQLDialect]
 >          --in should be here, but is treated as a factor instead
 >          --between
 >          --overlaps
@@ -1300,21 +1299,21 @@ bit better
 >         Infix $ try $
 >           BinaryOp <$> pos <*> (nm emptyAnnotation t <$ opParse)
 >       prefCust ctor opParse t =
->         ctor $ try $ do
+>         ctor $ try $
 >           PrefixOp <$> pos <*> (nm emptyAnnotation t <$ opParse)
 >       postCust ctor opParse t =
->         ctor $ try $ do
+>         ctor $ try $
 >           PostfixOp <$> pos <*> (nm emptyAnnotation t <$ opParse)
 >       -- hack - haven't worked out why parsec buildexpression parser won't
 >       -- parse something like "not not EXPR" without parens so hack here
 >       notNot =
->         Prefix (try $ do
+>         Prefix $ try $ do
 >                       p1 <- pos
 >                       keyword "not"
 >                       p2 <- pos
 >                       keyword "not"
->                       return (\l -> PrefixOp p1 (nm p1 "!not")
->                                     $ PrefixOp p2 (nm p2 "!not") l))
+>                       return $ PrefixOp p1 (nm p1 "!not")
+>                                . PrefixOp p2 (nm p2 "!not")
 
 From postgresql src/backend/parser/gram.y
 
@@ -1661,7 +1660,7 @@ identifier parsing, quite a few variations ...
 parse x.y, x.y.z, etc.
 
 > qualIdSuffix :: ScalarExpr -> SParser ScalarExpr
-> qualIdSuffix (Identifier _p (Name _ is)) = do
+> qualIdSuffix (Identifier _p (Name _ is)) =
 >   qualIdX is
 
 > qualIdSuffix e = do
@@ -2053,7 +2052,7 @@ instead of failing with a no keyword error
 ignore reserved keywords completely
 
 > unrestrictedNameComponent :: SParser NameComponent
-> unrestrictedNameComponent = do
+> unrestrictedNameComponent =
 >   choice [Nmc <$> idString
 >          ,QNmc <$> qidString
 >          ,AntiNameComponent <$> splice 'm']
@@ -2298,7 +2297,7 @@ be an array or subselect, etc)
 > fixupTree =
 >     transformBi $ \x ->
 >       case x of
->              BinaryOp an op (expr1) (App _ fn (expr2s:expr3s))
+>              BinaryOp an op expr1 (App _ fn (expr2s:expr3s))
 >                | Name _ [Nmc fnm] <- fn
 >                , Just flav <- case map toLower fnm of
 >                                  "any" -> Just LiftAny

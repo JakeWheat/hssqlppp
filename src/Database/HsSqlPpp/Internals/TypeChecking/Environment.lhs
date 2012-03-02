@@ -92,7 +92,7 @@ TODO: remove the create prefixes
 >   return $ SimpleTref nm pub prv
 
 > envSelectListEnvironment :: [(String,Type)] -> Either [TypeError] Environment
-> envSelectListEnvironment cols = do
+> envSelectListEnvironment cols =
 >   return $ SelectListEnv $ map (first $ map toLower) cols
 
 
@@ -122,8 +122,7 @@ TODO: remove the create prefixes
 >   return $ JoinTref jts tref0 tref1
 
 > createCorrelatedSubqueryEnvironment :: Environment -> Environment -> Environment
-> createCorrelatedSubqueryEnvironment cenv env =
->   CSQEnv cenv env
+> createCorrelatedSubqueryEnvironment = CSQEnv
 
 > createTrefAliasedEnvironment :: String -> Maybe [String] -> Environment -> Environment
 > createTrefAliasedEnvironment = TrefAlias
@@ -134,10 +133,10 @@ TODO: remove the create prefixes
 > brokeEnvironment = BrokeEnvironment
 
 > isBroken :: Environment -> Bool
-> isBroken env = not $ null $ [() | BrokeEnvironment <- universeBi env]
+> isBroken env = not $ null [() | BrokeEnvironment <- universeBi env]
 
 > orderByEnvironment :: Environment -> Environment -> Environment
-> orderByEnvironment sl tr = OrderByEnvironment sl tr
+> orderByEnvironment = OrderByEnvironment
 
 -------------------------------------------------------
 
@@ -215,7 +214,7 @@ lookup and star expansion
 
 >     idens k = let i0 = is0 k
 >                   i1 = is1 k
->               in if (not (null i0) && (snd k) `elem` jnames)
+>               in if not (null i0) && snd k `elem` jnames
 >                  then i0
 >                  else i0 ++ i1
 
@@ -293,7 +292,7 @@ use listBindingsTypes to implement expandstar and lookupid
 
 > envExpandStar :: Maybe NameComponent -> Environment -> Either [TypeError] [((String,String),Type)]
 
-> envExpandStar nmc env = {-let r =-} envExpandStar2 nmc env
+> envExpandStar {-nmc env-} = {-let r =-} envExpandStar2 {-nmc env-}
 >                         {-in trace ("env expand star: " ++ show nmc ++ " " ++ show r)
 >                            r-}
 
@@ -302,7 +301,7 @@ use listBindingsTypes to implement expandstar and lookupid
 >   if isBroken env
 >   then Left []
 >   else
->     let st = (snd $ listBindingsTypes env) $ fmap nmcString nmc
+>     let st = snd (listBindingsTypes env) $ fmap nmcString nmc
 >     in if null st
 >        then case nmc of
 >               Just x -> Left [UnrecognisedCorrelationName $ nmcString x]

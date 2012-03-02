@@ -397,7 +397,7 @@ Conversion routines - convert Sql asts into Docs
 > statement _flg se ca (ContinueStatement ann lb) =
 >     annot ca ann <+> text "continue"
 >       <+> maybe empty text lb <> statementEnd se
-> statement flg se ca (Perform ann f@(App _ _ _)) =
+> statement flg se ca (Perform ann f@(App {})) =
 >     annot ca ann <+>
 >     text "perform" <+> scalExpr flg f <> statementEnd se
 > statement _ _ _ (Perform _ x) =
@@ -574,7 +574,7 @@ Statement components
 > tref _ (Tref _ f) = name f
 > tref flg (SubTref _ sub) =
 >   parens (queryExpr flg True True Nothing sub)
-> tref flg (FunTref _ f@(App _ _ _)) = scalExpr flg f
+> tref flg (FunTref _ f@(App {})) = scalExpr flg f
 > tref _flg (FunTref _ x) =
 >       error $ "internal error: node not supported in function tref: "
 >             ++ show x
@@ -613,7 +613,7 @@ syntax maybe should error instead of silently breaking
 
 > maybeParen :: PrettyPrintFlags -> TableRef -> Doc
 > --maybeParen flg t@(JoinTref {}) = parens $ tref flg t
-> maybeParen flg t = tref flg t
+> maybeParen = tref
 
 > direction :: Direction -> Doc
 > direction d = text $ case d of
@@ -809,7 +809,7 @@ syntax maybe should error instead of silently breaking
 >                         Distinct -> text "distinct")
 >                      <+> csvExp flg es
 >                      <+> orderBy flg o)
-> scalExpr _ (AggregateApp _ _ _ _) = error "bad syntax for aggregate function"
+> scalExpr _ (AggregateApp {}) = error "bad syntax for aggregate function"
 > scalExpr flg (Case _ whens els) =
 >   text "case"
 >   $+$ nest 2 (vcat (map whn whens)

@@ -13,7 +13,6 @@ http://msdn.microsoft.com/en-us/library/ms190309.aspx
 linked from here:
 http://blogs.msdn.com/b/craigfr/archive/2010/01/20/more-on-implicit-conversions.aspx
 
-> {-# LANGUAGE PatternGuards #-}
 > module Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
 >     (matchApp
 >     ,resolveResultSetType
@@ -66,7 +65,7 @@ This needs a lot more tests
 >            Nmc n -> map toLower n
 >            QNmc n -> n
 >            AntiNameComponent _ -> -- todo: use left instead of error
->              error $ "tried to find function matching an antinamecomponent"
+>              error "tried to find function matching an antinamecomponent"
 
  findCallMatch :: Catalog -> String -> [Type] ->  Either [TypeError] OperatorPrototype
  findCallMatch cat fnName' argsType =

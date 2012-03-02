@@ -318,7 +318,7 @@ functions and not in catalog values themselves.
 > ncStr (Nmc n) = map toLower n
 > ncStr (QNmc n) = n
 > ncStr (AntiNameComponent _n) =
->   error $ "tried to get the name component string of an anti name component"
+>   error "tried to get the name component string of an anti name component"
 
 todo: use left or something instead of error
 
@@ -520,7 +520,7 @@ to new code or deleted as typeconversion is rewritten
 >       _ -> Right $ S.member (from, to, ctx) (catCasts cat)
 >
 > catDomainBaseType :: Catalog -> Type -> Either [TypeError] Type
-> catDomainBaseType cat (ScalarType ty) = do
+> catDomainBaseType cat (ScalarType ty) =
 >   case M.lookup ty $ catDomainTypes cat of
 >     Just n -> Right $ ScalarType n
 >     Nothing -> Left [DomainDefNotFound $ ScalarType ty]

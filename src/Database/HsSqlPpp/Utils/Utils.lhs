@@ -36,8 +36,8 @@ This file contains some generic utility stuff
 >                                            (_:s'') -> split c s''
 >
 > npartition :: Eq b => (a -> b) -> [a] -> [(b,[a])]
-> npartition keyf l =
->   np [] l
+> npartition keyf =
+>   np []
 >   where
 >     np = foldl (\acc p -> insertWith (++) (keyf p) [p] acc)
 >

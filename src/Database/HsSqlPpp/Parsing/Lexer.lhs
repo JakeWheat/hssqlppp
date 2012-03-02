@@ -80,7 +80,7 @@ can be lost (e.g. something like "0.2" parsing to 0.199999999 float.
 >   where
 >     --lx :: SParser str [Token]
 >     lx = maybe (return ()) (\(l,c) -> setPosition (newPos f l c)) sp
->          >> (sqlTokens d)
+>          >> sqlTokens d
 
 ================================================================================
 
@@ -116,7 +116,7 @@ we read a normal token.
 >             [try sqlNumber
 >             ,try positionalArg
 >             ,try splice
->             ,try (sqlString)
+>             ,try sqlString
 >             ,try (idString d)
 >             ,try (qidString d)
 >             ,sqlSymbol d]
