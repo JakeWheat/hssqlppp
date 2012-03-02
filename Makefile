@@ -42,7 +42,7 @@
 # makefiles
 
 HC              = ghc
-HC_BASIC_OPTS   = -Wall -threaded -rtsopts
+HC_BASIC_OPTS   = -Wall -threaded -rtsopts -hide-all-packages -package base
 
 # add new source roots to this
 SRC_DIRS = src src-extra/catalogReader src-extra/chaos \
@@ -65,7 +65,7 @@ HC_INCLUDE_DIRS = -i$(subst $(space),:,$(SRC_DIRS))
 PACKAGES = haskell-src-exts uniplate mtl base containers parsec pretty \
 	syb transformers template-haskell test-framework groom \
 	test-framework-hunit HUnit HDBC HDBC-postgresql pandoc xhtml \
-	datetime split Diff
+	datetime split Diff text
 	#illuminate
 HC_PACKAGES = $(patsubst %,-package %,$(PACKAGES))
 
@@ -84,7 +84,6 @@ EXE_FILES = src-extra/tests/Tests \
 	src-extra/examples/MakeSelect \
 	src-extra/examples/Parse \
 	src-extra/examples/Parse2 \
-	src-extra/docutil/DevelTool \
 	src-extra/examples/Parse3 \
 	src-extra/examples/Lex \
 	src-extra/examples/TypeCheck3 \
@@ -95,7 +94,8 @@ EXE_FILES = src-extra/tests/Tests \
 	src-extra/examples/TypeCheckMystery \
 	src-extra/h7c/h7c \
 	src-extra/examples/FixSqlServerTpchSyntax \
-	src-extra/examples/QQ
+	src-extra/examples/QQ \
+#	src-extra/docutil/DevelTool
 
 #	src-extra/examples/ShowCatalog \
 #	src-extra/chaos/build.lhs

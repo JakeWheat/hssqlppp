@@ -4,7 +4,7 @@
 >
 >    Some effort is made produce human readable output.
 > -}
-> {-# LANGUAGE PatternGuards #-}
+> {-# LANGUAGE PatternGuards,OverloadedStrings,TypeSynonymInstances,FlexibleInstances #-}
 > module Database.HsSqlPpp.Pretty
 >     (--convert a sql ast to text
 >      printStatements
@@ -15,6 +15,7 @@
 >     ,PrettyPrintFlags(..)
 >     ,defaultPPFlags
 >     ,SQLSyntaxDialect(..)
+>     ,StringLike
 >     )
 >     where
 >
@@ -26,6 +27,8 @@
 > import Database.HsSqlPpp.Utils.Utils
 
 > import Database.HsSqlPpp.SqlDialect
+
+> import Database.HsSqlPpp.Internals.StringLike
 
 --------------------------------------------------------------------------------
 
@@ -44,13 +47,12 @@ adjusted to reject postgres only syntax when in sql server dialect
 >   }
 >   deriving (Show,Eq)
 
-
 > defaultPPFlags :: PrettyPrintFlags
 > defaultPPFlags = PrettyPrintFlags {ppDialect = PostgreSQLDialect
 >                                   ,unsafeReadable = False}
 
 > -- | Convert an ast back to valid SQL source.
-> printStatements :: PrettyPrintFlags -> StatementList -> String
+> printStatements :: StringLike t => PrettyPrintFlags -> StatementList -> t
 > printStatements f = printStatementsAnn f (const "")
 >
 > -- | Convert the ast back to valid source, and convert any annotations to
@@ -59,17 +61,17 @@ adjusted to reject postgres only syntax when in sql server dialect
 
 this needs some work
 
-> printStatementsAnn :: PrettyPrintFlags -> (Annotation -> String) -> StatementList -> String
+> printStatementsAnn :: StringLike t => PrettyPrintFlags -> (Annotation -> String) -> StatementList -> t
 > printStatementsAnn flg f ast =
->   render $ vcat (map (statement flg True f) ast) <> text "\n"
+>   pack $ render $ vcat (map (statement flg True f) ast) <> text "\n"
 
 > -- | pretty print a query expression
-> printQueryExpr :: PrettyPrintFlags -> QueryExpr -> String
-> printQueryExpr f ast = render (queryExpr f True True Nothing ast <> statementEnd True)
+> printQueryExpr :: StringLike t => PrettyPrintFlags -> QueryExpr -> t
+> printQueryExpr f ast = pack $ render (queryExpr f True True Nothing ast <> statementEnd True)
 
 > -- | pretty print a scalar expression
-> printScalarExpr :: PrettyPrintFlags -> ScalarExpr -> String
-> printScalarExpr f = render . scalExpr f
+> printScalarExpr :: StringLike t => PrettyPrintFlags -> ScalarExpr -> t
+> printScalarExpr f = pack . render . scalExpr f
 
 
 todo: this function (printQueryExprNice) avoids outputting table
