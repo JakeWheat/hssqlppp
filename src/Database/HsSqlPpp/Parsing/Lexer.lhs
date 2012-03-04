@@ -36,6 +36,9 @@ copy payload (used to lex copy from stdin data)
 > import Database.HsSqlPpp.Utils.Utils
 > -- import Database.HsSqlPpp.Ast.Name
 > import Database.HsSqlPpp.SqlDialect
+> {-import Prelude (String,Integer,Char,Eq,Show,FilePath,Either(..)
+>                ,Int,either,($),(==),(&&),otherwise,(++)
+>                ,replicate,concat,(.),Bool(..))-}
 
 ================================================================================
 
