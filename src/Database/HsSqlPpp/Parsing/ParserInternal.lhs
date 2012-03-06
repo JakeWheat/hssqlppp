@@ -2,7 +2,8 @@
 The main file for parsing sql, uses parsec. Not sure if parsec is the
 right choice, but it seems to do the job pretty well at the moment.
 
-> {-# LANGUAGE FlexibleContexts,ExplicitForAll,TupleSections,NoMonomorphismRestriction #-}
+> {-# LANGUAGE FlexibleContexts,ExplicitForAll,TupleSections,
+>              NoMonomorphismRestriction,OverloadedStrings #-}
 > -- | Functions to parse SQL.
 > module Database.HsSqlPpp.Parsing.ParserInternal
 >     (-- * Main
@@ -49,6 +50,10 @@ right choice, but it seems to do the job pretty well at the moment.
 > import Database.HsSqlPpp.Annotation as A
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.SqlDialect
+> import Data.Text (Text)
+> import qualified Data.Text as T
+> --import qualified Data.Text.Lazy as LT
+> import Text.Parsec.Text ()
 > --import Database.HsSqlPpp.Catalog
 > --import Debug.Trace
 > --import qualified Data.Text.Lazy as TL
@@ -269,7 +274,7 @@ maybe it should still do this since it would probably be a lot clearer
 >                 [do
 >                  isSqlServer >>= guard
 >                  optionMaybe $ try
->                      $ keyword "top" *> (NumberLit <$> pos <*> (show <$> integer))
+>                      $ keyword "top" *> (NumberLit <$> pos <*> ((T.pack . show) <$> integer))
 >                 ,return Nothing]
 >           -- todo: work out how to make this work properly - need to return
 >           -- the into
@@ -436,7 +441,7 @@ multiple rows to insert and insert from select statements
 >           r <- expr
 >           return $ SetClause p l r]
 
-> nm :: Annotation -> String -> Name
+> nm :: Annotation -> Text -> Name
 > nm a s = Name a [Nmc s]
 
 > delete :: SParser Statement
@@ -497,7 +502,7 @@ misc
 >               SetStr <$> pos <*> stringN
 >              ,SetId <$> pos <*> idString
 >              ,SetNum <$> pos <*> (try (fromInteger <$> integer)
->                                   <|> (read <$> numString))]
+>                                   <|> (read <$> T.unpack <$> numString))]
 >
 > notify :: SParser Statement
 > notify = Notify <$> pos
@@ -557,7 +562,7 @@ ddl
 > onDelete = onSomething "delete"
 > onUpdate = onSomething "update"
 >
-> onSomething :: String -> SParser Cascade
+> onSomething :: Text -> SParser Cascade
 > onSomething k = option Restrict $ try $ keyword "on"
 >                 *> keyword k *> cascade
 >
@@ -585,13 +590,13 @@ ddl
 >                 where
 >                   conName = try $ do
 >                             x <- idString
->                             if map toLower x `elem` [
+>                             if T.map toLower x `elem` [
 >                                     "unique"
 >                                    ,"primary"
 >                                    ,"check"
 >                                    ,"foreign"
 >                                    ,"references"]
->                               then fail $ "not keyword (constraint name): " ++ x
+>                               then fail $ "not keyword (constraint name): " ++ T.unpack x
 >                               else return x
 >
 > alterTable :: SParser Statement
@@ -946,10 +951,10 @@ plpgsql statements
 >               ,whileStatement p l
 >               ,loopStatement p l]
 
-> label :: SParser (Maybe String)
+> label :: SParser (Maybe Text)
 > label = optional (symbol "<<" *> idString <* symbol ">>")
 >
-> block :: Annotation -> Maybe String -> SParser Statement
+> block :: Annotation -> Maybe Text -> SParser Statement
 > block p l = Block p l
 >             <$> option [] declarePart
 >             <*> statementPart
@@ -1024,7 +1029,7 @@ plpgsql statements
 >                                      ,("exception", RException)
 >                                      ,("error", RError)]
 >
-> forStatement :: Annotation -> Maybe String -> SParser Statement
+> forStatement :: Annotation -> Maybe Text -> SParser Statement
 > forStatement p l = do
 >                keyword "for"
 >                start <- nameComponent
@@ -1039,11 +1044,11 @@ plpgsql statements
 >     theRest = keyword "loop" *> many plPgsqlStatement
 >               <* keyword "end" <* keyword "loop"
 >
-> whileStatement :: Annotation -> Maybe String -> SParser Statement
+> whileStatement :: Annotation -> Maybe Text -> SParser Statement
 > whileStatement p l = WhileStatement p l
 >                      <$> (keyword "while" *> expr <* keyword "loop")
 >                      <*> many plPgsqlStatement <* keyword "end" <* keyword "loop"
-> loopStatement :: Annotation -> Maybe String -> SParser Statement
+> loopStatement :: Annotation -> Maybe Text -> SParser Statement
 > loopStatement p l = LoopStatement p l
 >                     <$> (keyword "loop" *> many plPgsqlStatement <* keyword "end" <* keyword "loop")
 >
@@ -1117,7 +1122,7 @@ plpgsql statements
 >               <*> optional (symbol "=" *> expr)
 >     localVarName = do
 >       i <- idString
->       guard (head i == '@')
+>       guard (T.head i == '@')
 >       return i
 
 
@@ -1396,8 +1401,8 @@ and () is a syntax error.
 > integer :: SParser Integer
 > integer = do
 >   l <- numString
->   guard (all (`elem` digChars) l)
->   return $ read l
+>   guard (T.all (`elem` digChars) l)
+>   return $ read $ T.unpack l
 >   where
 >     digChars = concatMap show [(0::Int)..9]
 
@@ -1550,7 +1555,7 @@ a special case for them
 >   functionCallSuffix (Identifier p (Name p [i]))
 >   where
 >     kfs = ["any","all","isnull"]
->     iskfs (Nmc n) | map toLower n `elem` kfs = True
+>     iskfs (Nmc n) | T.map toLower n `elem` kfs = True
 >     iskfs _ = False
 
 >
@@ -1714,7 +1719,7 @@ these categories affect the parser and typechecker differently
 (the parser has to parse some reserved and 'not reserved but cannot be
 function or type' keywords as function names, maybe there are others)
 
-> reservedWords :: SParser [String]
+> reservedWords :: SParser [Text]
 > reservedWords = do
 >   ss <- isSqlServer
 >   if not ss
@@ -2038,15 +2043,15 @@ parser for a name component where you supply the exceptions to the
 reserved identifier list to say you want these to parse successfully
 instead of failing with a no keyword error
 
-> nameComponentAllows :: [String] -> SParser NameComponent
+> nameComponentAllows :: [Text] -> SParser NameComponent
 > nameComponentAllows allows = do
 >   p <- pos
 >   x <- unrestrictedNameComponent
 >   rw <- reservedWords
 >   case x of
->     Nmc n | map toLower n `elem` allows -> return x
->           | map toLower n `elem` rw ->
->               fail $ "no keywords " ++ show p ++ " " ++ n
+>     Nmc n | T.map toLower n `elem` allows -> return x
+>           | T.map toLower n `elem` rw ->
+>               fail $ "no keywords " ++ show p ++ " " ++ T.unpack n
 >     _ -> return x
 
 ignore reserved keywords completely
@@ -2077,29 +2082,29 @@ strings in sql server using single quotes.
 Utility parsers
 ===============
 
-> keyword :: String -> SParser ()
+> keyword :: Text -> SParser ()
 > keyword k = mytoken (\tok -> case tok of
 >                                IdStringTok i | lcase k == lcase i -> Just ()
 >                                _ -> Nothing)
 >                       where
->                         lcase = map toLower
+>                         lcase = T.map toLower
 >
-> idString :: SParser String
+> idString :: SParser Text
 > idString = mytoken (\tok -> case tok of
 >                                      IdStringTok i -> Just i
 >                                      _ -> Nothing)
-> qidString :: SParser String
+> qidString :: SParser Text
 > qidString = mytoken (\tok -> case tok of
 >                                      QIdStringTok i -> Just i
 >                                      _ -> Nothing)
 
-> splice :: Char -> SParser String
+> splice :: Char -> SParser Text
 > splice c = mytoken (\tok -> case tok of
 >                                SpliceTok c' i | c == c' -> Just i
 >                                _ -> Nothing)
 
 >
-> symbol :: String -> SParser ()
+> symbol :: Text -> SParser ()
 > symbol c = mytoken (\tok -> case tok of
 >                                    SymbolTok s | c==s -> Just ()
 >                                    _           -> Nothing)
@@ -2119,13 +2124,13 @@ Utility parsers
 > placeholder :: SParser ScalarExpr
 > placeholder = (Placeholder <$> pos) <* symbol "?"
 >
-> numString :: SParser String
+> numString :: SParser Text
 > numString = mytoken (\tok -> case tok of
 >                                     NumberTok n -> Just n
 >                                     _ -> Nothing)
 
 >
-> liftStringTok :: SParser String
+> liftStringTok :: SParser Text
 > liftStringTok = mytoken (\tok ->
 >                   case tok of
 >                            StringTok _ s -> Just s
@@ -2136,16 +2141,16 @@ Utility parsers
 >             [StringLit <$> pos <*> liftStringTok
 >              -- bit crap at the moment, not sure how to fix without
 >              -- mangling the ast types
->             ,StringLit <$> pos <*> ((\s -> "$s(" ++ s ++ ")") <$> splice 's')
+>             ,StringLit <$> pos <*> ((\s -> T.concat ["$s(",s,")"]) <$> splice 's')
 >             ]
 >
-> stringN :: SParser String
+> stringN :: SParser Text
 > stringN = mytoken (\tok ->
 >                   case tok of
 >                            StringTok _ s -> Just s
 >                            _ -> Nothing)
 
-> extrStr :: ScalarExpr -> String
+> extrStr :: ScalarExpr -> Text
 > extrStr (StringLit _ s) = s
 > extrStr x =
 >   error $ "internal error: extrStr not supported for this type " ++ show x
@@ -2185,7 +2190,7 @@ try each pair k,v in turn,
 if keyword k matches then return v
 doesn't really add a lot of value
 
-> matchAKeyword :: [(String, a)] -> SParser a
+> matchAKeyword :: [(Text, a)] -> SParser a
 > matchAKeyword [] = fail "no matches"
 > matchAKeyword ((k,v):kvs) = v <$ keyword k <|> matchAKeyword kvs
 
@@ -2299,7 +2304,7 @@ be an array or subselect, etc)
 >       case x of
 >              BinaryOp an op expr1 (App _ fn (expr2s:expr3s))
 >                | Name _ [Nmc fnm] <- fn
->                , Just flav <- case map toLower fnm of
+>                , Just flav <- case T.map toLower fnm of
 >                                  "any" -> Just LiftAny
 >                                  "some" -> Just LiftAny
 >                                  "all" -> Just LiftAll

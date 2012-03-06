@@ -1,5 +1,6 @@
 
-> {-# LANGUAGE QuasiQuotes #-}
+> {-# LANGUAGE QuasiQuotes,OverloadedStrings #-}
+
 > module Database.HsSqlPpp.Tests.TpchData
 >     (tpchQueries
 >     ,tpchCatalog) where

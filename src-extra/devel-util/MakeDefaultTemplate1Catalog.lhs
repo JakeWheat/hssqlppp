@@ -23,10 +23,11 @@
 > pre v = [$here|
 \begin{code}
 
-This file is auto generated, to regenerate use the
-regenDefaultTemplate1catalog.sh script. You will need postgresql
+This file is auto generated, to regenerate run
+make regenDefaultTemplate1Catalog. You will need postgresql
 installed to do this.
 
+> {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
 >      (defaultTemplate1Catalog) where
 >

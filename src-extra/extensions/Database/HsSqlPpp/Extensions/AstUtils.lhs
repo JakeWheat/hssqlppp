@@ -15,7 +15,7 @@ added.
 TODO: add test for recursive function, to make sure this code catches
 it and quits.
 
-> {-# LANGUAGE NoQuasiQuotes #-}
+> {-# LANGUAGE NoQuasiQuotes,OverloadedStrings #-}
 > module Database.HsSqlPpp.Extensions.AstUtils
 >     (getAstInfo
 >     ,getReferencedTableList
@@ -30,14 +30,15 @@ it and quits.
 > import Data.List
 > import Data.Maybe
 > --import Debug.Trace
+> import Data.Text (Text)
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
 >
 > data AstInfo = AstInfo {
->      functions :: [(String,Statement)]
->     ,views :: [(String,Statement)]
->     ,tables :: [(String,Statement)]
+>      functions :: [(Text,Statement)]
+>     ,views :: [(Text,Statement)]
+>     ,tables :: [(Text,Statement)]
 >     }
 >
 > getAstInfo :: [Statement] -> AstInfo
@@ -48,11 +49,11 @@ it and quits.
 
 > -- won't need this wrapper when the recursion loop detection logic
 > -- is in place
-> getReferencedTableList :: Data a => AstInfo -> a -> [String]
+> getReferencedTableList :: Data a => AstInfo -> a -> [Text]
 > getReferencedTableList asti a =
 >     nub $ getReferencedTableListI asti a
 >
-> getReferencedTableListI :: Data a => AstInfo -> a -> [String]
+> getReferencedTableListI :: Data a => AstInfo -> a -> [Text]
 > getReferencedTableListI asti a =
 >         doTables
 >         ++ doViews
@@ -66,25 +67,25 @@ it and quits.
 >       trefs = getTrefs a
 >       funrefs = getFunctionRefs a
 >
-> getTrefs :: Data a => a -> [String]
+> getTrefs :: Data a => a -> [Text]
 > getTrefs ast = [getTName tbl| Tref _ tbl <- universeBi ast]
 >
-> getTName :: Name -> String
+> getTName :: Name -> Text
 > getTName (Name _ ns) = ncStr $ last ns
 >
 > -- this is wrong because we don't take into account function overloading
-> getFunctionRefs :: Data a => a -> [String]
+> getFunctionRefs :: Data a => a -> [Text]
 > getFunctionRefs ast = [getTName fn | App _ fn _ <- universeBi ast]
 >
-> listFunctions :: Data a => a -> [(String,Statement)]
+> listFunctions :: Data a => a -> [(Text,Statement)]
 > listFunctions ast =
 >   [(getTName fn,f) | f@(CreateFunction _ fn _ _ _ _ _ _) <- universeBi ast]
 >
-> listViews :: Data a => a -> [(String,Statement)]
+> listViews :: Data a => a -> [(Text,Statement)]
 > listViews ast =
 >   [(getTName vn,v) | v@(CreateView _ vn _ _) <- universeBi ast]
 >
-> listTables :: Data a => a  -> [(String,Statement)]
+> listTables :: Data a => a  -> [(Text,Statement)]
 > listTables ast =
 >   [(getTName tn,t) | t@(CreateTable  _ tn _ _ ) <- universeBi ast]
 
@@ -99,5 +100,5 @@ it and quits.
 >       gsp = fromMaybe ("unknown",1,1) $ anSrc $ getAnnotation st
 >       adjSp sp1 = updateAnnotation (\a -> a {anSrc = Just sp1})
 
-> mname :: String -> Name
+> mname :: Text -> Name
 > mname s = Name emptyAnnotation [Nmc s]

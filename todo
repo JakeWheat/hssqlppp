@@ -1,7 +1,10 @@
-review api: only allow lazy text for input and output of sql source?
-or expose generic iface as well?
 -> what about the lexing tokens
+use string text in lexing tokens and in ast
 review the rest of the api and implementation
+review quoting of identifiers and strings:
+  step one is a writeup on how dbms' quoting works, start with pg
+   (+mssql, db2 possible)
+
 
 = next release, 0.5.0
 

@@ -1,6 +1,7 @@
 test adding qualifiers, tableref aliases, expanding *, adding select
 item aliases
 
+> {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Tests.TypeChecking.Rewrites
 >     (rewrites) where
 

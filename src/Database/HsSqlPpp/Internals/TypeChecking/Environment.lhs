@@ -6,7 +6,7 @@ catalog (so it is slightly misnamed), but focuses only on identifiers
 introduced by things like tablerefs, sub selects, plpgsql parameters
 and variables, etc.
 
-> {-# LANGUAGE DeriveDataTypeable,TupleSections,ScopedTypeVariables #-}
+> {-# LANGUAGE DeriveDataTypeable,TupleSections,ScopedTypeVariables,OverloadedStrings #-}
 > module Database.HsSqlPpp.Internals.TypeChecking.Environment
 >     (-- * abstract environment value
 >      Environment
@@ -38,6 +38,8 @@ and variables, etc.
 > import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal hiding (ncStr)
 > import Data.Generics.Uniplate.Data
+> import Data.Text (Text)
+> import qualified Data.Text as T
 
 ---------------------------------
 
@@ -53,17 +55,17 @@ and variables, etc.
 >                    EmptyEnvironment
 >                  -- | represents the bindings introduced by a tableref:
 >                  -- the name, the public fields, the private fields
->                  | SimpleTref String [(String,Type)] [(String,Type)]
+>                  | SimpleTref Text [(Text,Type)] [(Text,Type)]
 >                  -- | environment from joining two tables
->                  | JoinTref [(String,Type)] -- join ids
+>                  | JoinTref [(Text,Type)] -- join ids
 >                             Environment Environment
 >                  -- | environment from a sub select
->                  | SelectListEnv [(String,Type)]
+>                  | SelectListEnv [(Text,Type)]
 >                    -- | correlated subquery environment
 >                  | CSQEnv Environment -- outerenv
 >                           Environment -- main env
 >                    -- | an aliased tref
->                  | TrefAlias String (Maybe [String]) Environment
+>                  | TrefAlias Text (Maybe [Text]) Environment
 >                  | BrokeEnvironment
 >                    -- order by: can use the name of a select list column
 >                    -- or anything from the same environment which select
@@ -91,9 +93,9 @@ TODO: remove the create prefixes
 >   (nm,pub,prv) <- catLookupTableAndAttrs cat tbnm
 >   return $ SimpleTref nm pub prv
 
-> envSelectListEnvironment :: [(String,Type)] -> Either [TypeError] Environment
+> envSelectListEnvironment :: [(Text,Type)] -> Either [TypeError] Environment
 > envSelectListEnvironment cols =
->   return $ SelectListEnv $ map (first $ map toLower) cols
+>   return $ SelectListEnv $ map (first $ T.map toLower) cols
 
 
 > -- | create an environment as two envs joined together
@@ -105,7 +107,7 @@ TODO: remove the create prefixes
 >                           -> Either [TypeError] Environment
 > createJoinTrefEnvironment cat tref0 tref1 jsc = do
 >   -- todo: handle natural join case
->   (jids::[String]) <- case jsc of
+>   (jids::[Text]) <- case jsc of
 >             Nothing -> do
 >                        j0 <- fmap (map (snd . fst)) $ envExpandStar Nothing tref0
 >                        j1 <- fmap (map (snd . fst)) $ envExpandStar Nothing tref1
@@ -124,7 +126,7 @@ TODO: remove the create prefixes
 > createCorrelatedSubqueryEnvironment :: Environment -> Environment -> Environment
 > createCorrelatedSubqueryEnvironment = CSQEnv
 
-> createTrefAliasedEnvironment :: String -> Maybe [String] -> Environment -> Environment
+> createTrefAliasedEnvironment :: Text -> Maybe [Text] -> Environment -> Environment
 > createTrefAliasedEnvironment = TrefAlias
 
 > -- | represents type check failure upstream, don't produce additional
@@ -150,8 +152,8 @@ implicit correlation names, ambigous identifiers, etc.
 for each environment type, provide two functions which do identifier
 lookup and star expansion
 
-> listBindingsTypes :: Environment -> ((Maybe String,String) -> [((String,String),Type)]
->                                     ,Maybe String -> [((String,String),Type)] -- star expand
+> listBindingsTypes :: Environment -> ((Maybe Text,Text) -> [((Text,Text),Type)]
+>                                     ,Maybe Text -> [((Text,Text),Type)] -- star expand
 >                                     )
 > listBindingsTypes EmptyEnvironment = (const [],const [])
 > listBindingsTypes BrokeEnvironment = (const [],const [])
@@ -172,7 +174,7 @@ lookup and star expansion
 >      then    --really hacky, assume the ids come out of the star expansion in same order
 >              -- almost certainly wrong some of the time
 >              case findIndex (==n) cs of
->                Just i -> let s :: [((String, String), Type)]
+>                Just i -> let s :: [((Text, Text), Type)]
 >                              s = (snd (listBindingsTypes env) Nothing)
 >                          in {-trace ("getit : " ++ show (i,show s))
 >                                      $ -}
@@ -187,7 +189,7 @@ lookup and star expansion
 >                   -- if there are not enough, the extras are kept without
 >                   -- being renamed (think this is correct)
 >                   repColNames = map Just cs ++ repeat Nothing
->                   aliasize :: [((String, String), Type)] -> [((String, String), Type)]
+>                   aliasize :: [((Text, Text), Type)] -> [((Text, Text), Type)]
 >                   aliasize =
 >                     zipWith (\r ((_,n),t) ->
 >                              case r of
@@ -282,7 +284,7 @@ for star expand, the outer env is ignored
 >   ,snd $ listBindingsTypes env)
 
 
-> addQual :: String -> [(String,Type)] -> [((String,String),Type)]
+> addQual :: Text -> [(Text,Type)] -> [((Text,Text),Type)]
 > addQual q = map (\(n,t) -> ((q,n),t))
 
 
@@ -290,13 +292,13 @@ for star expand, the outer env is ignored
 
 use listBindingsTypes to implement expandstar and lookupid
 
-> envExpandStar :: Maybe NameComponent -> Environment -> Either [TypeError] [((String,String),Type)]
+> envExpandStar :: Maybe NameComponent -> Environment -> Either [TypeError] [((Text,Text),Type)]
 
 > envExpandStar {-nmc env-} = {-let r =-} envExpandStar2 {-nmc env-}
 >                         {-in trace ("env expand star: " ++ show nmc ++ " " ++ show r)
 >                            r-}
 
-> envExpandStar2 :: Maybe NameComponent -> Environment -> Either [TypeError] [((String,String),Type)]
+> envExpandStar2 :: Maybe NameComponent -> Environment -> Either [TypeError] [((Text,Text),Type)]
 > envExpandStar2 nmc env =
 >   if isBroken env
 >   then Left []
@@ -308,14 +310,14 @@ use listBindingsTypes to implement expandstar and lookupid
 >               Nothing -> Left [BadStarExpand]
 >        else Right st
 
-> nmcString :: NameComponent -> String
+> nmcString :: NameComponent -> Text
 > nmcString (QNmc n) = n
-> nmcString (Nmc n) = map toLower n
+> nmcString (Nmc n) = T.map toLower n
 > -- todo: don't use error
 > nmcString (AntiNameComponent _) = error "tried to get ncstr of antinamecomponent"
 
 > envLookupIdentifier :: [NameComponent] -> Environment
->                      -> Either [TypeError] ((String,String), Type)
+>                      -> Either [TypeError] ((Text,Text), Type)
 > envLookupIdentifier nmc env = --trace ("lookup: " ++ show nmc  ++ "\n" ++ groom env) $
 >   if isBroken env
 >   then Left []
@@ -338,7 +340,7 @@ use listBindingsTypes to implement expandstar and lookupid
 >         [b] -> ((na,keepcase b nb),t)
 >         _ -> error "too many nmc components in envlookupiden(2)"
 >     keepcase orig new = -- sanity check: make sure the nmcs are equal
->                         if map toLower new == nmcString orig
+>                         if T.map toLower new == nmcString orig
 >                         then noLower orig
 >                         else new
 >     noLower (QNmc n) = n

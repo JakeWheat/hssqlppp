@@ -101,7 +101,7 @@ sem ScalarExpr
         -- probably the support for different syntax for numbers
         -- needs to improve a lot then this won't be possible any
         -- more (e.g. 10e-5)
-        loc.tpe = Right $ if all (`elem` @loc.digChars) @d
+        loc.tpe = Right $ if T.all (`elem` @loc.digChars) @d
                           then typeInt
                           else typeNumeric
         loc.digChars = concatMap show [(0::Int)..9]
@@ -221,7 +221,7 @@ op calls, fn calls, etc.
 tcAppLike :: SQLSyntaxDialect -> Catalog -> Name -> [Maybe Type] -> Either [TypeError] ([Type],Type)
 
 tcAppLike d cat anm@(Name _ [Nmc dd]) [_,a0,a1]
-    | map toLower dd == "datediff" = do
+    | T.map toLower dd == "datediff" = do
   -- dodgy hack for datediff
   tys <- mapM (maybe (Left []) Right) [a0,a1]
   let Name _ ns = anm

@@ -45,7 +45,7 @@ indexes
 sequences
 
 
-> {-# LANGUAGE DeriveDataTypeable #-}
+> {-# LANGUAGE DeriveDataTypeable,OverloadedStrings #-}
 >
 > module Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 >     (
@@ -79,7 +79,7 @@ sequences
 
 >
 > import Control.Monad
-> import Data.List
+> --import Data.List
 > import Data.Data
 > import Data.Char
 > import Data.Maybe
@@ -88,8 +88,11 @@ sequences
 > import qualified Data.Set as S
 > import Database.HsSqlPpp.Internals.TypesInternal
 > --import Database.HsSqlPpp.Utils.Utils
+> import Data.Text (Text)
+> import qualified Data.Text as T
+> --import qualified Data.Text.Lazy as LT
 
--------------------------------------------------------------
+-----------------------------------
 
 types:
 
@@ -159,7 +162,7 @@ catalog values
 
 > -- | represents the name of something in the catalog, when schema
 > -- support is added then this will change to (String,String)
-> type CatName = String
+> type CatName = Text
 
 > data CompositeFlavour = Composite | TableComposite | ViewComposite
 >                         deriving (Eq,Ord,Show)
@@ -176,8 +179,8 @@ catalog values
 >      --,catEnumTypes :: {[(String,[String])]}
 >     ,catCompositeTypes :: M.Map CatName
 >                                 (CompositeFlavour
->                                 ,[(String,CatName)] -- public attrs
->                                 ,[(String,CatName)])-- system columns
+>                                 ,[(Text,CatName)] -- public attrs
+>                                 ,[(Text,CatName)])-- system columns
 >     ,catArrayTypes :: M.Map CatName CatName --pg array type name, base type name
 >     ,catPrefixOps :: M.Map CatName [OperatorPrototype]
 >     ,catPostfixOps :: M.Map CatName [OperatorPrototype]
@@ -185,11 +188,11 @@ catalog values
 >     ,catFunctions :: M.Map CatName [OperatorPrototype]
 >     ,catAggregateFunctions :: M.Map CatName [OperatorPrototype]
 >     ,catWindowFunctions :: M.Map CatName [OperatorPrototype]
->     ,catTables :: M.Map CatName ([(String,Type)] -- public attrs
->                                 ,[(String,Type)]) -- system columns
+>     ,catTables :: M.Map CatName ([(Text,Type)] -- public attrs
+>                                 ,[(Text,Type)]) -- system columns
 >     -- needs more work:
 >     ,catCasts :: S.Set (Type,Type,CastContext)
->     ,catTypeCategories :: M.Map Type (String,Bool)
+>     ,catTypeCategories :: M.Map Type (Text,Bool)
 >      -- save the updates
 >     ,catUpdates :: [CatalogUpdate]
 >     }
@@ -307,15 +310,15 @@ The name components are only used here so that the logic for ignoring
 or respecting case is in one place, these are only used in the query
 functions and not in catalog values themselves.
 
-> data NameComponent = Nmc String
->                    | QNmc String -- quoted
->                    | AntiNameComponent String
+> data NameComponent = Nmc Text
+>                    | QNmc Text -- quoted
+>                    | AntiNameComponent Text
 >                      deriving (Data,Eq,Show,Typeable,Ord)
 > -- this is a transition function
 > -- it should be removed when ready, since all the code
 > -- should be working with NameComponents directly
-> ncStr :: NameComponent -> String
-> ncStr (Nmc n) = map toLower n
+> ncStr :: NameComponent -> Text
+> ncStr (Nmc n) = T.map toLower n
 > ncStr (QNmc n) = n
 > ncStr (AntiNameComponent _n) =
 >   error "tried to get the name component string of an anti name component"
@@ -348,7 +351,7 @@ todo: use left or something instead of error
 >     -- | register a cast in the catalog
 >   | CatCreateCast CatName CatName CastContext
 >     -- | register a type category for a type (used in the implicit cast resolution)
->   | CatCreateTypeCategoryEntry CatName (String,Bool)
+>   | CatCreateTypeCategoryEntry CatName (Text,Bool)
 >     deriving (Eq,Ord,Typeable,Data,Show)
 
 > -- | Applies a list of 'CatalogUpdate's to an 'Catalog' value
@@ -437,7 +440,7 @@ queries
 > getCatName :: [NameComponent] -> CatName
 > getCatName [] = error "empty name component in catalog code"
 > getCatName ncs = case last ncs of
->                                Nmc n -> map toLower n
+>                                Nmc n -> T.map toLower n
 >                                QNmc n -> n
 
 
@@ -460,7 +463,7 @@ queries
 > -- with quoting), and the public and private attr names
 > catLookupTableAndAttrs :: Catalog
 >                        -> [NameComponent]
->                        -> Either [TypeError] (String,[(String,Type)], [(String,Type)])
+>                        -> Either [TypeError] (Text,[(Text,Type)], [(Text,Type)])
 > catLookupTableAndAttrs cat nmcs = do
 >   let n = getCatName nmcs
 >   (pu,pv) <- maybe (Left [UnrecognisedRelation n]) Right
@@ -499,8 +502,8 @@ to new code or deleted as typeconversion is rewritten
 >                  | ExplicitCastContext
 >                    deriving (Eq,Show,Ord,Typeable,Data)
 
-> catCompositePublicAttrs :: Catalog -> [CompositeFlavour] -> String
->                   -> Either [TypeError] [(String,Type)]
+> catCompositePublicAttrs :: Catalog -> [CompositeFlavour] -> Text
+>                   -> Either [TypeError] [(Text,Type)]
 > catCompositePublicAttrs cat _flvs ty = do
 >    (_,a,_) <- catLookupTableAndAttrs cat [Nmc ty]
 >    return a
@@ -526,18 +529,18 @@ to new code or deleted as typeconversion is rewritten
 >     Nothing -> Left [DomainDefNotFound $ ScalarType ty]
 > catDomainBaseType _cat ty = Left [DomainDefNotFound ty]
 >
-> catLookupFns :: Catalog -> String -> [OperatorPrototype]
+> catLookupFns :: Catalog -> Text -> [OperatorPrototype]
 > catLookupFns cat name =
 >    catGetOpsMatchingName cat [Nmc name]
 
-> catTypeCategory :: Catalog -> Type -> Either [TypeError] String
+> catTypeCategory :: Catalog -> Type -> Either [TypeError] Text
 > catTypeCategory cat ty =
 >   fmap fst $ catGetCategoryInfo cat ty
 
-> isOperatorName :: String -> Bool
-> isOperatorName = any (`elem` "+-*/<>=~!@#%^&|`?.")
+> isOperatorName :: Text -> Bool
+> isOperatorName = T.any (`elem` "+-*/<>=~!@#%^&|`?.")
 
-> catGetCategoryInfo :: Catalog -> Type -> Either [TypeError] (String, Bool)
+> catGetCategoryInfo :: Catalog -> Type -> Either [TypeError] (Text, Bool)
 > catGetCategoryInfo cat ty =
 >   case ty of
 >     Pseudo (SetOfType _) -> Right ("", False)

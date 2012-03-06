@@ -17,7 +17,7 @@ in postgresql.
 just hack for operators for now: if one argument is a number type, and
 the other is a text type, then cast the text to number.
 
-> {-# LANGUAGE PatternGuards #-}
+> {-# LANGUAGE PatternGuards,OverloadedStrings #-}
 > module Database.HsSqlPpp.Internals.TypeChecking.SqlTypeConversion (
 >                        findCallMatch
 >                       ) where
@@ -34,8 +34,9 @@ the other is a text type, then cast the text to number.
 > --import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Internals.TypeChecking.OldTediousTypeUtils
 > import qualified Database.HsSqlPpp.Internals.TypeChecking.OldTypeConversion as T
+> import Data.Text (Text)
 
-> findCallMatch :: Catalog -> String -> [Type] ->  Either [TypeError] OperatorPrototype
+> findCallMatch :: Catalog -> Text -> [Type] ->  Either [TypeError] OperatorPrototype
 > findCallMatch cat fnName argsType =
 >   case argsType of
 >      [a,b] | Just x <- checkOperator cat fnName argsType -> Right x
@@ -50,7 +51,7 @@ match an exact operator itself with two args the same numeric type
 - in this case, cast the text arg to the numeric type and return a match
 
 
-> checkOperator :: Catalog -> String -> [Type] -> Maybe OperatorPrototype
+> checkOperator :: Catalog -> Text -> [Type] -> Maybe OperatorPrototype
 > checkOperator cat fnName [a,b] | Just t <- ty a b =
 >   -- have the argument type in t
 >   -- find all the matching fns by name

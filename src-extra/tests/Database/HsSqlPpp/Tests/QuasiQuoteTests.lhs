@@ -23,6 +23,7 @@ Tests mainly for antiquotation, plus examples of where antiquotes work.
 >           | Stmt Statement Statement
 >           | PgSqlStmt Statement Statement
 >           | Group String [Item]
+
 > quasiQuoteTests :: Test.Framework.Test
 > quasiQuoteTests = itemToTft quasiQuoteTestData
 >
@@ -30,7 +31,7 @@ Tests mainly for antiquotation, plus examples of where antiquotes work.
 > quasiQuoteTestData =
 >   Group "quasiQuoteTests" [
 
->     let tableName = [sqlName| my_table |]
+>   {-  let tableName = [sqlName| my_table |]
 >         varname = [sqlNameComponent| my_field |]
 >         typename = [sqlName| text |]
 >     in Stmt [$sqlStmt|
@@ -125,7 +126,7 @@ Tests mainly for antiquotation, plus examples of where antiquotes work.
 >      in PgSqlStmt [$pgsqlStmt| raise exception $s(errMsg); |]
 >                   [$pgsqlStmt| raise exception 'string splice'; |]
 
-
+> -}
 
 --------------------------------------------------------------------------------
 

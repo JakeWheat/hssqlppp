@@ -7,6 +7,7 @@ reflects.
 
 There are no tests for invalid syntax at the moment.
 
+> {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Tests.Parsing.ParserTests
 >     (parserTests
 >     ,parserTestData
@@ -45,6 +46,8 @@ There are no tests for invalid syntax at the moment.
 > import Database.HsSqlPpp.Tests.Parsing.SqlServer
 
 > import Database.HsSqlPpp.Tests.TestUtils
+> import Data.Text (Text)
+> import qualified Data.Text as T
 
 > parserTests :: Test.Framework.Test
 > parserTests = itemToTft parserTestData
@@ -81,50 +84,50 @@ Unit test helpers
 >                        then SQLServerDialect
 >                        else PostgreSQLDialect) a b
 > --itemToTft (MSStmt a b) = testParseStatements a b
-> itemToTft (Group s is) = testGroup s $ map itemToTft is
+> itemToTft (Group s is) = testGroup (T.unpack s) $ map itemToTft is
 >
-> testParseScalarExpr :: String -> ScalarExpr -> Test.Framework.Test
+> testParseScalarExpr :: Text -> ScalarExpr -> Test.Framework.Test
 > testParseScalarExpr src ast =
 >   parseUtil src ast (parseScalarExpr defaultParseFlags "" Nothing)
 >                     (parseScalarExpr defaultParseFlags "" Nothing)
 >                     (printScalarExpr defaultPPFlags)
-> testParseQueryExpr :: String -> QueryExpr -> Test.Framework.Test
+> testParseQueryExpr :: Text -> QueryExpr -> Test.Framework.Test
 > testParseQueryExpr src ast =
 >   parseUtil src ast (parseQueryExpr defaultParseFlags "" Nothing)
 >                     (parseQueryExpr defaultParseFlags "" Nothing)
 >                     (printQueryExpr defaultPPFlags)
 
 >
-> testParseStatements :: SQLSyntaxDialect -> String -> [Statement] -> Test.Framework.Test
+> testParseStatements :: SQLSyntaxDialect -> Text -> [Statement] -> Test.Framework.Test
 > testParseStatements flg src ast =
 >   let parse = parseStatements defaultParseFlags {pfDialect=flg} "" Nothing
 >       pp = printStatements defaultPPFlags {ppDialect=flg}
 >   in parseUtil src ast parse parse pp
 >
-> testParsePlpgsqlStatements :: SQLSyntaxDialect -> String -> [Statement] -> Test.Framework.Test
+> testParsePlpgsqlStatements :: SQLSyntaxDialect -> Text -> [Statement] -> Test.Framework.Test
 > testParsePlpgsqlStatements flg src ast =
 >   parseUtil src ast (parsePlpgsql defaultParseFlags {pfDialect=flg} "" Nothing)
 >                     (parsePlpgsql defaultParseFlags {pfDialect=flg} "" Nothing)
 >                     (printStatements defaultPPFlags {ppDialect=flg})
 >
 > parseUtil :: (Show t, Eq b, Show b, Data b) =>
->              String
+>              Text
 >           -> b
->           -> (String -> Either t b)
->           -> (String -> Either t b)
->           -> (b -> String)
+>           -> (Text -> Either t b)
+>           -> (Text -> Either t b)
+>           -> (b -> Text)
 >           -> Test.Framework.Test
-> parseUtil src ast parser reparser printer = testCase ("parse " ++ src) $
+> parseUtil src ast parser reparser printer = testCase ("parse " ++ T.unpack src) $
 >   case parser src of
 >     Left er -> assertFailure $ show er
 >     Right ast' -> do
 >       when (ast /= resetAnnotations ast') $ do
 >         putStrLn $ groomNoAnns ast
 >         putStrLn $ groomNoAnns $ resetAnnotations ast'
->       assertEqual ("parse " ++ src) ast $ resetAnnotations ast'
+>       assertEqual ("parse " ++ T.unpack src) ast $ resetAnnotations ast'
 >       case reparser (printer ast) of
->         Left er -> assertFailure $ "reparse\n" ++ (printer ast) ++ "\n" ++ show er ++ "\n" -- ++ pp ++ "\n"
->         Right ast'' -> assertEqual ("reparse: " ++ printer ast) ast $ resetAnnotations ast''
+>         Left er -> assertFailure $ "reparse\n" ++ (T.unpack $ printer ast) ++ "\n" ++ show er ++ "\n" -- ++ pp ++ "\n"
+>         Right ast'' -> assertEqual ("reparse: " ++ T.unpack (printer ast)) ast $ resetAnnotations ast''
 
 ~~~~
 TODO

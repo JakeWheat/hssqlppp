@@ -1,5 +1,6 @@
 
 
+> {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Tests.TypeChecking.TrefIdentifiers
 >     (trefIdentifiers) where
 

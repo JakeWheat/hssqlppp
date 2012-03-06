@@ -9,6 +9,7 @@
 > import Database.HsSqlPpp.Ast
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
+> import qualified Data.Text as T
 
 > combineQueryExprs :: Item
 > combineQueryExprs =
@@ -57,6 +58,6 @@
 >              {selSelectList = sl [si $ ei "a"]
 >              ,selTref = [tref "tbl1"]}
 >      sel :: Int -> QueryExpr
->      sel n = makeSelect {selSelectList = sl [si $ num $ show n]}
+>      sel n = makeSelect {selSelectList = sl [si $ num $ T.pack $ show n]}
 >      q = QueryExpr
 >      cq = CombineQueryExpr ea

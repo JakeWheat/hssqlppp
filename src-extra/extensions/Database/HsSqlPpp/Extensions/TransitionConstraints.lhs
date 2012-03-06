@@ -10,7 +10,7 @@ I'm still not sure transition constraints like this are
 useful. Something better might be regular constraints on
 temporal relations.
 
-> {-# LANGUAGE QuasiQuotes, ScopedTypeVariables #-}
+> {-# LANGUAGE QuasiQuotes, ScopedTypeVariables,OverloadedStrings #-}
 >
 > module Database.HsSqlPpp.Extensions.TransitionConstraints
 >     where

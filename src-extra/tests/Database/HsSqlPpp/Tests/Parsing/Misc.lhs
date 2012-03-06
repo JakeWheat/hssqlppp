@@ -7,6 +7,7 @@ reflects.
 
 There are no tests for invalid syntax at the moment.
 
+> {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Tests.Parsing.Misc (misc) where
 >
 > import Database.HsSqlPpp.Ast

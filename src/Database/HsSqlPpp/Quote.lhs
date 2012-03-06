@@ -1,4 +1,7 @@
 
+Quasi quoting isn't currently working, it errors when using it during
+compile
+
 > {- | A quasiquoter for SQL. Antiquoting is a bit inconsistent.
 >
 > Example:
@@ -61,7 +64,7 @@ multiple statements
 use haskell syntax inside antiquotes
 
 >
-> {-# LANGUAGE ScopedTypeVariables #-}
+> {-# LANGUAGE ScopedTypeVariables,StandaloneDeriving #-}
 >
 > module Database.HsSqlPpp.Quote
 >     (sqlStmts,sqlStmt,pgsqlStmts,pgsqlStmt,sqlExpr,sqlName,sqlNameComponent) where
@@ -71,16 +74,23 @@ use haskell syntax inside antiquotes
 > import Data.Generics
 > import Data.List
 >
-> import Database.HsSqlPpp.Parsing.ParserInternal
+> import qualified Database.HsSqlPpp.Parsing.ParserInternal as P
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Ast hiding (Name)
 > import qualified  Database.HsSqlPpp.Ast as A
+> import qualified Data.Text as T
+> --import Data.Data
+
+> import Data.Text ()
+
+> -- Control.Monad.Identity
+> --import Text.Parsec
 
 public api: the quasiquote functions
 
 > -- | quotes Statements
 > sqlStmts :: QuasiQuoter
-> sqlStmts = makeQQ $ parseStatements defaultParseFlags
+> sqlStmts = makeQQ $ parseStatements P.defaultParseFlags
 >
 > -- | quotes a single Statement
 > sqlStmt :: QuasiQuoter
@@ -88,7 +98,7 @@ public api: the quasiquote functions
 >
 > -- | quotes plpgsql Statements
 > pgsqlStmts :: QuasiQuoter
-> pgsqlStmts = makeQQ $ parsePlpgsql defaultParseFlags
+> pgsqlStmts = makeQQ $ parsePlpgsql P.defaultParseFlags
 >
 > -- | quotes a plpgsql Statement
 > pgsqlStmt :: QuasiQuoter
@@ -96,15 +106,15 @@ public api: the quasiquote functions
 
 > -- | quotes a ScalarExpr
 > sqlExpr :: QuasiQuoter
-> sqlExpr = makeQQ $ parseScalarExpr defaultParseFlags
+> sqlExpr = makeQQ $ parseScalarExpr P.defaultParseFlags
 
 > -- | quotes a Name
 > sqlName :: QuasiQuoter
-> sqlName = makeQQ $ parseName defaultParseFlags
+> sqlName = makeQQ $ parseName P.defaultParseFlags
 
 > -- | quotes a Name
 > sqlNameComponent :: QuasiQuoter
-> sqlNameComponent = makeQQ $ parseNameComponent defaultParseFlags
+> sqlNameComponent = makeQQ $ parseNameComponent P.defaultParseFlags
 
 
 boilerplate utils to hook everything together
@@ -159,14 +169,14 @@ exactly one statement
 
 > parseOnePlpgsql :: Parser String Statement
 > parseOnePlpgsql f sp s =
->     case parsePlpgsql defaultParseFlags f sp s of
+>     case parsePlpgsql P.defaultParseFlags f sp s of
 >       Right [st] -> Right st
 >       Right _ -> Left "got multiple statements"
 >       Left e -> Left $ show e
 >
 > parseOneStatement :: Parser String Statement
 > parseOneStatement f sp s =
->     case parseStatements defaultParseFlags f sp s of
+>     case parseStatements P.defaultParseFlags f sp s of
 >       Right [st] -> Right st
 >       Right _ -> Left "got multiple statements"
 >       Left e -> Left $ show e
@@ -190,7 +200,7 @@ position from the matched statements.
 > antiExpP v = fmap varP $ antiExp v
 >
 > antiExp :: ScalarExpr -> Maybe Name
-> antiExp (AntiScalarExpr v) = Just $ mkName v
+> antiExp (AntiScalarExpr v) = Just $ mkName $ T.unpack v
 > antiExp _ = Nothing
 
 
@@ -201,7 +211,7 @@ position from the matched statements.
 > antiNameP v = fmap varP $ antiName v
 >
 > antiName :: A.Name -> Maybe Name
-> antiName (AntiName v) = Just $ mkName v
+> antiName (AntiName v) = Just $ mkName $ T.unpack v
 > antiName _ = Nothing
 
 > antiNameComponentE :: NameComponent -> Maybe ExpQ
@@ -211,7 +221,7 @@ position from the matched statements.
 > antiNameComponentP v = fmap varP $ antiNameComponent v
 >
 > antiNameComponent :: NameComponent -> Maybe Name
-> antiNameComponent (AntiNameComponent v) = Just $ mkName v
+> antiNameComponent (AntiNameComponent v) = Just $ mkName $ T.unpack v
 > antiNameComponent _ = Nothing
 
 
@@ -223,7 +233,7 @@ position from the matched statements.
 > antiStatementP v = fmap varP $ antiStatement v
 >
 > antiStatement :: Statement -> Maybe Name
-> antiStatement (AntiStatement v) = Just $ mkName v
+> antiStatement (AntiStatement v) = Just $ mkName $ T.unpack v
 > antiStatement _ = Nothing
 
 
@@ -266,11 +276,11 @@ nodes and my generics skills aren't up to the task.
 
 >
 > antiTriggerEventE :: TriggerEvent -> Maybe ExpQ
-> antiTriggerEventE (AntiTriggerEvent v) = Just $ varE $ mkName v
+> antiTriggerEventE (AntiTriggerEvent v) = Just $ varE $ mkName $ T.unpack v
 > antiTriggerEventE _ = Nothing
 
 > antiTriggerEventP :: TriggerEvent -> Maybe PatQ
-> antiTriggerEventP (AntiTriggerEvent v) = Just $ varP $ mkName v
+> antiTriggerEventP (AntiTriggerEvent v) = Just $ varP $ mkName $ T.unpack v
 > antiTriggerEventP _ = Nothing
 
 
@@ -280,3 +290,48 @@ makeantinodes, and adding in lexing and parsing support - actually
 using wildcards is now working with the annotation approach above
 
 also, how to use haskell syntax in splices
+
+----------------------------------
+
+> parseStatements :: P.ParseFlags -- ^ parse options
+>                 -> FilePath -- ^ filename to use in errors
+>                 -> Maybe (Int,Int) -- ^ set the line number and column number
+>                                    -- of the first char in the source (used in annotation)
+>                 -> String -- ^ a string containing the sql to parse
+>                 -> Either P.ParseErrorExtra [Statement]
+> parseStatements = P.parseStatements
+
+> parseQueryExpr :: P.ParseFlags -- ^ parse options
+>                -> FilePath -- ^ filename to use in errors
+>                -> Maybe (Int,Int) -- ^ set the line number and column number
+>                -> String -- ^ a string containing the sql to parse
+>                -> Either P.ParseErrorExtra QueryExpr
+> parseQueryExpr = P.parseQueryExpr
+
+> parseScalarExpr :: P.ParseFlags -- ^ parse options
+>                 -> FilePath -- ^ filename to use in errors
+>                 -> Maybe (Int,Int) -- ^ set the line number and column number
+>                 -> String -- ^ a string containing the sql to parse
+>                 -> Either P.ParseErrorExtra ScalarExpr
+> parseScalarExpr = P.parseScalarExpr
+
+> parseName :: P.ParseFlags
+>           -> FilePath
+>           -> Maybe (Int,Int)
+>           -> String
+>           -> Either P.ParseErrorExtra A.Name
+> parseName = P.parseName
+
+> parseNameComponent :: P.ParseFlags
+>                    -> FilePath
+>                    -> Maybe (Int,Int)
+>                    -> String
+>                    -> Either P.ParseErrorExtra NameComponent
+> parseNameComponent = P.parseNameComponent
+
+> parsePlpgsql :: P.ParseFlags -- ^ parse options
+>              -> FilePath -- ^ filename to use in errors
+>              -> Maybe (Int,Int) -- ^ set the line number and column number
+>              -> String
+>              -> Either P.ParseErrorExtra [Statement]
+> parsePlpgsql = P.parsePlpgsql

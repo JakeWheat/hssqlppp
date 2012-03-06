@@ -24,11 +24,13 @@
 >
 > import Database.HsSqlPpp.Ast hiding (ann)
 > import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.Utils.Utils
+> --import Database.HsSqlPpp.Utils.Utils
 
 > import Database.HsSqlPpp.SqlDialect
 
 > import Database.HsSqlPpp.Internals.StringLike
+> import qualified Data.Text as T
+> import qualified Data.Text.Lazy as LT
 
 --------------------------------------------------------------------------------
 
@@ -86,7 +88,7 @@ Conversion routines - convert Sql asts into Docs
 > -- Statements
 >
 > statement :: PrettyPrintFlags -> Bool -> (Annotation -> String) -> Statement -> Doc
-> statement _flg _se _ca (AntiStatement s) = text $ "$(" ++ s ++ ")"
+> statement _flg _se _ca (AntiStatement s) = text $ "$(" ++ T.unpack s ++ ")"
 >
 > -- selects
 >
@@ -254,7 +256,7 @@ Conversion routines - convert Sql asts into Docs
 >       checkExp = maybePrint (\e -> text "check" <+> parens (scalExpr flg e))
 >       cname = if n == ""
 >                then empty
->                else text "constraint" <+> text n
+>                else text "constraint" <+> ttext n
 >
 > statement _flg se ca (DropFunction ann ifE fns casc) =
 >   annot ca ann <+>
@@ -289,7 +291,7 @@ Conversion routines - convert Sql asts into Docs
 >
 > statement _flg se ca (CreateLanguage ann nm) =
 >     annot ca ann <+>
->     text "create language" <+> text nm <> statementEnd se
+>     text "create language" <+> ttext nm <> statementEnd se
 >
 > statement flg se ca (CreateTrigger ann nm wh events tbl firing fnName fnArgs) =
 >     annot ca ann <+>
@@ -310,7 +312,7 @@ Conversion routines - convert Sql asts into Docs
 >                                 TInsert -> "insert"
 >                                 TUpdate -> "update"
 >                                 TDelete -> "delete"
->                                 AntiTriggerEvent s -> "$(" ++ s ++ ")")) events
+>                                 AntiTriggerEvent s -> "$(" ++ T.unpack s ++ ")")) events
 >
 > -- plpgsql
 >
@@ -318,7 +320,7 @@ Conversion routines - convert Sql asts into Docs
 >   annot ca ann <+> text "null" <> statementEnd se
 > statement _flg se ca (ExitStatement ann lb) =
 >   annot ca ann <+> text "exit"
->     <+> maybe empty text lb <> statementEnd se
+>     <+> maybe empty ttext lb <> statementEnd se
 >
 
 > statement flg se ca (Into ann str is (QueryStatement _ q)) =
@@ -396,7 +398,7 @@ Conversion routines - convert Sql asts into Docs
 >
 > statement _flg se ca (ContinueStatement ann lb) =
 >     annot ca ann <+> text "continue"
->       <+> maybe empty text lb <> statementEnd se
+>       <+> maybe empty ttext lb <> statementEnd se
 > statement flg se ca (Perform ann f@(App {})) =
 >     annot ca ann <+>
 >     text "perform" <+> scalExpr flg f <> statementEnd se
@@ -409,12 +411,12 @@ Conversion routines - convert Sql asts into Docs
 >     <+> ifNotEmpty (parens . sepCsvMap nmc) cols
 >     <+> text "from"
 >     <+> case src of
->                  CopyFilename s -> quotes $ text s <> statementEnd se
+>                  CopyFilename s -> quotes $ ttext s <> statementEnd se
 >                  Stdin -> text "stdin" <> text ";"
 >
 > statement _ _ ca (CopyData ann s) =
 >     annot ca ann <+>
->     text s <> text "\\." <> newline
+>     tltext s <> text "\\." <> newline
 >
 > statement flg se ca (If ann conds els) =
 >    if tsql
@@ -472,22 +474,22 @@ Conversion routines - convert Sql asts into Docs
 >   text "declare" <+> sepCsvMap de des
 >   where
 >     de (nm,ty,val) =
->       text nm <+> typeName ty
+>       ttext nm <+> typeName ty
 >       <+> maybe empty (\e -> text "=" <+> scalExpr flg e) val
 
 >
 > -- misc
 >
 > statement _flg se _ (Set _ n vs) =
->   text "set" <+> text n <+> text "="
+>   text "set" <+> ttext n <+> text "="
 >   <+> sepCsvMap (text . dv) vs <> statementEnd se
 >   where
->     dv (SetStr _ s) = "'" ++ s ++ "'"
->     dv (SetId _ i) = i
+>     dv (SetStr _ s) = "'" ++ T.unpack s ++ "'"
+>     dv (SetId _ i) = T.unpack i
 >     dv (SetNum _ nm) = show nm
 >
 > statement _flg se _ (Notify _ n) =
->   text "notify" <+> text n  <> statementEnd se
+>   text "notify" <+> ttext n  <> statementEnd se
 
 > statement flg _se _ (ExecStatement _ nm args) =
 >   text "exec" <+> name nm <+> sepCsvMap (scalExpr flg) args
@@ -559,15 +561,15 @@ Statement components
 
 > name :: Name -> Doc
 > name (Name _ ns) = nmcs ns
-> name (AntiName n) = text ("$n(" ++ n ++ ")")
+> name (AntiName n) = text ("$n(" ++ T.unpack n ++ ")")
 
 > nmcs :: [NameComponent] -> Doc
 > nmcs ns = hcat $ punctuate (text ".") $ map nmc ns
 
 > nmc :: NameComponent -> Doc
-> nmc (Nmc ns) = text ns
-> nmc (QNmc ns) = doubleQuotes $ text ns
-> nmc (AntiNameComponent n) = text ("$m(" ++ n ++ ")")
+> nmc (Nmc ns) = ttext ns
+> nmc (QNmc ns) = doubleQuotes $ ttext ns
+> nmc (AntiNameComponent n) = text ("$m(" ++ T.unpack n ++ ")")
 
 >
 > tref :: PrettyPrintFlags -> TableRef -> Doc
@@ -658,10 +660,10 @@ syntax maybe should error instead of silently breaking
 >         <+> text "on update" <+> cascade onupd
 >         <+> text "on delete" <+> cascade ondel
 >
-> mname :: String -> Doc
+> mname :: T.Text -> Doc
 > mname n = if n == ""
 >           then empty
->           else text "constraint" <+> text n
+>           else text "constraint" <+> text (T.unpack n)
 >
 > returning :: PrettyPrintFlags -> Maybe SelectList -> Doc
 > returning flg l = case l of
@@ -689,7 +691,7 @@ syntax maybe should error instead of silently breaking
 >
 > scalExpr :: PrettyPrintFlags -> ScalarExpr -> Doc
 > scalExpr flg (Parens _ e) = parens (scalExpr flg e)
-> scalExpr _ (AntiScalarExpr s) = text $ "$(" ++ s ++ ")"
+> scalExpr _ (AntiScalarExpr s) = text $ "$(" ++ T.unpack s ++ ")"
 > scalExpr _ (Star _) = text "*"
 > scalExpr _ (QStar _ i) = nmc i <> text ".*"
 
@@ -697,11 +699,11 @@ syntax maybe should error instead of silently breaking
 >   hcat (punctuate (text ".") (map nmc is))
 
 
-> scalExpr _ (NumberLit _ n) = text n
+> scalExpr _ (NumberLit _ n) = ttext n
 > scalExpr _ (StringLit _ s) = -- needs some thought about using $$?
->                           text "'" <> text replaceQuotes <> text "'"
+>                           text "'" <> ttext replaceQuotes <> text "'"
 >                           where
->                             replaceQuotes = replace "'" "''" s
+>                             replaceQuotes = T.replace "'" "''" s
 >
 > scalExpr flg (SpecialOp _ n es) =
 >    case getTName n of
@@ -739,7 +741,7 @@ syntax maybe should error instead of silently breaking
 >      Just "."   -- special case to avoid ws around '.'. Don't know if this is important
 >                 -- or just cosmetic
 >          -> scalExpr flg e0 <> text "." <> scalExpr flg e1
->      Just n' -> scalExpr flg e0 <+> text n' <+> scalExpr flg e1
+>      Just n' -> scalExpr flg e0 <+> ttext n' <+> scalExpr flg e1
 >      Nothing -> error $ "bad binary operator name:" ++ show n
 >    where
 >      -- try to write a series of ands in a vertical line
@@ -755,7 +757,7 @@ syntax maybe should error instead of silently breaking
 >   | Just "!not" <- getTName n =
 >       text "not" <+> scalExpr flg e0
 >   | Just n' <- getTName n =
->       text n'
+>       ttext n'
 >     <+> scalExpr flg e0
 >   | otherwise = error $ "bad prefix operator name:" ++ show n
 
@@ -763,9 +765,9 @@ syntax maybe should error instead of silently breaking
 > scalExpr flg (PostfixOp _ n e0)
 >   | Just n' <- getTName n >>= flip lookup [("!isnull", "is null")
 >                                           ,("!isnotnull", "is not null")] =
->        scalExpr flg e0 <+> text n'
+>        scalExpr flg e0 <+> ttext n'
 >   | Just n' <- getTName n =
->       scalExpr flg e0 <+> text n'
+>       scalExpr flg e0 <+> ttext n'
 >   | otherwise = error $ "bad postfix operator name:" ++ show n
 
 > scalExpr flg (App _ n es) =
@@ -960,15 +962,20 @@ syntax maybe should error instead of silently breaking
 >                    else text "/*\n" <+> text s
 >                         <+> text "*/\n"
 
-> label :: Maybe String -> Doc
+> label :: Maybe T.Text -> Doc
 > label =
 >   maybe empty (\l -> text "<<"
->                      <+> text l
+>                      <+> text (T.unpack l)
 >                      <+> text ">>" <> text "\n")
 
 util: to be removed when outputting names is fixed
 
-> getTName :: Name -> Maybe String
+> getTName :: Name -> Maybe T.Text
 > getTName (Name _ [n]) = Just $ ncStr n
 > getTName _ = Nothing
 
+> ttext :: T.Text -> Doc
+> ttext = text . T.unpack
+
+> tltext :: LT.Text -> Doc
+> tltext = text . LT.unpack

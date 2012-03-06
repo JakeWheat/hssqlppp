@@ -2,25 +2,27 @@
 Datatypes to represent postgres types and type errors. Below are some
 notes on what the types are for and how they are used in postgres.
 
-> {-# LANGUAGE FlexibleInstances,DeriveDataTypeable #-}
+> {-# LANGUAGE FlexibleInstances,DeriveDataTypeable,OverloadedStrings #-}
 >
 > module Database.HsSqlPpp.Internals.TypesInternal where
 >
 > import Data.Data
 > import Data.Generics.Uniplate.Data
 > import Data.Char
+> import Data.Text (Text)
+> import qualified Data.Text as T
 
 > -- | Standard types of things. This covers all the usual postgres types
 > -- plus some extra ones added for use by the hssqlppp typechecker
 > data Type = -- | basic type of a scalar value. These are either built in types
 >             -- in postgres, or implemented in C or similar
->             ScalarType String
+>             ScalarType Text
 >           -- | a domain type is used for a constraint on a table column which
 >           -- would used on multiple columns on a table or in multiple tables,
 >           -- using a domain type is a way of just writing the constraint once
->           | DomainType String
+>           | DomainType Text
 >           -- | enum type, not really supported in hssqlppp yet
->           | EnumType String
+>           | EnumType Text
 >           -- | String literals in postgres have an unknown type. The effective
 >           -- type is determined using what seems to amount to some simple ad hoc rules
 >           -- based on the context of the string literal. Hssqlppp also treats
@@ -33,9 +35,9 @@ notes on what the types are for and how they are used in postgres.
 >           | ArrayType Type
 >           -- | refer to composite type in catalog by name. not sure if this needs
 >           -- to exist along with CompositeType
->           | NamedCompositeType String
+>           | NamedCompositeType Text
 >           -- | refer to composite type by structure
->           | CompositeType [(String,Type)]
+>           | CompositeType [(Text,Type)]
 >           -- | the fields are anonymous as well as the type itself
 >           | AnonymousCompositeType [Type]
 >           -- | The pseudo type is used for types which only appear
@@ -120,7 +122,7 @@ added.
 
 type conversion errors
 
->                | -} NoMatchingOperator String [Type]
+>                | -} NoMatchingOperator Text [Type]
 >                | TypelessEmptyArray
 >                | IncompatibleTypeSet [Type]
 >                | IncompatibleTypes Type Type
@@ -132,16 +134,16 @@ old catalog type errors: to be replaced when the catalog code is
 gutted and rewritten
 
 >                | TypeAlreadyExists Type
->                | BadCatalogUpdate String
->                | UnrecognisedRelation String
+>                | BadCatalogUpdate Text
+>                | UnrecognisedRelation Text
 >                | DomainDefNotFound Type
 >                | TypeNotKnown Type
->                | UnknownTypeName String
->                | UnrecognisedIdentifier String
->                | UnrecognisedCorrelationName String
+>                | UnknownTypeName Text
+>                | UnrecognisedIdentifier Text
+>                | UnrecognisedCorrelationName Text
 >                | BadStarExpand
 >                | InternalError String
->                | AmbiguousIdentifier String
+>                | AmbiguousIdentifier Text
 >                  deriving (Eq,Show,Ord,Typeable,Data)
 >
 
@@ -165,7 +167,7 @@ gutted and rewritten
 
 > -- | convert the name of a type to its canonical name. For types
 > -- without multiple names, it returns the name unchanged
-> canonicalizeTypeName :: String -> String
+> canonicalizeTypeName :: Text -> Text
 > canonicalizeTypeName s' =
 >   case () of
 >                   _ | s `elem` smallIntNames -> "int2"
@@ -188,7 +190,7 @@ gutted and rewritten
 >       varcharNames = ["character varying", "varchar"]
 >       charNames = ["character", "char"]
 >       boolNames = ["boolean", "bool"]
->       s = map toLower s'
+>       s = T.map toLower s'
 
 > -- | run canonicalizeTypeName on all the TypeName nodes in an ast
 > canonicalizeTypeNames :: Data a => a -> a

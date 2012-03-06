@@ -1,4 +1,5 @@
 
+> {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Tests.TypeChecking.CaseExpressions
 >     (caseExpressions) where
 >

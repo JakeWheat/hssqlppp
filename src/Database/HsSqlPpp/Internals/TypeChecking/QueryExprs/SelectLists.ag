@@ -149,7 +149,7 @@ attr SelectItem
 attr SelectItemList SelectList
   inh downEnv :: Environment
   syn colExprs :: {[(NameComponent,Maybe Type,ScalarExpr)]}
-  syn upType :: {Maybe [(String,Type)]}
+  syn upType :: {Maybe [(Text,Type)]}
   syn upEnv :: Environment
 
 

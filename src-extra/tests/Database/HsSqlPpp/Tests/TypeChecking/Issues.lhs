@@ -1,5 +1,6 @@
 
 
+> {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Tests.TypeChecking.Issues
 >     (issues) where
 >

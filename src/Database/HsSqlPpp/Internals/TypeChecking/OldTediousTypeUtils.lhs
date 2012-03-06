@@ -5,6 +5,8 @@
 > module Database.HsSqlPpp.Internals.TypeChecking.OldTediousTypeUtils where
 
 > import Database.HsSqlPpp.Internals.TypesInternal
+> import Data.Text (Text)
+> --import qualified Data.Text as T
 
 > isArrayType :: Type -> Bool
 > isArrayType (ArrayType _) = True
@@ -33,7 +35,7 @@
 > unwrapSetOfWhenComposite (Pseudo (SetOfType a@(CompositeType _))) = Right a
 > unwrapSetOfWhenComposite x = Left [InternalError $ "tried to unwrapSetOfWhenComposite on " ++ show x]
 >
-> unwrapSetOfComposite :: Type -> Either [TypeError]  [(String,Type)]
+> unwrapSetOfComposite :: Type -> Either [TypeError]  [(Text,Type)]
 > unwrapSetOfComposite (Pseudo (SetOfType (CompositeType a))) = Right a
 > unwrapSetOfComposite x = Left [InternalError $ "tried to unwrapSetOfComposite on " ++ show x]
 >
@@ -41,11 +43,11 @@
 > unwrapSetOf (Pseudo (SetOfType a)) = Right a
 > unwrapSetOf x = Left [InternalError $ "tried to unwrapSetOf on " ++ show x]
 >
-> unwrapComposite :: Type -> Either [TypeError] [(String,Type)]
+> unwrapComposite :: Type -> Either [TypeError] [(Text,Type)]
 > unwrapComposite (CompositeType a) = Right a
 > unwrapComposite x = Left [InternalError $ "cannot unwrapComposite on " ++ show x]
 >
-> consComposite :: (String,Type) -> Type -> Either [TypeError] Type
+> consComposite :: (Text,Type) -> Type -> Either [TypeError] Type
 > consComposite l (CompositeType a) = Right $ CompositeType (l:a)
 > consComposite a b = Left [InternalError $ "called consComposite on " ++ show (a,b)]
 >

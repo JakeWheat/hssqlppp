@@ -21,7 +21,8 @@ copy payload (used to lex copy from stdin data)
 >              ,identifierString
 >              ,LexState
 >              ) where
-> import Text.Parsec hiding(many, optional, (<|>))
+> import Text.Parsec hiding(many, optional, (<|>),string)
+> import qualified Text.Parsec as TP
 > import qualified Text.Parsec.Token as P
 > import Text.Parsec.Language
 > --import Text.Parsec.String
@@ -39,6 +40,8 @@ copy payload (used to lex copy from stdin data)
 > {-import Prelude (String,Integer,Char,Eq,Show,FilePath,Either(..)
 >                ,Int,either,($),(==),(&&),otherwise,(++)
 >                ,replicate,concat,(.),Bool(..))-}
+> import qualified Data.Text as T
+> import qualified Data.Text.Lazy as LT
 
 ================================================================================
 
@@ -47,14 +50,14 @@ copy payload (used to lex copy from stdin data)
 > type Token = (SourcePos, Tok)
 >
 > -- | the token type for lexing
-> data Tok = StringTok String String -- ^ delim, value ,delim will one of
+> data Tok = StringTok T.Text T.Text -- ^ delim, value ,delim will one of
 >                                    -- ', $$, $[stuff]$
 
->          | IdStringTok String -- ^ a name component
->          | QIdStringTok String -- ^ quoted namecomponent, also used
+>          | IdStringTok T.Text -- ^ a name component
+>          | QIdStringTok T.Text -- ^ quoted namecomponent, also used
 >                                -- when parsing '@local', '#temp' in sql server dialect
 
->          | SymbolTok String -- ^ operators, and *()[],;: and also .
+>          | SymbolTok T.Text -- ^ operators, and *()[],;: and also .
 >          | PositionalArgTok Integer -- ^ used for $1, etc.
 
 Use a numbertok with a string to parse numbers. This is mainly so that
@@ -62,9 +65,9 @@ numeric constants can be parsed accurately - if they are parsed to
 floats in the ast then converted back to numeric, then the accuracy
 can be lost (e.g. something like "0.2" parsing to 0.199999999 float.
 
->          | NumberTok String -- ^ number
->          | CopyPayloadTok String -- ^ hacky support support copy from stdin; with inline data
->          | SpliceTok Char String -- ^ a splice token, the splice char and the string
+>          | NumberTok T.Text -- ^ number
+>          | CopyPayloadTok LT.Text -- ^ hacky support support copy from stdin; with inline data
+>          | SpliceTok Char T.Text -- ^ a splice token, the splice char and the string
 >                                  -- e.g. $e(stuff) -> SpliceTok \'e\' \"stuff\"
 >            deriving (Eq,Show)
 >
@@ -138,13 +141,9 @@ we read a normal token.
 
 > splice :: Stream s Identity Char =>
 >           SParser s Tok
-> splice = lexeme $ do
->   _ <- char '$'
->   c <- letter
->   _ <- char '('
->   sn <- identifierString
->   _ <- char ')'
->   return $ SpliceTok c sn
+> splice = lexeme $
+>   SpliceTok <$> (char '$' *> letter)
+>     <*> (char '(' *> identifierString <* char ')')
 
 == specialized token parsers
 
@@ -155,7 +154,7 @@ we read a normal token.
 >     --parse a string delimited by single quotes
 >     stringQuotes = StringTok "\'" <$> stringPar
 >     stringPar = optional (char 'E') *> char '\''
->                 *> readQuoteEscape <* whiteSpace
+>                            *> (T.pack <$> readQuoteEscape) <* whiteSpace
 >     --(readquoteescape reads the trailing ')
 
 have to read two consecutive single quotes as a quote character
@@ -178,7 +177,7 @@ parse a dollar quoted string
 >                                    <|> (identifierString <* char '$')))
 >                s <- lexeme $ manyTill anyChar
 >                       (try $ char '$' <* string tag <* char '$')
->                return $ StringTok ("$" ++ tag ++ "$") s
+>                return $ StringTok (T.concat ["$",tag,"$"]) $ T.pack s
 >
 > idString :: Stream s Identity Char =>
 >             SQLSyntaxDialect -> SParser s Tok
@@ -191,11 +190,11 @@ parse a dollar quoted string
 >   ]
 
 > tsqlPrefix :: Stream s Identity Char =>
->               SParser s String -> SParser s String
+>               SParser s T.Text -> SParser s T.Text
 > tsqlPrefix p =
 >    choice
->    [char '@' *> (('@':) <$> p)
->    ,char '#' *> (('#':) <$> p)]
+>    [char '@' *> (T.cons '@' <$> p)
+>    ,char '#' *> (T.cons '#' <$> p)]
 
 > qidString :: Stream s Identity Char =>
 >              SQLSyntaxDialect -> SParser s Tok
@@ -259,9 +258,10 @@ deals with this.
 >              SQLSyntaxDialect -> SParser s Tok
 > sqlSymbol d =
 >   SymbolTok <$> lexeme (choice [
->                          replicate 1 <$> oneOf (if d == SQLServerDialect
->                                                 then "(),;"
->                                                 else "()[],;")
+>                          T.replicate 1 . T.singleton
+>                            <$> oneOf (if d == SQLServerDialect
+>                                       then "(),;"
+>                                       else "()[],;")
 >                         ,try $ string ".."
 >                         ,string "."
 >                         ,try $ string "::"
@@ -271,7 +271,7 @@ deals with this.
 >                         --,try $ string "$s(" -- antiquote string splice
 >                         --,string "$i(" -- antiquote identifier splice
 >                          --cut down version: don't allow operator to contain + or -
->                         ,anotherOp d
+>                         ,T.pack <$> anotherOp d
 >                         ])
 >   where
 >     anotherOp PostgreSQLDialect = do
@@ -352,8 +352,8 @@ I'm sure the implementation can be simpler than this
 >                           -- just an integer
 >                          ,return ""
 >                          ]
->           return $ d ++ suff
->          ,fracPart
+>           return $ T.pack $ d ++ suff
+>          ,T.pack <$> fracPart
 >          ])
 >   where
 >      fracPart = do
@@ -383,18 +383,19 @@ until during proper parsing, and * isn't really examined until type
 checking
 
 > identifierString :: (Stream str Identity Char) =>
->                     SParser str String
-> identifierString = lexeme $ (letter <|> char '_')
->                             <:> many (alphaNum <|> char '_')
+>                     SParser str T.Text
+> identifierString = T.pack <$>
+>                    (lexeme $ (letter <|> char '_')
+>                             <:> many (alphaNum <|> char '_'))
 
 todo:
 select adrelid as "a""a" from pg_attrdef;
 creates a column named: 'a"a' with a double quote in it
 
 > qidentifierString :: Stream s Identity Char =>
->                      SQLSyntaxDialect -> SParser s String
+>                      SQLSyntaxDialect -> SParser s T.Text
 > qidentifierString d =
->   choice
+>   T.pack <$> choice
 >   [do
 >    guard (d == SQLServerDialect)
 >    lexeme $ char '[' *> many (noneOf "]") <* char ']'
@@ -406,7 +407,7 @@ its own on a line
 
 > copyPayload :: (Stream str Identity Char) =>
 >                SParser str Tok
-> copyPayload = CopyPayloadTok <$> lexeme (getLinesTillMatches "\\.\n")
+> copyPayload = CopyPayloadTok <$> lexeme (LT.pack <$> getLinesTillMatches "\\.\n")
 >   where
 >     getLinesTillMatches s = do
 >                             x <- getALine
@@ -423,6 +424,11 @@ its own on a line
 > --symbol :: String -> SParser String
 > --symbol = P.symbol lexer
 >
+
+> string :: Stream s m Char => T.Text -> ParsecT s u m T.Text
+> string t = do
+>   s <- TP.string $ T.unpack t
+>   return $ T.pack s
 
 > integer :: (Stream str Identity Char) =>
 >            SParser str Integer
@@ -460,4 +466,5 @@ the fields are not used at all (like identifier and operator stuff)
 >                , P.reservedNames  = []
 >                , P.caseSensitive  = False
 >                }
+
 

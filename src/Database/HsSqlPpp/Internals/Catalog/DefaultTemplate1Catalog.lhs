@@ -5,6 +5,7 @@ This file is auto generated, to regenerate use the
 regenDefaultTemplate1catalog.sh script. You will need postgresql
 installed to do this.
 
+> {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
 >      (defaultTemplate1Catalog) where
 >

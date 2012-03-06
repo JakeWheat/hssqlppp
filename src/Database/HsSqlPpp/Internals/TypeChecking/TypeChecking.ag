@@ -171,8 +171,8 @@ type in if it is in the acceptable list
 fixDateDiff :: Data a => a -> a
 fixDateDiff = transformBi $ \x -> case x of
   App aa nm@(Name _ [Nmc fn]) [Identifier ai tn@(Name _ [Nmc tnn]),a,b]
-    | map toLower fn == "datediff"
-    , map toLower tnn `elem` ["hour"] ->
+    | T.map toLower fn == "datediff"
+    , T.map toLower tnn `elem` ["hour"] ->
     App aa nm [Identifier ai' tn,a,b]
       where
         ai' = ai {anType = Just typeInt

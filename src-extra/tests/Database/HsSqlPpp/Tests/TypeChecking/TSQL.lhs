@@ -1,3 +1,6 @@
+
+
+> {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Tests.TypeChecking.TSQL
 >     (tsqlQueryExprs) where
 

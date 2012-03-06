@@ -2,6 +2,7 @@
 Tests using the tpch queries. Just tests the result type at the
 moment.
 
+> {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Tests.TypeChecking.Tpch
 >     (tpch) where
 > import Database.HsSqlPpp.Types

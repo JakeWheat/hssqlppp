@@ -1,6 +1,6 @@
 
 optpragmas {
-{-# LANGUAGE TupleSections,ScopedTypeVariables,DeriveDataTypeable #-}
+{-# LANGUAGE TupleSections,ScopedTypeVariables,DeriveDataTypeable,OverloadedStrings #-}
 }
 
 {-
@@ -144,6 +144,10 @@ import Database.HsSqlPpp.Internals.TypeChecking.Environment
 import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 import Database.HsSqlPpp.Utils.Utils
 import Database.HsSqlPpp.SqlDialect
+import Data.Text (Text)
+import qualified Data.Text as T
+import qualified Data.Text.Lazy as LT
+
 
 }
 
@@ -237,18 +241,18 @@ Lots of invalid expressions can be expressed using this type.
 
 -}
 
-data ScalarExpr | NumberLit ann::Annotation d::String
+data ScalarExpr | NumberLit ann::Annotation d::Text
                 | StringLit ann::Annotation
-                            value :: String
+                            value :: Text
                 | NullLit ann::Annotation
                 | BooleanLit ann::Annotation b::Bool
                 -- could probably represent typed string lit
                 -- as a string lit and a cast?
                 | TypedStringLit ann::Annotation
                                  tn :: TypeName
-                                 value :: String
+                                 value :: Text
                 | Interval ann::Annotation
-                           value :: String
+                           value :: Text
                            field :: IntervalField
                            prec :: {Maybe Int}
                 | Extract ann::Annotation
@@ -334,7 +338,7 @@ data ScalarExpr | NumberLit ann::Annotation d::String
                 -- scalar valued query expr
                 | ScalarSubQuery ann::Annotation
                                  sel :: QueryExpr
-                | AntiScalarExpr String
+                | AntiScalarExpr Text
                 | Parens ann::Annotation
                          ex :: ScalarExpr
 
@@ -348,7 +352,7 @@ empty
 -}
 
 data Name | Name ann::Annotation is::{[NameComponent]}
-          | AntiName String
+          | AntiName Text
 {
 nameComponents :: Name -> [NameComponent]
 nameComponents (Name _ is) = is
@@ -632,7 +636,7 @@ data Statement
            targetCols :: {[NameComponent]}
            source :: CopySource
     --represents inline data for copy statement
-    | CopyData ann::Annotation insData :: String
+    | CopyData ann::Annotation insData :: {LT.Text}
     | Truncate ann::Annotation
                tables:: {[Name]}
                restartIdentity :: RestartIdentity
@@ -680,10 +684,10 @@ data Statement
     | CreateDomain ann::Annotation
                    name :: Name
                    typ :: TypeName
-                   constraintName:: String
+                   constraintName:: Text
                    check :: MaybeBoolExpr
     | CreateLanguage ann::Annotation
-                     name::String
+                     name::Text
     | CreateTrigger ann::Annotation
                     name::NameComponent
                     wh :: TriggerWhen
@@ -706,8 +710,8 @@ data Statement
 
 --misc
 
-    | Set ann::Annotation name::String values::{[SetValue]}
-    | Notify ann::Annotation name::String
+    | Set ann::Annotation name::Text values::{[SetValue]}
+    | Notify ann::Annotation name::Text
 
 
 
@@ -728,7 +732,7 @@ data Statement
                   sel :: QueryExpr
     | Raise ann::Annotation
             level :: RaiseType
-            message :: String
+            message :: Text
             args :: ScalarExprList
     | NullStatement ann::Annotation
     | Perform ann::Annotation
@@ -736,25 +740,25 @@ data Statement
     | Execute ann::Annotation
               expr :: ScalarExpr
     | ForQueryStatement ann::Annotation
-                        lb :: {Maybe String}
+                        lb :: {Maybe Text}
                         var :: NameComponent
                         sel :: QueryExpr
                         sts :: StatementList
     | ForIntegerStatement ann::Annotation
-                          lb :: {Maybe String}
+                          lb :: {Maybe Text}
                           var :: NameComponent
                           from :: ScalarExpr
                           to :: ScalarExpr
                           sts :: StatementList
     | LoopStatement ann::Annotation
-                    lb :: {Maybe String}
+                    lb :: {Maybe Text}
                     sts :: StatementList
     | WhileStatement ann::Annotation
-                     lb :: {Maybe String}
+                     lb :: {Maybe Text}
                      expr :: ScalarExpr
                      sts :: StatementList
-    | ContinueStatement ann::Annotation lb::{Maybe String}
-    | ExitStatement ann::Annotation lb::{Maybe String}
+    | ContinueStatement ann::Annotation lb::{Maybe Text}
+    | ExitStatement ann::Annotation lb::{Maybe Text}
     --variable, list of when parts, else part
     | CaseStatementSimple ann::Annotation
                     val :: ScalarExpr
@@ -769,10 +773,10 @@ data Statement
     | If ann::Annotation
          cases :: ScalarExprStatementListPairList
          els :: StatementList
-    | Block ann::Annotation lb::{Maybe String} vars::VarDefList sts :: StatementList
+    | Block ann::Annotation lb::{Maybe Text} vars::VarDefList sts :: StatementList
 
-    | AntiStatement String
-    | DeclareStatement ann::Annotation ds::{[(String,TypeName,Maybe ScalarExpr)]}
+    | AntiStatement Text
+    | DeclareStatement ann::Annotation ds::{[(Text,TypeName,Maybe ScalarExpr)]}
     | ExecStatement ann::Annotation spName::Name args::ScalarExprList
     | CreateIndexTSQL ann::Annotation
                       nm::NameComponent
@@ -789,7 +793,7 @@ data Statement
 -}
 
 {
-data CopySource = CopyFilename String
+data CopySource = CopyFilename Text
                 | Stdin
                   deriving (Show,Eq,Typeable,Data)
 }
@@ -819,12 +823,12 @@ data AttributeDef | AttributeDef ann::Annotation
 
 --Constraints which appear attached to an individual field
 
-data RowConstraint | NullConstraint ann::Annotation name::String
-                   | NotNullConstraint ann::Annotation name::String
-                   | RowCheckConstraint ann::Annotation name::String expr::ScalarExpr
-                   | RowUniqueConstraint ann::Annotation name::String
-                   | RowPrimaryKeyConstraint ann::Annotation name::String
-                   | RowReferenceConstraint ann::Annotation name::String
+data RowConstraint | NullConstraint ann::Annotation name::Text
+                   | NotNullConstraint ann::Annotation name::Text
+                   | RowCheckConstraint ann::Annotation name::Text expr::ScalarExpr
+                   | RowUniqueConstraint ann::Annotation name::Text
+                   | RowPrimaryKeyConstraint ann::Annotation name::Text
+                   | RowReferenceConstraint ann::Annotation name::Text
                                             table :: Name
                                             att :: (Maybe NameComponent)
                                             onUpdate :: Cascade
@@ -832,12 +836,12 @@ data RowConstraint | NullConstraint ann::Annotation name::String
 
 --constraints which appear on a separate row in the create table
 
-data Constraint | UniqueConstraint ann::Annotation name::String x::{[NameComponent]}
-                | PrimaryKeyConstraint ann::Annotation name::String x::{[NameComponent]}
-                | CheckConstraint ann::Annotation name::String expr::ScalarExpr
+data Constraint | UniqueConstraint ann::Annotation name::Text x::{[NameComponent]}
+                | PrimaryKeyConstraint ann::Annotation name::Text x::{[NameComponent]}
+                | CheckConstraint ann::Annotation name::Text expr::ScalarExpr
                   -- sourcecols targettable targetcols ondelete onupdate
                 | ReferenceConstraint ann::Annotation
-                                      name::String
+                                      name::Text
                                       atts :: {[NameComponent]}
                                       table :: Name
                                       tableAtts :: {[NameComponent]}
@@ -856,15 +860,15 @@ data AlterTableAction | AlterColumnDefault ann::Annotation
 
 {
 data SetValue
-    = SetStr Annotation String
-    | SetId Annotation String
+    = SetStr Annotation Text
+    | SetId Annotation Text
     | SetNum Annotation Double
       deriving (Show,Eq,Typeable,Data)
 
 
 data TriggerWhen = TriggerBefore | TriggerAfter
                    deriving (Show,Eq,Typeable,Data)
-data TriggerEvent = TInsert| TUpdate | TDelete | AntiTriggerEvent String
+data TriggerEvent = TInsert| TUpdate | TDelete | AntiTriggerEvent Text
                     deriving (Show,Eq,Typeable,Data)
 data TriggerFire = EachRow | EachStatement
                    deriving (Show,Eq,Typeable,Data)

@@ -15,7 +15,7 @@ include "TypeChecking/QueryExprs/TableRefs.ag"
 include "TypeChecking/QueryExprs/SelectLists.ag"
 
 attr QueryExpr
-  syn upType :: {Maybe [(String,Type)]}
+  syn upType :: {Maybe [(Text,Type)]}
 
 --support for correlated subqueries
 attr QueryExpr

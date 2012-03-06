@@ -1,3 +1,5 @@
+
+> {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Tests.TypeChecking.SimpleQueryExprs
 >     (simpleQueryExprs) where
 

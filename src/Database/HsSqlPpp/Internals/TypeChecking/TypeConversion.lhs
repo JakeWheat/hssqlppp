@@ -13,6 +13,7 @@ http://msdn.microsoft.com/en-us/library/ms190309.aspx
 linked from here:
 http://blogs.msdn.com/b/craigfr/archive/2010/01/20/more-on-implicit-conversions.aspx
 
+> {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
 >     (matchApp
 >     ,resolveResultSetType
@@ -32,6 +33,8 @@ http://blogs.msdn.com/b/craigfr/archive/2010/01/20/more-on-implicit-conversions.
 > import Database.HsSqlPpp.Internals.TypeChecking.OldTypeConversion
 > import Database.HsSqlPpp.SqlDialect
 > import qualified Database.HsSqlPpp.Internals.TypeChecking.SqlTypeConversion as TSQL
+> import Data.Text (Text)
+> import qualified Data.Text as T
 
 ------------------------------------------------------------------
 
@@ -49,7 +52,7 @@ This needs a lot more tests
 > -- need to think of a better way to handle this when
 > -- have a better idea of all the weird syntax used in
 > -- tsql
-> matchApp SQLServerDialect _cat [Nmc dd] [_,ScalarType "date",ScalarType "date"] | map toLower dd == "datediff" =
+> matchApp SQLServerDialect _cat [Nmc dd] [_,ScalarType "date",ScalarType "date"] | T.map toLower dd == "datediff" =
 >   -- check there are 3 args
 >   -- first is identifier from list
 >   -- other two are date types
@@ -62,7 +65,7 @@ This needs a lot more tests
 >   return (ps,r)
 >   where
 >     nm = case last nmcs of
->            Nmc n -> map toLower n
+>            Nmc n -> T.map toLower n
 >            QNmc n -> n
 >            AntiNameComponent _ -> -- todo: use left instead of error
 >              error "tried to find function matching an antinamecomponent"

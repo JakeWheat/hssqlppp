@@ -25,7 +25,7 @@ seems to do the job reasonably well at the moment so keeps getting put
 off.
 
 
-> {-# LANGUAGE PatternGuards #-}
+> {-# LANGUAGE PatternGuards,OverloadedStrings #-}
 > module Database.HsSqlPpp.Internals.TypeChecking.OldTypeConversion (
 >                        findCallMatch
 >                       ,resolveResultSetType
@@ -44,6 +44,8 @@ off.
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 > --import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Internals.TypeChecking.OldTediousTypeUtils
+> import Data.Text (Text)
+> import qualified Data.Text as T
 
  > traceIt :: Show a => String -> a -> a
  > traceIt s t = trace (s ++ ": " ++ show t) t
@@ -147,7 +149,7 @@ against.
 >         the row comparison should be more general than this, since it supports
 >         any operator satisfying some properties
 > -}
-> findCallMatch :: Catalog -> String -> [Type] ->  Either [TypeError] OperatorPrototype
+> findCallMatch :: Catalog -> Text -> [Type] ->  Either [TypeError] OperatorPrototype
 > findCallMatch cat fnName' argsType =
 >     --trace ("typecheckfncall " ++ fnName' ++ show argsType) $
 >     --dependsOnRTpe argsType $
@@ -191,11 +193,11 @@ against.
 >               --checked for all special cases, so run general case now
 >               s -> lookupFn s argsType
 >     where
->       lookupReturnType :: String -> [Type] -> Either [TypeError] Type
+>       lookupReturnType :: Text -> [Type] -> Either [TypeError] Type
 >       lookupReturnType s1 args = fmap (\(_,_,r,_) -> r) $ lookupFn s1 args
->       lookupFn :: String -> [Type] -> Either [TypeError] OperatorPrototype
+>       lookupFn :: Text -> [Type] -> Either [TypeError] OperatorPrototype
 >       lookupFn = findCallMatch1 cat
->       fnName = map toLower fnName'
+>       fnName = T.map toLower fnName'
 >       -- help the type inference for rowCtors. pretty unfinished. If we compare
 >       -- two compatible row constructors, then replace any unknown types with the
 >       -- pair type
@@ -216,7 +218,7 @@ against.
 
 
 >
-> findCallMatch1 :: Catalog -> String -> [Type] ->  Either [TypeError] OperatorPrototype
+> findCallMatch1 :: Catalog -> Text -> [Type] ->  Either [TypeError] OperatorPrototype
 > findCallMatch1 cat f inArgs =
 >     returnIfOnne [
 >        exactMatch
@@ -295,7 +297,7 @@ against.
 >       filteredForPreferred = map fst $ filter (\(_,i) -> i == keepCounts) itemCountPairs
 >
 >       -- collect the inArg type categories to do unknown inArg resolution
->       argCats :: [Either () String]
+>       argCats :: [Either () Text]
 >       argCats = getCastCategoriesForUnknowns filteredForPreferred
 >       unknownMatchesByCat :: [ProtArgCast]
 >       unknownMatchesByCat = getCandCatMatches filteredForPreferred argCats
@@ -447,13 +449,13 @@ against.
 >       --                      unique category
 >       -- Right s -> s is the single letter category at
 >       --                           that position
->       getCastCategoriesForUnknowns :: [ProtArgCast] -> [Either () String]
+>       getCastCategoriesForUnknowns :: [ProtArgCast] -> [Either () Text]
 >       getCastCategoriesForUnknowns cands =
 >           filterArgN 0
 >           where
 >             candArgLists :: [[Type]]
 >             candArgLists = map (\((_,a,_,_), _) -> a) cands
->             filterArgN :: Int -> [Either () String]
+>             filterArgN :: Int -> [Either () Text]
 >             filterArgN n =
 >                 if n == length inArgs
 >                   then []
@@ -462,7 +464,7 @@ against.
 >                               then Left ()
 >                               else getCandsCatAt n) : filterArgN (n+1))
 >                 where
->                   getCandsCatAt :: Int -> Either () String
+>                   getCandsCatAt :: Int -> Either () Text
 >                   getCandsCatAt n' =
 >                       let typesAtN = map (!!n') candArgLists
 >                           catsAtN = map (either (error . show) id . catTypeCategory cat) typesAtN
@@ -476,7 +478,7 @@ against.
 >                              -- later on
 >                              | otherwise -> Left ()
 >
->       getCandCatMatches :: [ProtArgCast] -> [Either () String] -> [ProtArgCast]
+>       getCandCatMatches :: [ProtArgCast] -> [Either () Text] -> [ProtArgCast]
 >       getCandCatMatches candsA cats = getMatches candsA 0
 >          where
 >            getMatches :: [ProtArgCast] -> Int -> [ProtArgCast]
@@ -498,7 +500,7 @@ against.
 >                        in getMatches keepMatches (n + 1)
 >            getTypeForArgN :: Int -> ProtArgCast -> Type
 >            getTypeForArgN n ((_,a,_,_),_) = a !! n
->            getCatForArgN :: Int -> ProtArgCast -> String
+>            getCatForArgN :: Int -> ProtArgCast -> Text
 >            getCatForArgN n = either (error . show) id . catTypeCategory cat . getTypeForArgN n
 >
 >       -- utils
