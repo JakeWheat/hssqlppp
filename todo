@@ -1,5 +1,3 @@
--> what about the lexing tokens
-use string text in lexing tokens and in ast
 review the rest of the api and implementation
 review quoting of identifiers and strings:
   step one is a writeup on how dbms' quoting works, start with pg

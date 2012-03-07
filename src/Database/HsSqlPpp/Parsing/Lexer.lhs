@@ -111,6 +111,9 @@ so as a work around, you use the state to trap if we've just seen 'from
 stdin;', if so, you read the copy payload as one big token, otherwise
 we read a normal token.
 
+TODO: add parse flag which enables parsing of copy from stdin hack,
+otherwise it is disabled
+
 > sqlToken :: Stream s Identity Char =>
 >             SQLSyntaxDialect -> SParser s Token
 > sqlToken d = do
@@ -146,6 +149,43 @@ we read a normal token.
 >     <*> (char '(' *> identifierString <* char ')')
 
 == specialized token parsers
+
+TODO :make sure the lexer and pretty printer deal with the options carefully
+
+1. two string constants separated by whitespace which contains at
+least one new line are concatenated. Doesn't play nice with parsec
+lexeme style
+
+2. c style escapes: only supported with E'string' syntax or if
+configuration option is set: to support this, add a parsing flag to
+default to escape strings
+This are called 'escape string constants'.
+
+relevant pg options:
+escape_string_warning
+standard_conforming_strings
+backslash_quote
+
+want some helper functions to ease parsing and pretty printing of
+these escape sequences
+
+no character 0 allowed in a string constant
+
+
+unicode escape syntax
+
+how to handle source in different encodings?
+
+dollar quoted strings
+
+-> dollars can be used in identifiers also, need to check how this works,
+e.g. bad$tag$string$tag$ -> id 'bad$tag$string$tag$'
+bad $tag$string$tag$ -> id 'bad' dollarstring[tag,string] (?)
+
+
+
+
+
 
 > sqlString :: Stream s Identity Char =>
 >              SParser s Tok
@@ -377,10 +417,17 @@ I'm sure the implementation can be simpler than this
 
 additional parser bits and pieces
 
-include * in identifier strings during lexing. This parser is also
-used for keywords, so identifiers and keywords aren't distinguished
-until during proper parsing, and * isn't really examined until type
-checking
+todo: pg also allows a $ in an identifier
+
+from the manual:
+
+SQL identifiers and key words must begin with a letter (a-z, but also
+letters with diacritical marks and non-Latin letters) or an underscore
+(_). Subsequent characters in an identifier or key word can be
+letters, underscores, digits (0-9), or dollar signs ($).
+
+-> need to check if the letter parser from parsec does the same as
+this
 
 > identifierString :: (Stream str Identity Char) =>
 >                     SParser str T.Text
@@ -391,6 +438,14 @@ checking
 todo:
 select adrelid as "a""a" from pg_attrdef;
 creates a column named: 'a"a' with a double quote in it
+postgresql:
+
+any character can appear between the two quotes. To use a quote
+character in the identifier, use "" as above. For save quoting, just
+need to make sure that the pretty printer outputs "" for " in a quoted
+identifier.
+
+TODO: what are the rules for sql server?
 
 > qidentifierString :: Stream s Identity Char =>
 >                      SQLSyntaxDialect -> SParser s T.Text
