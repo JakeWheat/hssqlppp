@@ -224,7 +224,7 @@ supported
 
 Keyword operators are represented in the at with the operator name as
 a ! followed by a string, e.g.
-operator 'and' -> BinaryOp "!and" ...
+operator 'and' -> BinaryOp "and" ...
 
 This is a leftover from a previous version of the ast to avoid
 ambiguities but isn't ambiguous anymore so should be fixed.

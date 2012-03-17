@@ -47,7 +47,7 @@
 >      ,f "delete from pieces where x = 1 and y = 1 returning tag into r.tag;"
 >       [Into ea False [qn "r" "tag"]
 >        $ Delete ea (name "pieces") []
->          (Just $ binop "!and" (binop "=" (ei "x") (num "1"))
+>          (Just $ binop "and" (binop "=" (ei "x") (num "1"))
 >                               (binop "=" (ei "y") (num "1")))
 >          (Just $ sl [si $ ei "tag"])]
 >      ,f "update pieces\n\

@@ -707,34 +707,34 @@ syntax maybe should error instead of silently breaking
 >
 > scalExpr flg (SpecialOp _ n es) =
 >    case getTName n of
->      Just "!arrayctor" -> text "array" <> brackets (csvExp flg es)
->      Just "!between" -> scalExpr flg (head es) <+> text "between"
+>      Just "arrayctor" -> text "array" <> brackets (csvExp flg es)
+>      Just "between" -> scalExpr flg (head es) <+> text "between"
 >                         <+> scalExpr flg (es !! 1)
 >                         <+> text "and"
 >                         <+> scalExpr flg (es !! 2)
->      Just "!substring" -> text "substring"
+>      Just "substring" -> text "substring"
 >                      <> parens (scalExpr flg (head es)
 >                                 <+> text "from" <+> scalExpr flg (es !! 1)
 >                                 <+> text "for" <+> scalExpr flg (es !! 2))
->      Just "!arraysub" ->
+>      Just "arraysub" ->
 >        case es of
 >                (Identifier _ i : es1) -> name i
 >                                          <> brackets (csvExp flg es1)
 >                (e:es') -> scalExpr flg e
 >                           <> brackets (csvExp flg es')
 >                _ -> error $ "bad args to !arraysub: " ++ show es
->      Just "!rowctor" -> text "row" <> parens (sepCsvMap (scalExpr flg) es)
+>      Just "rowctor" -> text "row" <> parens (sepCsvMap (scalExpr flg) es)
 >      x -> error $ "bad special operator name: " ++ show x
 
 > scalExpr flg (BinaryOp _ n e0 e1) =
 >    case getTName n of
->      Just "!and" | unsafeReadable flg -> doLeftAnds e0 e1
+>      Just "and" | unsafeReadable flg -> doLeftAnds e0 e1
 >                  | otherwise -> sep [scalExpr flg e0
 >                                     ,text "and"
 >                                     ,scalExpr flg e1]
->      Just n' | Just n'' <- lookup n' [("!or","or")
->                                      ,("!like","like")
->                                      ,("!notlike","not like")] ->
+>      Just n' | Just n'' <- lookup n' [("or","or")
+>                                      ,("like","like")
+>                                      ,("notlike","not like")] ->
 >        scalExpr flg e0
 >        <+> text n''
 >        <+> scalExpr flg e1
@@ -750,11 +750,11 @@ syntax maybe should error instead of silently breaking
 >                                 : map (\x -> text "and" <+> scalExpr flg x) (tail as))
 >                                ++ [text "and" <+> scalExpr flg b])
 >      and' a = case a of
->                 BinaryOp _ f x y | Just "!and" <- getTName f -> and' x ++ and' y
+>                 BinaryOp _ f x y | Just "and" <- getTName f -> and' x ++ and' y
 >                 _ -> [a]
 
 > scalExpr flg (PrefixOp _ n e0)
->   | Just "!not" <- getTName n =
+>   | Just "not" <- getTName n =
 >       text "not" <+> scalExpr flg e0
 >   | Just n' <- getTName n =
 >       ttext n'
@@ -763,8 +763,8 @@ syntax maybe should error instead of silently breaking
 
 
 > scalExpr flg (PostfixOp _ n e0)
->   | Just n' <- getTName n >>= flip lookup [("!isnull", "is null")
->                                           ,("!isnotnull", "is not null")] =
+>   | Just n' <- getTName n >>= flip lookup [("isnull", "is null")
+>                                           ,("isnotnull", "is not null")] =
 >        scalExpr flg e0 <+> ttext n'
 >   | Just n' <- getTName n =
 >       scalExpr flg e0 <+> ttext n'
@@ -902,7 +902,7 @@ syntax maybe should error instead of silently breaking
 > set :: PrettyPrintFlags -> SetClause -> Doc
 > set flg (SetClause _ a e) =
 >   nmc a <+> text "=" <+> scalExpr flg e
-> set flg (MultiSetClause _ is (SpecialOp _ f es)) | Just "!rowctor" <- getTName f =
+> set flg (MultiSetClause _ is (SpecialOp _ f es)) | Just "rowctor" <- getTName f =
 >   parens (sepCsvMap nmc is) <+> text "="
 >   <+> parens (sepCsvMap (scalExpr flg) es)
 > set _ a = error $ "bad expression in set in update: " ++ show a

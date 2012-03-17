@@ -272,7 +272,7 @@ $ echo "3 = any (array[1,2])" | HsSqlPppUtil parseexpression -
 -- ast of -
 LiftOperator Ann "=" LiftAny
   [IntegerLit Ann 3,
-   FunCall Ann "!arrayctor" [IntegerLit Ann 1, IntegerLit Ann 2]]
+   FunCall Ann "arrayctor" [IntegerLit Ann 1, IntegerLit Ann 2]]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 > parseExpressionA = mode $ ParseExpression {files = def &= typ "FILES" & args}
@@ -553,7 +553,7 @@ ArrayType (ScalarType "int4")
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.sh}
 $ echo "array[3,'stuff'::text]" | ./HsSqlPppUtil typecheckexpression -
 -:1:1:
-[NoMatchingOperator "!arrayctor" [ScalarType "int4",ScalarType "text"]]
+[NoMatchingOperator "arrayctor" [ScalarType "int4",ScalarType "text"]]
 TypeCheckFailed
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

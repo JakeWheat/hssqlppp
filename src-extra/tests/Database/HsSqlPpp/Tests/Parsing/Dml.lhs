@@ -82,13 +82,13 @@ insert from select
 >         \  set (x,y) = (1,2);"
 >       [Update ea (name "tb")
 >        [MultiSetClause ea [Nmc "x",Nmc "y"]
->         $ specop "!rowctor" [num "1"
+>         $ specop "rowctor" [num "1"
 >                             ,num "2"]]
 >        []
 >        Nothing Nothing]
 >      ]
 
-App ea "=" [App ea "!rowctor" [Identifier ea "x",Identifier ea "y"],App ea "!rowctor" [num "1",num "2"]])
+App ea "=" [App ea "rowctor" [Identifier ea "x",Identifier ea "y"],App ea "rowctor" [num "1",num "2"]])
 
 
 >

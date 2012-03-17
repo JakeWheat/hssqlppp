@@ -38,10 +38,10 @@ check some basic parens use wrt naked values and row constructors
 these tests reflect how pg seems to interpret the variants.
 
 >       e "(1)" (Parens ea (num "1"))
->      ,e "row ()" (specop "!rowctor" [])
->      ,e "row (1)" (specop "!rowctor" [num "1"])
->      ,e "row (1,2)" (specop "!rowctor" [num "1",num "2"])
->      ,e "(1,2)" (specop "!rowctor" [num "1",num "2"])
+>      ,e "row ()" (specop "rowctor" [])
+>      ,e "row (1)" (specop "rowctor" [num "1"])
+>      ,e "row (1,2)" (specop "rowctor" [num "1",num "2"])
+>      ,e "(1,2)" (specop "rowctor" [num "1",num "2"])
 >      ]
 >    ,Group "more basic expressions" [
 
@@ -60,8 +60,8 @@ test some more really basic expressions
 >      ,e "null" lNull
 >      ]
 >    ,Group "array ctor and selector" [
->       e "array[1,2]" (specop "!arrayctor" [num "1", num "2"])
->      ,e "a[1]" (specop "!arraysub" [ei "a", num "1"])
+>       e "array[1,2]" (specop "arrayctor" [num "1", num "2"])
+>      ,e "a[1]" (specop "arraysub" [ei "a", num "1"])
 >      ]
 >    ,Group "simple operators" [
 >       e "1 + tst1" (binop "+" (num "1")
@@ -87,9 +87,9 @@ test some more really basic expressions
 >      ,e "interval '63' day (3)" (Interval ea "63" IntervalDay $ Just 3)
 >      ,e "extract(year from a)" (Extract ea ExtractYear $ ei "a")
 >      ,e "a between 1 and 3"
->         (specop "!between" [ei "a", num "1", num "3"])
+>         (specop "between" [ei "a", num "1", num "3"])
 >      ,e "a between 7 - 1 and 7 + 1"
->         (specop "!between" [ei "a"
+>         (specop "between" [ei "a"
 >                            ,binop "-" (num "7")
 >                                       (num "1")
 >                            ,binop "+" (num "7")
@@ -99,9 +99,9 @@ test some more really basic expressions
 >      ,e "@ a"
 >         (prefop "@" (ei "a"))
 >      ,e "substring(a from 0 for 3)"
->         (specop "!substring" [ei "a", num "0", num "3"])
+>         (specop "substring" [ei "a", num "0", num "3"])
 >      ,e "substring(a from 0 for (5 - 3))"
->         (specop "!substring" [ei "a"
+>         (specop "substring" [ei "a"
 >                              ,num "0"
 >                              ,Parens ea (binop "-" (num "5") (num "3"))])
 >      ,e "substring(a,b,c)"
@@ -109,13 +109,13 @@ test some more really basic expressions
 >                          ,ei "b"
 >                          ,ei "c"])
 >      ,e "a like b"
->         (binop "!like" (ei "a") (ei "b"))
+>         (binop "like" (ei "a") (ei "b"))
 >      ,e "a not like b"
->         (binop "!notlike" (ei "a") (ei "b"))
+>         (binop "notlike" (ei "a") (ei "b"))
 >      , e "a and b and c and d"
->         (binop "!and"
->          (binop "!and"
->           (binop "!and" (ei "a")
+>         (binop "and"
+>          (binop "and"
+>           (binop "and" (ei "a")
 >                         (ei "b"))
 >           (ei "c"))
 >          (ei "d"))
@@ -138,10 +138,10 @@ test some more really basic expressions
 >      ,e "fn(1) " (app "fn" [num "1"])
 >      ]
 >    ,Group "null stuff" [
->       e "not null" (prefop "!not" lNull)
->      ,e "a is null" (postop "!isnull" (ei "a"))
->      ,e "a is not null" (postop "!isnotnull" (ei "a"))
->      ,e "not not true" (prefop "!not" $ prefop "!not" lTrue)
+>       e "not null" (prefop "not" lNull)
+>      ,e "a is null" (postop "isnull" (ei "a"))
+>      ,e "a is not null" (postop "isnotnull" (ei "a"))
+>      ,e "not not true" (prefop "not" $ prefop "not" lTrue)
 >      ]
 
 >    ,Group "case expressions" [
@@ -180,17 +180,17 @@ selectFrom [SelExp ea (num "1")]
 >      ,e "t not in (1,2)"
 >       (InPredicate ea (ei "t") False (InList ea [num "1",num "2"]))
 >      ,e "(t,u) in (1,2)"
->       (InPredicate ea (specop "!rowctor" [ei "t",ei "u"]) True
+>       (InPredicate ea (specop "rowctor" [ei "t",ei "u"]) True
 >        (InList ea [num "1",num "2"]))
 >      ,e "3 = any (array[1,2])"
 >       (LiftApp ea (name "=")
 >        LiftAny [num "3"
->                ,specop "!arrayctor" [num "1"
+>                ,specop "arrayctor" [num "1"
 >                                     ,num "2"]])
 >      ,e "3 = all (array[1,2,4])"
 >       (LiftApp ea (name "=")
 >        LiftAll [num "3"
->                ,specop "!arrayctor" [num "1"
+>                ,specop "arrayctor" [num "1"
 >                                     ,num "2"
 >                                     ,num "4"]])
 >      ]
@@ -225,7 +225,7 @@ and dollar quoting, including nesting.
 >          (makeSelect
 >           {selSelectList =
 >             sl [si $ app "f" [Cast ea
->                               (specop "!rowctor"
+>                               (specop "rowctor"
 >                                [parenQual (ei "a") (ei "x")
 >                                ,ei "y"])
 >                               (st "z")]]}))

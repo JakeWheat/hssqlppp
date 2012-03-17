@@ -414,7 +414,7 @@ arbitrary selects in the client to support the ui code.
 >                                     "$a$"
 >                                     (PlpgsqlFnBody an [] [
 >                                       If an
->                                         [(FunCall an "!not" [BooleanLit an False]
+>                                         [(FunCall an "not" [BooleanLit an False]
 >                                          ,[Raise an RException
 >                                            "delete on base_relvar_metadata \
 >                                            \violates transition constraint \

@@ -433,7 +433,7 @@ multiple rows to insert and insert from select statements
 >           l <- parens (commaSep1 nameComponent)
 >           symbol "="
 >           r <- parens (commaSep1 expr)
->           return $ MultiSetClause p l $ SpecialOp p (nm p "!rowctor") r
+>           return $ MultiSetClause p l $ SpecialOp p (nm p "rowctor") r
 >         ,do
 >           p <- pos
 >           l <- nameComponent
@@ -1263,8 +1263,8 @@ bit better
 >          ,binary "%" AssocLeft]
 >         ,[binary "+" AssocLeft
 >          ,binary "-" AssocLeft]
->         ,[postfixks ["is", "not", "null"] "!isnotnull"
->          ,postfixks ["is", "null"] "!isnull"]
+>         ,[postfixks ["is", "not", "null"] "isnotnull"
+>          ,postfixks ["is", "null"] "isnull"]
 >          --other operators all added in this list according to the pg docs:
 >         ,[binary "<->" AssocNone
 >          ,binary "<=" AssocRight
@@ -1274,8 +1274,8 @@ bit better
 >          --in should be here, but is treated as a factor instead
 >          --between
 >          --overlaps
->         ,[binaryk "like" "!like" AssocNone
->          ,binaryks ["not","like"] "!notlike" AssocNone
+>         ,[binaryk "like" "like" AssocNone
+>          ,binaryks ["not","like"] "notlike" AssocNone
 >          ,binarycust (symbol "!=") "<>" AssocNone]
 >          --(also ilike similar)
 >         ,[binary "<" AssocNone
@@ -1283,12 +1283,12 @@ bit better
 >         ,[binary "=" AssocRight
 >          ,binary "<>" AssocNone]
 >         ,[notNot
->          ,prefixk "not" "!not"
+>          ,prefixk "not" "not"
 >          ]
->         ,let x = [binaryk "or" "!or" AssocLeft]
+>         ,let x = [binaryk "or" "or" AssocLeft]
 >          in if isB
 >             then x
->             else binaryk "and" "!and" AssocLeft : x
+>             else binaryk "and" "and" AssocLeft : x
 >          ]
 >     where
 >       binary s = binarycust (symbol s) s
@@ -1317,8 +1317,8 @@ bit better
 >                       keyword "not"
 >                       p2 <- pos
 >                       keyword "not"
->                       return $ PrefixOp p1 (nm p1 "!not")
->                                . PrefixOp p2 (nm p2 "!not")
+>                       return $ PrefixOp p1 (nm p1 "not")
+>                                . PrefixOp p2 (nm p2 "not")
 
 From postgresql src/backend/parser/gram.y
 
@@ -1389,7 +1389,7 @@ and () is a syntax error.
 > rowCtor :: SParser ScalarExpr
 > rowCtor = SpecialOp
 >           <$> pos
->           <*> (nm <$> pos <*> return "!rowctor")
+>           <*> (nm <$> pos <*> return "rowctor")
 >           <*> choice [
 >            keyword "row" *> parens (commaSep expr)
 >           ,parens $ commaSep2 expr]
@@ -1437,12 +1437,12 @@ and () is a syntax error.
 >
 > arrayLit :: SParser ScalarExpr
 > arrayLit = SpecialOp <$> pos <* keyword "array"
->                    <*> (nm <$> pos <*> return "!arrayctor")
+>                    <*> (nm <$> pos <*> return "arrayctor")
 >                    <*> squares (commaSep expr)
 >
 > arraySubSuffix :: ScalarExpr -> SParser ScalarExpr
 > arraySubSuffix e = SpecialOp <$> pos
->                    <*> (nm <$> pos <*> return "!arraysub")
+>                    <*> (nm <$> pos <*> return "arraysub")
 >                    <*> ((e:) <$> squares (commaSep1 expr))
 >
 > windowFnSuffix :: ScalarExpr -> SParser ScalarExpr
@@ -1495,7 +1495,7 @@ and () is a syntax error.
 >   b <- b_expr
 >   keyword "and"
 >   c <- b_expr
->   return $ SpecialOp p (nm p "!between") [a,b,c]
+>   return $ SpecialOp p (nm p "between") [a,b,c]
 
 handles aggregate business as well
 
@@ -1655,7 +1655,7 @@ a special case for them
 >             keyword "for"
 >             c <- expr
 >             symbol ")"
->             return $ SpecialOp p (nm p "!substring") [a,b,c]
+>             return $ SpecialOp p (nm p "substring") [a,b,c]
 >
 
 ------------------------------------------------------------

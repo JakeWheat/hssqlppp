@@ -240,32 +240,32 @@ postgresql catalog
 > systemBinaryOps :: [(CatName,OperatorPrototype)]
 > systemBinaryOps =
 >    [("=", ("=",[Pseudo AnyElement, Pseudo AnyElement], typeBool, False))
->    ,("!and",("!and", [typeBool, typeBool], typeBool, False))
->    ,("!or",("!or", [typeBool, typeBool], typeBool, False))
->    ,("!like",("!like", [ScalarType "text", ScalarType "text"], typeBool, False))
->    ,("!like",("!like", [ScalarType "char", ScalarType "char"], typeBool, False))
->    ,("!like",("!like", [ScalarType "varchar", ScalarType "varchar"], typeBool, False))
->    ,("!notlike",("!notlike", [ScalarType "text", ScalarType "text"], typeBool, False))
->    ,("!notlike",("!notlike", [ScalarType "char", ScalarType "char"], typeBool, False))
->    ,("!notlike",("!notlike", [ScalarType "varchar", ScalarType "varchar"], typeBool, False))
->    ,("!arrayctor",("!arrayctor", [ArrayType $ Pseudo AnyElement], Pseudo AnyArray, True))
->    ,("!between",("!between", [Pseudo AnyElement
+>    ,("and",("and", [typeBool, typeBool], typeBool, False))
+>    ,("or",("or", [typeBool, typeBool], typeBool, False))
+>    ,("like",("like", [ScalarType "text", ScalarType "text"], typeBool, False))
+>    ,("like",("like", [ScalarType "char", ScalarType "char"], typeBool, False))
+>    ,("like",("like", [ScalarType "varchar", ScalarType "varchar"], typeBool, False))
+>    ,("notlike",("notlike", [ScalarType "text", ScalarType "text"], typeBool, False))
+>    ,("notlike",("notlike", [ScalarType "char", ScalarType "char"], typeBool, False))
+>    ,("notlike",("notlike", [ScalarType "varchar", ScalarType "varchar"], typeBool, False))
+>    ,("arrayctor",("arrayctor", [ArrayType $ Pseudo AnyElement], Pseudo AnyArray, True))
+>    ,("between",("between", [Pseudo AnyElement
 >                              ,Pseudo AnyElement
 >                              ,Pseudo AnyElement], typeBool, False))
->    ,("!substring",("!substring",[ScalarType "text",typeInt,typeInt],ScalarType "text",False))
->    ,("!substring",("!substring",[ScalarType "varchar",typeInt,typeInt],ScalarType "varchar",False))
->    ,("!substring",("!substring",[ScalarType "char",typeInt,typeInt],ScalarType "char",False))
->    ,("!arraysub",("!arraysub", [Pseudo AnyArray,typeInt], Pseudo AnyElement, False))
+>    ,("substring",("substring",[ScalarType "text",typeInt,typeInt],ScalarType "text",False))
+>    ,("substring",("substring",[ScalarType "varchar",typeInt,typeInt],ScalarType "varchar",False))
+>    ,("substring",("substring",[ScalarType "char",typeInt,typeInt],ScalarType "char",False))
+>    ,("arraysub",("arraysub", [Pseudo AnyArray,typeInt], Pseudo AnyElement, False))
 >    ]
 
 > systemPrefixOps :: [(CatName,OperatorPrototype)]
 > systemPrefixOps =
->    [("!not",("!not", [typeBool], typeBool, False))]
+>    [("not",("not", [typeBool], typeBool, False))]
 
 > systemPostfixOps :: [(CatName,OperatorPrototype)]
 > systemPostfixOps =
->    [("!isnull",("!isnull", [Pseudo AnyElement], typeBool, False))
->    ,("!isnotnull",("!isnotnull", [Pseudo AnyElement], typeBool, False))]
+>    [("isnull",("isnull", [Pseudo AnyElement], typeBool, False))
+>    ,("isnotnull",("isnotnull", [Pseudo AnyElement], typeBool, False))]
 
 > systemFunctions :: [(CatName, OperatorPrototype)]
 > systemFunctions =

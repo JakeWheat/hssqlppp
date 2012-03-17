@@ -20,7 +20,7 @@
 >    ,s "select a from t where b=2;"
 >       $ tblat {selWhere = Just $ binop "=" (ei "b") (num "2")}
 >    ,s "select a from t where b=2 and c=3;"
->       $ tblat {selWhere = Just $ binop "!and"
+>       $ tblat {selWhere = Just $ binop "and"
 >                           (binop "=" (ei "b") (num "2"))
 >                           (binop "=" (ei "c") (num "3"))}
 >    ,s "SELECT T.A::INT FROM TBL AS T;"
