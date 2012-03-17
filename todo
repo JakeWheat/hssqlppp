@@ -55,6 +55,11 @@ go through old typecheck tests and reinsert most of them?
 -> want to get much better coverage of typechecking
 start looking at getting the type errors back up to the old level
 
+to serve effectively as a front end, the parser should produce nice
+   error messages, and the typechecking of crud should be very
+   comprehensive
+what will useable non ascii character set support take?
+
 == small fixes
 
 see if can fix error messages from lex/parse in qq: come out all with

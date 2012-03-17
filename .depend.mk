@@ -1,5 +1,6 @@
 # DO NOT DELETE: Beginning of Haskell dependencies
 src/Database/HsSqlPpp/Parsing/ParseErrors.o : src/Database/HsSqlPpp/Parsing/ParseErrors.lhs
+src/Database/HsSqlPpp/Utils/Utils.o : src/Database/HsSqlPpp/Utils/Utils.lhs
 src-extra/tests/Database/HsSqlPpp/Utils/GroomUtils.o : src-extra/tests/Database/HsSqlPpp/Utils/GroomUtils.lhs
 src-extra/catalogReader/Database/HsSqlPpp/Utils/PgUtils.o : src-extra/catalogReader/Database/HsSqlPpp/Utils/PgUtils.lhs
 src-extra/utils/Database/HsSqlPpp/Utils/Here.o : src-extra/utils/Database/HsSqlPpp/Utils/Here.lhs
@@ -41,6 +42,10 @@ src/Database/HsSqlPpp/Types.o : src/Database/HsSqlPpp/Types.lhs
 src/Database/HsSqlPpp/Types.o : src/Database/HsSqlPpp/Internals/TypesInternal.hi
 src/Database/HsSqlPpp/Internals/StringLike.o : src/Database/HsSqlPpp/Internals/StringLike.lhs
 src/Database/HsSqlPpp/SqlDialect.o : src/Database/HsSqlPpp/SqlDialect.lhs
+src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/Parsing/Lexer.lhs
+src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/SqlDialect.hi
+src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/Utils/Utils.hi
+src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/Parsing/ParseErrors.hi
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o : src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.lhs
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o : src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.hi
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o : src/Database/HsSqlPpp/SqlDialect.hi
@@ -51,7 +56,6 @@ src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o : src/Database/HsSqlP
 src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o : src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.hi
 src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o : src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.hi
 src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o : src/Database/HsSqlPpp/Internals/TypesInternal.hi
-src/Database/HsSqlPpp/Utils/Utils.o : src/Database/HsSqlPpp/Utils/Utils.lhs
 src/Database/HsSqlPpp/Internals/AstInternal.o : src/Database/HsSqlPpp/Internals/AstInternal.hs
 src/Database/HsSqlPpp/Internals/AstInternal.o : src/Database/HsSqlPpp/SqlDialect.hi
 src/Database/HsSqlPpp/Internals/AstInternal.o : src/Database/HsSqlPpp/Utils/Utils.hi
@@ -62,10 +66,6 @@ src/Database/HsSqlPpp/Internals/AstInternal.o : src/Database/HsSqlPpp/Internals/
 src/Database/HsSqlPpp/TypeChecker.o : src/Database/HsSqlPpp/TypeChecker.lhs
 src/Database/HsSqlPpp/TypeChecker.o : src/Database/HsSqlPpp/SqlDialect.hi
 src/Database/HsSqlPpp/TypeChecker.o : src/Database/HsSqlPpp/Internals/AstInternal.hi
-src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/Parsing/Lexer.lhs
-src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/SqlDialect.hi
-src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/Utils/Utils.hi
-src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/Parsing/ParseErrors.hi
 src/Database/HsSqlPpp/Annotation.o : src/Database/HsSqlPpp/Annotation.lhs
 src/Database/HsSqlPpp/Annotation.o : src/Database/HsSqlPpp/Internals/AstInternal.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.o : src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.lhs
@@ -223,7 +223,6 @@ src-extra/extensions/Database/HsSqlPpp/Extensions/Denormalized6nf.o : src-extra/
 src/Database/HsSqlPpp/Pretty.o : src/Database/HsSqlPpp/Pretty.lhs
 src/Database/HsSqlPpp/Pretty.o : src/Database/HsSqlPpp/Internals/StringLike.hi
 src/Database/HsSqlPpp/Pretty.o : src/Database/HsSqlPpp/SqlDialect.hi
-src/Database/HsSqlPpp/Pretty.o : src/Database/HsSqlPpp/Utils/Utils.hi
 src/Database/HsSqlPpp/Pretty.o : src/Database/HsSqlPpp/Annotation.hi
 src/Database/HsSqlPpp/Pretty.o : src/Database/HsSqlPpp/Ast.hi
 src-extra/examples/MakeSelect.o : src-extra/examples/MakeSelect.lhs

@@ -1,32 +1,20 @@
 
-make file helper
-1. ghc -M doesn't list the .o files needed for an exe
-2. something is going wrong with the dependencies when building exes
-
-only need to generate a .o list for each executable,
-then write out sections as follows:
-
-exe_file_name : all the os for that exe
-	$(HC) $(HC_OPTS) -o exe_file_name all_the_os
-
-this will also force the maintenance of correct package lists
-
-
-
+use haskell-src-exts to get the modules from a source file
+can keep only the modules which correspond to local files
+and also does transitive closure of local dependencies
 
 > {-# LANGUAGE TupleSections #-}
 > module GetImports (immediateFileDependencies,tcDependencies) where
 
 > import System.Environment
-> import Language.Haskell.Exts
+> --import Language.Haskell.Exts
 > import Data.List hiding (find)
-> --import Data.Char
 > import System.FilePath.Find
-> --import Debug.Trace
 > import System.FilePath
 > import Data.Maybe
 > import Debug.Trace
 > import Data.IORef
+> import Data.Char
 
 > {-main :: IO ()
 > main = do
@@ -95,11 +83,6 @@ that module
 >                        ,b </> f)
 >        x -> error $ "ambiguous module: " ++ show x
 
-> imports :: FilePath -> IO [String]
-> imports f = do
->   hm <- pf f
->   return $ map importName $ moduleImportDecls hm
-
 get all the source files under the list of folders given
 
 returned as pairs of root path, complete path to file under that root
@@ -111,26 +94,6 @@ returned as pairs of root path, complete path to file under that root
 >     findHs dir =
 >        map ((dir,) . makeRelative dir) `fmap`
 >        find (return True) (extension ==? ".lhs" ||? extension ==? ".hs") dir
-
-> importName :: ImportDecl -> String
-> importName m = (\(ModuleName n) -> n) $ importModule m
-
-> moduleImportDecls :: Module -> [ImportDecl]
-> moduleImportDecls (Module _ _ _ _ _ is _) = is
-
-
-> pf :: FilePath -> IO Module
-> pf f = do
->   x <- parseFileWithMode pm f
->   case x of
->         ParseOk ast -> return ast
->         e -> error $ show e
->   where
->     pm = defaultParseMode {
->            parseFilename = f
->          ,extensions = [PatternGuards,ScopedTypeVariables
->                        ,TupleSections,FlexibleContexts
->                        ,MultiParamTypeClasses]}
 
 > replaceStr :: String -> String -> String -> String
 > replaceStr _ _ [] = []
@@ -144,3 +107,16 @@ returned as pairs of root path, complete path to file under that root
 >         then new ++ loop rest           -- yes: replace it
 >         else head str : loop (tail str) -- no: keep looking
 >     n = length old
+
+> imports :: FilePath -> IO [String]
+> imports fp = do
+>   r <- readFile fp
+>   return $ mapMaybe (im . words) $ lines r
+>   where
+>     im (x:_) | x /= "import" = Nothing
+>     im (">":x:_) | x /= "import" = Nothing
+>     im (">":"import":"qualified":nm:_) = Just nm
+>     im (">":"import":nm:_) = Just nm
+>     im ("import":"qualified":nm:_) = Just nm
+>     im ("import":nm:_) = Just nm
+>     im _ = Nothing

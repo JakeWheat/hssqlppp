@@ -42,7 +42,7 @@
 # makefiles
 
 HC              = ghc
-HC_BASIC_OPTS   = -Wall -threaded -rtsopts -hide-all-packages -package base
+HC_BASIC_OPTS   = -Wall -threaded -rtsopts
 
 # add new source roots to this
 SRC_DIRS = src src-extra/catalogReader src-extra/chaos \
@@ -67,7 +67,7 @@ PACKAGES = haskell-src-exts uniplate mtl base containers parsec pretty \
 	test-framework-hunit HUnit HDBC HDBC-postgresql pandoc xhtml \
 	datetime split Diff text filepath directory bytestring
 	#illuminate
-HC_PACKAGES = $(patsubst %,-package %,$(PACKAGES))
+HC_PACKAGES = -hide-all-packages -package base $(patsubst %,-package %,$(PACKAGES))
 
 HC_OPTS = $(HC_BASIC_OPTS) $(HC_INCLUDE_DIRS) $(HC_PACKAGES)
 
@@ -94,7 +94,7 @@ EXE_FILES = src-extra/tests/Tests \
 	src-extra/examples/TypeCheckMystery \
 	src-extra/h7c/h7c \
 	src-extra/examples/FixSqlServerTpchSyntax \
-	src-extra/examples/QQ \
+	src-extra/examples/QQ
 #	src-extra/docutil/DevelTool
 
 #	src-extra/examples/ShowCatalog \
@@ -168,9 +168,10 @@ more_all : all all_exes website website_haddock tests
 
 # dependency and rules for exe autogeneration:
 
-exe_depend : src-extra/devel-util/GenerateExeRules.lhs Makefile src/Database/HsSqlPpp/Internals/AstInternal.hs
+src-extra/devel-util/GenerateExeRules : src-extra/devel-util/GenerateExeRules.lhs src-extra/devel-util/GetImports.lhs
 	ghc -isrc-extra/devel-util src-extra/devel-util/GenerateExeRules.lhs
-	src-extra/devel-util/GenerateExeRules .exe_rules.mk \
+exe_depend : src-extra/devel-util/GenerateExeRules Makefile src/Database/HsSqlPpp/Internals/AstInternal.hs
+	src-extra/devel-util/GenerateExeRules .exe_rules.mk HC HC_OPTS \
 	$(SRC_DIRS) EXES $(EXE_FILES)
 
 depend : src/Database/HsSqlPpp/Internals/AstInternal.hs
