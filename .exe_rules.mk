@@ -1,32 +1,744 @@
-src-extra/tests/Tests : src-extra/tests/Tests.o
-	$(HC) $(HC_OPTS) -o src-extra/tests/Tests src-extra/tests/Tests.o
-src-extra/devel-util/MakeDefaultTemplate1Catalog : src-extra/devel-util/MakeDefaultTemplate1Catalog.o
-	$(HC) $(HC_OPTS) -o src-extra/devel-util/MakeDefaultTemplate1Catalog src-extra/devel-util/MakeDefaultTemplate1Catalog.o
-src-extra/examples/MakeSelect : src-extra/examples/MakeSelect.o
-	$(HC) $(HC_OPTS) -o src-extra/examples/MakeSelect src-extra/examples/MakeSelect.o
-src-extra/examples/Parse : src-extra/examples/Parse.o
-	$(HC) $(HC_OPTS) -o src-extra/examples/Parse src-extra/examples/Parse.o
-src-extra/examples/Parse2 : src-extra/examples/Parse2.o
-	$(HC) $(HC_OPTS) -o src-extra/examples/Parse2 src-extra/examples/Parse2.o
-src-extra/examples/Parse3 : src-extra/examples/Parse3.o
-	$(HC) $(HC_OPTS) -o src-extra/examples/Parse3 src-extra/examples/Parse3.o
-src-extra/examples/Lex : src-extra/examples/Lex.o
-	$(HC) $(HC_OPTS) -o src-extra/examples/Lex src-extra/examples/Lex.o
-src-extra/examples/TypeCheck3 : src-extra/examples/TypeCheck3.o
-	$(HC) $(HC_OPTS) -o src-extra/examples/TypeCheck3 src-extra/examples/TypeCheck3.o
-src-extra/examples/TypeCheck2 : src-extra/examples/TypeCheck2.o
-	$(HC) $(HC_OPTS) -o src-extra/examples/TypeCheck2 src-extra/examples/TypeCheck2.o
-src-extra/examples/TypeCheck : src-extra/examples/TypeCheck.o
-	$(HC) $(HC_OPTS) -o src-extra/examples/TypeCheck src-extra/examples/TypeCheck.o
-src-extra/examples/TypeCheckDB : src-extra/examples/TypeCheckDB.o
-	$(HC) $(HC_OPTS) -o src-extra/examples/TypeCheckDB src-extra/examples/TypeCheckDB.o
-src-extra/examples/PPPTest : src-extra/examples/PPPTest.o
-	$(HC) $(HC_OPTS) -o src-extra/examples/PPPTest src-extra/examples/PPPTest.o
-src-extra/examples/TypeCheckMystery : src-extra/examples/TypeCheckMystery.o
-	$(HC) $(HC_OPTS) -o src-extra/examples/TypeCheckMystery src-extra/examples/TypeCheckMystery.o
-src-extra/h7c/h7c : src-extra/h7c/h7c.o
-	$(HC) $(HC_OPTS) -o src-extra/h7c/h7c src-extra/h7c/h7c.o
-src-extra/examples/FixSqlServerTpchSyntax : src-extra/examples/FixSqlServerTpchSyntax.o
-	$(HC) $(HC_OPTS) -o src-extra/examples/FixSqlServerTpchSyntax src-extra/examples/FixSqlServerTpchSyntax.o
-src-extra/examples/QQ : src-extra/examples/QQ.o
-	$(HC) $(HC_OPTS) -o src-extra/examples/QQ src-extra/examples/QQ.o
+src-extra/tests/Tests : src-extra/tests/Tests.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Tests.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o \
+src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/Pretty.o \
+src/Database/HsSqlPpp/Utility.o \
+src-extra/tests/Database/HsSqlPpp/Utils/GroomUtils.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Utils.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ScalarExprs.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/MiscQueryExprs.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/CombineQueryExprs.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/SelectLists.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/TableRefs.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Joins.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Dml.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Misc.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/CreateTable.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/MiscDdl.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/FunctionsDdl.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Plpgsql.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/SqlServer.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Internals/StringLike.o \
+src/Database/HsSqlPpp/Catalog.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o \
+src-extra/utils/Database/HsSqlPpp/Utils/Here.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ScalarExprs.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/SimpleQueryExprs.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Rewrites.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Joins.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Tpch.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TrefIdentifiers.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/CaseExpressions.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ImplicitCasts.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TSQL.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Issues.o \
+src/Database/HsSqlPpp/TypeChecker.o \
+src/Database/HsSqlPpp/Types.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o \
+src/Database/HsSqlPpp/Quote.o
+	$(HC) $(HC_OPTS) -o src-extra/tests/Tests src-extra/tests/Tests.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Tests.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.o \
+src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/Pretty.o \
+src/Database/HsSqlPpp/Utility.o \
+src-extra/tests/Database/HsSqlPpp/Utils/GroomUtils.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Utils.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ScalarExprs.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/MiscQueryExprs.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/CombineQueryExprs.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/SelectLists.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/TableRefs.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Joins.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Dml.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Misc.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/CreateTable.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/MiscDdl.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/FunctionsDdl.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Plpgsql.o \
+src-extra/tests/Database/HsSqlPpp/Tests/Parsing/SqlServer.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Internals/StringLike.o \
+src/Database/HsSqlPpp/Catalog.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o \
+src-extra/utils/Database/HsSqlPpp/Utils/Here.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ScalarExprs.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/SimpleQueryExprs.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Rewrites.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Joins.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Tpch.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TrefIdentifiers.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/CaseExpressions.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ImplicitCasts.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TSQL.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Issues.o \
+src/Database/HsSqlPpp/TypeChecker.o \
+src/Database/HsSqlPpp/Types.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o \
+src/Database/HsSqlPpp/Quote.o
+src-extra/devel-util/MakeDefaultTemplate1Catalog : src-extra/devel-util/MakeDefaultTemplate1Catalog.o \
+src-extra/utils/Database/HsSqlPpp/Utils/Here.o \
+src-extra/catalogReader/Database/HsSqlPpp/Utils/CatalogReader.o \
+src-extra/catalogReader/Database/HsSqlPpp/Utils/PgUtils.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o
+	$(HC) $(HC_OPTS) -o src-extra/devel-util/MakeDefaultTemplate1Catalog src-extra/devel-util/MakeDefaultTemplate1Catalog.o \
+src-extra/utils/Database/HsSqlPpp/Utils/Here.o \
+src-extra/catalogReader/Database/HsSqlPpp/Utils/CatalogReader.o \
+src-extra/catalogReader/Database/HsSqlPpp/Utils/PgUtils.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o
+src-extra/examples/MakeSelect : src-extra/examples/MakeSelect.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Pretty.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Internals/StringLike.o
+	$(HC) $(HC_OPTS) -o src-extra/examples/MakeSelect src-extra/examples/MakeSelect.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Pretty.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Internals/StringLike.o
+src-extra/examples/Parse : src-extra/examples/Parse.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o
+	$(HC) $(HC_OPTS) -o src-extra/examples/Parse src-extra/examples/Parse.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o
+src-extra/examples/Parse2 : src-extra/examples/Parse2.o \
+src/Database/HsSqlPpp/Parser.o \
+src-extra/tests/Database/HsSqlPpp/Utils/GroomUtils.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o
+	$(HC) $(HC_OPTS) -o src-extra/examples/Parse2 src-extra/examples/Parse2.o \
+src/Database/HsSqlPpp/Parser.o \
+src-extra/tests/Database/HsSqlPpp/Utils/GroomUtils.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o
+src-extra/examples/Parse3 : src-extra/examples/Parse3.o \
+src/Database/HsSqlPpp/Parser.o \
+src-extra/tests/Database/HsSqlPpp/Utils/GroomUtils.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o
+	$(HC) $(HC_OPTS) -o src-extra/examples/Parse3 src-extra/examples/Parse3.o \
+src/Database/HsSqlPpp/Parser.o \
+src-extra/tests/Database/HsSqlPpp/Utils/GroomUtils.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o
+src-extra/examples/Lex : src-extra/examples/Lex.o \
+src/Database/HsSqlPpp/Utility.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Catalog.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Annotation.o
+	$(HC) $(HC_OPTS) -o src-extra/examples/Lex src-extra/examples/Lex.o \
+src/Database/HsSqlPpp/Utility.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Catalog.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Annotation.o
+src-extra/examples/TypeCheck3 : src-extra/examples/TypeCheck3.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/TypeChecker.o \
+src/Database/HsSqlPpp/Catalog.o \
+src/Database/HsSqlPpp/Ast.o \
+src-extra/tests/Database/HsSqlPpp/Utils/GroomUtils.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o \
+src-extra/utils/Database/HsSqlPpp/Utils/Here.o
+	$(HC) $(HC_OPTS) -o src-extra/examples/TypeCheck3 src-extra/examples/TypeCheck3.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/TypeChecker.o \
+src/Database/HsSqlPpp/Catalog.o \
+src/Database/HsSqlPpp/Ast.o \
+src-extra/tests/Database/HsSqlPpp/Utils/GroomUtils.o \
+src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o \
+src-extra/utils/Database/HsSqlPpp/Utils/Here.o
+src-extra/examples/TypeCheck2 : src-extra/examples/TypeCheck2.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/TypeChecker.o \
+src/Database/HsSqlPpp/Catalog.o \
+src/Database/HsSqlPpp/Types.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Utility.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o
+	$(HC) $(HC_OPTS) -o src-extra/examples/TypeCheck2 src-extra/examples/TypeCheck2.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/TypeChecker.o \
+src/Database/HsSqlPpp/Catalog.o \
+src/Database/HsSqlPpp/Types.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Utility.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o
+src-extra/examples/TypeCheck : src-extra/examples/TypeCheck.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/TypeChecker.o \
+src/Database/HsSqlPpp/Catalog.o \
+src/Database/HsSqlPpp/Types.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o
+	$(HC) $(HC_OPTS) -o src-extra/examples/TypeCheck src-extra/examples/TypeCheck.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/TypeChecker.o \
+src/Database/HsSqlPpp/Catalog.o \
+src/Database/HsSqlPpp/Types.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o
+src-extra/examples/TypeCheckDB : src-extra/examples/TypeCheckDB.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/TypeChecker.o \
+src/Database/HsSqlPpp/Catalog.o \
+src/Database/HsSqlPpp/Types.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Ast.o \
+src-extra/catalogReader/Database/HsSqlPpp/Utils/CatalogReader.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o \
+src-extra/utils/Database/HsSqlPpp/Utils/Here.o \
+src-extra/catalogReader/Database/HsSqlPpp/Utils/PgUtils.o
+	$(HC) $(HC_OPTS) -o src-extra/examples/TypeCheckDB src-extra/examples/TypeCheckDB.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/TypeChecker.o \
+src/Database/HsSqlPpp/Catalog.o \
+src/Database/HsSqlPpp/Types.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Ast.o \
+src-extra/catalogReader/Database/HsSqlPpp/Utils/CatalogReader.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o \
+src-extra/utils/Database/HsSqlPpp/Utils/Here.o \
+src-extra/catalogReader/Database/HsSqlPpp/Utils/PgUtils.o
+src-extra/examples/PPPTest : src-extra/examples/PPPTest.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/Pretty.o \
+src/Database/HsSqlPpp/Utility.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Internals/StringLike.o \
+src/Database/HsSqlPpp/Catalog.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o
+	$(HC) $(HC_OPTS) -o src-extra/examples/PPPTest src-extra/examples/PPPTest.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/Pretty.o \
+src/Database/HsSqlPpp/Utility.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Internals/StringLike.o \
+src/Database/HsSqlPpp/Catalog.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o
+src-extra/examples/TypeCheckMystery : src-extra/examples/TypeCheckMystery.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/TypeChecker.o \
+src/Database/HsSqlPpp/Catalog.o \
+src/Database/HsSqlPpp/Types.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Utility.o \
+src/Database/HsSqlPpp/Pretty.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o \
+src-extra/tests/Database/HsSqlPpp/Utils/GroomUtils.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
+src/Database/HsSqlPpp/Internals/StringLike.o
+	$(HC) $(HC_OPTS) -o src-extra/examples/TypeCheckMystery src-extra/examples/TypeCheckMystery.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/TypeChecker.o \
+src/Database/HsSqlPpp/Catalog.o \
+src/Database/HsSqlPpp/Types.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Utility.o \
+src/Database/HsSqlPpp/Pretty.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o \
+src-extra/tests/Database/HsSqlPpp/Utils/GroomUtils.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
+src/Database/HsSqlPpp/Internals/StringLike.o
+src-extra/h7c/h7c : src-extra/h7c/h7c.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Pretty.o \
+src-extra/chaos/extensions/ChaosExtensions.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Internals/StringLike.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/ExtensionsUtils.o \
+src/Database/HsSqlPpp/Quote.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/TransitionConstraints.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/Modules.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/CreateAssertion.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/CreateVar.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/CardinalityRestrict.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/SimplifiedCatalog.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/Denormalized6nf.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/AstUtils.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/DenormSyntax.o \
+src/Database/HsSqlPpp/Utility.o \
+src-extra/utils/Database/HsSqlPpp/Utils/Here.o \
+src/Database/HsSqlPpp/Catalog.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o
+	$(HC) $(HC_OPTS) -o src-extra/h7c/h7c src-extra/h7c/h7c.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Pretty.o \
+src-extra/chaos/extensions/ChaosExtensions.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Internals/StringLike.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/ExtensionsUtils.o \
+src/Database/HsSqlPpp/Quote.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/TransitionConstraints.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/Modules.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/CreateAssertion.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/CreateVar.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/CardinalityRestrict.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/SimplifiedCatalog.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/Denormalized6nf.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/AstUtils.o \
+src-extra/extensions/Database/HsSqlPpp/Extensions/DenormSyntax.o \
+src/Database/HsSqlPpp/Utility.o \
+src-extra/utils/Database/HsSqlPpp/Utils/Here.o \
+src/Database/HsSqlPpp/Catalog.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
+src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o
+src-extra/examples/FixSqlServerTpchSyntax : src-extra/examples/FixSqlServerTpchSyntax.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Pretty.o \
+src/Database/HsSqlPpp/Quote.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Internals/StringLike.o
+	$(HC) $(HC_OPTS) -o src-extra/examples/FixSqlServerTpchSyntax src-extra/examples/FixSqlServerTpchSyntax.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Pretty.o \
+src/Database/HsSqlPpp/Quote.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Internals/StringLike.o
+src-extra/examples/QQ : src-extra/examples/QQ.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Quote.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Pretty.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Internals/StringLike.o
+	$(HC) $(HC_OPTS) -o src-extra/examples/QQ src-extra/examples/QQ.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Quote.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Pretty.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Internals/StringLike.o

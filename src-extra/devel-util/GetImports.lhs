@@ -15,6 +15,8 @@ and also does transitive closure of local dependencies
 > import Debug.Trace
 > import Data.IORef
 > import Data.Char
+> import System.IO
+> import Text.Groom
 
 > {-main :: IO ()
 > main = do
@@ -51,7 +53,8 @@ get all dependencies for a filename, using transitive closure
 >   -- doesn't cache between calls to tcDependencies
 >   cache <- newIORef []
 >   lss <- {-trace ("tc for " ++ f) $ -} localSources srcdirs
->   nub `fmap` recDs cache lss f
+>   x <- nub `fmap` recDs cache lss f
+>   return x
 >   where
 >     recDs cache lss fn = do
 >         cv <- readIORef cache
@@ -108,15 +111,16 @@ returned as pairs of root path, complete path to file under that root
 >         else head str : loop (tail str) -- no: keep looking
 >     n = length old
 
+
 > imports :: FilePath -> IO [String]
 > imports fp = do
 >   r <- readFile fp
 >   return $ mapMaybe (im . words) $ lines r
 >   where
->     im (x:_) | x /= "import" = Nothing
 >     im (">":x:_) | x /= "import" = Nothing
 >     im (">":"import":"qualified":nm:_) = Just nm
 >     im (">":"import":nm:_) = Just nm
+>     im (x:_) | x /= "import" = Nothing
 >     im ("import":"qualified":nm:_) = Just nm
 >     im ("import":nm:_) = Just nm
 >     im _ = Nothing
