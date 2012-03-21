@@ -12,28 +12,27 @@ get the new tref adding stuff working
 rename SubTref to QueryTref or something
 rename ScalarSubQuery to something better
 review other names in syntax
-rename SqlServerDialect and associated things to TSQLDialect?
 tpch tests: add tests which parse, add all the extras, then
    reparse,pretty,parse, and typecheck again
+separate out the type error tests to different files and get them
+   working again
+better checking for group by queries
 
 add parens to queryexprs
-remove the ! on operator names
-change the special op name to be an enum
+change the special op name to be an enum?
 change parsing of typed string literal since this can be just a cast,
    get rid of seperate ctor
 review unionall and others
 
 fix unsafereadable in pretty: always do improved whitespace layout
-  and add separate function to remove redundant aliases from a
-  typechecked ast - no more flag for unsafe readable
+  not going to add table aliases anymore
 
 think of a better names for plpgsql* since will also support tsql and
-   maybe others going forward (not so much of a distintion between sql
-   and tsql in sql server though?)
+   maybe others going forward
 
 better way to do accessor and setter for annotations (use typeclass?)
 
-switch to using postgresql-simple instead of hdbc?
+switch to using postgresql-simple instead of hdbc
 
 == typechecking
 
@@ -88,7 +87,12 @@ want to be ready to do comprehensive review of pg syntax support for
    0.6.0, so can work through and get a reasonably comprehensive list
    of what is missing
 
+documentation:
 
+easy way to put in some sql, see if it parses, view the resultant
+   ast
+same with typechecking: show writing a cat by hand, and examples to
+   generate from postgresql database and from ddl sql
 
 
 = 'arcs'
