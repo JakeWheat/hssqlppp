@@ -707,6 +707,7 @@ data Statement
                     ifE :: IfExists
                     names :: {[Name]}
                     cascade :: Cascade
+    | CreateDatabase ann::Annotation nm::Name
 
 --misc
 
@@ -877,6 +878,7 @@ data DropType = Table
               | Domain
               | View
               | Type
+              | Database
                 deriving (Show,Eq,Typeable,Data)
 
 data Cascade = Cascade | Restrict

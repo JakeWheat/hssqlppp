@@ -10,7 +10,9 @@
 > miscDdl =
 >   Group "misc ddl" [
 >     Group "misc create" [
->       s "create view v1 as\n\
+>       s "create database dbname;"
+>       [CreateDatabase ea (name "dbname")]
+>      ,s "create view v1 as\n\
 >         \select a,b from t;"
 >       [CreateView ea
 >        (name "v1") Nothing
@@ -65,6 +67,8 @@
 >       [DropSomething ea Table Require [name "t"] Restrict]
 >      ,s "drop view t;"
 >       [DropSomething ea View Require [name "t"] Restrict]
+>      ,s "drop database dbname;"
+>       [DropSomething ea Database Require [name "dbname"] Restrict]
 >      ]]
 >  where
 >    s = Stmt

@@ -106,7 +106,17 @@ public api: the quasiquote functions
 
 > -- | quotes a ScalarExpr
 > sqlExpr :: QuasiQuoter
-> sqlExpr = makeQQ $ parseScalarExpr P.defaultParseFlags
+> sqlExpr = --makeQQ $ parseScalarExpr P.defaultParseFlags
+>      QuasiQuoter {quoteExp = prs}
+>   where
+>     prs :: String -> Q Exp
+>     prs s = either (fail . show) return (pse s)
+>             >>= dataToExpQ (const Nothing)
+
+> pse :: String -> Either P.ParseErrorExtra ScalarExpr
+> pse s = parseScalarExpr P.defaultParseFlags "" Nothing s
+
+ghc -Wall -threaded -rtsopts  -isrc:src-extra/catalogReader:src-extra/chaos:src-extra/devel-util:src-extra/docutil:src-extra/examples:src-extra/extensions:src-extra/h7c:src-extra/tests:src-extra/chaos/extensions:src-extra/utils temp.lhs
 
 > -- | quotes a Name
 > sqlName :: QuasiQuoter

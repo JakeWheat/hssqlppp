@@ -742,3 +742,43 @@ src/Database/HsSqlPpp/Parsing/ParserInternal.o \
 src/Database/HsSqlPpp/Parsing/Lexer.o \
 src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/Internals/StringLike.o
+temp : temp.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Pretty.o \
+src/Database/HsSqlPpp/Quote.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Internals/StringLike.o
+	$(HC) $(HC_OPTS) -o temp temp.o \
+src/Database/HsSqlPpp/Parser.o \
+src/Database/HsSqlPpp/Ast.o \
+src/Database/HsSqlPpp/Pretty.o \
+src/Database/HsSqlPpp/Quote.o \
+src/Database/HsSqlPpp/Annotation.o \
+src/Database/HsSqlPpp/Parsing/ParserInternal.o \
+src/Database/HsSqlPpp/Parsing/Lexer.o \
+src/Database/HsSqlPpp/Parsing/ParseErrors.o \
+src/Database/HsSqlPpp/Utils/Utils.o \
+src/Database/HsSqlPpp/SqlDialect.o \
+src/Database/HsSqlPpp/Internals/AstInternal.o \
+src/Database/HsSqlPpp/Internals/TypesInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+src/Database/HsSqlPpp/Internals/StringLike.o

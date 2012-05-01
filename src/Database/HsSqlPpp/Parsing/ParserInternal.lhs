@@ -187,6 +187,7 @@ Parsing top level statements
 >                ,createFunction
 >                ,createView
 >                ,createDomain
+>                ,createDatabase
 >                ,createLanguage
 >                ,createTrigger
 >                ,createIndex]
@@ -751,6 +752,12 @@ variable declarations in a plpgsql function
 >                <*> (tryOptionMaybe (keyword "as") *> typeName)
 >                <*> option "" (keyword "constraint" *> idString)
 >                <*> tryOptionMaybe (keyword "check" *> parens expr)
+
+> createDatabase :: SParser Statement
+> createDatabase = CreateDatabase
+>                <$> pos <* keyword "database"
+>                <*> name
+
 >
 > dropSomething :: SParser Statement
 > dropSomething = do
@@ -760,6 +767,7 @@ variable declarations in a plpgsql function
 >                 ,Type <$ keyword "type"
 >                 ,Table <$ keyword "table"
 >                 ,View <$ keyword "view"
+>                 ,Database <$ keyword "database"
 >             ])
 >   (i,e,r) <- parseDrop name
 >   return $ DropSomething p x i e r

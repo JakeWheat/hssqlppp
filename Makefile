@@ -94,7 +94,8 @@ EXE_FILES = src-extra/tests/Tests \
 	src-extra/examples/TypeCheckMystery \
 	src-extra/h7c/h7c \
 	src-extra/examples/FixSqlServerTpchSyntax \
-	src-extra/examples/QQ
+	src-extra/examples/QQ \
+	temp
 #	src-extra/docutil/DevelTool
 
 #	src-extra/examples/ShowCatalog \

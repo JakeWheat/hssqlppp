@@ -258,6 +258,10 @@ Conversion routines - convert Sql asts into Docs
 >                then empty
 >                else text "constraint" <+> ttext n
 >
+> statement flg se ca (CreateDatabase ann nm) =
+>     annot ca ann <+>
+>     text "create database" <+> name nm <> statementEnd se
+>
 > statement _flg se ca (DropFunction ann ifE fns casc) =
 >   annot ca ann <+>
 >   text "drop function"
@@ -276,7 +280,8 @@ Conversion routines - convert Sql asts into Docs
 >                 Table -> "table"
 >                 View -> "view"
 >                 Domain -> "domain"
->                 Type -> "type")
+>                 Type -> "type"
+>                 Database -> "database")
 >     <+> ifExists ifE
 >     <+> sepCsvMap name names
 >     <+> cascade casc
