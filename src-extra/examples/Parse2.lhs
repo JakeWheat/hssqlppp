@@ -12,5 +12,6 @@
 > main = do
 >   [f] <- getArgs
 >   src <- readFile f
->   let ast = parseStatements defaultParseFlags f Nothing src
+>   let ast = parseStatements defaultParseFlags
+>                {pfDialect = SQLServerDialect} f Nothing src
 >   putStrLn $ either groom groomNoAnns ast

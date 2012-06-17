@@ -17,6 +17,9 @@ see here for how to compile:
 
 http://jakewheat.github.com/hssqlppp/devel.txt.html
 
+Please use uuagc version 0.9.39.1 since later versions do not work
+with this code. If you know how to fix this please let me know!
+
 -}
 
 

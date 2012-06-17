@@ -91,11 +91,9 @@ EXE_FILES = src-extra/tests/Tests \
 	src-extra/examples/TypeCheck \
 	src-extra/examples/TypeCheckDB \
 	src-extra/examples/PPPTest \
-	src-extra/examples/TypeCheckMystery \
 	src-extra/h7c/h7c \
 	src-extra/examples/FixSqlServerTpchSyntax \
-	src-extra/examples/QQ \
-	temp
+	src-extra/examples/QQ
 #	src-extra/docutil/DevelTool
 
 #	src-extra/examples/ShowCatalog \
@@ -178,8 +176,11 @@ exe_depend : src-extra/devel-util/GenerateExeRules Makefile src/Database/HsSqlPp
 depend : src/Database/HsSqlPpp/Internals/AstInternal.hs
 	ghc -M $(HC_OPTS) $(SRCS_ROOTS) -dep-makefile .depend.mk
 
-#specific rules for generated file astinternal.hs
-
+# specific rules for generated file astinternal.hs
+# the latest version of uuagc which I know works is 0.9.39.1
+# if you get errors like this:
+# error: Undefined local variable or field ...
+# then try downgrading your version of uuagc (or fix the .ag code!)
 src/Database/HsSqlPpp/Internals/AstInternal.hs : $(AG_FILES) src-extra/devel-util/PostprocessUuagc
 	uuagc -dcfspwm -P src/Database/HsSqlPpp/Internals/ \
 		--lckeywords --doublecolons --genlinepragmas \

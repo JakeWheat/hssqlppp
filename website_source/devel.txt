@@ -23,10 +23,11 @@ Rebuild the generated files for the syntax
 ==========================================
 
 If you edit the ag files, you need to rebuild AstInternal.hs. First
-make sure you have uuagc installed:
+make sure you have uuagc installed (later versions of uuagc do not
+work with the code in hssqlppp):
 
 ~~~~~
-cabal install uuagc
+cabal install uuagc-0.9.39.1
 ~~~~~
 
 Then use the makefile:

@@ -1955,7 +1955,7 @@ http://msdn.microsoft.com/en-us/library/ms189822.aspx
 >        ,"over"
 >        ,"percent"
 >        ,"pivot"
->        ,"plan"
+>        -- ,"plan" -- temporarily unkeyword this
 >        ,"precision"
 >        ,"primary"
 >        ,"print"

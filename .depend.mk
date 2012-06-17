@@ -133,6 +133,10 @@ src-extra/examples/TypeCheckDB.o : src/Database/HsSqlPpp/Types.hi
 src-extra/examples/TypeCheckDB.o : src/Database/HsSqlPpp/Catalog.hi
 src-extra/examples/TypeCheckDB.o : src/Database/HsSqlPpp/TypeChecker.hi
 src-extra/examples/TypeCheckDB.o : src/Database/HsSqlPpp/Parser.hi
+src-extra/examples/ParseX.o : src-extra/examples/ParseX.lhs
+src-extra/examples/ParseX.o : src/Database/HsSqlPpp/Ast.hi
+src-extra/examples/ParseX.o : src-extra/tests/Database/HsSqlPpp/Utils/GroomUtils.hi
+src-extra/examples/ParseX.o : src/Database/HsSqlPpp/Parser.hi
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Utils.o : src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Utils.lhs
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Utils.o : src/Database/HsSqlPpp/Annotation.hi
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Utils.o : src/Database/HsSqlPpp/Ast.hi
