@@ -1886,7 +1886,7 @@ http://msdn.microsoft.com/en-us/library/ms189822.aspx
 >        ,"disk"
 >        ,"distinct"
 >        ,"distributed"
->        ,"double"
+>        --,"double"
 >        ,"drop"
 >        ,"dump"
 >        ,"else"

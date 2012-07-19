@@ -1,8 +1,31 @@
+immediate goals:
+
+investigate issue with quasiquoting and incomplete Data instance for
+   Text
+*add ids to the nodes in the tree
+*expose the environment and identifier binding information in the
+   typechecked tree
+  -> so now can write the tests to check it has the correct
+   environments, and separately check the type coming from a lookup in
+   a particular environment
+get simple typesafe parameterized queries working from haskell using
+   qq and postgres-simple
+use postgres-simple for the other pg access stuff
+*add null inference to typechecking
+do the overhaul for the type attributes and annotation
+*try to do a bit better for typechecking of precision in char, varchar,
+   float, decimal
+*work on error messages
+get the documentation generating again ... -> work on the standalone
+   doctool again?
+
+
+
+
 review the rest of the api and implementation
 review quoting of identifiers and strings:
   step one is a writeup on how dbms' quoting works, start with pg
    (+mssql, db2 possible)
-
 
 = next release, 0.5.0
 
@@ -72,7 +95,8 @@ alter the postprocess for astinternal.hs: want to add haddock line for
    not recordize them
 
 get ghc 6.12.x working again: think it is just adding the
-   control.monad.error stuff back it(?)
+   control.monad.error stuff back it(?) -> or maybe skip, if 7.0, 7.4,
+   7.6 are supported
 
 review examples: add new examples, clean up code, and example page on
    website. Add simple parsing and typechecking example to index page

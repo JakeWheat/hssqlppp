@@ -122,6 +122,7 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,updateAnnotation
    ,emptyAnnotation
    ,makeSelect
+   ,canonicalizeTypeNames
 }
 
 {
@@ -1036,3 +1037,24 @@ deriving AllNodes: Show,Eq,Typeable,Data
 
 include "Annotation.ag"
 include "TypeChecking/TypeChecking.ag"
+
+{
+
+-- | run canonicalizeTypeName on all the TypeName nodes in an ast
+canonicalizeTypeNames :: Data a => a -> a
+canonicalizeTypeNames =
+   (transformBi $ \x ->
+       case x of
+         ScalarType s -> ScalarType $ canonicalizeTypeName s
+         x' -> x')
+   . (transformBi $ \x ->
+       case x of
+         SimpleTypeName a tn -> SimpleTypeName a (c tn)
+         PrecTypeName a tn i -> PrecTypeName a (c tn) i
+         Prec2TypeName a tn i i1 -> Prec2TypeName a (c tn) i i1
+         x' -> x')
+   where
+     c (Name a [Nmc c]) = Name a [Nmc $ canonicalizeTypeName c]
+     c z = z
+
+}

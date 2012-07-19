@@ -186,19 +186,12 @@ gutted and rewritten
 >       bigIntNames = ["int8", "bigint"]
 >       numericNames = ["numeric", "decimal"]
 >       float4Names = ["real", "float4"]
->       float8Names = ["double precision", "float"]
+>       float8Names = ["double precision", "float", "double"]
 >       varcharNames = ["character varying", "varchar"]
 >       charNames = ["character", "char"]
 >       boolNames = ["boolean", "bool"]
 >       s = T.map toLower s'
 
-> -- | run canonicalizeTypeName on all the TypeName nodes in an ast
-> canonicalizeTypeNames :: Data a => a -> a
-> canonicalizeTypeNames =
->   transformBi $ \x ->
->       case x of
->         ScalarType s -> ScalarType $ canonicalizeTypeName s
->         x' -> x'
 
 
 TODO:
