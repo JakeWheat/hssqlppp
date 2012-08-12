@@ -32,6 +32,7 @@
 > import Database.HsSqlPpp.Parser
 > import Text.Parsec.Prim
 > import Control.Monad.Identity
+> import Database.HsSqlPpp.Internals.StringLike
 
 > -- | replace all the annotations in a tree with 'emptyAnnotation'
 > resetAnnotations :: Data a => a -> a
@@ -39,7 +40,7 @@
 
 > -- | Gets the type of the sql source passed in. Expects the string to contain
 > -- a query expr
-> queryType :: Stream s Identity Char =>
+> queryType :: (StringLike s,Stream s Identity Char) =>
 >              Catalog -> s -> Maybe Type
 > queryType cat src = do
 >   ast <- either (const Nothing) Just $ parseQueryExpr defaultParseFlags "" Nothing src

@@ -89,6 +89,7 @@ src/Database/HsSqlPpp/Quote.o : src/Database/HsSqlPpp/Parsing/ParserInternal.hi
 src/Database/HsSqlPpp/Parser.o : src/Database/HsSqlPpp/Parser.lhs
 src/Database/HsSqlPpp/Parser.o : src/Database/HsSqlPpp/Parsing/ParserInternal.hi
 src/Database/HsSqlPpp/Utility.o : src/Database/HsSqlPpp/Utility.lhs
+src/Database/HsSqlPpp/Utility.o : src/Database/HsSqlPpp/Internals/StringLike.hi
 src/Database/HsSqlPpp/Utility.o : src/Database/HsSqlPpp/Parser.hi
 src/Database/HsSqlPpp/Utility.o : src/Database/HsSqlPpp/Catalog.hi
 src/Database/HsSqlPpp/Utility.o : src/Database/HsSqlPpp/Parsing/Lexer.hi
