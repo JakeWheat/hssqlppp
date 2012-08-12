@@ -57,6 +57,7 @@ right choice, but it seems to do the job pretty well at the moment.
 > --import Database.HsSqlPpp.Catalog
 > --import Debug.Trace
 > --import qualified Data.Text.Lazy as TL
+> import Database.HsSqlPpp.Internals.StringLike
 
 --------------------------------------------------------------------------------
 
@@ -64,7 +65,7 @@ Top level parsing functions
 ===========================
 
 > -- | Parse a list of statements
-> parseStatements :: Stream s Identity Char =>
+> parseStatements :: (StringLike s,Stream s Identity Char) =>
 >                    ParseFlags -- ^ parse options
 >                 -> FilePath -- ^ filename to use in errors
 >                 -> Maybe (Int,Int) -- ^ set the line number and column number
@@ -74,7 +75,7 @@ Top level parsing functions
 > parseStatements = parseIt' sqlStatements
 
 > -- | Parse a single query expr
-> parseQueryExpr :: Stream s Identity Char =>
+> parseQueryExpr :: (StringLike s,Stream s Identity Char) =>
 >                   ParseFlags -- ^ parse options
 >                -> FilePath -- ^ filename to use in errors
 >                -> Maybe (Int,Int) -- ^ set the line number and column number
@@ -84,7 +85,7 @@ Top level parsing functions
 >   parseIt' $ pQueryExpr <* optional (symbol ";") <* eof
 
 > -- | Parse a single scalar expr
-> parseScalarExpr :: Stream s Identity Char =>
+> parseScalarExpr :: (StringLike s,Stream s Identity Char) =>
 >                    ParseFlags -- ^ parse options
 >                 -> FilePath -- ^ filename to use in errors
 >                 -> Maybe (Int,Int) -- ^ set the line number and column number
@@ -94,7 +95,7 @@ Top level parsing functions
 
 > -- | Parse a list of plpgsql statements (or tsql if you are using
 > -- sql server dialect)
-> parsePlpgsql :: Stream s Identity Char =>
+> parsePlpgsql :: (StringLike s,Stream s Identity Char) =>
 >                 ParseFlags -- ^ parse options
 >              -> FilePath -- ^ filename to use in errors
 >              -> Maybe (Int,Int) -- ^ set the line number and column number
@@ -102,7 +103,7 @@ Top level parsing functions
 >              -> Either ParseErrorExtra [Statement]
 > parsePlpgsql = parseIt' $ many plPgsqlStatement <* eof
 
-> parseIt' :: (Stream s Identity Char, Data a) =>
+> parseIt' :: (StringLike s, Stream s Identity Char, Data a) =>
 >             SParser a
 >          -> ParseFlags
 >          -> FilePath
@@ -111,7 +112,7 @@ Top level parsing functions
 >          -> Either ParseErrorExtra a
 > parseIt' ps flg fn sp src = do
 >   lxd <- lexSql (pfDialect flg) fn sp src
->   psd <- either (\e -> Left $ ParseErrorExtra e sp fn) Right
+>   psd <- either (\e -> Left $ ParseErrorExtra e sp (unpack src)) Right
 >          $ runParser ps flg fn lxd
 >   return $ fixupTree psd
 
@@ -138,7 +139,7 @@ state is never updated during parsing
 
 couple of wrapper functions for the quoting
 
-> parseName :: Stream s Identity Char =>
+> parseName :: (StringLike s,Stream s Identity Char) =>
 >              ParseFlags
 >           -> FilePath
 >           -> Maybe (Int,Int)
@@ -146,7 +147,7 @@ couple of wrapper functions for the quoting
 >           -> Either ParseErrorExtra Name
 > parseName = parseIt' $ name <* eof
 
-> parseNameComponent :: Stream s Identity Char =>
+> parseNameComponent :: (StringLike s,Stream s Identity Char) =>
 >                       ParseFlags
 >                    -> FilePath
 >                    -> Maybe (Int,Int)

@@ -1,3 +1,12 @@
+error messages when parsing,typechecking
+support tinyint for mssql
+do null, precision in typechecking
+code review
+review targets for next release
+stored proc support
+switch inferred/etc. crap in annotation
+include env in annotation?
+
 immediate goals:
 
 investigate issue with quasiquoting and incomplete Data instance for

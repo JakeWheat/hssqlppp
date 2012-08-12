@@ -42,6 +42,7 @@ copy payload (used to lex copy from stdin data)
 >                ,replicate,concat,(.),Bool(..))-}
 > import qualified Data.Text as T
 > import qualified Data.Text.Lazy as LT
+> import Database.HsSqlPpp.Internals.StringLike
 
 ================================================================================
 
@@ -74,14 +75,14 @@ can be lost (e.g. something like "0.2" parsing to 0.199999999 float.
 > type LexState = [Tok]
 > type SParser s = ParsecT s LexState Identity
 >
-> lexSql :: Stream s Identity Char =>
+> lexSql :: (StringLike s, Stream s Identity Char) =>
 >           SQLSyntaxDialect -- ^ dialect
 >        -> FilePath -- ^ filename to use in errors
 >        -> Maybe (Int,Int) -- ^ starting line and column no for positions
 >        -> s -- ^ source to lex
 >        -> Either ParseErrorExtra [Token]
 > lexSql d f sp src =
->   either (Left . toParseErrorExtra f sp) Right
+>   either (Left . toParseErrorExtra (unpack src) sp) Right
 >   $ runParser lx [] f src
 >   where
 >     --lx :: SParser str [Token]

@@ -245,6 +245,7 @@ Lots of invalid expressions can be expressed using this type.
 
 -}
 
+
 data ScalarExpr | NumberLit ann::Annotation d::Text
                 | StringLit ann::Annotation
                             value :: Text

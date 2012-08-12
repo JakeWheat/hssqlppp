@@ -60,6 +60,7 @@ sequences
 >      -- catalog updates
 >     ,CatalogUpdate(..)
 >     ,updateCatalog
+>     ,deconstructCatalog
 >      -- catalog queries
 >     ,catLookupType
 >     ,catLookupTableAndAttrs
@@ -432,6 +433,8 @@ todo: use left or something instead of error
 >         t <- catLookupType cat [QNmc n]
 >         Right $ cat {catTypeCategories = M.insert t (c,p) $ catTypeCategories cat}
 
+> deconstructCatalog :: Catalog -> [CatalogUpdate]
+> deconstructCatalog = catUpdates
 
 -----------------------------------------------------------
 

@@ -43,6 +43,7 @@ src/Database/HsSqlPpp/Types.o : src/Database/HsSqlPpp/Internals/TypesInternal.hi
 src/Database/HsSqlPpp/Internals/StringLike.o : src/Database/HsSqlPpp/Internals/StringLike.lhs
 src/Database/HsSqlPpp/SqlDialect.o : src/Database/HsSqlPpp/SqlDialect.lhs
 src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/Parsing/Lexer.lhs
+src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/Internals/StringLike.hi
 src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/SqlDialect.hi
 src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/Utils/Utils.hi
 src/Database/HsSqlPpp/Parsing/Lexer.o : src/Database/HsSqlPpp/Parsing/ParseErrors.hi
@@ -73,6 +74,7 @@ src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.o : src/Database/HsSqlPpp/Anno
 src/Database/HsSqlPpp/Ast.o : src/Database/HsSqlPpp/Ast.lhs
 src/Database/HsSqlPpp/Ast.o : src/Database/HsSqlPpp/Internals/AstInternal.hi
 src/Database/HsSqlPpp/Parsing/ParserInternal.o : src/Database/HsSqlPpp/Parsing/ParserInternal.lhs
+src/Database/HsSqlPpp/Parsing/ParserInternal.o : src/Database/HsSqlPpp/Internals/StringLike.hi
 src/Database/HsSqlPpp/Parsing/ParserInternal.o : src/Database/HsSqlPpp/SqlDialect.hi
 src/Database/HsSqlPpp/Parsing/ParserInternal.o : src/Database/HsSqlPpp/Utils/Utils.hi
 src/Database/HsSqlPpp/Parsing/ParserInternal.o : src/Database/HsSqlPpp/Annotation.hi
@@ -133,10 +135,6 @@ src-extra/examples/TypeCheckDB.o : src/Database/HsSqlPpp/Types.hi
 src-extra/examples/TypeCheckDB.o : src/Database/HsSqlPpp/Catalog.hi
 src-extra/examples/TypeCheckDB.o : src/Database/HsSqlPpp/TypeChecker.hi
 src-extra/examples/TypeCheckDB.o : src/Database/HsSqlPpp/Parser.hi
-src-extra/examples/ParseX.o : src-extra/examples/ParseX.lhs
-src-extra/examples/ParseX.o : src/Database/HsSqlPpp/Ast.hi
-src-extra/examples/ParseX.o : src-extra/tests/Database/HsSqlPpp/Utils/GroomUtils.hi
-src-extra/examples/ParseX.o : src/Database/HsSqlPpp/Parser.hi
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Utils.o : src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Utils.lhs
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Utils.o : src/Database/HsSqlPpp/Annotation.hi
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Utils.o : src/Database/HsSqlPpp/Ast.hi
@@ -238,17 +236,6 @@ src-extra/examples/PPPTest.o : src/Database/HsSqlPpp/Annotation.hi
 src-extra/examples/PPPTest.o : src/Database/HsSqlPpp/Utility.hi
 src-extra/examples/PPPTest.o : src/Database/HsSqlPpp/Pretty.hi
 src-extra/examples/PPPTest.o : src/Database/HsSqlPpp/Parser.hi
-src-extra/examples/TypeCheckMystery.o : src-extra/examples/TypeCheckMystery.lhs
-src-extra/examples/TypeCheckMystery.o : src-extra/tests/Database/HsSqlPpp/Utils/GroomUtils.hi
-src-extra/examples/TypeCheckMystery.o : src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.hi
-src-extra/examples/TypeCheckMystery.o : src/Database/HsSqlPpp/Pretty.hi
-src-extra/examples/TypeCheckMystery.o : src/Database/HsSqlPpp/Utility.hi
-src-extra/examples/TypeCheckMystery.o : src/Database/HsSqlPpp/Ast.hi
-src-extra/examples/TypeCheckMystery.o : src/Database/HsSqlPpp/Annotation.hi
-src-extra/examples/TypeCheckMystery.o : src/Database/HsSqlPpp/Types.hi
-src-extra/examples/TypeCheckMystery.o : src/Database/HsSqlPpp/Catalog.hi
-src-extra/examples/TypeCheckMystery.o : src/Database/HsSqlPpp/TypeChecker.hi
-src-extra/examples/TypeCheckMystery.o : src/Database/HsSqlPpp/Parser.hi
 src-extra/examples/FixSqlServerTpchSyntax.o : src-extra/examples/FixSqlServerTpchSyntax.lhs
 src-extra/examples/FixSqlServerTpchSyntax.o : src/Database/HsSqlPpp/Annotation.hi
 src-extra/examples/FixSqlServerTpchSyntax.o : src/Database/HsSqlPpp/Quote.hi
@@ -260,12 +247,6 @@ src-extra/examples/QQ.o : src/Database/HsSqlPpp/Pretty.hi
 src-extra/examples/QQ.o : src/Database/HsSqlPpp/Annotation.hi
 src-extra/examples/QQ.o : src/Database/HsSqlPpp/Quote.hi
 src-extra/examples/QQ.o : src/Database/HsSqlPpp/Ast.hi
-temp.o : temp.lhs
-temp.o : src/Database/HsSqlPpp/Annotation.hi
-temp.o : src/Database/HsSqlPpp/Quote.hi
-temp.o : src/Database/HsSqlPpp/Pretty.hi
-temp.o : src/Database/HsSqlPpp/Ast.hi
-temp.o : src/Database/HsSqlPpp/Parser.hi
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.o : src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.lhs
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.o : src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.hi
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.o : src-extra/tests/Database/HsSqlPpp/Tests/Parsing/SqlServer.hi

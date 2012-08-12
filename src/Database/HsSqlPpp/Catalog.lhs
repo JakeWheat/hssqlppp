@@ -42,7 +42,7 @@ Forward the public part of CatalogInternal.
 >     --,ppCatDiff
 >      -- * Functions
 >     ,updateCatalog
->     --,deconstructCatalog
+>     ,deconstructCatalog
 >     ) where
 >
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal

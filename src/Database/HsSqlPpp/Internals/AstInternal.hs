@@ -129,7 +129,7 @@ import qualified Data.Text.Lazy as LT
 
 
 
-{-# LINE 360 "src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
+{-# LINE 361 "src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
 
 nameComponents :: Name -> [NameComponent]
 nameComponents (Name _ is) = is
@@ -137,7 +137,7 @@ nameComponents (Name _ is) = is
 nameComponents (AntiName _) = error "tried to get namecomponents of antiname"
 {-# LINE 139 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
 
-{-# LINE 380 "src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
+{-# LINE 381 "src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
 
 
 
@@ -201,7 +201,7 @@ data FrameClause = FrameUnboundedPreceding
                    deriving (Show,Eq,Typeable,Data)
 {-# LINE 203 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
 
-{-# LINE 520 "src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
+{-# LINE 521 "src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
 
 data JoinType = Inner | LeftOuter| RightOuter | FullOuter | Cross
                 deriving (Show,Eq,Typeable,Data)
@@ -209,7 +209,7 @@ data Natural = Natural | Unnatural
                deriving (Show,Eq,Typeable,Data)
 {-# LINE 211 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
 
-{-# LINE 536 "src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
+{-# LINE 537 "src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
 
 -- | 'default' valued select, use for creating select values
 --
@@ -253,14 +253,14 @@ makeSelect = Select
              ,selOffset = Nothing}
 {-# LINE 255 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
 
-{-# LINE 800 "src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
+{-# LINE 801 "src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
 
 data CopySource = CopyFilename Text
                 | Stdin
                   deriving (Show,Eq,Typeable,Data)
 {-# LINE 262 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
 
-{-# LINE 866 "src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
+{-# LINE 867 "src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
 
 data SetValue
     = SetStr Annotation Text
@@ -296,7 +296,7 @@ data RestartIdentity = RestartIdentity | ContinueIdentity
                        deriving (Show,Eq,Typeable,Data)
 {-# LINE 298 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
 
-{-# LINE 905 "src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
+{-# LINE 906 "src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
 
 data Replace = Replace | NoReplace
                deriving (Show,Eq,Typeable,Data)
@@ -312,14 +312,14 @@ data Language = Sql | Plpgsql
                 deriving (Show,Eq,Typeable,Data)
 {-# LINE 314 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
 
-{-# LINE 944 "src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
+{-# LINE 945 "src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
 
 data RaiseType = RNotice | RException | RError
                  deriving (Show,Eq,Typeable,Data)
 
 {-# LINE 321 "src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
 
-{-# LINE 1041 "src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
+{-# LINE 1042 "src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
 
 
 -- | run canonicalizeTypeName on all the TypeName nodes in an ast

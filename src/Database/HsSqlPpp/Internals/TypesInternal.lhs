@@ -12,6 +12,8 @@ notes on what the types are for and how they are used in postgres.
 > import Data.Text (Text)
 > import qualified Data.Text as T
 
+where should precision and nullability go?
+
 > -- | Standard types of things. This covers all the usual postgres types
 > -- plus some extra ones added for use by the hssqlppp typechecker
 > data Type = -- | basic type of a scalar value. These are either built in types

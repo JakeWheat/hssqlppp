@@ -11,7 +11,7 @@ plus output error location in emacs friendly format.
 >
 > showPE :: ParseError -> Maybe (Int,Int) -> String -> String
 > showPE pe sp src = show pe ++ "\n" ++ pePosToEmacs pe
->                    ++ "\n" ++ peToContext pe sp src
+>                       ++ "\n" ++ peToContext pe sp src
 >
 > pePosToEmacs :: ParseError -> String
 > pePosToEmacs pe = let p = errorPos pe
@@ -27,8 +27,10 @@ plus output error location in emacs friendly format.
 >          prelines = map (safeGet ls) [(lineNo - 5) .. (lineNo - 2)]
 >          postlines = map (safeGet ls) [lineNo .. (lineNo + 5)]
 >          caretLine = replicate (colNo - 1) ' ' ++ "^"
+>          erLine = let s = "ERROR HERE"
+>                   in replicate (colNo - 1 - (length s `div` 2)) ' ' ++ s
 >          errorHighlightText = prelines
->                               ++ [line, caretLine, "ERROR HERE"]
+>                               ++ [line, caretLine, erLine]
 >                               ++ postlines
 >     in "\nContext:\n"
 >        ++ unlines (trimLines errorHighlightText) ++ "\n"
@@ -65,4 +67,4 @@ plus output error location in emacs friendly format.
 >     show (ParseErrorExtra pe sp src) = showPE pe sp src
 >
 > toParseErrorExtra :: String -> Maybe (Int,Int) -> ParseError -> ParseErrorExtra
-> toParseErrorExtra fn sp e = ParseErrorExtra e sp fn
+> toParseErrorExtra src sp e = ParseErrorExtra e sp src
