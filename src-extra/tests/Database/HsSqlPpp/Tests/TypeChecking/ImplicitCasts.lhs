@@ -1,12 +1,13 @@
 
+> {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Tests.TypeChecking.ImplicitCasts
 >     (impCasts) where
 
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
 > --import Database.HsSqlPpp.Types
-> import Database.HsSqlPpp.Catalog
+> --import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.TypeChecker
-
+> import Data.Text.Lazy ()
 
 
 > impCasts :: Item

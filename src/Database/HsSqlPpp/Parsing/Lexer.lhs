@@ -30,6 +30,7 @@ copy payload (used to lex copy from stdin data)
 >
 > import Control.Applicative
 > import Control.Monad.Identity
+> import Text.Parsec.Text.Lazy ()
 
 > import Data.Maybe
 >
@@ -42,7 +43,7 @@ copy payload (used to lex copy from stdin data)
 >                ,replicate,concat,(.),Bool(..))-}
 > import qualified Data.Text as T
 > import qualified Data.Text.Lazy as LT
-> import Database.HsSqlPpp.Internals.StringLike
+> --import Database.HsSqlPpp.Internals.StringLike
 
 ================================================================================
 
@@ -73,16 +74,15 @@ can be lost (e.g. something like "0.2" parsing to 0.199999999 float.
 >            deriving (Eq,Show)
 >
 > type LexState = [Tok]
-> type SParser s = ParsecT s LexState Identity
+> type SParser = ParsecT LT.Text LexState Identity
 >
-> lexSql :: (StringLike s, Stream s Identity Char) =>
->           SQLSyntaxDialect -- ^ dialect
+> lexSql :: SQLSyntaxDialect -- ^ dialect
 >        -> FilePath -- ^ filename to use in errors
 >        -> Maybe (Int,Int) -- ^ starting line and column no for positions
->        -> s -- ^ source to lex
+>        -> LT.Text
 >        -> Either ParseErrorExtra [Token]
 > lexSql d f sp src =
->   either (Left . toParseErrorExtra (unpack src) sp) Right
+>   either (Left . toParseErrorExtra src sp) Right
 >   $ runParser lx [] f src
 >   where
 >     --lx :: SParser str [Token]
@@ -96,8 +96,7 @@ can be lost (e.g. something like "0.2" parsing to 0.199999999 float.
 lexer for tokens, contains a hack for copy from stdin with inline
 table data.
 
-> sqlTokens :: Stream s Identity Char =>
->              SQLSyntaxDialect -> SParser s [Token]
+> sqlTokens :: SQLSyntaxDialect -> SParser [Token]
 > sqlTokens d =
 >   setState [] >>
 >   whiteSpace >>
@@ -115,8 +114,7 @@ we read a normal token.
 TODO: add parse flag which enables parsing of copy from stdin hack,
 otherwise it is disabled
 
-> sqlToken :: Stream s Identity Char =>
->             SQLSyntaxDialect -> SParser s Token
+> sqlToken :: SQLSyntaxDialect -> SParser Token
 > sqlToken d = do
 >   sp <- getPosition
 >   sta <- getState
@@ -143,8 +141,7 @@ otherwise it is disabled
 >     st = IdStringTok "stdin"
 >     mt = SymbolTok ";"
 
-> splice :: Stream s Identity Char =>
->           SParser s Tok
+> splice :: SParser Tok
 > splice = lexeme $
 >   SpliceTok <$> (char '$' *> letter)
 >     <*> (char '(' *> identifierString <* char ')')
@@ -188,8 +185,7 @@ bad $tag$string$tag$ -> id 'bad' dollarstring[tag,string] (?)
 
 
 
-> sqlString :: Stream s Identity Char =>
->              SParser s Tok
+> sqlString :: SParser Tok
 > sqlString = stringQuotes <|> stringLD
 >   where
 >     --parse a string delimited by single quotes
@@ -220,8 +216,7 @@ parse a dollar quoted string
 >                       (try $ char '$' <* string tag <* char '$')
 >                return $ StringTok (T.concat ["$",tag,"$"]) $ T.pack s
 >
-> idString :: Stream s Identity Char =>
->             SQLSyntaxDialect -> SParser s Tok
+> idString :: SQLSyntaxDialect -> SParser Tok
 > idString d =
 >   choice
 >   [do
@@ -230,15 +225,13 @@ parse a dollar quoted string
 >   ,IdStringTok <$> identifierString
 >   ]
 
-> tsqlPrefix :: Stream s Identity Char =>
->               SParser s T.Text -> SParser s T.Text
+> tsqlPrefix :: SParser T.Text -> SParser T.Text
 > tsqlPrefix p =
 >    choice
 >    [char '@' *> (T.cons '@' <$> p)
 >    ,char '#' *> (T.cons '#' <$> p)]
 
-> qidString :: Stream s Identity Char =>
->              SQLSyntaxDialect -> SParser s Tok
+> qidString :: SQLSyntaxDialect -> SParser Tok
 > qidString d =
 >   choice
 >   [do
@@ -248,8 +241,7 @@ parse a dollar quoted string
 
 
 
-> positionalArg :: Stream s Identity Char =>
->                  SParser s Tok
+> positionalArg :: SParser Tok
 > positionalArg = char '$' >> PositionalArgTok <$> integer
 
 
@@ -295,8 +287,7 @@ deals with this.
 
 ~~~~
 
-> sqlSymbol :: Stream s Identity Char =>
->              SQLSyntaxDialect -> SParser s Tok
+> sqlSymbol :: SQLSyntaxDialect -> SParser Tok
 > sqlSymbol d =
 >   SymbolTok <$> lexeme (choice [
 >                          T.replicate 1 . T.singleton
@@ -368,8 +359,7 @@ digitse[+-]digits
 
 I'm sure the implementation can be simpler than this
 
-> sqlNumber :: Stream s Identity Char =>
->              SParser s Tok
+> sqlNumber :: SParser Tok
 > sqlNumber = NumberTok <$> lexeme (
 >   choice [do
 >           -- starts with digits
@@ -430,8 +420,7 @@ letters, underscores, digits (0-9), or dollar signs ($).
 -> need to check if the letter parser from parsec does the same as
 this
 
-> identifierString :: (Stream str Identity Char) =>
->                     SParser str T.Text
+> identifierString :: SParser T.Text
 > identifierString = T.pack <$>
 >                    (lexeme $ (letter <|> char '_')
 >                             <:> many (alphaNum <|> char '_'))
@@ -448,8 +437,7 @@ identifier.
 
 TODO: what are the rules for sql server?
 
-> qidentifierString :: Stream s Identity Char =>
->                      SQLSyntaxDialect -> SParser s T.Text
+> qidentifierString :: SQLSyntaxDialect -> SParser T.Text
 > qidentifierString d =
 >   T.pack <$> choice
 >   [do
@@ -461,8 +449,7 @@ TODO: what are the rules for sql server?
 parse the block of inline data for a copy from stdin, ends with \. on
 its own on a line
 
-> copyPayload :: (Stream str Identity Char) =>
->                SParser str Tok
+> copyPayload :: SParser Tok
 > copyPayload = CopyPayloadTok <$> lexeme (LT.pack <$> getLinesTillMatches "\\.\n")
 >   where
 >     getLinesTillMatches s = do
@@ -481,34 +468,27 @@ its own on a line
 > --symbol = P.symbol lexer
 >
 
-> string :: Stream s m Char => T.Text -> ParsecT s u m T.Text
+> string :: Stream LT.Text m Char => T.Text -> ParsecT LT.Text u m T.Text
 > string t = do
 >   s <- TP.string $ T.unpack t
 >   return $ T.pack s
 
-> integer :: (Stream str Identity Char) =>
->            SParser str Integer
+> integer :: SParser Integer
 > integer = lexeme $ P.integer lexer
 
-> whiteSpace :: (Stream str Identity Char) =>
->               SParser str ()
+> whiteSpace :: SParser ()
 > whiteSpace = P.whiteSpace lexer
 >
-> --lexeme :: (Show a, Stream str Identity a) =>
-> --          SParser str a -> SParser str
-> lexeme :: (Stream str Identity Char)
->           => SParser str a -> SParser str a
+> lexeme :: SParser a -> SParser a
 > lexeme = P.lexeme lexer
 
 this lexer isn't really used as much as it could be, probably some of
 the fields are not used at all (like identifier and operator stuff)
 
-> lexer :: (Stream str Identity Char) =>
->          P.GenTokenParser str LexState Identity
+> lexer :: P.GenTokenParser LT.Text LexState Identity
 > lexer = P.makeTokenParser sqlDef
 
-> sqlDef :: (Stream str Identity Char) =>
->           GenLanguageDef str st Identity
+> sqlDef :: GenLanguageDef LT.Text st Identity
 > sqlDef = P.LanguageDef
 >                { P.commentStart   = "/*"
 >                , P.commentEnd     = "*/"

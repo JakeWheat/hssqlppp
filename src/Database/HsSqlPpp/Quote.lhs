@@ -79,6 +79,7 @@ use haskell syntax inside antiquotes
 > import Database.HsSqlPpp.Ast hiding (Name)
 > import qualified  Database.HsSqlPpp.Ast as A
 > import qualified Data.Text as T
+> import qualified Data.Text.Lazy as L
 > --import Data.Data
 
 > import Data.Text ()
@@ -309,39 +310,39 @@ also, how to use haskell syntax in splices
 >                                    -- of the first char in the source (used in annotation)
 >                 -> String -- ^ a string containing the sql to parse
 >                 -> Either P.ParseErrorExtra [Statement]
-> parseStatements = P.parseStatements
+> parseStatements p f s src = P.parseStatements p f s (L.pack src)
 
 > parseQueryExpr :: P.ParseFlags -- ^ parse options
 >                -> FilePath -- ^ filename to use in errors
 >                -> Maybe (Int,Int) -- ^ set the line number and column number
 >                -> String -- ^ a string containing the sql to parse
 >                -> Either P.ParseErrorExtra QueryExpr
-> parseQueryExpr = P.parseQueryExpr
+> parseQueryExpr p f s src = P.parseQueryExpr p f s (L.pack src)
 
 > parseScalarExpr :: P.ParseFlags -- ^ parse options
 >                 -> FilePath -- ^ filename to use in errors
 >                 -> Maybe (Int,Int) -- ^ set the line number and column number
 >                 -> String -- ^ a string containing the sql to parse
 >                 -> Either P.ParseErrorExtra ScalarExpr
-> parseScalarExpr = P.parseScalarExpr
+> parseScalarExpr p f s src = P.parseScalarExpr p f s (L.pack src)
 
 > parseName :: P.ParseFlags
 >           -> FilePath
 >           -> Maybe (Int,Int)
 >           -> String
 >           -> Either P.ParseErrorExtra A.Name
-> parseName = P.parseName
+> parseName p f s src = P.parseName p f s (L.pack src)
 
 > parseNameComponent :: P.ParseFlags
 >                    -> FilePath
 >                    -> Maybe (Int,Int)
 >                    -> String
 >                    -> Either P.ParseErrorExtra NameComponent
-> parseNameComponent = P.parseNameComponent
+> parseNameComponent p f s src = P.parseNameComponent p f s (L.pack src)
 
 > parsePlpgsql :: P.ParseFlags -- ^ parse options
 >              -> FilePath -- ^ filename to use in errors
 >              -> Maybe (Int,Int) -- ^ set the line number and column number
 >              -> String
 >              -> Either P.ParseErrorExtra [Statement]
-> parsePlpgsql = P.parsePlpgsql
+> parsePlpgsql p f s src = P.parsePlpgsql p f s (L.pack src)

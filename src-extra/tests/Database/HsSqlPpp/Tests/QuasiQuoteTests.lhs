@@ -11,11 +11,12 @@ Tests mainly for antiquotation, plus examples of where antiquotes work.
 > import Data.Data
 >
 > import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.Annotation
+> --import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Pretty
-> import Database.HsSqlPpp.Quote
+> --import Database.HsSqlPpp.Quote
 > import Database.HsSqlPpp.Utility
-> import Database.HsSqlPpp.Tests.TestUtils
+> --import Database.HsSqlPpp.Tests.TestUtils
+> import qualified Data.Text.Lazy as L
 >
 > data Item = Expr ScalarExpr ScalarExpr
 >           | Stmts [Statement] [Statement]
@@ -140,15 +141,15 @@ expressions
 Unit test helpers
 
 > itemToTft :: Item -> Test.Framework.Test
-> itemToTft (Expr a b) = testCase (printScalarExpr defaultPPFlags b) $ stripEqual a b
-> itemToTft (PgSqlStmt a b) = testCase (printStatements defaultPPFlags [b]) $ stripEqual a b
-> itemToTft (Stmt a b) = testCase (printStatements defaultPPFlags [b]) $  stripEqual a b
-> itemToTft (PgSqlStmts a b) = testCase (printStatements defaultPPFlags b) $ stripEqual a b
-> itemToTft (Stmts a b) = testCase (printStatements defaultPPFlags b) $ stripEqual a b
+> itemToTft (Expr a b) = testCase (L.unpack $ printScalarExpr defaultPPFlags b) $ stripEqual a b
+> itemToTft (PgSqlStmt a b) = testCase (L.unpack $ printStatements defaultPPFlags [b]) $ stripEqual a b
+> itemToTft (Stmt a b) = testCase (L.unpack $ printStatements defaultPPFlags [b]) $  stripEqual a b
+> itemToTft (PgSqlStmts a b) = testCase (L.unpack $ printStatements defaultPPFlags b) $ stripEqual a b
+> itemToTft (Stmts a b) = testCase (L.unpack $ printStatements defaultPPFlags b) $ stripEqual a b
 > itemToTft (Group s is) = testGroup s $ map itemToTft is
 > stripEqual :: (Data a, Eq a, Show a) =>
 >               a -> a -> Assertion
 > stripEqual a b = assertEqual "" (resetAnnotations a) (resetAnnotations b)
 
-> ea :: Annotation
-> ea = emptyAnnotation
+> --ea :: Annotation
+> --ea = emptyAnnotation

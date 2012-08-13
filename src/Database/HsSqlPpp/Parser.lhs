@@ -1,8 +1,7 @@
 
 Forward the public part of ParserInternal
 
-> -- | Functions to parse SQL. Can parse from String or
-> -- Lazy/Strict ByteString and Text.
+> -- | Functions to parse SQL.
 
 > module Database.HsSqlPpp.Parser
 >     (-- * Main

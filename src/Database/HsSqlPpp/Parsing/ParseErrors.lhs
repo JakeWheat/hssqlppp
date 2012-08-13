@@ -2,14 +2,15 @@
 convert error messages to show source text fragment with little hat,
 plus output error location in emacs friendly format.
 
->
+> {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Parsing.ParseErrors
 >     (toParseErrorExtra
 >     ,ParseErrorExtra(..)) where
 >
 > import Text.Parsec
+> import qualified Data.Text.Lazy as L
 >
-> showPE :: ParseError -> Maybe (Int,Int) -> String -> String
+> showPE :: ParseError -> Maybe (Int,Int) -> L.Text -> String
 > showPE pe sp src = show pe ++ "\n" ++ pePosToEmacs pe
 >                       ++ "\n" ++ peToContext pe sp src
 >
@@ -20,20 +21,20 @@ plus output error location in emacs friendly format.
 >                       c = sourceColumn p
 >                   in f ++ ":" ++ show l ++ ":" ++ show c ++ ":"
 >
-> peToContext :: ParseError -> Maybe (Int,Int) -> String -> String
+> peToContext :: ParseError -> Maybe (Int,Int) -> L.Text -> String
 > peToContext pe sp src =
->      let ls = lines src
->          line = safeGet ls(lineNo - 1)
+>      let ls = L.lines src
+>          line = safeGet ls (lineNo - 1)
 >          prelines = map (safeGet ls) [(lineNo - 5) .. (lineNo - 2)]
 >          postlines = map (safeGet ls) [lineNo .. (lineNo + 5)]
->          caretLine = replicate (colNo - 1) ' ' ++ "^"
+>          caretLine = L.pack (replicate (colNo - 1) ' ' ++ "^")
 >          erLine = let s = "ERROR HERE"
->                   in replicate (colNo - 1 - (length s `div` 2)) ' ' ++ s
+>                   in L.pack (replicate (colNo - 1 - (length s `div` 2)) ' ' ++ s)
 >          errorHighlightText = prelines
 >                               ++ [line, caretLine, erLine]
 >                               ++ postlines
 >     in "\nContext:\n"
->        ++ unlines (trimLines errorHighlightText) ++ "\n"
+>        ++ L.unpack (L.unlines (trimLines errorHighlightText)) ++ "\n"
 >     where
 >       safeGet a i = if i < 0 || i >= length a
 >                       then ""
@@ -60,11 +61,11 @@ plus output error location in emacs friendly format.
 >                        -- into parseSqlWithPosition
 >                        ,parseErrorPosition :: Maybe (Int, Int)
 >                        -- | sql source
->                        ,parseErrorSqlSource :: String
+>                        ,parseErrorSqlSource :: L.Text
 >                        }
 >
 > instance Show ParseErrorExtra where
 >     show (ParseErrorExtra pe sp src) = showPE pe sp src
 >
-> toParseErrorExtra :: String -> Maybe (Int,Int) -> ParseError -> ParseErrorExtra
+> toParseErrorExtra :: L.Text -> Maybe (Int,Int) -> ParseError -> ParseErrorExtra
 > toParseErrorExtra src sp e = ParseErrorExtra e sp src

@@ -5,7 +5,7 @@
 > import Test.HUnit
 > import Test.Framework.Providers.HUnit
 > import Test.Framework
-> import Data.List
+> --import Data.List
 > --import Data.Generics.Uniplate.Data
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.TypeChecker
@@ -21,18 +21,19 @@
 > import Control.Monad
 
 > import Database.HsSqlPpp.Utils.GroomUtils
+> import qualified Data.Text.Lazy as L
 > --import Language.Haskell.Exts hiding (Type)
 
 > data Item = Group String [Item]
->           | ScalExpr String (Either [TypeError] Type)
->           | QueryExpr [CatalogUpdate] String (Either [TypeError] Type)
->           | TSQLQueryExpr [CatalogUpdate] String (Either [TypeError] Type)
->           | RewriteQueryExpr TypeCheckingFlags [CatalogUpdate] String String
->           | ImpCastsScalar TypeCheckingFlags String String
+>           | ScalExpr L.Text (Either [TypeError] Type)
+>           | QueryExpr [CatalogUpdate] L.Text (Either [TypeError] Type)
+>           | TSQLQueryExpr [CatalogUpdate] L.Text (Either [TypeError] Type)
+>           | RewriteQueryExpr TypeCheckingFlags [CatalogUpdate] L.Text L.Text
+>           | ImpCastsScalar TypeCheckingFlags L.Text L.Text
 
 
-> testScalarExprType :: String -> Either [TypeError] Type -> Test.Framework.Test
-> testScalarExprType src et = testCase ("typecheck " ++ src) $ do
+> testScalarExprType :: L.Text -> Either [TypeError] Type -> Test.Framework.Test
+> testScalarExprType src et = testCase ("typecheck " ++ L.unpack src) $ do
 >   let ast = case parseScalarExpr defaultParseFlags "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
@@ -52,8 +53,8 @@
 >   unless (et == got) $ trace (groomTypes aast) $ return ()
 >   assertEqual "" et got
 
-> testImpCastsScalar :: TypeCheckingFlags -> String -> String -> Test.Framework.Test
-> testImpCastsScalar f src wsrc = testCase ("typecheck " ++ src) $
+> testImpCastsScalar :: TypeCheckingFlags -> L.Text -> L.Text -> Test.Framework.Test
+> testImpCastsScalar f src wsrc = testCase ("typecheck " ++ L.unpack src) $
 >   let ast = case parseScalarExpr defaultParseFlags "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
@@ -64,8 +65,8 @@
 >                Right l -> l
 >   in (if (resetAnnotations aast') /= (resetAnnotations wast)
 >       then trace ("\n***************** got: \n"
->                   ++ printScalarExpr defaultPPFlags aast'
->                   ++ "\nwanted:\n" ++ printScalarExpr defaultPPFlags wast
+>                   ++ L.unpack (printScalarExpr defaultPPFlags aast')
+>                   ++ "\nwanted:\n" ++ L.unpack (printScalarExpr defaultPPFlags wast)
 >                   ++ "\n*****************\n"
 >                   ++ "\n***************** got: \n"
 >                   ++ groomNoAnns aast'
@@ -75,8 +76,8 @@
 >       else id) $ assertEqual "" (resetAnnotations aast') (resetAnnotations wast)
 
 
-> testQueryExprType :: Bool -> [CatalogUpdate] -> String -> Either [TypeError] Type -> Test.Framework.Test
-> testQueryExprType pg cus src et = testCase ("typecheck " ++ src) $ do
+> testQueryExprType :: Bool -> [CatalogUpdate] -> L.Text -> Either [TypeError] Type -> Test.Framework.Test
+> testQueryExprType pg cus src et = testCase ("typecheck " ++ L.unpack src) $ do
 >   let ast = case parseQueryExpr defaultParseFlags "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
@@ -109,10 +110,10 @@ rewrite the queryexpr with all the options true
 pretty print, then check that the resultant sql parses the same, and
 type checks properly and produces the same type
 
-> queryExprRewrites :: [CatalogUpdate] -> String -> Either [TypeError] Type -> IO () --Test.Framework.Test
+> queryExprRewrites :: [CatalogUpdate] -> L.Text -> Either [TypeError] Type -> IO () --Test.Framework.Test
 > queryExprRewrites cus src et = {-testCase ("rewrite expanded " ++ src) $-} do
 >   let ast = case parseQueryExpr defaultParseFlags "" Nothing src of
->               Left e -> error $ "parse: " ++ src ++ "\n" ++ show e
+>               Left e -> error $ "parse: " ++ L.unpack src ++ "\n" ++ show e
 >               Right l -> l
 >   let Right cat = updateCatalog cus defaultTemplate1Catalog
 >       aast = typeCheckQueryExpr
@@ -125,7 +126,7 @@ type checks properly and produces the same type
 >       -- print with rewritten tree
 >       pp = printQueryExpr defaultPPFlags aast
 >       astrw = case parseQueryExpr defaultParseFlags "" Nothing pp of
->                 Left e -> error $ "parse: " ++ pp ++ "\n" ++ show e
+>                 Left e -> error $ "parse: " ++ L.unpack pp ++ "\n" ++ show e
 >                 Right l -> l
 >       aastrw = typeCheckQueryExpr
 >                  defaultTypeCheckingFlags
@@ -149,9 +150,9 @@ type checks properly and produces the same type
 
 
 
-> testRewrite :: TypeCheckingFlags -> [CatalogUpdate] -> String -> String
+> testRewrite :: TypeCheckingFlags -> [CatalogUpdate] -> L.Text -> L.Text
 >             -> Test.Framework.Test
-> testRewrite f cus src src' = testCase ("rewrite " ++ src) $ do
+> testRewrite f cus src src' = testCase ("rewrite " ++ L.unpack src) $ do
 >   let ast = case parseQueryExpr defaultParseFlags "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
@@ -163,8 +164,8 @@ type checks properly and produces the same type
 >               Right l -> resetAnnotations l
 >   (if astrw /= ast'
 >       then trace ("\n***************** expected\n" ++
->                   printQueryExpr defaultPPFlags ast'
->                   ++ "\n" ++ printQueryExpr defaultPPFlags astrw
+>                   L.unpack (printQueryExpr defaultPPFlags ast')
+>                   ++ "\n" ++ L.unpack (printQueryExpr defaultPPFlags astrw)
 >                   ++ "\n\n" ++ groomTypes ast'
 >                   ++ "\n\n" ++ groomTypes astrw
 >                   ++ "\n***************** got\n")

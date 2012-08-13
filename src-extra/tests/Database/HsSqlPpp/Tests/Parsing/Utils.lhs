@@ -10,13 +10,14 @@ shortcuts for constructing test data and asts
 > import Database.HsSqlPpp.Annotation
 > --import qualified Data.Text as T
 > import Data.Text (Text)
+> import qualified Data.Text.Lazy as L
 
-> data Item = Expr Text ScalarExpr
->           | Stmt Text [Statement]
->           | QueryExpr Text QueryExpr
->           | TSQL Text [Statement]
->           | PgSqlStmt Text [Statement]
->           | Group Text [Item]
+> data Item = Expr L.Text ScalarExpr
+>           | Stmt L.Text [Statement]
+>           | QueryExpr L.Text QueryExpr
+>           | TSQL L.Text [Statement]
+>           | PgSqlStmt L.Text [Statement]
+>           | Group String [Item]
 
 > stringQ :: Text -> ScalarExpr
 > stringQ = StringLit ea

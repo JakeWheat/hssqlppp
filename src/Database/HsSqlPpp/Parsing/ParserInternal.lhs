@@ -56,8 +56,8 @@ right choice, but it seems to do the job pretty well at the moment.
 > import Text.Parsec.Text ()
 > --import Database.HsSqlPpp.Catalog
 > --import Debug.Trace
-> --import qualified Data.Text.Lazy as TL
-> import Database.HsSqlPpp.Internals.StringLike
+> import qualified Data.Text.Lazy as L
+> --import Database.HsSqlPpp.Internals.StringLike
 
 --------------------------------------------------------------------------------
 
@@ -65,54 +65,50 @@ Top level parsing functions
 ===========================
 
 > -- | Parse a list of statements
-> parseStatements :: (StringLike s,Stream s Identity Char) =>
->                    ParseFlags -- ^ parse options
+> parseStatements :: ParseFlags -- ^ parse options
 >                 -> FilePath -- ^ filename to use in errors
 >                 -> Maybe (Int,Int) -- ^ set the line number and column number
 >                                    -- of the first char in the source (used in annotation)
->                 -> s -- ^ a string containing the sql to parse
+>                 -> L.Text -- ^ a string containing the sql to parse
 >                 -> Either ParseErrorExtra [Statement]
 > parseStatements = parseIt' sqlStatements
 
 > -- | Parse a single query expr
-> parseQueryExpr :: (StringLike s,Stream s Identity Char) =>
->                   ParseFlags -- ^ parse options
+> parseQueryExpr :: ParseFlags -- ^ parse options
 >                -> FilePath -- ^ filename to use in errors
 >                -> Maybe (Int,Int) -- ^ set the line number and column number
->                -> s -- ^ a string containing the sql to parse
+>                -> L.Text -- ^ a string containing the sql to parse
 >                -> Either ParseErrorExtra QueryExpr
 > parseQueryExpr =
 >   parseIt' $ pQueryExpr <* optional (symbol ";") <* eof
 
 > -- | Parse a single scalar expr
-> parseScalarExpr :: (StringLike s,Stream s Identity Char) =>
->                    ParseFlags -- ^ parse options
+> parseScalarExpr :: ParseFlags -- ^ parse options
 >                 -> FilePath -- ^ filename to use in errors
 >                 -> Maybe (Int,Int) -- ^ set the line number and column number
->                 -> s -- ^ a string containing the sql to parse
+>                 -> L.Text -- ^ a string containing the sql to parse
 >                 -> Either ParseErrorExtra ScalarExpr
 > parseScalarExpr = parseIt' $ expr <* eof
 
 > -- | Parse a list of plpgsql statements (or tsql if you are using
 > -- sql server dialect)
-> parsePlpgsql :: (StringLike s,Stream s Identity Char) =>
->                 ParseFlags -- ^ parse options
+> parsePlpgsql :: ParseFlags -- ^ parse options
 >              -> FilePath -- ^ filename to use in errors
 >              -> Maybe (Int,Int) -- ^ set the line number and column number
->              -> s -- ^ a string containing the sql to parse
+>              -> L.Text -- ^ a string containing the sql to parse
 >              -> Either ParseErrorExtra [Statement]
 > parsePlpgsql = parseIt' $ many plPgsqlStatement <* eof
 
-> parseIt' :: (StringLike s, Stream s Identity Char, Data a) =>
+> parseIt' :: Data a =>
 >             SParser a
 >          -> ParseFlags
 >          -> FilePath
 >          -> Maybe (Int,Int)
->          -> s
+>          -> L.Text
 >          -> Either ParseErrorExtra a
 > parseIt' ps flg fn sp src = do
 >   lxd <- lexSql (pfDialect flg) fn sp src
->   psd <- either (\e -> Left $ ParseErrorExtra e sp (unpack src)) Right
+>   psd <- either (\e -> Left $ ParseErrorExtra e sp src) Right
 >          $ runParser ps flg fn lxd
 >   return $ fixupTree psd
 
@@ -139,19 +135,17 @@ state is never updated during parsing
 
 couple of wrapper functions for the quoting
 
-> parseName :: (StringLike s,Stream s Identity Char) =>
->              ParseFlags
+> parseName :: ParseFlags
 >           -> FilePath
 >           -> Maybe (Int,Int)
->           -> s
+>           -> L.Text
 >           -> Either ParseErrorExtra Name
 > parseName = parseIt' $ name <* eof
 
-> parseNameComponent :: (StringLike s,Stream s Identity Char) =>
->                       ParseFlags
+> parseNameComponent :: ParseFlags
 >                    -> FilePath
 >                    -> Maybe (Int,Int)
->                    -> s
+>                    -> L.Text
 >                    -> Either ParseErrorExtra NameComponent
 > parseNameComponent = parseIt' $ nameComponent <* eof
 
@@ -693,7 +687,7 @@ parse it
 >                   flg
 >                   fileName
 >                   (Just (line,col))
->                   (extrStr body) of
+>                   (L.fromChunks [extrStr body]) of
 >                      Left er@(ParseErrorExtra {}) -> Left $ show er
 >                      Right body' -> Right body'
 >         -- sql function is just a list of statements, the last one

@@ -22,7 +22,6 @@ src-extra/tests/Database/HsSqlPpp/Tests/Parsing/MiscDdl.o \
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/FunctionsDdl.o \
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Plpgsql.o \
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/SqlServer.o \
-src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \
 src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
@@ -37,7 +36,6 @@ src/Database/HsSqlPpp/Parsing/ParserInternal.o \
 src/Database/HsSqlPpp/Parsing/Lexer.o \
 src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/Annotation.o \
-src/Database/HsSqlPpp/Internals/StringLike.o \
 src/Database/HsSqlPpp/Catalog.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o \
@@ -55,8 +53,7 @@ src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TSQL.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Issues.o \
 src/Database/HsSqlPpp/TypeChecker.o \
 src/Database/HsSqlPpp/Types.o \
-src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o \
-src/Database/HsSqlPpp/Quote.o
+src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o
 	$(HC) $(HC_OPTS) -o src-extra/tests/Tests src-extra/tests/Tests.o \
 src-extra/tests/Database/HsSqlPpp/Tests/Tests.o \
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.o \
@@ -81,7 +78,6 @@ src-extra/tests/Database/HsSqlPpp/Tests/Parsing/MiscDdl.o \
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/FunctionsDdl.o \
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Plpgsql.o \
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/SqlServer.o \
-src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \
 src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
@@ -96,7 +92,6 @@ src/Database/HsSqlPpp/Parsing/ParserInternal.o \
 src/Database/HsSqlPpp/Parsing/Lexer.o \
 src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/Annotation.o \
-src/Database/HsSqlPpp/Internals/StringLike.o \
 src/Database/HsSqlPpp/Catalog.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
 src/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o \
@@ -114,8 +109,7 @@ src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TSQL.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Issues.o \
 src/Database/HsSqlPpp/TypeChecker.o \
 src/Database/HsSqlPpp/Types.o \
-src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o \
-src/Database/HsSqlPpp/Quote.o
+src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o
 src-extra/devel-util/MakeDefaultTemplate1Catalog : src-extra/devel-util/MakeDefaultTemplate1Catalog.o \
 src-extra/utils/Database/HsSqlPpp/Utils/Here.o \
 src-extra/catalogReader/Database/HsSqlPpp/Utils/CatalogReader.o \
@@ -141,8 +135,7 @@ src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/SqlDialect.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
-src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
-src/Database/HsSqlPpp/Internals/StringLike.o
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o
 	$(HC) $(HC_OPTS) -o src-extra/examples/MakeSelect src-extra/examples/MakeSelect.o \
 src/Database/HsSqlPpp/Annotation.o \
 src/Database/HsSqlPpp/Ast.o \
@@ -156,8 +149,7 @@ src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/SqlDialect.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
-src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
-src/Database/HsSqlPpp/Internals/StringLike.o
+src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o
 src-extra/examples/Parse : src-extra/examples/Parse.o \
 src/Database/HsSqlPpp/Parser.o \
 src/Database/HsSqlPpp/Parsing/ParserInternal.o \
@@ -167,7 +159,6 @@ src/Database/HsSqlPpp/Ast.o \
 src/Database/HsSqlPpp/Annotation.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/SqlDialect.o \
-src/Database/HsSqlPpp/Internals/StringLike.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \
 src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
@@ -185,7 +176,6 @@ src/Database/HsSqlPpp/Ast.o \
 src/Database/HsSqlPpp/Annotation.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/SqlDialect.o \
-src/Database/HsSqlPpp/Internals/StringLike.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \
 src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
@@ -204,7 +194,6 @@ src/Database/HsSqlPpp/Ast.o \
 src/Database/HsSqlPpp/Annotation.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/SqlDialect.o \
-src/Database/HsSqlPpp/Internals/StringLike.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \
 src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
@@ -223,7 +212,6 @@ src/Database/HsSqlPpp/Ast.o \
 src/Database/HsSqlPpp/Annotation.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/SqlDialect.o \
-src/Database/HsSqlPpp/Internals/StringLike.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \
 src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
@@ -242,7 +230,6 @@ src/Database/HsSqlPpp/Ast.o \
 src/Database/HsSqlPpp/Annotation.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/SqlDialect.o \
-src/Database/HsSqlPpp/Internals/StringLike.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \
 src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
@@ -261,7 +248,6 @@ src/Database/HsSqlPpp/Ast.o \
 src/Database/HsSqlPpp/Annotation.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/SqlDialect.o \
-src/Database/HsSqlPpp/Internals/StringLike.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \
 src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
@@ -278,7 +264,6 @@ src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Parsing/Lexer.o \
 src/Database/HsSqlPpp/Catalog.o \
 src/Database/HsSqlPpp/Parser.o \
-src/Database/HsSqlPpp/Internals/StringLike.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
 src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
@@ -300,7 +285,6 @@ src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Parsing/Lexer.o \
 src/Database/HsSqlPpp/Catalog.o \
 src/Database/HsSqlPpp/Parser.o \
-src/Database/HsSqlPpp/Internals/StringLike.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
 src/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
@@ -327,7 +311,6 @@ src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/Annotation.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/SqlDialect.o \
-src/Database/HsSqlPpp/Internals/StringLike.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \
 src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
@@ -352,7 +335,6 @@ src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/Annotation.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/SqlDialect.o \
-src/Database/HsSqlPpp/Internals/StringLike.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \
 src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
@@ -377,7 +359,6 @@ src/Database/HsSqlPpp/Parsing/Lexer.o \
 src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/SqlDialect.o \
-src/Database/HsSqlPpp/Internals/StringLike.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \
 src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
@@ -401,7 +382,6 @@ src/Database/HsSqlPpp/Parsing/Lexer.o \
 src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/SqlDialect.o \
-src/Database/HsSqlPpp/Internals/StringLike.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \
 src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
@@ -424,7 +404,6 @@ src/Database/HsSqlPpp/Parsing/Lexer.o \
 src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/SqlDialect.o \
-src/Database/HsSqlPpp/Internals/StringLike.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \
 src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
@@ -447,7 +426,6 @@ src/Database/HsSqlPpp/Parsing/Lexer.o \
 src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/SqlDialect.o \
-src/Database/HsSqlPpp/Internals/StringLike.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \
 src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
@@ -471,7 +449,6 @@ src/Database/HsSqlPpp/Parsing/Lexer.o \
 src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/SqlDialect.o \
-src/Database/HsSqlPpp/Internals/StringLike.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \
 src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
@@ -497,7 +474,6 @@ src/Database/HsSqlPpp/Parsing/Lexer.o \
 src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/SqlDialect.o \
-src/Database/HsSqlPpp/Internals/StringLike.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \
 src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
@@ -521,7 +497,6 @@ src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/Ast.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/SqlDialect.o \
-src/Database/HsSqlPpp/Internals/StringLike.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \
 src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
@@ -544,7 +519,6 @@ src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/Ast.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/SqlDialect.o \
-src/Database/HsSqlPpp/Internals/StringLike.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \
 src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
@@ -567,7 +541,6 @@ src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/Annotation.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/SqlDialect.o \
-src/Database/HsSqlPpp/Internals/StringLike.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \
 src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
@@ -603,7 +576,6 @@ src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/Annotation.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/SqlDialect.o \
-src/Database/HsSqlPpp/Internals/StringLike.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \
 src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
@@ -639,7 +611,6 @@ src/Database/HsSqlPpp/Parsing/Lexer.o \
 src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/SqlDialect.o \
-src/Database/HsSqlPpp/Internals/StringLike.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \
 src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
@@ -659,7 +630,6 @@ src/Database/HsSqlPpp/Parsing/Lexer.o \
 src/Database/HsSqlPpp/Parsing/ParseErrors.o \
 src/Database/HsSqlPpp/Utils/Utils.o \
 src/Database/HsSqlPpp/SqlDialect.o \
-src/Database/HsSqlPpp/Internals/StringLike.o \
 src/Database/HsSqlPpp/Internals/AstInternal.o \
 src/Database/HsSqlPpp/Internals/TypesInternal.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
@@ -685,8 +655,7 @@ src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
 src/Database/HsSqlPpp/Parsing/ParserInternal.o \
 src/Database/HsSqlPpp/Parsing/Lexer.o \
-src/Database/HsSqlPpp/Parsing/ParseErrors.o \
-src/Database/HsSqlPpp/Internals/StringLike.o
+src/Database/HsSqlPpp/Parsing/ParseErrors.o
 	$(HC) $(HC_OPTS) -o src-extra/examples/QQ src-extra/examples/QQ.o \
 src/Database/HsSqlPpp/Ast.o \
 src/Database/HsSqlPpp/Quote.o \
@@ -704,5 +673,4 @@ src/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
 src/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
 src/Database/HsSqlPpp/Parsing/ParserInternal.o \
 src/Database/HsSqlPpp/Parsing/Lexer.o \
-src/Database/HsSqlPpp/Parsing/ParseErrors.o \
-src/Database/HsSqlPpp/Internals/StringLike.o
+src/Database/HsSqlPpp/Parsing/ParseErrors.o

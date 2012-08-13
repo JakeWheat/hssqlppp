@@ -15,7 +15,6 @@
 >     ,PrettyPrintFlags(..)
 >     ,defaultPPFlags
 >     ,SQLSyntaxDialect(..)
->     ,StringLike
 >     )
 >     where
 >
@@ -28,9 +27,9 @@
 
 > import Database.HsSqlPpp.SqlDialect
 
-> import Database.HsSqlPpp.Internals.StringLike
+> --import Database.HsSqlPpp.Internals.StringLike
 > import qualified Data.Text as T
-> import qualified Data.Text.Lazy as LT
+> import qualified Data.Text.Lazy as L
 
 --------------------------------------------------------------------------------
 
@@ -54,7 +53,7 @@ adjusted to reject postgres only syntax when in sql server dialect
 >                                   ,unsafeReadable = False}
 
 > -- | Convert an ast back to valid SQL source.
-> printStatements :: StringLike t => PrettyPrintFlags -> StatementList -> t
+> printStatements :: PrettyPrintFlags -> StatementList -> L.Text
 > printStatements f = printStatementsAnn f (const "")
 >
 > -- | Convert the ast back to valid source, and convert any annotations to
@@ -63,17 +62,17 @@ adjusted to reject postgres only syntax when in sql server dialect
 
 this needs some work
 
-> printStatementsAnn :: StringLike t => PrettyPrintFlags -> (Annotation -> String) -> StatementList -> t
+> printStatementsAnn :: PrettyPrintFlags -> (Annotation -> String) -> StatementList -> L.Text
 > printStatementsAnn flg f ast =
->   pack $ render $ vcat (map (statement flg True f) ast) <> text "\n"
+>   L.pack $ render $ vcat (map (statement flg True f) ast) <> text "\n"
 
 > -- | pretty print a query expression
-> printQueryExpr :: StringLike t => PrettyPrintFlags -> QueryExpr -> t
-> printQueryExpr f ast = pack $ render (queryExpr f True True Nothing ast <> statementEnd True)
+> printQueryExpr :: PrettyPrintFlags -> QueryExpr -> L.Text
+> printQueryExpr f ast = L.pack $ render (queryExpr f True True Nothing ast <> statementEnd True)
 
 > -- | pretty print a scalar expression
-> printScalarExpr :: StringLike t => PrettyPrintFlags -> ScalarExpr -> t
-> printScalarExpr f = pack . render . scalExpr f
+> printScalarExpr :: PrettyPrintFlags -> ScalarExpr -> L.Text
+> printScalarExpr f = L.pack . render . scalExpr f
 
 
 todo: this function (printQueryExprNice) avoids outputting table
@@ -982,5 +981,5 @@ util: to be removed when outputting names is fixed
 > ttext :: T.Text -> Doc
 > ttext = text . T.unpack
 
-> tltext :: LT.Text -> Doc
-> tltext = text . LT.unpack
+> tltext :: L.Text -> Doc
+> tltext = text . L.unpack

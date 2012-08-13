@@ -30,9 +30,9 @@
 > import Database.HsSqlPpp.Parsing.Lexer
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Parser
-> import Text.Parsec.Prim
-> import Control.Monad.Identity
-> import Database.HsSqlPpp.Internals.StringLike
+> --import Text.Parsec.Prim
+> --import Control.Monad.Identity
+> import qualified Data.Text.Lazy as L
 
 > -- | replace all the annotations in a tree with 'emptyAnnotation'
 > resetAnnotations :: Data a => a -> a
@@ -40,8 +40,7 @@
 
 > -- | Gets the type of the sql source passed in. Expects the string to contain
 > -- a query expr
-> queryType :: (StringLike s,Stream s Identity Char) =>
->              Catalog -> s -> Maybe Type
+> queryType :: Catalog -> L.Text -> Maybe Type
 > queryType cat src = do
 >   ast <- either (const Nothing) Just $ parseQueryExpr defaultParseFlags "" Nothing src
 >   anType $ getAnnotation $ typeCheckQueryExpr defaultTypeCheckingFlags cat ast
