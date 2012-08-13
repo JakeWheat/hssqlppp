@@ -422,7 +422,7 @@ this
 
 > identifierString :: SParser T.Text
 > identifierString = T.pack <$>
->                    (lexeme $ (letter <|> char '_')
+>                    lexeme ((letter <|> char '_')
 >                             <:> many (alphaNum <|> char '_'))
 
 todo:

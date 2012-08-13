@@ -11,9 +11,9 @@ Tests mainly for antiquotation, plus examples of where antiquotes work.
 > import Data.Data
 >
 > import Database.HsSqlPpp.Ast
-> --import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Pretty
-> --import Database.HsSqlPpp.Quote
+> import Database.HsSqlPpp.Quote
 > import Database.HsSqlPpp.Utility
 > --import Database.HsSqlPpp.Tests.TestUtils
 > import qualified Data.Text.Lazy as L
@@ -151,5 +151,5 @@ Unit test helpers
 >               a -> a -> Assertion
 > stripEqual a b = assertEqual "" (resetAnnotations a) (resetAnnotations b)
 
-> --ea :: Annotation
-> --ea = emptyAnnotation
+> ea :: Annotation
+> ea = emptyAnnotation

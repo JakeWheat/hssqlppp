@@ -238,7 +238,7 @@ maybe it should still do this since it would probably be a lot clearer
 >   ((Nothing,) <$> with)
 >   <|>  buildExpressionParser combTable selFactor
 >   where
->         selFactor = choice [try ((Nothing,) <$> (parens pQueryExpr))
+>         selFactor = choice [try ((Nothing,) <$> parens pQueryExpr)
 >                            ,selQuerySpec
 >                            ,(Nothing,) <$> values]
 >         with = WithQueryExpr <$> (pos <* keyword "with")

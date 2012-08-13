@@ -216,19 +216,23 @@ against.
 >         else Just [a,b]
 >       matchCompTypes _ = Nothing
 
-
 >
 > findCallMatch1 :: Catalog -> Text -> [Type] ->  Either [TypeError] OperatorPrototype
 > findCallMatch1 cat f inArgs =
->     returnIfOnne [
->        exactMatch
->       ,binOp1UnknownMatch
->       ,polymorpicExactMatches
->       ,reachable
->       ,mostExactMatches
->       ,filteredForPreferred
->       ,unknownMatchesByCat]
->       [NoMatchingOperator f inArgs]
+>     let x = [exactMatch
+>             ,binOp1UnknownMatch
+>             ,polymorpicExactMatches
+>             ,reachable
+>             ,mostExactMatches
+>             ,filteredForPreferred
+>             ,unknownMatchesByCat]
+>     in returnIfOnne x {-(if f == "-"
+>                      then trace ("\n-----------------\n"
+>                                  ++ groom cat
+>                                  ++ "\n-----------------\n"
+>                                  ++ groom (f,inArgs) ++ "\n" ++ groom x) x
+>                      else x)-}
+>                     [NoMatchingOperator f inArgs]
 >     where
 >       -- basic lists which roughly mirror algo
 >       -- get the possibly matching candidates

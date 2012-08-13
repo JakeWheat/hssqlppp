@@ -344,7 +344,7 @@ canonicalizeTypeNames =
 {-# LINE 14 "src/Database/HsSqlPpp/Internals/Annotation.ag" #-}
 
 -- | Represents a source file position, usually set by the parser.
-type SourcePosition = (String,Int,Int)
+type SourcePosition = (FilePath,Int,Int)
 
 -- | Statement type is used for getting type information for a
 -- parameterized statement. The first part is the args that the

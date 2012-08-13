@@ -173,7 +173,7 @@ lookup and star expansion
 >      if q `elem` [Nothing, Just ta]
 >      then    --really hacky, assume the ids come out of the star expansion in same order
 >              -- almost certainly wrong some of the time
->              case findIndex (==n) cs of
+>              case elemIndex n cs of
 >                Just i -> let s :: [((Text, Text), Type)]
 >                              s = (snd (listBindingsTypes env) Nothing)
 >                          in {-trace ("getit : " ++ show (i,show s))

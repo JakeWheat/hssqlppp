@@ -64,7 +64,7 @@ multiple statements
 use haskell syntax inside antiquotes
 
 >
-> {-# LANGUAGE ScopedTypeVariables,StandaloneDeriving #-}
+> {-# LANGUAGE ScopedTypeVariables #-}
 >
 > module Database.HsSqlPpp.Quote
 >     (sqlStmts,sqlStmt,pgsqlStmts,pgsqlStmt,sqlExpr,sqlName,sqlNameComponent) where
@@ -115,7 +115,7 @@ public api: the quasiquote functions
 >             >>= dataToExpQ (const Nothing)
 
 > pse :: String -> Either P.ParseErrorExtra ScalarExpr
-> pse s = parseScalarExpr P.defaultParseFlags "" Nothing s
+> pse = parseScalarExpr P.defaultParseFlags "" Nothing
 
 ghc -Wall -threaded -rtsopts  -isrc:src-extra/catalogReader:src-extra/chaos:src-extra/devel-util:src-extra/docutil:src-extra/examples:src-extra/extensions:src-extra/h7c:src-extra/tests:src-extra/chaos/extensions:src-extra/utils temp.lhs
 
