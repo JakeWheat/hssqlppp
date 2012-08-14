@@ -1,14 +1,9 @@
-error messages when parsing,typechecking
-support tinyint for mssql
 do null, precision in typechecking
 code review
 review targets for next release
 stored proc support
 switch inferred/etc. crap in annotation
 include env in annotation?
-stop messing around with strings, bytestrings, etc: parse from lazy
-   text only. pretty print to lazy text
-
 
 immediate goals:
 

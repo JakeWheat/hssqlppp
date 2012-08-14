@@ -42,15 +42,16 @@ todo: actually use the dialect. this will forced when the parser is
 adjusted to reject postgres only syntax when in sql server dialect
 
 >   {ppDialect :: SQLSyntaxDialect
->    -- | try to output in more readable form, not safe to use
->    -- atm since it might produce incorrect sql
->   ,unsafeReadable :: Bool
 >   }
 >   deriving (Show,Eq)
 
 > defaultPPFlags :: PrettyPrintFlags
-> defaultPPFlags = PrettyPrintFlags {ppDialect = PostgreSQLDialect
->                                   ,unsafeReadable = False}
+> defaultPPFlags = PrettyPrintFlags {ppDialect = PostgreSQLDialect}
+
+old unsafereadable, not used any more, not sure if will use again
+
+> unsafeReadable :: PrettyPrintFlags -> Bool
+> unsafeReadable _ = False
 
 > -- | Convert an ast back to valid SQL source.
 > printStatements :: PrettyPrintFlags -> StatementList -> L.Text
@@ -64,21 +65,36 @@ this needs some work
 
 > printStatementsAnn :: PrettyPrintFlags -> (Annotation -> String) -> StatementList -> L.Text
 > printStatementsAnn flg f ast =
->   L.pack $ render $ vcat (map (statement flg True f) ast) <> text "\n"
+>   renderText $ vcat (map (statement flg True f) ast) <> text "\n"
 
 > -- | pretty print a query expression
 > printQueryExpr :: PrettyPrintFlags -> QueryExpr -> L.Text
-> printQueryExpr f ast = L.pack $ render (queryExpr f True True Nothing ast <> statementEnd True)
+> printQueryExpr f ast = renderText (queryExpr f True True Nothing ast <> statementEnd True)
 
 > -- | pretty print a scalar expression
 > printScalarExpr :: PrettyPrintFlags -> ScalarExpr -> L.Text
-> printScalarExpr f = L.pack . render . scalExpr f
+> printScalarExpr f = renderText . scalExpr f
+
+direct = true means attempt to pretty print straight to text
+direct = false means pretty print to string then pack to text
+no idea which is better, since pretty printing to text directly uses a
+ lot of Text.cons which might be pretty slow and bloated
+
+> direct :: Bool
+> direct = True
+
+> renderText :: Doc -> L.Text
+> renderText doc =
+>   if direct
+>   then fullRender (mode style) (lineLength style) (ribbonsPerLine style)
+>                    dataTextPrinter "" doc
+>   else L.pack $ render doc
 
 
-todo: this function (printQueryExprNice) avoids outputting table
-aliases in some places - the code that uses this can avoid adding the
-table aliases until later on so it shouldn't need this. waiting for
-the new typechecker before fixing this.
+> dataTextPrinter :: TextDetails -> L.Text -> L.Text
+> dataTextPrinter (Chr c)   s  = L.cons c s
+> dataTextPrinter (Str s1)  s2 = L.pack s1 `L.append` s2
+> dataTextPrinter (PStr s1) s2 = L.pack s1 `L.append` s2
 
 -------------------------------------------------------------------------------
 

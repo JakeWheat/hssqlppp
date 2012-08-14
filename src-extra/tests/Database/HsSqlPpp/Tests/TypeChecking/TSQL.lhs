@@ -22,6 +22,11 @@ todo: fix it
 
 >    "select datediff(hour,a,b) as a from t"
 >    $ Right $ CompositeType [("a",typeInt)]
+>   ,TSQLQueryExpr [CatCreateTable "t" [("a", "tinyint")
+>                                      ,("b", "smallint")]]
+>    "select a+b as a from t /* junk it */"
+>    $ Right $ CompositeType [("a",typeSmallInt)]
+
 >   ]
 >   {-[QueryExpr [CatCreateTable "t" [("a", "int4")
 >     ,("b", "text")]]

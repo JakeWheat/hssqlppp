@@ -42,7 +42,7 @@
 # makefiles
 
 HC              = ghc
-HC_BASIC_OPTS   = -Wall -threaded -rtsopts
+HC_BASIC_OPTS   = -Wall -threaded -rtsopts -O2
 
 # add new source roots to this
 SRC_DIRS = src src-extra/catalogReader src-extra/chaos \

@@ -53,7 +53,8 @@ src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TSQL.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Issues.o \
 src/Database/HsSqlPpp/TypeChecker.o \
 src/Database/HsSqlPpp/Types.o \
-src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o
+src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o \
+src/Database/HsSqlPpp/Quote.o
 	$(HC) $(HC_OPTS) -o src-extra/tests/Tests src-extra/tests/Tests.o \
 src-extra/tests/Database/HsSqlPpp/Tests/Tests.o \
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.o \
@@ -109,7 +110,8 @@ src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TSQL.o \
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Issues.o \
 src/Database/HsSqlPpp/TypeChecker.o \
 src/Database/HsSqlPpp/Types.o \
-src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o
+src-extra/tests/Database/HsSqlPpp/Tests/TpchData.o \
+src/Database/HsSqlPpp/Quote.o
 src-extra/devel-util/MakeDefaultTemplate1Catalog : src-extra/devel-util/MakeDefaultTemplate1Catalog.o \
 src-extra/utils/Database/HsSqlPpp/Utils/Here.o \
 src-extra/catalogReader/Database/HsSqlPpp/Utils/CatalogReader.o \

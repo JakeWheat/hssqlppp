@@ -9,7 +9,8 @@
 > import Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
 > import Data.List
 > import Data.Generics.Uniplate.Data
-
+> import Debug.Trace
+> import Text.Groom
 
 > defaultTSQLCatalog :: Catalog
 > defaultTSQLCatalog =
@@ -18,13 +19,11 @@
 >              Right e -> e) $
 >      flip updateCatalog defaultTemplate1Catalog $
 
+>     --trace ("fns: " ++ groom (int1fns ++ int12fns))
+>     int1fns ++
+>     int12fns ++
 >     [CatCreateScalarType "nvarchar"
->     ,CatCreateScalarType "int1"]
->     ++ int1fns
->     ++ int12fns ++
->     [CatCreateTypeCategoryEntry "nvarchar" ("S", False)
->     ,CatCreateTypeCategoryEntry "int1" ("N", False)
-
+>     ,CatCreateTypeCategoryEntry "nvarchar" ("S", False)
 >     ,CatCreateBinaryOp "+" "varchar" "varchar" "varchar"
 >     ,CatCreateFunction "getdate" [] False "date"
 >     ,CatCreateFunction "isnumeric" ["anyelement"] False "int4"
@@ -49,18 +48,18 @@
 >     -- really hacky
 >     int1fns = let s = filter (\x -> replaceItp x && hasInt2 x)
 >                              (deconstructCatalog defaultTemplate1Catalog)
->               in flip transformBi s $ \x -> case (x :: String) of
+>               in flip transformBi s $ \x -> case (x :: CatName) of
 >                                        "int2" -> "int1"
 >                                        _ -> x
 >     int12fns = let s = filter (\x -> replaceItp x && hasInt2Int4 x)
 >                               (deconstructCatalog defaultTemplate1Catalog)
->                in flip transformBi s $ \x -> case (x :: String) of
+>                in flip transformBi s $ \x -> case (x :: CatName) of
 >                                        "int2" -> "int1"
 >                                        "int4" -> "int2"
 >                                        _ -> x
->     hasInt2 x = not $ null [() | ("int2" :: String) <- universeBi x]
->     hasInt2Int4 x = not $ null [() | ("int2" :: String) <- universeBi x
->                                    , ("int4" :: String) <- universeBi x]
+>     hasInt2 x = not $ null [() | ("int2" :: CatName) <- universeBi x]
+>     hasInt2Int4 x = not $ null [() | ("int2" :: CatName) <- universeBi x
+>                                    , ("int4" :: CatName) <- universeBi x]
 >     replaceItp x = case x of
 >                      CatCreateScalarType {} -> True
 >                      CatCreateArrayType {} -> True
@@ -71,18 +70,6 @@
 >                      CatCreateCast a b c | a == "int2" || b == "int2" -> True
 >                      CatCreateTypeCategoryEntry {} -> True
 >                      _ -> False
->  {-   ++ [CatCreateBinaryOp o t0 t1 t2
->        | let arith = ["+","-","/","*"]
->        , let compare = ["=", "<=", "<", ">=",">","<>"]
->        , o <- arith ++ compare
->        , let tys = ["int1","int2","int4","int8"]
->        , t0 <- tys
->        , t1 <- tys
->        , any (=="int1") [t0,t1]
->        , let t2 = if o `elem` arith
->                   then head $ reverse $ sort [t0,t1]
->                   else "bool"
->        ] ++-}
 
 comparisons with all ints
 abs

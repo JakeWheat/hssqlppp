@@ -263,7 +263,9 @@ src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.o : src/Database/HsS
 src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.o : src/Database/HsSqlPpp/Ast.hi
 src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.o : src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs
 src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.o : src/Database/HsSqlPpp/Utility.hi
+src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.o : src/Database/HsSqlPpp/Quote.hi
 src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.o : src/Database/HsSqlPpp/Pretty.hi
+src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.o : src/Database/HsSqlPpp/Annotation.hi
 src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.o : src/Database/HsSqlPpp/Ast.hi
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.o : src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.lhs
 src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.o : src-extra/tests/Database/HsSqlPpp/Utils/GroomUtils.hi

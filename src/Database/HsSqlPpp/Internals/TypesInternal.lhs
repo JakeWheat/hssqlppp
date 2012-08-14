@@ -181,8 +181,14 @@ gutted and rewritten
 >                     | s `elem` varcharNames -> "varchar"
 >                     | s `elem` charNames -> "char"
 >                     | s `elem` boolNames -> "bool"
+
+this needs rethinking for mssql types: it must have a different set of
+canonical type names
+
+>                     | s `elem` tinyIntNames -> "int1"
 >                     | otherwise -> s
 >   where
+>       tinyIntNames = ["int1", "tinyint"]
 >       smallIntNames = ["int2", "smallint"]
 >       intNames = ["int4", "integer", "int", "serial"]
 >       bigIntNames = ["int8", "bigint"]
