@@ -154,11 +154,6 @@ against.
 >     --trace ("typecheckfncall " ++ fnName' ++ show argsType) $
 >     --dependsOnRTpe argsType $
 >       case fnName of
->               "count" -> -- not quite sure how this is suppose to work,
->                          -- the counts in the pg catalog accept either
->                          -- no args, or one arg of type any, but you can call
->                          -- count with multiple arguments?
->                          return ("count", argsType, typeBigInt, False)
 >               "between" | as@[_,_,_] <- argsType -> do
 >                     -- not sure if this is correct - use the result set resolution
 >                     -- to make the argument types compatible

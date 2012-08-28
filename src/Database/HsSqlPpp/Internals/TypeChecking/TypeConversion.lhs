@@ -20,8 +20,8 @@ http://blogs.msdn.com/b/craigfr/archive/2010/01/20/more-on-implicit-conversions.
 >     ) where
 >
 > --import Data.Maybe
-> import Data.List
-> import Data.Either
+> --import Data.List
+> --import Data.Either
 > --import Debug.Trace
 > import Data.Char
 >
@@ -33,7 +33,7 @@ http://blogs.msdn.com/b/craigfr/archive/2010/01/20/more-on-implicit-conversions.
 > import Database.HsSqlPpp.Internals.TypeChecking.OldTypeConversion
 > import Database.HsSqlPpp.SqlDialect
 > import qualified Database.HsSqlPpp.Internals.TypeChecking.SqlTypeConversion as TSQL
-> import Data.Text (Text)
+> import Data.Text ()
 > import qualified Data.Text as T
 
 ------------------------------------------------------------------

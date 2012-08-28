@@ -17,7 +17,7 @@
 >     (\l -> case l of
 >              Left x -> error $ show x
 >              Right e -> e) $
->      flip updateCatalog defaultTemplate1Catalog $
+>      flip updateCatalog catr $
 
 >     --trace ("fns: " ++ groom (int1fns ++ int12fns))
 >     int1fns ++
@@ -42,6 +42,14 @@
 >     ,CatCreateFunction "len" ["nvarchar"] False "int4"
 >     ]
 >   where
+>     catr = either (error . show) id
+>            $ updateCatalog
+>                  (alterUpdates $ deconstructCatalog defaultTemplate1Catalog)
+>                  defaultCatalog
+>     -- change the counts to return int instead of long
+>     alterUpdates = map $ \u -> case u of
+>                                  CatCreateAggregate "count" ["any"] "int8" -> CatCreateAggregate "count" ["any"] "int4"
+>                                  _ -> u
 >     -- find all the functions on int2 and replace int2 with int1
 >     -- then find all the functions with int2 and int4, and
 >     -- replace int2 with int1 and int4 with int2

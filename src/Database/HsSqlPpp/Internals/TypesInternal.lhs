@@ -184,6 +184,8 @@ gutted and rewritten
 
 this needs rethinking for mssql types: it must have a different set of
 canonical type names
+TODO: add database type to canonicalize type name call:
+postgresql, mssql, db2, standard sql
 
 >                     | s `elem` tinyIntNames -> "int1"
 >                     | otherwise -> s
