@@ -55,18 +55,17 @@ space +=
 comma := ,
 HC_INCLUDE_DIRS = -i$(subst $(space),:,$(SRC_DIRS))
 
-# as of nov2010 uses head version of haskell-src-exts
-# which supports new quasi quote syntax
-# also uses illuminate from here:
-# https://github.com/jgm/illuminate
-# other packages should be the latest from hackage
-# or following the versions in the cabal file
+# you can compile the lib and tests without the last line of packages
+# (HDBC HDBC-postgresql pandoc xhtml)
 
 PACKAGES = haskell-src-exts uniplate mtl base containers parsec pretty \
 	syb transformers template-haskell test-framework groom \
-	test-framework-hunit HUnit HDBC HDBC-postgresql pandoc xhtml \
-	datetime split Diff text filepath directory bytestring
+	test-framework-hunit HUnit \
+	datetime split Diff text filepath directory bytestring \
+	HDBC HDBC-postgresql pandoc xhtml \
 	#illuminate
+
+
 HC_PACKAGES = -hide-all-packages -package base $(patsubst %,-package %,$(PACKAGES))
 
 HC_OPTS = $(HC_BASIC_OPTS) $(HC_INCLUDE_DIRS) $(HC_PACKAGES)

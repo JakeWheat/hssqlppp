@@ -25,7 +25,10 @@ do the overhaul for the type attributes and annotation
 *work on error messages
 get the documentation generating again ... -> work on the standalone
    doctool again?
+try shake
 
+split into separate cabal packages: main library + tests, additional
+   postgres utils + tests, use postgresql-simple
 
 
 
