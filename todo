@@ -1,41 +1,23 @@
-do null, precision in typechecking
-code review
-review targets for next release
-stored proc support
-switch inferred/etc. crap in annotation
-include env in annotation?
+makefile fixes:
+get the basics working again:
+  build lib files
+  build and run tests
+  astinternal stuff
+  regen default template1 catalog
 
-immediate goals:
+build out of tree
+use ghc -M and ghc --make only, none of the weird stuff
+use the pot tool to add the packages needed for exes as documentation
+  -> don't do hide-packages and list packages explicitly anymore
 
-investigate issue with quasiquoting and incomplete Data instance for
-   Text
-*add ids to the nodes in the tree
-*expose the environment and identifier binding information in the
-   typechecked tree
-  -> so now can write the tests to check it has the correct
-   environments, and separately check the type coming from a lookup in
-   a particular environment
-get simple typesafe parameterized queries working from haskell using
-   qq and postgres-simple
-use postgres-simple for the other pg access stuff
-*add null inference to typechecking
-do the overhaul for the type attributes and annotation
-*try to do a bit better for typechecking of precision in char, varchar,
-   float, decimal
-*work on error messages
-get the documentation generating again ... -> work on the standalone
-   doctool again?
-try shake
+later:
+fix website, website-haddock (use external doctool as lib)
+move the chaos stuff to chaos project (extensions, h7c, chaos)
 
-split into separate cabal packages: main library + tests, additional
-   postgres utils + tests, use postgresql-simple
+--
 
+move examples to correct subpackages
 
-
-review the rest of the api and implementation
-review quoting of identifiers and strings:
-  step one is a writeup on how dbms' quoting works, start with pg
-   (+mssql, db2 possible)
 
 = next release, 0.5.0
 

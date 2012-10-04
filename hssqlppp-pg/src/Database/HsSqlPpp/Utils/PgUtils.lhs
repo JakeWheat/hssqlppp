@@ -12,12 +12,13 @@ Some simple wrappers around HDBC for the code to use.
 > import qualified Database.HDBC.PostgreSQL as Pg
 > import Database.HDBC
 > import Control.Exception
+> import qualified Data.Text as T
 >
 > withConn :: String -> (Pg.Connection -> IO c) -> IO c
 > withConn cs = bracket (Pg.connectPostgreSQL cs) disconnect
 >
 > selectRelation ::(IConnection conn) =>
->                  conn -> String -> [String] -> IO [[String]]
+>                  conn -> String -> [String] -> IO [[T.Text]]
 > selectRelation conn query args = do
 >   sth <- prepare conn query
 >   _ <- execute sth $ map sToSql args
@@ -33,5 +34,5 @@ Some simple wrappers around HDBC for the code to use.
 > sToSql :: String -> SqlValue
 > sToSql s = toSql (s::String)
 >
-> sqlToS :: SqlValue -> String
-> sqlToS = fromSql
+> sqlToS :: SqlValue -> T.Text
+> sqlToS = T.pack . fromSql

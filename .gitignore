@@ -1,7 +1,5 @@
 *.o
 *.hi
-/dist/
-/hssqlppp/
 /logchanges
 /nohup.out
 /notes/
@@ -26,3 +24,6 @@
 /src-extra/examples/PPPTest
 /src-extra/examples/Parse3
 /src-extra/examples/TypeCheck2
+/hssqlppp/dist
+/hssqlppp-pg/dist/
+/hssqlppp-th/dist/

@@ -2,10 +2,6 @@ A parser, pretty printer, and type checker for SQL written in
 Haskell. Targets the PostgreSQL dialect of SQL and PL/pgSQL syntax
 only.
 
-Install with:
-cabal update
-cabal install hssqlppp
-
 Website, with some docs and examples:
 http://jakewheat.github.com/hssqlppp/
 

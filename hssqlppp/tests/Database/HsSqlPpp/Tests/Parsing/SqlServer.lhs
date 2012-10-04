@@ -19,6 +19,12 @@
 >               ,selTref = [tref "a"]
 >               ,selOrderBy = [(ei "c", Asc)]
 >               ,selLimit = Just $ num "3"}]
+>   ,TSQL "select top(3) * from a order by c;"
+>       [qs $ makeSelect
+>               {selSelectList = sl [si $ Star ea]
+>               ,selTref = [tref "a"]
+>               ,selOrderBy = [(ei "c", Asc)]
+>               ,selLimit = Just $ num "3"}]
 >   ,TSQL "select r.dn as 'rg' from tbl;"
 >    [qs $ makeSelect
 >        {selSelectList = sl [sia (eqi "r" "dn") $ QNmc "rg"]

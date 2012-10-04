@@ -1,0 +1,49 @@
+Name:                hssqlppp-pg
+Version:             0.5.0
+Synopsis:            Extra libraries for hssqlppp which depend on PostgreSQL
+License:             BSD3
+License-file:        LICENSE
+Author:              Jake Wheat
+Maintainer:          jakewheatmail@gmail.com
+Build-Type:          Simple
+Cabal-Version:       >=1.8
+copyright:           Copyright 2009-2012 Jake Wheat
+stability:           pre-alpha
+homepage:            http://jakewheat.github.com/hssqlppp/
+bug-reports:         https://github.com/JakeWheat/hssqlppp/issues
+category:            Database,Language
+Description:
+    Extra libraries for hssqlppp which depend on PostgreSQL
+    .
+    Documentation, examples on the homepage:
+    <http://jakewheat.github.com/hssqlppp/>.
+    .
+    Changes here: <https://github.com/JakeWheat/hssqlppp/blob/master/CHANGES>
+
+extra-source-files:  README
+                     LICENSE
+
+source-repository head
+  type:     git
+  location: https://github.com/JakeWheat/hssqlppp.git
+
+Library
+  Build-Depends:     base >= 4 && < 5,
+                     hssqlppp == 0.5.0,
+                     split,
+                     HDBC,
+                     HDBC-postgresql,
+                     template-haskell,
+                     text
+
+  hs-source-dirs:    src
+  Exposed-modules:   Database.HsSqlPpp.Utils.CatalogReader
+
+  extensions:        TupleSections
+                     DeriveDataTypeable,
+                     ScopedTypeVariables,
+                     PatternGuards,
+                     FlexibleContexts
+                     ScopedTypeVariables,
+                     PatternGuards,
+                     FlexibleContexts

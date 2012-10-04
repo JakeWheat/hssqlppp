@@ -270,7 +270,13 @@ maybe it should still do this since it would probably be a lot clearer
 >                 [do
 >                  isSqlServer >>= guard
 >                  optionMaybe $ try
->                      $ keyword "top" *> (NumberLit <$> pos <*> ((T.pack . show) <$> integer))
+>                      (keyword "top" *>
+>                       choice [parens expr
+>                              -- not sure why you can't write expr without parens
+>                              -- but it doesn't work TODO: fix this
+>                              -- the current hack only allows a single number
+>                              -- if you don't also use parens
+>                              ,NumberLit <$> pos <*> ((T.pack . show) <$> integer)])
 >                 ,return Nothing]
 >           -- todo: work out how to make this work properly - need to return
 >           -- the into

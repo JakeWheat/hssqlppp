@@ -7,7 +7,7 @@ Author:              Jake Wheat
 Maintainer:          jakewheatmail@gmail.com
 Build-Type:          Simple
 Cabal-Version:       >=1.8
-copyright:           Copyright 2009-2011 Jake Wheat
+copyright:           Copyright 2009-2012 Jake Wheat
 stability:           pre-alpha
 homepage:            http://jakewheat.github.com/hssqlppp/
 bug-reports:         https://github.com/JakeWheat/hssqlppp/issues
@@ -22,44 +22,6 @@ Description:
 
 extra-source-files:  README
                      LICENSE
-                     THANKS
-                     -- rough, extra source files for tests
-                     --find src-extra/tests src-extra/utils -iname '*hs'
-                     src-extra/tests/Tests.lhs
-                     src-extra/tests/Database/HsSqlPpp/Utils/GroomUtils.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/Tests.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/CaseExpressions.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TrefIdentifiers.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ScalarExprs.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Tpch.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Joins.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TSQL.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Utils.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Rewrites.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/SimpleQueryExprs.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/ImplicitCasts.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/TypeChecking/Issues.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/SqlServer.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/CreateTable.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Dml.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/FunctionsDdl.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ScalarExprs.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/SelectLists.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/CombineQueryExprs.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Misc.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Joins.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/MiscQueryExprs.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/TableRefs.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Utils.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/Plpgsql.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/MiscDdl.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/TpchData.lhs
-                     src-extra/tests/Database/HsSqlPpp/Tests/TestUtils.lhs
-                     src-extra/utils/Database/HsSqlPpp/Utils/Here.lhs
-
 
 source-repository head
   type:     git
@@ -67,16 +29,14 @@ source-repository head
 
 Library
   Build-Depends:     base >= 4 && < 5,
+                     containers >= 0.3.0.0 && < 0.6,
                      mtl >= 2.0.1.0 && < 2.2,
-                     containers >= 0.3.0.0 && < 0.5,
                      parsec >= 3.1.2 && < 3.2,
                      pretty >= 1.0 && < 1.2,
                      syb >= 0.1.0.2 && < 0.4,
-                     uniplate >= 1.6 && < 1.7,
-                     transformers >= 0.2.2.0 && < 0.4,
-                     template-haskell,
                      text >= 0.11.1.13 && < 0.12,
-                     -- temp
+                     uniplate >= 1.6 && < 1.7,
+                     -- temp - pulls in lgpl or something in cpphs
                      groom
 
   hs-source-dirs:    src
@@ -87,7 +47,6 @@ Library
                      Database.HsSqlPpp.Pretty
                      Database.HsSqlPpp.Types
                      Database.HsSqlPpp.TypeChecker
-                     Database.HsSqlPpp.Quote
                      Database.HsSqlPpp.Utility
 
                      -- find src -iname '*hs' | sed -e "s@src/@@" | sed -e "s@/@.@g" |sed -e "s/.lhs//" |sed -e "s/.hs//"
@@ -119,21 +78,22 @@ Test-Suite Tests
     type:       exitcode-stdio-1.0
     main-is:    Tests.lhs
     build-depends: base
-    hs-source-dirs:    src,src-extra/tests,src-extra/utils
+    hs-source-dirs:    src,tests
     Build-Depends:     base >= 4 && < 5,
-                     mtl >= 2.0.1.0 && < 2.1,
-                     containers >= 0.3.0.0 && < 0.5,
-                     parsec >= 3.1 && < 3.2,
-                     pretty >= 1.0 && < 1.2,
-                     syb >= 0.1.0.2 && < 0.4,
-                     uniplate >= 1.6 && < 1.7,
-                     transformers >= 0.2.2.0 && < 0.3,
-                     template-haskell,
-                     test-framework >= 0.5 && < 0.6,
-                     HUnit >= 1.2 && < 1.3,
-                     test-framework-hunit >= 0.2 && < 0.3,
-                     haskell-src-exts >= 1.11.2 && < 1.12,
-                     groom >=0.1 && < 0.2
+                       HUnit >= 1.2 && < 1.3,
+                       containers >= 0.3.0.0 && < 0.5,
+                       haskell-src-exts >= 1.13 && < 1.14,
+                       mtl >= 2.1 && < 2.2,
+                       parsec >= 3.1 && < 3.2,
+                       pretty >= 1.0 && < 1.2,
+                       syb >= 0.1.0.2 && < 0.4,
+                       template-haskell,
+                       test-framework >= 0.6 && < 0.7,
+                       test-framework-hunit >= 0.2 && < 0.3,
+                       text >= 0.11.1.13 && < 0.12,
+                       uniplate >= 1.6 && < 1.7,
+                       -- temp, see above
+                       groom >=0.1 && < 0.2
 
                      -- rough start:
                      -- find src-extra/tests -iname '*hs' | sed -e "s@src-extra/tests/@@" | sed -e "s@/@.@g" |sed -e "s/.lhs//" |sed -e "s/.hs//"

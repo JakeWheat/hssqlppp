@@ -42,7 +42,8 @@
 # makefiles
 
 HC              = ghc
-HC_BASIC_OPTS   = -Wall -threaded -rtsopts -O2
+HC_BASIC_OPTS   = -Wall -threaded -rtsopts
+#-O2
 
 # add new source roots to this
 SRC_DIRS = src src-extra/catalogReader src-extra/chaos \
@@ -62,7 +63,7 @@ PACKAGES = haskell-src-exts uniplate mtl base containers parsec pretty \
 	syb transformers template-haskell test-framework groom \
 	test-framework-hunit HUnit \
 	datetime split Diff text filepath directory bytestring \
-	HDBC HDBC-postgresql pandoc xhtml \
+	HDBC HDBC-postgresql #pandoc xhtml \
 	#illuminate
 
 

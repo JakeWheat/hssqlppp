@@ -4,7 +4,7 @@ database. This can be applied to the default catalog to be able to
 typecheck against that database.
 
 
-> {-# LANGUAGE QuasiQuotes #-}
+> {-# LANGUAGE QuasiQuotes,OverloadedStrings #-}
 >
 > module Database.HsSqlPpp.Utils.CatalogReader
 >     (readCatalogFromDatabase) where
@@ -13,11 +13,12 @@ typecheck against that database.
 > --import Data.Maybe
 > --import Control.Applicative
 > import Database.HsSqlPpp.Utils.Here
-> import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+> import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Utils.PgUtils
 > --import Database.HsSqlPpp.Catalog
 > --import Database.HsSqlPpp.Types
 > import Data.List.Split
+> import qualified Data.Text as T
 >
 > -- | Creates an 'CatalogUpdate' list by reading the database given.
 > -- To create an Catalog value from this, use
@@ -170,7 +171,7 @@ order by oprname;
 >                                     |] []
 
 >   fns <-
->     map ( \[nm,ts,pr,res] -> CatCreateFunction nm (splitOn "," ts) (pr == "t") res) `fmap`
+>     map ( \[nm,ts,pr,res] -> CatCreateFunction nm (tsplitOn "," ts) (pr == "t") res) `fmap`
 >         selectRelation conn [$here|
 \begin{code}
 -- maybe the args will come out in the right order?
@@ -217,7 +218,7 @@ order by proname;
 >                                     |] []
 
 >   aggs <-
->     map ( \[nm,ts,_,res] -> CatCreateAggregate nm (splitOn "," ts) res) `fmap`
+>     map ( \[nm,ts,_,res] -> CatCreateAggregate nm (tsplitOn "," ts) res) `fmap`
 >         selectRelation conn [$here|
 \begin{code}
 -- maybe the args will come out in the right order?
@@ -268,7 +269,7 @@ order by proname;
 >                                 cst "i" = ImplicitCastContext
 >                                 cst "e" = ExplicitCastContext
 >                                 cst x = error $ "internal error: unknown \
->                                                \cast context " ++ x
+>                                                \cast context " ++ T.unpack x
 >                             in CatCreateCast f t (cst c)
 >                          ) `fmap`
 >         selectRelation conn [$here|
@@ -293,7 +294,7 @@ order by cs.typname,ct.typname;
 >                                     |] []
 
 >   typeCategories <-
->     map ( \[nm,cat,pref] -> CatCreateTypeCategoryEntry nm (cat,read pref)) `fmap`
+>     map ( \[nm,cat,pref] -> CatCreateTypeCategoryEntry nm (cat,read $ T.unpack pref)) `fmap`
 >         selectRelation conn [$here|
 \begin{code}
 select t.typname,typcategory,typispreferred
@@ -617,3 +618,6 @@ where
                 ,'public'
                 ,'information_schema')
   and typname = 'internal';
+
+> tsplitOn :: T.Text -> T.Text -> [T.Text]
+> tsplitOn s = map T.pack . splitOn (T.unpack s) . T.unpack

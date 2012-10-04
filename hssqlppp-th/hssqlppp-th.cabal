@@ -1,0 +1,53 @@
+Name:                hssqlppp-th
+Version:             0.5.0
+Synopsis:            hssqlppp extras which need template-haskell
+License:             BSD3
+License-file:        LICENSE
+Author:              Jake Wheat
+Maintainer:          jakewheatmail@gmail.com
+Build-Type:          Simple
+Cabal-Version:       >=1.8
+copyright:           Copyright 2009-2011 Jake Wheat
+stability:           pre-alpha
+homepage:            http://jakewheat.github.com/hssqlppp/
+bug-reports:         https://github.com/JakeWheat/hssqlppp/issues
+category:            Database,Language
+Description:
+    hssqlppp extras which need template-haskell
+    .
+    Documentation, examples on the homepage:
+    <http://jakewheat.github.com/hssqlppp/>.
+    .
+    Changes here: <https://github.com/JakeWheat/hssqlppp/blob/master/CHANGES>
+
+extra-source-files:  README
+                     LICENSE
+
+source-repository head
+  type:     git
+  location: https://github.com/JakeWheat/hssqlppp.git
+
+Library
+  Build-Depends:     base >= 4 && < 5,
+                     template-haskell,
+                     hssqlppp == 0.5.0,
+                     syb,
+                     text
+                     --containers >= 0.3.0.0 && < 0.6,
+                     --mtl >= 2.0.1.0 && < 2.2,
+                     --parsec >= 3.1.2 && < 3.2,
+                     --pretty >= 1.0 && < 1.2,
+                     --syb >= 0.1.0.2 && < 0.4,
+                     --template-haskell,
+                     --text >= 0.11.1.13 && < 0.12,
+                     --uniplate >= 1.6 && < 1.7,
+                     -- temp - pulls in lgpl or something in cpphs
+                     --groom
+
+  hs-source-dirs:    src
+  Exposed-modules:   Database.HsSqlPpp.Quote
+  extensions:        TupleSections
+                     DeriveDataTypeable,
+                     ScopedTypeVariables,
+                     PatternGuards,
+                     FlexibleContexts

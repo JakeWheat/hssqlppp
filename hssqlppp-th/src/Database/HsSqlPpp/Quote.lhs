@@ -74,7 +74,7 @@ use haskell syntax inside antiquotes
 > import Data.Generics
 > import Data.List
 >
-> import qualified Database.HsSqlPpp.Parsing.ParserInternal as P
+> import qualified Database.HsSqlPpp.Parser as P
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Ast hiding (Name)
 > import qualified  Database.HsSqlPpp.Ast as A
