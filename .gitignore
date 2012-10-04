@@ -27,3 +27,5 @@
 /hssqlppp/dist
 /hssqlppp-pg/dist/
 /hssqlppp-th/dist/
+/hssqlppp/tests/Tests
+/src-extra/devel-util/PostprocessUuagc

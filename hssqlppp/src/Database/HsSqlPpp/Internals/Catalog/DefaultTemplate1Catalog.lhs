@@ -1,8 +1,8 @@
 
 
 
-This file is auto generated, to regenerate use the
-regenDefaultTemplate1catalog.sh script. You will need postgresql
+This file is auto generated, to regenerate run
+make regenDefaultTemplate1Catalog. You will need postgresql
 installed to do this.
 
 > {-# LANGUAGE OverloadedStrings #-}
@@ -13,7 +13,7 @@ installed to do this.
 > --import Database.HsSqlPpp.Internals.TypesInternal
 > -- | The catalog from a default template1 database in roughly the
 > -- latest postgres. 'select version()' from the dbms this catalog
-> -- was generated from: 'PostgreSQL 9.1.1 on x86_64-unknown-linux-gnu, compiled by gcc-4.6.real (Debian 4.6.1-15) 4.6.1, 64-bit'.
+> -- was generated from: 'PostgreSQL 9.1.6 on x86_64-unknown-linux-gnu, compiled by gcc (Debian 4.7.2-2) 4.7.2, 64-bit'.
 > defaultTemplate1Catalog :: Catalog
 > defaultTemplate1Catalog =
 >     (\l -> case l of
