@@ -6,6 +6,7 @@
 > import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Utils.CatalogReader
 > import Database.HsSqlPpp.Utils.PgUtils
+> import qualified Data.Text as T
 
 > main :: IO ()
 > main = do
@@ -15,7 +16,7 @@
 >   v <- withConn cs $ \conn -> do
 >          r <- selectRelation conn "select version();" []
 >          return (head $ head r)
->   putStrLn $ pre v ++ "\n" ++
+>   putStrLn $ pre (T.unpack v) ++ "\n" ++
 >      unlines (map (">        " ++) $ lines s)
 
 

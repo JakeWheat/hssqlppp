@@ -16,6 +16,8 @@ move the chaos stuff to chaos project (extensions, h7c, chaos)
 
 --
 
+switch to pg-simple
+
 move examples to correct subpackages
 
 

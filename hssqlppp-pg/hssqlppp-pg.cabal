@@ -38,6 +38,8 @@ Library
 
   hs-source-dirs:    src
   Exposed-modules:   Database.HsSqlPpp.Utils.CatalogReader
+  other-modules:     Database.HsSqlPpp.Utils.Here2
+                     Database.HsSqlPpp.Utils.PgUtils
 
   extensions:        TupleSections
                      DeriveDataTypeable,

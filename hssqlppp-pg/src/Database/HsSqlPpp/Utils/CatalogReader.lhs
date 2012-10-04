@@ -12,7 +12,7 @@ typecheck against that database.
 > --import qualified Data.Map as M
 > --import Data.Maybe
 > --import Control.Applicative
-> import Database.HsSqlPpp.Utils.Here
+> import Database.HsSqlPpp.Utils.Here2
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Utils.PgUtils
 > --import Database.HsSqlPpp.Catalog
