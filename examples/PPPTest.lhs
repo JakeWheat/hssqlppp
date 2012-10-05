@@ -17,11 +17,12 @@ that pretty print . parse == id
 > import Data.Generics.Uniplate.Data
 > import Data.Data
 > import Database.HsSqlPpp.Annotation
+> import qualified Data.Text.Lazy.IO as LT
 
 > main :: IO ()
 > main = do
 >   [f] <- getArgs
->   src <- readFile f
+>   src <- LT.readFile f
 >   let ast = resetAnnotations
 >             $ either (error . show) id
 >             $ parseStatements defaultParseFlags f Nothing src

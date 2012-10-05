@@ -1,24 +1,24 @@
-makefile fixes:
-get the basics working again:
-  build lib files
-  build and run tests
-  astinternal stuff
-  regen default template1 catalog
 
 build out of tree
-use ghc -M and ghc --make only, none of the weird stuff
-use the pot tool to add the packages needed for exes as documentation
-  -> don't do hide-packages and list packages explicitly anymore
 
-later:
-fix website, website-haddock (use external doctool as lib)
+fix the website generation, using external doctool lib
+update the documentation to reflect the new build system and project
+   layout/ subdivision
+
 move the chaos stuff to chaos project (extensions, h7c, chaos)
 
---
+switch to pg simple
 
-switch to pg-simple
+organize the remaining files in src-extra
 
 move examples to correct subpackages
+
+move quote testing to hssqlppp-qq package
+
+change the ast back to using strings? so qq works
+
+review todos and plan for 0.5.0 release
+
 
 
 = next release, 0.5.0

@@ -13,11 +13,12 @@
 > import Database.HsSqlPpp.Utils.GroomUtils
 > --import Text.Groom
 > import Database.HsSqlPpp.Tests.TpchData
+> import qualified Data.Text.Lazy.IO as LT
 
 > main :: IO ()
 > main = do
 >   [f] <- getArgs
->   query <- readFile f
+>   query <- LT.readFile f
 >   let ast :: [Statement]
 >       ast = either (error . show) id
 >             $ parsePlpgsql defaultParseFlags "" Nothing query

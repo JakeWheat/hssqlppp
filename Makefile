@@ -2,9 +2,6 @@
 # you can build the library using cabal configure && cabal build
 # more info here: http://jakewheat.github.com/hssqlppp/devel.txt.html
 
-# this makefile uses gnu make syntax, not sure what other makes it
-# works with
-
 # this makefile can be used:
 # * when the .ag files are altered to rebuild the hs
 # * to build/ run the tests
@@ -13,109 +10,103 @@
 
 # the default make target is to build the automated tests exe
 
+# Why does this project have a makefile?
+#
+# Compiling with multiple cabal projects is slow
+# Not all the code which should be compiled during development belongs in a cabal package
+# I didn't work out how to use uuagc and other custom build steps with cabal
+# Make can compile stuff in parallel
+# I have a tool which automatically works out the dependencies and package dependencies
+
+
 ########################################################
 
 # developing with the make file:
 
-# to add new source folder, adjust the SRC_DIRS var below to add a new
-# package, adjust the PACKAGES var below all compiles share the same
-# package list and source folders atm
-
+# to add new source folder, adjust the SRC_DIRS var below
 # to add a new binary to build, add it to EXE_FILES below
 
-# if you change the local imports, or add a new binary you need to
-# regenerate the dependencies manually: run 'make depend exe_depend'
-# if the dependency files get mangled so you can't run this, try
-# deleting .depend.mk and .exe_rules.mk then running 'make depend
-# exe_depend'
+# if you change the imports in any of the files or add new binaries
+# you need to regenerate the dependencies manually: run 'make autorules'
+# to do this. You need the package-o-tron package binaries in your path
+# (see github/...)
+# if autorules.mk gets mangled and make won't run, try deleting it
+# then re-running make autorules
+# not sure if there is a good way to make autorules.mk run
+# automatically when needed
 
 # if you alter the catalog type or any other dependencies, you may
 # need to regenerate the defaultTemplate1Catalog module, this is
 # never automatic, use 'make regenDefaultTemplate1Catalog'
-
-# the reason regenDefaultTemplate1Catalog and depend and exe_depend
-# are manual only is because they are very slow
+# this needs postgresql installed
 
 ######################################################
 
 # this makefile is probably written wrong since I don't know how to do
 # makefiles
 
-HC              = ghc
-HC_BASIC_OPTS   = -Wall -threaded -rtsopts
-#-O2
-
 # add new source roots to this
 SRC_DIRS = hssqlppp/src hssqlppp/tests/ \
-	   hssqlppp-pg/src hssqlppp-th/src \
-	   src-extra/devel-util \
-	   src-extra/examples
+	   hssqlppp-pg/src \
+	   build-src \
+	   examples
+#hssqlppp-th/src \
 # src-extra/docutil
 # src-extra/chaos src-extra/extensions src-extra/h7c \
 # src-extra/chaos/extensions
+
+# this is the list of exe files which are all compiled to check
+# nothing has been broken
+
+EXE_FILES = hssqlppp/tests/Tests \
+	    build-src/MakeDefaultTemplate1Catalog \
+	examples/MakeSelect \
+	examples/Parse \
+	examples/Parse2 \
+	examples/Parse3 \
+	examples/Lex \
+	examples/TypeCheck3 \
+	examples/TypeCheck2 \
+	examples/TypeCheck \
+	examples/TypeCheckDB \
+	examples/PPPTest \
+
+
+	#examples/QQ \
+	src-extra/h7c/h7c \
+	examples/FixSqlServerTpchSyntax
+
+#	src-extra/docutil/DevelTool
+
+#	examples/ShowCatalog \
+#	src-extra/chaos/build.lhs
+
+
+# the command and options used to compile .hs/.lhs to .o
+HC              = ghc
+HC_BASIC_OPTS   = -Wall -threaded -rtsopts
+#-O2
 
 space :=
 space +=
 comma := ,
 HC_INCLUDE_DIRS = -i$(subst $(space),:,$(SRC_DIRS))
 
-PACKAGES = haskell-src-exts uniplate mtl base containers parsec pretty \
-	syb transformers template-haskell test-framework groom \
-	test-framework-hunit HUnit \
-	datetime split Diff text filepath directory bytestring \
-	HDBC HDBC-postgresql
-
-
-HC_PACKAGES = -hide-all-packages -package base $(patsubst %,-package %,$(PACKAGES))
-
-
 HC_OPTS = $(HC_BASIC_OPTS) $(HC_INCLUDE_DIRS) $(HC_PACKAGES)
 
-# this is the list of exe files which are all compiled to check
-# nothing has been broken. It doesn't include some of the makefile
-# utilities below
-# the set of .o files for each exe, and the build rule are generated
-# by a utility (use make exe_depend) since ghc -M doesn't provide
-# the list of .o files which an .lhs for an exe needs to build
-# (ghc -M is used for all the dependencies other than the exes)
+# the command and options used to link .o files to an executable
+HL = ghc
+HL_OPTS = $(HC_OPTS)
 
-EXE_FILES = hssqlppp/tests/Tests \
-	    src-extra/devel-util/MakeDefaultTemplate1Catalog \
-	#src-extra/examples/MakeSelect \
-	src-extra/examples/Parse \
-	src-extra/examples/Parse2 \
-	src-extra/examples/Parse3 \
-	src-extra/examples/Lex \
-	src-extra/examples/TypeCheck3 \
-	src-extra/examples/TypeCheck2 \
-	src-extra/examples/TypeCheck \
-	src-extra/examples/TypeCheckDB \
-	src-extra/examples/PPPTest \
-	src-extra/h7c/h7c \
-	src-extra/examples/FixSqlServerTpchSyntax \
-	src-extra/examples/QQ
-#	src-extra/docutil/DevelTool
 
-#	src-extra/examples/ShowCatalog \
-#	src-extra/chaos/build.lhs
+# default rule: compile the main tests
+build_tests : hssqlppp/tests/Tests
 
-# used for dependency generation with ghc -M
-# first all the modules which are public in the cabal package
-# this is all the hs files directly in the src/Database/HsSqlPpp/ folder
-# then it lists the lhs for all the exe files
-LIB_MODULES = $(shell find hssqlppp/src/Database/HsSqlPpp/ hssqlppp-pg/src/Database/HsSqlPpp/ hssqlppp-th/src/Database/HsSqlPpp/  -maxdepth 1 -iname '*hs')
-SRCS_ROOTS = $(LIB_MODULES) $(addsuffix .lhs,$(EXE_FILES))
-LIB_OBJECTS = $(addsuffix .o, $(basename $(LIB_MODULES)))
+all : $(EXE_FILES)
 
-AG_FILES = $(shell find hssqlppp/src -iname '*ag')
-
-# include the autogenerated rules for the exes
--include .exe_rules.mk
-
-# all rule just rebuilds the library modules to check they compile
-all : $(LIB_OBJECTS)
-
-#special targets
+# more all builds everything, then runs the test and then
+# generates the website, then checks the sdists
+more_all : all all_exes tests #website website_haddock check_sdists
 
 # run the tests
 tests : hssqlppp/tests/Tests
@@ -134,26 +125,6 @@ tests : hssqlppp/tests/Tests
 #	-rm -Rf hssqlppp/haddock
 #	mv dist/doc/html/hssqlppp hssqlppp/haddock
 
-# task to build the chaos sql, which takes the source sql
-# transforms it and produces something which postgres understands
-#CHAOS_SQL_SRC = $(shell find src-extra/chaos/sql/ -iname '*.sql')
-
-#chaos.sql : $(CHAOS_SQL_SRC) src-extra/h7c/h7c
-#	src-extra/h7c/h7c > chaos.sql
-
-# a simple check of the chaos process, if the chaos.sql is produced
-# without error:
-# in postgresql: create an empty database called chaos
-# run: psql chaos -q --set ON_ERROR_STOP=on --file=chaos.sql
-# the chaos project comes with automated tests which will be fixed
-# so that they run (so the test code is broken, expecting all
-# the tests to still pass).
-
-
-# targets mainly used to check everything builds ok
-all_exes : $(EXE_FILES)
-
-more_all : all all_exes tests #website website_haddock
 
 sdists :
 	cd hssqlppp; cabal sdist
@@ -166,49 +137,34 @@ check-sdists : sdists
 	cd hssqlppp-th; sh ~/.cabal/share/cabal-scripts-0.1/cabal-test dist/hssqlppp-th-0.5.0.tar.gz
 	cd hssqlppp-pg; sh ~/.cabal/share/cabal-scripts-0.1/cabal-test dist/hssqlppp-pg-0.5.0.tar.gz
 
-# generic rules
+# include the autogenerated rules for the exes
+-include autorules.mk
 
-%.hi : %.o
-	@:
-
-%.o : %.lhs
-	$(HC) $(HC_OPTS) -c $<
-
-%.o : %.hs
-	$(HC) $(HC_OPTS) -c $<
-
-# dependency and rules for exe autogeneration:
-
-src-extra/devel-util/GenerateExeRules : src-extra/devel-util/GenerateExeRules.lhs src-extra/devel-util/GetImports.lhs
-	ghc -isrc-extra/devel-util src-extra/devel-util/GenerateExeRules.lhs
-
-depend : hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs src-extra/devel-util/GenerateExeRules Makefile hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs
-	ghc -M $(HC_INCLUDE_DIRS) $(SRCS_ROOTS) -dep-makefile .depend.mk
-	src-extra/devel-util/GenerateExeRules .exe_rules.mk HC HC_OPTS \
-	    $(SRC_DIRS) EXES $(EXE_FILES)
 
 # specific rules for generated file astinternal.hs
 # the latest version of uuagc which I know works is 0.9.39.1
 # if you get errors like this:
 # error: Undefined local variable or field ...
 # then try downgrading your version of uuagc (or fix the .ag code!)
-hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs : $(AG_FILES) src-extra/devel-util/PostprocessUuagc
+AG_FILES = $(shell find hssqlppp/src -iname '*ag')
+
+hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs : $(AG_FILES) build-src/PostprocessUuagc
 	uuagc -dcfspwm -P hssqlppp/src/Database/HsSqlPpp/Internals/ \
 		--lckeywords --doublecolons --genlinepragmas \
 		hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.ag
-	src-extra/devel-util/PostprocessUuagc
+	build-src/PostprocessUuagc
 
 # custom rule for this build exe to avoid loop if uses usual exe rule,
 # then have loop where 'make depend' depends on AstInternal.hs, but
 # AstInternal.hs depends on this exe, which depends on 'make depend'
 # running correctly
 
-src-extra/devel-util/PostprocessUuagc : src-extra/devel-util/UUAGCHaddocks.lhs src-extra/devel-util/UUAGCHaddocks.o src-extra/devel-util/PostprocessUuagc.lhs src-extra/devel-util/PostprocessUuagc.o
-	$(HC) $(HC_OPTS) src-extra/devel-util/PostprocessUuagc
+build-src/PostprocessUuagc : build-src/UUAGCHaddocks.lhs build-src/UUAGCHaddocks.o build-src/PostprocessUuagc.lhs build-src/PostprocessUuagc.o
+	$(HC) $(HC_OPTS) build-src/PostprocessUuagc
 
-src-extra/devel-util/UUAGCHaddocks.o : src-extra/devel-util/UUAGCHaddocks.lhs
-src-extra/devel-util/PostprocessUuagc.o : src-extra/devel-util/PostprocessUuagc.lhs
-src-extra/devel-util/PostprocessUuagc.o : src-extra/devel-util/UUAGCHaddocks.hi
+build-src/UUAGCHaddocks.o : build-src/UUAGCHaddocks.lhs
+build-src/PostprocessUuagc.o : build-src/PostprocessUuagc.lhs
+build-src/PostprocessUuagc.o : build-src/UUAGCHaddocks.hi
 
 
 #-dcfspwm --cycle -O
@@ -217,49 +173,27 @@ src-extra/devel-util/PostprocessUuagc.o : src-extra/devel-util/UUAGCHaddocks.hi
 # don't want to automatically keep this up to date, only regenerate it
 # manually
 
-regenDefaultTemplate1Catalog : src-extra/devel-util/MakeDefaultTemplate1Catalog
-	src-extra/devel-util/MakeDefaultTemplate1Catalog > \
+.PHONY : regenDefaultTemplate1Catalog
+regenDefaultTemplate1Catalog : build-src/MakeDefaultTemplate1Catalog
+	build-src/MakeDefaultTemplate1Catalog > \
 		hssqlppp/src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs_new
 	mv hssqlppp/src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs_new \
 		hssqlppp/src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs
 
-# not really sure what .PHONY is for, whether it is needed here
-# or whether it is needed in other places in the makefile
+# regenerate the dependency and rules for exe compiles:
+.PHONY : autorules
+autorules :
+	~/wd/package-o-tron/trunk/Makefilerize $(SRC_DIRS) EXES $(EXE_FILES) > \
+	autorules.mk
 
 .PHONY : clean
 clean :
-	-rm -Rf dist
+	-rm -Rf hssqlppp/dist
+	-rm -Rf hssqlppp-pg/dist
+	-rm -Rf hssqlppp-th/dist
 	-rm -Rf build
 	find . -iname '*.o' -delete
 	find . -iname '*.hi' -delete
 	-rm $(EXE_FILES)
-	-rm src-extra/devel-util/GenerateExeRules
 
-maintainer-clean : clean
-	-rm hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs
-
-
-# include the ghc -M dependencies
--include .depend.mk
-
-
-# stuff to add:
-# build the lib using cabal from here
-# do stuff with chaos:
-#   build the 'compiler' exe only
-#   produce the transformed sql
-#   load the sql into pg
-#   output stuff: typecheck, documentation#
-# h7c stuff: needs some thought
-# get the chaos sql transformation documentation working again
-
-# want to avoid editing source or the commands to try different things
-# in development
-# how can have better control over conditionally compiling in different
-#   test modules?
-
-# todo: don't write the .o, .hi and exes in the source tree
-# todo: transition to not storing astinternal.hs in repo?
-
-# todo: find something better than make
-
+# TODO: find something better than Make

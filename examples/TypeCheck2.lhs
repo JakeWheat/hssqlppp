@@ -11,12 +11,13 @@
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Utility
-> import Text.Groom
+> --import Text.Groom
+> import qualified Data.Text.Lazy.IO as LT
 
 > main :: IO ()
 > main = do
 >   [f] <- getArgs
->   query <- readFile f
+>   query <- LT.readFile f
 >   let ast :: [Statement]
 >       ast = either (error . show) id
 >             $ parsePlpgsql defaultParseFlags "" Nothing query

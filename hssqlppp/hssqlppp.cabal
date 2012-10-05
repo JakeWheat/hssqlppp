@@ -77,7 +77,6 @@ Library
 Test-Suite Tests
     type:       exitcode-stdio-1.0
     main-is:    Tests.lhs
-    build-depends: base
     hs-source-dirs:    src,tests
     Build-Depends:     base >= 4 && < 5,
                        HUnit >= 1.2 && < 1.3,

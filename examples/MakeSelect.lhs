@@ -1,9 +1,12 @@
 
+> {-# LANGUAGE OverloadedStrings #-}
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Pretty
+> import qualified Data.Text as T
+> import qualified Data.Text.Lazy as LT
 
-> data MakeSelect = MakeSelect [String] String
+> data MakeSelect = MakeSelect [T.Text] T.Text
 
 > sqlGen :: MakeSelect -> QueryExpr
 > sqlGen (MakeSelect cols tb) =
@@ -20,5 +23,5 @@
 > main :: IO ()
 > main = do
 >   let s = MakeSelect ["a", "b"] "t"
->   putStrLn $ printQueryExpr defaultPPFlags $ sqlGen s
+>   putStrLn $ LT.unpack $ printQueryExpr defaultPPFlags $ sqlGen s
 

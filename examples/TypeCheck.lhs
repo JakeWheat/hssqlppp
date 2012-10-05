@@ -1,21 +1,16 @@
 
-> import System.Environment
-
+> {-# LANGUAGE OverloadedStrings #-}
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.TypeChecker
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Ast hiding (ann)
-
-> import Database.HsSqlPpp.Utils.CatalogReader
+> import Data.Text.Lazy ()
 
 > main :: IO ()
 > main = do
->   [cs] <- getArgs
->   cus <- readCatalogFromDatabase cs
->   let Right cat = updateCatalog cus defaultCatalog
->       query = "select * from t"
+>   let query = "select * from t"
 >       ast :: QueryExpr
 >       Right ast = parseQueryExpr defaultParseFlags "" Nothing query
 >       aast :: QueryExpr
@@ -25,3 +20,9 @@
 >       ty :: Maybe Type
 >       ty = anType ann
 >   print ty
+>   where
+>     Right cat = updateCatalog
+>                   [CatCreateTable "t" [("a", "int")
+>                                       ,("b", "int")
+>                                       ]]
+>                   defaultTemplate1Catalog

@@ -23,7 +23,7 @@ at some point soon.
 
 > module UUAGCHaddocks where
 
-> import System.FilePath
+> --import System.FilePath
 > import System.Directory
 > --import Debug.Trace
 > import Data.List
@@ -37,7 +37,7 @@ at some point soon.
 > --import Text.Parsec.Pos
 >
 > --import Control.Applicative
-> import Control.Monad.Identity
+> --import Control.Monad.Identity
 
 > postprocessUuagc :: [FilePath] -> [(String,[String])] -> FilePath -> IO ()
 > postprocessUuagc agFiles dataTypeNames hsFile = do
