@@ -1,9 +1,4 @@
-
-build out of tree
-
-fix the website generation, using external doctool lib
-update the documentation to reflect the new build system and project
-   layout/ subdivision
+fix the website generation + update documentation
 
 move the chaos stuff to chaos project (extensions, h7c, chaos)
 
@@ -15,7 +10,7 @@ move examples to correct subpackages
 
 move quote testing to hssqlppp-qq package
 
-change the ast back to using strings? so qq works
+change the ast back to using strings so qq works?
 
 review todos and plan for 0.5.0 release
 

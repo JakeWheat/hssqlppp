@@ -6,6 +6,7 @@ Focus: clean up some of the api
        start taking the sql server syntax support a bit more seriously
 lots of api changes, including the parsing and typechecking functions
   and the ast
+switch to using Data.Text.Lazy.Text to parse from and pretty print to
 typechecking has regressed further, focus is on rock solid
   typechecking of queryexprs and dml statements only (typechecking of
   ddl and plpgsql are completely broken)
@@ -14,6 +15,8 @@ start rewriting the Catalog module, Annotation type, typechecking code
   and more functionality.
 lots of improvements to the Type module, types and documentation
 better haddock documentation
+better documentation plus named fields in some more types such as
+  QueryExpr and Annotation
 parser/syntax additions and fixes:
 split functions and operators into different ctors (App, BinaryOp,
   PrefixOp, etc.), now parses prefix - as "-" instead of hacky "u-"
@@ -22,15 +25,17 @@ represent parens in scalarexpr in the ast
 rename some badly named ctors in the syntax
 use names in LiftApp
 limited explicit support for sql server syntax/tsql as separate
-  dialect using flag passed to parser and pretty printer
-source code tree is better organised and documented
-tests are compiled and run successfully on ghc 6.12.3, 7.0.4 and
-  the library builds on a recent 7.3.x (no tests yet since the
-  dependencies don't build on 7.3.x)
+  dialect using flag passed to parser, typechecker and pretty printer
+source code tree is better organised and documented:
+  split code into hssqlppp, hssqlppp-pg, hssqlppp-th packages plus
+  other bits
+  use much better method of autogenerating makefile rules
+  use cabal test sections for automated tests
+  improved build system all around
+  package dependencies much better handled
 improved handling of reserved keywords
 add flags to typechecking to control the tree rewrites:
   add qualifiers to identifiers
-  add full tableref aliases
   add select item aliases
   replace * in select list with expanded identifier list
 better parsing for operators without whitespace, e.g. is now able to
