@@ -60,6 +60,7 @@ SRC_DIRS = hssqlppp/src hssqlppp/tests/ \
 
 EXE_FILES = hssqlppp/tests/Tests \
 	    build-src/MakeDefaultTemplate1Catalog \
+	build-src/PostprocessUuagc \
 	examples/MakeSelect \
 	examples/Parse \
 	examples/Parse2 \
@@ -81,6 +82,7 @@ EXE_FILES = hssqlppp/tests/Tests \
 #	examples/ShowCatalog \
 #	src-extra/chaos/build.lhs
 
+BUILD=build/
 
 # the command and options used to compile .hs/.lhs to .o
 HC              = ghc
@@ -95,22 +97,25 @@ HC_INCLUDE_DIRS = -i$(subst $(space),:,$(SRC_DIRS))
 HC_OPTS = $(HC_BASIC_OPTS) $(HC_INCLUDE_DIRS) $(HC_PACKAGES)
 
 # the command and options used to link .o files to an executable
-HL = ghc
+HL = $(HC)
 HL_OPTS = $(HC_OPTS)
 
 
 # default rule: compile the main tests
-build_tests : hssqlppp/tests/Tests
+build-tests : $(BUILD)Tests
 
-all : $(EXE_FILES)
+EXE_FILES_TARGETS = $(addprefix $(BUILD), $(notdir $(EXE_FILES)))
+
+all : $(EXE_FILES_TARGETS)
 
 # more all builds everything, then runs the test and then
 # generates the website, then checks the sdists
-more_all : all all_exes tests #website website_haddock check_sdists
+more-all : all tests check-sdists
+#website website-haddock
 
 # run the tests
-tests : hssqlppp/tests/Tests
-	hssqlppp/tests/Tests --hide-successes
+tests : $(BUILD)Tests
+	$(BUILD)Tests --hide-successes
 
 # make the website
 #website : src-extra/docutil/DevelTool
@@ -118,19 +123,20 @@ tests : hssqlppp/tests/Tests
 
 # make the haddock and put in the correct place in the generated
 # website
-#website_haddock :
+#website-haddock :
 #	cabal configure
 #	cabal haddock
 #	-mkdir hssqlppp
 #	-rm -Rf hssqlppp/haddock
 #	mv dist/doc/html/hssqlppp hssqlppp/haddock
 
-
+.PHONY : sdists
 sdists :
 	cd hssqlppp; cabal sdist
 	cd hssqlppp-th; cabal sdist
 	cd hssqlppp-pg; cabal sdist
 
+.PHONY : check-sdists
 check-sdists : sdists
 	-rm -Rf /tmp/hssqlppp*
 	cd hssqlppp; sh ~/.cabal/share/cabal-scripts-0.1/cabal-test dist/hssqlppp-0.5.0.tar.gz
@@ -148,23 +154,18 @@ check-sdists : sdists
 # then try downgrading your version of uuagc (or fix the .ag code!)
 AG_FILES = $(shell find hssqlppp/src -iname '*ag')
 
-hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs : $(AG_FILES) build-src/PostprocessUuagc
+# the dependency on build-src/PostprocessUuagc.lhs isn't quite right
+# want to depend on build-src/PostprocessUuagc.lhs and all its
+# other dependencies as source files as well
+# don't want to depend on the exe since this causes build problems
+# with cyclic dependencies and with rebuilding stuff too often
+
+hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs : $(AG_FILES) build-src/PostprocessUuagc.lhs
 	uuagc -dcfspwm -P hssqlppp/src/Database/HsSqlPpp/Internals/ \
 		--lckeywords --doublecolons --genlinepragmas \
 		hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.ag
-	build-src/PostprocessUuagc
-
-# custom rule for this build exe to avoid loop if uses usual exe rule,
-# then have loop where 'make depend' depends on AstInternal.hs, but
-# AstInternal.hs depends on this exe, which depends on 'make depend'
-# running correctly
-
-build-src/PostprocessUuagc : build-src/UUAGCHaddocks.lhs build-src/UUAGCHaddocks.o build-src/PostprocessUuagc.lhs build-src/PostprocessUuagc.o
-	$(HC) $(HC_OPTS) build-src/PostprocessUuagc
-
-build-src/UUAGCHaddocks.o : build-src/UUAGCHaddocks.lhs
-build-src/PostprocessUuagc.o : build-src/PostprocessUuagc.lhs
-build-src/PostprocessUuagc.o : build-src/UUAGCHaddocks.hi
+	make $(BUILD)PostprocessUuagc
+	$(BUILD)PostprocessUuagc
 
 
 #-dcfspwm --cycle -O
@@ -174,8 +175,8 @@ build-src/PostprocessUuagc.o : build-src/UUAGCHaddocks.hi
 # manually
 
 .PHONY : regenDefaultTemplate1Catalog
-regenDefaultTemplate1Catalog : build-src/MakeDefaultTemplate1Catalog
-	build-src/MakeDefaultTemplate1Catalog > \
+regenDefaultTemplate1Catalog : $(BUILD)MakeDefaultTemplate1Catalog
+	$(BUILD)MakeDefaultTemplate1Catalog > \
 		hssqlppp/src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs_new
 	mv hssqlppp/src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs_new \
 		hssqlppp/src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs
@@ -192,8 +193,5 @@ clean :
 	-rm -Rf hssqlppp-pg/dist
 	-rm -Rf hssqlppp-th/dist
 	-rm -Rf build
-	find . -iname '*.o' -delete
-	find . -iname '*.hi' -delete
-	-rm $(EXE_FILES)
 
 # TODO: find something better than Make
