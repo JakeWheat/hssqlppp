@@ -8,12 +8,15 @@ Maintainer:          jakewheatmail@gmail.com
 Build-Type:          Simple
 Cabal-Version:       >=1.8
 copyright:           Copyright 2009-2012 Jake Wheat
-stability:           pre-alpha
 homepage:            http://jakewheat.github.com/hssqlppp/
 bug-reports:         https://github.com/JakeWheat/hssqlppp/issues
 category:            Database,Language
 Description:
     SQL parser and type checker, targets PostgreSQL SQL and PL/pgSQL.
+    .
+    Pre alpha: works well and is stable for a subset of SQL, but there
+    are lots of unfinished areas and the api is likely to change a lot
+    from release to release at this time.
     .
     Documentation, examples on the homepage:
     <http://jakewheat.github.com/hssqlppp/>.
@@ -91,12 +94,34 @@ Test-Suite Tests
                        test-framework-hunit >= 0.2 && < 0.3,
                        text >= 0.11.1.13 && < 0.12,
                        uniplate >= 1.6 && < 1.7,
-                       -- temp, see above
                        groom >=0.1 && < 0.2
 
                      -- rough start:
                      -- find src-extra/tests -iname '*hs' | sed -e "s@src-extra/tests/@@" | sed -e "s@/@.@g" |sed -e "s/.lhs//" |sed -e "s/.hs//"
-  Other-Modules:     Database.HsSqlPpp.Utils.Here
+  Other-Modules:     Database.HsSqlPpp.Annotation
+                     Database.HsSqlPpp.Ast
+                     Database.HsSqlPpp.Catalog
+                     Database.HsSqlPpp.Internals.AstInternal
+                     Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+                     Database.HsSqlPpp.Internals.Catalog.DefaultTSQLCatalog
+                     Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
+                     Database.HsSqlPpp.Internals.TypeChecking.Environment
+                     Database.HsSqlPpp.Internals.TypeChecking.OldTediousTypeUtils
+                     Database.HsSqlPpp.Internals.TypeChecking.OldTypeConversion
+                     Database.HsSqlPpp.Internals.TypeChecking.SqlTypeConversion
+                     Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
+                     Database.HsSqlPpp.Internals.TypesInternal
+                     Database.HsSqlPpp.Parser
+                     Database.HsSqlPpp.Parsing.Lexer
+                     Database.HsSqlPpp.Parsing.ParseErrors
+                     Database.HsSqlPpp.Parsing.ParserInternal
+                     Database.HsSqlPpp.Pretty
+                     Database.HsSqlPpp.SqlDialect
+                     Database.HsSqlPpp.TypeChecker
+                     Database.HsSqlPpp.Types
+                     Database.HsSqlPpp.Utility
+                     Database.HsSqlPpp.Utils.Utils
+                     Database.HsSqlPpp.Utils.Here
                      Database.HsSqlPpp.Utils.GroomUtils
                      Database.HsSqlPpp.Tests.Tests
                      Database.HsSqlPpp.Tests.QuasiQuoteTests
@@ -128,7 +153,7 @@ Test-Suite Tests
                      Database.HsSqlPpp.Tests.Parsing.MiscDdl
                      Database.HsSqlPpp.Tests.Parsing.ParserTests
                      Database.HsSqlPpp.Tests.TpchData
-                     Database.HsSqlPpp.Tests.TestUtils
+                     --Database.HsSqlPpp.Tests.TestUtils
 
   extensions:        TupleSections
                      DeriveDataTypeable,
