@@ -4,6 +4,7 @@
 > import Database.HsSqlPpp.Quote
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Pretty
+> import qualified Data.Text.Lazy.IO as LT
 
 > test :: Statement
 > test = [$sqlStmt|
@@ -19,4 +20,4 @@
 >     typename = [sqlNameComponent|text|]
 
 > main :: IO ()
-> main = putStrLn $ printStatements defaultPPFlags [test]
+> main = LT.putStrLn $ printStatements defaultPPFlags [test]

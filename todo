@@ -1,9 +1,18 @@
+features
+
+check chaosgen produces decent sql
+fix type check ag attrs
+nullability
+parameterized statements
+switch to pgsimple
+typesafe db access
+
+other stuff
+
 fix the website generation + update documentation
 
 move the chaos stuff to chaos project (extensions, h7c, chaos)
 get it all working: lots to do, get it all typechecking
-
-switch to pg simple
 
 organize the remaining files in src-extra - should there be any?
 

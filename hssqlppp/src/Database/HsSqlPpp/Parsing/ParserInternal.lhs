@@ -276,7 +276,7 @@ maybe it should still do this since it would probably be a lot clearer
 >                              -- but it doesn't work TODO: fix this
 >                              -- the current hack only allows a single number
 >                              -- if you don't also use parens
->                              ,NumberLit <$> pos <*> ((T.pack . show) <$> integer)])
+>                              ,NumberLit <$> pos <*> (show <$> integer)])
 >                 ,return Nothing]
 >           -- todo: work out how to make this work properly - need to return
 >           -- the into
@@ -444,7 +444,7 @@ multiple rows to insert and insert from select statements
 >           return $ SetClause p l r]
 
 > nm :: Annotation -> Text -> Name
-> nm a s = Name a [Nmc s]
+> nm a s = Name a [Nmc $ T.unpack s]
 
 > delete :: SParser Statement
 > delete = Delete
@@ -485,7 +485,7 @@ other dml-type stuff
 > copyData :: SParser Statement
 > copyData = CopyData <$> pos <*> mytoken (\tok ->
 >                                         case tok of
->                                                  CopyPayloadTok n -> Just n
+>                                                  CopyPayloadTok n -> Just $ L.unpack n
 >                                                  _ -> Nothing)
 >
 
@@ -504,7 +504,7 @@ misc
 >               SetStr <$> pos <*> stringN
 >              ,SetId <$> pos <*> idString
 >              ,SetNum <$> pos <*> (try (fromInteger <$> integer)
->                                   <|> (read <$> T.unpack <$> numString))]
+>                                   <|> (read <$> numString))]
 >
 > notify :: SParser Statement
 > notify = Notify <$> pos
@@ -592,13 +592,13 @@ ddl
 >                 where
 >                   conName = try $ do
 >                             x <- idString
->                             if T.map toLower x `elem` [
+>                             if map toLower x `elem` [
 >                                     "unique"
 >                                    ,"primary"
 >                                    ,"check"
 >                                    ,"foreign"
 >                                    ,"references"]
->                               then fail $ "not keyword (constraint name): " ++ T.unpack x
+>                               then fail $ "not keyword (constraint name): " ++ x
 >                               else return x
 >
 > alterTable :: SParser Statement
@@ -693,7 +693,7 @@ parse it
 >                   flg
 >                   fileName
 >                   (Just (line,col))
->                   (L.fromChunks [extrStr body]) of
+>                   (L.fromChunks [T.pack $ extrStr body]) of
 >                      Left er@(ParseErrorExtra {}) -> Left $ show er
 >                      Right body' -> Right body'
 >         -- sql function is just a list of statements, the last one
@@ -960,10 +960,10 @@ plpgsql statements
 >               ,whileStatement p l
 >               ,loopStatement p l]
 
-> label :: SParser (Maybe Text)
+> label :: SParser (Maybe String)
 > label = optional (symbol "<<" *> idString <* symbol ">>")
 >
-> block :: Annotation -> Maybe Text -> SParser Statement
+> block :: Annotation -> Maybe String -> SParser Statement
 > block p l = Block p l
 >             <$> option [] declarePart
 >             <*> statementPart
@@ -1038,7 +1038,7 @@ plpgsql statements
 >                                      ,("exception", RException)
 >                                      ,("error", RError)]
 >
-> forStatement :: Annotation -> Maybe Text -> SParser Statement
+> forStatement :: Annotation -> Maybe String -> SParser Statement
 > forStatement p l = do
 >                keyword "for"
 >                start <- nameComponent
@@ -1053,11 +1053,11 @@ plpgsql statements
 >     theRest = keyword "loop" *> many plPgsqlStatement
 >               <* keyword "end" <* keyword "loop"
 >
-> whileStatement :: Annotation -> Maybe Text -> SParser Statement
+> whileStatement :: Annotation -> Maybe String -> SParser Statement
 > whileStatement p l = WhileStatement p l
 >                      <$> (keyword "while" *> expr <* keyword "loop")
 >                      <*> many plPgsqlStatement <* keyword "end" <* keyword "loop"
-> loopStatement :: Annotation -> Maybe Text -> SParser Statement
+> loopStatement :: Annotation -> Maybe String -> SParser Statement
 > loopStatement p l = LoopStatement p l
 >                     <$> (keyword "loop" *> many plPgsqlStatement <* keyword "end" <* keyword "loop")
 >
@@ -1131,7 +1131,7 @@ plpgsql statements
 >               <*> optional (symbol "=" *> expr)
 >     localVarName = do
 >       i <- idString
->       guard (T.head i == '@')
+>       guard (head i == '@')
 >       return i
 
 
@@ -1410,8 +1410,8 @@ and () is a syntax error.
 > integer :: SParser Integer
 > integer = do
 >   l <- numString
->   guard (T.all (`elem` digChars) l)
->   return $ read $ T.unpack l
+>   guard (all (`elem` digChars) l)
+>   return $ read l
 >   where
 >     digChars = concatMap show [(0::Int)..9]
 
@@ -1564,7 +1564,7 @@ a special case for them
 >   functionCallSuffix (Identifier p (Name p [i]))
 >   where
 >     kfs = ["any","all","isnull"]
->     iskfs (Nmc n) | T.map toLower n `elem` kfs = True
+>     iskfs (Nmc n) | map toLower n `elem` kfs = True
 >     iskfs _ = False
 
 >
@@ -1728,7 +1728,7 @@ these categories affect the parser and typechecker differently
 (the parser has to parse some reserved and 'not reserved but cannot be
 function or type' keywords as function names, maybe there are others)
 
-> reservedWords :: SParser [Text]
+> reservedWords :: SParser [String]
 > reservedWords = do
 >   ss <- isSqlServer
 >   if not ss
@@ -2052,15 +2052,15 @@ parser for a name component where you supply the exceptions to the
 reserved identifier list to say you want these to parse successfully
 instead of failing with a no keyword error
 
-> nameComponentAllows :: [Text] -> SParser NameComponent
+> nameComponentAllows :: [String] -> SParser NameComponent
 > nameComponentAllows allows = do
 >   p <- pos
 >   x <- unrestrictedNameComponent
 >   rw <- reservedWords
 >   case x of
->     Nmc n | T.map toLower n `elem` allows -> return x
->           | T.map toLower n `elem` rw ->
->               fail $ "no keywords " ++ show p ++ " " ++ T.unpack n
+>     Nmc n | map toLower n `elem` allows -> return x
+>           | map toLower n `elem` rw ->
+>               fail $ "no keywords " ++ show p ++ " " ++ n
 >     _ -> return x
 
 ignore reserved keywords completely
@@ -2098,18 +2098,18 @@ Utility parsers
 >                       where
 >                         lcase = T.map toLower
 >
-> idString :: SParser Text
+> idString :: SParser String
 > idString = mytoken (\tok -> case tok of
->                                      IdStringTok i -> Just i
+>                                      IdStringTok i -> Just $ T.unpack i
 >                                      _ -> Nothing)
-> qidString :: SParser Text
+> qidString :: SParser String
 > qidString = mytoken (\tok -> case tok of
->                                      QIdStringTok i -> Just i
+>                                      QIdStringTok i -> Just $ T.unpack i
 >                                      _ -> Nothing)
 
-> splice :: Char -> SParser Text
+> splice :: Char -> SParser String
 > splice c = mytoken (\tok -> case tok of
->                                SpliceTok c' i | c == c' -> Just i
+>                                SpliceTok c' i | c == c' -> Just $ T.unpack i
 >                                _ -> Nothing)
 
 >
@@ -2133,16 +2133,16 @@ Utility parsers
 > placeholder :: SParser ScalarExpr
 > placeholder = (Placeholder <$> pos) <* symbol "?"
 >
-> numString :: SParser Text
+> numString :: SParser String
 > numString = mytoken (\tok -> case tok of
->                                     NumberTok n -> Just n
+>                                     NumberTok n -> Just $ T.unpack n
 >                                     _ -> Nothing)
 
 >
-> liftStringTok :: SParser Text
+> liftStringTok :: SParser String
 > liftStringTok = mytoken (\tok ->
 >                   case tok of
->                            StringTok _ s -> Just s
+>                            StringTok _ s -> Just $ T.unpack s
 >                            _ -> Nothing)
 
 > stringLit :: SParser ScalarExpr
@@ -2150,16 +2150,16 @@ Utility parsers
 >             [StringLit <$> pos <*> liftStringTok
 >              -- bit crap at the moment, not sure how to fix without
 >              -- mangling the ast types
->             ,StringLit <$> pos <*> ((\s -> T.concat ["$s(",s,")"]) <$> splice 's')
+>             ,StringLit <$> pos <*> ((\s -> concat ["$s(",s,")"]) <$> splice 's')
 >             ]
 >
-> stringN :: SParser Text
+> stringN :: SParser String
 > stringN = mytoken (\tok ->
 >                   case tok of
->                            StringTok _ s -> Just s
+>                            StringTok _ s -> Just $ T.unpack s
 >                            _ -> Nothing)
 
-> extrStr :: ScalarExpr -> Text
+> extrStr :: ScalarExpr -> String
 > extrStr (StringLit _ s) = s
 > extrStr x =
 >   error $ "internal error: extrStr not supported for this type " ++ show x
@@ -2313,7 +2313,7 @@ be an array or subselect, etc)
 >       case x of
 >              BinaryOp an op expr1 (App _ fn (expr2s:expr3s))
 >                | Name _ [Nmc fnm] <- fn
->                , Just flav <- case T.map toLower fnm of
+>                , Just flav <- case map toLower fnm of
 >                                  "any" -> Just LiftAny
 >                                  "some" -> Just LiftAny
 >                                  "all" -> Just LiftAll

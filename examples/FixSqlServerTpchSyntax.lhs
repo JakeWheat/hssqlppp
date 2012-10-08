@@ -12,14 +12,16 @@ Convert qgen output into sql server format
 > import Database.HsSqlPpp.Pretty
 > import Database.HsSqlPpp.Quote
 > import Database.HsSqlPpp.Annotation
+> import qualified Data.Text.Lazy as LT
+> import qualified Data.Text.Lazy.IO as LT
 
 > main :: IO ()
 > main = do
 >   [fn] <- getArgs
->   f <- readFile fn
->   putStrLn $ fixSql f
+>   f <- LT.readFile fn
+>   LT.putStrLn $ fixSql f
 
-> fixSql :: String -> String
+> fixSql :: LT.Text -> LT.Text
 > fixSql sql =
 >   let qe = either (error . show) id
 >            -- tpch outputs sql standard syntax

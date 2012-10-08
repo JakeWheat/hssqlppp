@@ -255,7 +255,7 @@ makeSelect = Select
 
 {-# LINE 801 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
 
-data CopySource = CopyFilename Text
+data CopySource = CopyFilename String
                 | Stdin
                   deriving (Show,Eq,Typeable,Data)
 {-# LINE 262 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
@@ -263,15 +263,15 @@ data CopySource = CopyFilename Text
 {-# LINE 867 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
 
 data SetValue
-    = SetStr Annotation Text
-    | SetId Annotation Text
+    = SetStr Annotation String
+    | SetId Annotation String
     | SetNum Annotation Double
       deriving (Show,Eq,Typeable,Data)
 
 
 data TriggerWhen = TriggerBefore | TriggerAfter
                    deriving (Show,Eq,Typeable,Data)
-data TriggerEvent = TInsert| TUpdate | TDelete | AntiTriggerEvent Text
+data TriggerEvent = TInsert| TUpdate | TDelete | AntiTriggerEvent String
                     deriving (Show,Eq,Typeable,Data)
 data TriggerFire = EachRow | EachStatement
                    deriving (Show,Eq,Typeable,Data)
@@ -336,7 +336,7 @@ canonicalizeTypeNames =
          Prec2TypeName a tn i i1 -> Prec2TypeName a (c tn) i i1
          x' -> x')
    where
-     c (Name a [Nmc c]) = Name a [Nmc $ canonicalizeTypeName c]
+     c (Name a [Nmc c]) = Name a [Nmc $ T.unpack $ canonicalizeTypeName $ T.pack c]
      c z = z
 
 {-# LINE 343 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
@@ -490,10 +490,10 @@ addExplicitCasts = transformBi removeDoubleCasts . transformBi addCast
     resetAnnotations = transformBi (const emptyAnnotation)
 
 nameOfType :: Type -> Maybe TypeName
-nameOfType (ScalarType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc t])
-nameOfType (DomainType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc t])
-nameOfType (EnumType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc t])
-nameOfType (NamedCompositeType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc t])
+nameOfType (ScalarType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc $ T.unpack t])
+nameOfType (DomainType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc $ T.unpack t])
+nameOfType (EnumType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc $ T.unpack t])
+nameOfType (NamedCompositeType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc $ T.unpack t])
 nameOfType _ = Nothing
 
 -- hack for various fixups
@@ -509,8 +509,8 @@ type in if it is in the acceptable list
 fixDateDiff :: Data a => a -> a
 fixDateDiff = transformBi $ \x -> case x of
   App aa nm@(Name _ [Nmc fn]) [Identifier ai tn@(Name _ [Nmc tnn]),a,b]
-    | T.map toLower fn == "datediff"
-    , T.map toLower tnn `elem` ["hour"] ->
+    | map toLower fn == "datediff"
+    , map toLower tnn `elem` ["hour"] ->
     App aa nm [Identifier ai' tn,a,b]
       where
         ai' = ai {anType = Just typeInt
@@ -524,7 +524,7 @@ fixDateDiff = transformBi $ \x -> case x of
 tcAppLike :: SQLSyntaxDialect -> Catalog -> Name -> [Maybe Type] -> Either [TypeError] ([Type],Type)
 
 tcAppLike d cat anm@(Name _ [Nmc dd]) [_,a0,a1]
-    | T.map toLower dd == "datediff" = do
+    | map toLower dd == "datediff" = do
   -- dodgy hack for datediff
   tys <- mapM (maybe (Left []) Right) [a0,a1]
   let Name _ ns = anm
@@ -1875,21 +1875,21 @@ sem_CaseScalarExprListScalarExprPairList_Nil  =
    alternatives:
       alternative CheckConstraint:
          child ann            : Annotation 
-         child name           : {Text}
+         child name           : {String}
          child expr           : ScalarExpr 
          visit 0:
             local annotatedTree : _
             local originalTree : _
       alternative PrimaryKeyConstraint:
          child ann            : Annotation 
-         child name           : {Text}
+         child name           : {String}
          child x              : {[NameComponent]}
          visit 0:
             local annotatedTree : _
             local originalTree : _
       alternative ReferenceConstraint:
          child ann            : Annotation 
-         child name           : {Text}
+         child name           : {String}
          child atts           : {[NameComponent]}
          child table          : Name 
          child tableAtts      : {[NameComponent]}
@@ -1900,16 +1900,16 @@ sem_CaseScalarExprListScalarExprPairList_Nil  =
             local originalTree : _
       alternative UniqueConstraint:
          child ann            : Annotation 
-         child name           : {Text}
+         child name           : {String}
          child x              : {[NameComponent]}
          visit 0:
             local annotatedTree : _
             local originalTree : _
 -}
-data Constraint  = CheckConstraint (Annotation ) (Text) (ScalarExpr ) 
-                 | PrimaryKeyConstraint (Annotation ) (Text) (([NameComponent])) 
-                 | ReferenceConstraint (Annotation ) (Text) (([NameComponent])) (Name ) (([NameComponent])) (Cascade) (Cascade) 
-                 | UniqueConstraint (Annotation ) (Text) (([NameComponent])) 
+data Constraint  = CheckConstraint (Annotation ) (String) (ScalarExpr ) 
+                 | PrimaryKeyConstraint (Annotation ) (String) (([NameComponent])) 
+                 | ReferenceConstraint (Annotation ) (String) (([NameComponent])) (Name ) (([NameComponent])) (Cascade) (Cascade) 
+                 | UniqueConstraint (Annotation ) (String) (([NameComponent])) 
                  deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_Constraint :: Constraint  ->
@@ -1936,7 +1936,7 @@ wrap_Constraint sem (Inh_Constraint _lhsIcat _lhsIflags _lhsIimCast )  =
     (let ( _lhsOannotatedTree,_lhsOoriginalTree) = sem _lhsIcat _lhsIflags _lhsIimCast 
      in  (Syn_Constraint _lhsOannotatedTree _lhsOoriginalTree ))
 sem_Constraint_CheckConstraint :: T_Annotation  ->
-                                  Text ->
+                                  String ->
                                   T_ScalarExpr  ->
                                   T_Constraint 
 sem_Constraint_CheckConstraint ann_ name_ expr_  =
@@ -2044,7 +2044,7 @@ sem_Constraint_CheckConstraint ann_ name_ expr_  =
                   expr_ _exprOcat _exprOdownEnv _exprOexpectedType _exprOflags _exprOimCast 
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
 sem_Constraint_PrimaryKeyConstraint :: T_Annotation  ->
-                                       Text ->
+                                       String ->
                                        ([NameComponent]) ->
                                        T_Constraint 
 sem_Constraint_PrimaryKeyConstraint ann_ name_ x_  =
@@ -2111,7 +2111,7 @@ sem_Constraint_PrimaryKeyConstraint ann_ name_ x_  =
                   ann_ _annOcat _annOflags _annOimCast _annOtpe 
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
 sem_Constraint_ReferenceConstraint :: T_Annotation  ->
-                                      Text ->
+                                      String ->
                                       ([NameComponent]) ->
                                       T_Name  ->
                                       ([NameComponent]) ->
@@ -2214,7 +2214,7 @@ sem_Constraint_ReferenceConstraint ann_ name_ atts_ table_ tableAtts_ onUpdate_ 
                   table_ _tableOcat _tableOflags _tableOimCast _tableOtpe 
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
 sem_Constraint_UniqueConstraint :: T_Annotation  ->
-                                   Text ->
+                                   String ->
                                    ([NameComponent]) ->
                                    T_Constraint 
 sem_Constraint_UniqueConstraint ann_ name_ x_  =
@@ -3712,7 +3712,7 @@ sem_MaybeSelectList_Nothing  =
          originalTree         : SELF 
    alternatives:
       alternative AntiName:
-         child text           : {Text}
+         child string         : {String}
          visit 0:
             local annotatedTree : _
             local originalTree : _
@@ -3723,14 +3723,14 @@ sem_MaybeSelectList_Nothing  =
             local annotatedTree : _
             local originalTree : _
 -}
-data Name  = AntiName (Text) 
+data Name  = AntiName (String) 
            | Name (Annotation ) (([NameComponent])) 
            deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_Name :: Name  ->
             T_Name 
-sem_Name (AntiName _text )  =
-    (sem_Name_AntiName _text )
+sem_Name (AntiName _string )  =
+    (sem_Name_AntiName _string )
 sem_Name (Name _ann _is )  =
     (sem_Name_Name (sem_Annotation _ann ) _is )
 -- semantic domain
@@ -3747,9 +3747,9 @@ wrap_Name :: T_Name  ->
 wrap_Name sem (Inh_Name _lhsIcat _lhsIflags _lhsIimCast _lhsItpe )  =
     (let ( _lhsOannotatedTree,_lhsOoriginalTree) = sem _lhsIcat _lhsIflags _lhsIimCast _lhsItpe 
      in  (Syn_Name _lhsOannotatedTree _lhsOoriginalTree ))
-sem_Name_AntiName :: Text ->
+sem_Name_AntiName :: String ->
                      T_Name 
-sem_Name_AntiName text_  =
+sem_Name_AntiName string_  =
     (\ _lhsIcat
        _lhsIflags
        _lhsIimCast
@@ -3759,13 +3759,13 @@ sem_Name_AntiName text_  =
               -- self rule
               _annotatedTree =
                   ({-# LINE 94 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
-                   AntiName text_
+                   AntiName string_
                    {-# LINE 3748 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- self rule
               _originalTree =
                   ({-# LINE 95 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
-                   AntiName text_
+                   AntiName string_
                    {-# LINE 3754 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- self rule
@@ -5677,32 +5677,32 @@ sem_Root_Root statements_  =
    alternatives:
       alternative NotNullConstraint:
          child ann            : Annotation 
-         child name           : {Text}
+         child name           : {String}
          visit 0:
             local annotatedTree : _
             local originalTree : _
       alternative NullConstraint:
          child ann            : Annotation 
-         child name           : {Text}
+         child name           : {String}
          visit 0:
             local annotatedTree : _
             local originalTree : _
       alternative RowCheckConstraint:
          child ann            : Annotation 
-         child name           : {Text}
+         child name           : {String}
          child expr           : ScalarExpr 
          visit 0:
             local annotatedTree : _
             local originalTree : _
       alternative RowPrimaryKeyConstraint:
          child ann            : Annotation 
-         child name           : {Text}
+         child name           : {String}
          visit 0:
             local annotatedTree : _
             local originalTree : _
       alternative RowReferenceConstraint:
          child ann            : Annotation 
-         child name           : {Text}
+         child name           : {String}
          child table          : Name 
          child att            : {Maybe NameComponent}
          child onUpdate       : {Cascade}
@@ -5712,17 +5712,17 @@ sem_Root_Root statements_  =
             local originalTree : _
       alternative RowUniqueConstraint:
          child ann            : Annotation 
-         child name           : {Text}
+         child name           : {String}
          visit 0:
             local annotatedTree : _
             local originalTree : _
 -}
-data RowConstraint  = NotNullConstraint (Annotation ) (Text) 
-                    | NullConstraint (Annotation ) (Text) 
-                    | RowCheckConstraint (Annotation ) (Text) (ScalarExpr ) 
-                    | RowPrimaryKeyConstraint (Annotation ) (Text) 
-                    | RowReferenceConstraint (Annotation ) (Text) (Name ) ((Maybe NameComponent)) (Cascade) (Cascade) 
-                    | RowUniqueConstraint (Annotation ) (Text) 
+data RowConstraint  = NotNullConstraint (Annotation ) (String) 
+                    | NullConstraint (Annotation ) (String) 
+                    | RowCheckConstraint (Annotation ) (String) (ScalarExpr ) 
+                    | RowPrimaryKeyConstraint (Annotation ) (String) 
+                    | RowReferenceConstraint (Annotation ) (String) (Name ) ((Maybe NameComponent)) (Cascade) (Cascade) 
+                    | RowUniqueConstraint (Annotation ) (String) 
                     deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_RowConstraint :: RowConstraint  ->
@@ -5753,7 +5753,7 @@ wrap_RowConstraint sem (Inh_RowConstraint _lhsIcat _lhsIflags _lhsIimCast )  =
     (let ( _lhsOannotatedTree,_lhsOoriginalTree) = sem _lhsIcat _lhsIflags _lhsIimCast 
      in  (Syn_RowConstraint _lhsOannotatedTree _lhsOoriginalTree ))
 sem_RowConstraint_NotNullConstraint :: T_Annotation  ->
-                                       Text ->
+                                       String ->
                                        T_RowConstraint 
 sem_RowConstraint_NotNullConstraint ann_ name_  =
     (\ _lhsIcat
@@ -5819,7 +5819,7 @@ sem_RowConstraint_NotNullConstraint ann_ name_  =
                   ann_ _annOcat _annOflags _annOimCast _annOtpe 
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
 sem_RowConstraint_NullConstraint :: T_Annotation  ->
-                                    Text ->
+                                    String ->
                                     T_RowConstraint 
 sem_RowConstraint_NullConstraint ann_ name_  =
     (\ _lhsIcat
@@ -5885,7 +5885,7 @@ sem_RowConstraint_NullConstraint ann_ name_  =
                   ann_ _annOcat _annOflags _annOimCast _annOtpe 
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
 sem_RowConstraint_RowCheckConstraint :: T_Annotation  ->
-                                        Text ->
+                                        String ->
                                         T_ScalarExpr  ->
                                         T_RowConstraint 
 sem_RowConstraint_RowCheckConstraint ann_ name_ expr_  =
@@ -5993,7 +5993,7 @@ sem_RowConstraint_RowCheckConstraint ann_ name_ expr_  =
                   expr_ _exprOcat _exprOdownEnv _exprOexpectedType _exprOflags _exprOimCast 
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
 sem_RowConstraint_RowPrimaryKeyConstraint :: T_Annotation  ->
-                                             Text ->
+                                             String ->
                                              T_RowConstraint 
 sem_RowConstraint_RowPrimaryKeyConstraint ann_ name_  =
     (\ _lhsIcat
@@ -6059,7 +6059,7 @@ sem_RowConstraint_RowPrimaryKeyConstraint ann_ name_  =
                   ann_ _annOcat _annOflags _annOimCast _annOtpe 
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
 sem_RowConstraint_RowReferenceConstraint :: T_Annotation  ->
-                                            Text ->
+                                            String ->
                                             T_Name  ->
                                             (Maybe NameComponent) ->
                                             Cascade ->
@@ -6161,7 +6161,7 @@ sem_RowConstraint_RowReferenceConstraint ann_ name_ table_ att_ onUpdate_ onDele
                   table_ _tableOcat _tableOflags _tableOimCast _tableOtpe 
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
 sem_RowConstraint_RowUniqueConstraint :: T_Annotation  ->
-                                         Text ->
+                                         String ->
                                          T_RowConstraint 
 sem_RowConstraint_RowUniqueConstraint ann_ name_  =
     (\ _lhsIcat
@@ -6409,7 +6409,7 @@ sem_RowConstraintList_Nil  =
             local annotatedTree : _
             local originalTree : _
       alternative AntiScalarExpr:
-         child text           : {Text}
+         child string         : {String}
          visit 0:
             local tpe         : _
             local annotatedTree : _
@@ -6516,7 +6516,7 @@ sem_RowConstraintList_Nil  =
             local originalTree : _
       alternative Interval:
          child ann            : Annotation 
-         child value          : {Text}
+         child value          : {String}
          child field          : {IntervalField}
          child prec           : {Maybe Int}
          visit 0:
@@ -6543,7 +6543,7 @@ sem_RowConstraintList_Nil  =
             local originalTree : _
       alternative NumberLit:
          child ann            : Annotation 
-         child d              : {Text}
+         child d              : {String}
          visit 0:
             local upType      : _
             local tpe         : _
@@ -6628,7 +6628,7 @@ sem_RowConstraintList_Nil  =
             local originalTree : _
       alternative StringLit:
          child ann            : Annotation 
-         child value          : {Text}
+         child value          : {String}
          visit 0:
             local upType      : _
             local tpe         : _
@@ -6637,7 +6637,7 @@ sem_RowConstraintList_Nil  =
       alternative TypedStringLit:
          child ann            : Annotation 
          child tn             : TypeName 
-         child value          : {Text}
+         child value          : {String}
          visit 0:
             local upType      : _
             local tpe         : _
@@ -6656,7 +6656,7 @@ sem_RowConstraintList_Nil  =
             local originalTree : _
 -}
 data ScalarExpr  = AggregateApp (Annotation ) (Distinct) (ScalarExpr ) (ScalarExprDirectionPairList ) 
-                 | AntiScalarExpr (Text) 
+                 | AntiScalarExpr (String) 
                  | App (Annotation ) (Name ) (ScalarExprList ) 
                  | BinaryOp (Annotation ) (Name ) (ScalarExpr ) (ScalarExpr ) 
                  | BooleanLit (Annotation ) (Bool) 
@@ -6667,10 +6667,10 @@ data ScalarExpr  = AggregateApp (Annotation ) (Distinct) (ScalarExpr ) (ScalarEx
                  | Extract (Annotation ) (ExtractField) (ScalarExpr ) 
                  | Identifier (Annotation ) (Name ) 
                  | InPredicate (Annotation ) (ScalarExpr ) (Bool) (InList ) 
-                 | Interval (Annotation ) (Text) (IntervalField) ((Maybe Int)) 
+                 | Interval (Annotation ) (String) (IntervalField) ((Maybe Int)) 
                  | LiftApp (Annotation ) (Name ) (LiftFlavour) (ScalarExprList ) 
                  | NullLit (Annotation ) 
-                 | NumberLit (Annotation ) (Text) 
+                 | NumberLit (Annotation ) (String) 
                  | Parens (Annotation ) (ScalarExpr ) 
                  | Placeholder (Annotation ) 
                  | PositionalArg (Annotation ) (Integer) 
@@ -6680,8 +6680,8 @@ data ScalarExpr  = AggregateApp (Annotation ) (Distinct) (ScalarExpr ) (ScalarEx
                  | ScalarSubQuery (Annotation ) (QueryExpr ) 
                  | SpecialOp (Annotation ) (Name ) (ScalarExprList ) 
                  | Star (Annotation ) 
-                 | StringLit (Annotation ) (Text) 
-                 | TypedStringLit (Annotation ) (TypeName ) (Text) 
+                 | StringLit (Annotation ) (String) 
+                 | TypedStringLit (Annotation ) (TypeName ) (String) 
                  | WindowApp (Annotation ) (ScalarExpr ) (ScalarExprList ) (ScalarExprDirectionPairList ) (FrameClause) 
                  deriving ( Data,Eq,Show,Typeable)
 -- cata
@@ -6689,8 +6689,8 @@ sem_ScalarExpr :: ScalarExpr  ->
                   T_ScalarExpr 
 sem_ScalarExpr (AggregateApp _ann _aggDistinct _fn _orderBy )  =
     (sem_ScalarExpr_AggregateApp (sem_Annotation _ann ) _aggDistinct (sem_ScalarExpr _fn ) (sem_ScalarExprDirectionPairList _orderBy ) )
-sem_ScalarExpr (AntiScalarExpr _text )  =
-    (sem_ScalarExpr_AntiScalarExpr _text )
+sem_ScalarExpr (AntiScalarExpr _string )  =
+    (sem_ScalarExpr_AntiScalarExpr _string )
 sem_ScalarExpr (App _ann _funName _args )  =
     (sem_ScalarExpr_App (sem_Annotation _ann ) (sem_Name _funName ) (sem_ScalarExprList _args ) )
 sem_ScalarExpr (BinaryOp _ann _opName _arg0 _arg1 )  =
@@ -6843,7 +6843,7 @@ sem_ScalarExpr_AggregateApp ann_ aggDistinct_ fn_ orderBy_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -6945,9 +6945,9 @@ sem_ScalarExpr_AggregateApp ann_ aggDistinct_ fn_ orderBy_  =
               ( _orderByIannotatedTree,_orderByIoriginalTree) =
                   orderBy_ _orderByOcat _orderByOdownEnv _orderByOflags _orderByOimCast 
           in  ( _lhsOannotatedTree,_lhsOcolExprs,_lhsOoriginalTree,_lhsOupType)))
-sem_ScalarExpr_AntiScalarExpr :: Text ->
+sem_ScalarExpr_AntiScalarExpr :: String ->
                                  T_ScalarExpr 
-sem_ScalarExpr_AntiScalarExpr text_  =
+sem_ScalarExpr_AntiScalarExpr string_  =
     (\ _lhsIcat
        _lhsIdownEnv
        _lhsIexpectedType
@@ -6972,13 +6972,13 @@ sem_ScalarExpr_AntiScalarExpr text_  =
               -- self rule
               _annotatedTree =
                   ({-# LINE 94 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
-                   AntiScalarExpr text_
+                   AntiScalarExpr string_
                    {-# LINE 6935 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- self rule
               _originalTree =
                   ({-# LINE 95 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
-                   AntiScalarExpr text_
+                   AntiScalarExpr string_
                    {-# LINE 6941 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- self rule
@@ -7100,7 +7100,7 @@ sem_ScalarExpr_App ann_ funName_ args_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -7318,7 +7318,7 @@ sem_ScalarExpr_BinaryOp ann_ opName_ arg0_ arg1_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -7499,7 +7499,7 @@ sem_ScalarExpr_BooleanLit ann_ b_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -7663,7 +7663,7 @@ sem_ScalarExpr_Case ann_ cases_ els_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -7902,7 +7902,7 @@ sem_ScalarExpr_CaseSimple ann_ value_ cases_ els_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -8111,7 +8111,7 @@ sem_ScalarExpr_Cast ann_ expr_ tn_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -8279,7 +8279,7 @@ sem_ScalarExpr_Exists ann_ sel_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -8428,7 +8428,7 @@ sem_ScalarExpr_Extract ann_ field_ e_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -8586,7 +8586,7 @@ sem_ScalarExpr_Identifier ann_ i_  =
                                 if q /= ""
                                   then
                                        return $ Identifier _annIannotatedTree
-                                                  (Name emptyAnnotation [Nmc q, Nmc i])
+                                                  (Name emptyAnnotation [Nmc $ T.unpack q, Nmc $ T.unpack i])
                                   else return t
                    {-# LINE 8550 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -8603,7 +8603,7 @@ sem_ScalarExpr_Identifier ann_ i_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -8763,7 +8763,7 @@ sem_ScalarExpr_InPredicate ann_ expr_ i_ list_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -8866,7 +8866,7 @@ sem_ScalarExpr_InPredicate ann_ expr_ i_ list_  =
                   list_ _listOcat _listOdownEnv _listOexpectedType _listOflags _listOimCast 
           in  ( _lhsOannotatedTree,_lhsOcolExprs,_lhsOoriginalTree,_lhsOupType)))
 sem_ScalarExpr_Interval :: T_Annotation  ->
-                           Text ->
+                           String ->
                            IntervalField ->
                            (Maybe Int) ->
                            T_ScalarExpr 
@@ -8926,7 +8926,7 @@ sem_ScalarExpr_Interval ann_ value_ field_ prec_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -9057,7 +9057,7 @@ sem_ScalarExpr_LiftApp ann_ oper_ flav_ args_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -9217,7 +9217,7 @@ sem_ScalarExpr_NullLit ann_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -9268,7 +9268,7 @@ sem_ScalarExpr_NullLit ann_  =
                   ann_ _annOcat _annOflags _annOimCast _annOtpe 
           in  ( _lhsOannotatedTree,_lhsOcolExprs,_lhsOoriginalTree,_lhsOupType)))
 sem_ScalarExpr_NumberLit :: T_Annotation  ->
-                            Text ->
+                            String ->
                             T_ScalarExpr 
 sem_ScalarExpr_NumberLit ann_ d_  =
     (\ _lhsIcat
@@ -9316,7 +9316,7 @@ sem_ScalarExpr_NumberLit ann_ d_  =
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 104, column 9)
               _tpe =
                   ({-# LINE 104 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
-                   Right $ if T.all (`elem` _digChars    ) d_
+                   Right $ if all (`elem` _digChars    ) d_
                            then typeInt
                            else typeNumeric
                    {-# LINE 9281 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
@@ -9334,7 +9334,7 @@ sem_ScalarExpr_NumberLit ann_ d_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -9565,7 +9565,7 @@ sem_ScalarExpr_Placeholder ann_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -9674,7 +9674,7 @@ sem_ScalarExpr_PositionalArg ann_ p_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -9821,7 +9821,7 @@ sem_ScalarExpr_PostfixOp ann_ opName_ arg_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -10014,7 +10014,7 @@ sem_ScalarExpr_PrefixOp ann_ opName_ arg_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -10183,7 +10183,7 @@ sem_ScalarExpr_QStar ann_ q_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -10310,7 +10310,7 @@ sem_ScalarExpr_ScalarSubQuery ann_ sel_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -10474,7 +10474,7 @@ sem_ScalarExpr_SpecialOp ann_ opName_ args_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -10642,7 +10642,7 @@ sem_ScalarExpr_Star ann_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -10693,7 +10693,7 @@ sem_ScalarExpr_Star ann_  =
                   ann_ _annOcat _annOflags _annOimCast _annOtpe 
           in  ( _lhsOannotatedTree,_lhsOcolExprs,_lhsOoriginalTree,_lhsOupType)))
 sem_ScalarExpr_StringLit :: T_Annotation  ->
-                            Text ->
+                            String ->
                             T_ScalarExpr 
 sem_ScalarExpr_StringLit ann_ value_  =
     (\ _lhsIcat
@@ -10751,7 +10751,7 @@ sem_ScalarExpr_StringLit ann_ value_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -10803,7 +10803,7 @@ sem_ScalarExpr_StringLit ann_ value_  =
           in  ( _lhsOannotatedTree,_lhsOcolExprs,_lhsOoriginalTree,_lhsOupType)))
 sem_ScalarExpr_TypedStringLit :: T_Annotation  ->
                                  T_TypeName  ->
-                                 Text ->
+                                 String ->
                                  T_ScalarExpr 
 sem_ScalarExpr_TypedStringLit ann_ tn_ value_  =
     (\ _lhsIcat
@@ -10867,7 +10867,7 @@ sem_ScalarExpr_TypedStringLit ann_ tn_ value_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -11028,7 +11028,7 @@ sem_ScalarExpr_WindowApp ann_ fn_ partitionBy_ orderBy_ frm_  =
                        doStar is =
                          map (\((q,n),t) ->
                            let a' = a {anType = Just t}
-                           in (Nmc n, Just t, Identifier a' (Name a' [Nmc q,Nmc n]))
+                           in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                            ) is
                    in case _originalTree of
                        Star _ | Right is <- envExpandStar Nothing _lhsIdownEnv ->
@@ -13698,7 +13698,7 @@ sem_SetClauseList_Nil  =
             local annotatedTree : _
             local originalTree : _
       alternative AntiStatement:
-         child text           : {Text}
+         child string         : {String}
          visit 0:
             local annotatedTree : _
             local originalTree : _
@@ -13711,7 +13711,7 @@ sem_SetClauseList_Nil  =
             local originalTree : _
       alternative Block:
          child ann            : Annotation 
-         child lb             : {Maybe Text}
+         child lb             : {Maybe String}
          child vars           : VarDefList 
          child sts            : StatementList 
          visit 0:
@@ -13734,7 +13734,7 @@ sem_SetClauseList_Nil  =
             local originalTree : _
       alternative ContinueStatement:
          child ann            : Annotation 
-         child lb             : {Maybe Text}
+         child lb             : {Maybe String}
          visit 0:
             local annotatedTree : _
             local originalTree : _
@@ -13748,7 +13748,7 @@ sem_SetClauseList_Nil  =
             local originalTree : _
       alternative CopyData:
          child ann            : Annotation 
-         child insData        : {LT.Text}
+         child insData        : {String}
          visit 0:
             local annotatedTree : _
             local originalTree : _
@@ -13762,7 +13762,7 @@ sem_SetClauseList_Nil  =
          child ann            : Annotation 
          child name           : Name 
          child typ            : TypeName 
-         child constraintName : {Text}
+         child constraintName : {String}
          child check          : MaybeBoolExpr 
          visit 0:
             local annotatedTree : _
@@ -13789,7 +13789,7 @@ sem_SetClauseList_Nil  =
             local originalTree : _
       alternative CreateLanguage:
          child ann            : Annotation 
-         child name           : {Text}
+         child name           : {String}
          visit 0:
             local annotatedTree : _
             local originalTree : _
@@ -13848,7 +13848,7 @@ sem_SetClauseList_Nil  =
             local originalTree : _
       alternative DeclareStatement:
          child ann            : Annotation 
-         child ds             : {[(Text,TypeName,Maybe ScalarExpr)]}
+         child ds             : {[(String,TypeName,Maybe ScalarExpr)]}
          visit 0:
             local annotatedTree : _
             local originalTree : _
@@ -13893,13 +13893,13 @@ sem_SetClauseList_Nil  =
             local originalTree : _
       alternative ExitStatement:
          child ann            : Annotation 
-         child lb             : {Maybe Text}
+         child lb             : {Maybe String}
          visit 0:
             local annotatedTree : _
             local originalTree : _
       alternative ForIntegerStatement:
          child ann            : Annotation 
-         child lb             : {Maybe Text}
+         child lb             : {Maybe String}
          child var            : {NameComponent}
          child from           : ScalarExpr 
          child to             : ScalarExpr 
@@ -13909,7 +13909,7 @@ sem_SetClauseList_Nil  =
             local originalTree : _
       alternative ForQueryStatement:
          child ann            : Annotation 
-         child lb             : {Maybe Text}
+         child lb             : {Maybe String}
          child var            : {NameComponent}
          child sel            : QueryExpr 
          child sts            : StatementList 
@@ -13942,14 +13942,14 @@ sem_SetClauseList_Nil  =
             local originalTree : _
       alternative LoopStatement:
          child ann            : Annotation 
-         child lb             : {Maybe Text}
+         child lb             : {Maybe String}
          child sts            : StatementList 
          visit 0:
             local annotatedTree : _
             local originalTree : _
       alternative Notify:
          child ann            : Annotation 
-         child name           : {Text}
+         child name           : {String}
          visit 0:
             local annotatedTree : _
             local originalTree : _
@@ -13973,7 +13973,7 @@ sem_SetClauseList_Nil  =
       alternative Raise:
          child ann            : Annotation 
          child level          : {RaiseType}
-         child message        : {Text}
+         child message        : {String}
          child args           : ScalarExprList 
          visit 0:
             local annotatedTree : _
@@ -13998,7 +13998,7 @@ sem_SetClauseList_Nil  =
             local originalTree : _
       alternative Set:
          child ann            : Annotation 
-         child name           : {Text}
+         child name           : {String}
          child values         : {[SetValue]}
          visit 0:
             local annotatedTree : _
@@ -14023,7 +14023,7 @@ sem_SetClauseList_Nil  =
             local originalTree : _
       alternative WhileStatement:
          child ann            : Annotation 
-         child lb             : {Maybe Text}
+         child lb             : {Maybe String}
          child expr           : ScalarExpr 
          child sts            : StatementList 
          visit 0:
@@ -14032,50 +14032,50 @@ sem_SetClauseList_Nil  =
 -}
 data Statement  = AlterSequence (Annotation ) (Name ) (Name ) 
                 | AlterTable (Annotation ) (Name ) (AlterTableActionList ) 
-                | AntiStatement (Text) 
+                | AntiStatement (String) 
                 | Assignment (Annotation ) (Name ) (ScalarExpr ) 
-                | Block (Annotation ) ((Maybe Text)) (VarDefList ) (StatementList ) 
+                | Block (Annotation ) ((Maybe String)) (VarDefList ) (StatementList ) 
                 | CaseStatement (Annotation ) (ScalarExprListStatementListPairList ) (StatementList ) 
                 | CaseStatementSimple (Annotation ) (ScalarExpr ) (ScalarExprListStatementListPairList ) (StatementList ) 
-                | ContinueStatement (Annotation ) ((Maybe Text)) 
+                | ContinueStatement (Annotation ) ((Maybe String)) 
                 | Copy (Annotation ) (Name ) (([NameComponent])) (CopySource) 
-                | CopyData (Annotation ) ((LT.Text)) 
+                | CopyData (Annotation ) (String) 
                 | CreateDatabase (Annotation ) (Name ) 
-                | CreateDomain (Annotation ) (Name ) (TypeName ) (Text) (MaybeBoolExpr ) 
+                | CreateDomain (Annotation ) (Name ) (TypeName ) (String) (MaybeBoolExpr ) 
                 | CreateFunction (Annotation ) (Name ) (ParamDefList ) (TypeName ) (Replace) (Language) (FnBody ) (Volatility) 
                 | CreateIndexTSQL (Annotation ) (NameComponent) (Name ) (([NameComponent])) 
-                | CreateLanguage (Annotation ) (Text) 
+                | CreateLanguage (Annotation ) (String) 
                 | CreateSequence (Annotation ) (Name ) (Integer) (Integer) (Integer) (Integer) (Integer) 
                 | CreateTable (Annotation ) (Name ) (AttributeDefList ) (ConstraintList ) 
                 | CreateTableAs (Annotation ) (Name ) (QueryExpr ) 
                 | CreateTrigger (Annotation ) (NameComponent) (TriggerWhen) (([TriggerEvent])) (Name ) (TriggerFire) (Name ) (ScalarExprList ) 
                 | CreateType (Annotation ) (Name ) (TypeAttributeDefList ) 
                 | CreateView (Annotation ) (Name ) (MaybeNameComponentList) (QueryExpr ) 
-                | DeclareStatement (Annotation ) (([(Text,TypeName,Maybe ScalarExpr)])) 
+                | DeclareStatement (Annotation ) (([(String,TypeName,Maybe ScalarExpr)])) 
                 | Delete (Annotation ) (Name ) (TableRefList ) (MaybeBoolExpr ) (MaybeSelectList ) 
                 | DropFunction (Annotation ) (IfExists) (NameTypeNameListPairList ) (Cascade) 
                 | DropSomething (Annotation ) (DropType) (IfExists) (([Name])) (Cascade) 
                 | ExecStatement (Annotation ) (Name ) (ScalarExprList ) 
                 | Execute (Annotation ) (ScalarExpr ) 
-                | ExitStatement (Annotation ) ((Maybe Text)) 
-                | ForIntegerStatement (Annotation ) ((Maybe Text)) (NameComponent) (ScalarExpr ) (ScalarExpr ) (StatementList ) 
-                | ForQueryStatement (Annotation ) ((Maybe Text)) (NameComponent) (QueryExpr ) (StatementList ) 
+                | ExitStatement (Annotation ) ((Maybe String)) 
+                | ForIntegerStatement (Annotation ) ((Maybe String)) (NameComponent) (ScalarExpr ) (ScalarExpr ) (StatementList ) 
+                | ForQueryStatement (Annotation ) ((Maybe String)) (NameComponent) (QueryExpr ) (StatementList ) 
                 | If (Annotation ) (ScalarExprStatementListPairList ) (StatementList ) 
                 | Insert (Annotation ) (Name ) (([NameComponent])) (QueryExpr ) (MaybeSelectList ) 
                 | Into (Annotation ) (Bool) (([Name])) (Statement ) 
-                | LoopStatement (Annotation ) ((Maybe Text)) (StatementList ) 
-                | Notify (Annotation ) (Text) 
+                | LoopStatement (Annotation ) ((Maybe String)) (StatementList ) 
+                | Notify (Annotation ) (String) 
                 | NullStatement (Annotation ) 
                 | Perform (Annotation ) (ScalarExpr ) 
                 | QueryStatement (Annotation ) (QueryExpr ) 
-                | Raise (Annotation ) (RaiseType) (Text) (ScalarExprList ) 
+                | Raise (Annotation ) (RaiseType) (String) (ScalarExprList ) 
                 | Return (Annotation ) (MaybeScalarExpr ) 
                 | ReturnNext (Annotation ) (ScalarExpr ) 
                 | ReturnQuery (Annotation ) (QueryExpr ) 
-                | Set (Annotation ) (Text) (([SetValue])) 
+                | Set (Annotation ) (String) (([SetValue])) 
                 | Truncate (Annotation ) (([Name])) (RestartIdentity) (Cascade) 
                 | Update (Annotation ) (Name ) (SetClauseList ) (TableRefList ) (MaybeBoolExpr ) (MaybeSelectList ) 
-                | WhileStatement (Annotation ) ((Maybe Text)) (ScalarExpr ) (StatementList ) 
+                | WhileStatement (Annotation ) ((Maybe String)) (ScalarExpr ) (StatementList ) 
                 deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_Statement :: Statement  ->
@@ -14084,8 +14084,8 @@ sem_Statement (AlterSequence _ann _name _ownedBy )  =
     (sem_Statement_AlterSequence (sem_Annotation _ann ) (sem_Name _name ) (sem_Name _ownedBy ) )
 sem_Statement (AlterTable _ann _name _actions )  =
     (sem_Statement_AlterTable (sem_Annotation _ann ) (sem_Name _name ) (sem_AlterTableActionList _actions ) )
-sem_Statement (AntiStatement _text )  =
-    (sem_Statement_AntiStatement _text )
+sem_Statement (AntiStatement _string )  =
+    (sem_Statement_AntiStatement _string )
 sem_Statement (Assignment _ann _target _value )  =
     (sem_Statement_Assignment (sem_Annotation _ann ) (sem_Name _target ) (sem_ScalarExpr _value ) )
 sem_Statement (Block _ann _lb _vars _sts )  =
@@ -14440,9 +14440,9 @@ sem_Statement_AlterTable ann_ name_ actions_  =
               ( _actionsIannotatedTree,_actionsIoriginalTree) =
                   actions_ _actionsOcat _actionsOflags _actionsOimCast 
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
-sem_Statement_AntiStatement :: Text ->
+sem_Statement_AntiStatement :: String ->
                                T_Statement 
-sem_Statement_AntiStatement text_  =
+sem_Statement_AntiStatement string_  =
     (\ _lhsIcat
        _lhsIflags
        _lhsIimCast ->
@@ -14451,13 +14451,13 @@ sem_Statement_AntiStatement text_  =
               -- self rule
               _annotatedTree =
                   ({-# LINE 94 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
-                   AntiStatement text_
+                   AntiStatement string_
                    {-# LINE 14414 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- self rule
               _originalTree =
                   ({-# LINE 95 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
-                   AntiStatement text_
+                   AntiStatement string_
                    {-# LINE 14420 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- self rule
@@ -14614,7 +14614,7 @@ sem_Statement_Assignment ann_ target_ value_  =
                   value_ _valueOcat _valueOdownEnv _valueOexpectedType _valueOflags _valueOimCast 
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
 sem_Statement_Block :: T_Annotation  ->
-                       (Maybe Text) ->
+                       (Maybe String) ->
                        T_VarDefList  ->
                        T_StatementList  ->
                        T_Statement 
@@ -15008,7 +15008,7 @@ sem_Statement_CaseStatementSimple ann_ val_ cases_ els_  =
                   els_ _elsOcat _elsOflags _elsOimCast 
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
 sem_Statement_ContinueStatement :: T_Annotation  ->
-                                   (Maybe Text) ->
+                                   (Maybe String) ->
                                    T_Statement 
 sem_Statement_ContinueStatement ann_ lb_  =
     (\ _lhsIcat
@@ -15174,7 +15174,7 @@ sem_Statement_Copy ann_ table_ targetCols_ source_  =
                   table_ _tableOcat _tableOflags _tableOimCast _tableOtpe 
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
 sem_Statement_CopyData :: T_Annotation  ->
-                          (LT.Text) ->
+                          String ->
                           T_Statement 
 sem_Statement_CopyData ann_ insData_  =
     (\ _lhsIcat
@@ -15340,7 +15340,7 @@ sem_Statement_CreateDatabase ann_ nm_  =
 sem_Statement_CreateDomain :: T_Annotation  ->
                               T_Name  ->
                               T_TypeName  ->
-                              Text ->
+                              String ->
                               T_MaybeBoolExpr  ->
                               T_Statement 
 sem_Statement_CreateDomain ann_ name_ typ_ constraintName_ check_  =
@@ -15777,7 +15777,7 @@ sem_Statement_CreateIndexTSQL ann_ nm_ obj_ cols_  =
                   obj_ _objOcat _objOflags _objOimCast _objOtpe 
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
 sem_Statement_CreateLanguage :: T_Annotation  ->
-                                Text ->
+                                String ->
                                 T_Statement 
 sem_Statement_CreateLanguage ann_ name_  =
     (\ _lhsIcat
@@ -16661,7 +16661,7 @@ sem_Statement_CreateView ann_ name_ colNames_ expr_  =
                   expr_ _exprOcat _exprOflags _exprOimCast _exprOouterDownEnv 
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
 sem_Statement_DeclareStatement :: T_Annotation  ->
-                                  ([(Text,TypeName,Maybe ScalarExpr)]) ->
+                                  ([(String,TypeName,Maybe ScalarExpr)]) ->
                                   T_Statement 
 sem_Statement_DeclareStatement ann_ ds_  =
     (\ _lhsIcat
@@ -17319,7 +17319,7 @@ sem_Statement_Execute ann_ expr_  =
                   expr_ _exprOcat _exprOdownEnv _exprOexpectedType _exprOflags _exprOimCast 
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
 sem_Statement_ExitStatement :: T_Annotation  ->
-                               (Maybe Text) ->
+                               (Maybe String) ->
                                T_Statement 
 sem_Statement_ExitStatement ann_ lb_  =
     (\ _lhsIcat
@@ -17385,7 +17385,7 @@ sem_Statement_ExitStatement ann_ lb_  =
                   ann_ _annOcat _annOflags _annOimCast _annOtpe 
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
 sem_Statement_ForIntegerStatement :: T_Annotation  ->
-                                     (Maybe Text) ->
+                                     (Maybe String) ->
                                      NameComponent ->
                                      T_ScalarExpr  ->
                                      T_ScalarExpr  ->
@@ -17562,7 +17562,7 @@ sem_Statement_ForIntegerStatement ann_ lb_ var_ from_ to_ sts_  =
                   sts_ _stsOcat _stsOflags _stsOimCast 
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
 sem_Statement_ForQueryStatement :: T_Annotation  ->
-                                   (Maybe Text) ->
+                                   (Maybe String) ->
                                    NameComponent ->
                                    T_QueryExpr  ->
                                    T_StatementList  ->
@@ -18058,7 +18058,7 @@ sem_Statement_Into ann_ strict_ into_ stmt_  =
                   stmt_ _stmtOcat _stmtOflags _stmtOimCast 
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
 sem_Statement_LoopStatement :: T_Annotation  ->
-                               (Maybe Text) ->
+                               (Maybe String) ->
                                T_StatementList  ->
                                T_Statement 
 sem_Statement_LoopStatement ann_ lb_ sts_  =
@@ -18150,7 +18150,7 @@ sem_Statement_LoopStatement ann_ lb_ sts_  =
                   sts_ _stsOcat _stsOflags _stsOimCast 
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
 sem_Statement_Notify :: T_Annotation  ->
-                        Text ->
+                        String ->
                         T_Statement 
 sem_Statement_Notify ann_ name_  =
     (\ _lhsIcat
@@ -18488,7 +18488,7 @@ sem_Statement_QueryStatement ann_ ex_  =
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
 sem_Statement_Raise :: T_Annotation  ->
                        RaiseType ->
-                       Text ->
+                       String ->
                        T_ScalarExprList  ->
                        T_Statement 
 sem_Statement_Raise ann_ level_ message_ args_  =
@@ -18907,7 +18907,7 @@ sem_Statement_ReturnQuery ann_ sel_  =
                   sel_ _selOcat _selOflags _selOimCast _selOouterDownEnv 
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
 sem_Statement_Set :: T_Annotation  ->
-                     Text ->
+                     String ->
                      ([SetValue]) ->
                      T_Statement 
 sem_Statement_Set ann_ name_ values_  =
@@ -19252,7 +19252,7 @@ sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_  =
                   returning_ _returningOcat _returningOflags _returningOimCast 
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
 sem_Statement_WhileStatement :: T_Annotation  ->
-                                (Maybe Text) ->
+                                (Maybe String) ->
                                 T_ScalarExpr  ->
                                 T_StatementList  ->
                                 T_Statement 
@@ -19833,7 +19833,7 @@ sem_TableRef_FunTref ann_ fn_  =
                      cs <- either (const Nothing) Just $ envExpandStar Nothing env
                      let qs = map (fst . fst) cs
                      if all (== head qs) qs
-                       then return (head qs, map (snd.fst) cs)
+                       then return (T.unpack $ head qs, map (T.unpack . snd . fst) cs)
                        else
                                                            Nothing
                    else Nothing
@@ -20000,7 +20000,7 @@ sem_TableRef_JoinTref ann_ tref0_ nat_ joinType_ tref1_ onExpr_  =
                      cs <- either (const Nothing) Just $ envExpandStar Nothing env
                      let qs = map (fst . fst) cs
                      if all (== head qs) qs
-                       then return (head qs, map (snd.fst) cs)
+                       then return (T.unpack $ head qs, map (T.unpack . snd . fst) cs)
                        else
                                                            Nothing
                    else Nothing
@@ -20176,7 +20176,7 @@ sem_TableRef_SubTref ann_ sel_  =
                      cs <- either (const Nothing) Just $ envExpandStar Nothing env
                      let qs = map (fst . fst) cs
                      if all (== head qs) qs
-                       then return (head qs, map (snd.fst) cs)
+                       then return (T.unpack $ head qs, map (T.unpack . snd . fst) cs)
                        else
                                                            Nothing
                    else Nothing
@@ -20415,7 +20415,7 @@ sem_TableRef_TableRefParens ann_ tref_  =
                      cs <- either (const Nothing) Just $ envExpandStar Nothing env
                      let qs = map (fst . fst) cs
                      if all (== head qs) qs
-                       then return (head qs, map (snd.fst) cs)
+                       then return (T.unpack $ head qs, map (T.unpack . snd . fst) cs)
                        else
                                                            Nothing
                    else Nothing
@@ -20548,7 +20548,7 @@ sem_TableRef_Tref ann_ tbl_  =
                      (n,cs,_) <- either (const Nothing) Just
                                    $ catLookupTableAndAttrs _lhsIcat
                                    (nameComponents _tblIoriginalTree)
-                     return (n, (map fst cs))
+                     return (T.unpack n, (map (T.unpack . fst) cs))
                    else Nothing
                    {-# LINE 20512 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )

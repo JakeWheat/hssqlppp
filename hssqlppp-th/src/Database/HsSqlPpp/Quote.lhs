@@ -107,12 +107,12 @@ public api: the quasiquote functions
 
 > -- | quotes a ScalarExpr
 > sqlExpr :: QuasiQuoter
-> sqlExpr = --makeQQ $ parseScalarExpr P.defaultParseFlags
->      QuasiQuoter {quoteExp = prs}
+> sqlExpr = makeQQ $ parseScalarExpr P.defaultParseFlags
+>      {-QuasiQuoter {quoteExp = prs}
 >   where
 >     prs :: String -> Q Exp
 >     prs s = either (fail . show) return (pse s)
->             >>= dataToExpQ (const Nothing)
+>             >>= dataToExpQ (const Nothing)-}
 
 > pse :: String -> Either P.ParseErrorExtra ScalarExpr
 > pse = parseScalarExpr P.defaultParseFlags "" Nothing
@@ -211,7 +211,7 @@ position from the matched statements.
 > antiExpP v = fmap varP $ antiExp v
 >
 > antiExp :: ScalarExpr -> Maybe Name
-> antiExp (AntiScalarExpr v) = Just $ mkName $ T.unpack v
+> antiExp (AntiScalarExpr v) = Just $ mkName v
 > antiExp _ = Nothing
 
 
@@ -222,7 +222,7 @@ position from the matched statements.
 > antiNameP v = fmap varP $ antiName v
 >
 > antiName :: A.Name -> Maybe Name
-> antiName (AntiName v) = Just $ mkName $ T.unpack v
+> antiName (AntiName v) = Just $ mkName v
 > antiName _ = Nothing
 
 > antiNameComponentE :: NameComponent -> Maybe ExpQ
@@ -232,7 +232,7 @@ position from the matched statements.
 > antiNameComponentP v = fmap varP $ antiNameComponent v
 >
 > antiNameComponent :: NameComponent -> Maybe Name
-> antiNameComponent (AntiNameComponent v) = Just $ mkName $ T.unpack v
+> antiNameComponent (AntiNameComponent v) = Just $ mkName v
 > antiNameComponent _ = Nothing
 
 
@@ -244,7 +244,7 @@ position from the matched statements.
 > antiStatementP v = fmap varP $ antiStatement v
 >
 > antiStatement :: Statement -> Maybe Name
-> antiStatement (AntiStatement v) = Just $ mkName $ T.unpack v
+> antiStatement (AntiStatement v) = Just $ mkName v
 > antiStatement _ = Nothing
 
 
@@ -287,11 +287,11 @@ nodes and my generics skills aren't up to the task.
 
 >
 > antiTriggerEventE :: TriggerEvent -> Maybe ExpQ
-> antiTriggerEventE (AntiTriggerEvent v) = Just $ varE $ mkName $ T.unpack v
+> antiTriggerEventE (AntiTriggerEvent v) = Just $ varE $ mkName v
 > antiTriggerEventE _ = Nothing
 
 > antiTriggerEventP :: TriggerEvent -> Maybe PatQ
-> antiTriggerEventP (AntiTriggerEvent v) = Just $ varP $ mkName $ T.unpack v
+> antiTriggerEventP (AntiTriggerEvent v) = Just $ varP $ mkName v
 > antiTriggerEventP _ = Nothing
 
 

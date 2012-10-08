@@ -14,11 +14,11 @@
 >   {selSelectList = SelectList emptyAnnotation
 >                    $ map si cols
 >   ,selTref = [Tref emptyAnnotation
->               (Name emptyAnnotation [Nmc tb])]}
+>               (Name emptyAnnotation [Nmc $ T.unpack tb])]}
 >   where
 >     si i = SelExp emptyAnnotation
 >              (Identifier emptyAnnotation
->              (Name emptyAnnotation [Nmc i]))
+>              (Name emptyAnnotation [Nmc $ T.unpack i]))
 
 > main :: IO ()
 > main = do

@@ -52,7 +52,7 @@ This needs a lot more tests
 > -- need to think of a better way to handle this when
 > -- have a better idea of all the weird syntax used in
 > -- tsql
-> matchApp SQLServerDialect _cat [Nmc dd] [_,ScalarType "date",ScalarType "date"] | T.map toLower dd == "datediff" =
+> matchApp SQLServerDialect _cat [Nmc dd] [_,ScalarType "date",ScalarType "date"] | map toLower dd == "datediff" =
 >   -- check there are 3 args
 >   -- first is identifier from list
 >   -- other two are date types
@@ -65,8 +65,8 @@ This needs a lot more tests
 >   return (ps,r)
 >   where
 >     nm = case last nmcs of
->            Nmc n -> T.map toLower n
->            QNmc n -> n
+>            Nmc n -> T.pack $ map toLower n
+>            QNmc n -> T.pack n
 >            AntiNameComponent _ -> -- todo: use left instead of error
 >              error "tried to find function matching an antinamecomponent"
 

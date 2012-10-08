@@ -124,7 +124,6 @@ Test-Suite Tests
                      Database.HsSqlPpp.Utils.Here
                      Database.HsSqlPpp.Utils.GroomUtils
                      Database.HsSqlPpp.Tests.Tests
-                     Database.HsSqlPpp.Tests.QuasiQuoteTests
                      Database.HsSqlPpp.Tests.TypeChecking.CaseExpressions
                      Database.HsSqlPpp.Tests.TypeChecking.TrefIdentifiers
                      Database.HsSqlPpp.Tests.TypeChecking.ScalarExprs

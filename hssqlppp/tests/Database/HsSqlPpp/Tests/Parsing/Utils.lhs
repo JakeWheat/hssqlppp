@@ -8,9 +8,10 @@ shortcuts for constructing test data and asts
 
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
-> --import qualified Data.Text as T
+> import qualified Data.Text as T
 > import Data.Text (Text)
 > import qualified Data.Text.Lazy as L
+> import Control.Arrow
 
 > data Item = Expr L.Text ScalarExpr
 >           | Stmt L.Text [Statement]
@@ -20,7 +21,7 @@ shortcuts for constructing test data and asts
 >           | Group String [Item]
 
 > stringQ :: Text -> ScalarExpr
-> stringQ = StringLit ea
+> stringQ = StringLit ea . T.unpack
 >
 > eqi :: Text -> Text -> ScalarExpr
 > eqi c x = Identifier ea $ qn c x
@@ -29,26 +30,26 @@ shortcuts for constructing test data and asts
 > ei j = Identifier ea $ name j
 >
 > qn :: Text -> Text -> Name
-> qn c n = Name ea [Nmc c, Nmc n]
+> qn c n = Name ea [Nmc $ T.unpack c, Nmc $ T.unpack n]
 >
 > sl :: SelectItemList -> SelectList
 > sl = SelectList ea
 >
 >
 > att :: Text -> Text -> AttributeDef
-> att n t = AttributeDef ea (Nmc n) (SimpleTypeName ea $ name t) Nothing []
+> att n t = AttributeDef ea (Nmc $ T.unpack n) (SimpleTypeName ea $ name t) Nothing []
 
 > ea :: Annotation
 > ea = emptyAnnotation
 
 > name :: Text -> Name
-> name n = Name ea [Nmc n]
+> name n = Name ea [Nmc $ T.unpack n]
 
 > member :: ScalarExpr -> ScalarExpr -> ScalarExpr
 > member a b = BinaryOp ea (name ".") a b
 
 > num :: Text -> ScalarExpr
-> num n = NumberLit ea n
+> num n = NumberLit ea $ T.unpack n
 
 > app :: Text -> [ScalarExpr] -> ScalarExpr
 > app n as = App ea (name n) as
@@ -72,7 +73,7 @@ shortcuts for constructing test data and asts
 > lNull = NullLit ea
 
 > st :: Text -> TypeName
-> st n = SimpleTypeName ea (Name ea [Nmc n])
+> st n = SimpleTypeName ea (Name ea [Nmc $ T.unpack n])
 
 > parenQual :: ScalarExpr -> ScalarExpr -> ScalarExpr
 > parenQual a b = BinaryOp ea (name ".") (Parens ea a) b
@@ -81,10 +82,10 @@ shortcuts for constructing test data and asts
 > tref s = Tref ea (name s)
 
 > trefa :: Text -> Text -> TableRef
-> trefa t a = TableAlias ea (Nmc a) $ Tref ea (name t)
+> trefa t a = TableAlias ea (Nmc $ T.unpack a) $ Tref ea (name t)
 
 > treffa :: Text -> Text -> [Text] -> TableRef
-> treffa t a cs = FullAlias ea (Nmc a) (map Nmc cs)
+> treffa t a cs = FullAlias ea (Nmc $ T.unpack a) (map (Nmc . T.unpack) cs)
 >                 $ Tref ea (name t)
 
 
@@ -99,19 +100,19 @@ shortcuts for constructing test data and asts
 
 
 > str :: Text -> ScalarExpr
-> str = StringLit ea
+> str = StringLit ea . T.unpack
 
 > set :: Text -> ScalarExpr -> SetClause
-> set n v = SetClause ea (Nmc n) v
+> set n v = SetClause ea (Nmc $ T.unpack n) v
 
 > varDef :: Text -> TypeName -> VarDef
-> varDef nm t = VarDef ea (Nmc nm) t Nothing
+> varDef nm t = VarDef ea (Nmc $ T.unpack nm) t Nothing
 
 > varDefv :: Text -> TypeName -> ScalarExpr -> VarDef
-> varDefv nm t v = VarDef ea (Nmc nm) t (Just v)
+> varDefv nm t v = VarDef ea (Nmc $ T.unpack nm) t (Just v)
 
 > paramDef :: Text -> TypeName -> ParamDef
-> paramDef nm t = ParamDef ea (Nmc nm) t
+> paramDef nm t = ParamDef ea (Nmc $ T.unpack nm) t
 
 > at :: Text -> TypeName
 > at = ArrayTypeName ea . st
@@ -125,7 +126,7 @@ shortcuts for constructing test data and asts
 
 > usingInnerJoin :: TableRef -> TableRef -> [Text] -> TableRef
 > usingInnerJoin a b us = JoinTref ea a Unnatural Inner b
->                            (Just $ JoinUsing ea $ map Nmc us)
+>                            (Just $ JoinUsing ea $ map (Nmc . T.unpack) us)
 
 > join :: TableRef -> JoinType -> TableRef -> Maybe ScalarExpr -> TableRef
 > join a b c o = JoinTref ea a Unnatural b c (fmap (JoinOn ea) o)
@@ -133,7 +134,7 @@ shortcuts for constructing test data and asts
 > with :: [(Text,QueryExpr)] -> QueryExpr -> QueryExpr
 > with ws e =
 >   WithQueryExpr ea
->    (map (\(n,ne) -> WithQuery ea (Nmc n) Nothing ne) ws)
+>    (map (\(n,ne) -> WithQuery ea (Nmc n) Nothing ne) $ map (first T.unpack) ws)
 >    e
 
 > tfp :: TableRef -> TableRef

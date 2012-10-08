@@ -48,6 +48,7 @@
 # add new source roots to this
 SRC_DIRS = hssqlppp/src hssqlppp/tests/ \
 	   hssqlppp-pg/src \
+	   hssqlppp-th/src hssqlppp-th/tests \
 	   build-src \
 	   examples
 #hssqlppp-th/src \
@@ -59,6 +60,7 @@ SRC_DIRS = hssqlppp/src hssqlppp/tests/ \
 # nothing has been broken
 
 EXE_FILES = hssqlppp/tests/Tests \
+	    hssqlppp-th/tests/TestsTh \
 	    build-src/MakeDefaultTemplate1Catalog \
 	build-src/PostprocessUuagc \
 	examples/MakeSelect \
@@ -71,11 +73,10 @@ EXE_FILES = hssqlppp/tests/Tests \
 	examples/TypeCheck \
 	examples/TypeCheckDB \
 	examples/PPPTest \
-
-
-	#examples/QQ \
-	src-extra/h7c/h7c \
+	examples/QQ \
 	examples/FixSqlServerTpchSyntax
+
+#	src-extra/h7c/h7c \
 
 #	src-extra/docutil/DevelTool
 
@@ -114,8 +115,9 @@ more-all : all tests check-sdists
 #website website-haddock
 
 # run the tests
-tests : $(BUILD)/Tests
+tests : $(BUILD)/Tests $(BUILD)/TestsTh
 	$(BUILD)/Tests --hide-successes
+	$(BUILD)/TestsTh --hide-successes
 
 # make the website
 #website : src-extra/docutil/DevelTool

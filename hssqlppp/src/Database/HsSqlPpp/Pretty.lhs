@@ -30,6 +30,7 @@
 > --import Database.HsSqlPpp.Internals.StringLike
 > import qualified Data.Text as T
 > import qualified Data.Text.Lazy as L
+> import Database.HsSqlPpp.Utils.Utils
 
 --------------------------------------------------------------------------------
 
@@ -103,7 +104,7 @@ Conversion routines - convert Sql asts into Docs
 > -- Statements
 >
 > statement :: PrettyPrintFlags -> Bool -> (Annotation -> String) -> Statement -> Doc
-> statement _flg _se _ca (AntiStatement s) = text $ "$(" ++ T.unpack s ++ ")"
+> statement _flg _se _ca (AntiStatement s) = text $ "$(" ++ s ++ ")"
 >
 > -- selects
 >
@@ -332,7 +333,7 @@ Conversion routines - convert Sql asts into Docs
 >                                 TInsert -> "insert"
 >                                 TUpdate -> "update"
 >                                 TDelete -> "delete"
->                                 AntiTriggerEvent s -> "$(" ++ T.unpack s ++ ")")) events
+>                                 AntiTriggerEvent s -> "$(" ++ s ++ ")")) events
 >
 > -- plpgsql
 >
@@ -504,8 +505,8 @@ Conversion routines - convert Sql asts into Docs
 >   text "set" <+> ttext n <+> text "="
 >   <+> sepCsvMap (text . dv) vs <> statementEnd se
 >   where
->     dv (SetStr _ s) = "'" ++ T.unpack s ++ "'"
->     dv (SetId _ i) = T.unpack i
+>     dv (SetStr _ s) = "'" ++ s ++ "'"
+>     dv (SetId _ i) = i
 >     dv (SetNum _ nm) = show nm
 >
 > statement _flg se _ (Notify _ n) =
@@ -581,7 +582,7 @@ Statement components
 
 > name :: Name -> Doc
 > name (Name _ ns) = nmcs ns
-> name (AntiName n) = text ("$n(" ++ T.unpack n ++ ")")
+> name (AntiName n) = text ("$n(" ++ n ++ ")")
 
 > nmcs :: [NameComponent] -> Doc
 > nmcs ns = hcat $ punctuate (text ".") $ map nmc ns
@@ -589,7 +590,7 @@ Statement components
 > nmc :: NameComponent -> Doc
 > nmc (Nmc ns) = ttext ns
 > nmc (QNmc ns) = doubleQuotes $ ttext ns
-> nmc (AntiNameComponent n) = text ("$m(" ++ T.unpack n ++ ")")
+> nmc (AntiNameComponent n) = text ("$m(" ++ n ++ ")")
 
 >
 > tref :: PrettyPrintFlags -> TableRef -> Doc
@@ -680,10 +681,10 @@ syntax maybe should error instead of silently breaking
 >         <+> text "on update" <+> cascade onupd
 >         <+> text "on delete" <+> cascade ondel
 >
-> mname :: T.Text -> Doc
+> mname :: String -> Doc
 > mname n = if n == ""
 >           then empty
->           else text "constraint" <+> text (T.unpack n)
+>           else text "constraint" <+> text n
 >
 > returning :: PrettyPrintFlags -> Maybe SelectList -> Doc
 > returning flg l = case l of
@@ -711,7 +712,7 @@ syntax maybe should error instead of silently breaking
 >
 > scalExpr :: PrettyPrintFlags -> ScalarExpr -> Doc
 > scalExpr flg (Parens _ e) = parens (scalExpr flg e)
-> scalExpr _ (AntiScalarExpr s) = text $ "$(" ++ T.unpack s ++ ")"
+> scalExpr _ (AntiScalarExpr s) = text $ "$(" ++ s ++ ")"
 > scalExpr _ (Star _) = text "*"
 > scalExpr _ (QStar _ i) = nmc i <> text ".*"
 
@@ -723,7 +724,7 @@ syntax maybe should error instead of silently breaking
 > scalExpr _ (StringLit _ s) = -- needs some thought about using $$?
 >                           text "'" <> ttext replaceQuotes <> text "'"
 >                           where
->                             replaceQuotes = T.replace "'" "''" s
+>                             replaceQuotes = replace "'" "''" s
 >
 > scalExpr flg (SpecialOp _ n es) =
 >    case getTName n of
@@ -982,20 +983,20 @@ syntax maybe should error instead of silently breaking
 >                    else text "/*\n" <+> text s
 >                         <+> text "*/\n"
 
-> label :: Maybe T.Text -> Doc
+> label :: Maybe String -> Doc
 > label =
 >   maybe empty (\l -> text "<<"
->                      <+> text (T.unpack l)
+>                      <+> text l
 >                      <+> text ">>" <> text "\n")
 
 util: to be removed when outputting names is fixed
 
-> getTName :: Name -> Maybe T.Text
-> getTName (Name _ [n]) = Just $ ncStr n
+> getTName :: Name -> Maybe String
+> getTName (Name _ [n]) = Just $ T.unpack $ ncStr n
 > getTName _ = Nothing
 
-> ttext :: T.Text -> Doc
-> ttext = text . T.unpack
+> ttext :: String -> Doc
+> ttext = text
 
-> tltext :: L.Text -> Doc
-> tltext = text . L.unpack
+> tltext :: String -> Doc
+> tltext = text

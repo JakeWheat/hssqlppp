@@ -190,7 +190,8 @@ $(BUILD)/Database/HsSqlPpp/Parsing/ParserInternal.o : hssqlppp/src/Database/HsSq
 $(BUILD)/Database/HsSqlPpp/Pretty.o : hssqlppp/src/Database/HsSqlPpp/Pretty.lhs \
             $(BUILD)/Database/HsSqlPpp/Ast.hi \
             $(BUILD)/Database/HsSqlPpp/Annotation.hi \
-            $(BUILD)/Database/HsSqlPpp/SqlDialect.hi
+            $(BUILD)/Database/HsSqlPpp/SqlDialect.hi \
+            $(BUILD)/Database/HsSqlPpp/Utils/Utils.hi
 	-mkdir -p $(BUILD)/Database/HsSqlPpp/
 	$(HC) $(HC_OPTS) -hide-all-packages -outputdir $(BUILD)/  \
             -package base \
@@ -405,21 +406,6 @@ $(BUILD)/Database/HsSqlPpp/Tests/Parsing/Utils.o : hssqlppp/tests/Database/HsSql
             -c $< -o $(BUILD)/Database/HsSqlPpp/Tests/Parsing/Utils.o \
             -i$(BUILD)/
 
-$(BUILD)/Database/HsSqlPpp/Tests/QuasiQuoteTests.o : hssqlppp/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs \
-            $(BUILD)/Database/HsSqlPpp/Ast.hi \
-            $(BUILD)/Database/HsSqlPpp/Annotation.hi \
-            $(BUILD)/Database/HsSqlPpp/Pretty.hi \
-            $(BUILD)/Database/HsSqlPpp/Utility.hi
-	-mkdir -p $(BUILD)/Database/HsSqlPpp/Tests/
-	$(HC) $(HC_OPTS) -hide-all-packages -outputdir $(BUILD)/  \
-            -package HUnit \
-            -package base \
-            -package test-framework \
-            -package test-framework-hunit \
-            -package text \
-            -c $< -o $(BUILD)/Database/HsSqlPpp/Tests/QuasiQuoteTests.o \
-            -i$(BUILD)/
-
 $(BUILD)/Database/HsSqlPpp/Tests/TestUtils.o : hssqlppp/tests/Database/HsSqlPpp/Tests/TestUtils.lhs \
             $(BUILD)/Database/HsSqlPpp/Annotation.hi
 	-mkdir -p $(BUILD)/Database/HsSqlPpp/Tests/
@@ -432,8 +418,7 @@ $(BUILD)/Database/HsSqlPpp/Tests/TestUtils.o : hssqlppp/tests/Database/HsSqlPpp/
 
 $(BUILD)/Database/HsSqlPpp/Tests/Tests.o : hssqlppp/tests/Database/HsSqlPpp/Tests/Tests.lhs \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/ParserTests.hi \
-            $(BUILD)/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.hi \
-            $(BUILD)/Database/HsSqlPpp/Tests/QuasiQuoteTests.hi
+            $(BUILD)/Database/HsSqlPpp/Tests/TypeChecking/TypeCheckTests.hi
 	-mkdir -p $(BUILD)/Database/HsSqlPpp/Tests/
 	$(HC) $(HC_OPTS) -hide-all-packages -outputdir $(BUILD)/  \
             -package base \
@@ -587,61 +572,6 @@ $(BUILD)/Database/HsSqlPpp/Tests/TypeChecking/Utils.o : hssqlppp/tests/Database/
             -c $< -o $(BUILD)/Database/HsSqlPpp/Tests/TypeChecking/Utils.o \
             -i$(BUILD)/
 
-$(BUILD)/Database/HsSqlPpp/Tests/junk/ExtensionTests.o : hssqlppp/tests/Database/HsSqlPpp/Tests/junk/ExtensionTests.lhs \
-            $(BUILD)/Database/HsSqlPpp/Parser.hi \
-            $(BUILD)/Database/HsSqlPpp/Annotation.hi \
-            $(BUILD)/Database/HsSqlPpp/Ast.hi
-	-mkdir -p $(BUILD)/Database/HsSqlPpp/Tests/junk/
-	$(HC) $(HC_OPTS) -hide-all-packages -outputdir $(BUILD)/  \
-            -package base \
-            -package HUnit \
-            -package test-framework \
-            -package test-framework-hunit \
-            -c $< -o $(BUILD)/Database/HsSqlPpp/Tests/junk/ExtensionTests.o \
-            -i$(BUILD)/
-
-$(BUILD)/Database/HsSqlPpp/Tests/junk/LexicalSyntaxTests.o : hssqlppp/tests/Database/HsSqlPpp/Tests/junk/LexicalSyntaxTests.lhs
-	-mkdir -p $(BUILD)/Database/HsSqlPpp/Tests/junk/
-	$(HC) $(HC_OPTS) -hide-all-packages -outputdir $(BUILD)/  \
-            -package base \
-            -c $< -o $(BUILD)/Database/HsSqlPpp/Tests/junk/LexicalSyntaxTests.o \
-            -i$(BUILD)/
-
-$(BUILD)/Database/HsSqlPpp/Tests/junk/PrecisionTests.o : hssqlppp/tests/Database/HsSqlPpp/Tests/junk/PrecisionTests.lhs \
-            $(BUILD)/Database/HsSqlPpp/Parser.hi \
-            $(BUILD)/Database/HsSqlPpp/TypeChecker.hi \
-            $(BUILD)/Database/HsSqlPpp/Annotation.hi \
-            $(BUILD)/Database/HsSqlPpp/Catalog.hi
-	-mkdir -p $(BUILD)/Database/HsSqlPpp/Tests/junk/
-	$(HC) $(HC_OPTS) -hide-all-packages -outputdir $(BUILD)/  \
-            -package HUnit \
-            -package base \
-            -package test-framework \
-            -package test-framework-hunit \
-            -package uniplate \
-            -c $< -o $(BUILD)/Database/HsSqlPpp/Tests/junk/PrecisionTests.o \
-            -i$(BUILD)/
-
-$(BUILD)/Database/HsSqlPpp/Tests/junk/RoundtripTests.o : hssqlppp/tests/Database/HsSqlPpp/Tests/junk/RoundtripTests.lhs \
-            $(BUILD)/Database/HsSqlPpp/Utils/Utils.hi \
-            $(BUILD)/Database/HsSqlPpp/Utils/Here.hi \
-            $(BUILD)/Database/HsSqlPpp/Parser.hi \
-            $(BUILD)/Database/HsSqlPpp/Catalog.hi \
-            $(BUILD)/Database/HsSqlPpp/TypeChecker.hi \
-            $(BUILD)/Database/HsSqlPpp/Annotation.hi \
-            $(BUILD)/Database/HsSqlPpp/Ast.hi
-	-mkdir -p $(BUILD)/Database/HsSqlPpp/Tests/junk/
-	$(HC) $(HC_OPTS) -hide-all-packages -outputdir $(BUILD)/  \
-            -package HUnit \
-            -package base \
-            -package mtl \
-            -package syb \
-            -package test-framework \
-            -package test-framework-hunit \
-            -package uniplate \
-            -c $< -o $(BUILD)/Database/HsSqlPpp/Tests/junk/RoundtripTests.o \
-            -i$(BUILD)/
-
 $(BUILD)/Database/HsSqlPpp/Utils/GroomUtils.o : hssqlppp/tests/Database/HsSqlPpp/Utils/GroomUtils.lhs
 	-mkdir -p $(BUILD)/Database/HsSqlPpp/Utils/
 	$(HC) $(HC_OPTS) -hide-all-packages -outputdir $(BUILD)/  \
@@ -698,6 +628,45 @@ $(BUILD)/Database/HsSqlPpp/Utils/PgUtils.o : hssqlppp-pg/src/Database/HsSqlPpp/U
             -c $< -o $(BUILD)/Database/HsSqlPpp/Utils/PgUtils.o \
             -i$(BUILD)/
 
+$(BUILD)/Database/HsSqlPpp/Quote.o : hssqlppp-th/src/Database/HsSqlPpp/Quote.lhs \
+            $(BUILD)/Database/HsSqlPpp/Parser.hi \
+            $(BUILD)/Database/HsSqlPpp/Annotation.hi \
+            $(BUILD)/Database/HsSqlPpp/Ast.hi \
+            $(BUILD)/Database/HsSqlPpp/Ast.hi
+	-mkdir -p $(BUILD)/Database/HsSqlPpp/
+	$(HC) $(HC_OPTS) -hide-all-packages -outputdir $(BUILD)/  \
+            -package base \
+            -package syb \
+            -package template-haskell \
+            -package text \
+            -c $< -o $(BUILD)/Database/HsSqlPpp/Quote.o \
+            -i$(BUILD)/
+
+$(BUILD)/Database/HsSqlPpp/Tests/QuasiQuoteTests.o : hssqlppp-th/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs \
+            $(BUILD)/Database/HsSqlPpp/Ast.hi \
+            $(BUILD)/Database/HsSqlPpp/Annotation.hi \
+            $(BUILD)/Database/HsSqlPpp/Pretty.hi \
+            $(BUILD)/Database/HsSqlPpp/Quote.hi \
+            $(BUILD)/Database/HsSqlPpp/Utility.hi
+	-mkdir -p $(BUILD)/Database/HsSqlPpp/Tests/
+	$(HC) $(HC_OPTS) -hide-all-packages -outputdir $(BUILD)/  \
+            -package HUnit \
+            -package base \
+            -package test-framework \
+            -package test-framework-hunit \
+            -package text \
+            -c $< -o $(BUILD)/Database/HsSqlPpp/Tests/QuasiQuoteTests.o \
+            -i$(BUILD)/
+
+$(BUILD)/TestsTh.o : hssqlppp-th/tests/TestsTh.lhs \
+            $(BUILD)/Database/HsSqlPpp/Tests/QuasiQuoteTests.hi
+	-mkdir -p $(BUILD)/
+	$(HC) $(HC_OPTS) -hide-all-packages -outputdir $(BUILD)/  \
+            -package base \
+            -package test-framework \
+            -c $< -o $(BUILD)/TestsTh.o \
+            -i$(BUILD)/
+
 $(BUILD)/MakeDefaultTemplate1Catalog.o : build-src/MakeDefaultTemplate1Catalog.lhs \
             $(BUILD)/Database/HsSqlPpp/Utils/Here.hi \
             $(BUILD)/Database/HsSqlPpp/Utils/CatalogReader.hi \
@@ -742,10 +711,12 @@ $(BUILD)/FixSqlServerTpchSyntax.o : examples/FixSqlServerTpchSyntax.lhs \
             $(BUILD)/Database/HsSqlPpp/Parser.hi \
             $(BUILD)/Database/HsSqlPpp/Ast.hi \
             $(BUILD)/Database/HsSqlPpp/Pretty.hi \
+            $(BUILD)/Database/HsSqlPpp/Quote.hi \
             $(BUILD)/Database/HsSqlPpp/Annotation.hi
 	-mkdir -p $(BUILD)/
 	$(HC) $(HC_OPTS) -hide-all-packages -outputdir $(BUILD)/  \
             -package base \
+            -package text \
             -package uniplate \
             -c $< -o $(BUILD)/FixSqlServerTpchSyntax.o \
             -i$(BUILD)/
@@ -820,11 +791,13 @@ $(BUILD)/Parse3.o : examples/Parse3.lhs \
 
 $(BUILD)/QQ.o : examples/QQ.lhs \
             $(BUILD)/Database/HsSqlPpp/Ast.hi \
+            $(BUILD)/Database/HsSqlPpp/Quote.hi \
             $(BUILD)/Database/HsSqlPpp/Annotation.hi \
             $(BUILD)/Database/HsSqlPpp/Pretty.hi
 	-mkdir -p $(BUILD)/
 	$(HC) $(HC_OPTS) -hide-all-packages -outputdir $(BUILD)/  \
             -package base \
+            -package text \
             -c $< -o $(BUILD)/QQ.o \
             -i$(BUILD)/
 
@@ -931,7 +904,6 @@ $(BUILD)/Tests : $(BUILD)/Tests.o \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/SqlServer.o \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/TableRefs.o \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/Utils.o \
-            $(BUILD)/Database/HsSqlPpp/Tests/QuasiQuoteTests.o \
             $(BUILD)/Database/HsSqlPpp/Tests/Tests.o \
             $(BUILD)/Database/HsSqlPpp/Tests/TpchData.o \
             $(BUILD)/Database/HsSqlPpp/Tests/TypeChecking/CaseExpressions.o \
@@ -990,7 +962,6 @@ $(BUILD)/Tests : $(BUILD)/Tests.o \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/SqlServer.o \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/TableRefs.o \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/Utils.o \
-            $(BUILD)/Database/HsSqlPpp/Tests/QuasiQuoteTests.o \
             $(BUILD)/Database/HsSqlPpp/Tests/Tests.o \
             $(BUILD)/Database/HsSqlPpp/Tests/TpchData.o \
             $(BUILD)/Database/HsSqlPpp/Tests/TypeChecking/CaseExpressions.o \
@@ -1017,6 +988,72 @@ $(BUILD)/Tests : $(BUILD)/Tests.o \
             -package containers \
             -package groom \
             -package haskell-src-exts \
+            -package mtl \
+            -package parsec \
+            -package pretty \
+            -package syb \
+            -package template-haskell \
+            -package test-framework \
+            -package test-framework-hunit \
+            -package text \
+            -package uniplate
+
+$(BUILD)/TestsTh : $(BUILD)/TestsTh.o \
+            $(BUILD)/Database/HsSqlPpp/Annotation.o \
+            $(BUILD)/Database/HsSqlPpp/Ast.o \
+            $(BUILD)/Database/HsSqlPpp/Catalog.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/AstInternal.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypesInternal.o \
+            $(BUILD)/Database/HsSqlPpp/Parser.o \
+            $(BUILD)/Database/HsSqlPpp/Parsing/Lexer.o \
+            $(BUILD)/Database/HsSqlPpp/Parsing/ParseErrors.o \
+            $(BUILD)/Database/HsSqlPpp/Parsing/ParserInternal.o \
+            $(BUILD)/Database/HsSqlPpp/Pretty.o \
+            $(BUILD)/Database/HsSqlPpp/Quote.o \
+            $(BUILD)/Database/HsSqlPpp/SqlDialect.o \
+            $(BUILD)/Database/HsSqlPpp/Tests/QuasiQuoteTests.o \
+            $(BUILD)/Database/HsSqlPpp/Utility.o \
+            $(BUILD)/Database/HsSqlPpp/Utils/Utils.o
+	-mkdir -p $(BUILD)/
+	$(HL) $(HL_OPTS) $(TESTSTH_EXTRA) \
+            -o $(BUILD)/TestsTh \
+            $(BUILD)/TestsTh.o \
+            $(BUILD)/Database/HsSqlPpp/Annotation.o \
+            $(BUILD)/Database/HsSqlPpp/Ast.o \
+            $(BUILD)/Database/HsSqlPpp/Catalog.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/AstInternal.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypesInternal.o \
+            $(BUILD)/Database/HsSqlPpp/Parser.o \
+            $(BUILD)/Database/HsSqlPpp/Parsing/Lexer.o \
+            $(BUILD)/Database/HsSqlPpp/Parsing/ParseErrors.o \
+            $(BUILD)/Database/HsSqlPpp/Parsing/ParserInternal.o \
+            $(BUILD)/Database/HsSqlPpp/Pretty.o \
+            $(BUILD)/Database/HsSqlPpp/Quote.o \
+            $(BUILD)/Database/HsSqlPpp/SqlDialect.o \
+            $(BUILD)/Database/HsSqlPpp/Tests/QuasiQuoteTests.o \
+            $(BUILD)/Database/HsSqlPpp/Utility.o \
+            $(BUILD)/Database/HsSqlPpp/Utils/Utils.o \
+            -hide-all-packages \
+            -package HUnit \
+            -package base \
+            -package containers \
+            -package groom \
             -package mtl \
             -package parsec \
             -package pretty \
@@ -1617,6 +1654,112 @@ $(BUILD)/PPPTest : $(BUILD)/PPPTest.o \
             -package parsec \
             -package pretty \
             -package syb \
+            -package text \
+            -package uniplate
+
+$(BUILD)/QQ : $(BUILD)/QQ.o \
+            $(BUILD)/Database/HsSqlPpp/Annotation.o \
+            $(BUILD)/Database/HsSqlPpp/Ast.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/AstInternal.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypesInternal.o \
+            $(BUILD)/Database/HsSqlPpp/Parser.o \
+            $(BUILD)/Database/HsSqlPpp/Parsing/Lexer.o \
+            $(BUILD)/Database/HsSqlPpp/Parsing/ParseErrors.o \
+            $(BUILD)/Database/HsSqlPpp/Parsing/ParserInternal.o \
+            $(BUILD)/Database/HsSqlPpp/Pretty.o \
+            $(BUILD)/Database/HsSqlPpp/Quote.o \
+            $(BUILD)/Database/HsSqlPpp/SqlDialect.o \
+            $(BUILD)/Database/HsSqlPpp/Utils/Utils.o
+	-mkdir -p $(BUILD)/
+	$(HL) $(HL_OPTS) $(QQ_EXTRA) \
+            -o $(BUILD)/QQ \
+            $(BUILD)/QQ.o \
+            $(BUILD)/Database/HsSqlPpp/Annotation.o \
+            $(BUILD)/Database/HsSqlPpp/Ast.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/AstInternal.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypesInternal.o \
+            $(BUILD)/Database/HsSqlPpp/Parser.o \
+            $(BUILD)/Database/HsSqlPpp/Parsing/Lexer.o \
+            $(BUILD)/Database/HsSqlPpp/Parsing/ParseErrors.o \
+            $(BUILD)/Database/HsSqlPpp/Parsing/ParserInternal.o \
+            $(BUILD)/Database/HsSqlPpp/Pretty.o \
+            $(BUILD)/Database/HsSqlPpp/Quote.o \
+            $(BUILD)/Database/HsSqlPpp/SqlDialect.o \
+            $(BUILD)/Database/HsSqlPpp/Utils/Utils.o \
+            -hide-all-packages \
+            -package base \
+            -package containers \
+            -package groom \
+            -package mtl \
+            -package parsec \
+            -package pretty \
+            -package syb \
+            -package template-haskell \
+            -package text \
+            -package uniplate
+
+$(BUILD)/FixSqlServerTpchSyntax : $(BUILD)/FixSqlServerTpchSyntax.o \
+            $(BUILD)/Database/HsSqlPpp/Annotation.o \
+            $(BUILD)/Database/HsSqlPpp/Ast.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/AstInternal.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypesInternal.o \
+            $(BUILD)/Database/HsSqlPpp/Parser.o \
+            $(BUILD)/Database/HsSqlPpp/Parsing/Lexer.o \
+            $(BUILD)/Database/HsSqlPpp/Parsing/ParseErrors.o \
+            $(BUILD)/Database/HsSqlPpp/Parsing/ParserInternal.o \
+            $(BUILD)/Database/HsSqlPpp/Pretty.o \
+            $(BUILD)/Database/HsSqlPpp/Quote.o \
+            $(BUILD)/Database/HsSqlPpp/SqlDialect.o \
+            $(BUILD)/Database/HsSqlPpp/Utils/Utils.o
+	-mkdir -p $(BUILD)/
+	$(HL) $(HL_OPTS) $(FIXSQLSERVERTPCHSYNTAX_EXTRA) \
+            -o $(BUILD)/FixSqlServerTpchSyntax \
+            $(BUILD)/FixSqlServerTpchSyntax.o \
+            $(BUILD)/Database/HsSqlPpp/Annotation.o \
+            $(BUILD)/Database/HsSqlPpp/Ast.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/AstInternal.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
+            $(BUILD)/Database/HsSqlPpp/Internals/TypesInternal.o \
+            $(BUILD)/Database/HsSqlPpp/Parser.o \
+            $(BUILD)/Database/HsSqlPpp/Parsing/Lexer.o \
+            $(BUILD)/Database/HsSqlPpp/Parsing/ParseErrors.o \
+            $(BUILD)/Database/HsSqlPpp/Parsing/ParserInternal.o \
+            $(BUILD)/Database/HsSqlPpp/Pretty.o \
+            $(BUILD)/Database/HsSqlPpp/Quote.o \
+            $(BUILD)/Database/HsSqlPpp/SqlDialect.o \
+            $(BUILD)/Database/HsSqlPpp/Utils/Utils.o \
+            -hide-all-packages \
+            -package base \
+            -package containers \
+            -package groom \
+            -package mtl \
+            -package parsec \
+            -package pretty \
+            -package syb \
+            -package template-haskell \
             -package text \
             -package uniplate
 

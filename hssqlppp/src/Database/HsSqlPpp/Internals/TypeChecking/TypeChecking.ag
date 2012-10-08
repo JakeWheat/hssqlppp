@@ -152,10 +152,10 @@ addExplicitCasts = transformBi removeDoubleCasts . transformBi addCast
     resetAnnotations = transformBi (const emptyAnnotation)
 
 nameOfType :: Type -> Maybe TypeName
-nameOfType (ScalarType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc t])
-nameOfType (DomainType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc t])
-nameOfType (EnumType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc t])
-nameOfType (NamedCompositeType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc t])
+nameOfType (ScalarType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc $ T.unpack t])
+nameOfType (DomainType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc $ T.unpack t])
+nameOfType (EnumType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc $ T.unpack t])
+nameOfType (NamedCompositeType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc $ T.unpack t])
 nameOfType _ = Nothing
 
 -- hack for various fixups
@@ -171,8 +171,8 @@ type in if it is in the acceptable list
 fixDateDiff :: Data a => a -> a
 fixDateDiff = transformBi $ \x -> case x of
   App aa nm@(Name _ [Nmc fn]) [Identifier ai tn@(Name _ [Nmc tnn]),a,b]
-    | T.map toLower fn == "datediff"
-    , T.map toLower tnn `elem` ["hour"] ->
+    | map toLower fn == "datediff"
+    , map toLower tnn `elem` ["hour"] ->
     App aa nm [Identifier ai' tn,a,b]
       where
         ai' = ai {anType = Just typeInt

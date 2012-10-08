@@ -7,11 +7,9 @@
 
 > import Database.HsSqlPpp.Tests.TypeChecking.TypeCheckTests
 
-> import Database.HsSqlPpp.Tests.QuasiQuoteTests
 
 > allTests :: [Test]
 > allTests =
 >     parserTests
->     : quasiQuoteTests
 >     : typeCheckTests
 >     : []

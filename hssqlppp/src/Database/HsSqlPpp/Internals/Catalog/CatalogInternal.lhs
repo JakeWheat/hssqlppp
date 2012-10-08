@@ -311,16 +311,16 @@ The name components are only used here so that the logic for ignoring
 or respecting case is in one place, these are only used in the query
 functions and not in catalog values themselves.
 
-> data NameComponent = Nmc Text
->                    | QNmc Text -- quoted
->                    | AntiNameComponent Text
+> data NameComponent = Nmc String
+>                    | QNmc String -- quoted
+>                    | AntiNameComponent String
 >                      deriving (Data,Eq,Show,Typeable,Ord)
 > -- this is a transition function
 > -- it should be removed when ready, since all the code
 > -- should be working with NameComponents directly
 > ncStr :: NameComponent -> Text
-> ncStr (Nmc n) = T.map toLower n
-> ncStr (QNmc n) = n
+> ncStr (Nmc n) = T.pack $ map toLower n
+> ncStr (QNmc n) = T.pack n
 > ncStr (AntiNameComponent _n) =
 >   error "tried to get the name component string of an anti name component"
 
@@ -387,27 +387,27 @@ todo: use left or something instead of error
 >       -- also check the name of the operator is a valid operator name
 >       -- and that the op has the correct number of args (1 or 2 resp.)
 >       CatCreatePrefixOp n lt ret -> do
->         ltt <- catLookupType cat [QNmc lt]
->         rett <- catLookupType cat [QNmc ret]
+>         ltt <- catLookupType cat [QNmc $ T.unpack lt]
+>         rett <- catLookupType cat [QNmc $ T.unpack ret]
 >         Right $ cat {catPrefixOps = insertOperators
 >                                     [(n,(n,[ltt],rett,False))]
 >                                     (catPrefixOps cat)}
 >       CatCreatePostfixOp n rt ret -> do
->         rtt <- catLookupType cat [QNmc rt]
->         rett <- catLookupType cat [QNmc ret]
+>         rtt <- catLookupType cat [QNmc $ T.unpack rt]
+>         rett <- catLookupType cat [QNmc $ T.unpack ret]
 >         Right $ cat {catPostfixOps = insertOperators
 >                                      [(n,(n,[rtt],rett,False))]
 >                                      (catPostfixOps cat)}
 >       CatCreateBinaryOp n lt rt ret -> do
->         ltt <- catLookupType cat [QNmc lt]
->         rtt <- catLookupType cat [QNmc rt]
->         rett <- catLookupType cat [QNmc ret]
+>         ltt <- catLookupType cat [QNmc $ T.unpack lt]
+>         rtt <- catLookupType cat [QNmc $ T.unpack rt]
+>         rett <- catLookupType cat [QNmc $ T.unpack ret]
 >         Right $ cat {catBinaryOps = insertOperators
 >                                     [(n,(n,[ltt,rtt],rett,False))]
 >                                     (catBinaryOps cat)}
 >       CatCreateFunction n ps rs ret -> do
->         pst <- mapM (\nc -> catLookupType cat [QNmc nc]) ps
->         rett <- catLookupType cat [QNmc ret]
+>         pst <- mapM (\nc -> catLookupType cat [QNmc $ T.unpack nc]) ps
+>         rett <- catLookupType cat [QNmc $ T.unpack ret]
 >         let rett' = if rs
 >                     then Pseudo $ SetOfType rett
 >                     else rett
@@ -415,22 +415,22 @@ todo: use left or something instead of error
 >                                     [(n,(n,pst,rett',False))]
 >                                     (catFunctions cat)}
 >       CatCreateAggregate n ps ret -> do
->         pst <- mapM (\nc -> catLookupType cat [QNmc nc]) ps
->         rett <- catLookupType cat [QNmc ret]
+>         pst <- mapM (\nc -> catLookupType cat [QNmc $ T.unpack nc]) ps
+>         rett <- catLookupType cat [QNmc $ T.unpack ret]
 >         Right $ cat {catAggregateFunctions = insertOperators
 >                                     [(n,(n,pst,rett,False))]
 >                                     (catAggregateFunctions cat)}
 >       CatCreateTable n cs -> do
 >         cts <- mapM (\(cn,t) -> do
->                        t' <- catLookupType cat [QNmc t]
+>                        t' <- catLookupType cat [QNmc $ T.unpack t]
 >                        return (cn,t')) cs
 >         Right $ cat {catTables = M.insert n (cts,[]) (catTables cat)}
 >       CatCreateCast n0 n1 ctx -> do
->         t0 <- catLookupType cat [QNmc n0]
->         t1 <- catLookupType cat [QNmc n1]
+>         t0 <- catLookupType cat [QNmc $ T.unpack n0]
+>         t1 <- catLookupType cat [QNmc $ T.unpack n1]
 >         Right $ cat {catCasts = S.insert (t0,t1,ctx) (catCasts cat)}
 >       CatCreateTypeCategoryEntry n (c,p) -> do
->         t <- catLookupType cat [QNmc n]
+>         t <- catLookupType cat [QNmc $ T.unpack n]
 >         Right $ cat {catTypeCategories = M.insert t (c,p) $ catTypeCategories cat}
 
 > deconstructCatalog :: Catalog -> [CatalogUpdate]
@@ -443,8 +443,8 @@ queries
 > getCatName :: [NameComponent] -> CatName
 > getCatName [] = error "empty name component in catalog code"
 > getCatName ncs = case last ncs of
->                                Nmc n -> T.map toLower n
->                                QNmc n -> n
+>                                Nmc n -> T.pack $ map toLower n
+>                                QNmc n -> T.pack n
 
 
 > -- | takes a [NameComponent] and returns the type for that name
@@ -508,7 +508,7 @@ to new code or deleted as typeconversion is rewritten
 > catCompositePublicAttrs :: Catalog -> [CompositeFlavour] -> Text
 >                   -> Either [TypeError] [(Text,Type)]
 > catCompositePublicAttrs cat _flvs ty = do
->    (_,a,_) <- catLookupTableAndAttrs cat [Nmc ty]
+>    (_,a,_) <- catLookupTableAndAttrs cat [Nmc $ T.unpack ty]
 >    return a
 
 > catPreferredType :: Catalog -> Type -> Either [TypeError] Bool
@@ -534,7 +534,7 @@ to new code or deleted as typeconversion is rewritten
 >
 > catLookupFns :: Catalog -> Text -> [OperatorPrototype]
 > catLookupFns cat name =
->    catGetOpsMatchingName cat [Nmc name]
+>    catGetOpsMatchingName cat [Nmc $ T.unpack name]
 
 > catTypeCategory :: Catalog -> Type -> Either [TypeError] Text
 > catTypeCategory cat ty =

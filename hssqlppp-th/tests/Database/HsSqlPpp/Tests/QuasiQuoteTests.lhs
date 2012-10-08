@@ -13,7 +13,7 @@ Tests mainly for antiquotation, plus examples of where antiquotes work.
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Pretty
-> --import Database.HsSqlPpp.Quote
+> import Database.HsSqlPpp.Quote
 > import Database.HsSqlPpp.Utility
 > --import Database.HsSqlPpp.Tests.TestUtils
 > import qualified Data.Text.Lazy as L
@@ -32,7 +32,7 @@ Tests mainly for antiquotation, plus examples of where antiquotes work.
 > quasiQuoteTestData =
 >   Group "quasiQuoteTests" [
 
->   {-  let tableName = [sqlName| my_table |]
+>     let tableName = [sqlName| my_table |]
 >         varname = [sqlNameComponent| my_field |]
 >         typename = [sqlName| text |]
 >     in Stmt [$sqlStmt|
@@ -127,7 +127,7 @@ Tests mainly for antiquotation, plus examples of where antiquotes work.
 >      in PgSqlStmt [$pgsqlStmt| raise exception $s(errMsg); |]
 >                   [$pgsqlStmt| raise exception 'string splice'; |]
 
-> -}
+>
 
 --------------------------------------------------------------------------------
 

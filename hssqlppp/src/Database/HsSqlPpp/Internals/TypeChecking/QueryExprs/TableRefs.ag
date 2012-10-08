@@ -134,7 +134,7 @@ sem TableRef
           cs <- either (const Nothing) Just $ envExpandStar Nothing env
           let qs = map (fst . fst) cs
           if all (== head qs) qs
-            then return (head qs, map (snd.fst) cs)
+            then return (T.unpack $ head qs, map (T.unpack . snd . fst) cs)
             else {-trace ("not all same:" ++ show qs
                        ++ "\n" ++ groom @originalTree
                        ++ "\n" ++ groom env) -} Nothing
@@ -148,5 +148,5 @@ sem TableRef
           (n,cs,_) <- either (const Nothing) Just
                         $ catLookupTableAndAttrs @lhs.cat
                         (nameComponents @tbl.originalTree)
-          return (n, (map fst cs))
+          return (T.unpack n, (map (T.unpack . fst) cs))
         else Nothing

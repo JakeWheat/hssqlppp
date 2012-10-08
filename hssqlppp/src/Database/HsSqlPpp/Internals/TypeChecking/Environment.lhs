@@ -117,8 +117,8 @@ TODO: remove the create prefixes
 >  --         maybe (error "natural join ids") (map (nnm . (:[]))) jsc
 
 >   jts <- forM jids $ \i -> do
->            (_,t0) <- envLookupIdentifier [QNmc i] tref0
->            (_,t1) <- envLookupIdentifier [QNmc i] tref1
+>            (_,t0) <- envLookupIdentifier [QNmc $ T.unpack i] tref0
+>            (_,t1) <- envLookupIdentifier [QNmc $ T.unpack i] tref1
 >            fmap (i,) $ resolveResultSetType cat [t0,t1]
 >   -- todo: check type compatibility
 >   return $ JoinTref jts tref0 tref1
@@ -311,8 +311,8 @@ use listBindingsTypes to implement expandstar and lookupid
 >        else Right st
 
 > nmcString :: NameComponent -> Text
-> nmcString (QNmc n) = n
-> nmcString (Nmc n) = T.map toLower n
+> nmcString (QNmc n) = T.pack n
+> nmcString (Nmc n) = T.pack $ map toLower n
 > -- todo: don't use error
 > nmcString (AntiNameComponent _) = error "tried to get ncstr of antinamecomponent"
 
@@ -343,8 +343,8 @@ use listBindingsTypes to implement expandstar and lookupid
 >                         if T.map toLower new == nmcString orig
 >                         then noLower orig
 >                         else new
->     noLower (QNmc n) = n
->     noLower (Nmc n) = n
+>     noLower (QNmc n) = T.pack n
+>     noLower (Nmc n) = T.pack n
 
 
 --------------------------
