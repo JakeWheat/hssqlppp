@@ -1,19 +1,23 @@
 fix the website generation + update documentation
 
 move the chaos stuff to chaos project (extensions, h7c, chaos)
+get it all working: lots to do, get it all typechecking
 
 switch to pg simple
 
-organize the remaining files in src-extra
+organize the remaining files in src-extra - should there be any?
 
 move examples to correct subpackages
 
 move quote testing to hssqlppp-qq package
-
 change the ast back to using strings so qq works?
+get typesafe access working: need null inference to be really useful
+maybe wrapper for queries with single row output, and with single
+   value output?
+
+work on the experimentation file + add note in docs
 
 review todos and plan for 0.5.0 release
-
 
 
 = next release, 0.5.0
@@ -43,8 +47,6 @@ think of a better names for plpgsql* since will also support tsql and
    maybe others going forward
 
 better way to do accessor and setter for annotations (use typeclass?)
-
-switch to using postgresql-simple instead of hdbc
 
 == typechecking
 
@@ -76,7 +78,6 @@ what will useable non ascii character set support take?
 see if can fix error messages from lex/parse in qq: come out all with
    the string passed through show so can't read the error message
 
-
 better approach to parsing selects - the into stuff is a mess
 
 alter the postprocess for astinternal.hs: want to add haddock line for
@@ -86,6 +87,8 @@ alter the postprocess for astinternal.hs: want to add haddock line for
 get ghc 6.12.x working again: think it is just adding the
    control.monad.error stuff back it(?) -> or maybe skip, if 7.0, 7.4,
    7.6 are supported
+
+
 
 review examples: add new examples, clean up code, and example page on
    website. Add simple parsing and typechecking example to index page
