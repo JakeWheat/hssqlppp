@@ -117,18 +117,18 @@ shortcuts for constructing test data and asts
 > at = ArrayTypeName ea . st
 
 > innerJoin :: TableRef -> TableRef -> Maybe ScalarExpr -> TableRef
-> innerJoin a b o = JoinTref ea a Unnatural Inner b
+> innerJoin a b o = JoinTref ea a Unnatural Inner Nothing b
 >                            (fmap (JoinOn ea) o)
 
 > naturalInnerJoin :: TableRef -> TableRef -> TableRef
-> naturalInnerJoin a b  = JoinTref ea a Natural Inner b Nothing
+> naturalInnerJoin a b  = JoinTref ea a Natural Inner Nothing b Nothing
 
 > usingInnerJoin :: TableRef -> TableRef -> [Text] -> TableRef
-> usingInnerJoin a b us = JoinTref ea a Unnatural Inner b
+> usingInnerJoin a b us = JoinTref ea a Unnatural Inner Nothing b
 >                            (Just $ JoinUsing ea $ map Nmc us)
 
 > join :: TableRef -> JoinType -> TableRef -> Maybe ScalarExpr -> TableRef
-> join a b c o = JoinTref ea a Unnatural b c (fmap (JoinOn ea) o)
+> join a b c o = JoinTref ea a Unnatural b Nothing c (fmap (JoinOn ea) o)
 
 > with :: [(Text,QueryExpr)] -> QueryExpr -> QueryExpr
 > with ws e =

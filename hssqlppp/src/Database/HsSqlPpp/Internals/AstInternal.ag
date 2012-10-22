@@ -39,6 +39,7 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,TableRef (..)
    ,JoinExpr (..)
    ,JoinType (..)
+   ,JoinHint (..)
    ,SelectList (..)
    ,SelectItem (..)
    ,CopySource (..)
@@ -505,6 +506,7 @@ data TableRef | Tref ann::Annotation
                          tref0 :: TableRef
                          nat :: Natural
                          joinType :: JoinType
+                         joinHint :: {Maybe JoinHint}
                          tref1 :: TableRef
                          onExpr :: OnExpr
               | TableAlias ann::Annotation tb::NameComponent tref::TableRef
@@ -520,6 +522,8 @@ data JoinExpr | JoinOn ann::Annotation expr::ScalarExpr
 
 {
 data JoinType = Inner | LeftOuter| RightOuter | FullOuter | Cross
+                deriving (Show,Eq,Typeable,Data)
+data JoinHint = Loop | Hash | Merge
                 deriving (Show,Eq,Typeable,Data)
 data Natural = Natural | Unnatural
                deriving (Show,Eq,Typeable,Data)

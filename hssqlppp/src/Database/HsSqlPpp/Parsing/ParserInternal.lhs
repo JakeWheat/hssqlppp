@@ -363,8 +363,8 @@ makes it easy
 >              ,return tr]
 >     joinSuffix tr = do
 >       let p = getAnnotation tr
->       (nat,jt) <- joinKw
->       JoinTref p tr nat jt
+>       (nat,hint,jt) <- joinKw
+>       JoinTref p tr nat jt hint
 >           <$> nonJoin
 >           <*> onExpr
 >     joinKw = do
@@ -379,8 +379,11 @@ makes it easy
 >                                       *> optional (keyword "outer"))
 >                    ,Cross <$ keyword "cross"
 >                    ,Inner <$ optional (keyword "inner")]
+>              hint <- option Nothing (Just <$> choice [Merge <$ keyword "merge"
+>                                                      ,Loop <$ keyword "loop"
+>                                                      ,Hash <$ keyword "hash"])
 >              keyword "join"
->              return (n,jt)
+>              return (n,hint,jt)
 >     onExpr = choice
 >              [Just <$> (JoinOn <$> pos <*> (keyword "on" *> expr))
 >              ,Just <$> (JoinUsing <$> pos
@@ -1935,6 +1938,7 @@ http://msdn.microsoft.com/en-us/library/ms189822.aspx
 >        ,"load"
 >        ,"merge"
 >        ,"national"
+>        ,"natural"
 >        ,"nocheck"
 >        ,"nonclustered"
 >        ,"not"

@@ -36,6 +36,7 @@
 >     ,TableRef(..)
 >     ,JoinExpr(..)
 >     ,JoinType(..)
+>     ,JoinHint(..)
 >     ,OnExpr
 >     ,Natural(..)
 >      -- * Statements
