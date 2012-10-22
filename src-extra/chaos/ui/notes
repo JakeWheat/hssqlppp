@@ -1,0 +1,25 @@
+
+create a ui for chaos
+use separate libraries:
+ui transport/ multi server thing
+sprite board widget:
+  animated sprites
+  rotate 90
+  zoom, scroll
+
+stage 1:
+create command line which can start a new game
+8 wizards, all ai
+sprite board + sound effects and no other ui
+you can watch them fight
+
+text widget:
+  would like:
+  commands
+  incremental search
+  table layout
+  tree layout
+  columns layout
+  transliterature: permascroll/edl
+  other nice humane interface style stuff
+

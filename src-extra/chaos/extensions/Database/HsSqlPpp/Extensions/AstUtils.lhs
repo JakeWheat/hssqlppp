@@ -31,6 +31,7 @@ it and quits.
 > import Data.Maybe
 > --import Debug.Trace
 > import Data.Text (Text)
+> import qualified Data.Text as T
 >
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation
@@ -101,4 +102,4 @@ it and quits.
 >       adjSp sp1 = updateAnnotation (\a -> a {anSrc = Just sp1})
 
 > mname :: Text -> Name
-> mname s = Name emptyAnnotation [Nmc s]
+> mname s = Name emptyAnnotation [Nmc $ T.unpack s]

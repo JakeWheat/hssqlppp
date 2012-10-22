@@ -1,0 +1,17 @@
+temporary location of chaos files until they are moved to separate project
+
+TODO:
+get the chaos sql generating
+add some .Internal modules to the hssqlppp modules so that chaos can
+just access the public api
+
+move to separate project, with .cabal, etc.
+
+later:
+get hssqlppp typechecking the chaos sql again
+redo the interleaved documentation generator
+add: automated tests
+add: user interface
+make it playable
+want to write a better chaos using shark, but keep this one as a
+hssqlppp example
