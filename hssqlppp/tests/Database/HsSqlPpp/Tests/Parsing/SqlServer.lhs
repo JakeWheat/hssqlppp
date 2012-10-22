@@ -138,7 +138,24 @@ needs to be better: the style is lost
 >      $ [qs $ makeSelect
 >            {selSelectList = sl [si $ binop "-" (ei "y") (ei "@test")]
 >            ,selTref = [tref "t"]}]
-
+>   ,s "select * from t natural inner hash join u"
+>      [qs $ makeSelect
+>        {selSelectList = sl [si $ Star ea]
+>        ,selTref = [JoinTref ea (tref "t") Natural Inner
+>                    (Just Hash) (tref "u") Nothing]}
+>      ]
+>   ,s "select * from t natural inner loop join u"
+>      [qs $ makeSelect
+>        {selSelectList = sl [si $ Star ea]
+>        ,selTref = [JoinTref ea (tref "t") Natural Inner
+>                    (Just Loop) (tref "u") Nothing]}
+>      ]
+>   ,s "select * from t natural inner merge join u"
+>      [qs $ makeSelect
+>        {selSelectList = sl [si $ Star ea]
+>        ,selTref = [JoinTref ea (tref "t") Natural Inner
+>                    (Just Merge) (tref "u") Nothing]}
+>      ]
 
 >   ]
 >   where

@@ -1,5 +1,12 @@
 features
 
+try: write preprocessor to create mirror of Ast types with string
+   instead of text
+   generate conversion from ast to string ast
+   write generics pass to convert expr in th with strings
+      to use text, and convert back to original ast types (?)
+   use in qq
+
 check chaosgen produces decent sql
 fix type check ag attrs
 nullability

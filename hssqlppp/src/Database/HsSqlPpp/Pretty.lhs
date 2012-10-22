@@ -611,9 +611,9 @@ Statement components
 >                 then empty
 >                 else parens (sepCsvMap nmc s))
 
-> tref flg (JoinTref _ t1 nat jt t2 ex) =
+> tref flg (JoinTref _ t1 nat jt ht t2 ex) =
 >   sep [tref flg t1
->       ,hsep [case nat of
+>       ,hsep ([case nat of
 >                 Natural -> text "natural"
 >                 Unnatural -> empty
 >             ,text $ case jt of
@@ -621,8 +621,13 @@ Statement components
 >                Cross -> "cross"
 >                LeftOuter -> "left outer"
 >                RightOuter -> "right outer"
->                FullOuter -> "full outer"
->             ,text "join"]
+>                FullOuter -> "full outer"]
+>             ++ maybe [] (\h -> [text $ case h of
+>                               Merge -> "merge"
+>                               Loop -> "loop"
+>                               Hash -> "hash"])
+>                      ht
+>             ++ [text "join"])
 >       ,tref flg t2
 >       ,maybePrint (nest 2 . joinScalarExpr) ex]
 >   where

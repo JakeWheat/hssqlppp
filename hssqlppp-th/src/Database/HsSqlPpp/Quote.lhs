@@ -140,6 +140,16 @@ boilerplate utils to hook everything together
 > makeQQ p = QuasiQuoter {quoteExp = parseExprExp p
 >                        ,quotePat = parseExprPat p}
 
+hack for the text issue:
+
+create parallel ast with text replaced with strings automatically
+create conversion function to convert tree with text to tree with
+strings automatically
+pass this tree into dataToExpQ
+then get the result, and convert the Exp type back to using text
+not sure what needs to be done about which package the Exp refers to
+maybe it will work?
+
 > parseExprExp :: (Show e, Data a) =>
 >                 Parser e a -> String -> Q Exp
 > parseExprExp p s = parseSql' p s

@@ -50,8 +50,9 @@ SRC_DIRS = hssqlppp/src hssqlppp/tests/ \
 	   hssqlppp-pg/src \
 	   hssqlppp-th/src hssqlppp-th/tests \
 	   build-src \
-	   examples
-#hssqlppp-th/src \
+	   examples \
+	   src-extra/chaos/h7c src-extra/chaos/extensions src-extra/chaos/chaos
+	   
 # src-extra/docutil
 # src-extra/chaos src-extra/extensions src-extra/h7c \
 # src-extra/chaos/extensions
@@ -74,7 +75,10 @@ EXE_FILES = hssqlppp/tests/Tests \
 	examples/TypeCheckDB \
 	examples/PPPTest \
 	examples/QQ \
-	examples/FixSqlServerTpchSyntax
+	examples/FixSqlServerTpchSyntax \
+	#src-extra/chaos/chaos/BuildChaosSql
+
+EXE_FILENAMES = $(addsuffix ".lhs",$(EXE_FILES))
 
 #	src-extra/h7c/h7c \
 
@@ -186,8 +190,10 @@ regenDefaultTemplate1Catalog : $(BUILD)/MakeDefaultTemplate1Catalog
 # regenerate the dependency and rules for exe compiles:
 .PHONY : autorules
 autorules :
-	Makefilerize hssqlppp hssqlppp-pg hssqlpp-th FLDS $(SRC_DIRS) EXES $(EXE_FILES) > \
-	autorules.mk
+	MakeHaskellMake --hide-package hssqlppp --hide-package hssqlppp-pg \
+            --hide-package hssqlppp-th --hide-package haskell98 \
+            --hide-package haskell2010 $(HC_INCLUDE_DIRS) $(EXE_FILENAMES) > \
+            autorules.mk
 
 .PHONY : clean
 clean :
