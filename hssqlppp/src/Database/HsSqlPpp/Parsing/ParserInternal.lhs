@@ -29,12 +29,12 @@ right choice, but it seems to do the job pretty well at the moment.
 >     ,parseNameComponent
 >     ) where
 >
-> import Text.Parsec hiding (many, optional, (<|>), string, label)
+> import Text.Parsec hiding (label) -- many, optional, (<|>), string,
 > import Text.Parsec.Expr
 > import Text.Parsec.String
 > import Text.Parsec.Perm
 >
-> import Control.Applicative
+> import Control.Applicative hiding (many,optional,(<|>))
 > import Control.Monad.Identity
 > --import Control.Monad
 >
@@ -964,7 +964,7 @@ plpgsql statements
 >               ,loopStatement p l]
 
 > label :: SParser (Maybe String)
-> label = optional (symbol "<<" *> idString <* symbol ">>")
+> label = optionMaybe (symbol "<<" *> idString <* symbol ">>")
 >
 > block :: Annotation -> Maybe String -> SParser Statement
 > block p l = Block p l
@@ -983,12 +983,12 @@ plpgsql statements
 >
 > exitStatement :: SParser Statement
 > exitStatement = ExitStatement <$> (pos <* keyword "exit")
->                               <*> optional idString
+>                               <*> optionMaybe idString
 >
 >
 > continue :: SParser Statement
 > continue = ContinueStatement <$> (pos <* keyword "continue")
->                              <*> optional idString
+>                              <*> optionMaybe idString
 >
 > perform :: SParser Statement
 > perform = Perform <$> (pos <* keyword "perform") <*> expr
@@ -1131,7 +1131,7 @@ plpgsql statements
 >   where
 >     de = (,,) <$> localVarName
 >               <*> typeName
->               <*> optional (symbol "=" *> expr)
+>               <*> optionMaybe (symbol "=" *> expr)
 >     localVarName = do
 >       i <- idString
 >       guard (head i == '@')
