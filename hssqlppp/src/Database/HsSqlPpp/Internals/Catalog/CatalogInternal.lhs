@@ -55,6 +55,7 @@ sequences
 >     ,defaultCatalog
 >     ,NameComponent(..)
 >     ,ncStr
+>     ,ncStrT
 >     ,CompositeFlavour(..)
 >     ,CatName
 >      -- catalog updates
@@ -318,11 +319,18 @@ functions and not in catalog values themselves.
 > -- this is a transition function
 > -- it should be removed when ready, since all the code
 > -- should be working with NameComponents directly
-> ncStr :: NameComponent -> Text
-> ncStr (Nmc n) = T.pack $ map toLower n
-> ncStr (QNmc n) = T.pack n
+> ncStr :: NameComponent -> String
+> ncStr (Nmc n) = map toLower n
+> ncStr (QNmc n) = n
 > ncStr (AntiNameComponent _n) =
 >   error "tried to get the name component string of an anti name component"
+
+> ncStrT :: NameComponent -> Text
+> ncStrT (Nmc n) = T.pack $ map toLower n
+> ncStrT (QNmc n) = T.pack n
+> ncStrT (AntiNameComponent _n) =
+>   error "tried to get the name component string of an anti name component"
+
 
 todo: use left or something instead of error
 

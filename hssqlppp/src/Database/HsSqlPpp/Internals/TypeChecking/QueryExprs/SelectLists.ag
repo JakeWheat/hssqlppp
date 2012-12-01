@@ -169,7 +169,7 @@ sem SelectItemList
         loc.colExprs = @hd.colExprs ++ @tl.colExprs
         lhs.colExprs = @loc.colExprs
         loc.upType = sequence $ flip map @loc.colExprs
-                     $ \(n,t,_) -> fmap (ncStr n,) t
+                     $ \(n,t,_) -> fmap (ncStrT n,) t
   | Nil Cons
       lhs.upType = @loc.upType
       lhs.upEnv = case fmap envSelectListEnvironment @loc.upType of

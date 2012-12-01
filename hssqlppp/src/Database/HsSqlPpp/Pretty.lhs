@@ -49,11 +49,6 @@ adjusted to reject postgres only syntax when in sql server dialect
 > defaultPPFlags :: PrettyPrintFlags
 > defaultPPFlags = PrettyPrintFlags {ppDialect = PostgreSQLDialect}
 
-old unsafereadable, not used any more, not sure if will use again
-
-> unsafeReadable :: PrettyPrintFlags -> Bool
-> unsafeReadable _ = False
-
 > -- | Convert an ast back to valid SQL source.
 > printStatements :: PrettyPrintFlags -> StatementList -> L.Text
 > printStatements f = printStatementsAnn f (const "")
@@ -607,9 +602,7 @@ Statement components
 > -- to eliminate unneeded aliases?
 > tref flg (FullAlias _ t s tr) =
 >   maybeParen flg tr <+> text "as"
->   <+> nmc t <> (if unsafeReadable flg
->                 then empty
->                 else parens (sepCsvMap nmc s))
+>   <+> nmc t <> parens (sepCsvMap nmc s)
 
 > tref flg (JoinTref _ t1 nat jt ht t2 ex) =
 >   sep [tref flg t1
@@ -656,9 +649,6 @@ syntax maybe should error instead of silently breaking
 > selectList flg (SelectList _ ex) =
 >   sepCsvMap selectItem ex
 >   where
->     -- try to avoid printing alias if not necessary
->     selectItem (SelectItem _ ex1@(Identifier _ is) nm)
->       | unsafeReadable flg, last (nameComponents is) == nm = scalExprSl flg ex1
 >     selectItem (SelectItem _ ex1 nm) = scalExprSl flg ex1 <+> text "as" <+> nmc nm
 >     selectItem (SelExp _ e) = scalExprSl flg e
 >
@@ -754,10 +744,9 @@ syntax maybe should error instead of silently breaking
 
 > scalExpr flg (BinaryOp _ n e0 e1) =
 >    case getTName n of
->      Just "and" | unsafeReadable flg -> doLeftAnds e0 e1
->                  | otherwise -> sep [scalExpr flg e0
->                                     ,text "and"
->                                     ,scalExpr flg e1]
+>      Just "and" | otherwise -> sep [scalExpr flg e0
+>                                    ,text "and"
+>                                    ,scalExpr flg e1]
 >      Just n' | Just n'' <- lookup n' [("or","or")
 >                                      ,("like","like")
 >                                      ,("notlike","not like")] ->
@@ -997,7 +986,7 @@ syntax maybe should error instead of silently breaking
 util: to be removed when outputting names is fixed
 
 > getTName :: Name -> Maybe String
-> getTName (Name _ [n]) = Just $ T.unpack $ ncStr n
+> getTName (Name _ [n]) = Just $ ncStr n
 > getTName _ = Nothing
 
 > ttext :: String -> Doc

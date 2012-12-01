@@ -1,40 +1,43 @@
 features
 
-try: write preprocessor to create mirror of Ast types with string
-   instead of text
-   generate conversion from ast to string ast
-   write generics pass to convert expr in th with strings
-      to use text, and convert back to original ast types (?)
-   use in qq
+identifier work: add unique ids to every node in tree, then put the
+   source ids in the env, then when the type of an identifier is put
+   in the annotation, put the source id in the annotation as well
 
-check chaosgen produces decent sql
-fix type check ag attrs
-nullability
-parameterized statements
-switch to pgsimple
-typesafe db access
+group by type checking:
+check group by and aggregate expressions in select list, having, order
+   by
+
+add type annotation to tref nodes
+
+start working on nullability
+
+work on tests plus error checking improvements
+
+work on documentation and examples, experimentation file
+
+parameterized statements + typesafe access
+
+switch to pgsimple?
+
 
 other stuff
 
-fix the website generation + update documentation
-
 move the chaos stuff to chaos project (extensions, h7c, chaos)
 get it all working: lots to do, get it all typechecking
+-> just get it out of the hssqlppp project for next release first
 
 organize the remaining files in src-extra - should there be any?
 
 move examples to correct subpackages
 
-move quote testing to hssqlppp-qq package
-change the ast back to using strings so qq works?
-get typesafe access working: need null inference to be really useful
-maybe wrapper for queries with single row output, and with single
-   value output?
-
-work on the experimentation file + add note in docs
-
 review todos and plan for 0.5.0 release
 
+proper review of tableref syntax and fixes to ast and parsing
+
+look at the pretty print, maybe add some benchmarking to see what is
+   the best way, maybe pretty print to string then convert to lazy
+   text at the end?
 
 = next release, 0.5.0
 
@@ -46,11 +49,11 @@ rename ScalarSubQuery to something better
 review other names in syntax
 tpch tests: add tests which parse, add all the extras, then
    reparse,pretty,parse, and typecheck again
+find some other sets of sql to use for testing
 separate out the type error tests to different files and get them
    working again
-better checking for group by queries
 
-add parens to queryexprs
+add parens to queryexprs, work out better grammar and parsing precedence?
 change the special op name to be an enum?
 change parsing of typed string literal since this can be just a cast,
    get rid of seperate ctor
@@ -128,6 +131,10 @@ same with typechecking: show writing a cat by hand, and examples to
 
 
 = 'arcs'
+
+== text
+
+figure out how to use text in the ast and still use qq
 
 == continue with rewrite of catalog and typeconversion
 

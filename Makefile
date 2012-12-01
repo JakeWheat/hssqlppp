@@ -91,7 +91,7 @@ BUILD = build
 
 # the command and options used to compile .hs/.lhs to .o
 HC              = ghc
-HC_BASIC_OPTS   = -Wall -threaded -rtsopts
+HC_BASIC_OPTS   = -Wall -threaded -rtsopts -v0
 #-O2
 
 space :=

@@ -58,10 +58,10 @@ sem TableRef
       loc.eEnv = Right $ @tref.upEnv
   | FullAlias
       loc.eEnv = Right $ createTrefAliasedEnvironment
-                         (ncStr @tb) (Just $ map ncStr @cols) @tref.upEnv
+                         (ncStrT @tb) (Just $ map ncStrT @cols) @tref.upEnv
   | TableAlias
       loc.eEnv = Right $ createTrefAliasedEnvironment
-                         (ncStr @tb) Nothing @tref.upEnv
+                         (ncStrT @tb) Nothing @tref.upEnv
   | FunTref
       loc.eEnv = Left []
 
