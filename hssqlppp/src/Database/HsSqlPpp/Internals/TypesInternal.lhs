@@ -40,6 +40,8 @@ where should precision and nullability go?
 >           | NamedCompositeType Text
 >           -- | refer to composite type by structure
 >           | CompositeType [(Text,Type)]
+>           -- | hack to support the environment for a tref
+>           | TrefType [((Text,Text),Type)]
 >           -- | the fields are anonymous as well as the type itself
 >           | AnonymousCompositeType [Type]
 >           -- | The pseudo type is used for types which only appear

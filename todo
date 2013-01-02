@@ -1,33 +1,46 @@
-features
+= features
 
-identifier work: add unique ids to every node in tree, then put the
-   source ids in the env, then when the type of an identifier is put
-   in the annotation, put the source id in the annotation as well
+parameterized statements + typesafe access
 
 group by type checking:
 check group by and aggregate expressions in select list, having, order
    by
 
-add type annotation to tref nodes
+start working on nullability: what should be changed/ tested:
+resolveResultSetType
+some of the other type compatibility tests
+scalar functions:
+  default is any function call result can be null
+  other cases:
+    manually create whitelist of functions which return non null if
+      none of the args are null -> this is like the opposite of strict
+    manually special cases for functions which return non null even if
+      one or more of the arguments are null
+  don't think the information needed for this is available from
+    postgresql. Can calculate accurately the nullability of functions
+    with plpgsql source, but not ones which are built in or written in
+    other languages.
 
-start working on nullability
+identifier work: add unique ids to every node in tree, then put the
+   source ids in the env, then when the type of an identifier is put
+   in the annotation, put the source id in the annotation as well
+
+complete type checking for crud
+get the typechecking for functions and ddl working again
+
+= maintenance
 
 work on tests plus error checking improvements
 
 work on documentation and examples, experimentation file
 
-parameterized statements + typesafe access
-
 switch to pgsimple?
 
-
-other stuff
+organize the remaining files in src-extra - should there be any?
 
 move the chaos stuff to chaos project (extensions, h7c, chaos)
 get it all working: lots to do, get it all typechecking
 -> just get it out of the hssqlppp project for next release first
-
-organize the remaining files in src-extra - should there be any?
 
 move examples to correct subpackages
 
@@ -38,8 +51,6 @@ proper review of tableref syntax and fixes to ast and parsing
 look at the pretty print, maybe add some benchmarking to see what is
    the best way, maybe pretty print to string then convert to lazy
    text at the end?
-
-= next release, 0.5.0
 
 == syntax
 
@@ -59,9 +70,6 @@ change parsing of typed string literal since this can be just a cast,
    get rid of seperate ctor
 review unionall and others
 
-fix unsafereadable in pretty: always do improved whitespace layout
-  not going to add table aliases anymore
-
 think of a better names for plpgsql* since will also support tsql and
    maybe others going forward
 
@@ -69,7 +77,6 @@ better way to do accessor and setter for annotations (use typeclass?)
 
 == typechecking
 
-complete type checking for crud
 param query type fn
 rough todo/checklist for exprs:
 combinequeryexpr
@@ -90,7 +97,8 @@ start looking at getting the type errors back up to the old level
 to serve effectively as a front end, the parser should produce nice
    error messages, and the typechecking of crud should be very
    comprehensive
-what will useable non ascii character set support take?
+what will useable non ascii character set support take? Maybe this
+   works fine already?
 
 == small fixes
 
@@ -106,8 +114,6 @@ alter the postprocess for astinternal.hs: want to add haddock line for
 get ghc 6.12.x working again: think it is just adding the
    control.monad.error stuff back it(?) -> or maybe skip, if 7.0, 7.4,
    7.6 are supported
-
-
 
 review examples: add new examples, clean up code, and example page on
    website. Add simple parsing and typechecking example to index page
@@ -132,7 +138,7 @@ same with typechecking: show writing a cat by hand, and examples to
 
 = 'arcs'
 
-== text
+== data.text
 
 figure out how to use text in the ast and still use qq
 

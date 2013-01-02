@@ -28,7 +28,8 @@ sem TableRefList
 sem TableRef
   | Tref FunTref SubTref JoinTref TableAlias FullAlias TableRefParens
       loc.eEnv :: {Either [TypeError] Environment}
-      ann.tpe = either Left (const $ Left []) @loc.eEnv
+      ann.tpe = either Left (Right . TrefType)
+                (@loc.eEnv >>= envExpandStar Nothing)
       -- todo: what to do here?
       lhs.upEnv = either (const brokeEnvironment) id @loc.eEnv
 
