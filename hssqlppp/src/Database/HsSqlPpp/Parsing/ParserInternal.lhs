@@ -39,7 +39,7 @@ right choice, but it seems to do the job pretty well at the moment.
 > --import Control.Monad
 >
 > import Data.Maybe
-> import Data.Char
+> import Data.Char hiding (Format)
 >
 > import Data.Generics.Uniplate.Data
 > import Data.Data hiding (Prefix,Infix)
@@ -477,13 +477,30 @@ other dml-type stuff
 > copy = do
 >        p <- pos
 >        keyword "copy"
+>        -- todo: factor this a bit better
+>        choice [try $ from p, to p]
+>   where
+>     from p = do
 >        tableName <- name
 >        cols <- option [] (parens $ commaSep1 nameComponent)
 >        keyword "from"
 >        src <- choice [
 >                CopyFilename <$> extrStr <$> stringLit
 >               ,Stdin <$ keyword "stdin"]
->        return $ Copy p tableName cols src
+>        return $ CopyFrom p tableName cols src
+>     to p = do
+>        src <- choice
+>               [CopyQuery <$> try pQueryExpr
+>               ,CopyTable
+>                <$> name
+>                <*> option [] (parens $ commaSep1 nameComponent)]
+>        keyword "to"
+>        fn <- extrStr <$> stringLit
+>        opts <- option [] $ do
+>                  keyword "with"
+>                  many1 copt
+>        return $ CopyTo p src fn opts
+>     copt = Format <$> (keyword "format" *> idString)
 >
 > copyData :: SParser Statement
 > copyData = CopyData <$> pos <*> mytoken (\tok ->

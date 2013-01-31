@@ -42,7 +42,9 @@
 >      -- * Statements
 >     ,Statement(..)
 >      -- ** dml components
->     ,CopySource(..)
+>     ,CopyToSource(..)
+>     ,CopyFromSource(..)
+>     ,CopyToOption(..)
 >     ,SetClause(..)
 >      -- ** ddl components
 >     ,AttributeDef(..)

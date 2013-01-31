@@ -42,7 +42,9 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,JoinHint (..)
    ,SelectList (..)
    ,SelectItem (..)
-   ,CopySource (..)
+   ,CopyFromSource (..)
+   ,CopyToSource(..)
+   ,CopyToOption(..)
    ,AttributeDef (..)
    ,RowConstraint (..)
    ,AlterTableAction(..)
@@ -631,12 +633,16 @@ data Statement
              whr :: MaybeBoolExpr
              returning :: MaybeSelectList
     --tablename column names, from
-    | Copy ann::Annotation
-           table :: Name
-           targetCols :: {[NameComponent]}
-           source :: CopySource
+    | CopyFrom ann::Annotation
+               table :: Name
+               targetCols :: {[NameComponent]}
+               source :: CopyFromSource
     --represents inline data for copy statement
     | CopyData ann::Annotation insData :: String
+    | CopyTo ann :: Annotation
+             cp :: CopyToSource
+             fn :: String
+             opts :: {[CopyToOption]}
     | Truncate ann::Annotation
                tables:: {[Name]}
                restartIdentity :: RestartIdentity
@@ -794,9 +800,15 @@ data Statement
 -}
 
 {
-data CopySource = CopyFilename String
-                | Stdin
-                  deriving (Show,Eq,Typeable,Data)
+data CopyFromSource = CopyFilename String
+                    | Stdin
+                      deriving (Show,Eq,Typeable,Data)
+data CopyToSource = CopyTable Name [NameComponent]
+                  | CopyQuery QueryExpr
+                      deriving (Show,Eq,Typeable,Data)
+data CopyToOption = Format String
+                    deriving (Show,Eq,Typeable,Data)
+
 }
 
 data SetClause | SetClause ann::Annotation

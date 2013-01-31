@@ -28,7 +28,7 @@
 > import Database.HsSqlPpp.SqlDialect
 
 > --import Database.HsSqlPpp.Internals.StringLike
-> import qualified Data.Text as T
+> --import qualified Data.Text as T
 > import qualified Data.Text.Lazy as L
 > import Database.HsSqlPpp.Utils.Utils
 
@@ -421,7 +421,7 @@ Conversion routines - convert Sql asts into Docs
 > statement _ _ _ (Perform _ x) =
 >    error $ "internal error: statement not supported for " ++ show x
 >
-> statement _flg se ca (Copy ann tb cols src) =
+> statement _flg se ca (CopyFrom ann tb cols src) =
 >     annot ca ann <+>
 >     text "copy" <+> name tb
 >     <+> ifNotEmpty (parens . sepCsvMap nmc) cols
@@ -429,6 +429,20 @@ Conversion routines - convert Sql asts into Docs
 >     <+> case src of
 >                  CopyFilename s -> quotes $ ttext s <> statementEnd se
 >                  Stdin -> text "stdin" <> text ";"
+
+> statement flg se ca (CopyTo ann src fn opt) =
+>     annot ca ann <+>
+>     text "copy" <+> s src
+>     <+> text "to"
+>     <+> quotes (ttext fn)
+>     <+> ifNotEmpty (const $ "with" <+> sep (map po opt)) opt
+>     <> statementEnd se
+>     where
+>       s (CopyTable tb cols) = name tb
+>                               <+> ifNotEmpty (parens . sepCsvMap nmc) cols
+>       s (CopyQuery qry) = parens (queryExpr flg True True Nothing qry)
+>       po (Format s) = text "format" <+> text s
+
 >
 > statement _ _ ca (CopyData ann s) =
 >     annot ca ann <+>

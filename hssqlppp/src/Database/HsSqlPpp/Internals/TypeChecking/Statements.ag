@@ -2,7 +2,7 @@
 
 sem Statement
   | QueryStatement DeclareStatement If
-    Insert Update Delete Copy Truncate
+    Insert Update Delete CopyFrom CopyTo Truncate
     Assignment ExecStatement CreateIndexTSQL
     DropSomething Into
     ann.tpe = Left []

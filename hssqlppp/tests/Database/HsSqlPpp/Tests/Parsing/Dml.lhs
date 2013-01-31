@@ -116,10 +116,18 @@ copy, bit crap at the moment
 >         \bat\tt\n\
 >         \bear\tf\n\
 >         \\\.\n"
->       [Copy ea (name "tbl") [Nmc "a", Nmc "b"] Stdin
+>       [CopyFrom ea (name "tbl") [Nmc "a", Nmc "b"] Stdin
 >        ,CopyData ea "\
 >         \bat\tt\n\
 >         \bear\tf\n"]
+>      ,s "copy tbl to 'file';"
+>       [CopyTo ea (CopyTable (name "tbl") []) "file" []]
+>      ,s "copy tbl(a,b) to 'file';"
+>       [CopyTo ea (CopyTable (name "tbl") [Nmc "a", Nmc "b"]) "file" []]
+>      ,s "copy (select * from tbl) to 'file' with format binary;"
+>       [CopyTo ea (CopyQuery $ makeSelect {selSelectList = sl [si $ Star ea]
+>                                          ,selTref = [tref "tbl"]})
+>        "file" [Format "binary"]]
 >      ]]
 >  where
 >    s = Stmt
