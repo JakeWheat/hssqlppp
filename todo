@@ -4,7 +4,11 @@ parameterized statements + typesafe access
 
 group by type checking:
 check group by and aggregate expressions in select list, having, order
-   by
+   by:
+  get the group by columns
+  allow these to appear anywhere
+  all the other columns can appear only inside an aggregate
+  no nested aggregate calls
 
 start working on nullability: what should be changed/ tested:
 resolveResultSetType

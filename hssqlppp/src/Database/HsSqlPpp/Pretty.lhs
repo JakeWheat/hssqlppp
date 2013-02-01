@@ -840,7 +840,7 @@ syntax maybe should error instead of silently breaking
 >                         Distinct -> text "distinct")
 >                      <+> csvExp flg es
 >                      <+> orderBy flg o)
-> scalExpr _ (AggregateApp {}) = error "bad syntax for aggregate function"
+> scalExpr _ a@(AggregateApp {}) = error $ "bad syntax for aggregate function" ++ show a
 > scalExpr flg (Case _ whens els) =
 >   text "case"
 >   $+$ nest 2 (vcat (map whn whens)

@@ -160,24 +160,32 @@ nameOfType _ = Nothing
 
 -- hack for various fixups
 fixTree :: Data a => a -> a
-fixTree = fixDateDiff
+fixTree = fixMssqlDates
 
 {-
 
-fix up datediff for sql server: set the type for the first argument to
-type in if it is in the acceptable list
+
+fix up datediff,datepart for sql server: set the type for the first
+argument to type in if it is in the acceptable list
+
+todo: make this approach more generic
+
 -}
 
-fixDateDiff :: Data a => a -> a
-fixDateDiff = transformBi $ \x -> case x of
+fixMssqlDates :: Data a => a -> a
+fixMssqlDates = transformBi $ \x -> case x of
   App aa nm@(Name _ [Nmc fn]) [Identifier ai tn@(Name _ [Nmc tnn]),a,b]
     | map toLower fn == "datediff"
     , map toLower tnn `elem` ["hour"] ->
-    App aa nm [Identifier ai' tn,a,b]
-      where
-        ai' = ai {anType = Just typeInt
-                 ,anErrs = []}
+      App aa nm [Identifier (nai ai) tn,a,b]
+  App aa nm@(Name _ [Nmc fn]) [Identifier ai tn@(Name _ [Nmc tnn]),a]
+    | map toLower fn == "datepart"
+    , map toLower tnn `elem` ["day","month","year"] ->
+      App aa nm [Identifier (nai ai) tn,a]
   x' -> x'
+  where
+      nai ai = ai {anType = Just typeInt
+                  ,anErrs = []}
 
 }
 

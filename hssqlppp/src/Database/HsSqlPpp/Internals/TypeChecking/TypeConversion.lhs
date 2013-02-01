@@ -57,6 +57,12 @@ This needs a lot more tests
 >   -- first is identifier from list
 >   -- other two are date types
 >   Right ([typeInt,typeDate,typeDate], typeInt)
+> matchApp SQLServerDialect _cat [Nmc dd] [_,ScalarType "date"] | map toLower dd == "datepart" =
+>   -- check there are 3 args
+>   -- first is identifier from list
+>   -- other two are date types
+>   Right ([typeInt,typeDate], typeInt)
+
 
 > matchApp d cat nmcs pts = {-trace ("matchapp: " ++ show (d,nmcs,pts)) $ -} do
 >   (_,ps,r,_) <- case d of

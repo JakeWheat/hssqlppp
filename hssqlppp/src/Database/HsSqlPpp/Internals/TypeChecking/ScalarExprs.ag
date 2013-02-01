@@ -227,6 +227,13 @@ tcAppLike d cat anm@(Name _ [Nmc dd]) [_,a0,a1]
   let Name _ ns = anm
   (ats,rt) <- matchApp d cat ns (typeInt:tys)
   return (ats,rt)
+tcAppLike d cat anm@(Name _ [Nmc dd]) [_,a0]
+    | map toLower dd == "datepart" = do
+  -- dodgy hack for datepart
+  tys <- mapM (maybe (Left []) Right) [a0]
+  let Name _ ns = anm
+  (ats,rt) <- matchApp d cat ns (typeInt:tys)
+  return (ats,rt)
 
 tcAppLike d cat anm args = do
   -- get the types of the arguments

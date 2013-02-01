@@ -8,13 +8,13 @@
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Catalog
 > --import Database.HsSqlPpp.TypeChecker
-
+> import Data.Text.Lazy (pack)
 
 > tsqlQueryExprs :: Item
 > tsqlQueryExprs =
->   Group "tsql"
+>   Group "tsql" $
 >   [TSQLQueryExpr [CatCreateTable "t" [("a", "date")
->                                  ,("b", "date")]]
+>                                      ,("b", "date")]]
 
 this doesn't work:
     "select datediff(hour,a,b) a from t"
@@ -25,55 +25,64 @@ todo: fix it
 >   ,TSQLQueryExpr [CatCreateTable "t" [("a", "tinyint")
 >                                      ,("b", "smallint")]]
 >    "select a+b as a from t /* junk it */"
->    $ Right $ CompositeType [("a",typeSmallInt)]
+>    $ Right $ CompositeType [("a",typeSmallInt)]]
 
->   ]
->   {-[QueryExpr [CatCreateTable "t" [("a", "int4")
->     ,("b", "text")]]
->    "select a,b from t"
->    $ Right $ CompositeType [("a",typeInt)
->                            ,("b", ScalarType "text")]
->
->
->   ,QueryExpr [CatCreateTable "t" [("a", "int4")
->                                  ,("b", "text")]]
->    "select a as c,b as d from t"
->    $ Right $ CompositeType [("c",typeInt)
->                            ,("d", ScalarType "text")]
->
->
->   ,QueryExpr [CatCreateTable "t" [("a", "int4")
->                                  ,("b", "text")]]
->    "select * from t"
->    $ Right $ CompositeType [("a",typeInt)
->                            ,("b", ScalarType "text")]
->   ,QueryExpr [CatCreateTable "t" [("a", "int4")
->                                  ,("b", "text")]]
->    "select t.a,t.b from t"
->    $ Right $ CompositeType [("a",typeInt)
->                            ,("b", ScalarType "text")]
+datepart testing:
 
->   ,QueryExpr [CatCreateTable "t" [("a", "int4")
->                                  ,("b", "text")]]
->    "select u.* from t u"
->    $ Right $ CompositeType [("a",typeInt)
->                            ,("b", ScalarType "text")]
->   ,QueryExpr [CatCreateTable "t" [("a", "int4")
->                                  ,("b", "text")]]
->    "select * from t u(c,d)"
->    $ Right $ CompositeType [("c",typeInt)
->                            ,("d", ScalarType "text")]
->   ,QueryExpr [CatCreateTable "t" [("a", "int4")
->                                  ,("b", "text")]]
->    "select u.a,u.b from t u"
->    $ Right $ CompositeType [("a",typeInt)
->                            ,("b", ScalarType "text")]
+>   ++ [TSQLQueryExpr [CatCreateTable "t" [("a", "date")]]
+>      (pack $ "select datepart(" ++ dp ++ ",a) as a from t")
+>      $ Right $ CompositeType [("a",typeInt)]
+>      | dp <- ["day","month","year"]]
 
->
->
->   ,QueryExpr [CatCreateTable "t" [("a", "int4")
->                                  ,("b", "text")]]
->    "select count(*) from t"
->    $ Right $ CompositeType [("count",typeBigInt)]
+aggregates: the types of aggregates is different in mssql to
+postgresql:
 
->   ]-}
+http://msdn.microsoft.com/en-us/library/ms173454.aspx
+
+>   ++ [TSQLQueryExpr [CatCreateTable "t" [("a", inty)]]
+>      (pack $ "select " ++ agg ++ "(a) as a from t")
+>      $ Right $ CompositeType [("a",resty)]
+>      | agg <- ["sum","avg"]
+
+avg,sum
+
+tinyint int
+smallint int
+int int
+bigint bigint
+money and smallmoney category ->  money -> todo
+float and real category -> float
+
+>      , (inty,resty) <-
+>        [("tinyint", typeInt)
+>        ,("smallint", typeInt)
+>        ,("int", typeInt)
+>        ,("int", typeInt)
+>        ,("bigint", typeBigInt)
+>        ,("float", typeFloat8)
+>        ,("real", typeFloat8)
+>        ]]
+
+avg
+
+decimal category (p, s) ->
+decimal(38, s) divided by decimal(10, 0)
+
+sum
+
+decimal category (p, s) ->
+decimal(38, s)
+
+(todo)
+
+
+count returns int
+count_big returns bigint
+
+>   ++
+>   [TSQLQueryExpr [CatCreateTable "t" [("a", "int4")]]
+>    "select count(*) as a from t"
+>    $ Right $ CompositeType [("a",typeInt)]
+>   ,TSQLQueryExpr [CatCreateTable "t" [("a", "int4")]]
+>    "select count_big(*) as a from t"
+>    $ Right $ CompositeType [("a",typeBigInt)]]

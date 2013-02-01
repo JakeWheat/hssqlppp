@@ -13,43 +13,50 @@
 > import Text.Groom
 
 > defaultTSQLCatalog :: Catalog
-> defaultTSQLCatalog =
->     (\l -> case l of
->              Left x -> error $ show x
->              Right e -> e) $
->      flip updateCatalog catr $
-
->     --trace ("fns: " ++ groom (int1fns ++ int12fns))
->     int1fns ++
->     int12fns ++
->     [CatCreateScalarType "nvarchar"
->     ,CatCreateTypeCategoryEntry "nvarchar" ("S", False)
->     ,CatCreateBinaryOp "+" "varchar" "varchar" "varchar"
->     ,CatCreateFunction "getdate" [] False "date"
->     ,CatCreateFunction "isnumeric" ["anyelement"] False "int4"
->     ,CatCreateFunction "grt_lengthconv" ["int4"] False "int4"
->     ,CatCreateFunction "isnull" ["anyelement","anyelement"] False "anyelement"
->     -- put these in to stop use the text only version and a bunch of casts
->     ,CatCreateFunction "replace" ["char", "char", "char"] False "char"
->     ,CatCreateFunction "replace" ["varchar", "varchar", "varchar"] False "varchar"
->     ,CatCreateFunction "replace" ["nvarchar", "nvarchar", "nvarchar"] False "nvarchar"
->     ,CatCreateFunction "patindex" ["char","char"] False "int4"
->     ,CatCreateFunction "patindex" ["varchar","varchar"] False "int4"
->     ,CatCreateFunction "patindex" ["nvarchar","nvarchar"] False "int4"
->     ,CatCreateFunction "isdate" ["varchar"] False "bool"
->     ,CatCreateFunction "isdate" ["char"] False "int4"
->     ,CatCreateFunction "isdate" ["nvarchar"] False "int4"
->     ,CatCreateFunction "len" ["nvarchar"] False "int4"
->     ]
+> defaultTSQLCatalog = either (error . show) id catr
 >   where
->     catr = either (error . show) id
->            $ updateCatalog
->                  (alterUpdates $ deconstructCatalog defaultTemplate1Catalog)
->                  defaultCatalog
+>     catr = updateCatalog
+>               (alterUpdates (deconstructCatalog defaultTemplate1Catalog
+>                              ++ additionalEntries))
+>               defaultCatalog
 >     -- change the counts to return int instead of long
 >     alterUpdates = map $ \u -> case u of
->                                  CatCreateAggregate "count" ["any"] "int8" -> CatCreateAggregate "count" ["any"] "int4"
->                                  _ -> u
+>         CatCreateAggregate "count" ["any"] "int8" ->
+>             CatCreateAggregate "count" ["any"] "int4"
+>         CatCreateAggregate f [e] _ | f `elem` ["sum","avg"]
+>                                    , e `elem` ["int1"
+>                                               ,"int2"
+>                                               ,"int4"] ->
+>             CatCreateAggregate f [e] "int4"
+>         CatCreateAggregate f ["float4"] _ | f `elem` ["sum","avg"] ->
+>             CatCreateAggregate f ["float4"] "float8"
+>         CatCreateAggregate f ["int8"] _ | f `elem` ["sum","avg"] ->
+>             CatCreateAggregate f ["int8"] "int8"
+>         _ -> u
+
+>     additionalEntries =
+>         int1fns ++
+>         int12fns ++
+>         [CatCreateScalarType "nvarchar"
+>         ,CatCreateTypeCategoryEntry "nvarchar" ("S", False)
+>         ,CatCreateBinaryOp "+" "varchar" "varchar" "varchar"
+>         ,CatCreateFunction "getdate" [] False "date"
+>         ,CatCreateFunction "isnumeric" ["anyelement"] False "int4"
+>         ,CatCreateFunction "grt_lengthconv" ["int4"] False "int4"
+>         ,CatCreateFunction "isnull" ["anyelement","anyelement"] False "anyelement"
+>         -- put these in to stop use the text only version and a bunch of casts
+>         ,CatCreateFunction "replace" ["char", "char", "char"] False "char"
+>         ,CatCreateFunction "replace" ["varchar", "varchar", "varchar"] False "varchar"
+>         ,CatCreateFunction "replace" ["nvarchar", "nvarchar", "nvarchar"] False "nvarchar"
+>         ,CatCreateFunction "patindex" ["char","char"] False "int4"
+>         ,CatCreateFunction "patindex" ["varchar","varchar"] False "int4"
+>         ,CatCreateFunction "patindex" ["nvarchar","nvarchar"] False "int4"
+>         ,CatCreateFunction "isdate" ["varchar"] False "bool"
+>         ,CatCreateFunction "isdate" ["char"] False "int4"
+>         ,CatCreateFunction "isdate" ["nvarchar"] False "int4"
+>         ,CatCreateFunction "len" ["nvarchar"] False "int4"
+>         ,CatCreateAggregate "count_big" ["any"] "int8"
+>         ]
 >     -- find all the functions on int2 and replace int2 with int1
 >     -- then find all the functions with int2 and int4, and
 >     -- replace int2 with int1 and int4 with int2
