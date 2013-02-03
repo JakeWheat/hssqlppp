@@ -52,16 +52,20 @@ This needs a lot more tests
 > -- need to think of a better way to handle this when
 > -- have a better idea of all the weird syntax used in
 > -- tsql
-> matchApp SQLServerDialect _cat [Nmc dd] [_,ScalarType "date",ScalarType "date"] | map toLower dd == "datediff" =
+> matchApp SQLServerDialect _cat [Nmc dd] [_
+>                                         ,ScalarType "date"
+>                                         ,ScalarType "date"]
+>   | map toLower dd == "datediff" =
 >   -- check there are 3 args
 >   -- first is identifier from list
 >   -- other two are date types
 >   Right ([typeInt,typeDate,typeDate], typeInt)
-> matchApp SQLServerDialect _cat [Nmc dd] [_,ScalarType "date"] | map toLower dd == "datepart" =
->   -- check there are 3 args
->   -- first is identifier from list
->   -- other two are date types
+> matchApp SQLServerDialect _cat [Nmc dd] [_,ScalarType "date"]
+>   | map toLower dd == "datepart" =
 >   Right ([typeInt,typeDate], typeInt)
+> matchApp SQLServerDialect _cat [Nmc dd] [_,_,ScalarType "date"]
+>   | map toLower dd == "dateadd" =
+>   Right ([typeInt,typeInt,typeDate], typeDate)
 
 
 > matchApp d cat nmcs pts = {-trace ("matchapp: " ++ show (d,nmcs,pts)) $ -} do

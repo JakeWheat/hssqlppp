@@ -13,6 +13,9 @@
 > tsqlQueryExprs :: Item
 > tsqlQueryExprs =
 >   Group "tsql" $
+
+datepart, datediff, dateadd
+
 >   [TSQLQueryExpr [CatCreateTable "t" [("a", "date")
 >                                      ,("b", "date")]]
 
@@ -26,13 +29,16 @@ todo: fix it
 >                                      ,("b", "smallint")]]
 >    "select a+b as a from t /* junk it */"
 >    $ Right $ CompositeType [("a",typeSmallInt)]]
-
-datepart testing:
-
 >   ++ [TSQLQueryExpr [CatCreateTable "t" [("a", "date")]]
 >      (pack $ "select datepart(" ++ dp ++ ",a) as a from t")
 >      $ Right $ CompositeType [("a",typeInt)]
 >      | dp <- ["day","month","year"]]
+
+>   ++ [TSQLQueryExpr [CatCreateTable "t" [("a", "date")]]
+>      (pack $ "select dateadd(" ++ dp ++ ",5,a) as a from t")
+>      $ Right $ CompositeType [("a",typeDate)]
+>      | dp <- ["day","month","year"]]
+
 
 aggregates: the types of aggregates is different in mssql to
 postgresql:
