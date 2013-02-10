@@ -1,3 +1,49 @@
+next release: current release doesn't work with 7.6, maybe others, get
+   new release out quickly:
+documentation fixup
+examples review + fixup - bit of mess atm
+haddock review
+tests - make sure all the tests work and run from the .cabal
+hlint pass
+review source documentation
+use pgsimple
+check works with at least 7.2,7.4,7.6
+
+new release of package-o-tron
+
+next releases rough plan:
+2
+nullable typechecking
+typesafe haskell acces
+group by type checker
+error handling
+unique ids for identifiers/nodes
+complete typechecking for crud
+better framework for supporting pg, mssql, oracle (+db2) syntax?
+  conversion between different syntax helpers
+syntax review + syntax fixes + compare with official sql grammar?
+add string fx to qq + review qq error messages
+put the generic bits from chaos into hsssqlppp somewhere
+?better catalog: better checking, more info, schemas
+   (+typechecking), tests
+use shake
+maybe start again with ast types and ag code, get it working with
+   latest uuagc and understand it a bit better
+
+3
+typechecking for ddl and functions
+get chaos working as separate project
+
+
+alpha:
+target parsing and typechecking a big chunk of postgresql, mssql and
+   oracle (and maybe db2) sql
+sql syntax extension framework
+quasi quotation for syntax work in haskell
+typesafe access from haskell
+basic documentation and code analysis tools
+function as a sql front end for shark
+
 = features
 
 parameterized statements + typesafe access
@@ -145,6 +191,7 @@ same with typechecking: show writing a cat by hand, and examples to
 == data.text
 
 figure out how to use text in the ast and still use qq
+outstanding issue is text in pattern quotes
 
 == continue with rewrite of catalog and typeconversion
 

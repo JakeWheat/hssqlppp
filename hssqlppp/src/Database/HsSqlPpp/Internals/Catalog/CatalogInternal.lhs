@@ -469,6 +469,8 @@ queries
 >        | Just t <- M.lookup cn (catArrayTypes cat) -> Right $ ArrayType $ ScalarType t
 >        | otherwise -> Left [UnknownTypeName cn]
 
+TODO: add inverse of this operation, give a type, returns a typename
+
 
 > -- | takes a table name, and returns the exact table name (to deal
 > -- with quoting), and the public and private attr names

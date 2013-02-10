@@ -22,24 +22,24 @@ the other is a text type, then cast the text to number.
 >                        findCallMatch
 >                       ) where
 >
-> import Data.Maybe
-> import Data.List
-> import Data.Either
+> --import Data.Maybe
+> --import Data.List
+> --import Data.Either
 > --import Debug.Trace
-> import Data.Char
-> import Control.Monad
+> --import Data.Char
+> --import Control.Monad
 >
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 > --import Database.HsSqlPpp.Utils.Utils
-> import Database.HsSqlPpp.Internals.TypeChecking.OldTediousTypeUtils
+> --import Database.HsSqlPpp.Internals.TypeChecking.OldTediousTypeUtils
 > import qualified Database.HsSqlPpp.Internals.TypeChecking.OldTypeConversion as T
 > import Data.Text (Text)
 
 > findCallMatch :: Catalog -> Text -> [Type] ->  Either [TypeError] OperatorPrototype
 > findCallMatch cat fnName argsType =
 >   case argsType of
->      [a,b] | Just x <- checkOperator cat fnName argsType -> Right x
+>      [_a,_b] | Just x <- checkOperator cat fnName argsType -> Right x
 >      _ -> T.findCallMatch cat fnName argsType
 
 hack to allow implicit casting one of the args to a numeric operator
@@ -63,14 +63,14 @@ match an exact operator itself with two args the same numeric type
 >        [c] -> return c
 >        _ -> Nothing
 >   where
->     ty a b | isNumber a && isText b = Just a
->     ty a b | isText a && isNumber b = Just b
+>     ty a' b' | isNumber a' && isText b' = Just a'
+>     ty a' b' | isText a' && isNumber b' = Just b'
 >     ty _ _ = Nothing
 >     isNumber x =
 >       x `elem` [typeSmallInt,typeBigInt,typeInt
 >                ,typeNumeric,typeFloat4,typeFloat8]
->     isNumber _ = False
+>     --isNumber _ = False
 >     isText x =
 >       x `elem` [typeVarChar,typeChar, ScalarType "text"]
->     isText _ = False
+>     --isText _ = False
 > checkOperator _ _ _ = Nothing

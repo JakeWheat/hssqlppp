@@ -27,7 +27,7 @@ and variables, etc.
 
 > import Data.Data
 > import Data.Char
-> import Data.Maybe
+> --import Data.Maybe
 > import Control.Monad
 > import Control.Arrow
 > import Data.List
@@ -199,7 +199,7 @@ lookup and star expansion
 >          else [])
 >   where
 >     -- not sure why this is here, code layout is a bit confusing
->     req = map (\((_,i),t) -> ((ta,i),t))
+>     _req = map (\((_,i),t) -> ((ta,i),t))
 
 
 > listBindingsTypes (SimpleTref nm pus pvs) =
@@ -331,7 +331,7 @@ use listBindingsTypes to implement expandstar and lookupid
 >       [x] -> Right $ keepCasehack x
 >       _ -> Left [AmbiguousIdentifier $ nmcString $ last nmc]
 >   where
->     keepCasehack x@((na,nb),t) =
+>     keepCasehack ((na,nb),t) =
 >       case nmc of
 >         [a,b] -> let x = ((keepcase a na,keepcase b nb),t)
 >                  in {-(if True -- map toLower nb == "ou_id"

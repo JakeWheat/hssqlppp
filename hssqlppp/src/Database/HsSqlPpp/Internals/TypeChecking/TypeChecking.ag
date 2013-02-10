@@ -170,6 +170,21 @@ argument to type in if it is in the acceptable list
 
 todo: make this approach more generic
 
+plan:
+add a new type called pseudo enum
+
+add functions like datepart to the normal catalog to be looked up in
+the normal way. type them using the pseudo enum for the identifiers which aren't really identifiers, just symbols
+
+fix the environment passed to these identifiers during type checking
+to look up the correct set of possible values so there are no bogus
+type errors introduced which then need to be fixed layer
+
+store the list of different pseudo enum collections and the possible
+values for each somewhere (in the catalog?) and link functions like
+datepart to the correct lists
+
+
 -}
 
 fixMssqlDates :: Data a => a -> a
