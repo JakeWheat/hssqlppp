@@ -421,28 +421,28 @@ Conversion routines - convert Sql asts into Docs
 > statement _ _ _ (Perform _ x) =
 >    error $ "internal error: statement not supported for " ++ show x
 >
-> statement _flg se ca (CopyFrom ann tb cols src) =
+> statement _flg se ca (CopyFrom ann tb cols src opts) =
 >     annot ca ann <+>
 >     text "copy" <+> name tb
 >     <+> ifNotEmpty (parens . sepCsvMap nmc) cols
 >     <+> text "from"
 >     <+> case src of
->                  CopyFilename s -> quotes $ ttext s <> statementEnd se
->                  Stdin -> text "stdin" <> text ";"
+>                  CopyFilename s -> quotes $ ttext s
+>                  Stdin -> text "stdin"
+>     <+> copyOpts opts
+>     <> statementEnd se
 
-> statement flg se ca (CopyTo ann src fn opt) =
+> statement flg se ca (CopyTo ann src fn opts) =
 >     annot ca ann <+>
 >     text "copy" <+> s src
 >     <+> text "to"
 >     <+> quotes (ttext fn)
->     <+> ifNotEmpty (const $ "with" <+> sep (map po opt)) opt
+>     <+> copyOpts opts
 >     <> statementEnd se
 >     where
 >       s (CopyTable tb cols) = name tb
 >                               <+> ifNotEmpty (parens . sepCsvMap nmc) cols
 >       s (CopyQuery qry) = parens (queryExpr flg True True Nothing qry)
->       po (Format s) = text "format" <+> text s
-
 >
 > statement _ _ ca (CopyData ann s) =
 >     annot ca ann <+>
@@ -670,6 +670,14 @@ syntax maybe should error instead of silently breaking
 > cascade casc = text $ case casc of
 >                                  Cascade -> "cascade"
 >                                  Restrict -> "restrict"
+
+> copyOpts :: [CopyOption] -> Doc
+> copyOpts opts =
+>   ifNotEmpty (const $ "with" <+> sep (map po opts)) opts
+>   where
+>       po (CopyFormat s) = text "format" <+> text s
+>       po (CopyDelimiter s) = text "delimiter" <+> quotes (text s)
+
 > -- ddl
 >
 > constraint :: PrettyPrintFlags -> Constraint -> Doc

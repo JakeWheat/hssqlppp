@@ -38,6 +38,10 @@ todo: fix it
 >      (pack $ "select dateadd(" ++ dp ++ ",5,a) as a from t")
 >      $ Right $ CompositeType [("a",typeDate)]
 >      | dp <- ["day","month","year"]]
+>   ++ [TSQLQueryExpr [CatCreateTable "t" [("a", "date")]]
+>      (pack $ "select dateadd(" ++ dp ++ ",5,'1992-001-01') as a from t")
+>      $ Right $ CompositeType [("a",typeDate)]
+>      | dp <- ["day","month","year"]]
 
 
 aggregates: the types of aggregates is different in mssql to

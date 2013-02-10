@@ -56,6 +56,9 @@
 >         ,CatCreateFunction "isdate" ["nvarchar"] False "int4"
 >         ,CatCreateFunction "len" ["nvarchar"] False "int4"
 >         ,CatCreateAggregate "count_big" ["any"] "int8"
+>         ,CatCreateFunction "datediff" ["int4","date","date"] False "int4"
+>         ,CatCreateFunction "dateadd" ["int4","int4","date"] False "date"
+>         ,CatCreateFunction "datepart" ["int4","date"] False "int4"
 >         ]
 >     -- find all the functions on int2 and replace int2 with int1
 >     -- then find all the functions with int2 and int4, and

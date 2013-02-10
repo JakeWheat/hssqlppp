@@ -44,7 +44,7 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,SelectItem (..)
    ,CopyFromSource (..)
    ,CopyToSource(..)
-   ,CopyToOption(..)
+   ,CopyOption(..)
    ,AttributeDef (..)
    ,RowConstraint (..)
    ,AlterTableAction(..)
@@ -637,12 +637,13 @@ data Statement
                table :: Name
                targetCols :: {[NameComponent]}
                source :: CopyFromSource
+               opts :: {[CopyOption]}
     --represents inline data for copy statement
     | CopyData ann::Annotation insData :: String
     | CopyTo ann :: Annotation
              cp :: CopyToSource
              fn :: String
-             opts :: {[CopyToOption]}
+             opts :: {[CopyOption]}
     | Truncate ann::Annotation
                tables:: {[Name]}
                restartIdentity :: RestartIdentity
@@ -805,9 +806,10 @@ data CopyFromSource = CopyFilename String
                       deriving (Show,Eq,Typeable,Data)
 data CopyToSource = CopyTable Name [NameComponent]
                   | CopyQuery QueryExpr
-                      deriving (Show,Eq,Typeable,Data)
-data CopyToOption = Format String
                     deriving (Show,Eq,Typeable,Data)
+data CopyOption = CopyFormat String
+                | CopyDelimiter String
+                  deriving (Show,Eq,Typeable,Data)
 
 }
 

@@ -112,8 +112,8 @@ server...obj
 >                              ,Just $ str "1/1/2000")
 >                             ]]
 
->   ,s "set @nm=3"
->      $ [Assignment ea (name "@nm") (num "3")]
+>   --,s "set @nm=3"
+>   --   $ [Assignment ea (name "@nm") (num "3")]
 >   ,s "select convert (INT,5) from t"
 >      $ [qs $ makeSelect
 >            {selSelectList = sl [si $ Cast ea (num "5") (st "INT")]

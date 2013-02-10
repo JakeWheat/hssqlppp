@@ -44,7 +44,7 @@
 >      -- ** dml components
 >     ,CopyToSource(..)
 >     ,CopyFromSource(..)
->     ,CopyToOption(..)
+>     ,CopyOption(..)
 >     ,SetClause(..)
 >      -- ** ddl components
 >     ,AttributeDef(..)
