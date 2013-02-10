@@ -170,8 +170,8 @@ Parsing top level statements
 >     ,delete
 >     ,truncateSt
 >     ,copy
->     ,do
->      not <$> isSqlServer >>= guard
+>     ,--do
+>      --not <$> isSqlServer >>= guard
 >      set
 >     ,notify
 >     ,keyword "create" *>
@@ -487,7 +487,8 @@ other dml-type stuff
 >        src <- choice [
 >                CopyFilename <$> extrStr <$> stringLit
 >               ,Stdin <$ keyword "stdin"]
->        return $ CopyFrom p tableName cols src
+>        opts <- copts
+>        return $ CopyFrom p tableName cols src opts
 >     to p = do
 >        src <- choice
 >               [CopyQuery <$> try pQueryExpr
@@ -496,11 +497,15 @@ other dml-type stuff
 >                <*> option [] (parens $ commaSep1 nameComponent)]
 >        keyword "to"
 >        fn <- extrStr <$> stringLit
->        opts <- option [] $ do
+>        opts <- copts
+>        return $ CopyTo p src fn opts
+>     copts = option [] $ do
 >                  keyword "with"
 >                  many1 copt
->        return $ CopyTo p src fn opts
->     copt = Format <$> (keyword "format" *> idString)
+>     copt = choice
+>            [CopyFormat <$> (keyword "format" *> idString)
+>            ,CopyDelimiter <$> (keyword "delimiter" *> stringN)
+>            ]
 >
 > copyData :: SParser Statement
 > copyData = CopyData <$> pos <*> mytoken (\tok ->

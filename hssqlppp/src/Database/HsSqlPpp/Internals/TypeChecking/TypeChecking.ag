@@ -197,6 +197,10 @@ fixMssqlDates = transformBi $ \x -> case x of
     | map toLower fn == "datepart"
     , map toLower tnn `elem` ["day","month","year"] ->
       App aa nm [Identifier (nai ai) tn,a]
+  App aa nm@(Name _ [Nmc fn]) [Identifier ai tn@(Name _ [Nmc tnn]),a,b]
+    | map toLower fn == "dateadd"
+    , map toLower tnn `elem` ["day","month","year"] ->
+      App aa nm [Identifier (nai ai) tn,a,b]
   x' -> x'
   where
       nai ai = ai {anType = Just typeInt
