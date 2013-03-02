@@ -269,7 +269,7 @@ Conversion routines - convert Sql asts into Docs
 >                then empty
 >                else text "constraint" <+> ttext n
 >
-> statement flg se ca (CreateDatabase ann nm) =
+> statement _flg se ca (CreateDatabase ann nm) =
 >     annot ca ann <+>
 >     text "create database" <+> name nm <> statementEnd se
 >
@@ -780,15 +780,6 @@ syntax maybe should error instead of silently breaking
 >          -> scalExpr flg e0 <> text "." <> scalExpr flg e1
 >      Just n' -> scalExpr flg e0 <+> ttext n' <+> scalExpr flg e1
 >      Nothing -> error $ "bad binary operator name:" ++ show n
->    where
->      -- try to write a series of ands in a vertical line
->      doLeftAnds a b = let as = and' a
->                       in vcat ((scalExpr flg (head as)
->                                 : map (\x -> text "and" <+> scalExpr flg x) (tail as))
->                                ++ [text "and" <+> scalExpr flg b])
->      and' a = case a of
->                 BinaryOp _ f x y | Just "and" <- getTName f -> and' x ++ and' y
->                 _ -> [a]
 
 > scalExpr flg (PrefixOp _ n e0)
 >   | Just "not" <- getTName n =

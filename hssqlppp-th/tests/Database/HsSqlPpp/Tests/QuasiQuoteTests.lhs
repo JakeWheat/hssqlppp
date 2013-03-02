@@ -35,14 +35,14 @@ Tests mainly for antiquotation, plus examples of where antiquotes work.
 >     let tableName = [sqlName| my_table |]
 >         varname = [sqlNameComponent| my_field |]
 >         typename = [sqlName| text |]
->     in Stmt [$sqlStmt|
+>     in Stmt [sqlStmt|
 >
 >      create table $n(tableName) (
 >        $m(varname) $n(typename)
 >      );
 >
 >      |]
->      [$sqlStmt|
+>      [sqlStmt|
 >      create table my_table (
 >        my_field text
 >      );
@@ -52,14 +52,14 @@ Tests mainly for antiquotation, plus examples of where antiquotes work.
 >     ,let fnname = [sqlName| my_function |]
 >          tablename = [sqlName| my_table |]
 >          typename = [sqlName| int |]
->      in Stmt [$sqlStmt|
+>      in Stmt [sqlStmt|
 >
 >   create function $n(fnname)() returns $n(typename) as $a$
 >     select * from $n(tablename);
 >   $a$ language sql stable;
 >
 >      |]
->      [$sqlStmt|
+>      [sqlStmt|
 >   create function my_function() returns int as $a$
 >     select * from my_table;
 >   $a$ language sql stable;
@@ -67,28 +67,28 @@ Tests mainly for antiquotation, plus examples of where antiquotes work.
 
 
 >     ,let fnname = [sqlName|my_function|]
->      in Stmt [$sqlStmt| drop function $n(fnname)();|]
->              [$sqlStmt| drop function my_function();|]
+>      in Stmt [sqlStmt| drop function $n(fnname)();|]
+>              [sqlStmt| drop function my_function();|]
 >
 >     ,let expr = StringLit ea "testing"
->      in PgSqlStmt [$pgsqlStmt| return $e(expr); |]
->                   [$pgsqlStmt| return 'testing'; |]
+>      in PgSqlStmt [pgsqlStmt| return $e(expr); |]
+>                   [pgsqlStmt| return 'testing'; |]
 
 >     ,let expr = [sqlExpr| 3 + 4 |]
->      in PgSqlStmt [$pgsqlStmt| return $e(expr); |]
->                   [$pgsqlStmt| return 3 + 4; |]
+>      in PgSqlStmt [pgsqlStmt| return $e(expr); |]
+>                   [pgsqlStmt| return 3 + 4; |]
 >
 
 >     ,let triggername = [sqlNameComponent|my_trigger|]
 >          tablename = [sqlName|my_table|]
 >          opname = [sqlName|my_function|]
->      in Stmt [$sqlStmt|
+>      in Stmt [sqlStmt|
 >   create trigger $m(triggername)
 >     after insert or update or delete on $n(tablename)
 >     for each statement
 >     execute procedure $n(opname)();
 >             |]
->              [$sqlStmt|
+>              [sqlStmt|
 >   create trigger my_trigger
 >     after insert or update or delete on my_table
 >     for each statement
@@ -96,36 +96,36 @@ Tests mainly for antiquotation, plus examples of where antiquotes work.
 >             |]
 
 >     ,let tablename = [sqlName|lotsastuff|]
->      in Expr [$sqlExpr|(select count(*) from $n(tablename))|]
->              [$sqlExpr|(select count(*) from lotsastuff)|]
+>      in Expr [sqlExpr|(select count(*) from $n(tablename))|]
+>              [sqlExpr|(select count(*) from lotsastuff)|]
 >
 >     ,let trigname = [sqlNameComponent|tbl_trig1|]
 >          tablename = [sqlName|tbl|]
 >          tevent = TUpdate
 >          fn = [sqlName|checkit|]
->      in Stmt [$sqlStmt|
+>      in Stmt [sqlStmt|
 >      create trigger $m(trigname)
 >         after $t(tevent) on $n(tablename)
 >         for each row
 >         execute procedure $n(fn)();
->             |] [$sqlStmt|
+>             |] [sqlStmt|
 >      create trigger tbl_trig1
 >         after update on tbl
 >         for each row
 >         execute procedure checkit();
 >             |]
 >     ,let x = [sqlName| fnname |]
->      in Expr [$sqlExpr| $n(x)('a') |]
->              [$sqlExpr| fnname('a') |]
+>      in Expr [sqlExpr| $n(x)('a') |]
+>              [sqlExpr| fnname('a') |]
 >     ,let x = StringLit ea "splicedstring"
->      in Expr [$sqlExpr| $e(x) |]
->              [$sqlExpr| 'splicedstring' |]
->     ,let x = [$sqlName|splicedIdentifier|]
->      in Expr [$sqlExpr| $n(x) |]
->              [$sqlExpr| splicedIdentifier |]
+>      in Expr [sqlExpr| $e(x) |]
+>              [sqlExpr| 'splicedstring' |]
+>     ,let x = [sqlName|splicedIdentifier|]
+>      in Expr [sqlExpr| $n(x) |]
+>              [sqlExpr| splicedIdentifier |]
 >     ,let errMsg = "string splice"
->      in PgSqlStmt [$pgsqlStmt| raise exception $s(errMsg); |]
->                   [$pgsqlStmt| raise exception 'string splice'; |]
+>      in PgSqlStmt [pgsqlStmt| raise exception $s(errMsg); |]
+>                   [pgsqlStmt| raise exception 'string splice'; |]
 
 >
 

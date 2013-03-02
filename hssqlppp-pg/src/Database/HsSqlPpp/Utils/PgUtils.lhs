@@ -1,38 +1,17 @@
 
-Some simple wrappers around HDBC for the code to use.
+wrapper around postgresql-simple
+
+the only thing it does is provide a version of withDB which accepts a
+connection string instead of a ConnectionInfo
 
 > module Database.HsSqlPpp.Utils.PgUtils
 >     (withConn
->     ,selectRelation
->     ,runSqlCommand
->     ,withTransaction
->     ,Pg.Connection
->     ,IConnection) where
->
-> import qualified Database.HDBC.PostgreSQL as Pg
-> import Database.HDBC
+>     ,module Database.PostgreSQL.Simple) where
+
+> import qualified Database.PostgreSQL.Simple as Pg
+> import Database.PostgreSQL.Simple
 > import Control.Exception
-> import qualified Data.Text as T
->
+> import qualified Data.ByteString.Char8 as B
+
 > withConn :: String -> (Pg.Connection -> IO c) -> IO c
-> withConn cs = bracket (Pg.connectPostgreSQL cs) disconnect
->
-> selectRelation ::(IConnection conn) =>
->                  conn -> String -> [String] -> IO [[T.Text]]
-> selectRelation conn query args = do
->   sth <- prepare conn query
->   _ <- execute sth $ map sToSql args
->   v <- fetchAllRows' sth
->   return $ map (map sqlToS) v
->
-> runSqlCommand :: (IConnection conn) =>
->           conn -> String -> IO ()
-> runSqlCommand conn query = do
->     _ <- run conn query []
->     commit conn
->
-> sToSql :: String -> SqlValue
-> sToSql s = toSql (s::String)
->
-> sqlToS :: SqlValue -> T.Text
-> sqlToS = T.pack . fromSql
+> withConn cs = bracket (Pg.connectPostgreSQL $ B.pack cs) Pg.close

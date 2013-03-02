@@ -1,11 +1,11 @@
 
-> {-# LANGUAGE QuasiQuotes #-}
+> {-# LANGUAGE QuasiQuotes,OverloadedStrings #-}
 
 > import Text.Groom
 
 > import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Utils.CatalogReader
-> import Database.HsSqlPpp.Utils.PgUtils
+> import qualified Database.HsSqlPpp.Utils.PgUtils as Pg
 > import qualified Data.Text as T
 
 > main :: IO ()
@@ -13,15 +13,15 @@
 >   let cs = "dbname=template1"
 >   cus <- readCatalogFromDatabase cs
 >   let s = groom cus
->   v <- withConn cs $ \conn -> do
->          r <- selectRelation conn "select version();" []
+>   v <- Pg.withConn cs $ \conn -> do
+>          r <- Pg.query_ conn "select version();"
 >          return (head $ head r)
 >   putStrLn $ pre (T.unpack v) ++ "\n" ++
 >      unlines (map (">        " ++) $ lines s)
 
 
 > pre :: String -> String
-> pre v = [$here|
+> pre v = [here|
 \begin{code}
 
 This file is auto generated, to regenerate run
@@ -36,7 +36,7 @@ installed to do this.
 > --import Database.HsSqlPpp.Internals.TypesInternal
 > -- | The catalog from a default template1 database in roughly the
 > -- latest postgres. 'select version()' from the dbms this catalog
-> -- was generated from: '|] ++  v  ++ [$here|'.
+> -- was generated from: '|] ++  v  ++ [here|'.
 > defaultTemplate1Catalog :: Catalog
 > defaultTemplate1Catalog =
 >     (\l -> case l of

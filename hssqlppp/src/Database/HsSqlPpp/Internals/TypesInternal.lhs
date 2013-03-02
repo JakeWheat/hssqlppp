@@ -7,7 +7,7 @@ notes on what the types are for and how they are used in postgres.
 > module Database.HsSqlPpp.Internals.TypesInternal where
 >
 > import Data.Data
-> import Data.Generics.Uniplate.Data
+> --import Data.Generics.Uniplate.Data
 > import Data.Char
 > import Data.Text (Text)
 > import qualified Data.Text as T

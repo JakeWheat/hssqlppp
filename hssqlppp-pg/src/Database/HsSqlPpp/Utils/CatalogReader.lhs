@@ -4,7 +4,7 @@ database. This can be applied to the default catalog to be able to
 typecheck against that database.
 
 
-> {-# LANGUAGE QuasiQuotes,OverloadedStrings #-}
+> {-# LANGUAGE QuasiQuotes,OverloadedStrings,ScopedTypeVariables #-}
 >
 > module Database.HsSqlPpp.Utils.CatalogReader
 >     (readCatalogFromDatabase) where
@@ -14,11 +14,12 @@ typecheck against that database.
 > --import Control.Applicative
 > import Database.HsSqlPpp.Utils.Here2
 > import Database.HsSqlPpp.Catalog
-> import Database.HsSqlPpp.Utils.PgUtils
 > --import Database.HsSqlPpp.Catalog
 > --import Database.HsSqlPpp.Types
+> import qualified Database.HsSqlPpp.Utils.PgUtils as Pg
 > import Data.List.Split
 > import qualified Data.Text as T
+
 >
 > -- | Creates an 'CatalogUpdate' list by reading the database given.
 > -- To create an Catalog value from this, use
@@ -29,12 +30,10 @@ typecheck against that database.
 > -- @
 > readCatalogFromDatabase :: String -- ^ connection string of the database to read
 >                             -> IO [CatalogUpdate]
-> readCatalogFromDatabase cs = withConn cs $ \conn -> do
+> readCatalogFromDatabase cs = Pg.withConn cs $ \conn -> do
 
 
->   scalarTypeNames <-
->     map (CatCreateScalarType . head) `fmap`
->         selectRelation conn [$here|
+>   scalarTypeNames <- reverse `fmap` Pg.fold_ conn [here|
 \begin{code}
 
 select  case nspname
@@ -54,16 +53,12 @@ where typtype = 'b'
   order by t.typname;
 
 \end{code}
->                                     |] []
-
-
+>       |] [] (\l (Pg.Only r) -> return (CatCreateScalarType r : l))
 
 >   domainTypes <-
->     -- have to add the implicit cast since this isn't
->     -- in the pg catalog (todo: check this)
->     concatMap (\[d,b] -> [CatCreateDomainType d b
->                          ,CatCreateCast d b ImplicitCastContext]) `fmap`
->         selectRelation conn [$here|
+>       -- have to add the implicit cast since this isn't
+>       -- in the pg catalog (todo: check this)
+>       Pg.fold_ conn [here|
 \begin{code}
 
 select case ns.nspname
@@ -92,13 +87,12 @@ where t.typtype = 'd'
   order by t.typname;
 
 \end{code}
->                                     |] []
+>       |] [] (\l (d,b) -> return $ [CatCreateDomainType d b
+>                                   ,CatCreateCast d b ImplicitCastContext] ++ l)
 
 >   arrayTypes <-
->     -- add the type categories for arrays
->     concatMap ( \[nm,bs] -> [CatCreateArrayType nm bs
->                             ,CatCreateTypeCategoryEntry nm ("A",False)]) `fmap`
->         selectRelation conn [$here|
+>       -- add the type categories for arrays
+>       Pg.fold_ conn [here|
 \begin{code}
 
 select e.typname as arraytype,
@@ -114,11 +108,10 @@ select e.typname as arraytype,
   order by t.typname;
 
 \end{code}
->                                     |] []
+>       |] [] (\l (nm,bs) -> return $ [CatCreateArrayType nm bs
+>                                     ,CatCreateTypeCategoryEntry nm ("A",False)] ++ l)
 
->   prefixOps <-
->     map ( \[nm,rt,res] -> CatCreatePrefixOp nm rt res) `fmap`
->         selectRelation conn [$here|
+>   prefixOps <- reverse `fmap` Pg.fold_ conn [here|
 \begin{code}
 select oprname,
        rt.typname,
@@ -131,11 +124,9 @@ inner join pg_type res
 where oprleft = 0
 order by oprname;
 \end{code}
->                                     |] []
+>       |] [] (\l (nm,rt,res) -> return $ CatCreatePrefixOp nm rt res : l)
 
->   postfixOps <-
->     map ( \[nm,lt,res] -> CatCreatePostfixOp nm lt res) `fmap`
->         selectRelation conn [$here|
+>   postfixOps <- reverse `fmap` Pg.fold_ conn [here|
 \begin{code}
 select oprname,
        lt.typname,
@@ -148,11 +139,10 @@ inner join pg_type res
 where oprright = 0
 order by oprname;
 \end{code}
->                                     |] []
+>       |] [] (\l (nm,rt,res) -> return $ CatCreatePostfixOp nm rt res : l)
 
->   binaryOps <-
->     map ( \[nm,lt,rt,res] -> CatCreateBinaryOp nm lt rt res) `fmap`
->         selectRelation conn [$here|
+
+>   binaryOps <- reverse `fmap` Pg.fold_ conn [here|
 \begin{code}
 select oprname,
        lt.typname,
@@ -168,13 +158,11 @@ inner join pg_type res
 where not oprname = '@' --hack for now
 order by oprname;
 \end{code}
->                                     |] []
+>       |] [] (\l (nm,lt,rt,res) -> return $ CatCreateBinaryOp nm lt rt res : l)
 
->   fns <-
->     map ( \[nm,ts,pr,res] -> CatCreateFunction nm (tsplitOn "," ts) (pr == "t") res) `fmap`
->         selectRelation conn [$here|
+>   fns <- reverse `fmap` Pg.fold_ conn [here|
 \begin{code}
--- maybe the args will come out in the right order?
+-- maybe the args will come out in the right order
 with typenames as (
 select pg_type.oid as toid,typname from pg_type
 inner join pg_namespace ns
@@ -215,13 +203,11 @@ from namedtypes
 group by prooid,proname,proretset,retname
 order by proname;
 \end{code}
->                                     |] []
+>       |] [] (\l (nm,ts,pr,res) -> return $ CatCreateFunction nm (tsplitOn "," ts) pr res : l)
 
->   aggs <-
->     map ( \[nm,ts,_,res] -> CatCreateAggregate nm (tsplitOn "," ts) res) `fmap`
->         selectRelation conn [$here|
+>   aggs <- reverse `fmap` Pg.fold_ conn [here|
 \begin{code}
--- maybe the args will come out in the right order?
+-- maybe the args will come out in the right order
 with typenames as (
 select pg_type.oid as toid,typname from pg_type
 inner join pg_namespace ns
@@ -262,17 +248,10 @@ from namedtypes
 group by prooid,proname,proretset,retname
 order by proname;
 \end{code}
->                                     |] []
+>       |] [] (\l (nm,ts,(_::Bool),res) -> return $ CatCreateAggregate nm (tsplitOn "," ts) res : l)
 
 
->   casts <- map (\[f,t,c] -> let cst "a" = AssignmentCastContext
->                                 cst "i" = ImplicitCastContext
->                                 cst "e" = ExplicitCastContext
->                                 cst x = error $ "internal error: unknown \
->                                                \cast context " ++ T.unpack x
->                             in CatCreateCast f t (cst c)
->                          ) `fmap`
->         selectRelation conn [$here|
+>   casts <- reverse `fmap` Pg.fold_ conn [here|
 \begin{code}
 with typenames as (
 select pg_type.oid as toid,typname from pg_type
@@ -291,11 +270,13 @@ inner join typenames ct
   on casttarget=ct.toid
 order by cs.typname,ct.typname;
 \end{code}
->                                     |] []
-
->   typeCategories <-
->     map ( \[nm,cat,pref] -> CatCreateTypeCategoryEntry nm (cat,read $ T.unpack pref)) `fmap`
->         selectRelation conn [$here|
+>       |] [] (\l (f,t,c) -> let cst "a" = AssignmentCastContext
+>                                cst "i" = ImplicitCastContext
+>                                cst "e" = ExplicitCastContext
+>                                cst x = error $ "internal error: unknown \
+>                                                \cast context " ++ T.unpack x
+>                            in return $ CatCreateCast f t (cst c) : l)
+>   typeCategories <- reverse `fmap` Pg.fold_ conn [here|
 \begin{code}
 select t.typname,typcategory,typispreferred
 from pg_type t
@@ -307,9 +288,7 @@ where t.typarray<>0 and
     pg_catalog.pg_type_is_visible(t.oid)
 order by t.typname;
 \end{code}
->                                     |] []
-
-
+>       |] [] (\l (nm,cat,pref) -> return $ CatCreateTypeCategoryEntry nm (cat, pref) : l)
 
 >   return $ concat [scalarTypeNames
 >                   ,domainTypes
@@ -326,7 +305,7 @@ order by t.typname;
 
 
 
->    {-typeInfo <- selectRelation conn [$here|
+>    {-typeInfo <- selectRelation conn [here|
 \begin{code}
 
 select t.oid as oid,
@@ -360,7 +339,7 @@ select t.oid as oid,
 >        typeMap = M.fromList typeAssoc
 >    cts <- map (\(nm:cat:pref:[]) ->
 >                CatCreateScalar (ScalarType nm) cat ( read pref :: Bool)) <$>
->           selectRelation conn [$here|
+>           selectRelation conn [here|
 \begin{code}
 
 select t.typname,typcategory,typispreferred
@@ -374,7 +353,7 @@ where t.typarray<>0 and
 
 \end{code}
 >                |] []
->    domainDefInfo <- selectRelation conn [$here|
+>    domainDefInfo <- selectRelation conn [here|
 \begin{code}
 
 select pg_type.oid, typbasetype
@@ -403,7 +382,7 @@ select pg_type.oid, typbasetype
 >                                   "e" -> ExplicitCastContext
 >                                   _ -> error $ "internal error: unknown \
 >                                                \cast context " ++ (l!!2)))
->    operatorInfo <- selectRelation conn [$here|
+>    operatorInfo <- selectRelation conn [here|
 \begin{code}
 
 select oprname,
@@ -428,7 +407,7 @@ from pg_operator
 >                     | otherwise -> getOps pref post (bit [jlt (l!!1)
 >                                                          ,jlt (l!!2)]:bin) ls
 >    let (prefixOps, postfixOps, binaryOps) = getOps [] [] [] operatorInfo
->    functionInfo <- selectRelation conn [$here|
+>    functionInfo <- selectRelation conn [here|
 \begin{code}
 
 select proname,
@@ -444,7 +423,7 @@ order by proname,proargtypes;
 \end{code}
 >                |] []
 >    let fnProts = map (convFnRow jlt) functionInfo
->    aggregateInfo <- selectRelation conn [$here|
+>    aggregateInfo <- selectRelation conn [here|
 \begin{code}
 
 select proname,
@@ -459,7 +438,7 @@ order by proname,proargtypes;
 \end{code}
 >                |] []
 >    let aggProts = map (convFnRow jlt) aggregateInfo
->    windowInfo <- selectRelation conn [$here|
+>    windowInfo <- selectRelation conn [here|
 \begin{code}
 
 select proname,
@@ -486,7 +465,7 @@ order by proname,proargtypes;
 >                                               (convertAttString jlt sysatts)
 >                     "v" -> CatCreateView nm1 (convertAttString jlt atts)
 >                     _ -> error $ "unrecognised relkind: " ++ kind) <$>
->                 selectRelation conn [$here|
+>                 selectRelation conn [here|
 \begin{code}
 
 with att1 as (

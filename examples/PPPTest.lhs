@@ -14,9 +14,9 @@ that pretty print . parse == id
 > import Control.Monad
 > import Data.Algorithm.Diff
 > import Text.Groom
-> import Data.Generics.Uniplate.Data
-> import Data.Data
-> import Database.HsSqlPpp.Annotation
+> --import Data.Generics.Uniplate.Data
+> --import Data.Data
+> --import Database.HsSqlPpp.Annotation
 > import qualified Data.Text.Lazy.IO as LT
 
 > main :: IO ()

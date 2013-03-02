@@ -40,13 +40,13 @@ Instead of:
 
 > fixIntervals :: Data a => a -> a
 > fixIntervals = transformBi $ \x -> case x of
->   [$sqlExpr| $e(a) + $e(b) |] | Just (i,v,d) <- dateInfo a b ->
->      [$sqlExpr| dateAdd($e(i),$e(v),$e(d))|]
->   [$sqlExpr| $e(a) - $e(b) |]| Just (i,v,d) <- dateInfo a b ->
->      [$sqlExpr| dateAdd($e(i),-$e(v),$e(d))|]
+>   [sqlExpr| $e(a) + $e(b) |] | Just (i,v,d) <- dateInfo a b ->
+>      [sqlExpr| dateAdd($e(i),$e(v),$e(d))|]
+>   [sqlExpr| $e(a) - $e(b) |]| Just (i,v,d) <- dateInfo a b ->
+>      [sqlExpr| dateAdd($e(i),-$e(v),$e(d))|]
 >   x' -> x'
 >   where
->     dateInfo [$sqlExpr| $n(date) $s(d)|]
+>     dateInfo [sqlExpr| $n(date) $s(d)|]
 >              (Interval _ v i _)
 >              | Just i' <- lookup i [(IntervalDay,[sqlExpr| day |])
 >                                    ,(IntervalMonth,[sqlExpr|month|])
@@ -61,8 +61,8 @@ Instead of:
 
 > fixExtract :: Data a => a -> a
 > fixExtract = transformBi $ \x -> case x of
->   [$sqlExpr| extract(year from $e(expr) ) |] ->
->       [$sqlExpr| datepart(year,$e(expr)) |]
+>   [sqlExpr| extract(year from $e(expr) ) |] ->
+>       [sqlExpr| datepart(year,$e(expr)) |]
 >   x' -> x'
 
 
@@ -72,8 +72,8 @@ Instead of:
 
 > fixSubstring :: Data a => a -> a
 > fixSubstring = transformBi $ \x -> case x of
->   [$sqlExpr| substring($e(i) from $e(a) for $e(b)) |] ->
->       [$sqlExpr| substring($e(i),$e(a),$e(b)) |]
+>   [sqlExpr| substring($e(i) from $e(a) for $e(b)) |] ->
+>       [sqlExpr| substring($e(i),$e(a),$e(b)) |]
 >   x' -> x'
 
  ‘1998-12-01’

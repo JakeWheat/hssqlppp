@@ -2,12 +2,12 @@
 > {-# LANGUAGE QuasiQuotes #-}
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Quote
-> import Database.HsSqlPpp.Annotation
+> --import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Pretty
 > import qualified Data.Text.Lazy.IO as LT
 
 > test :: Statement
-> test = [$sqlStmt|
+> test = [sqlStmt|
 >
 >   create table $m(tablename) (
 >    $m(varname) $m(typename)

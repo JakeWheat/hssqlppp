@@ -7,10 +7,10 @@
 >
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 > import Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
-> import Data.List
+> --import Data.List
 > import Data.Generics.Uniplate.Data
-> import Debug.Trace
-> import Text.Groom
+> --import Debug.Trace
+> --import Text.Groom
 
 > defaultTSQLCatalog :: Catalog
 > defaultTSQLCatalog = either (error . show) id catr
@@ -85,7 +85,7 @@
 >                      CatCreateBinaryOp {} -> True
 >                      CatCreateFunction f _ _ _ | f `elem` ["abs","float4","float8","int2","int4","mod","numeric"] -> True
 >                      CatCreateAggregate f _ _ | f `elem` ["avg","max","min","sum"] -> True
->                      CatCreateCast a b c | a == "int2" || b == "int2" -> True
+>                      CatCreateCast a b _ | a == "int2" || b == "int2" -> True
 >                      CatCreateTypeCategoryEntry {} -> True
 >                      _ -> False
 

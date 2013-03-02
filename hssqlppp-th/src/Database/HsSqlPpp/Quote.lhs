@@ -78,7 +78,7 @@ use haskell syntax inside antiquotes
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Ast hiding (Name)
 > import qualified  Database.HsSqlPpp.Ast as A
-> import qualified Data.Text as T
+> --import qualified Data.Text as T
 > import qualified Data.Text.Lazy as L
 > --import Data.Data
 
@@ -114,8 +114,8 @@ public api: the quasiquote functions
 >     prs s = either (fail . show) return (pse s)
 >             >>= dataToExpQ (const Nothing)-}
 
-> pse :: String -> Either P.ParseErrorExtra ScalarExpr
-> pse = parseScalarExpr P.defaultParseFlags "" Nothing
+> --pse :: String -> Either P.ParseErrorExtra ScalarExpr
+> --pse = parseScalarExpr P.defaultParseFlags "" Nothing
 
 ghc -Wall -threaded -rtsopts  -isrc:src-extra/catalogReader:src-extra/chaos:src-extra/devel-util:src-extra/docutil:src-extra/examples:src-extra/extensions:src-extra/h7c:src-extra/tests:src-extra/chaos/extensions:src-extra/utils temp.lhs
 
@@ -322,12 +322,12 @@ also, how to use haskell syntax in splices
 >                 -> Either P.ParseErrorExtra [Statement]
 > parseStatements p f s src = P.parseStatements p f s (L.pack src)
 
-> parseQueryExpr :: P.ParseFlags -- ^ parse options
+> {-parseQueryExpr :: P.ParseFlags -- ^ parse options
 >                -> FilePath -- ^ filename to use in errors
 >                -> Maybe (Int,Int) -- ^ set the line number and column number
 >                -> String -- ^ a string containing the sql to parse
 >                -> Either P.ParseErrorExtra QueryExpr
-> parseQueryExpr p f s src = P.parseQueryExpr p f s (L.pack src)
+> parseQueryExpr p f s src = P.parseQueryExpr p f s (L.pack src)-}
 
 > parseScalarExpr :: P.ParseFlags -- ^ parse options
 >                 -> FilePath -- ^ filename to use in errors

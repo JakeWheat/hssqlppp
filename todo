@@ -13,8 +13,15 @@ new release of package-o-tron
 
 next releases rough plan:
 2
-nullable typechecking
-typesafe haskell acces
+either a)
+  nullable typechecking
+  typesafe haskell access
+or b)
+  rewrite the parser, syntax, uuagc from scratch (use attoparsec or
+     uu-parsinglib?)
+then the other one
+
+qualify imports
 group by type checker
 error handling
 unique ids for identifiers/nodes

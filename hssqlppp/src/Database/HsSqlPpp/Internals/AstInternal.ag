@@ -1064,7 +1064,7 @@ canonicalizeTypeNames =
          Prec2TypeName a tn i i1 -> Prec2TypeName a (c tn) i i1
          x' -> x')
    where
-     c (Name a [Nmc c]) = Name a [Nmc $ T.unpack $ canonicalizeTypeName $ T.pack c]
+     c (Name a [Nmc nc]) = Name a [Nmc $ T.unpack $ canonicalizeTypeName $ T.pack nc]
      c z = z
 
 }
