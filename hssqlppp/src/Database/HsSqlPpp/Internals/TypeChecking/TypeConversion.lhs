@@ -13,7 +13,7 @@ http://msdn.microsoft.com/en-us/library/ms190309.aspx
 linked from here:
 http://blogs.msdn.com/b/craigfr/archive/2010/01/20/more-on-implicit-conversions.aspx
 
-> {-# LANGUAGE OverloadedStrings #-}
+> {-# LANGUAGE OverloadedStrings,TupleSections #-}
 > module Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
 >     (matchApp
 >     ,resolveResultSetType
@@ -29,6 +29,7 @@ http://blogs.msdn.com/b/craigfr/archive/2010/01/20/more-on-implicit-conversions.
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 > --import Database.HsSqlPpp.Utils.Utils
 > --import Database.HsSqlPpp.Internals.TediousTypeUtils
+> import Control.Applicative
 
 > import Database.HsSqlPpp.Internals.TypeChecking.OldTypeConversion
 > import Database.HsSqlPpp.SqlDialect
@@ -66,6 +67,41 @@ This needs a lot more tests
 > matchApp SQLServerDialect _cat [Nmc dd] [_,_,ScalarType "date"]
 >   | map toLower dd == "dateadd" =
 >   Right ([typeInt,typeInt,typeDate], typeDate)
+
+double hack: support oracle decode when in tsql mode:
+
+> matchApp SQLServerDialect cat [Nmc dd] as
+>   | map toLower dd == "decode" =
+
+decode is just syntax for simple case statement:
+demand at least 3 arguments
+get the type of the first argument: this is the test target
+
+>   case as of
+>     (tt:as'@(_:_:_)) -> do
+
+for each pair of arguments following: check the first
+one can be compared to the test target
+
+collect all the second types
+if there is a single trailing argument this is the else
+
+>         let checkBranches [] acc = return $ reverse acc
+>             checkBranches [els] acc = return $ reverse (els:acc)
+>             checkBranches (w:t:xs) acc = do
+>               _ <- matchApp SQLServerDialect cat [Nmc "="] [tt,w]
+>               checkBranches xs (t:acc)
+>         sndTypes <- checkBranches as' []
+
+check the seconds types + the else for type compatilibility
+return this type
+todo: add the implicit casting where needed
+
+>         (as,) <$> resolveResultSetType cat sndTypes
+
+
+>     _ -> Left [NoMatchingOperator (T.pack dd) as]
+
 
 
 > matchApp d cat nmcs pts = {-trace ("matchapp: " ++ show (d,nmcs,pts)) $ -} do

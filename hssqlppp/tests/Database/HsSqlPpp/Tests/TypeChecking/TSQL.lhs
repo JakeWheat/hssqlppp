@@ -110,4 +110,9 @@ todo: add new dialect and stuff for oracle
 >    "select a from t where \
 >    \ trunc(a) between '2001-01-01 00:00:00' and '2001-04-01 00:00:00'"
 >    $ Right $ CompositeType [("a",typeDate)]
+
+>   ,TSQLQueryExpr [CatCreateTable "t" [("a", "int")]]
+>    "select decode(a,0,0,1,5,2,6,3,7,10) as a from t"
+>    $ Right $ CompositeType [("a",typeInt)]
+
 >   ]
