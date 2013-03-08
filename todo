@@ -1,12 +1,7 @@
 next release: current release doesn't work with 7.6, maybe others, get
    new release out quickly:
-documentation fixup
-examples review + fixup - bit of mess atm
+documentation fixup, examples review + fixup - bit of mess atm
 haddock review
-tests - make sure all the tests work and run from the .cabal
-hlint pass
-review source documentation
-use pgsimple
 check works with at least 7.2,7.4,7.6
 
 new release of package-o-tron
@@ -21,6 +16,7 @@ or b)
      uu-parsinglib?)
 then the other one
 
+review source documentation
 qualify imports
 group by type checker
 error handling

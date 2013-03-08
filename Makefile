@@ -70,7 +70,8 @@ EXE_FILES = hssqlppp/tests/Tests \
 	examples/PPPTest \
 	examples/QQ \
 	examples/FixSqlServerTpchSyntax \
-	examples/Reformat
+	examples/Reformat \
+	examples/LexingTest
 	#src-extra/chaos/chaos/BuildChaosSql
 
 EXE_FILENAMES = $(addsuffix ".lhs",$(EXE_FILES))
@@ -85,7 +86,7 @@ EXE_FILENAMES = $(addsuffix ".lhs",$(EXE_FILES))
 BUILD = build
 
 # the command and options used to compile .hs/.lhs to .o
-HC              = ghc
+HC              = @ghc
 HC_BASIC_OPTS   = -Wall -threaded -rtsopts -v0
 #-O2
 
@@ -152,7 +153,7 @@ ALL_HASKELL_SOURCES := $(shell find . -type f -name '*hs')
 .DELETE_ON_ERROR : autorules.mk
 autorules.mk : $(ALL_HASKELL_SOURCES)
 	@echo GENERATE autorules.mk
-	MakeHaskellMake --hide-package haskell2010 --hide-package haskell98 \
+	@MakeHaskellMake --hide-package haskell2010 --hide-package haskell98 \
              --hide-package hssqlppp --hide-package hssqlppp-pg \
              --hide-package hssqlppp-th \
              $(HC_INCLUDE_DIRS) $(EXE_FILENAMES) > \

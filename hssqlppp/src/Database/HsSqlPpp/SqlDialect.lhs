@@ -8,4 +8,5 @@ more dialect options will be added here
 > -- | The dialect of SQL to use.
 > data SQLSyntaxDialect = PostgreSQLDialect
 >                       | SQLServerDialect
+>                       | OracleDialect
 >                         deriving (Show,Eq)
