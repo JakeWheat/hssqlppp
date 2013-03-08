@@ -1,4 +1,5 @@
 
+> {-# LANGUAGE OverloadedStrings #-}
 > --import Control.Monad
 > --import Data.Generics.Uniplate.Data
 > import System.Environment
@@ -14,6 +15,7 @@
 > --import Text.Groom
 > import Database.HsSqlPpp.Tests.TpchData
 > import qualified Data.Text.Lazy.IO as LT
+> import Text.Groom
 
 > main :: IO ()
 > main = do
@@ -21,13 +23,27 @@
 >   query <- LT.readFile f
 >   let ast :: [Statement]
 >       ast = either (error . show) id
->             $ parsePlpgsql defaultParseFlags "" Nothing query
+>             $ parsePlpgsql defaultParseFlags {pfDialect = SQLServerDialect } f Nothing query
 >       -- type check the ast
 >       aast :: [Statement]
->       aast = snd $ typeCheckStatements defaultTypeCheckingFlags cat ast
->   putStrLn $ groomTypes aast
+>       aast = snd $ typeCheckStatements defaultTypeCheckingFlags { tcfDialect = SQLServerDialect } cat ast
+>   putStrLn $ groom aast
 >   where
->     Right cat = updateCatalog
->                   tpchCatalog
->                   defaultTemplate1Catalog
+>     cat = either (error . groom) id $
+>           updateCatalog
+>                   catu
+>                   defaultTSQLCatalog
+>     catu = [CatCreateTable "v008_tot_times"
+>             [("work_ticket_no", "int")
+>             ,("close_date", "date")
+>             ,("equipment_name", "varchar")
+>             ,("work_in_central_lab", "tinyint")
+>             ,("customer_no", "varchar")]]
 
+create table v008_tot_times (
+       work_ticket_no int not null,
+       close_date date null,
+       equipment_name varchar(20) null,
+       work_in_central_lab tinyint null,
+       customer_no varchar(10) null
+);

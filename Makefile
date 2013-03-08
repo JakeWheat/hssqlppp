@@ -69,7 +69,8 @@ EXE_FILES = hssqlppp/tests/Tests \
 	examples/TypeCheckDB \
 	examples/PPPTest \
 	examples/QQ \
-	examples/FixSqlServerTpchSyntax
+	examples/FixSqlServerTpchSyntax \
+	examples/Reformat
 	#src-extra/chaos/chaos/BuildChaosSql
 
 EXE_FILENAMES = $(addsuffix ".lhs",$(EXE_FILES))

@@ -1889,7 +1889,7 @@ http://msdn.microsoft.com/en-us/library/ms189822.aspx
 >        ,"commit"
 >        ,"compute"
 >        ,"constraint"
->        ,"contains"
+>        -- ,"contains" todo: fix properly, oracle has function called contains
 >        ,"containstable"
 >        ,"continue"
 >        ,"convert"
