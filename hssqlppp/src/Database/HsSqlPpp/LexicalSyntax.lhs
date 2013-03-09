@@ -110,7 +110,7 @@
 >                   ,T.singleton '('
 >                   ,t
 >                   ,T.singleton ')']
-> prettyToken _ (CopyPayload s) = LT.fromChunks [s]
+> prettyToken _ (CopyPayload s) = LT.fromChunks [s,"\\.\n"]
 
 
 not sure how to get the position information in the parse errors
@@ -131,7 +131,53 @@ investigate differences for sql server, oracle, maybe db2 and mysql
 > addPosition' (f,l,c) (_:xs) = addPosition' (f,l,c+1) xs
 
 > sqlTokens :: SQLSyntaxDialect -> Position -> T.Text -> Either String [(Position,Token)]
-> sqlTokens d p t = parseOnly (many (sqlToken d p)) t
+> sqlTokens dialect pos txt = parseOnly (many_p pos) txt
+>    where
+
+pretty hacky, want to switch to a different lexer for copy from stdin
+statements
+
+if we see 'from stdin;' then try to lex a copy payload
+
+>      many_p pos' = some_p pos' `mplus` return []
+>      some_p pos' = do
+>        tok <- sqlToken dialect pos'
+>        let pos'' = advancePos dialect pos' (snd tok)
+>        case tok of
+>          (_, Identifier Nothing t) | T.map toLower t == "from" -> (tok:) <$> seeStdin pos''
+>          _ -> (tok:) <$> many_p pos''
+>      seeStdin pos' = do
+>        tok <- sqlToken dialect pos'
+>        let pos'' = advancePos dialect pos' (snd tok)
+>        case tok of
+>          (_,Identifier Nothing t) | T.map toLower t == "stdin" -> (tok:) <$> seeColon pos''
+>          (_,x) | isWs x -> (tok:) <$> seeStdin pos''
+>          _ -> (tok:) <$> many_p pos''
+>      seeColon pos' = do
+>        tok <- sqlToken dialect pos'
+>        let pos'' = advancePos dialect pos' (snd tok)
+>        case tok of
+>          (_,Symbol ";") -> (tok:) <$> copyPayload pos''
+>          _ -> (tok:) <$> many_p pos''
+>      copyPayload pos' = do
+>        tok <- char '\n' *>
+>             ((\x -> (pos', CopyPayload $ T.pack $ x ++ "\n"))
+>              <$> manyTill anyChar (string "\n\\.\n"))
+>        --let (_,CopyPayload t) = tok
+>        --trace ("payload is '" ++ T.unpack t ++ "'") $ return ()
+>        let pos'' = advancePos dialect pos' (snd tok)
+>        (tok:) <$> many_p pos''
+
+> advancePos :: SQLSyntaxDialect -> Position -> Token -> Position
+> advancePos dialect pos tok =
+>     let pt = prettyToken dialect tok
+>     in addPosition pos pt
+
+> isWs :: Token -> Bool
+> isWs (Whitespace {}) = True
+> isWs (BlockComment {}) = True
+> isWs (LineComment {}) = True
+> isWs _ = False
 
 > -- | attoparsec parser for a sql token
 > sqlToken :: SQLSyntaxDialect -> Position -> Parser (Position,Token)

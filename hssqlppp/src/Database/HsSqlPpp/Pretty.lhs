@@ -427,10 +427,16 @@ Conversion routines - convert Sql asts into Docs
 >     <+> ifNotEmpty (parens . sepCsvMap nmc) cols
 >     <+> text "from"
 >     <+> case src of
->                  CopyFilename s -> quotes $ ttext s
+>                  CopyFilename s -> (quotes $ ttext s)
+>                                    <+> copyOpts opts
+>                                    <> statementEnd se
+
 >                  Stdin -> text "stdin"
->     <+> copyOpts opts
->     <> statementEnd se
+>                           <+> copyOpts opts
+>                           -- put statement end without new line
+>                           -- so that the copydata follows immediately after
+>                           -- without an extra blank line inbetween
+>                           <> statementEndNNL se
 
 > statement flg se ca (CopyTo ann src fn opts) =
 >     annot ca ann <+>
@@ -533,6 +539,12 @@ Conversion routines - convert Sql asts into Docs
 > statementEnd b = if b
 >                  then semi <> newline
 >                  else empty
+
+> statementEndNNL :: Bool -> Doc
+> statementEndNNL b = if b
+>                     then semi
+>                     else empty
+
 
 -------------------------------------------------------------------------------
 
