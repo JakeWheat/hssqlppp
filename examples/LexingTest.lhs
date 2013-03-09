@@ -7,7 +7,7 @@ when a complete statement is read, call a function. Want to support
 sql statements which cover multiple lines and pasting in multiple
 statements at once/ entering multiple statements on one line.
 
-> {-# LANGUAGE OverloadedStrings,TupleSections #-}
+> {-# LANGUAGE OverloadedStrings,TupleSections,ScopedTypeVariables #-}
 
 > import qualified Data.Text.IO as T
 > import qualified Data.Text as T
@@ -20,7 +20,8 @@ statements at once/ entering multiple statements on one line.
 > import System.IO
 > --import Data.Ratio
 > import Database.HsSqlPpp.SqlDialect
-> import Data.List
+> import Data.List hiding (takeWhile)
+> import Prelude hiding (takeWhile)
 > import Control.Monad
 > import System.Environment
 > import Test.Framework
@@ -107,10 +108,7 @@ support 100% accurate pretty printing from lexed tokens back to source
 
 
 TODO:
-add tests: manual, quickcheck
-string parsing: E '' $$
-symbol parsing for dialects
-nested comments
+add quickcheck tests (see below)
 support copy from stdin for postgresql (later)
 split files: lexical syntax, lexer, pretty-lexicalsyntax, automated
   tests
@@ -159,7 +157,9 @@ public api in hssqlppp
 >     -- | a postgresql positional arg, e.g. $1
 >     | PositionalArg Int
 >     -- | a commented line using --, contains every character starting with the
->     -- '--' and including the terminating newline character
+>     -- '--' and including the terminating newline character if there is one
+>     -- - this will be missing if the last line in the source is a line comment
+>     -- with no trailing newline
 >     | LineComment T.Text
 >     -- | a block comment, /* stuff */, includes the comment delimiters
 >     | BlockComment T.Text
@@ -179,6 +179,7 @@ public api in hssqlppp
 > prettyToken _ (Identifier Nothing t) = LT.fromChunks [t]
 > prettyToken _ (Identifier (Just (a,b)) t) =
 >     LT.fromChunks [T.singleton a, t, T.singleton b]
+> prettyToken _ (SqlString "E'" t) = LT.fromChunks ["E'",t,"'"]
 > prettyToken _ (SqlString q t) = LT.fromChunks [q,t,q]
 > prettyToken _ (SqlNumber r) = LT.fromChunks [r]
 > prettyToken _ (Whitespace t) = LT.fromChunks [t]
@@ -216,12 +217,12 @@ investigate differences for sql server, oracle, maybe db2 and mysql
 > sqlToken d p =
 >     (p,) <$> choice [sqlString d
 >                     ,identifier d
->                     ,symbol d
->                     ,sqlNumber d
->                     ,sqlWhitespace d
->                     ,positionalArg d
 >                     ,lineComment d
 >                     ,blockComment d
+>                     ,sqlNumber d
+>                     ,symbol d
+>                     ,sqlWhitespace d
+>                     ,positionalArg d
 >                     ,splice d]
 
 > identifier :: SQLSyntaxDialect -> Parser Token
@@ -269,10 +270,66 @@ quoting uses ""
 >     startsWith (\c -> c == '_' || isAlpha c)
 >                (\c -> c == '_' || isAlphaNum c)
 
+Strings in sql:
+postgresql dialect:
+strings delimited with single quotes
+a literal quote is written ''
+the lexer leaves the double quote in the string in the ast
+strings can also be written like this:
+E'string with quotes in \n \t'
+the \n and \t are escape sequences. The lexer passes these through unchanged.
+an 'E' escaped string can also contain \' for a literal single quote.
+this are also passed into the ast unchanged
+strings can be dollar quoted:
+$$string$$
+the dollar quote can contain an optional tag:
+$tag$string$tag$
+which allows nesting of dollar quoted strings with different tags
+
+Not sure what behaviour in sql server and oracle, pretty sure they
+don't have dollar quoting, but I think they have the other two
+variants.
+
 > sqlString :: SQLSyntaxDialect -> Parser Token
 > sqlString _ =
->     SqlString "'" <$>
->     (char '\'' *> takeTill (=='\'') <* char '\'')
+>     choice [normalString
+>            ,eString
+>            ,dollarString]
+>   where
+>     normalString = SqlString "'" <$> (char '\'' *> normalStringSuffix "")
+>     normalStringSuffix t = do
+>         s <- takeTill (=='\'')
+>         void $ char '\''
+>         -- deal with '' as literal quote character
+>         choice [do
+>                 void $ char '\''
+>                 normalStringSuffix $ T.concat [t,s,"''"]
+>                ,return $ T.concat [t,s]]
+>     eString = SqlString "E'" <$> (string "E'" *> eStringSuffix "")
+>     eStringSuffix t = do
+>         s <- takeTill (`elem` "\\'")
+>         choice [do
+>                 void $ string "\\'"
+>                 eStringSuffix $ T.concat [t,s,"\\'"]
+>                ,do
+>                 void $ string "''"
+>                 eStringSuffix $ T.concat [t,s,"''"]
+>                ,do
+>                 void $ char '\''
+>                 return $ T.concat [t,s]
+>                ,do
+>                 c <- anyChar
+>                 eStringSuffix $ T.concat [t,s,T.singleton c]]
+>     dollarString = do
+>         delim <- dollarDelim
+>         y <- manyTill anyChar (string delim)
+>         return $ SqlString delim $ T.pack y
+>     dollarDelim :: Parser T.Text
+>     dollarDelim = do
+>       void $ char '$'
+>       tag <- option "" identifierString
+>       void $ char '$'
+>       return $ T.concat ["$", tag, "$"]
 
 > sqlNumber :: SQLSyntaxDialect -> Parser Token
 > sqlNumber _ =
@@ -314,9 +371,9 @@ where digits is one or more decimal digits (0 through 9). At least one digit mus
 >    digits = many1 digit
 
 > symbol :: SQLSyntaxDialect -> Parser Token
-> symbol _ = Symbol <$>
+> symbol dialect = Symbol <$>
 >     choice
->     [satisfyT (inClass "(),;[]")
+>     [satisfyT (inClass simpleSymbols)
 >     ,string ".."
 >     ,string "."
 >     ,string ":="
@@ -325,8 +382,14 @@ where digits is one or more decimal digits (0 through 9). At least one digit mus
 >   where
 >     satisfyT p = T.singleton <$> satisfy p
 >     biggerSymbol =
->         startsWith (inClass "*/<>=~!@#%^&|`?+-")
->                    (inClass "*/<>=~!@#%^&|`?")
+>         startsWith (inClass compoundFirst)
+>                    (inClass compoundTail)
+>     simpleSymbols | dialect == PostgreSQLDialect = "(),;[]"
+>                   | otherwise = "(),;"
+>     compoundFirst | dialect == PostgreSQLDialect = "*/<>=~!@#%^&|`?+-"
+>                   | otherwise = "*/<>=~!%^&|`?+-"
+>     compoundTail | dialect == PostgreSQLDialect = "*/<>=~!@#%^&|`?"
+>                  | otherwise = "*/<>=~!%^&|`?"
 
 
 > sqlWhitespace :: SQLSyntaxDialect -> Parser Token
@@ -334,19 +397,37 @@ where digits is one or more decimal digits (0 through 9). At least one digit mus
 
 > positionalArg :: SQLSyntaxDialect -> Parser Token
 > positionalArg PostgreSQLDialect =
->   PositionalArg <$> (char '$' *> (read <$> many1 digit))
+>   PositionalArg <$> (char '$' *> decimal)
 
 > positionalArg _ = satisfy (const False) >> error "positional arg unsupported"
 
 > lineComment :: SQLSyntaxDialect -> Parser Token
 > lineComment _ =
 >     (\s -> LineComment $ T.concat ["--",s]) <$>
->     (string "--" *>  takeTill (=='\n'))
+>     (string "--" *> choice
+>                     [flip T.snoc '\n' <$> takeTill (=='\n') <* char '\n'
+>                     ,takeWhile (/='\n') <* endOfInput
+>                     ])
 
 > blockComment :: SQLSyntaxDialect -> Parser Token
 > blockComment _ =
->     (\s -> BlockComment $ T.pack ("/*" ++  s ++ "*/")) <$>
->     (string "/*" *> manyTill anyChar (string "*/"))
+>     (\s -> BlockComment $ T.concat ["/*",s]) <$>
+>     (string "/*" *> commentSuffix 0)
+>   where
+>     commentSuffix :: Int -> Parser T.Text
+>     commentSuffix n = do
+>       -- read until a possible end comment or nested comment
+>       x <- takeWhile (\e -> e /= '/' && e /= '*')
+>       choice [-- close comment: if the nesting is 0, done
+>               -- otherwise recurse on commentSuffix
+>               string "*/" *> let t = T.concat [x,"*/"]
+>                              in if n == 0
+>                                 then return t
+>                                 else (\s -> T.concat [t,s]) <$> commentSuffix (n - 1)
+>               -- nested comment, recurse
+>              ,string "/*" *> ((\s -> T.concat [x,"/*",s]) <$> commentSuffix (n + 1))
+>               -- not an end comment or nested comment, continue
+>              ,T.cons <$> anyChar <*> commentSuffix n]
 
 > splice :: SQLSyntaxDialect -> Parser Token
 > splice _ = do
@@ -377,9 +458,13 @@ manually written
 strings
 
 >     [MT "'string'" [SqlString "'" "string"]
->     ,MT "E'string\n'" [SqlString "E'" "string\\n"] -- the \\n is to put a literal \ and n in the string
->     ,MT "E'quote\''" [SqlString "E'" "quote'"]
->     ,MT "'normal '' quote'" [SqlString "'" "normal ' quote"]
+>     ,MT "E'string\\n'" [SqlString "E'" "string\\n"] -- the \\n is to put a literal \ and n in the string
+>     ,MT "E'bsquoteend\\''" [SqlString "E'" "bsquoteend\\'"]
+>     ,MT "E'bsquote\\'xx'" [SqlString "E'" "bsquote\\'xx"]
+>     ,MT "E'quoteend'''" [SqlString "E'" "quoteend''"]
+>     ,MT "E'quote''x'" [SqlString "E'" "quote''x"]
+>     ,MT "'normal '' quote'" [SqlString "'" "normal '' quote"]
+>     ,MT "'normalendquote '''" [SqlString "'" "normalendquote ''"]
 >     ,MT "$$dollar quoting$$" [SqlString "$$" "dollar quoting"]
 >     ,MT "$x$dollar $$ quoting$x$" [SqlString "$x$" "dollar $$ quoting"]
 
@@ -447,11 +532,11 @@ splice
 >
 > testLex :: SQLSyntaxDialect -> T.Text -> [Token] -> Test.Framework.Test
 > testLex d t r = testCase ("lex "++ T.unpack t) $ do
->     let x = parseOnly (many1 (sqlToken d ("",1,0))) t
+>     let x = parseOnly (many1 (sqlToken d ("",1,0)) <* endOfInput) t
 >         y = either (error . show) id x
->     assertEqual "" r (map snd y)
+>     assertEqual "lex" r (map snd y)
 >     let t' = LT.concat $ map (prettyToken d) r
->     assertEqual "" (LT.fromChunks [t]) t'
+>     assertEqual "lex . pretty" (LT.fromChunks [t]) t'
 
 > runTests :: [String] -> IO ()
 > runTests as = defaultMainWithArgs [lexerTests] as
