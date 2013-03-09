@@ -4,11 +4,6 @@ documentation fixup, examples review + fixup - bit of mess atm
 haddock review
 check works with at least 7.2,7.4,7.6
 
-new lexer:
-fix the operator parsing <->
-hack in copypayload parsing
-
-
 new release of package-o-tron
 
 next releases rough plan:
