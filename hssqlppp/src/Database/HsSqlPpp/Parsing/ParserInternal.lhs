@@ -33,6 +33,7 @@ right choice, but it seems to do the job pretty well at the moment.
 > import Text.Parsec.Expr
 > import Text.Parsec.String
 > import Text.Parsec.Perm
+> import Text.Parsec.Pos
 >
 > import Control.Applicative hiding (many,optional,(<|>))
 > import Control.Monad.Identity
@@ -44,7 +45,7 @@ right choice, but it seems to do the job pretty well at the moment.
 > import Data.Generics.Uniplate.Data
 > import Data.Data hiding (Prefix,Infix)
 >
-> import Database.HsSqlPpp.Parsing.Lexer
+> import qualified Database.HsSqlPpp.LexicalSyntax as Lex
 > import Database.HsSqlPpp.Parsing.ParseErrors
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Annotation as A
@@ -107,10 +108,27 @@ Top level parsing functions
 >          -> L.Text
 >          -> Either ParseErrorExtra a
 > parseIt' ps flg fn sp src = do
->   lxd <- lexSql (pfDialect flg) fn sp src
+>   lxd <- lexem (pfDialect flg) fn sp src
 >   psd <- either (\e -> Left $ ParseErrorExtra e sp src) Right
 >          $ runParser ps flg fn lxd
 >   return $ fixupTree psd
+
+> lexem :: SQLSyntaxDialect
+>        -> FilePath
+>        -> Maybe (Int,Int)
+>        -> L.Text
+>        -> Either ParseErrorExtra [Token]
+> lexem d fn sp src =
+>   let ts :: Either ParseErrorExtra [Token]
+>       ts = either (error . show) Right
+>             $ Lex.sqlTokens d (uncurry (fn,,) $ maybe (1,0) id sp) $ T.concat $ L.toChunks src
+>   in --trace ((\(Right r) -> intercalate "\n" $ map show r) ts) $
+>      filter keep `fmap` ts
+>   where
+>     keep (_,Lex.Whitespace {}) = False
+>     keep (_,Lex.LineComment {}) = False
+>     keep (_,Lex.BlockComment {}) = False
+>     keep _ = True
 
 Parse state used for parse flags. Might be better to use a readerT
 somehow, but I'm not smart enough to work out how to do this. This
@@ -151,6 +169,9 @@ couple of wrapper functions for the quoting
 
 
 --------------------------------------------------------------------------------
+
+
+> type Token = (Lex.Position,Lex.Token)
 
 > type SParser =  GenParser Token ParseState
 
@@ -510,7 +531,7 @@ other dml-type stuff
 > copyData :: SParser Statement
 > copyData = CopyData <$> pos <*> mytoken (\tok ->
 >                                         case tok of
->                                                  CopyPayloadTok n -> Just $ L.unpack n
+>                                                  Lex.CopyPayload n -> Just $ T.unpack n
 >                                                  _ -> Nothing)
 >
 
@@ -2119,35 +2140,35 @@ Utility parsers
 
 > keyword :: Text -> SParser ()
 > keyword k = mytoken (\tok -> case tok of
->                                IdStringTok i | lcase k == lcase i -> Just ()
+>                                Lex.Identifier Nothing i | lcase k == lcase i -> Just ()
 >                                _ -> Nothing)
 >                       where
 >                         lcase = T.map toLower
 >
 > idString :: SParser String
 > idString = mytoken (\tok -> case tok of
->                                      IdStringTok i -> Just $ T.unpack i
+>                                      Lex.Identifier Nothing i -> Just $ T.unpack i
 >                                      _ -> Nothing)
 > qidString :: SParser String
 > qidString = mytoken (\tok -> case tok of
->                                      QIdStringTok i -> Just $ T.unpack i
+>                                      Lex.Identifier _ i -> Just $ T.unpack i
 >                                      _ -> Nothing)
 
 > splice :: Char -> SParser String
 > splice c = mytoken (\tok -> case tok of
->                                SpliceTok c' i | c == c' -> Just $ T.unpack i
+>                                Lex.Splice c' i | c == c' -> Just $ T.unpack i
 >                                _ -> Nothing)
 
 >
 > symbol :: Text -> SParser ()
 > symbol c = mytoken (\tok -> case tok of
->                                    SymbolTok s | c==s -> Just ()
+>                                    Lex.Symbol s | c==s -> Just ()
 >                                    _           -> Nothing)
 >
 > liftPositionalArgTok :: SParser Integer
 > liftPositionalArgTok =
 >   mytoken (\tok -> case tok of
->                    PositionalArgTok n -> Just n
+>                    Lex.PositionalArg n -> Just $ fromIntegral n
 >                    _ -> Nothing)
 
 > positionalArg :: SParser ScalarExpr
@@ -2161,14 +2182,17 @@ Utility parsers
 >
 > numString :: SParser String
 > numString = mytoken (\tok -> case tok of
->                                     NumberTok n -> Just $ T.unpack n
+>                                     Lex.SqlNumber n -> Just $ T.unpack n
 >                                     _ -> Nothing)
 
 >
 > liftStringTok :: SParser String
 > liftStringTok = mytoken (\tok ->
 >                   case tok of
->                            StringTok _ s -> Just $ T.unpack s
+>                            Lex.SqlString _ s ->
+>                               -- bit hacky, the lexer doesn't process quotes
+>                               -- but the parser expects them to have been replaced
+>                               Just $ T.unpack $ T.replace "''" "'" $ T.replace "\'" "'" s
 >                            _ -> Nothing)
 
 > stringLit :: SParser ScalarExpr
@@ -2182,7 +2206,7 @@ Utility parsers
 > stringN :: SParser String
 > stringN = mytoken (\tok ->
 >                   case tok of
->                            StringTok _ s -> Just $ T.unpack s
+>                            Lex.SqlString _ s -> Just $ T.unpack s
 >                            _ -> Nothing)
 
 > extrStr :: ScalarExpr -> String
@@ -2305,12 +2329,12 @@ parser combinator to return the current position as an ast annotation
 
 == lexer stuff
 
-> mytoken :: (Tok -> Maybe a) -> SParser a
+> mytoken :: (Lex.Token -> Maybe a) -> SParser a
 > mytoken test
 >   = token showToken posToken testToken
 >   where
 >   showToken (_,tok)   = show tok
->   posToken  (posi,_)  = posi
+>   posToken  ((a,b,c),_)  = newPos a b c
 >   testToken (_,tok)   = test tok
 
 --------------------------------------------------------------------------------

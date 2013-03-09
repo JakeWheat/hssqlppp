@@ -57,7 +57,6 @@ Library
                      -- find src -iname '*hs' | sed -e "s@src/@@" | sed -e "s@/@.@g" |sed -e "s/.lhs//" |sed -e "s/.hs//"
   Other-Modules:     Database.HsSqlPpp.Utils.Utils
                      Database.HsSqlPpp.Parsing.ParseErrors
-                     Database.HsSqlPpp.Parsing.Lexer
                      Database.HsSqlPpp.Parsing.ParserInternal
                      Database.HsSqlPpp.Internals.Catalog.CatalogInternal
                      Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
@@ -116,7 +115,6 @@ Test-Suite Tests
                      Database.HsSqlPpp.Internals.TypesInternal
                      Database.HsSqlPpp.LexicalSyntax
                      Database.HsSqlPpp.Parser
-                     Database.HsSqlPpp.Parsing.Lexer
                      Database.HsSqlPpp.Parsing.ParseErrors
                      Database.HsSqlPpp.Parsing.ParserInternal
                      Database.HsSqlPpp.Pretty

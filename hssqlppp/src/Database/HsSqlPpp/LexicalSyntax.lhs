@@ -84,6 +84,9 @@
 >
 >     -- | an antiquotation splice, e.g. $x(stuff)
 >     | Splice Char T.Text
+>
+>     -- | the copy data in a copy from stdin
+>     | CopyPayload T.Text
 >       deriving (Eq,Show)
 
 > -- | Accurate pretty printing, if you lex a bunch of tokens,
@@ -107,6 +110,7 @@
 >                   ,T.singleton '('
 >                   ,t
 >                   ,T.singleton ')']
+> prettyToken _ (CopyPayload s) = LT.fromChunks [s]
 
 
 not sure how to get the position information in the parse errors
@@ -127,7 +131,7 @@ investigate differences for sql server, oracle, maybe db2 and mysql
 > addPosition' (f,l,c) (_:xs) = addPosition' (f,l,c+1) xs
 
 > sqlTokens :: SQLSyntaxDialect -> Position -> T.Text -> Either String [(Position,Token)]
-> sqlTokens d p t = parseOnly (many1 (sqlToken d p) <* endOfInput) t
+> sqlTokens d p t = parseOnly (many (sqlToken d p)) t
 
 > -- | attoparsec parser for a sql token
 > sqlToken :: SQLSyntaxDialect -> Position -> Parser (Position,Token)
@@ -145,12 +149,14 @@ investigate differences for sql server, oracle, maybe db2 and mysql
 > identifier :: SQLSyntaxDialect -> Parser Token
 
 sql server: identifiers can start with @ or #
-quoting uses []
+quoting uses [] or ""
 
 > identifier SQLServerDialect =
 >     choice
 >     [Identifier (Just ('[',']'))
 >      <$> (char '[' *> takeWhile1 (/=']') <* char ']')
+>     ,Identifier (Just ('"','"'))
+>      <$> (char '"' *> takeWhile1 (/='"') <* char '"')
 >     ,Identifier Nothing <$> identifierStringPrefix '@'
 >     ,Identifier Nothing <$> identifierStringPrefix '#'
 >     ,Identifier Nothing <$> identifierString
@@ -268,6 +274,19 @@ where digits is one or more decimal digits (0 through 9). At least one digit mus
 >             s <- dotSuffix
 >             return $ SqlNumber $ T.pack $ d ++ s
 >            ,do
+>             void $ char '.'
+>             -- avoid parsing e.g. 4..5 as "4.",...
+>             -- want to parse it as "4","..","5"
+>             -- use choice to avoid impossible error
+>             -- when peekCharing at end of input on parseonly
+>             choice [do
+>                     endOfInput
+>                     return $ SqlNumber (T.pack $ d ++ ".")
+>                    ,do
+>                     x <- peekChar
+>                     guard (x /= Just '.')
+>                     return $ SqlNumber (T.pack $ d ++ ".")]
+>            ,do
 >             s <- eSuffix
 >             return $ SqlNumber $ T.pack $ d ++ s
 >            ,return $ SqlNumber $ T.pack d]
@@ -293,6 +312,7 @@ where digits is one or more decimal digits (0 through 9). At least one digit mus
 >     [satisfyT (inClass simpleSymbols)
 >     ,string ".."
 >     ,string "."
+>     ,string "::"
 >     ,string ":="
 >     ,string ":"
 >     ,biggerSymbol]

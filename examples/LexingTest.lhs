@@ -35,7 +35,7 @@ statements at once/ entering multiple statements on one line.
 > type SResult = Result [(Position,Token)]
 
 > dialect :: SQLSyntaxDialect
-> dialect = PostgreSQLDialect
+> dialect = PostgreSQLDialect --SQLServerDialect
 
 > main :: IO ()
 > main = do
