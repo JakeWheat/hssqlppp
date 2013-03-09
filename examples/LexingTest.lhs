@@ -7,8 +7,8 @@ when a complete statement is read, call a function. Want to support
 sql statements which cover multiple lines and pasting in multiple
 statements at once/ entering multiple statements on one line.
 
-> {-# LANGUAGE OverloadedStrings #-}
-> --import Database.HsSqlPpp.Parsing.Lexer2
+> {-# LANGUAGE OverloadedStrings,TupleSections #-}
+
 > import qualified Data.Text.IO as T
 > import qualified Data.Text as T
 > import qualified Data.Text.Lazy as LT
@@ -18,11 +18,14 @@ statements at once/ entering multiple statements on one line.
 > import Data.Char
 > import Debug.Trace
 > import System.IO
-> import Data.Ratio
+> --import Data.Ratio
 > import Database.HsSqlPpp.SqlDialect
+> import Data.List
+> import Control.Monad
+> --import System.Environment
 
 > type Partial = T.Text -> SResult
-> type SResult = Result [Token]
+> type SResult = Result [(Position,Token)]
 
 > dialect :: SQLSyntaxDialect
 > dialect = PostgreSQLDialect
@@ -39,7 +42,7 @@ statements at once/ entering multiple statements on one line.
 >       loopText mpr txt = do
 >           let y = case mpr of
 >                     Nothing -> --trace ("parse '" ++ T.unpack txt ++ "'") $
->                                parse sqlStatement txt
+>                                parse (sqlStatement ("",1,0)) txt
 >                     Just pr -> --trace ("feed '" ++ T.unpack txt ++ "'") $
 >                                feed (Partial pr) txt
 >           case y of
@@ -52,29 +55,36 @@ statements at once/ entering multiple statements on one line.
 >                    -- checking to see if it is just comments
 >                    -- and whitespace
 >                    if not (T.all isSpace leftover)
->                      then loopText Nothing leftover
->                      else readloop Nothing
+>                       then loopText Nothing leftover
+>                       else readloop Nothing
 >             Partial pr -> readloop (Just pr)
 >             Fail _leftover ctx err -> do
 >                 putStrLn $ err ++ " " ++ show ctx
 >                 readloop Nothing
 >   readloop Nothing
 
-> runStatement :: [Token] -> IO ()
+> runStatement :: [(Position,Token)] -> IO ()
 > runStatement s = do --trace "runstatement" $
 >                  putStr "Statement: "
->                  LT.putStrLn $ LT.concat (map (prettyToken dialect) s)
+>                  LT.putStrLn $ LT.concat (map (prettyToken dialect . snd) s)
+>                  putStrLn $ intercalate "\n" $ map show s
 
-> sqlStatement :: Parser [Token]
-> sqlStatement = sqlStatement' []
-> sqlStatement' :: [Token] -> Parser [Token]
-> sqlStatement' acc = do
+> sqlStatement :: Position -> Parser [(Position,Token)]
+> sqlStatement p = sqlStatement' p []
+> sqlStatement' :: Position -> [(Position,Token)] -> Parser [(Position,Token)]
+> sqlStatement' p acc = do
 >     -- keep lexing until get a ';' symbol
->     x <- sqlToken dialect
+>     x <- sqlToken dialect p
 >     let ts = x:acc
->     if x == Symbol ";"
+>     if snd x == Symbol ";"
 >       then return $ reverse ts
->       else sqlStatement' ts
+>       else
+>           -- dodgy: the work out the position
+>           -- by pretty printing the previous token
+>           -- and adding it to the current position
+>           let pt = prettyToken dialect (snd x)
+>               p' = addPosition p pt
+>           in sqlStatement' p' ts
 
 -----------------------------------------------
 
@@ -88,25 +98,17 @@ support 100% accurate pretty printing from lexed tokens back to source
 
 
 TODO:
+add tests: manual, quickcheck
+string parsing: E '' $$
+symbol parsing for dialects
+nested comments
 support copy from stdin for postgresql (later)
-add dialect support:
-  sqlserver: [quoted identifier]
-    @identifier, #identifier
-  oracle: same as postgres except :identifier for now
-accurate number parsing
-postgresql extended string delimiters
-new tokens: quoted identifier
-  add positional arg to symbol
-  splices
-  add comments as tokens
-positional information
+split files: lexical syntax, lexer, pretty-lexicalsyntax, automated
+  tests
 replace the existing lexer in hssqlppp
-public api: use for source highlighting? or cut down sql parsers
+public api in hssqlppp
 
-automated tests:
-manually written: parse examples of each type of symbol
-quickcheck: generate strings and parse them
-with all tests, check pretty . parse === id
+= Syntax
 
 > -- | Represents a lexed token
 > data Token
@@ -134,8 +136,9 @@ with all tests, check pretty . parse === id
 >     -- todo: want to parse exact numbers
 >     -- change from Double to something better
 >     | SqlString T.Text T.Text
->     -- | a number literal (integral or otherwise)
->     | SqlNumber Rational
+>     -- | a number literal (integral or otherwise), stored in original format
+>     -- unchanged
+>     | SqlNumber T.Text
 >     -- | non-significant whitespace (space, tab, newline) (strictly speaking,
 >     -- it is up to the client to decide whether the whitespace is significant
 >     -- or not)
@@ -153,19 +156,18 @@ with all tests, check pretty . parse === id
 
 -------------------------------------------
 
-accurate pretty printer:
+= Pretty printing
 
+> -- | Accurate pretty printing, if you lex a bunch of tokens,
+> -- then pretty print them, should should get back exactly the
+> -- same string
 > prettyToken :: SQLSyntaxDialect -> Token -> LT.Text
 > prettyToken _ (Symbol s) = LT.fromChunks [s]
 > prettyToken _ (Identifier Nothing t) = LT.fromChunks [t]
 > prettyToken _ (Identifier (Just (a,b)) t) =
 >     LT.fromChunks [T.singleton a, t, T.singleton b]
 > prettyToken _ (SqlString q t) = LT.fromChunks [q,t,q]
-> prettyToken _ (SqlNumber r) =
->     -- todo: how to make this work correctly?
->     if denominator r == 1
->     then LT.pack $ show $ numerator r
->     else LT.pack $ show $ ((realToFrac r) :: Double)
+> prettyToken _ (SqlNumber r) = LT.fromChunks [r]
 > prettyToken _ (WhiteSpace t) = LT.fromChunks [t]
 > prettyToken _ (PositionalArg n) = LT.fromChunks [T.singleton '$', T.pack $ show n]
 > prettyToken _ (LineComment l) = LT.fromChunks [l]
@@ -178,25 +180,79 @@ accurate pretty printer:
 >                   ,T.singleton ')']
 
 
--------------------------------------------
+= parsing
 
-parsing code
+not sure how to get the position information in the parse errors
 
-> sqlToken :: SQLSyntaxDialect -> Parser Token
-> sqlToken d =
->     choice [sqlString d
->            ,identifier d
->            ,symbol d
->            ,sqlNumber d
->            ,sqlWhitespace d
->            ,positionalArg d
->            ,lineComment d
->            ,blockComment d
->            ,splice d]
+TODO: try to make all parsers applicative only
+investigate what is missing for postgresql
+investigate differences for sql server, oracle, maybe db2 and mysql
+  also
+
+> type Position = (String,Int,Int)
+
+> addPosition :: Position -> LT.Text -> Position
+> addPosition p s = addPosition' p $ LT.unpack s
+
+> addPosition' :: Position -> String -> Position
+> addPosition' (f,l,c) [] = (f,l,c)
+> addPosition' (f,l,_) ('\n':xs) = addPosition' (f,l+1,0) xs
+> addPosition' (f,l,c) (_:xs) = addPosition' (f,l,c+1) xs
+
+> sqlToken :: SQLSyntaxDialect -> Position -> Parser (Position,Token)
+> sqlToken d p =
+>     (p,) <$> choice [sqlString d
+>                     ,identifier d
+>                     ,symbol d
+>                     ,sqlNumber d
+>                     ,sqlWhitespace d
+>                     ,positionalArg d
+>                     ,lineComment d
+>                     ,blockComment d
+>                     ,splice d]
 
 > identifier :: SQLSyntaxDialect -> Parser Token
-> identifier _ =
->     Identifier Nothing <$>
+
+sql server: identifiers can start with @ or #
+quoting uses []
+
+> identifier SQLServerDialect =
+>     choice
+>     [Identifier (Just ('[',']'))
+>      <$> (char '[' *> takeWhile1 (/=']') <* char ']')
+>     ,Identifier Nothing <$> identifierStringPrefix '@'
+>     ,Identifier Nothing <$> identifierStringPrefix '#'
+>     ,Identifier Nothing <$> identifierString
+>     ]
+
+oracle: identifiers can start with :
+quoting uses ""
+(todo: check other possibilities)
+
+> identifier OracleDialect =
+>     choice
+>     [Identifier (Just ('"','"'))
+>      <$> (char '"' *> takeWhile1 (/='"') <* char '"')
+>     ,Identifier Nothing <$> identifierStringPrefix ':'
+>     ,Identifier Nothing <$> identifierString
+>     ]
+
+> identifier PostgreSQLDialect =
+>     choice
+>     [Identifier (Just ('"','"'))
+>      <$> (char '"' *> takeWhile1 (/='"') <* char '"')
+>     ,Identifier Nothing <$> identifierString
+>     ]
+
+
+> identifierStringPrefix :: Char  -> Parser T.Text
+> identifierStringPrefix p = do
+>     void $ char p
+>     i <- identifierString
+>     return $ T.cons p i
+
+> identifierString :: Parser T.Text
+> identifierString =
 >     startsWith (\c -> c == '_' || isAlpha c)
 >                (\c -> c == '_' || isAlphaNum c)
 
@@ -206,7 +262,43 @@ parsing code
 >     (char '\'' *> takeTill (=='\'') <* char '\'')
 
 > sqlNumber :: SQLSyntaxDialect -> Parser Token
-> sqlNumber _ = (SqlNumber . realToFrac) <$> double
+> sqlNumber _ =
+
+postgresql number parsing
+
+digits
+digits.[digits][e[+-]digits]
+[digits].digits[e[+-]digits]
+digitse[+-]digits
+where digits is one or more decimal digits (0 through 9). At least one digit must be before or after the decimal point, if one is used. At least one digit must follow the exponent marker (e), if one is present. There cannot be any spaces or other characters embedded in the constant. Note that any leading plus or minus sign is not actually considered part of the constant; it is an operator applied to the constant.
+
+>    choice
+>    [do
+>     -- first char is a digit
+>     d <- digits
+>     -- try to read an fractional part or sci notation suffix
+>     choice [do
+>             s <- dotSuffix
+>             return $ SqlNumber $ T.pack $ d ++ s
+>            ,do
+>             s <- eSuffix
+>             return $ SqlNumber $ T.pack $ d ++ s
+>            ,return $ SqlNumber $ T.pack d]
+>    ,(SqlNumber . T.pack) <$> dotSuffix]
+>  where
+>    dotSuffix = do
+>        void $ char '.'
+>        d <- digits
+>        choice [do
+>                s <- eSuffix
+>                return $ '.':(d ++ s)
+>               ,return $ '.':d]
+>    eSuffix = do
+>        void $ char 'e'
+>        sn <- option Nothing (Just <$> (char '+' <|> char '-'))
+>        d <- digits
+>        maybe (return $ 'e':d) (\sn' -> return $ 'e':sn':d) sn
+>    digits = many1 digit
 
 > symbol :: SQLSyntaxDialect -> Parser Token
 > symbol _ = Symbol <$>
@@ -228,6 +320,9 @@ parsing code
 > sqlWhitespace _ = (WhiteSpace . T.pack) <$> many1 (satisfy isSpace)
 
 > positionalArg :: SQLSyntaxDialect -> Parser Token
+> positionalArg PostgreSQLDialect =
+>   PositionalArg <$> (char '$' *> (read <$> many1 digit))
+
 > positionalArg _ = satisfy (const False) >> error "positional arg unsupported"
 
 > lineComment :: SQLSyntaxDialect -> Parser Token
@@ -241,7 +336,10 @@ parsing code
 >     (string "/*" *> manyTill anyChar (string "*/"))
 
 > splice :: SQLSyntaxDialect -> Parser Token
-> splice _ = satisfy (const False) >> error "splice unsupported"
+> splice _ = do
+>   Splice
+>   <$> (char '$' *> letter)
+>   <*> (char '(' *> identifierString <* char ')')
 
 
 > startsWith :: (Char -> Bool) -> (Char -> Bool) -> Parser T.Text
@@ -249,3 +347,68 @@ parsing code
 >   c <- satisfy p
 >   choice [T.cons c <$> (takeWhile1 ps)
 >          ,return $ T.singleton c]
+
+--------------------------------------
+
+tests:
+
+manually written
+
+strings
+'string'
+E'string\n'
+E'quote\''
+'normal '' quote'
+$$dollar quoting$$
+$x$dollar $$ quoting$x$
+
+identifiers
+test
+_test
+"test test"
+test123
+[test]
+@test
+ #test
+:test
+
+symbols
+
+numbers
+10
+.1
+5e3
+5e+3
+5e-3
+10.2
+10.2e7
+
+whitespace
+" "
+"  "
+"\n"
+"\t"
+
+positional arg
+$1
+
+line comment
+-- this is a comment
+
+block comment
+
+/* block
+comment */
+
+/* nested /*block*/ comment */
+
+splice
+$c(splice)
+
+
+quickcheck:
+generate random symbols
+print then parse, check equal
+generate random strings
+
+try to parse, if parses, print and check equal to original string
