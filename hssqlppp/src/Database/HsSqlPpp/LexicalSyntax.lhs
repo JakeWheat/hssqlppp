@@ -352,6 +352,26 @@ where digits is one or more decimal digits (0 through 9). At least one digit mus
 >        maybe (return $ 'e':d) (\sn' -> return $ 'e':sn':d) sn
 >    digits = many1 digit
 
+Symbols:
+
+Copied from the postgresql manual:
+
+An operator name is a sequence of up to NAMEDATALEN-1 (63 by default) characters from the following list:
+
++ - * / < > = ~ ! @ # % ^ & | ` ?
+
+There are a few restrictions on operator names, however:
+-- and /* cannot appear anywhere in an operator name, since they will be taken as the start of a comment.
+
+A multiple-character operator name cannot end in + or -, unless the name also contains at least one of these characters:
+
+~ ! @ # % ^ & | ` ?
+
+For example, @- is an allowed operator name, but *- is not. This restriction allows PostgreSQL to parse SQL-compliant queries without requiring spaces between tokens.
+When working with non-SQL-standard operator names, you will usually need to separate adjacent operators with spaces to avoid ambiguity. For example, if you have defined a left unary operator named @, you cannot write X*@Y; you must write X* @Y to ensure that PostgreSQL reads it as two operator names not one.
+
+TODO: try to match this behaviour
+
 > symbol :: SQLSyntaxDialect -> Parser Token
 > symbol dialect = Symbol <$>
 >     choice
@@ -361,12 +381,32 @@ where digits is one or more decimal digits (0 through 9). At least one digit mus
 >     ,string "::"
 >     ,string ":="
 >     ,string ":"
->     ,biggerSymbol]
+>     ,T.pack <$> anotherOp
+>     ]
 >   where
+>     anotherOp = do
+>       -- first char can be any, this is always a valid operator name
+>       c0 <- satisfy (`elem` compoundFirst)
+>       --recurse:
+>       let r = choice
+>               [do
+>                c1 <- satisfy (`elem` compoundTail)
+>                choice [do
+>                        x <- r
+>                        return $ c1 : x
+>                       ,return [c1]]
+>               ,try $ do
+>                a <- satisfy (`elem` "+-")
+>                b <- r
+>                return $ a : b]
+>       choice [do
+>               tl <- r
+>               return $ c0 : tl
+>              ,return [c0]]
 >     satisfyT p = T.singleton <$> satisfy p
->     biggerSymbol =
+>     {-biggerSymbol =
 >         startsWith (inClass compoundFirst)
->                    (inClass compoundTail)
+>                    (inClass compoundTail) -}
 >     simpleSymbols | dialect == PostgreSQLDialect = "(),;[]"
 >                   | otherwise = "(),;"
 >     compoundFirst | dialect == PostgreSQLDialect = "*/<>=~!@#%^&|`?+-"
