@@ -44,10 +44,16 @@ There are no tests for invalid syntax at the moment.
 > import Database.HsSqlPpp.Tests.Parsing.Plpgsql
 
 > import Database.HsSqlPpp.Tests.Parsing.SqlServer
+> import Database.HsSqlPpp.Tests.Parsing.LexerTests
+
+> import Database.HsSqlPpp.LexicalSyntax (sqlToken,prettyToken,Token)
+> import Data.Attoparsec.Text (parseOnly,many1,endOfInput)
+> import Control.Applicative
+
 
 > --import Database.HsSqlPpp.Tests.TestUtils
 > import Data.Text.Lazy (Text)
-> --import qualified Data.Text as T
+> import qualified Data.Text as T
 > import qualified Data.Text.Lazy as L
 
 > parserTests :: Test.Framework.Test
@@ -56,7 +62,8 @@ There are no tests for invalid syntax at the moment.
 > parserTestData :: Item
 > parserTestData =
 >   Group "parserTests" [
->              scalarExprs
+>              lexerTests
+>             ,scalarExprs
 >             ,miscQueryExprs
 >             ,combineQueryExprs
 >             ,selectLists
@@ -86,7 +93,8 @@ Unit test helpers
 >                        else PostgreSQLDialect) a b
 > --itemToTft (MSStmt a b) = testParseStatements a b
 > itemToTft (Group s is) = testGroup s $ map itemToTft is
->
+> itemToTft (Lex d a b) = testLex d a b
+
 > testParseScalarExpr :: Text -> ScalarExpr -> Test.Framework.Test
 > testParseScalarExpr src ast =
 >   parseUtil src ast (parseScalarExpr defaultParseFlags "" Nothing)
@@ -129,6 +137,15 @@ Unit test helpers
 >       case reparser (printer ast) of
 >         Left er -> assertFailure $ "reparse\n" ++ (L.unpack $ printer ast) ++ "\n" ++ show er ++ "\n" -- ++ pp ++ "\n"
 >         Right ast'' -> assertEqual ("reparse: " ++ L.unpack (printer ast)) ast $ resetAnnotations ast''
+
+> testLex :: SQLSyntaxDialect -> T.Text -> [Token] -> Test.Framework.Test
+> testLex d t r = testCase ("lex "++ T.unpack t) $ do
+>     let x = parseOnly (many1 (sqlToken d ("",1,0)) <* endOfInput) t
+>         y = either (error . show) id x
+>     assertEqual "lex" r (map snd y)
+>     let t' = L.concat $ map (prettyToken d) r
+>     assertEqual "lex . pretty" (L.fromChunks [t]) t'
+
 
 ~~~~
 TODO

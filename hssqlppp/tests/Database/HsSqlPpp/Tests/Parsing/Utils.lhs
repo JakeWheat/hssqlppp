@@ -7,11 +7,13 @@ shortcuts for constructing test data and asts
 > module Database.HsSqlPpp.Tests.Parsing.Utils where
 
 > import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.LexicalSyntax (Token)
 > import Database.HsSqlPpp.Annotation
 > import qualified Data.Text as T
 > import Data.Text (Text)
 > import qualified Data.Text.Lazy as L
 > import Control.Arrow
+> import Database.HsSqlPpp.SqlDialect
 
 > data Item = Expr L.Text ScalarExpr
 >           | Stmt L.Text [Statement]
@@ -19,6 +21,7 @@ shortcuts for constructing test data and asts
 >           | TSQL L.Text [Statement]
 >           | PgSqlStmt L.Text [Statement]
 >           | Group String [Item]
+>           | Lex SQLSyntaxDialect T.Text [Token]
 
 > stringQ :: Text -> ScalarExpr
 > stringQ = StringLit ea . T.unpack

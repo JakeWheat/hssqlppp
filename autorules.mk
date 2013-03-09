@@ -189,6 +189,7 @@ $(BUILD)/Database/HsSqlPpp/Tests/TypeChecking/Utils.o : hssqlppp/tests/Database/
 
 $(BUILD)/Database/HsSqlPpp/Tests/Parsing/ParserTests.o : hssqlppp/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.lhs \
             $(BUILD)/Database/HsSqlPpp/Ast.hi \
+            $(BUILD)/Database/HsSqlPpp/LexicalSyntax.hi \
             $(BUILD)/Database/HsSqlPpp/Parser.hi \
             $(BUILD)/Database/HsSqlPpp/Pretty.hi \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/CombineQueryExprs.hi \
@@ -196,6 +197,7 @@ $(BUILD)/Database/HsSqlPpp/Tests/Parsing/ParserTests.o : hssqlppp/tests/Database
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/Dml.hi \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/FunctionsDdl.hi \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/Joins.hi \
+            $(BUILD)/Database/HsSqlPpp/Tests/Parsing/LexerTests.hi \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/Misc.hi \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/MiscDdl.hi \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/MiscQueryExprs.hi \
@@ -210,11 +212,24 @@ $(BUILD)/Database/HsSqlPpp/Tests/Parsing/ParserTests.o : hssqlppp/tests/Database
 	@mkdir -p $(BUILD)/Database/HsSqlPpp/Tests/Parsing/
 	@echo HC hssqlppp/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.lhs
 	$(HC) $(HC_OPTS) -hide-all-packages -outputdir $(BUILD)/ \
-            -package HUnit -package base -package syb -package test-framework \
-            -package test-framework-hunit -package text -c \
+            -package HUnit -package attoparsec -package base -package syb \
+            -package test-framework -package test-framework-hunit -package \
+            text -c \
             hssqlppp/tests/Database/HsSqlPpp/Tests/Parsing/ParserTests.lhs -o \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/ParserTests.o \
             -i$(BUILD)/
+
+
+$(BUILD)/Database/HsSqlPpp/Tests/Parsing/LexerTests.o : hssqlppp/tests/Database/HsSqlPpp/Tests/Parsing/LexerTests.lhs \
+            $(BUILD)/Database/HsSqlPpp/LexicalSyntax.hi \
+            $(BUILD)/Database/HsSqlPpp/SqlDialect.hi \
+            $(BUILD)/Database/HsSqlPpp/Tests/Parsing/Utils.hi
+	@mkdir -p $(BUILD)/Database/HsSqlPpp/Tests/Parsing/
+	@echo HC hssqlppp/tests/Database/HsSqlPpp/Tests/Parsing/LexerTests.lhs
+	$(HC) $(HC_OPTS) -hide-all-packages -outputdir $(BUILD)/ \
+            -package base -c \
+            hssqlppp/tests/Database/HsSqlPpp/Tests/Parsing/LexerTests.lhs -o \
+            $(BUILD)/Database/HsSqlPpp/Tests/Parsing/LexerTests.o -i$(BUILD)/
 
 
 $(BUILD)/Database/HsSqlPpp/Tests/Parsing/SqlServer.o : hssqlppp/tests/Database/HsSqlPpp/Tests/Parsing/SqlServer.lhs \
@@ -370,7 +385,9 @@ $(BUILD)/Database/HsSqlPpp/Tests/Parsing/ScalarExprs.o : hssqlppp/tests/Database
 
 $(BUILD)/Database/HsSqlPpp/Tests/Parsing/Utils.o : hssqlppp/tests/Database/HsSqlPpp/Tests/Parsing/Utils.lhs \
             $(BUILD)/Database/HsSqlPpp/Annotation.hi \
-            $(BUILD)/Database/HsSqlPpp/Ast.hi
+            $(BUILD)/Database/HsSqlPpp/Ast.hi \
+            $(BUILD)/Database/HsSqlPpp/LexicalSyntax.hi \
+            $(BUILD)/Database/HsSqlPpp/SqlDialect.hi
 	@mkdir -p $(BUILD)/Database/HsSqlPpp/Tests/Parsing/
 	@echo HC hssqlppp/tests/Database/HsSqlPpp/Tests/Parsing/Utils.lhs
 	$(HC) $(HC_OPTS) -hide-all-packages -outputdir $(BUILD)/ \
@@ -473,8 +490,8 @@ $(BUILD)/Parse3.o : examples/Parse3.lhs \
 
 
 $(BUILD)/Lex.o : examples/Lex.lhs \
-            $(BUILD)/Database/HsSqlPpp/SqlDialect.hi \
-            $(BUILD)/Database/HsSqlPpp/Utility.hi
+            $(BUILD)/Database/HsSqlPpp/LexicalSyntax.hi \
+            $(BUILD)/Database/HsSqlPpp/SqlDialect.hi
 	@mkdir -p $(BUILD)/
 	@echo HC examples/Lex.lhs
 	$(HC) $(HC_OPTS) -hide-all-packages -outputdir $(BUILD)/ \
@@ -633,8 +650,7 @@ $(BUILD)/Database/HsSqlPpp/Utility.o : hssqlppp/src/Database/HsSqlPpp/Utility.lh
             $(BUILD)/Database/HsSqlPpp/Catalog.hi \
             $(BUILD)/Database/HsSqlPpp/Internals/AstInternal.hi \
             $(BUILD)/Database/HsSqlPpp/Internals/TypesInternal.hi \
-            $(BUILD)/Database/HsSqlPpp/Parser.hi \
-            $(BUILD)/Database/HsSqlPpp/Parsing/Lexer.hi
+            $(BUILD)/Database/HsSqlPpp/Parser.hi
 	@mkdir -p $(BUILD)/Database/HsSqlPpp/
 	@echo HC hssqlppp/src/Database/HsSqlPpp/Utility.lhs
 	$(HC) $(HC_OPTS) -hide-all-packages -outputdir $(BUILD)/ \
@@ -918,13 +934,23 @@ $(BUILD)/Database/HsSqlPpp/Parsing/ParseErrors.o : hssqlppp/src/Database/HsSqlPp
 
 
 $(BUILD)/LexingTest.o : examples/LexingTest.lhs \
+            $(BUILD)/Database/HsSqlPpp/LexicalSyntax.hi \
             $(BUILD)/Database/HsSqlPpp/SqlDialect.hi
 	@mkdir -p $(BUILD)/
 	@echo HC examples/LexingTest.lhs
 	$(HC) $(HC_OPTS) -hide-all-packages -outputdir $(BUILD)/ \
-            -package HUnit -package attoparsec -package base -package \
-            test-framework -package test-framework-hunit -package text -c \
+            -package attoparsec -package base -package text -c \
             examples/LexingTest.lhs -o $(BUILD)/LexingTest.o -i$(BUILD)/
+
+
+$(BUILD)/Database/HsSqlPpp/LexicalSyntax.o : hssqlppp/src/Database/HsSqlPpp/LexicalSyntax.lhs \
+            $(BUILD)/Database/HsSqlPpp/SqlDialect.hi
+	@mkdir -p $(BUILD)/Database/HsSqlPpp/
+	@echo HC hssqlppp/src/Database/HsSqlPpp/LexicalSyntax.lhs
+	$(HC) $(HC_OPTS) -hide-all-packages -outputdir $(BUILD)/ \
+            -package attoparsec -package base -package text -c \
+            hssqlppp/src/Database/HsSqlPpp/LexicalSyntax.lhs -o \
+            $(BUILD)/Database/HsSqlPpp/LexicalSyntax.o -i$(BUILD)/
 
 
 $(BUILD)/Database/HsSqlPpp/SqlDialect.o : hssqlppp/src/Database/HsSqlPpp/SqlDialect.lhs
@@ -948,6 +974,7 @@ $(BUILD)/Tests : $(BUILD)/Tests.o \
             $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
             $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
             $(BUILD)/Database/HsSqlPpp/Internals/TypesInternal.o \
+            $(BUILD)/Database/HsSqlPpp/LexicalSyntax.o \
             $(BUILD)/Database/HsSqlPpp/Parser.o \
             $(BUILD)/Database/HsSqlPpp/Parsing/Lexer.o \
             $(BUILD)/Database/HsSqlPpp/Parsing/ParseErrors.o \
@@ -959,6 +986,7 @@ $(BUILD)/Tests : $(BUILD)/Tests.o \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/Dml.o \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/FunctionsDdl.o \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/Joins.o \
+            $(BUILD)/Database/HsSqlPpp/Tests/Parsing/LexerTests.o \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/Misc.o \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/MiscDdl.o \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/MiscQueryExprs.o \
@@ -1006,6 +1034,7 @@ $(BUILD)/Tests : $(BUILD)/Tests.o \
             $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
             $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
             $(BUILD)/Database/HsSqlPpp/Internals/TypesInternal.o \
+            $(BUILD)/Database/HsSqlPpp/LexicalSyntax.o \
             $(BUILD)/Database/HsSqlPpp/Parser.o \
             $(BUILD)/Database/HsSqlPpp/Parsing/Lexer.o \
             $(BUILD)/Database/HsSqlPpp/Parsing/ParseErrors.o \
@@ -1017,6 +1046,7 @@ $(BUILD)/Tests : $(BUILD)/Tests.o \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/Dml.o \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/FunctionsDdl.o \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/Joins.o \
+            $(BUILD)/Database/HsSqlPpp/Tests/Parsing/LexerTests.o \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/Misc.o \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/MiscDdl.o \
             $(BUILD)/Database/HsSqlPpp/Tests/Parsing/MiscQueryExprs.o \
@@ -1047,10 +1077,11 @@ $(BUILD)/Tests : $(BUILD)/Tests.o \
             $(BUILD)/Database/HsSqlPpp/Utils/GroomUtils.o \
             $(BUILD)/Database/HsSqlPpp/Utils/Here.o \
             $(BUILD)/Database/HsSqlPpp/Utils/Utils.o -package HUnit -package \
-            base -package containers -package groom -package haskell-src-exts \
-            -package mtl -package parsec -package pretty -package syb \
-            -package template-haskell -package test-framework -package \
-            test-framework-hunit -package text -package uniplate
+            attoparsec -package base -package containers -package groom \
+            -package haskell-src-exts -package mtl -package parsec -package \
+            pretty -package syb -package template-haskell -package \
+            test-framework -package test-framework-hunit -package text \
+            -package uniplate
 
 
 $(BUILD)/TestsTh : $(BUILD)/TestsTh.o \
@@ -1311,52 +1342,15 @@ $(BUILD)/Parse3 : $(BUILD)/Parse3.o \
 
 
 $(BUILD)/Lex : $(BUILD)/Lex.o \
-            $(BUILD)/Database/HsSqlPpp/Annotation.o \
-            $(BUILD)/Database/HsSqlPpp/Ast.o \
-            $(BUILD)/Database/HsSqlPpp/Catalog.o \
-            $(BUILD)/Database/HsSqlPpp/Internals/AstInternal.o \
-            $(BUILD)/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
-            $(BUILD)/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o \
-            $(BUILD)/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
-            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
-            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
-            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
-            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
-            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
-            $(BUILD)/Database/HsSqlPpp/Internals/TypesInternal.o \
-            $(BUILD)/Database/HsSqlPpp/Parser.o \
-            $(BUILD)/Database/HsSqlPpp/Parsing/Lexer.o \
-            $(BUILD)/Database/HsSqlPpp/Parsing/ParseErrors.o \
-            $(BUILD)/Database/HsSqlPpp/Parsing/ParserInternal.o \
-            $(BUILD)/Database/HsSqlPpp/SqlDialect.o \
-            $(BUILD)/Database/HsSqlPpp/Utility.o \
-            $(BUILD)/Database/HsSqlPpp/Utils/Utils.o
+            $(BUILD)/Database/HsSqlPpp/LexicalSyntax.o \
+            $(BUILD)/Database/HsSqlPpp/SqlDialect.o
 	@mkdir -p $(BUILD)/
 	@echo HL $(BUILD)/Lex
 	$(HL) $(HL_OPTS) $(LEX_EXTRA) \
             -o $(BUILD)/Lex $(BUILD)/Lex.o \
-            $(BUILD)/Database/HsSqlPpp/Annotation.o \
-            $(BUILD)/Database/HsSqlPpp/Ast.o \
-            $(BUILD)/Database/HsSqlPpp/Catalog.o \
-            $(BUILD)/Database/HsSqlPpp/Internals/AstInternal.o \
-            $(BUILD)/Database/HsSqlPpp/Internals/Catalog/CatalogInternal.o \
-            $(BUILD)/Database/HsSqlPpp/Internals/Catalog/DefaultTSQLCatalog.o \
-            $(BUILD)/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.o \
-            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/Environment.o \
-            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/OldTediousTypeUtils.o \
-            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/OldTypeConversion.o \
-            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/SqlTypeConversion.o \
-            $(BUILD)/Database/HsSqlPpp/Internals/TypeChecking/TypeConversion.o \
-            $(BUILD)/Database/HsSqlPpp/Internals/TypesInternal.o \
-            $(BUILD)/Database/HsSqlPpp/Parser.o \
-            $(BUILD)/Database/HsSqlPpp/Parsing/Lexer.o \
-            $(BUILD)/Database/HsSqlPpp/Parsing/ParseErrors.o \
-            $(BUILD)/Database/HsSqlPpp/Parsing/ParserInternal.o \
-            $(BUILD)/Database/HsSqlPpp/SqlDialect.o \
-            $(BUILD)/Database/HsSqlPpp/Utility.o \
-            $(BUILD)/Database/HsSqlPpp/Utils/Utils.o -package base -package \
-            containers -package groom -package mtl -package parsec -package \
-            syb -package text -package uniplate
+            $(BUILD)/Database/HsSqlPpp/LexicalSyntax.o \
+            $(BUILD)/Database/HsSqlPpp/SqlDialect.o -package attoparsec \
+            -package base -package groom -package text
 
 
 $(BUILD)/TypeCheck3 : $(BUILD)/TypeCheck3.o \
@@ -1767,14 +1761,15 @@ $(BUILD)/Reformat : $(BUILD)/Reformat.o \
 
 
 $(BUILD)/LexingTest : $(BUILD)/LexingTest.o \
+            $(BUILD)/Database/HsSqlPpp/LexicalSyntax.o \
             $(BUILD)/Database/HsSqlPpp/SqlDialect.o
 	@mkdir -p $(BUILD)/
 	@echo HL $(BUILD)/LexingTest
 	$(HL) $(HL_OPTS) $(LEXINGTEST_EXTRA) \
             -o $(BUILD)/LexingTest $(BUILD)/LexingTest.o \
-            $(BUILD)/Database/HsSqlPpp/SqlDialect.o -package HUnit -package \
-            attoparsec -package base -package test-framework -package \
-            test-framework-hunit -package text
+            $(BUILD)/Database/HsSqlPpp/LexicalSyntax.o \
+            $(BUILD)/Database/HsSqlPpp/SqlDialect.o -package attoparsec \
+            -package base -package text
 
 
 

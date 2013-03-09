@@ -12,12 +12,6 @@
 >     ,addExplicitCasts
 >     ,tcTreeInfo
 >     ,emacsShowErrors
->      -- * lexing utils
->      -- The main use is to help diagnose issues where hssqlppp
->      -- fails to parse something correctly
->     ,lexSql
->     ,Token
->     ,Tok(..)
 >     ) where
 
 > import Data.Generics.Uniplate.Data
@@ -27,7 +21,6 @@
 
 > import Database.HsSqlPpp.Internals.AstInternal
 > import Database.HsSqlPpp.Internals.TypesInternal
-> import Database.HsSqlPpp.Parsing.Lexer
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Parser
 > --import Text.Parsec.Prim
