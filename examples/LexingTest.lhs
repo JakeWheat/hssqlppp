@@ -22,7 +22,12 @@ statements at once/ entering multiple statements on one line.
 > import Database.HsSqlPpp.SqlDialect
 > import Data.List
 > import Control.Monad
-> --import System.Environment
+> import System.Environment
+> import Test.Framework
+> import Test.HUnit
+> import Test.Framework.Providers.HUnit
+
+
 
 > type Partial = T.Text -> SResult
 > type SResult = Result [(Position,Token)]
@@ -32,36 +37,40 @@ statements at once/ entering multiple statements on one line.
 
 > main :: IO ()
 > main = do
->   let readloop :: Maybe Partial -> IO ()
->       readloop mpr = do
->           putStr $ maybe ("> ") (const ". ") mpr
->           hFlush stdout
->           line <- T.getLine
->           loopText mpr (T.snoc line '\n')
->       loopText :: Maybe Partial -> T.Text -> IO ()
->       loopText mpr txt = do
->           let y = case mpr of
->                     Nothing -> --trace ("parse '" ++ T.unpack txt ++ "'") $
->                                parse (sqlStatement ("",1,0)) txt
->                     Just pr -> --trace ("feed '" ++ T.unpack txt ++ "'") $
->                                feed (Partial pr) txt
->           case y of
->             Done leftover st -> do
->                    runStatement st
->                    -- keep processing the partial results
->                    -- in case there are multiple statements
->                    -- todo: checks the leftover to see if
->                    -- it is just whitespace, add to this
->                    -- checking to see if it is just comments
->                    -- and whitespace
->                    if not (T.all isSpace leftover)
->                       then loopText Nothing leftover
->                       else readloop Nothing
->             Partial pr -> readloop (Just pr)
->             Fail _leftover ctx err -> do
->                 putStrLn $ err ++ " " ++ show ctx
->                 readloop Nothing
->   readloop Nothing
+>   args <- getArgs
+>   case args of
+>     ("test":as) -> runTests as
+>     _ -> do
+>         let readloop :: Maybe Partial -> IO ()
+>             readloop mpr = do
+>                 putStr $ maybe ("> ") (const ". ") mpr
+>                 hFlush stdout
+>                 line <- T.getLine
+>                 loopText mpr (T.snoc line '\n')
+>             loopText :: Maybe Partial -> T.Text -> IO ()
+>             loopText mpr txt = do
+>                 let y = case mpr of
+>                           Nothing -> --trace ("parse '" ++ T.unpack txt ++ "'") $
+>                                      parse (sqlStatement ("",1,0)) txt
+>                           Just pr -> --trace ("feed '" ++ T.unpack txt ++ "'") $
+>                                      feed (Partial pr) txt
+>                 case y of
+>                   Done leftover st -> do
+>                          runStatement st
+>                          -- keep processing the partial results
+>                          -- in case there are multiple statements
+>                          -- todo: checks the leftover to see if
+>                          -- it is just whitespace, add to this
+>                          -- checking to see if it is just comments
+>                          -- and whitespace
+>                          if not (T.all isSpace leftover)
+>                             then loopText Nothing leftover
+>                             else readloop Nothing
+>                   Partial pr -> readloop (Just pr)
+>                   Fail _leftover ctx err -> do
+>                       putStrLn $ err ++ " " ++ show ctx
+>                       readloop Nothing
+>         readloop Nothing
 
 > runStatement :: [(Position,Token)] -> IO ()
 > runStatement s = do --trace "runstatement" $
@@ -132,7 +141,11 @@ public api in hssqlppp
 >     | Identifier (Maybe (Char,Char)) T.Text
 >     -- | this is a string,
 >     -- the first field is the quotes used: single quote (')
->     -- for normal strings, and $$ delimiter for postgresql quotes
+>     -- for normal strings, E' for escape supporting strings,
+>     -- and $$ delimiter for postgresql quotes
+>     -- the lexer doesn't process the escapes in strings, but passes
+>     -- on the literal source e.g. E'\n' parses to SqlString "E'" "\n"
+>     -- with the literal character '\' and 'n' in the string, not a newline character
 >     -- todo: want to parse exact numbers
 >     -- change from Double to something better
 >     | SqlString T.Text T.Text
@@ -142,7 +155,7 @@ public api in hssqlppp
 >     -- | non-significant whitespace (space, tab, newline) (strictly speaking,
 >     -- it is up to the client to decide whether the whitespace is significant
 >     -- or not)
->     | WhiteSpace T.Text
+>     | Whitespace T.Text
 >     -- | a postgresql positional arg, e.g. $1
 >     | PositionalArg Int
 >     -- | a commented line using --, contains every character starting with the
@@ -168,7 +181,7 @@ public api in hssqlppp
 >     LT.fromChunks [T.singleton a, t, T.singleton b]
 > prettyToken _ (SqlString q t) = LT.fromChunks [q,t,q]
 > prettyToken _ (SqlNumber r) = LT.fromChunks [r]
-> prettyToken _ (WhiteSpace t) = LT.fromChunks [t]
+> prettyToken _ (Whitespace t) = LT.fromChunks [t]
 > prettyToken _ (PositionalArg n) = LT.fromChunks [T.singleton '$', T.pack $ show n]
 > prettyToken _ (LineComment l) = LT.fromChunks [l]
 > prettyToken _ (BlockComment c) = LT.fromChunks [c]
@@ -317,7 +330,7 @@ where digits is one or more decimal digits (0 through 9). At least one digit mus
 
 
 > sqlWhitespace :: SQLSyntaxDialect -> Parser Token
-> sqlWhitespace _ = (WhiteSpace . T.pack) <$> many1 (satisfy isSpace)
+> sqlWhitespace _ = (Whitespace . T.pack) <$> many1 (satisfy isSpace)
 
 > positionalArg :: SQLSyntaxDialect -> Parser Token
 > positionalArg PostgreSQLDialect =
@@ -354,57 +367,94 @@ tests:
 
 manually written
 
+> data ManualTest = MT T.Text [Token]
+>                 | MTSS T.Text [Token] -- sql server syntax
+>                 | MTO T.Text [Token] -- oracle syntax
+
+> lexTestData :: [ManualTest]
+> lexTestData =
+
 strings
-'string'
-E'string\n'
-E'quote\''
-'normal '' quote'
-$$dollar quoting$$
-$x$dollar $$ quoting$x$
+
+>     [MT "'string'" [SqlString "'" "string"]
+>     ,MT "E'string\n'" [SqlString "E'" "string\\n"] -- the \\n is to put a literal \ and n in the string
+>     ,MT "E'quote\''" [SqlString "E'" "quote'"]
+>     ,MT "'normal '' quote'" [SqlString "'" "normal ' quote"]
+>     ,MT "$$dollar quoting$$" [SqlString "$$" "dollar quoting"]
+>     ,MT "$x$dollar $$ quoting$x$" [SqlString "$x$" "dollar $$ quoting"]
 
 identifiers
-test
-_test
-"test test"
-test123
-[test]
-@test
- #test
-:test
+
+>     ,MT "test" [Identifier Nothing "test"]
+>     ,MT "_test" [Identifier Nothing "_test"]
+>     ,MT "\"test test\"" [Identifier (Just ('"','"')) "test test"]
+>     ,MT "test123" [Identifier Nothing "test123"]
+>     ,MTSS "[test \"]" [Identifier (Just ('[',']')) "test \""]
+>     ,MTSS "@test" [Identifier Nothing "@test"]
+>     ,MTSS "#test" [Identifier Nothing "#test"]
+>     ,MTO ":test" [Identifier Nothing ":test"]
 
 symbols
 
+>     ,MT "+" [Symbol "+"]
+>     ,MT "*" [Symbol "*"]
+
 numbers
-10
-.1
-5e3
-5e+3
-5e-3
-10.2
-10.2e7
+
+>     ,MT "10" [SqlNumber "10"]
+>     ,MT ".1" [SqlNumber ".1"]
+>     ,MT "5e3" [SqlNumber "5e3"]
+>     ,MT "5e+3" [SqlNumber "5e+3"]
+>     ,MT "5e-3" [SqlNumber "5e-3"]
+>     ,MT "10.2" [SqlNumber "10.2"]
+>     ,MT "10.2e7" [SqlNumber "10.2e7"]
 
 whitespace
-" "
-"  "
-"\n"
-"\t"
+
+>     ,MT " " [Whitespace " "]
+>     ,MT "  " [Whitespace "  "]
+>     ,MT "\n" [Whitespace "\n"]
+>     ,MT "\t" [Whitespace "\t"]
 
 positional arg
-$1
+
+>     ,MT "$1" [PositionalArg 1]
 
 line comment
--- this is a comment
+
+>     ,MT "-- this is a comment\n" [LineComment "-- this is a comment\n"]
+>     -- check eof with no trailing newline
+>     ,MT "-- this is a comment" [LineComment "-- this is a comment"]
 
 block comment
 
-/* block
-comment */
-
-/* nested /*block*/ comment */
+>     ,MT "/* block\ncomment */" [BlockComment "/* block\ncomment */"]
+>     ,MT "/* nested /*block*/ comment */" [BlockComment "/* nested /*block*/ comment */"]
 
 splice
-$c(splice)
 
+>     ,MT "$c(splice)" [Splice 'c' "splice"]
+
+>     ]
+
+> lexerTests :: Test.Framework.Test
+> lexerTests = testGroup "lexertests" $ map itemToTft lexTestData
+
+> itemToTft :: ManualTest -> Test.Framework.Test
+> itemToTft (MT a b) = testLex PostgreSQLDialect a b
+> itemToTft (MTSS a b) = testLex SQLServerDialect a b
+> itemToTft (MTO a b) = testLex OracleDialect a b
+>
+> testLex :: SQLSyntaxDialect -> T.Text -> [Token] -> Test.Framework.Test
+> testLex d t r = testCase ("lex "++ T.unpack t) $ do
+>     let x = parseOnly (many1 (sqlToken d ("",1,0))) t
+>         y = either (error . show) id x
+>     assertEqual "" r (map snd y)
+>     let t' = LT.concat $ map (prettyToken d) r
+>     assertEqual "" (LT.fromChunks [t]) t'
+
+> runTests :: [String] -> IO ()
+> runTests as = defaultMainWithArgs [lexerTests] as
 
 quickcheck:
 generate random symbols

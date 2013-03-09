@@ -922,7 +922,8 @@ $(BUILD)/LexingTest.o : examples/LexingTest.lhs \
 	@mkdir -p $(BUILD)/
 	@echo HC examples/LexingTest.lhs
 	$(HC) $(HC_OPTS) -hide-all-packages -outputdir $(BUILD)/ \
-            -package attoparsec -package base -package text -c \
+            -package HUnit -package attoparsec -package base -package \
+            test-framework -package test-framework-hunit -package text -c \
             examples/LexingTest.lhs -o $(BUILD)/LexingTest.o -i$(BUILD)/
 
 
@@ -1771,8 +1772,9 @@ $(BUILD)/LexingTest : $(BUILD)/LexingTest.o \
 	@echo HL $(BUILD)/LexingTest
 	$(HL) $(HL_OPTS) $(LEXINGTEST_EXTRA) \
             -o $(BUILD)/LexingTest $(BUILD)/LexingTest.o \
-            $(BUILD)/Database/HsSqlPpp/SqlDialect.o -package attoparsec \
-            -package base -package text
+            $(BUILD)/Database/HsSqlPpp/SqlDialect.o -package HUnit -package \
+            attoparsec -package base -package test-framework -package \
+            test-framework-hunit -package text
 
 
 
