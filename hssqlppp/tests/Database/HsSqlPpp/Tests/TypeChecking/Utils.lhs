@@ -28,6 +28,7 @@
 >           | ScalExpr L.Text (Either [TypeError] Type)
 >           | QueryExpr [CatalogUpdate] L.Text (Either [TypeError] Type)
 >           | TSQLQueryExpr [CatalogUpdate] L.Text (Either [TypeError] Type)
+>           | OracleQueryExpr [CatalogUpdate] L.Text (Either [TypeError] Type)
 >           | RewriteQueryExpr TypeCheckingFlags [CatalogUpdate] L.Text L.Text
 >           | ImpCastsScalar TypeCheckingFlags L.Text L.Text
 
@@ -76,17 +77,19 @@
 >       else id) $ assertEqual "" (resetAnnotations aast') (resetAnnotations wast)
 
 
-> testQueryExprType :: Bool -> [CatalogUpdate] -> L.Text -> Either [TypeError] Type -> Test.Framework.Test
-> testQueryExprType pg cus src et = testCase ("typecheck " ++ L.unpack src) $ do
+> testQueryExprType :: SQLSyntaxDialect -> [CatalogUpdate] -> L.Text -> Either [TypeError] Type -> Test.Framework.Test
+> testQueryExprType dl cus src et = testCase ("typecheck " ++ L.unpack src) $ do
 >   let ast = case parseQueryExpr defaultParseFlags "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
->       Right cat = updateCatalog cus $ if pg
->                                       then defaultTemplate1Catalog
->                                       else defaultTSQLCatalog
->       flg = if pg
->             then defaultTypeCheckingFlags
->             else defaultTypeCheckingFlags {tcfDialect = SQLServerDialect}
+>       Right cat = updateCatalog cus $ case dl of
+>           PostgreSQLDialect -> defaultTemplate1Catalog
+>           SQLServerDialect -> defaultTSQLCatalog
+>           OracleDialect -> defaultTSQLCatalog
+>       flg = case dl of
+>           PostgreSQLDialect -> defaultTypeCheckingFlags
+>           SQLServerDialect -> defaultTypeCheckingFlags {tcfDialect = SQLServerDialect}
+>           OracleDialect -> defaultTypeCheckingFlags {tcfDialect = OracleDialect}
 >       aast = typeCheckQueryExpr flg cat ast
 >       (ty,errs,noTypeQEs,noTypeSEs) = tcTreeInfo aast
 >       er = concatMap fst errs
@@ -184,8 +187,9 @@ type checks properly and produces the same type
 
 > itemToTft :: Item -> Test.Framework.Test
 > itemToTft (ScalExpr s r) = testScalarExprType s r
-> itemToTft (QueryExpr cus s r) = testQueryExprType True cus s r
-> itemToTft (TSQLQueryExpr cus s r) = testQueryExprType False cus s r
+> itemToTft (QueryExpr cus s r) = testQueryExprType PostgreSQLDialect cus s r
+> itemToTft (TSQLQueryExpr cus s r) = testQueryExprType SQLServerDialect cus s r
+> itemToTft (OracleQueryExpr cus s r) = testQueryExprType OracleDialect cus s r
 > itemToTft (RewriteQueryExpr f cus s s') = testRewrite f cus s s'
 > itemToTft (ImpCastsScalar f s s') = testImpCastsScalar f s s'
 > itemToTft (Group s is) = testGroup s $ map itemToTft is

@@ -7,6 +7,7 @@
 >     ,sqlToken
 >     ,sqlTokens
 >     ,addPosition
+>     ,module Database.HsSqlPpp.SqlDialect
 >     ) where
 
 > import qualified Data.Text as T

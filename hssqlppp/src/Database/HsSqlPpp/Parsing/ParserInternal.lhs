@@ -151,6 +151,11 @@ state is never updated during parsing
 >   ParseFlags {pfDialect = d} <- getState
 >   return $ d == SQLServerDialect
 
+> isOracle :: SParser Bool
+> isOracle = do
+>   ParseFlags {pfDialect = d} <- getState
+>   return $ d == OracleDialect
+
 couple of wrapper functions for the quoting
 
 > parseName :: ParseFlags
@@ -284,7 +289,7 @@ maybe it should still do this since it would probably be a lot clearer
 >         selQuerySpec = do
 >           p <- pos <* keyword "select"
 >           -- todo: support explicit all
->           d <- option All (Distinct <$ keyword "distinct")
+>           d <- option All (Distinct <$ distinctKeyword)
 >           -- hacky parsing of sql server 'top n' style select
 >           -- quiz: what happens when you use top n and limit at the same time?
 >           tp <- choice
@@ -326,6 +331,16 @@ maybe it should still do this since it would probably be a lot clearer
 >         offset = keyword "offset" *> expr
 >         values = Values <$> (pos <* keyword "values")
 >                         <*> commaSep1 (parens $ commaSep1 expr)
+
+
+> distinctKeyword :: SParser ()
+> distinctKeyword =
+>     choice
+>     [do
+>      isOracle >>= guard
+>      keyword "unique"
+>      return ()
+>     ,keyword "distinct"]
 
 > orderBy :: SParser [(ScalarExpr,Direction)]
 > orderBy = option []
@@ -1591,7 +1606,7 @@ checking with aggregates at the moment so should fix it all together.
 >                                (Nothing,,[]) <$> ((:[]) <$> (Star <$> pos <* symbol "*"))
 >                               ,(,,)
 >                                <$> optionMaybe
->                                     (choice [Distinct <$ keyword "distinct"
+>                                     (choice [Distinct <$ distinctKeyword
 >                                             ,All <$ keyword "all"])
 >                                <*> commaSep expr
 >                                <*> orderBy]

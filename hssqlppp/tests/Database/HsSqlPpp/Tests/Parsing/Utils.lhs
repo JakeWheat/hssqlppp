@@ -19,6 +19,7 @@ shortcuts for constructing test data and asts
 >           | Stmt L.Text [Statement]
 >           | QueryExpr L.Text QueryExpr
 >           | TSQL L.Text [Statement]
+>           | Oracle L.Text [Statement]
 >           | PgSqlStmt L.Text [Statement]
 >           | Group String [Item]
 >           | Lex SQLSyntaxDialect T.Text [Token]

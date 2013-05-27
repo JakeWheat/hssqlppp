@@ -44,6 +44,7 @@ There are no tests for invalid syntax at the moment.
 > import Database.HsSqlPpp.Tests.Parsing.Plpgsql
 
 > import Database.HsSqlPpp.Tests.Parsing.SqlServer
+> import Database.HsSqlPpp.Tests.Parsing.Oracle
 > import Database.HsSqlPpp.Tests.Parsing.LexerTests
 
 > import Database.HsSqlPpp.LexicalSyntax (sqlToken,prettyToken,Token)
@@ -76,6 +77,7 @@ There are no tests for invalid syntax at the moment.
 >             ,pgplsql
 >             ,misc
 >             ,sqlServer
+>             ,oracle
 >             ]
 
 --------------------------------------------------------------------------------
@@ -91,6 +93,8 @@ Unit test helpers
 >   testParsePlpgsqlStatements (if True
 >                        then SQLServerDialect
 >                        else PostgreSQLDialect) a b
+> itemToTft (Oracle a b) =
+>   testParsePlpgsqlStatements OracleDialect a b
 > --itemToTft (MSStmt a b) = testParseStatements a b
 > itemToTft (Group s is) = testGroup s $ map itemToTft is
 > itemToTft (Lex d a b) = testLex d a b
