@@ -66,5 +66,12 @@
 >    "select * from t union select * from u"
 >    $ Right $ CompositeType [("a",typeInt)]
 
+>   ,QueryExpr [CatCreateTable "t" [("a", "int4")]
+>              ,CatCreateTable "u" [("b", "int4")]]
+>    "select * from t union select * from u"
+>    $ Right $ CompositeType [("a",typeInt)]
+
+todo: implicit casts in union
 
 >   ]
+
