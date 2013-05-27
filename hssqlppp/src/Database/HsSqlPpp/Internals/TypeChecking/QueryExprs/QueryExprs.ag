@@ -78,8 +78,17 @@ sem QueryExpr
 -- temp
 
 sem QueryExpr
-    | CombineQueryExpr Values WithQueryExpr
+    | Values WithQueryExpr
         loc.tpe = Left []
+    | CombineQueryExpr
+        loc.tpe =
+          do
+          a <- maybe (Left []) (Right . CompositeType) @cqQe0.upType
+          b <- maybe (Left []) (Right . CompositeType) @cqQe1.upType
+          -- todo: run resolve resultset type on each column and put in implicit cast info
+          when (a/=b) $ Left [IncompatibleUnionTypes a b]
+          return a
+        lhs.upType = either (const Nothing) (\(CompositeType ts) -> Just ts) @loc.tpe
 
 attr MaybeBoolExpr ScalarExprDirectionPairList ScalarExprDirectionPair
      JoinExpr InList

@@ -60,4 +60,11 @@
 >    "select count(*) from t"
 >    $ Right $ CompositeType [("count",typeBigInt)]
 
+
+>   ,QueryExpr [CatCreateTable "t" [("a", "int4")]
+>              ,CatCreateTable "u" [("a", "int4")]]
+>    "select * from t union select * from u"
+>    $ Right $ CompositeType [("a",typeInt)]
+
+
 >   ]

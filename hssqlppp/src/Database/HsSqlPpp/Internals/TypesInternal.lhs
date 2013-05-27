@@ -132,6 +132,7 @@ type conversion errors
 >                | IncompatibleTypes Type Type
 >                | WrongNumberOfColumns
 >                | WrongTypes Type [Type]
+>                | IncompatibleUnionTypes Type Type
 
 
 old catalog type errors: to be replaced when the catalog code is
