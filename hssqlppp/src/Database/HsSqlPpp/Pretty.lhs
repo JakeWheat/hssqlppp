@@ -559,6 +559,9 @@ Statement components
 >          <+> (case dis of
 >                  All -> empty
 >                  Distinct -> text "distinct"))
+>          <+> (case lim of
+>                  Just lime | useTop -> text "top" <+> scalExpr flg lime
+>                  _ -> empty)
 >   $+$ nest 2 (vcat $ catMaybes
 >   [fmap (\(str,is) -> text "into"
 >                       <+> (if str
@@ -575,9 +578,11 @@ Statement components
 >      g -> Just $ text "group by" $+$ nest 2 (sepCsvMap (scalExpr flg) g)
 >   ,flip fmap hav $ \h -> text "having" $+$ nest 2 (scalExpr flg h)
 >   ,Just $ orderBy flg order
->   ,flip fmap lim $ \lm -> text "limit" <+> scalExpr flg lm
+>   ,if useTop then Nothing else flip fmap lim $ \lm -> text "limit" <+> scalExpr flg lm
 >   ,flip fmap off $ \offs -> text "offset" <+> scalExpr flg offs
 >   ])
+>   where
+>     useTop = ppDialect flg == SQLServerDialect
 >
 > queryExpr flg writeSelect topLev _ (CombineQueryExpr _ tp s1 s2) =
 >   let p = queryExpr flg writeSelect False Nothing  s1
