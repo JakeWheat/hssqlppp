@@ -32,7 +32,13 @@ todo: fix it
 >   ++ [TSQLQueryExpr [CatCreateTable "t" [("a", "date")]]
 >      (pack $ "select datepart(" ++ dp ++ ",a) as a from t")
 >      $ Right $ CompositeType [("a",typeInt)]
->      | dp <- ["day","month","year"]]
+>      | dp <- ["day","month","year", "hour"]]
+
+>   ++ [TSQLQueryExpr [CatCreateTable "t" [("a", "timestamp")]]
+>      (pack $ "select datepart(" ++ dp ++ ",a) as a from t")
+>      $ Right $ CompositeType [("a",typeInt)]
+>      | dp <- ["day","month","year", "hour"]]
+
 
 >   ++ [TSQLQueryExpr [CatCreateTable "t" [("a", "date")]]
 >      (pack $ "select dateadd(" ++ dp ++ ",5,a) as a from t")

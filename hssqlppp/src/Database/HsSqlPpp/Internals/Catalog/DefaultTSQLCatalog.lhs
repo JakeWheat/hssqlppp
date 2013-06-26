@@ -59,6 +59,7 @@
 >         ,CatCreateFunction "datediff" ["int4","date","date"] False "int4"
 >         ,CatCreateFunction "dateadd" ["int4","int4","date"] False "date"
 >         ,CatCreateFunction "datepart" ["int4","date"] False "int4"
+>         ,CatCreateFunction "datepart" ["int4","timestamp"] False "int4"
 >         ,CatCreateFunction "trunc" ["timestamp"] False "timestamp"
 >         ]
 >     -- find all the functions on int2 and replace int2 with int1
