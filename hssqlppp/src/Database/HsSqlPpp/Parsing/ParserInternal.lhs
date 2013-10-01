@@ -219,7 +219,8 @@ Parsing top level statements
 >     ,keyword "drop" *>
 >              choice [
 >                 dropSomething
->                ,dropFunction]]
+>                ,dropFunction
+>                ,dropTrigger]]
 >     <* stmtEnd (not reqSemi))
 >    <|> copyData
 
@@ -819,7 +820,7 @@ variable declarations in a plpgsql function
 > createDatabase = CreateDatabase
 >                <$> pos <* keyword "database"
 >                <*> name
-
+>
 >
 > dropSomething :: SParser Statement
 > dropSomething = do
@@ -833,6 +834,13 @@ variable declarations in a plpgsql function
 >             ])
 >   (i,e,r) <- parseDrop name
 >   return $ DropSomething p x i e r
+>
+> dropTrigger :: SParser Statement
+> dropTrigger = do
+>   p <- pos
+>   x <- keyword "trigger"
+>   (i,e,t,r) <- parseDrop' nameComponent name
+>   return $ DropTrigger p i e t r
 >
 > dropFunction :: SParser Statement
 > dropFunction = do
@@ -850,6 +858,19 @@ variable declarations in a plpgsql function
 >               <$> ifExists
 >               <*> commaSep1 p
 >               <*> cascade
+>     where
+>       ifExists = option Require
+>                  (try $ IfExists <$ (keyword "if"
+>                                      *> keyword "exists"))
+>
+> parseDrop' :: SParser a 
+>            -> SParser b
+>            -> SParser (IfExists, a, b, Cascade)
+> parseDrop' p q = (,,,)
+>                  <$> ifExists
+>                  <*> p
+>                  <*> (keyword "on" *> q)
+>                  <*> cascade
 >     where
 >       ifExists = option Require
 >                  (try $ IfExists <$ (keyword "if"

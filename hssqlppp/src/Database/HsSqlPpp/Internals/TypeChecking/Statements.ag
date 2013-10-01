@@ -4,7 +4,7 @@ sem Statement
   | QueryStatement DeclareStatement If
     Insert Update Delete CopyFrom CopyTo Truncate
     Assignment ExecStatement CreateIndexTSQL
-    DropSomething Into
+    DropSomething DropTrigger Into
     ann.tpe = Left []
 
   | Assignment

@@ -155,7 +155,7 @@ autorules.mk : $(ALL_HASKELL_SOURCES)
 	@echo GENERATE autorules.mk
 	@MakeHaskellMake --hide-package haskell2010 --hide-package haskell98 \
              --hide-package hssqlppp --hide-package hssqlppp-pg \
-             --hide-package hssqlppp-th \
+             --hide-package hssqlppp-th --hide-package HTF \
              $(HC_INCLUDE_DIRS) $(EXE_FILENAMES) > \
              autorules.mk
 ifneq ($(findstring clean,$(MAKECMDGOALS)),clean)
