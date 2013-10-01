@@ -55,6 +55,7 @@
 >     ,TriggerWhen(..)
 >     ,TriggerEvent(..)
 >     ,TriggerFire(..)
+>     ,TriggerDrop(..)
 >     ,DropType(..)
 >     ,Cascade(..)
 >     ,IfExists(..)

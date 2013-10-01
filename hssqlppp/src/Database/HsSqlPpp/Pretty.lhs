@@ -298,6 +298,18 @@ Conversion routines - convert Sql asts into Docs
 >     <+> cascade casc
 >     <> statementEnd se
 >
+> statement _flg se ca (DropTrigger ann dropType ifE nam tbn casc) =
+>     annot ca ann <+>
+>     text "drop"
+>     <+> text (case dropType of
+>                 Trigger -> "trigger")
+>     <+> ifExists ifE
+>     <+> nmc nam
+>     <+> text "on"
+>     <+> name tbn
+>     <+> cascade casc
+>     <> statementEnd se
+>
 > statement _flg se ca (CreateType ann nm atts) =
 >     annot ca ann <+>
 >     text "create type" <+> name nm <+> text "as" <+> lparen

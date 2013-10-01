@@ -54,6 +54,7 @@ module Database.HsSqlPpp.Internals.AstInternal(
    ,TriggerWhen(..)
    ,TriggerEvent(..)
    ,TriggerFire(..)
+   ,TriggerDrop(..)
    ,StatementList
    ,ScalarExprListStatementListPairList
    ,ScalarExprListStatementListPair
@@ -288,7 +289,8 @@ data TriggerEvent = TInsert| TUpdate | TDelete | AntiTriggerEvent String
                     deriving (Show,Eq,Typeable,Data)
 data TriggerFire = EachRow | EachStatement
                    deriving (Show,Eq,Typeable,Data)
-
+data TriggerDrop = Trigger
+                   deriving (Show,Eq,Typeable,Data)
 data DropType = Table
               | Domain
               | View
@@ -14117,6 +14119,7 @@ data Statement  = AlterSequence (Annotation ) (Name ) (Name )
                 | Delete (Annotation ) (Name ) (TableRefList ) (MaybeBoolExpr ) (MaybeSelectList ) 
                 | DropFunction (Annotation ) (IfExists) (NameTypeNameListPairList ) (Cascade) 
                 | DropSomething (Annotation ) (DropType) (IfExists) (([Name])) (Cascade) 
+                | DropTrigger (Annotation ) (TriggerDrop) (IfExists) (NameComponent) (Name) (Cascade)
                 | ExecStatement (Annotation ) (Name ) (ScalarExprList ) 
                 | Execute (Annotation ) (ScalarExpr ) 
                 | ExitStatement (Annotation ) ((Maybe String)) 
@@ -14194,6 +14197,8 @@ sem_Statement (DropFunction _ann _ifE _sigs _cascade )  =
     (sem_Statement_DropFunction (sem_Annotation _ann ) _ifE (sem_NameTypeNameListPairList _sigs ) _cascade )
 sem_Statement (DropSomething _ann _dropType _ifE _names _cascade )  =
     (sem_Statement_DropSomething (sem_Annotation _ann ) _dropType _ifE _names _cascade )
+sem_Statement (DropTrigger _ann _dropType _ifE _name _tbl _cascade )  =
+    (sem_Statement_DropTrigger (sem_Annotation _ann ) _dropType _ifE _name _tbl _cascade )
 sem_Statement (ExecStatement _ann _spName _args )  =
     (sem_Statement_ExecStatement (sem_Annotation _ann ) (sem_Name _spName ) (sem_ScalarExprList _args ) )
 sem_Statement (Execute _ann _expr )  =
@@ -17204,6 +17209,76 @@ sem_Statement_DropSomething ann_ dropType_ ifE_ names_ cascade_  =
                    )
               ( _annIannotatedTree,_annIoriginalTree) =
                   ann_ _annOcat _annOflags _annOimCast _annOtpe 
+          in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
+sem_Statement_DropTrigger :: T_Annotation  ->
+                               TriggerDrop ->
+                               IfExists ->
+                               NameComponent ->
+                               Name ->
+                               Cascade ->
+                               T_Statement
+sem_Statement_DropTrigger ann_ dropType_ ifE_ name_ tbl_ cascade_  =
+    (\ _lhsIcat
+       _lhsIflags
+       _lhsIimCast ->
+         (let _annOtpe :: (Either [TypeError] Type)
+              _lhsOannotatedTree :: Statement
+              _lhsOoriginalTree :: Statement
+              _annOcat :: Catalog
+              _annOflags :: TypeCheckingFlags
+              _annOimCast :: (Maybe Type)
+              _annIannotatedTree :: Annotation
+              _annIoriginalTree :: Annotation
+              -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/Statements.ag"(line 8, column 5)
+              _annOtpe =
+                  ({-# LINE 8 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/Statements.ag" #-}
+                   Left []
+                   {-# LINE 17120 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   )
+              -- self rule
+              _annotatedTree =
+                  ({-# LINE 94 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
+                   DropTrigger _annIannotatedTree dropType_ ifE_ name_ tbl_ cascade_
+                   {-# LINE 17126 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   )
+              -- self rule
+              _originalTree =
+                  ({-# LINE 95 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
+                   DropTrigger _annIoriginalTree dropType_ ifE_ name_ tbl_ cascade_
+                   {-# LINE 17132 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   )
+              -- self rule
+              _lhsOannotatedTree =
+                  ({-# LINE 94 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
+                   _annotatedTree
+                   {-# LINE 17138 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   )
+              -- self rule
+              _lhsOoriginalTree =
+                  ({-# LINE 95 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
+                   _originalTree
+                   {-# LINE 17144 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   )
+              -- copy rule (down)
+              _annOcat =
+                  ({-# LINE 92 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
+                   _lhsIcat
+                   {-# LINE 17150 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   )
+              -- copy rule (down)
+              _annOflags =
+                  ({-# LINE 93 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
+                   _lhsIflags
+                   {-# LINE 17156 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   )
+              -- copy rule (down)
+              _annOimCast =
+                  ({-# LINE 105 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
+                   _lhsIimCast
+                   {-# LINE 17162 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
+                   )
+              ( _annIannotatedTree,_annIoriginalTree) =
+                  ann_ _annOcat _annOflags _annOimCast _annOtpe
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
 sem_Statement_ExecStatement :: T_Annotation  ->
                                T_Name  ->
