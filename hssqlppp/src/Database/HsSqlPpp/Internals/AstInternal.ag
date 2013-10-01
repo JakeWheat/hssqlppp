@@ -78,7 +78,6 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,TriggerWhen(..)
    ,TriggerEvent(..)
    ,TriggerFire(..)
-   ,TriggerDrop(..)
    ,StatementList
    ,ScalarExprListStatementListPairList
    ,ScalarExprListStatementListPair
@@ -716,7 +715,6 @@ data Statement
                     names :: {[Name]}
                     cascade :: Cascade
     | DropTrigger ann::Annotation
-                  dropType :: TriggerDrop
                   ifE :: IfExists
                   name :: NameComponent
 				  tbl :: Name
@@ -894,8 +892,6 @@ data TriggerEvent = TInsert| TUpdate | TDelete | AntiTriggerEvent String
                     deriving (Show,Eq,Typeable,Data)
 data TriggerFire = EachRow | EachStatement
                    deriving (Show,Eq,Typeable,Data)
-data TriggerDrop = Trigger
-	deriving (Show,Eq,Typeable,Data)
 data DropType = Table
               | Domain
               | View

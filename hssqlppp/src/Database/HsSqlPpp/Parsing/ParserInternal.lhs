@@ -838,11 +838,9 @@ variable declarations in a plpgsql function
 > dropTrigger :: SParser Statement
 > dropTrigger = do
 >   p <- pos
->   x <- try (choice [
->                  Trigger <$ keyword "trigger"
->             ])
+>   x <- keyword "trigger"
 >   (i,e,t,r) <- parseDrop' nameComponent name
->   return $ DropTrigger p x i e t r
+>   return $ DropTrigger p i e t r
 >
 > dropFunction :: SParser Statement
 > dropFunction = do

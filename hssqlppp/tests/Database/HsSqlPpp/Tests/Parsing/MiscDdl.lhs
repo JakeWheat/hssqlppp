@@ -51,6 +51,13 @@
 >          \execute procedure fb();"
 >         [CreateTrigger ea (Nmc "tr") TriggerAfter [TInsert,TDelete]
 >          (name "tb") EachStatement (name "fb") []]
+>      ,s "drop trigger\n\
+>          \if exists tr\n\
+>          \on tb cascade;"
+>	      [DropTrigger ea IfExists (Nmc "tr") (name "tb") Cascade] 
+>      ,s "drop trigger tr\n\
+>          \on tb restrict;"
+>	      [DropTrigger ea Require (Nmc "tr") (name "tb") Restrict] 
 >      ]
 >
 >     ,Group "drops" [
