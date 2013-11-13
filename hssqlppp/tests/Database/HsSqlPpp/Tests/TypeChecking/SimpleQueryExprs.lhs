@@ -73,5 +73,12 @@
 
 todo: implicit casts in union
 
+simple window function type
+
+>   ,QueryExpr [CatCreateTable "t" [("a", "int4")]]
+>    "select a,count(*) over () as r from t"
+>    $ Right $ CompositeType [("a",typeInt), ("r",typeBigInt)]
+
+
 >   ]
 

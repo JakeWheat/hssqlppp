@@ -216,6 +216,9 @@ op calls, fn calls, etc.
              (App _ fnm@(Name _ [Nmc "count"]) [Star _]) ->
                   fmap snd $ tcAppLike (tcfDialect @lhs.flags) @lhs.cat fnm [Just UnknownType]
              _ -> maybe (Left []) Right @fn.upType
+    | WindowApp
+         loc.tpe = maybe (Left []) Right @fn.upType
+
 
 {
 tcAppLike :: SQLSyntaxDialect -> Catalog -> Name -> [Maybe Type] -> Either [TypeError] ([Type],Type)
@@ -437,8 +440,7 @@ fallback for unimplemented ctors
 
 -- temp
 sem ScalarExpr
-    | PositionalArg
-      WindowApp LiftApp AntiScalarExpr
+    | PositionalArg LiftApp AntiScalarExpr
         loc.tpe = Left []
 
 
