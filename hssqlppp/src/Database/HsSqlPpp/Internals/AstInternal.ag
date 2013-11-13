@@ -714,6 +714,11 @@ data Statement
                     ifE :: IfExists
                     names :: {[Name]}
                     cascade :: Cascade
+    | DropTrigger ann::Annotation
+                  ifE :: IfExists
+                  name :: NameComponent
+				  tbl :: Name
+                  cascade :: Cascade
     | CreateDatabase ann::Annotation nm::Name
 
 --misc
@@ -887,7 +892,6 @@ data TriggerEvent = TInsert| TUpdate | TDelete | AntiTriggerEvent String
                     deriving (Show,Eq,Typeable,Data)
 data TriggerFire = EachRow | EachStatement
                    deriving (Show,Eq,Typeable,Data)
-
 data DropType = Table
               | Domain
               | View
