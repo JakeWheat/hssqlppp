@@ -40,7 +40,7 @@ that pretty print . parse == id
 >   map ppdfl diffs
 >   where
 >     diffs = getDiff a b
->     ppdfl (d,t) = case d of
->                     F -> "- " ++ t
->                     S -> "+ " ++ t
->                     B -> t
+>     ppdfl d = case d of
+>                     First t -> "- " ++ t
+>                     Second t -> "+ " ++ t
+>                     Both t _ -> t

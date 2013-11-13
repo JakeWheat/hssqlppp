@@ -29,14 +29,14 @@ TODO: can't turn this into a regular outer join until type checking
 since we need to know where the fields come from, so add a new scalar
 expression syntax which represents a (+) suffix.
 
->   ,Oracle "select a,b from t,u where a=b(+);"
+>   {-,Oracle "select a,b from t,u where a=b(+);"
 >    [qs $ makeSelect
 >        {selSelectList = sl [sia (eqi "r" "dn") $ QNmc "rg"]
 >        ,selTref = [tref "tbl"]}]
 >   ,Oracle "select a,b from t,u where a(+)=b;"
 >    [qs $ makeSelect
 >        {selSelectList = sl [sia (eqi "r" "dn") $ QNmc "rg"]
->        ,selTref = [tref "tbl"]}]
+>        ,selTref = [tref "tbl"]}]-}
 >   ]
 >   where
 >     qs = QueryStatement ea
