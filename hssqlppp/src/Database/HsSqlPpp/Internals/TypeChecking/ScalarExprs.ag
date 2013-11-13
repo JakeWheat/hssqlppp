@@ -473,6 +473,8 @@ sem QueryExpr
 sem ScalarExpr
   | LiftApp args.expectedTypes = []
 
+sem ScalarExpr
+  | WindowApp partitionBy.expectedTypes = []
 
 {-sem Root
    | Root

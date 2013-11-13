@@ -31,7 +31,7 @@
 >           sl [sia (WindowApp ea
 >                     (app "row_number" [])
 >                     []
->                     [(ei "a", Asc)] FrameUnboundedPreceding)
+>                     [(ei "a", Asc)] Nothing)
 >               $ Nmc "place"]}
 >    ,q "select row_number() over(order by a asc) as place from tbl;"
 >       $ stbl
@@ -39,7 +39,7 @@
 >           sl [sia (WindowApp ea
 >                     (app "row_number" [])
 >                     []
->                     [(ei "a", Asc)] FrameUnboundedPreceding)
+>                     [(ei "a", Asc)] Nothing)
 >               $ Nmc "place"]}
 >    ,q "select row_number() over(order by a desc) as place from tbl;"
 >       $ stbl
@@ -47,7 +47,7 @@
 >           sl [sia (WindowApp ea
 >                     (app "row_number" [])
 >                     []
->                     [(ei "a", Desc)] FrameUnboundedPreceding)
+>                     [(ei "a", Desc)] Nothing)
 >               $ Nmc "place"]}
 >    ,q "select row_number()\n\
 >         \over(partition by a,b order by c) as place\n\
@@ -57,13 +57,13 @@
 >                                   (app "row_number" [])
 >                                   [ei "a", ei "b"]
 >                                   [(ei "c", Asc)]
->                                   FrameUnboundedPreceding)
+>                                   Nothing)
 >                              (Nmc "place")]}
 >    ,q "select row_number() over(), x from tbl;"
 >       $ stbl
 >         {selSelectList = sl [si $ WindowApp ea
 >                                   (app "row_number" [])
->                                   [] [] FrameUnboundedPreceding
+>                                   [] [] Nothing
 >                             ,si $ ei "x"]}
 
 aggregates, group by, having

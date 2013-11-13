@@ -857,9 +857,10 @@ syntax maybe should error instead of silently breaking
 >     hp = not (null part)
 >     ho = not (null order)
 >     frameStuff = case frm of
->                 FrameUnboundedPreceding -> text "range unbounded preceding"
->                 FrameUnboundedFull -> text "range between unbounded preceding and unbounded following"
->                 FrameRowsUnboundedPreceding -> text "rows unbounded preceding"
+>         Nothing -> empty
+>         Just FrameUnboundedPreceding -> text "range unbounded preceding"
+>         Just FrameUnboundedFull -> text "range between unbounded preceding and unbounded following"
+>         Just FrameRowsUnboundedPreceding -> text "rows unbounded preceding"
 >
 > scalExpr flg (AggregateApp _ d (App _ fn es) o) =
 >   name fn <> parens ((case d of

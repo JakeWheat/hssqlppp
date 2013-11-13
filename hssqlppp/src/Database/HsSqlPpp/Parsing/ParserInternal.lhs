@@ -1545,8 +1545,7 @@ and () is a syntax error.
 >                    <* symbol ")"
 >   where
 >     partitionBy = keyword "partition" *> keyword "by" *> commaSep1 expr
->     frm = option FrameUnboundedPreceding $ choice
->                                          $ map (\(a,b) -> a <$ try (ks b)) [
+>     frm = optionMaybe $ choice $ map (\(a,b) -> a <$ try (ks b)) [
 >            (FrameUnboundedPreceding, ["range","unbounded","preceding"])
 >           ,(FrameUnboundedPreceding, ["range"
 >                                      ,"between"

@@ -321,7 +321,7 @@ data ScalarExpr | NumberLit ann::Annotation d::String
                            fn :: ScalarExpr
                            partitionBy :: ScalarExprList
                            orderBy :: ScalarExprDirectionPairList
-                           frm :: FrameClause
+                           frm :: {Maybe FrameClause}
                   -- represents in query or in list
                 | InPredicate ann::Annotation
                               expr::ScalarExpr
@@ -428,6 +428,7 @@ data ExtractField = ExtractCentury
                   | ExtractYear
                     deriving (Show,Eq,Typeable,Data)
 
+-- todo: this needs fixing, it is currently based on limited frame options
 data FrameClause = FrameUnboundedPreceding
                  | FrameUnboundedFull
                  | FrameRowsUnboundedPreceding
@@ -892,6 +893,7 @@ data TriggerEvent = TInsert| TUpdate | TDelete | AntiTriggerEvent String
                     deriving (Show,Eq,Typeable,Data)
 data TriggerFire = EachRow | EachStatement
                    deriving (Show,Eq,Typeable,Data)
+
 data DropType = Table
               | Domain
               | View
