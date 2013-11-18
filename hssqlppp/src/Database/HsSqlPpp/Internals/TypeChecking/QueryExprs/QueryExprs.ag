@@ -102,3 +102,37 @@ sem InList
 sem JoinExpr
     | JoinOn JoinUsing
         loc.tpe = Left []
+
+{-
+
+quick hack for typechecking cube in group by
+
+create an alternative new rule for group by ScalarExprList
+
+we should add a type to the cube 'function call' so there aren't
+untyped nodes in the tree, and that is all we really need
+
+
+-}
+
+sem QueryExpr
+    | Select
+        loc.selGroupBy =
+            case @selGroupBy.annotatedTree of
+                [App e nm@(Name _ [Nmc "cube"]) es] ->
+                  -- just put in a dummy int4 type for now
+                  [App e{anType = (Just (ScalarType "int4"))
+                        ,anErrs = []
+                        } nm es]
+                x -> x
+        -- there must be a better way to do this?
+        lhs.annotatedTree = Select @ann.annotatedTree
+                                   @selDistinct
+                                   @selSelectList.annotatedTree
+                                   @selTref.annotatedTree
+                                   @selWhere.annotatedTree
+                                   @loc.selGroupBy
+                                   @selHaving.annotatedTree
+                                   @selOrderBy.annotatedTree
+                                   @selLimit.annotatedTree
+                                   @selOffset.annotatedTree

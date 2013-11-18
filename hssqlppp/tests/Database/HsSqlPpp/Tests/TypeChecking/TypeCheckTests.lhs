@@ -19,6 +19,7 @@
 > import Database.HsSqlPpp.Tests.TypeChecking.ImplicitCasts
 > import Database.HsSqlPpp.Tests.TypeChecking.TSQL
 > import Database.HsSqlPpp.Tests.TypeChecking.Issues
+> import Database.HsSqlPpp.Tests.TypeChecking.Aggregates
 
 > typeCheckTestData :: Item
 > typeCheckTestData =
@@ -33,6 +34,7 @@
 >     ,impCasts
 >     ,tsqlQueryExprs
 >     ,issues
+>     ,aggregates
 >     ]
 
 > typeCheckTests :: Test.Framework.Test
