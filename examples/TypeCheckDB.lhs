@@ -24,5 +24,5 @@
 >       ann :: Annotation
 >       ann = getAnnotation aast
 >       ty :: Maybe Type
->       ty = anType ann
+>       ty = fmap teType $ anType ann
 >   print ty

@@ -42,11 +42,12 @@ sem ScalarExpr
           let a = @ann.originalTree --save the source position in the generated nodes
               doStar is = -- todo: quote identifiers if needed
                 map (\((q,n),t) ->
-                      -- have to typecheck manually here since the generate nodes
+                      -- have to typecheck manually here since the generated nodes
                       -- don't participate in the ag
-                  let a' = a {anType = Just t}
+                  let a' = a {anType = Just $ mkTypeExtra t}
                       -- expanded stars always output qualifier
-                  in (Nmc $ T.unpack n, Just t, Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
+                  in (Nmc $ T.unpack n, Just t,
+                      Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
                   ) is
           in case @originalTree of
               Star _ | Right is <- envExpandStar Nothing @lhs.downEnv ->

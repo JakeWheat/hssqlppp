@@ -121,7 +121,7 @@ sem QueryExpr
             case @selGroupBy.annotatedTree of
                 [App e nm@(Name _ [Nmc "cube"]) es] ->
                   -- just put in a dummy int4 type for now
-                  [App e{anType = (Just (ScalarType "int4"))
+                  [App e{anType = (Just (mkTypeExtra $ ScalarType "int4"))
                         ,anErrs = []
                         } nm es]
                 x -> x

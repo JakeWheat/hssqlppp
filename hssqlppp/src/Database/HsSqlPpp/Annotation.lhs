@@ -9,6 +9,7 @@ functions (not including those that depend on the ast data types).
 >     (
 >      -- * Annotation data types
 >      Annotation(..)
+>     ,TypeExtra(..)
 >     ,SourcePosition
 >     --,ParameterizedStatementType
 >     ,getAnnotation

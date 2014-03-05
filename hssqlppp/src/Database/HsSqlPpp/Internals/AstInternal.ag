@@ -119,6 +119,7 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,addExplicitCasts
    -- annotation
    ,Annotation(..)
+   ,TypeExtra(..)
    ,SourcePosition
    ,ParameterizedStatementType
    ,getAnnotation

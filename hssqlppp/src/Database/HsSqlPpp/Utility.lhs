@@ -36,7 +36,7 @@
 > queryType :: Catalog -> L.Text -> Maybe Type
 > queryType cat src = do
 >   ast <- either (const Nothing) Just $ parseQueryExpr defaultParseFlags "" Nothing src
->   anType $ getAnnotation $ typeCheckQueryExpr defaultTypeCheckingFlags cat ast
+>   fmap teType $ anType $ getAnnotation $ typeCheckQueryExpr defaultTypeCheckingFlags cat ast
 
 > -- | Gets some information useful for checking a typechecked tree
 > -- returns the type of the top level node, a list of type errors from
@@ -61,7 +61,7 @@
 >                     , let e = anErrs a
 >                     , let sp = anSrc a
 >                     , not (null e)]
->       ty =  anType $ getAnnotation ast
+>       ty = fmap teType $ anType $ getAnnotation ast
 >   in (ty,tes,noTypeQEs,noTypeSEs)
 
 > -- | show a type error list in emacs format

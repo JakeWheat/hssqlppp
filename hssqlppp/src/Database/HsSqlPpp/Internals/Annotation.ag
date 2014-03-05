@@ -22,6 +22,17 @@ type SourcePosition = (FilePath,Int,Int)
 -- exactly one row at the moment
 type ParameterizedStatementType = ([Type],[(String,Type)])
 
+-- | Quick fix to add precision and nullable information to the
+-- annotation types. This approach should be revisited, maybe this
+-- information should be in the Type type?
+data TypeExtra = TypeExtra {teType :: Type
+                           ,tePrecision :: Maybe Int
+                           ,teScale :: Maybe Int
+                           ,teNullable :: Bool}
+               deriving (Eq,Show,Typeable,Data)
+mkTypeExtra :: Type -> TypeExtra
+mkTypeExtra t = TypeExtra t Nothing Nothing True
+
 }
 
 -- | Annotation type - one of these is attached to most of the
@@ -31,11 +42,11 @@ data Annotation | Annotation
                              -- | source position for this node
                              anSrc :: {Maybe SourcePosition}
                              -- | type of the node, 'Nothing' if the tree hasn't been typechecked or if a type error prevents determining the type
-                             anType :: {Maybe Type}
+                             anType :: {Maybe TypeExtra}
                              -- | any type errors
                              anErrs :: {[TypeError]}
                              -- | if an implicit cast is needed between this node an its parent, this the target type of cast. If no implicit cast is needed, this is Nothing
-                             anImplicitCast :: {Maybe Type}
+                             anImplicitCast :: {Maybe TypeExtra}
                              -- | any catalog updates that a statement produces, used only for ddl Statements
                              anCatUpd :: {[CatalogUpdate]}
 deriving Annotation: Eq,Show,Typeable,Data

@@ -116,7 +116,8 @@ sem Annotation
       lhs.annotatedTree =
           let t = either (const Nothing) Just @lhs.tpe
               es = either id (const []) @lhs.tpe
-          in Annotation @anSrc t es @lhs.imCast @anCatUpd
+          in Annotation @anSrc (mkTypeExtra <$> t) es
+                        (mkTypeExtra <$> @lhs.imCast) @anCatUpd
 
 
 include "TypeChecking/ScalarExprs.ag"
@@ -138,7 +139,7 @@ addExplicitCasts = transformBi removeDoubleCasts . transformBi addCast
     addCast :: ScalarExpr -> ScalarExpr
     addCast e = fromMaybe e $ do
                   t <- anImplicitCast (getAnnotation e)
-                  n <- nameOfType t
+                  n <- nameOfType $ teType t
                   return $ Cast emptyAnnotation e n
     -- addCast isn't very smart, so remove any unneeded casts
     -- that it has inserted. Only do this when have two
@@ -203,7 +204,7 @@ fixMssqlDates = transformBi $ \x -> case x of
       App aa nm [Identifier (nai ai) tn,a,b]
   x' -> x'
   where
-      nai ai = ai {anType = Just typeInt
+      nai ai = ai {anType = Just $ mkTypeExtra typeInt
                   ,anErrs = []}
 
 }
