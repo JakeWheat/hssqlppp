@@ -29,6 +29,10 @@ off.
 > module Database.HsSqlPpp.Internals.TypeChecking.OldTypeConversion (
 >                        findCallMatch
 >                       ,resolveResultSetType
+>                       ,resolveResultSetTypeExtra
+>                       ,joinPrecision
+>                       ,joinScale
+>                       ,joinNullability
 >                       ,checkAssignmentValid
 >                       ,checkAssignmentsValid
 >                       ) where
@@ -548,6 +552,17 @@ check all can convert to selected type else fail
 code is not as much of a mess as findCallMatch
 ~~~~
 
+> resolveResultSetTypeExtra:: Catalog -> [TypeExtra] -> Either [TypeError] TypeExtra
+> resolveResultSetTypeExtra cat inArgs
+>   = liftM addPrecAndNull $ resolveResultSetType cat $ map teType inArgs
+>   where
+>     addPrecAndNull t = if null inArgs
+>       then mkTypeExtra t
+>       else TypeExtra t prec scale nullability
+>     nullability = joinNullability $ map teNullable inArgs
+>     prec = joinPrecision $ map tePrecision inArgs
+>     scale = joinScale $ map teScale inArgs
+>
 > resolveResultSetType :: Catalog -> [Type] -> Either [TypeError] Type
 > resolveResultSetType cat inArgs = do
 >   when (null inArgs) $ Left [TypelessEmptyArray]
@@ -583,6 +598,21 @@ code is not as much of a mess as findCallMatch
 
 todo:
 cast empty array, where else can an empty array work?
+
+--------------------
+
+join (in Order Theory terms) of precision, scale, and nullability
+
+> joinNullability:: [Bool] -> Bool
+> joinNullability = any id
+> -- questionable logic; to be revisited
+> joinPrecision:: [Maybe Int] -> Maybe Int
+> joinPrecision ps = if null ps' then Nothing else Just $ maximum ps'
+>   where
+>     ps' = catMaybes ps
+> -- same thing for now
+> joinScale:: [Maybe Int] -> Maybe Int
+> joinScale = joinPrecision
 
 ================================================================================
 

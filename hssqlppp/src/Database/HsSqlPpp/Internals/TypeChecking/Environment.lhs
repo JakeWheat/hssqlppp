@@ -55,12 +55,12 @@ and variables, etc.
 >                    EmptyEnvironment
 >                  -- | represents the bindings introduced by a tableref:
 >                  -- the name, the public fields, the private fields
->                  | SimpleTref Text [(Text,Type)] [(Text,Type)]
+>                  | SimpleTref Text [(Text,TypeExtra)] [(Text,TypeExtra)]
 >                  -- | environment from joining two tables
->                  | JoinTref [(Text,Type)] -- join ids
+>                  | JoinTref [(Text,TypeExtra)] -- join ids
 >                             Environment Environment
 >                  -- | environment from a sub select
->                  | SelectListEnv [(Text,Type)]
+>                  | SelectListEnv [(Text,TypeExtra)]
 >                    -- | correlated subquery environment
 >                  | CSQEnv Environment -- outerenv
 >                           Environment -- main env
@@ -91,9 +91,9 @@ TODO: remove the create prefixes
 > envCreateTrefEnvironment :: Catalog -> [NameComponent] -> Either [TypeError] Environment
 > envCreateTrefEnvironment cat tbnm = do
 >   (nm,pub,prv) <- catLookupTableAndAttrs cat tbnm
->   return $ SimpleTref nm pub prv
+>   return $ SimpleTref nm (second mkTypeExtra `map` pub) (second mkTypeExtra `map` prv)
 
-> envSelectListEnvironment :: [(Text,Type)] -> Either [TypeError] Environment
+> envSelectListEnvironment :: [(Text,TypeExtra)] -> Either [TypeError] Environment
 > envSelectListEnvironment cols =
 >   return $ SelectListEnv $ map (first $ T.map toLower) cols
 
@@ -119,7 +119,7 @@ TODO: remove the create prefixes
 >   jts <- forM jids $ \i -> do
 >            (_,t0) <- envLookupIdentifier [QNmc $ T.unpack i] tref0
 >            (_,t1) <- envLookupIdentifier [QNmc $ T.unpack i] tref1
->            fmap (i,) $ resolveResultSetType cat [t0,t1]
+>            fmap (i,) $ resolveResultSetTypeExtra cat [t0,t1]
 >   -- todo: check type compatibility
 >   return $ JoinTref jts tref0 tref1
 
@@ -152,8 +152,8 @@ implicit correlation names, ambigous identifiers, etc.
 for each environment type, provide two functions which do identifier
 lookup and star expansion
 
-> listBindingsTypes :: Environment -> ((Maybe Text,Text) -> [((Text,Text),Type)]
->                                     ,Maybe Text -> [((Text,Text),Type)] -- star expand
+> listBindingsTypes :: Environment -> ((Maybe Text,Text) -> [((Text,Text),TypeExtra)]
+>                                     ,Maybe Text -> [((Text,Text),TypeExtra)] -- star expand
 >                                     )
 > listBindingsTypes EmptyEnvironment = (const [],const [])
 > listBindingsTypes BrokeEnvironment = (const [],const [])
@@ -174,7 +174,7 @@ lookup and star expansion
 >      then    --really hacky, assume the ids come out of the star expansion in same order
 >              -- almost certainly wrong some of the time
 >              case elemIndex n cs of
->                Just i -> let s :: [((Text, Text), Type)]
+>                Just i -> let s :: [((Text, Text), TypeExtra)]
 >                              s = (snd (listBindingsTypes env) Nothing)
 >                          in {-trace ("getit : " ++ show (i,show s))
 >                                      $ -}
@@ -189,7 +189,7 @@ lookup and star expansion
 >                   -- if there are not enough, the extras are kept without
 >                   -- being renamed (think this is correct)
 >                   repColNames = map Just cs ++ repeat Nothing
->                   aliasize :: [((Text, Text), Type)] -> [((Text, Text), Type)]
+>                   aliasize :: [((Text, Text), TypeExtra)] -> [((Text, Text), TypeExtra)]
 >                   aliasize =
 >                     zipWith (\r ((_,n),t) ->
 >                              case r of
@@ -284,7 +284,7 @@ for star expand, the outer env is ignored
 >   ,snd $ listBindingsTypes env)
 
 
-> addQual :: Text -> [(Text,Type)] -> [((Text,Text),Type)]
+> addQual :: Text -> [(Text,TypeExtra)] -> [((Text,Text),TypeExtra)]
 > addQual q = map (\(n,t) -> ((q,n),t))
 
 
@@ -292,13 +292,14 @@ for star expand, the outer env is ignored
 
 use listBindingsTypes to implement expandstar and lookupid
 
-> envExpandStar :: Maybe NameComponent -> Environment -> Either [TypeError] [((Text,Text),Type)]
+> envExpandStar:: Maybe NameComponent -> Environment
+>                 -> Either [TypeError] [((Text,Text),TypeExtra)]
 
 > envExpandStar {-nmc env-} = {-let r =-} envExpandStar2 {-nmc env-}
 >                         {-in trace ("env expand star: " ++ show nmc ++ " " ++ show r)
 >                            r-}
 
-> envExpandStar2 :: Maybe NameComponent -> Environment -> Either [TypeError] [((Text,Text),Type)]
+> envExpandStar2 :: Maybe NameComponent -> Environment -> Either [TypeError] [((Text,Text),TypeExtra)]
 > envExpandStar2 nmc env =
 >   if isBroken env
 >   then Left []
@@ -317,7 +318,7 @@ use listBindingsTypes to implement expandstar and lookupid
 > nmcString (AntiNameComponent _) = error "tried to get ncstr of antinamecomponent"
 
 > envLookupIdentifier :: [NameComponent] -> Environment
->                      -> Either [TypeError] ((Text,Text), Type)
+>                      -> Either [TypeError] ((Text,Text), TypeExtra)
 > envLookupIdentifier nmc env = --trace ("lookup: " ++ show nmc  ++ "\n" ++ groom env) $
 >   if isBroken env
 >   then Left []

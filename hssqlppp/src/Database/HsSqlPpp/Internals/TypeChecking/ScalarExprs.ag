@@ -37,8 +37,8 @@ sem ScalarExpr
 
 attr ScalarExpr MaybeScalarExpr
   inh downEnv :: Environment -- the environment from the parent
-  syn upType :: {Maybe Type} -- the type of this node made available to the parent node
-  inh expectedType :: {Maybe Type}
+  syn upType :: {Maybe TypeExtra} -- the type of this node made available to the parent node
+  inh expectedType :: {Maybe TypeExtra}
 
 sem MaybeScalarExpr
     | Nothing lhs.upType = Nothing
@@ -47,8 +47,8 @@ sem MaybeScalarExpr
 
 attr ScalarExprList
   inh downEnv :: Environment
-  syn upTypes :: {[Maybe Type]}
-  inh expectedTypes :: {[Type]}
+  syn upTypes :: {[Maybe TypeExtra]}
+  inh expectedTypes :: {[TypeExtra]}
 
 sem ScalarExprList
     | Cons lhs.upTypes = @hd.upType : @tl.upTypes
@@ -92,7 +92,7 @@ simple literals
 
 sem ScalarExpr
     | BooleanLit
-        loc.tpe = Right typeBool
+        loc.tpe = Right $ mkTypeExtra typeBool
 
     | NumberLit
         -- numbers - a bit hacky, maybe should follow haskell
@@ -102,16 +102,16 @@ sem ScalarExpr
         -- needs to improve a lot then this won't be possible any
         -- more (e.g. 10e-5)
         loc.tpe = Right $ if all (`elem` @loc.digChars) @d
-                          then typeInt
-                          else typeNumeric
+                          then mkTypeExtra typeInt
+                          else mkTypeExtra typeNumeric
         loc.digChars = concatMap show [(0::Int)..9]
 
     | StringLit
         -- string lit type comes from the context
-        loc.tpe = Right UnknownType
+        loc.tpe = Right $ mkTypeExtra UnknownType
     -- I think a null has the same type resolution as an unknown string lit
     | NullLit
-         loc.tpe = Right UnknownType
+         loc.tpe = Right $ mkTypeExtra UnknownType
 
 {-
 
@@ -125,17 +125,17 @@ simplish ctors
     | Cast
          expr.expectedType = @tn.namedType
     | Interval
-         loc.tpe = Right $ ScalarType "interval"
+         loc.tpe = Right $ mkTypeExtra $ ScalarType "interval"
     | Extract
          loc.tpe = -- check the argument is a date
                    do
                    x <- maybe (Left []) Right @e.upType
-                   if x == typeDate
-                     then Right typeFloat8
-                     else Left [NoMatchingOperator "extract" [x]]
-         e.expectedType = Just typeDate
+                   if teType x == typeDate
+                     then Right $ mkTypeExtra typeFloat8
+                     else Left [NoMatchingOperator "extract" [teType x]]
+         e.expectedType = Just $ mkTypeExtra typeDate
     | Placeholder
-         loc.tpe = Right UnknownType
+         loc.tpe = Right $ mkTypeExtra UnknownType
 {-
 
 ---------------------------------------
@@ -180,8 +180,8 @@ op calls, fn calls, etc.
 
 
     | App BinaryOp PrefixOp PostfixOp SpecialOp
-         loc.ttpe :: {Either [TypeError] ([Type],Type)}
-         loc.tpe :: {Either [TypeError] Type}
+         loc.ttpe :: {Either [TypeError] ([TypeExtra],TypeExtra)}
+         loc.tpe :: {Either [TypeError] TypeExtra}
          loc.tpe = fmap snd @loc.ttpe
     | App
          args.expectedTypes = either (const []) id $ fmap fst @loc.ttpe
@@ -190,7 +190,7 @@ op calls, fn calls, etc.
              (App _ (Name _ [Nmc "count"]) [Star _]) ->
                  tcAppLike (tcfDialect @lhs.flags)
                            @lhs.cat @funName.originalTree
-                           [Just UnknownType]
+                           [Just $ mkTypeExtra UnknownType]
              _ -> tcAppLike (tcfDialect @lhs.flags)
                             @lhs.cat @funName.originalTree @args.upTypes
     | BinaryOp
@@ -214,42 +214,44 @@ op calls, fn calls, etc.
          loc.tpe =
            case @fn.originalTree of
              (App _ fnm@(Name _ [Nmc "count"]) [Star _]) ->
-                  fmap snd $ tcAppLike (tcfDialect @lhs.flags) @lhs.cat fnm [Just UnknownType]
+                  fmap snd $ tcAppLike (tcfDialect @lhs.flags) @lhs.cat fnm [Just $ mkTypeExtra UnknownType]
              _ -> maybe (Left []) Right @fn.upType
     | WindowApp
          loc.tpe = maybe (Left []) Right @fn.upType
 
 
 {
-tcAppLike :: SQLSyntaxDialect -> Catalog -> Name -> [Maybe Type] -> Either [TypeError] ([Type],Type)
+tcAppLike:: SQLSyntaxDialect -> Catalog -> Name
+            -> [Maybe TypeExtra]
+            -> Either [TypeError] ([TypeExtra],TypeExtra)
 
 tcAppLike d cat anm@(Name _ [Nmc dd]) [_,a0,a1]
     | map toLower dd == "datediff" = do
   -- dodgy hack for datediff
   tys <- mapM (maybe (Left []) Right) [a0,a1]
   let Name _ ns = anm
-  (ats,rt) <- matchApp d cat ns (typeInt:tys)
+  (ats,rt) <- matchAppExtra d cat ns (mkTypeExtra typeInt : tys)
   return (ats,rt)
 tcAppLike d cat anm@(Name _ [Nmc dd]) [_,a0]
     | map toLower dd == "datepart" = do
   tys <- mapM (maybe (Left []) Right) [a0]
   let Name _ ns = anm
-  (ats,rt) <- matchApp d cat ns (typeInt:tys)
+  (ats,rt) <- matchAppExtra d cat ns (mkTypeExtra typeInt : tys)
   return (ats,rt)
 tcAppLike d cat anm@(Name _ [Nmc dd]) [_,a0,a1]
     | map toLower dd == "dateadd" = do
   tys <- mapM (maybe (Left []) Right) [a0,a1]
   let Name _ ns = anm
-  (ats,rt) <- matchApp d cat ns (typeInt:tys)
+  (ats,rt) <- matchAppExtra d cat ns (mkTypeExtra typeInt : tys)
   return (ats,rt)
 
 
 tcAppLike d cat anm args = do
   -- get the types of the arguments
-  -- then lookup in TypeConversion.matchApp
+  -- then lookup in TypeConversion.matchAppExtra
   tys <- mapM (maybe (Left []) Right) args
   let Name _ ns = anm
-  (ats,rt) <- matchApp d cat ns tys
+  (ats,rt) <- matchAppExtra d cat ns tys
   return (ats,rt)
 
 }
@@ -267,8 +269,8 @@ the then types are compatible
 -}
 
 attr CaseScalarExprListScalarExprPairList
-  syn whenTypes :: {[[Maybe Type]]}
-     ,thenTypes :: {[Maybe Type]}
+  syn whenTypes :: {[[Maybe TypeExtra]]}
+     ,thenTypes :: {[Maybe TypeExtra]}
 
 sem CaseScalarExprListScalarExprPairList
   | Cons lhs.whenTypes = @hd.whenTypes : @tl.whenTypes
@@ -277,8 +279,8 @@ sem CaseScalarExprListScalarExprPairList
         lhs.thenTypes = []
 
 attr CaseScalarExprListScalarExprPair
-  syn whenTypes :: {[Maybe Type]}
-     ,thenType :: {Maybe Type}
+  syn whenTypes :: {[Maybe TypeExtra]}
+     ,thenType :: {Maybe TypeExtra}
 
 sem CaseScalarExprListScalarExprPair
     | Tuple lhs.whenTypes = @x1.upTypes
@@ -286,7 +288,7 @@ sem CaseScalarExprListScalarExprPair
 
 attr CaseScalarExprListScalarExprPairList CaseScalarExprListScalarExprPair
   inh downEnv :: Environment
-  syn upTypes :: {[Maybe Type]}
+  syn upTypes :: {[Maybe TypeExtra]}
 
 sem ScalarExpr
     | Case CaseSimple
@@ -298,11 +300,11 @@ sem ScalarExpr
                   wt <- mapM (maybe (Left []) Right) $ concat @loc.whenTypes
                   -- probably the when types should be checked inside each when node
                   -- and type errors attach there, and ignored here
-                  when (any (/= typeBool) wt)
-                      $ Left [WrongTypes typeBool wt]
+                  when (any ((/= typeBool) . teType) wt)
+                      $ Left [WrongTypes typeBool $ map teType wt]
                   tt <- mapM (maybe (Left []) Right) @loc.thenTypes
-                  resolveResultSetType @lhs.cat tt
-        cases.whenExpectedType = Just typeBool
+                  resolveResultSetTypeExtra @lhs.cat tt
+        cases.whenExpectedType = Just $ mkTypeExtra typeBool
         cases.thenExpectedType = either (const Nothing) Just @loc.tpe
         els.expectedType = either (const Nothing) Just @loc.tpe
     | CaseSimple
@@ -310,20 +312,20 @@ sem ScalarExpr
           do
           wt <- mapM (maybe (Left []) Right) $ concat @loc.whenTypes
           vt <- maybe (Left []) Right @value.upType
-          resolveResultSetType @lhs.cat (vt : wt)
+          resolveResultSetTypeExtra @lhs.cat (vt : wt)
         loc.tpe =
           do
           _ <- @loc.whent
           tt <- mapM (maybe (Left []) Right) @loc.thenTypes
-          resolveResultSetType @lhs.cat tt
+          resolveResultSetTypeExtra @lhs.cat tt
         cases.whenExpectedType = either (const Nothing) Just @loc.whent
         value.expectedType = either (const Nothing) Just @loc.whent
         cases.thenExpectedType = either (const Nothing) Just @loc.tpe
         els.expectedType = either (const Nothing) Just @loc.tpe
 
 attr CaseScalarExprListScalarExprPairList CaseScalarExprListScalarExprPair
-  inh thenExpectedType :: {Maybe Type}
-  inh whenExpectedType :: {Maybe Type}
+  inh thenExpectedType :: {Maybe TypeExtra}
+  inh whenExpectedType :: {Maybe TypeExtra}
 
 sem CaseScalarExprListScalarExprPair
   | Tuple x1.expectedTypes = maybe [] repeat @lhs.whenExpectedType
@@ -346,7 +348,7 @@ subqueries
 -- exists: will work on any subselect so no checking needed
 sem ScalarExpr
     | Exists
-        loc.tpe = Right typeBool
+        loc.tpe = Right $ mkTypeExtra typeBool
 
 {-
 == scalarsubquery
@@ -362,7 +364,8 @@ sem ScalarExpr
             case length selType of
               0 -> Left [InternalError "no columns in scalar subquery?"]
               1 -> Right $ snd $ head selType
-              _ -> Right $ AnonymousCompositeType $ map snd selType
+              _ -> Right $ mkTypeExtra $ AnonymousCompositeType
+                      $ map (teType . snd) selType
 
         -- support for correlated subqueries
         sel.outerDownEnv = Just @lhs.downEnv
@@ -375,27 +378,27 @@ todo: make the ast and typechecking a special case of lifted operator
 -}
 
 attr InList
-  inh expectedType :: {Maybe Type}
-  syn listType :: {Either [TypeError] Type}
+  inh expectedType :: {Maybe TypeExtra}
+  syn listType :: {Either [TypeError] TypeExtra}
 
 
 sem ScalarExpr
     | InPredicate
-        loc.rt :: {Either [TypeError] Type}
+        loc.rt :: {Either [TypeError] TypeExtra}
         loc.rt = do
                  lt <- @list.listType
                  expt <- maybe (Left []) Right @expr.upType
-                 resolveResultSetType @lhs.cat [expt, lt]
+                 resolveResultSetTypeExtra @lhs.cat [expt, lt]
         loc.tpe = do
                   _ <- @loc.rt
-                  return typeBool
+                  return $ mkTypeExtra typeBool
         list.expectedType = either (const Nothing) Just @loc.rt
         expr.expectedType = either (const Nothing) Just @loc.rt
 
 sem InList
     | InList
         lhs.listType = mapM (maybe (Left []) Right) @exprs.upTypes
-                       >>= resolveResultSetType @lhs.cat
+                       >>= resolveResultSetTypeExtra @lhs.cat
         exprs.expectedTypes = maybe [] repeat @lhs.expectedType
 
     | InQueryExpr
@@ -406,7 +409,8 @@ sem InList
                       0 -> Left [InternalError
                                  "got subquery with no columns? in inselect"]
                       1 -> Right $ head st
-                      _ -> Right $ AnonymousCompositeType st
+                      _ -> Right $ mkTypeExtra $ AnonymousCompositeType
+                              $ map teType st
 
 {-
 ----------------------------------------------------
@@ -416,10 +420,13 @@ get the cols and wrap in composite type
 TODO: the envExpandStar is shared with the select list stuff
 want to put the proper error from the catalog in the tpe here
 instead of ignoring it and setting left badstarexpand
+
+Alex: for now, we remove prec info from components of CompositeType,
+  and then add default prec info above it
 -}
 sem ScalarExpr
     | Star QStar
-        loc.tpe :: {Either [TypeError] Type}
+        loc.tpe :: {Either [TypeError] TypeExtra}
         loc.tpe = case @originalTree of
                     Star _ ->
                       envExpandStar Nothing @lhs.downEnv
@@ -429,7 +436,7 @@ sem ScalarExpr
                       >>= @loc.starCS
                     _ -> Left [InternalError "wrong ctor in sem rule for star, qstar in scalarexprs.ag"]
 
-        loc.starCS = Right . CompositeType . map (\((_q,n),t) -> (n,t))
+        loc.starCS = Right . mkTypeExtra . CompositeType . map (\((_q,n),t) -> (n, teType t))
 
 
 {-
@@ -450,7 +457,7 @@ sem ScalarExprRoot
   | ScalarExprRoot expr.expectedType = Nothing
 
 sem JoinExpr
-  | JoinOn expr.expectedType = Just typeBool
+  | JoinOn expr.expectedType = Just $ mkTypeExtra typeBool
 
 sem SelectItem
   | SelExp SelectItem ex.expectedType = Nothing
@@ -464,7 +471,7 @@ sem ScalarExprDirectionPair
   | Tuple x1.expectedType = Nothing
 
 sem MaybeBoolExpr
-  | Just just.expectedType = Nothing -- Just typeBool
+  | Just just.expectedType = Nothing -- Just $ mkTypeExtra typeBool
 
 sem QueryExpr
   | Select

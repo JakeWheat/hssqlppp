@@ -45,7 +45,7 @@
 > -- that the typechecking didn't complete successfully
 > tcTreeInfo :: Data a =>
 >               a
->            -> (Maybe Type,[([TypeError],Maybe SourcePosition)]
+>            -> (Maybe TypeExtra,[([TypeError],Maybe SourcePosition)]
 >               ,[QueryExpr],[ScalarExpr])
 > tcTreeInfo ast =
 >   let noTypeSEs :: [ScalarExpr]
@@ -61,7 +61,7 @@
 >                     , let e = anErrs a
 >                     , let sp = anSrc a
 >                     , not (null e)]
->       ty = fmap teType $ anType $ getAnnotation ast
+>       ty = anType $ getAnnotation ast
 >   in (ty,tes,noTypeQEs,noTypeSEs)
 
 > -- | show a type error list in emacs format

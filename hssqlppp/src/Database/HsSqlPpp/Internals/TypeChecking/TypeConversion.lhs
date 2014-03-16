@@ -16,10 +16,12 @@ http://blogs.msdn.com/b/craigfr/archive/2010/01/20/more-on-implicit-conversions.
 > {-# LANGUAGE OverloadedStrings,TupleSections #-}
 > module Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
 >     (matchApp
+>     ,matchAppExtra
 >     ,resolveResultSetType
+>     ,resolveResultSetTypeExtra
 >     ) where
 >
-> --import Data.Maybe
+> import Data.Maybe
 > --import Data.List
 > --import Data.Either
 > --import Debug.Trace
@@ -29,7 +31,9 @@ http://blogs.msdn.com/b/craigfr/archive/2010/01/20/more-on-implicit-conversions.
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 > --import Database.HsSqlPpp.Utils.Utils
 > --import Database.HsSqlPpp.Internals.TediousTypeUtils
+> import Control.Monad
 > import Control.Applicative
+> import Control.Arrow
 
 > import Database.HsSqlPpp.Internals.TypeChecking.OldTypeConversion
 > import Database.HsSqlPpp.SqlDialect
@@ -43,6 +47,34 @@ matchApp: takes the function name and argument types, and returns the
 matching operator/function
 
 This needs a lot more tests
+
+> matchAppExtra:: SQLSyntaxDialect
+>                 -> Catalog
+>                 -> [NameComponent]
+>                 -> [TypeExtra]
+>                 -> Either [TypeError] ([TypeExtra],TypeExtra)
+> matchAppExtra dialect cat nmcs tes
+>   = liftM (zipWith addArgExtra tes *** addResultExtra)
+>       $ matchApp dialect cat nmcs $ map teType tes
+>   where
+>     addArgExtra te t = te {teType = t}
+>     addResultExtra t = TypeExtra t
+>               (joinPrecision $ map tePrecision tes')
+>               (joinScale $ map teScale tes')
+>               (joinNullability $ map teNullable tes')
+>     tes' = case nmcs of
+>       [Nmc dd]
+>         | map toLower dd == "decode"
+>           -> caseResultTypes tes
+>       -- for now, a significant hack
+>       _ -> tes
+>     -- tail is safe here because matchApp did all the checks
+>     caseResultTypes tes = caseResultTypes' (tail tes) []
+>       where
+>         caseResultTypes' [] acc = acc
+>         caseResultTypes' [els] acc = els:acc
+>         caseResultTypes' (_:t:xs) acc = caseResultTypes' xs (t:acc)
+>
 
 > matchApp :: SQLSyntaxDialect
 >          -> Catalog

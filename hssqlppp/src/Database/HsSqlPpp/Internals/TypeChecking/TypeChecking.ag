@@ -99,10 +99,10 @@ attr AllNodes Root ScalarExprRoot Annotation
 -- TypeChecking/ and put into the annotated tree output
 
 attr Annotation
-  inh tpe :: {Either [TypeError] Type}
+  inh tpe :: {Either [TypeError] TypeExtra}
 
 attr AllNodes Annotation
-  inh imCast :: {Maybe Type}
+  inh imCast :: {Maybe TypeExtra}
 
 sem Root
    | Root
@@ -116,8 +116,7 @@ sem Annotation
       lhs.annotatedTree =
           let t = either (const Nothing) Just @lhs.tpe
               es = either id (const []) @lhs.tpe
-          in Annotation @anSrc (mkTypeExtra <$> t) es
-                        (mkTypeExtra <$> @lhs.imCast) @anCatUpd
+          in Annotation @anSrc t es @lhs.imCast @anCatUpd
 
 
 include "TypeChecking/ScalarExprs.ag"
@@ -130,6 +129,8 @@ include "TypeChecking/Statements.ag"
 --}
 
 {
+
+-- Alex: Jake, mustn't anImplicitCast be Nothing if the types are equal?
 
 -- | run on a typechecked tree. Finds all the places where an implicit
 -- cast has been used in the typechecking and inserts an explicit cast

@@ -22,17 +22,6 @@ type SourcePosition = (FilePath,Int,Int)
 -- exactly one row at the moment
 type ParameterizedStatementType = ([Type],[(String,Type)])
 
--- | Quick fix to add precision and nullable information to the
--- annotation types. This approach should be revisited, maybe this
--- information should be in the Type type?
-data TypeExtra = TypeExtra {teType :: Type
-                           ,tePrecision :: Maybe Int
-                           ,teScale :: Maybe Int
-                           ,teNullable :: Bool}
-               deriving (Eq,Show,Typeable,Data)
-mkTypeExtra :: Type -> TypeExtra
-mkTypeExtra t = TypeExtra t Nothing Nothing True
-
 }
 
 -- | Annotation type - one of these is attached to most of the

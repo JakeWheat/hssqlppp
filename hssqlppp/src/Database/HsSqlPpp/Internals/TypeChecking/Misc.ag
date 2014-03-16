@@ -11,7 +11,7 @@ check it exists
 -}
 
 attr TypeName
-  syn namedType :: {Maybe Type}
+  syn namedType :: {Maybe TypeExtra}
 
 sem TypeName
      | SimpleTypeName ArrayTypeName SetOfTypeName PrecTypeName Prec2TypeName
@@ -32,7 +32,7 @@ tree when successful, and only one type error in the tree when the
 typename isn't recognised
 
 -}
-         loc.tpe :: {Either [TypeError] Type}
+         loc.tpe :: {Either [TypeError] TypeExtra}
          lhs.namedType = either (const Nothing) Just @loc.tpe
          ann.tpe = either Left (const $ Left []) @loc.tpe
      | SimpleTypeName PrecTypeName Prec2TypeName
@@ -43,11 +43,11 @@ typename isn't recognised
 -- is written to check this attribute is needed
 
 attr Name
-  inh tpe :: {Either [TypeError] Type}
+  inh tpe :: {Either [TypeError] TypeExtra}
 
 sem TypeName
      | SimpleTypeName
-         loc.tpe = catLookupType @lhs.cat (nameComponents @tn.originalTree)
+         loc.tpe = mkTypeExtra `liftM` catLookupType @lhs.cat (nameComponents @tn.originalTree)
 {-
 todos: check the array type exists
 check that this type can be used as a setof
@@ -56,12 +56,16 @@ check that the type can accept one or two modifiers
 
      | ArrayTypeName
         loc.tpe = maybe (Left []) Right @typ.namedType
-                  >>=  Right . ArrayType
+                  >>=  Right . (\t -> t{teType = ArrayType $ teType t})
      | SetOfTypeName
         loc.tpe = maybe (Left []) Right @typ.namedType
-                  >>=  Right . Pseudo . SetOfType
+                  >>=  Right . (\t -> t{teType = Pseudo $ SetOfType $ teType t})
      | PrecTypeName
-        loc.tpe = catLookupType @lhs.cat (nameComponents @tn.originalTree)
+        loc.tpe = ((\t -> t{tePrecision = Just $ fromIntegral @prec}) . mkTypeExtra)
+                  `liftM` catLookupType @lhs.cat (nameComponents @tn.originalTree)
      | Prec2TypeName
-        loc.tpe = catLookupType @lhs.cat (nameComponents @tn.originalTree)
+        loc.tpe = ((\t -> t{tePrecision = Just $ fromIntegral @prec,
+                            teScale = Just $ fromIntegral @prec1})
+                        . mkTypeExtra)
+                  `liftM` catLookupType @lhs.cat (nameComponents @tn.originalTree)
 

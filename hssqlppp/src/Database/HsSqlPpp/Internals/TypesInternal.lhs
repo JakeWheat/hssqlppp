@@ -53,6 +53,17 @@ where should precision and nullability go?
 >             deriving (Eq,Show,Ord,Typeable,Data)
 >
 
+> -- | Quick fix to add precision and nullable information to the
+> -- annotation types. This approach should be revisited, maybe this
+> -- information should be in the Type type?
+> data TypeExtra = TypeExtra {teType :: Type
+>                            ,tePrecision :: Maybe Int
+>                            ,teScale :: Maybe Int
+>                            ,teNullable :: Bool}
+>                deriving (Eq,Show,Typeable,Data)
+> mkTypeExtra :: Type -> TypeExtra
+> mkTypeExtra t = TypeExtra t Nothing Nothing True
+
 > -- | Pseudo types: mainly used for the argument and return types of
 > -- functions. The weird undocumented types are just used to represent
 > -- functions with those types which are in the postgres default catalog

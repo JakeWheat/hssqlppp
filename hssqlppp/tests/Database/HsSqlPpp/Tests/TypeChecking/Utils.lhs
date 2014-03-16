@@ -24,14 +24,7 @@
 > import qualified Data.Text.Lazy as L
 > --import Language.Haskell.Exts hiding (Type)
 
-> data DetailedType = DetailedType {
->   basicType:: Type,
->   isNullable:: Bool,
->   precision:: Maybe Int,
->   scale:: Maybe Int
-> }
->
-> type Environment = [(L.Text,DetailedType)]
+> type Environment = [(L.Text,TypeExtra)]
 >
 > data Item = Group String [Item]
 >           | ScalExpr L.Text (Either [TypeError] Type)
@@ -40,7 +33,7 @@
 >           | OracleQueryExpr [CatalogUpdate] L.Text (Either [TypeError] Type)
 >           | RewriteQueryExpr TypeCheckingFlags [CatalogUpdate] L.Text L.Text
 >           | ImpCastsScalar TypeCheckingFlags L.Text L.Text
->           | ScalarExprExtra Environment L.Text (Either [TypeError] DetailedType)
+>           | ScalarExprExtra Environment L.Text (Either [TypeError] TypeExtra)
 
 
 > testScalarExprType :: L.Text -> Either [TypeError] Type -> Test.Framework.Test
@@ -52,7 +45,7 @@
 >       (ty,errs,noTypeQEs,noTypeSEs) = tcTreeInfo aast
 >       er = concatMap fst errs
 >       got = case () of
->               _ | null er -> maybe (Left []) Right ty
+>               _ | null er -> maybe (Left []) (Right . teType) ty
 >                 | otherwise -> Left er
 >       allTyped = case et of
 >                    Left _ -> True -- don't check if everything is typed
@@ -64,8 +57,8 @@
 >   unless (et == got) $ trace (groomTypes aast) $ return ()
 >   assertEqual "" et got
 
-> testScalarExprExtraType:: Environment -> L.Text -> Either [TypeError] DetailedType -> Test.Framework.Test
-> testScalarExprExtraType env src edt = testCase ("typecheck " ++ L.unpack src) $ do
+> testScalarExprTypeExtra:: Environment -> L.Text -> Either [TypeError] TypeExtra -> Test.Framework.Test
+> testScalarExprTypeExtra env src ete = testCase ("typecheck " ++ L.unpack src) $ do
 >   let ast = case parseScalarExpr defaultParseFlags "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
@@ -75,15 +68,15 @@
 >       got = case () of
 >               _ | null er -> maybe (Left []) Right ty
 >                 | otherwise -> Left er
->       (allTyped,et) = case edt of
->           Left _ -> (True, Left[])  -- don't check if everything is typed
->                                     -- if expecting a type error
->           Right dt -> (null noTypeSEs && null noTypeQEs, Right $ basicType dt)
+>       allTyped = case ete of
+>           Left _ -> True  -- don't check if everything is typed
+>                           -- if expecting a type error
+>           Right _ -> null noTypeSEs && null noTypeQEs
 >   unless allTyped $
 >        trace ("MISSING TYPES: " ++ groomTypes aast)
 >        $ assertBool "" allTyped
->   unless (et == got) $ trace (groomTypes aast) $ return ()
->   assertEqual "" et got
+>   unless (ete == got) $ trace (groomTypes aast) $ return ()
+>   assertEqual "" ete got
 
 > testImpCastsScalar :: TypeCheckingFlags -> L.Text -> L.Text -> Test.Framework.Test
 > testImpCastsScalar f src wsrc = testCase ("typecheck " ++ L.unpack src) $
@@ -126,7 +119,7 @@
 >       er = concatMap fst errs
 >       got :: Either [TypeError] Type
 >       got = case () of
->               _ | null er -> maybe (Left []) Right ty
+>               _ | null er -> maybe (Left []) (Right . teType) ty
 >                 | otherwise -> Left er
 >       allTyped = case et of
 >                    Left _ -> True -- don't check if everything is typed
@@ -224,4 +217,4 @@ type checks properly and produces the same type
 > itemToTft (RewriteQueryExpr f cus s s') = testRewrite f cus s s'
 > itemToTft (ImpCastsScalar f s s') = testImpCastsScalar f s s'
 > itemToTft (Group s is) = testGroup s $ map itemToTft is
-> itemToTft (ScalarExprExtra env s r) = testScalarExprExtraType env s r
+> itemToTft (ScalarExprExtra env s r) = testScalarExprTypeExtra env s r

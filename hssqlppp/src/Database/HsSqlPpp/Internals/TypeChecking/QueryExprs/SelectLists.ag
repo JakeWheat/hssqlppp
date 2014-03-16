@@ -28,7 +28,7 @@ These lists of triples are only used by selectitems.
 -}
 
 attr ScalarExpr
-  syn colExprs :: {[(NameComponent,Maybe Type,ScalarExpr)]}
+  syn colExprs :: {[(NameComponent,Maybe TypeExtra,ScalarExpr)]}
 
 
 sem ScalarExpr
@@ -44,7 +44,7 @@ sem ScalarExpr
                 map (\((q,n),t) ->
                       -- have to typecheck manually here since the generated nodes
                       -- don't participate in the ag
-                  let a' = a {anType = Just $ mkTypeExtra t}
+                  let a' = a {anType = Just t}
                       -- expanded stars always output qualifier
                   in (Nmc $ T.unpack n, Just t,
                       Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
@@ -144,13 +144,13 @@ sem SelectItemList
 
 
 attr SelectItem
-  syn colExprs :: {[(NameComponent,Maybe Type,ScalarExpr)]}
+  syn colExprs :: {[(NameComponent,Maybe TypeExtra,ScalarExpr)]}
   inh downEnv :: Environment
 
 attr SelectItemList SelectList
   inh downEnv :: Environment
-  syn colExprs :: {[(NameComponent,Maybe Type,ScalarExpr)]}
-  syn upType :: {Maybe [(Text,Type)]}
+  syn colExprs :: {[(NameComponent,Maybe TypeExtra,ScalarExpr)]}
+  syn upType :: {Maybe [(Text,TypeExtra)]}
   syn upEnv :: Environment
 
 

@@ -25,10 +25,11 @@ sem TableRefList
 
 -- boilerplate: pass any error from the env to the annotation
 -- pass any successful env in the upEnv
+-- Alex: for now, we remove prec info from TrefType argument
 sem TableRef
   | Tref FunTref SubTref JoinTref TableAlias FullAlias TableRefParens
       loc.eEnv :: {Either [TypeError] Environment}
-      ann.tpe = either Left (Right . TrefType)
+      ann.tpe = either Left (Right . mkTypeExtra . TrefType . map (second teType))
                 (@loc.eEnv >>= envExpandStar Nothing)
       -- todo: what to do here?
       lhs.upEnv = either (const brokeEnvironment) id @loc.eEnv
