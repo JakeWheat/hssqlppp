@@ -10,6 +10,7 @@ This is the public module for the type checking functionality.
 >     ,typeCheckParameterizedStatement
 >     ,typeCheckQueryExpr
 >     ,typeCheckScalarExpr
+>     ,typeCheckScalarExprEnv
 >     ,TypeCheckingFlags(..)
 >     ,SQLSyntaxDialect(..)
 >     ,defaultTypeCheckingFlags

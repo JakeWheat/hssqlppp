@@ -15,6 +15,7 @@
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Pretty
 > import Database.HsSqlPpp.Utility
+> import Database.HsSqlPpp.Internals.TypeChecking.Environment
 > --import Text.Groom
 > import Debug.Trace
 > --import Database.HsSqlPpp.Tests.TestUtils
@@ -24,8 +25,6 @@
 > import qualified Data.Text.Lazy as L
 > --import Language.Haskell.Exts hiding (Type)
 
-> type Environment = [(L.Text,TypeExtra)]
->
 > data Item = Group String [Item]
 >           | ScalExpr L.Text (Either [TypeError] Type)
 >           | QueryExpr [CatalogUpdate] L.Text (Either [TypeError] Type)
@@ -57,12 +56,14 @@
 >   unless (et == got) $ trace (groomTypes aast) $ return ()
 >   assertEqual "" et got
 
-> testScalarExprTypeExtra:: Environment -> L.Text -> Either [TypeError] TypeExtra -> Test.Framework.Test
+> testScalarExprTypeExtra:: Environment -> L.Text
+>                           -> Either [TypeError] TypeExtra
+>                           -> Test.Framework.Test
 > testScalarExprTypeExtra env src ete = testCase ("typecheck " ++ L.unpack src) $ do
 >   let ast = case parseScalarExpr defaultParseFlags "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
->       aast = typeCheckScalarExpr defaultTypeCheckingFlags defaultTemplate1Catalog ast
+>       aast = typeCheckScalarExprEnv defaultTypeCheckingFlags defaultTemplate1Catalog env ast
 >       (ty,errs,noTypeQEs,noTypeSEs) = tcTreeInfo aast
 >       er = concatMap fst errs
 >       got = case () of

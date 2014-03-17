@@ -80,6 +80,18 @@ cse"-}}))
     in case rt of
          ScalarExprRoot e -> fixTree e
 
+typeCheckScalarExprEnv::  TypeCheckingFlags -> Catalog -> Environment
+                          -> ScalarExpr -> ScalarExpr
+typeCheckScalarExprEnv f cat env ex =
+    let t = sem_ScalarExprRoot (ScalarExprRoot ex)
+        rt = annotatedTree_Syn_ScalarExprRoot
+                $ wrap_ScalarExprRoot t
+                    Inh_ScalarExprRoot{cat_Inh_ScalarExprRoot = cat
+                                      ,flags_Inh_ScalarExprRoot = f
+                                      ,downEnv_Inh_ScalarExprRoot = env}
+    in case rt of
+         ScalarExprRoot e -> fixTree e
+
 }
 
 {-

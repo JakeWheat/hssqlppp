@@ -6,35 +6,47 @@
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Internals.AstInternal
+> import Database.HsSqlPpp.Internals.TypeChecking.Environment
 
 > precisionAndNullable :: Item
 > precisionAndNullable =
 >   Group "scalarExprsPrecisionAndNullable"
 >   [Group "identifiers"
->    [ScalarExprExtra [an]  "an"  (Right anType)
->    ,ScalarExprExtra [a]   "a"   (Right aType)
->    ,ScalarExprExtra [cn]  "cn"  (Right cnType)
->    ,ScalarExprExtra [c]   "c"   (Right cType)
->    ,ScalarExprExtra [vn]  "vn"  (Right vnType)
->    ,ScalarExprExtra [v]   "v"   (Right vType)
->    ,ScalarExprExtra [dn]  "dn"  (Right dnType)
->    ,ScalarExprExtra [d]   "d"   (Right dType)
+>    [ScalarExprExtra anEnv  "an"  (Right anType)
+>    ,ScalarExprExtra aEnv   "a"   (Right aType)
+>    ,ScalarExprExtra cnEnv  "cn"  (Right cnType)
+>    ,ScalarExprExtra cEnv   "c"   (Right cType)
+>    ,ScalarExprExtra vnEnv  "vn"  (Right vnType)
+>    ,ScalarExprExtra vEnv   "v"   (Right vType)
+>    ,ScalarExprExtra dnEnv  "dn"  (Right dnType)
+>    ,ScalarExprExtra dEnv   "d"   (Right dType)
+>    --,ScalarExprExtra vConcatEnv vConcatExpr (Right vConcatType)
+>    ,ScalarExprExtra vEqEnv vEqExpr (Right vEqType)
 >    ]
 >   ]
 >   where
 >     anType = TypeExtra typeInt Nothing Nothing True
->     an = ("an", anType)
+>     anEnv = selListEnv [("an", anType)]
 >     aType = TypeExtra typeInt Nothing Nothing False
->     a = ("a", aType)
+>     aEnv = selListEnv [("a", aType)]
 >     cnType = TypeExtra typeChar (Just 4) Nothing True
->     cn = ("cn", cnType)
+>     cnEnv = selListEnv [("cn", cnType)]
 >     cType = TypeExtra typeChar (Just 3) Nothing False
->     c = ("c", cType)
+>     cEnv = selListEnv [("c", cType)]
 >     vnType = TypeExtra typeVarChar (Just 7) Nothing True
->     vn = ("vn", vnType)
+>     vnEnv = selListEnv [("vn", vnType)]
 >     vType = TypeExtra typeVarChar (Just 6) Nothing False
->     v = ("v", vType)
+>     vEnv = selListEnv [("v", vType)]
 >     dnType = TypeExtra typeNumeric (Just 10) (Just 2) True
->     dn = ("dn", dnType)
+>     dnEnv = selListEnv [("dn", dnType)]
 >     dType = TypeExtra typeNumeric (Just 9) (Just 3) False
->     d = ("d", dType)
+>     dEnv = selListEnv [("d", dType)]
+>     vConcatType = TypeExtra typeVarChar (Just 13) Nothing True
+>     vConcatExpr = "v||vn"
+>     vConcatEnv = selListEnv [("vn", vnType),("v", vType)]
+>     vEqType = TypeExtra typeBool Nothing Nothing True
+>     vEqExpr = "v=vn"
+>     vEqEnv = selListEnv [("vn", vnType),("v", vType)]
+>     --
+>     selListEnv env = either (const brokeEnvironment) id $ envSelectListEnvironment env
+

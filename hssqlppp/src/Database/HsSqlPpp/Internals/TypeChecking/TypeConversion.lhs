@@ -58,10 +58,17 @@ This needs a lot more tests
 >       $ matchApp dialect cat nmcs $ map teType tes
 >   where
 >     addArgExtra te t = te {teType = t}
->     addResultExtra t = TypeExtra t
->               (joinPrecision $ map tePrecision tes')
->               (joinScale $ map teScale tes')
->               (joinNullability $ map teNullable tes')
+>     addResultExtra t = checkPrecisionClass tes' $ case nmcs of
+>       [Nmc dd]
+>         | dd == "||"
+>           -> TypeExtra t jpMax js jn
+>       _ -> TypeExtra t jp js jn
+>     -- rule for functions like "||"
+>     jpMax = Just $ sum $ mapMaybe tePrecision tes'
+>     -- the default rules
+>     jp = joinPrecision $ map tePrecision tes'
+>     js = joinScale $ map teScale tes'
+>     jn = joinNullability $ map teNullable tes'
 >     tes' = case nmcs of
 >       [Nmc dd]
 >         | map toLower dd == "decode"
@@ -74,7 +81,22 @@ This needs a lot more tests
 >         caseResultTypes' [] acc = acc
 >         caseResultTypes' [els] acc = els:acc
 >         caseResultTypes' (_:t:xs) acc = caseResultTypes' xs (t:acc)
+>     -- retreat to default when arguments and result are incompatible
+>     checkPrecisionClass:: [TypeExtra] -> TypeExtra -> TypeExtra
+>     checkPrecisionClass tes t
+>       = if all (precisionClass (teType t) ==) $ map (precisionClass . teType) tes
+>         then t
+>         else t{tePrecision = Nothing, teScale = Nothing}
 >
+> data PrecisionClass = String | Number
+>       deriving (Eq)
+>
+> precisionClass:: Type -> Maybe PrecisionClass
+> precisionClass (ScalarType tn)
+>   | tn `elem` ["varchar","char"] = Just String
+>   | tn `elem` ["numeric"] = Just Number
+>   | otherwise = Nothing
+> precisionClass _ = Nothing
 
 > matchApp :: SQLSyntaxDialect
 >          -> Catalog

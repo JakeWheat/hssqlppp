@@ -34,6 +34,8 @@ sem ScalarExpr
     | AntiScalarExpr
         lhs.upType = either (const Nothing) Just @loc.tpe
 
+attr ScalarExprRoot
+  inh downEnv:: Environment -- the initial environment
 
 attr ScalarExpr MaybeScalarExpr
   inh downEnv :: Environment -- the environment from the parent
@@ -89,6 +91,10 @@ ann.tpe
 simple literals
 
 -}
+
+sem ScalarExprRoot
+    | ScalarExprRoot
+        expr.downEnv = @lhs.downEnv
 
 sem ScalarExpr
     | BooleanLit
