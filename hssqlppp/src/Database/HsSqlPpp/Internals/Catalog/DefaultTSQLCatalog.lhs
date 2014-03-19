@@ -61,6 +61,7 @@
 >         ,CatCreateFunction "datepart" ["int4","date"] False "int4"
 >         ,CatCreateFunction "datepart" ["int4","timestamp"] False "int4"
 >         ,CatCreateFunction "trunc" ["timestamp"] False "timestamp"
+>         ,CatCreateCast "char" "varchar" ImplicitCastContext
 >         ]
 >     -- find all the functions on int2 and replace int2 with int1
 >     -- then find all the functions with int2 and int4, and

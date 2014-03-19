@@ -32,7 +32,7 @@
 >           | OracleQueryExpr [CatalogUpdate] L.Text (Either [TypeError] Type)
 >           | RewriteQueryExpr TypeCheckingFlags [CatalogUpdate] L.Text L.Text
 >           | ImpCastsScalar TypeCheckingFlags L.Text L.Text
->           | ScalarExprExtra Environment L.Text (Either [TypeError] TypeExtra)
+>           | ScalarExprExtra Catalog Environment L.Text (Either [TypeError] TypeExtra)
 
 
 > testScalarExprType :: L.Text -> Either [TypeError] Type -> Test.Framework.Test
@@ -56,14 +56,14 @@
 >   unless (et == got) $ trace (groomTypes aast) $ return ()
 >   assertEqual "" et got
 
-> testScalarExprTypeExtra:: Environment -> L.Text
+> testScalarExprTypeExtra:: Catalog -> Environment -> L.Text
 >                           -> Either [TypeError] TypeExtra
 >                           -> Test.Framework.Test
-> testScalarExprTypeExtra env src ete = testCase ("typecheck " ++ L.unpack src) $ do
+> testScalarExprTypeExtra cat env src ete = testCase ("typecheck " ++ L.unpack src) $ do
 >   let ast = case parseScalarExpr defaultParseFlags "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
->       aast = typeCheckScalarExprEnv defaultTypeCheckingFlags defaultTemplate1Catalog env ast
+>       aast = typeCheckScalarExprEnv defaultTypeCheckingFlags cat env ast
 >       (ty,errs,noTypeQEs,noTypeSEs) = tcTreeInfo aast
 >       er = concatMap fst errs
 >       got = case () of
@@ -218,4 +218,4 @@ type checks properly and produces the same type
 > itemToTft (RewriteQueryExpr f cus s s') = testRewrite f cus s s'
 > itemToTft (ImpCastsScalar f s s') = testImpCastsScalar f s s'
 > itemToTft (Group s is) = testGroup s $ map itemToTft is
-> itemToTft (ScalarExprExtra env s r) = testScalarExprTypeExtra env s r
+> itemToTft (ScalarExprExtra cat env s r) = testScalarExprTypeExtra cat env s r

@@ -48,56 +48,6 @@ matching operator/function
 
 This needs a lot more tests
 
-> matchAppExtra:: SQLSyntaxDialect
->                 -> Catalog
->                 -> [NameComponent]
->                 -> [TypeExtra]
->                 -> Either [TypeError] ([TypeExtra],TypeExtra)
-> matchAppExtra dialect cat nmcs tes
->   = liftM (zipWith addArgExtra tes *** addResultExtra)
->       $ matchApp dialect cat nmcs $ map teType tes
->   where
->     addArgExtra te t = te {teType = t}
->     addResultExtra t = checkPrecisionClass tes' $ case nmcs of
->       [Nmc dd]
->         | dd == "||"
->           -> TypeExtra t jpMax js jn
->       _ -> TypeExtra t jp js jn
->     -- rule for functions like "||"
->     jpMax = Just $ sum $ mapMaybe tePrecision tes'
->     -- the default rules
->     jp = joinPrecision $ map tePrecision tes'
->     js = joinScale $ map teScale tes'
->     jn = joinNullability $ map teNullable tes'
->     tes' = case nmcs of
->       [Nmc dd]
->         | map toLower dd == "decode"
->           -> caseResultTypes tes
->       -- for now, a significant hack
->       _ -> tes
->     -- tail is safe here because matchApp did all the checks
->     caseResultTypes tes = caseResultTypes' (tail tes) []
->       where
->         caseResultTypes' [] acc = acc
->         caseResultTypes' [els] acc = els:acc
->         caseResultTypes' (_:t:xs) acc = caseResultTypes' xs (t:acc)
->     -- retreat to default when arguments and result are incompatible
->     checkPrecisionClass:: [TypeExtra] -> TypeExtra -> TypeExtra
->     checkPrecisionClass tes t
->       = if all (precisionClass (teType t) ==) $ map (precisionClass . teType) tes
->         then t
->         else t{tePrecision = Nothing, teScale = Nothing}
->
-> data PrecisionClass = String | Number
->       deriving (Eq)
->
-> precisionClass:: Type -> Maybe PrecisionClass
-> precisionClass (ScalarType tn)
->   | tn `elem` ["varchar","char"] = Just String
->   | tn `elem` ["numeric"] = Just Number
->   | otherwise = Nothing
-> precisionClass _ = Nothing
-
 > matchApp :: SQLSyntaxDialect
 >          -> Catalog
 >          -> [NameComponent]
@@ -169,6 +119,92 @@ todo: add the implicit casting where needed
 >            QNmc n -> T.pack n
 >            AntiNameComponent _ -> -- todo: use left instead of error
 >              error "tried to find function matching an antinamecomponent"
+
+Handle precision and nullability of function application,
+  using matchApp for inferring basic types
+
+> matchAppExtra:: SQLSyntaxDialect
+>                 -> Catalog
+>                 -> [NameComponent]
+>                 -> [TypeExtra]
+>                 -> Either [TypeError] ([TypeExtra],TypeExtra)
+> matchAppExtra dialect cat nmcs tes
+>   = liftM (zipWith addArgExtra tes *** addResultExtra)
+>       $ matchApp dialect cat nmcs $ map teType tes
+>   where
+>     addArgExtra te t = te {teType = t}
+>     addResultExtra t = checkPrecisionClass tes' $ TypeExtra t jp js jn
+>     -- infer precision and nullability of the result
+>     appName = case nmcs of
+>       [Nmc dd] -> map toLower dd
+>       _ -> ""
+>     jp = case () of
+>       _ | appName == "||" -> Just $ sum $ mapMaybe tePrecision tes'
+>           -- only the first argument influences the precision
+>           -- ToDo: add more functions here (and possibly, to jn)
+>         | appName `elem` ["nullif","substr","substring","left","right","ltrim","rtrim","replicate","translate"]
+>           -> guard (not $ null tes') >> tePrecision (head tes')
+>           -- precision of the result is unknown
+>         | appName `elem` ["replace"] -- is actually known for 2-argument "replace"
+>           -> Nothing
+>       _ -> joinPrecision $ map tePrecision tes'
+>     js = case appName of
+>       "nullif" -> guard (not $ null tes') >> teScale (head tes')
+>       _ -> joinScale $ map teScale tes'
+>     jn = case () of
+>       _ | appName `elem`
+>             ( ["isnotnull","isdate","isnumeric"]
+>                 -- standard "is null" expression
+>               ++ ["isnull" | length tes == 1])
+>           -> False
+>         | appName `elem` 
+>             ( ["coalesce","greatest","least"]
+>                 -- 2-argument function "isnull" of SqlServer
+>               ++ ["isnull" | length tes == 2]
+>                 -- nullability of corresponding SqlServer function "charindex"
+>                 --  may or may not differ, depending on database compatibility level
+>               ++ ["strpos","position"])
+>           -> all teNullable tes'
+>           -- can produce null independently on the nullability of the arguments
+>         | appName `elem` ["case","decode","nullif","substr","substring","replicate"]
+>           -> True
+>           -- the default
+>         | otherwise -> joinNullability $ map teNullable tes'
+>     -- follow the behavior of matchApp for special cases
+>     tes' = case appName of
+>       "decode" -> caseResultTypes tes
+>       -- for now, a significant hack
+>       _ -> tes
+>     -- tail is safe here because matchApp did all the checks
+>     caseResultTypes tes = caseResultTypes' (tail tes) []
+>       where
+>         caseResultTypes' [] acc = acc
+>         caseResultTypes' [els] acc = els:acc
+>         caseResultTypes' (_:t:xs) acc = caseResultTypes' xs (t:acc)
+
+If the return type of a function differs from the types of its arguments,
+  inferring precision of the result from precisions of the arguments
+  may make no sense.
+The cases when it does have sense must be handled specially.
+In this implementation, it's enough for one of the arguments to be of different
+  PrecisionClass.
+ToDo: Add checking whether precision/scale is relevant for a type (consider "round").
+
+> data PrecisionClass = String | Number
+>       deriving (Eq)
+>
+> precisionClass:: Type -> Maybe PrecisionClass
+> precisionClass (ScalarType tn)
+>   | tn `elem` ["varchar","char"] = Just String
+>   | tn `elem` ["int2","int4","int8","float4","float8","numeric"] = Just Number
+>   | otherwise = Nothing
+> precisionClass _ = Nothing
+> -- retreat to default when arguments and result are incompatible
+> checkPrecisionClass:: [TypeExtra] -> TypeExtra -> TypeExtra
+> checkPrecisionClass tes t
+>   = if all (precisionClass (teType t) ==) $ map (precisionClass . teType) tes
+>     then t
+>     else t{tePrecision = Nothing, teScale = Nothing}
 
  findCallMatch :: Catalog -> String -> [Type] ->  Either [TypeError] OperatorPrototype
  findCallMatch cat fnName' argsType =
