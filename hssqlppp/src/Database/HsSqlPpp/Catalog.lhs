@@ -27,6 +27,8 @@ Forward the public part of CatalogInternal.
 >     ,CastContext(..)
 >     ,CompositeFlavour(..)
 >     ,CatName
+>     ,CatNameExtra(..)
+>     ,mkCatNameExtra
 >     --,CompositeDef
 >     --,FunctionPrototype
 >     --,DomainDefinition

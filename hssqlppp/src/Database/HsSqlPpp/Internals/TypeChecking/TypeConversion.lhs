@@ -155,7 +155,9 @@ Handle precision and nullability of function application,
 >       _ | appName `elem`
 >             ( ["isnotnull","isdate","isnumeric"]
 >                 -- standard "is null" expression
->               ++ ["isnull" | length tes == 1])
+>               ++ ["isnull" | length tes == 1]
+>                 -- currently, aggregate functions are handled as scalar functions
+>               ++ ["count","count_big"])
 >           -> False
 >         | appName `elem` 
 >             ( ["coalesce","greatest","least"]

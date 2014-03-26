@@ -4,6 +4,7 @@
 > module Database.HsSqlPpp.Tests.TypeChecking.TSQL
 >     (tsqlQueryExprs) where
 
+> import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Catalog
@@ -16,37 +17,37 @@
 
 datepart, datediff, dateadd
 
->   [TSQLQueryExpr [CatCreateTable "t" [("a", "date")
->                                      ,("b", "date")]]
+>   [TSQLQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "date")
+>                                      ,("b", mkCatNameExtra "date")]]
 
 this doesn't work:
     "select datediff(hour,a,b) a from t"
 todo: fix it
 
 >    "select datediff(hour,a,b) as a from t"
->    $ Right $ CompositeType [("a",typeInt)]
->   ,TSQLQueryExpr [CatCreateTable "t" [("a", "tinyint")
->                                      ,("b", "smallint")]]
+>    $ Right $ CompositeType [("a", mkTypeExtra typeInt)]
+>   ,TSQLQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "tinyint")
+>                                      ,("b", mkCatNameExtra "smallint")]]
 >    "select a+b as a from t /* junk it */"
->    $ Right $ CompositeType [("a",typeSmallInt)]]
->   ++ [TSQLQueryExpr [CatCreateTable "t" [("a", "date")]]
+>    $ Right $ CompositeType [("a", mkTypeExtra typeSmallInt)]]
+>   ++ [TSQLQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "date")]]
 >      (pack $ "select datepart(" ++ dp ++ ",a) as a from t")
->      $ Right $ CompositeType [("a",typeInt)]
+>      $ Right $ CompositeType [("a", mkTypeExtra typeInt)]
 >      | dp <- ["day","month","year", "hour"]]
 
->   ++ [TSQLQueryExpr [CatCreateTable "t" [("a", "timestamp")]]
+>   ++ [TSQLQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "timestamp")]]
 >      (pack $ "select datepart(" ++ dp ++ ",a) as a from t")
->      $ Right $ CompositeType [("a",typeInt)]
+>      $ Right $ CompositeType [("a", mkTypeExtra typeInt)]
 >      | dp <- ["day","month","year", "hour"]]
 
 
->   ++ [TSQLQueryExpr [CatCreateTable "t" [("a", "date")]]
+>   ++ [TSQLQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "date")]]
 >      (pack $ "select dateadd(" ++ dp ++ ",5,a) as a from t")
->      $ Right $ CompositeType [("a",typeDate)]
+>      $ Right $ CompositeType [("a", mkTypeExtra typeDate)]
 >      | dp <- ["day","month","year"]]
->   ++ [TSQLQueryExpr [CatCreateTable "t" [("a", "date")]]
+>   ++ [TSQLQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "date")]]
 >      (pack $ "select dateadd(" ++ dp ++ ",5,'1992-001-01') as a from t")
->      $ Right $ CompositeType [("a",typeDate)]
+>      $ Right $ CompositeType [("a", mkTypeExtra typeDate)]
 >      | dp <- ["day","month","year"]]
 
 
@@ -70,13 +71,13 @@ money and smallmoney category ->  money -> todo
 float and real category -> float
 
 >      , (inty,resty) <-
->        [("tinyint", typeInt)
->        ,("smallint", typeInt)
->        ,("int", typeInt)
->        ,("int", typeInt)
->        ,("bigint", typeBigInt)
->        ,("float", typeFloat8)
->        ,("real", typeFloat8)
+>        [(mkCatNameExtra "tinyint", mkTypeExtra typeInt)
+>        ,(mkCatNameExtra "smallint", mkTypeExtra typeInt)
+>        ,(mkCatNameExtra "int", mkTypeExtra typeInt)
+>        ,(mkCatNameExtra "int", mkTypeExtra typeInt)
+>        ,(mkCatNameExtra "bigint", mkTypeExtra typeBigInt)
+>        ,(mkCatNameExtra "float", mkTypeExtra typeFloat8)
+>        ,(mkCatNameExtra "real", mkTypeExtra typeFloat8)
 >        ]]
 
 avg
@@ -96,29 +97,29 @@ count returns int
 count_big returns bigint
 
 >   ++
->   [TSQLQueryExpr [CatCreateTable "t" [("a", "int4")]]
+>   [TSQLQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")]]
 >    "select count(*) as a from t"
->    $ Right $ CompositeType [("a",typeInt)]
->   ,TSQLQueryExpr [CatCreateTable "t" [("a", "int4")]]
+>    $ Right $ CompositeType [("a", TypeExtra typeInt Nothing Nothing False)]
+>   ,TSQLQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")]]
 >    "select count_big(*) as a from t"
->    $ Right $ CompositeType [("a",typeBigInt)]]
+>    $ Right $ CompositeType [("a", TypeExtra typeBigInt Nothing Nothing False)]]
 
 todo: add new dialect and stuff for oracle
 
 >   ++
->   [TSQLQueryExpr [CatCreateTable "t" [("a", "timestamp")]]
+>   [TSQLQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "timestamp")]]
 >    "select trunc(a) as a from t"
->    $ Right $ CompositeType [("a",ScalarType "timestamp")]
->   ,TSQLQueryExpr [CatCreateTable "t" [("a", "date")]]
+>    $ Right $ CompositeType [("a", mkTypeExtra $ ScalarType "timestamp")]
+>   ,TSQLQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "date")]]
 >    "select trunc(a) as a from t"
->    $ Right $ CompositeType [("a",ScalarType "timestamp")]
->   ,TSQLQueryExpr [CatCreateTable "t" [("a", "date")]]
+>    $ Right $ CompositeType [("a", mkTypeExtra $ ScalarType "timestamp")]
+>   ,TSQLQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "date")]]
 >    "select a from t where \
 >    \ trunc(a) between '2001-01-01 00:00:00' and '2001-04-01 00:00:00'"
->    $ Right $ CompositeType [("a",typeDate)]
+>    $ Right $ CompositeType [("a", mkTypeExtra typeDate)]
 
->   ,TSQLQueryExpr [CatCreateTable "t" [("a", "int")]]
+>   ,TSQLQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int")]]
 >    "select decode(a,0,0,1,5,2,6,3,7,10) as a from t"
->    $ Right $ CompositeType [("a",typeInt)]
+>    $ Right $ CompositeType [("a", mkTypeExtra typeInt)]
 
 >   ]

@@ -34,11 +34,11 @@
 >                   catu
 >                   defaultTSQLCatalog
 >     catu = [CatCreateTable "v008_tot_times"
->             [("work_ticket_no", "int")
->             ,("close_date", "date")
->             ,("equipment_name", "varchar")
->             ,("work_in_central_lab", "tinyint")
->             ,("customer_no", "varchar")]]
+>             [("work_ticket_no", mkCatNameExtra "int")
+>             ,("close_date", mkCatNameExtra "date")
+>             ,("equipment_name", mkCatNameExtra "varchar")
+>             ,("work_in_central_lab", mkCatNameExtra "tinyint")
+>             ,("customer_no", mkCatNameExtra "varchar")]]
 
 create table v008_tot_times (
        work_ticket_no int not null,

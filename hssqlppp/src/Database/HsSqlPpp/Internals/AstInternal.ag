@@ -263,6 +263,9 @@ data ScalarExpr | NumberLit ann::Annotation d::String
                 | Cast ann::Annotation
                        expr::ScalarExpr
                        tn::TypeName
+                | ImplicitCast  ann::Annotation
+                                expr::ScalarExpr
+                                te::TypeExtra
                 | Star ann::Annotation
                 | QStar ann::Annotation q::NameComponent -- e.g. a.*
                   -- the parser produces an identifier when all the

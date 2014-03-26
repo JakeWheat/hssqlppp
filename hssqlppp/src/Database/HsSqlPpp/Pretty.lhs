@@ -27,8 +27,9 @@
 
 > import Database.HsSqlPpp.SqlDialect
 
+> import Database.HsSqlPpp.Internals.TypesInternal
 > --import Database.HsSqlPpp.Internals.StringLike
-> --import qualified Data.Text as T
+> import qualified Data.Text as T
 > import qualified Data.Text.Lazy as L
 > import Database.HsSqlPpp.Utils.Utils
 
@@ -753,6 +754,45 @@ syntax maybe should error instead of silently breaking
 > typeName (ArrayTypeName _ t) = typeName t <> text "[]"
 > typeName (SetOfTypeName _ t) = text "setof" <+> typeName t
 >
+> ppType:: Type -> Doc
+> ppType (ScalarType t) = text "scalar type" <> parens (text $ T.unpack t)
+> ppType (DomainType t) = text "domain type" <> parens (text $ T.unpack t)
+> ppType (EnumType t) = text "enum type" <> parens (text $ T.unpack t)
+> ppType (UnknownType) = text "unknown type"
+> ppType (ArrayType t) = text "array type" <> parens (ppType t)
+> ppType (NamedCompositeType t) = text "named composite type" <> parens (text $ T.unpack t)
+> ppType (CompositeType ts)
+>     = text "composite type"
+>       <> brackets (sepCsv
+>                     $ map (\(t,te)
+>                           -> parens $ sepCsv [text (T.unpack t), typeExtra te])
+>                         ts)
+> ppType (TrefType ts)
+>     = text "tref type"
+>       <> brackets (sepCsv
+>                     $ map (\((t1,t2),te)
+>                           -> parens $ sepCsv
+>                                 [parens $ sepCsv
+>                                     [text (T.unpack t1)
+>                                     ,text (T.unpack t2)]
+>                                 , typeExtra te])
+>                         ts)
+> ppType (AnonymousCompositeType ts)
+>     = text "anonymous composite type"
+>       <> brackets (sepCsv $ map ppType ts)
+> ppType (Pseudo _) = text "pseudo type"
+>
+> typeExtra:: TypeExtra -> Doc
+> typeExtra te = parens $ sepCsv
+>     [ppType (teType te)
+>     ,ppPrec "precision" (tePrecision te)
+>     ,ppPrec "scale" (teScale te)
+>     ,ppNullability (teNullable te)]
+> ppPrec precType prec = case prec of
+>     Nothing -> text $ "no " ++ precType
+>     Just p -> text $ precType ++ show p
+> ppNullability n = text $ (if n then "" else "not ") ++ "nullable"
+>
 > -- expressions
 >
 > scalExpr :: PrettyPrintFlags -> ScalarExpr -> Doc
@@ -896,6 +936,9 @@ syntax maybe should error instead of silently breaking
 > scalExpr flg (Cast _ ex t) = text "cast" <> parens (scalExpr flg ex
 >                                              <+> text "as"
 >                                              <+> typeName t)
+> scalExpr flg (ImplicitCast _ ex te) = text "impl_cast" <> parens (scalExpr flg ex
+>                                              <+> text "as"
+>                                              <+> typeExtra te)
 > scalExpr flg (TypedStringLit a t s) =
 >   typeName t <+> scalExpr flg (StringLit a s)
 > scalExpr flg (Interval a v f p) =

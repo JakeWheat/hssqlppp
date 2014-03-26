@@ -5,6 +5,7 @@
 > module Database.HsSqlPpp.Internals.TypeChecking.OldTediousTypeUtils where
 
 > import Database.HsSqlPpp.Internals.TypesInternal
+> import Control.Arrow
 > import Data.Text (Text)
 > --import qualified Data.Text as T
 
@@ -36,7 +37,7 @@
 > unwrapSetOfWhenComposite x = Left [InternalError $ "tried to unwrapSetOfWhenComposite on " ++ show x]
 >
 > unwrapSetOfComposite :: Type -> Either [TypeError]  [(Text,Type)]
-> unwrapSetOfComposite (Pseudo (SetOfType (CompositeType a))) = Right a
+> unwrapSetOfComposite (Pseudo (SetOfType (CompositeType a))) = Right $ map (second teType) a
 > unwrapSetOfComposite x = Left [InternalError $ "tried to unwrapSetOfComposite on " ++ show x]
 >
 > unwrapSetOf :: Type -> Either [TypeError] Type
@@ -44,11 +45,11 @@
 > unwrapSetOf x = Left [InternalError $ "tried to unwrapSetOf on " ++ show x]
 >
 > unwrapComposite :: Type -> Either [TypeError] [(Text,Type)]
-> unwrapComposite (CompositeType a) = Right a
+> unwrapComposite (CompositeType a) = Right $ map (second teType) a
 > unwrapComposite x = Left [InternalError $ "cannot unwrapComposite on " ++ show x]
 >
 > consComposite :: (Text,Type) -> Type -> Either [TypeError] Type
-> consComposite l (CompositeType a) = Right $ CompositeType (l:a)
+> consComposite l (CompositeType a) = Right $ CompositeType (second mkTypeExtra l :a)
 > consComposite a b = Left [InternalError $ "called consComposite on " ++ show (a,b)]
 >
 > unwrapRowCtor :: Type -> Either [TypeError] [Type]

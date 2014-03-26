@@ -5,6 +5,7 @@
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.Internals.TypesInternal
 > --import Database.HsSqlPpp.TypeChecker
 
 dodgy hack to support cube:
@@ -24,18 +25,18 @@ and flexible combinations
 > aggregates :: Item
 > aggregates =
 >   Group "aggregates"
->   [QueryExpr [CatCreateTable "t" [("a", "int4")
->                                  ,("b", "int4")
->                                  ,("c", "int4")]]
+>   [QueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")
+>                                  ,("b", mkCatNameExtra "int4")
+>                                  ,("c", mkCatNameExtra "int4")]]
 >    "select a,b,count(c) as c from t group by a,b"
->    $ Right $ CompositeType [("a",typeInt)
->                            ,("b",typeInt)
->                            ,("c",typeBigInt)]
->   ,QueryExpr [CatCreateTable "t" [("a", "int4")
->                                  ,("b", "int4")
->                                  ,("c", "int4")]]
+>    $ Right $ CompositeType [("a", mkTypeExtra typeInt)
+>                            ,("b", mkTypeExtra typeInt)
+>                            ,("c", TypeExtra typeBigInt Nothing Nothing False)]
+>   ,QueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")
+>                                  ,("b", mkCatNameExtra "int4")
+>                                  ,("c", mkCatNameExtra "int4")]]
 >    "select a,b,count(c) as c from t group by cube(a,b)"
->    $ Right $ CompositeType [("a",typeInt)
->                            ,("b",typeInt)
->                            ,("c",typeBigInt)]
+>    $ Right $ CompositeType [("a", mkTypeExtra typeInt)
+>                            ,("b", mkTypeExtra typeInt)
+>                            ,("c", TypeExtra typeBigInt Nothing Nothing False)]
 >   ]

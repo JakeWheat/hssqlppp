@@ -54,9 +54,9 @@ select tbl.x from tbl t.
 >         ,tcfAddFullTablerefAliases = True}
 >         cat
 >     cat =
->         [CatCreateTable "t" [("a", "int4")
->                             ,("b", "int4")]
->         ,CatCreateTable "t1" [("c", "int4")
->                              ,("d", "int4")]]
+>         [CatCreateTable "t" [("a", mkCatNameExtra "int4")
+>                             ,("b", mkCatNameExtra "int4")]
+>         ,CatCreateTable "t1" [("c", mkCatNameExtra "int4")
+>                              ,("d", mkCatNameExtra "int4")]]
 
 

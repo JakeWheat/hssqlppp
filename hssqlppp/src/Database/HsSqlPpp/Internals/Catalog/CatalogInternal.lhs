@@ -58,6 +58,8 @@ sequences
 >     ,ncStrT
 >     ,CompositeFlavour(..)
 >     ,CatName
+>     ,CatNameExtra(..)
+>     ,mkCatNameExtra
 >      -- catalog updates
 >     ,CatalogUpdate(..)
 >     ,updateCatalog
@@ -165,6 +167,15 @@ catalog values
 > -- | represents the name of something in the catalog, when schema
 > -- support is added then this will change to (String,String)
 > type CatName = Text
+> -- | type name and precision and nullability
+> data CatNameExtra = CatNameExtra {
+>   catName:: CatName,
+>   catPrecision:: Maybe Int,
+>   catScale:: Maybe Int,
+>   catNullable:: Bool
+> } deriving (Eq,Ord,Show,Typeable,Data)
+> mkCatNameExtra:: CatName -> CatNameExtra
+> mkCatNameExtra cn = CatNameExtra cn Nothing Nothing True
 
 > data CompositeFlavour = Composite | TableComposite | ViewComposite
 >                         deriving (Eq,Ord,Show)
@@ -181,7 +192,7 @@ catalog values
 >      --,catEnumTypes :: {[(String,[String])]}
 >     ,catCompositeTypes :: M.Map CatName
 >                                 (CompositeFlavour
->                                 ,[(Text,CatName)] -- public attrs
+>                                 ,[(Text,CatNameExtra)] -- public attrs
 >                                 ,[(Text,CatName)])-- system columns
 >     ,catArrayTypes :: M.Map CatName CatName --pg array type name, base type name
 >     ,catPrefixOps :: M.Map CatName [OperatorPrototype]
@@ -190,7 +201,7 @@ catalog values
 >     ,catFunctions :: M.Map CatName [OperatorPrototype]
 >     ,catAggregateFunctions :: M.Map CatName [OperatorPrototype]
 >     ,catWindowFunctions :: M.Map CatName [OperatorPrototype]
->     ,catTables :: M.Map CatName ([(Text,Type)] -- public attrs
+>     ,catTables :: M.Map CatName ([(Text,TypeExtra)] -- public attrs
 >                                 ,[(Text,Type)]) -- system columns
 >     -- needs more work:
 >     ,catCasts :: S.Set (Type,Type,CastContext)
@@ -356,7 +367,7 @@ todo: use left or something instead of error
 >     -- | register a aggregate: name, param types, return type
 >   | CatCreateAggregate CatName [CatName] CatName
 >     -- | register a table only: name, (colname,typename) pairs
->   | CatCreateTable CatName [(CatName,CatName)]
+>   | CatCreateTable CatName [(CatName,CatNameExtra)]
 >     -- | register a cast in the catalog
 >   | CatCreateCast CatName CatName CastContext
 >     -- | register a type category for a type (used in the implicit cast resolution)
@@ -429,9 +440,12 @@ todo: use left or something instead of error
 >                                     [(n,(n,pst,rett,False))]
 >                                     (catAggregateFunctions cat)}
 >       CatCreateTable n cs -> do
->         cts <- mapM (\(cn,t) -> do
->                        t' <- catLookupType cat [QNmc $ T.unpack t]
->                        return (cn,t')) cs
+>         cts <- mapM (\(cn,te) -> do
+>                        t' <- catLookupType cat [QNmc $ T.unpack $ catName te]
+>                        -- for composite types, the information added here (about precision
+>                        --   and nullability) is redundant
+>                        let te' = TypeExtra t' (catPrecision te) (catScale te) (catNullable te)
+>                        return (cn,te')) cs
 >         Right $ cat {catTables = M.insert n (cts,[]) (catTables cat)}
 >       CatCreateCast n0 n1 ctx -> do
 >         t0 <- catLookupType cat [QNmc $ T.unpack n0]
@@ -476,7 +490,7 @@ TODO: add inverse of this operation, give a type, returns a typename
 > -- with quoting), and the public and private attr names
 > catLookupTableAndAttrs :: Catalog
 >                        -> [NameComponent]
->                        -> Either [TypeError] (Text,[(Text,Type)], [(Text,Type)])
+>                        -> Either [TypeError] (Text,[(Text,TypeExtra)], [(Text,Type)])
 > catLookupTableAndAttrs cat nmcs = do
 >   let n = getCatName nmcs
 >   (pu,pv) <- maybe (Left [UnrecognisedRelation n]) Right
@@ -516,7 +530,7 @@ to new code or deleted as typeconversion is rewritten
 >                    deriving (Eq,Show,Ord,Typeable,Data)
 
 > catCompositePublicAttrs :: Catalog -> [CompositeFlavour] -> Text
->                   -> Either [TypeError] [(Text,Type)]
+>                   -> Either [TypeError] [(Text,TypeExtra)]
 > catCompositePublicAttrs cat _flvs ty = do
 >    (_,a,_) <- catLookupTableAndAttrs cat [Nmc $ T.unpack ty]
 >    return a

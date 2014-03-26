@@ -142,8 +142,6 @@ include "TypeChecking/Statements.ag"
 
 {
 
--- Alex: Jake, mustn't anImplicitCast be Nothing if the types are equal?
-
 -- | run on a typechecked tree. Finds all the places where an implicit
 -- cast has been used in the typechecking and inserts an explicit cast
 addExplicitCasts :: Data a => a -> a
@@ -164,6 +162,40 @@ addExplicitCasts = transformBi removeDoubleCasts . transformBi addCast
          | resetAnnotations t1 == resetAnnotations t -> Cast a e' t
       e' -> e'
     resetAnnotations = transformBi (const emptyAnnotation)
+-- | variation of the above, which uses ImplicitCast ctor
+addImplicitCasts :: Data a => Catalog -> a -> a
+addImplicitCasts cat = transformBi (removeDoubleCasts cat) . transformBi addCast
+  where
+    addCast:: ScalarExpr -> ScalarExpr
+    addCast e = fromMaybe e $ do
+                  te <- anImplicitCast (getAnnotation e)
+                  return $ ImplicitCast emptyAnnotation e te
+    -- The logic is:
+    --  1. If there is an ImplicitCast over ImplicitCast, then replace with a single
+    --    ImplicitCast, provided that corresponding ImplicitCastContext
+    --    is present in the Catalog.
+    --    ? This can be still incomplete in case of 3+ ImplicitCast's.
+    --      Possibly, convert this to a more complex rewrite.
+    --  2. If there is Cast over ImplicitCast, do the same using ExplicitCastContext.
+    --  3. Do nothing for the other combinations.
+    -- This logic is questionable because it can (in theory) hide possible loss of precision.
+    --  But this reflects the difference between implicit and explicit cast. The user
+    --  hardly would expect loss of precision in such cases. Jake, what do you think?
+    removeDoubleCasts:: Catalog -> ScalarExpr -> ScalarExpr
+    removeDoubleCasts cat e = case e of
+        ImplicitCast a (ImplicitCast _ e' _) t
+          | isCastable ImplicitCastContext e' (Just t)
+            -> ImplicitCast a e' t
+        Cast a (ImplicitCast _ e' _) t
+          | isCastable ExplicitCastContext e' (anType a)
+            -> Cast a e' t
+        _ -> e
+      where
+        isCastable:: CastContext -> ScalarExpr -> (Maybe TypeExtra) -> Bool
+        isCastable ctx e mte = fromMaybe False $ do
+            from <- liftM teType $ anType $ getAnnotation e
+            to <- liftM teType mte
+            either (const Nothing) Just $ catCast cat ctx from to
 
 nameOfType :: Type -> Maybe TypeName
 nameOfType (ScalarType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc $ T.unpack t])

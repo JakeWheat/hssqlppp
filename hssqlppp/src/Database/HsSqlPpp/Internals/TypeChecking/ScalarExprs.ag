@@ -18,17 +18,25 @@ to help with getting the type of ? placeholders, and for inserting
 
 sem ScalarExpr
     | NumberLit StringLit NullLit BooleanLit TypedStringLit Interval
-      Extract PositionalArg Placeholder Cast Star QStar Identifier
+      Extract PositionalArg Placeholder Cast ImplicitCast Star QStar Identifier
       Case CaseSimple Exists App AggregateApp
       WindowApp InPredicate LiftApp ScalarSubQuery
       BinaryOp PrefixOp PostfixOp SpecialOp
         ann.tpe = @loc.tpe
         loc.upType = either (const Nothing) Just @loc.tpe
         lhs.upType = @loc.upType
-        ann.imCast = case @lhs.expectedType of
-                       t@(Just _) | -- trace ("check " ++ show ((t,@loc.upType)::(Maybe Type,Maybe Type))) $
-                                    t /= @loc.upType -> t
-                       _ -> Nothing
+        ann.imCast =
+          do
+            expType <- @lhs.expectedType
+            upType <- @loc.upType
+            guard $ needsImplicitCast upType expType
+            return expType
+
+{
+-- a stub for possible more complicated logic
+needsImplicitCast:: TypeExtra -> TypeExtra -> Bool
+needsImplicitCast upType expType = teType upType /= teType expType
+}
 
 sem ScalarExpr
     | AntiScalarExpr
@@ -130,6 +138,9 @@ simplish ctors
          loc.tpe = maybe (Left []) Right @tn.namedType
     | Cast
          expr.expectedType = @tn.namedType
+    | ImplicitCast
+        loc.tpe = Right @te
+        expr.expectedType = Nothing
     | Interval
          loc.tpe = Right $ mkTypeExtra $ ScalarType "interval"
     | Extract
@@ -426,9 +437,6 @@ get the cols and wrap in composite type
 TODO: the envExpandStar is shared with the select list stuff
 want to put the proper error from the catalog in the tpe here
 instead of ignoring it and setting left badstarexpand
-
-Alex: for now, we remove prec info from components of CompositeType,
-  and then add default prec info above it
 -}
 sem ScalarExpr
     | Star QStar
@@ -442,7 +450,7 @@ sem ScalarExpr
                       >>= @loc.starCS
                     _ -> Left [InternalError "wrong ctor in sem rule for star, qstar in scalarexprs.ag"]
 
-        loc.starCS = Right . mkTypeExtra . CompositeType . map (\((_q,n),t) -> (n, teType t))
+        loc.starCS = Right . mkTypeExtra . CompositeType . map (\((_q,n),t) -> (n,t))
 
 
 {-

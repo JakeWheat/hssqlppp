@@ -684,8 +684,8 @@ wrapper around the catalog to add a bunch of extra valid casts
 >   where
 >
 >     getCompositeTypes (NamedCompositeType n) =
->         Just $ map snd $ either (const []) id  $ catCompositePublicAttrs cat [] n
->     getCompositeTypes (CompositeType t) = Just $ map snd t
+>         Just $ map (teType . snd) $ either (const []) id  $ catCompositePublicAttrs cat [] n
+>     getCompositeTypes (CompositeType t) = Just $ map (teType . snd) t
 >     getCompositeTypes (AnonymousCompositeType t) = Just t
 >     getCompositeTypes (Pseudo (Record Nothing)) = Nothing
 >     getCompositeTypes (Pseudo (Record (Just t))) = getCompositeTypes t
@@ -694,7 +694,7 @@ wrapper around the catalog to add a bunch of extra valid casts
 >     isCompOrSetoOfComp (Pseudo (SetOfType c)) = isCompositeType c
 >     isCompOrSetoOfComp c = isCompositeType c
 >
->     unboxedSingleType (Pseudo (SetOfType (CompositeType [(_,t)]))) = Just t
+>     unboxedSingleType (Pseudo (SetOfType (CompositeType [(_,t)]))) = Just $ teType t
 >     unboxedSingleType (Pseudo (Record (Just t))) = unboxedSingleType t
 >     unboxedSingleType _ = Nothing
 >

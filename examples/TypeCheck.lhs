@@ -22,7 +22,7 @@
 >   print ty
 >   where
 >     Right cat = updateCatalog
->                   [CatCreateTable "t" [("a", "int")
->                                       ,("b", "int")
+>                   [CatCreateTable "t" [("a", mkCatNameExtra "int")
+>                                       ,("b", mkCatNameExtra "int")
 >                                       ]]
 >                   defaultTemplate1Catalog

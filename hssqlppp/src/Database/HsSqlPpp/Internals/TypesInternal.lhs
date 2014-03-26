@@ -39,9 +39,10 @@ where should precision and nullability go?
 >           -- to exist along with CompositeType
 >           | NamedCompositeType Text
 >           -- | refer to composite type by structure
->           | CompositeType [(Text,Type)]
+>           | CompositeType [(Text,TypeExtra)]
+>           -- | CompositeTypeExtra [(Text,TypeExtra)]
 >           -- | hack to support the environment for a tref
->           | TrefType [((Text,Text),Type)]
+>           | TrefType [((Text,Text),TypeExtra)]
 >           -- | the fields are anonymous as well as the type itself
 >           | AnonymousCompositeType [Type]
 >           -- | The pseudo type is used for types which only appear
@@ -60,7 +61,7 @@ where should precision and nullability go?
 >                            ,tePrecision :: Maybe Int
 >                            ,teScale :: Maybe Int
 >                            ,teNullable :: Bool}
->                deriving (Eq,Show,Typeable,Data)
+>                deriving (Eq,Ord,Show,Typeable,Data)
 > mkTypeExtra :: Type -> TypeExtra
 > mkTypeExtra t = TypeExtra t Nothing Nothing True
 

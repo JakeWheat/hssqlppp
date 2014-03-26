@@ -58,6 +58,8 @@ sem ScalarExpr
               -- the single expr info into a list
               _ -> --trace ("annotated tree in colExprs: " ++ show @annotatedTree)
                      [(columnName @originalTree,@upType,@annotatedTree)]
+    | ImplicitCast
+        lhs.colExprs = @expr.colExprs
 
 {-
 loc.annotatedTree stuff in ScalarExprs.ag:
@@ -196,6 +198,7 @@ columnName :: ScalarExpr -> NameComponent
 columnName (Identifier _ i) = last $ nameComponents i
 columnName (App _ (Name _ ncs) _) = last ncs
 columnName (Cast _ _ (SimpleTypeName _ (Name _ ncs))) = last ncs
+columnName (ImplicitCast _ e _) = columnName e
 columnName (WindowApp _ (App _ (Name _ ncs) _) _ _ _) = last ncs
 columnName (AggregateApp _ _ (App _ (Name _ ncs) _) _) = last ncs
 columnName _ = QNmc "?column?"

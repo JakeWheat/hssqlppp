@@ -5,6 +5,7 @@ moment.
 > {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Tests.TypeChecking.Tpch
 >     (tpch) where
+> import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Tests.TpchData
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
@@ -21,101 +22,101 @@ moment.
 >                               (Right $ {-Pseudo $ SetOfType $ -}CompositeType t'))
 >          tpchQueries
 >          [-- q1
->           [("l_returnflag", typeChar)
->           ,("l_linestatus", typeChar)
->           ,("sum_qty", typeNumeric)
->           ,("sum_base_price", typeNumeric)
->           ,("sum_disc_price", typeNumeric)
->           ,("sum_charge", typeNumeric)
->           ,("avg_qty", typeNumeric)
->           ,("avg_price", typeNumeric)
->           ,("avg_disc", typeNumeric)
->           ,("count_order", typeBigInt)]
+>           [("l_returnflag", mkTypeExtra typeChar)
+>           ,("l_linestatus", mkTypeExtra typeChar)
+>           ,("sum_qty", mkTypeExtra typeNumeric)
+>           ,("sum_base_price", mkTypeExtra typeNumeric)
+>           ,("sum_disc_price", mkTypeExtra typeNumeric)
+>           ,("sum_charge", mkTypeExtra typeNumeric)
+>           ,("avg_qty", mkTypeExtra typeNumeric)
+>           ,("avg_price", mkTypeExtra typeNumeric)
+>           ,("avg_disc", mkTypeExtra typeNumeric)
+>           ,("count_order", TypeExtra typeBigInt Nothing Nothing False)]
 >          ,--q2
->           [("s_acctbal", typeNumeric)
->           ,("s_name", typeChar)
->           ,("n_name", typeChar)
->           ,("p_partkey", typeInt)
->           ,("p_mfgr", typeChar)
->           ,("s_address", typeVarChar)
->           ,("s_phone", typeChar)
->           ,("s_comment", typeVarChar)]
+>           [("s_acctbal", mkTypeExtra typeNumeric)
+>           ,("s_name", mkTypeExtra typeChar)
+>           ,("n_name", mkTypeExtra typeChar)
+>           ,("p_partkey", mkTypeExtra typeInt)
+>           ,("p_mfgr", mkTypeExtra typeChar)
+>           ,("s_address", mkTypeExtra typeVarChar)
+>           ,("s_phone", mkTypeExtra typeChar)
+>           ,("s_comment", mkTypeExtra typeVarChar)]
 >          ,--q3
->           [("l_orderkey", typeInt)
->           ,("revenue", typeNumeric)
->           ,("o_orderdate", typeDate)
->           ,("o_shippriority", typeInt)]
+>           [("l_orderkey", mkTypeExtra typeInt)
+>           ,("revenue", mkTypeExtra typeNumeric)
+>           ,("o_orderdate", mkTypeExtra typeDate)
+>           ,("o_shippriority", mkTypeExtra typeInt)]
 >          ,--q4
->           [("o_orderpriority", typeChar)
->           ,("order_count", typeBigInt)]
+>           [("o_orderpriority", mkTypeExtra typeChar)
+>           ,("order_count", TypeExtra typeBigInt Nothing Nothing False)]
 >          ,--q5
->           [("n_name", typeChar)
->           ,("revenue", typeNumeric)]
+>           [("n_name", mkTypeExtra typeChar)
+>           ,("revenue", mkTypeExtra typeNumeric)]
 >          ,--q6
->           [("revenue", typeNumeric)]
+>           [("revenue", mkTypeExtra typeNumeric)]
 >          ,--q7
->           [("supp_nation", typeChar)
->           ,("cust_nation", typeChar)
->           ,("l_year", typeFloat8)
->           ,("revenue", typeNumeric)]
+>           [("supp_nation", mkTypeExtra typeChar)
+>           ,("cust_nation", mkTypeExtra typeChar)
+>           ,("l_year", mkTypeExtra typeFloat8)
+>           ,("revenue", mkTypeExtra typeNumeric)]
 >          ,--q8
->           [("o_year", typeFloat8)
->           ,("mkt_share", typeNumeric)]
+>           [("o_year", mkTypeExtra typeFloat8)
+>           ,("mkt_share", mkTypeExtra typeNumeric)]
 >          ,--q9
->           [("nation", typeChar)
->           ,("o_year", typeFloat8)
->           ,("sum_profit", typeNumeric)]
+>           [("nation", mkTypeExtra typeChar)
+>           ,("o_year", mkTypeExtra typeFloat8)
+>           ,("sum_profit", mkTypeExtra typeNumeric)]
 >          ,--q10
->           [("c_custkey",typeInt)
->           ,("c_name", typeChar)
->           ,("revenue", typeNumeric)
->           ,("c_acctbal", typeNumeric)
->           ,("n_name", typeChar)
->           ,("c_address", typeVarChar)
->           ,("c_phone", typeChar)
->           ,("c_comment", typeVarChar)]
+>           [("c_custkey", mkTypeExtra typeInt)
+>           ,("c_name", mkTypeExtra typeChar)
+>           ,("revenue", mkTypeExtra typeNumeric)
+>           ,("c_acctbal", mkTypeExtra typeNumeric)
+>           ,("n_name", mkTypeExtra typeChar)
+>           ,("c_address", mkTypeExtra typeVarChar)
+>           ,("c_phone", mkTypeExtra typeChar)
+>           ,("c_comment", mkTypeExtra typeVarChar)]
 >          ,--q11
->           [("ps_partkey", typeInt)
->           ,("value", typeNumeric)]
+>           [("ps_partkey", mkTypeExtra typeInt)
+>           ,("value", mkTypeExtra typeNumeric)]
 >          ,--q12
->           [("l_shipmode", typeChar)
->           ,("high_line_count", typeBigInt)
->           ,("low_line_count", typeBigInt)]
+>           [("l_shipmode", mkTypeExtra typeChar)
+>           ,("high_line_count", mkTypeExtra typeBigInt)
+>           ,("low_line_count", mkTypeExtra typeBigInt)]
 >          ,--q13
->           [("c_count", typeBigInt)
->           ,("custdist", typeBigInt)]
+>           [("c_count", TypeExtra typeBigInt Nothing Nothing False)
+>           ,("custdist", TypeExtra typeBigInt Nothing Nothing False)]
 >          ,--q14
->           [("promo_revenue", typeNumeric)]
+>           [("promo_revenue", mkTypeExtra typeNumeric)]
 >          ,--q15
->           [("s_suppkey", typeInt)
->           ,("s_name", typeChar)
->           ,("s_address", typeVarChar)
->           ,("s_phone", typeChar)
->           ,("total_revenue", typeNumeric)]
+>           [("s_suppkey", mkTypeExtra typeInt)
+>           ,("s_name", mkTypeExtra typeChar)
+>           ,("s_address", mkTypeExtra typeVarChar)
+>           ,("s_phone", mkTypeExtra typeChar)
+>           ,("total_revenue", mkTypeExtra typeNumeric)]
 >          ,--q16
->           [("p_brand", typeChar)
->           ,("p_type", typeVarChar)
->           ,("p_size", typeInt)
->           ,("supplier_cnt", typeBigInt)]
+>           [("p_brand", mkTypeExtra typeChar)
+>           ,("p_type", mkTypeExtra typeVarChar)
+>           ,("p_size", mkTypeExtra typeInt)
+>           ,("supplier_cnt", TypeExtra typeBigInt Nothing Nothing False)]
 >          ,--q17
->           [("avg_yearly", typeNumeric)]
+>           [("avg_yearly", mkTypeExtra typeNumeric)]
 >          ,--q18
->           [("c_name", typeChar)
->           ,("c_custkey", typeInt)
->           ,("o_orderkey", typeInt)
->           ,("o_orderdate", typeDate)
->           ,("o_totalprice", typeNumeric)
->           ,("sum", typeNumeric)]
+>           [("c_name", mkTypeExtra typeChar)
+>           ,("c_custkey", mkTypeExtra typeInt)
+>           ,("o_orderkey", mkTypeExtra typeInt)
+>           ,("o_orderdate", mkTypeExtra typeDate)
+>           ,("o_totalprice", mkTypeExtra typeNumeric)
+>           ,("sum", mkTypeExtra typeNumeric)]
 >          ,--q19
->           [("revenue", typeNumeric)]
+>           [("revenue", mkTypeExtra typeNumeric)]
 >          ,--q20
->           [("s_name", typeChar)
->           ,("s_address", typeVarChar)]
+>           [("s_name", mkTypeExtra typeChar)
+>           ,("s_address", mkTypeExtra typeVarChar)]
 >          ,--q21
->           [("s_name", typeChar)
->           ,("numwait", typeBigInt)]
+>           [("s_name", mkTypeExtra typeChar)
+>           ,("numwait", TypeExtra typeBigInt Nothing Nothing False)]
 >          ,--q22
->           [("cntrycode", ScalarType "char")
->           ,("numcust", typeBigInt)
->           ,("totacctbal", typeNumeric)]
+>           [("cntrycode", mkTypeExtra $ ScalarType "char")
+>           ,("numcust", TypeExtra typeBigInt Nothing Nothing False)
+>           ,("totacctbal", mkTypeExtra typeNumeric)]
 >          ]
