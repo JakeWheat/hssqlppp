@@ -9,6 +9,7 @@ This is the public module to the SQL data types, mainly from TypeType.
 >     (
 >      -- * SQL types
 >      Type (..)
+>     ,TypeExtra (..)
 >     ,PseudoType (..)
 >      -- * type aliases
 >     ,typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4

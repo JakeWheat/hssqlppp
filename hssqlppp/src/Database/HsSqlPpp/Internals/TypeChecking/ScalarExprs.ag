@@ -25,12 +25,12 @@ sem ScalarExpr
         ann.tpe = @loc.tpe
         loc.upType = either (const Nothing) Just @loc.tpe
         lhs.upType = @loc.upType
-        ann.imCast =
-          do
-            expType <- @lhs.expectedType
-            upType <- @loc.upType
-            guard $ needsImplicitCast upType expType
-            return expType
+        ann.imCast = case @loc.upType of
+                        Nothing -> @lhs.expectedType
+                        Just upType -> do
+                            expType <- @lhs.expectedType
+                            guard $ needsImplicitCast upType expType
+                            return expType
 
 {
 -- a stub for possible more complicated logic
@@ -106,7 +106,7 @@ sem ScalarExprRoot
 
 sem ScalarExpr
     | BooleanLit
-        loc.tpe = Right $ mkTypeExtra typeBool
+        loc.tpe = Right $ mkTypeExtraNN typeBool
 
     | NumberLit
         -- numbers - a bit hacky, maybe should follow haskell
@@ -116,13 +116,13 @@ sem ScalarExpr
         -- needs to improve a lot then this won't be possible any
         -- more (e.g. 10e-5)
         loc.tpe = Right $ if all (`elem` @loc.digChars) @d
-                          then mkTypeExtra typeInt
-                          else mkTypeExtra typeNumeric
+                          then mkTypeExtraNN typeInt
+                          else mkTypeExtraNN typeNumeric
         loc.digChars = concatMap show [(0::Int)..9]
 
     | StringLit
         -- string lit type comes from the context
-        loc.tpe = Right $ mkTypeExtra UnknownType
+        loc.tpe = Right $ mkTypeExtraNN UnknownType
     -- I think a null has the same type resolution as an unknown string lit
     | NullLit
          loc.tpe = Right $ mkTypeExtra UnknownType

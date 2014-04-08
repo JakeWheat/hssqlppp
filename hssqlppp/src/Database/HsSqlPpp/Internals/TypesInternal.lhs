@@ -64,6 +64,8 @@ where should precision and nullability go?
 >                deriving (Eq,Ord,Show,Typeable,Data)
 > mkTypeExtra :: Type -> TypeExtra
 > mkTypeExtra t = TypeExtra t Nothing Nothing True
+> mkTypeExtraNN :: Type -> TypeExtra
+> mkTypeExtraNN t = TypeExtra t Nothing Nothing False
 
 > -- | Pseudo types: mainly used for the argument and return types of
 > -- functions. The weird undocumented types are just used to represent

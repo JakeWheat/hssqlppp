@@ -33,32 +33,32 @@
 >
 >   ,qe "select * from (select 1 as a, 2 as b) a\n\
 >       \  cross join (select true as c, 4.5 as d) b;"
->       $ Right $ CompositeType [("a", mkTypeExtra typeInt)
->                               ,("b", mkTypeExtra typeInt)
->                               ,("c", mkTypeExtra typeBool)
->                               ,("d", mkTypeExtra typeNumeric)]
+>       $ Right $ CompositeType [("a", mkTypeExtraNN typeInt)
+>                               ,("b", mkTypeExtraNN typeInt)
+>                               ,("c", mkTypeExtraNN typeBool)
+>                               ,("d", mkTypeExtraNN typeNumeric)]
 >   ,qe "select * from (select 1 as a, 2 as b) a\n\
 >       \  inner join (select true as c, 4.5 as d) b on true;"
->       $ Right $ CompositeType [("a", mkTypeExtra typeInt)
->                               ,("b", mkTypeExtra typeInt)
->                               ,("c", mkTypeExtra typeBool)
->                               ,("d", mkTypeExtra typeNumeric)]
+>       $ Right $ CompositeType [("a", mkTypeExtraNN typeInt)
+>                               ,("b", mkTypeExtraNN typeInt)
+>                               ,("c", mkTypeExtraNN typeBool)
+>                               ,("d", mkTypeExtraNN typeNumeric)]
 >   ,qe "select * from (select 1 as a, 2 as b) a\n\
 >       \  inner join (select 1 as a, 4.5 as d) b using(a);"
->       $ Right $ CompositeType [("a", mkTypeExtra typeInt)
->                               ,("b", mkTypeExtra typeInt)
->                               ,("d", mkTypeExtra typeNumeric)]
+>       $ Right $ CompositeType [("a", mkTypeExtraNN typeInt)
+>                               ,("b", mkTypeExtraNN typeInt)
+>                               ,("d", mkTypeExtraNN typeNumeric)]
 >   ,qe "select * from (select 1 as a, 2 as b) a\n\
 >         \  natural inner join (select 1 as a, 4.5 as d) b;"
->        $ Right $ CompositeType [("a", mkTypeExtra typeInt)
->                                ,("b", mkTypeExtra typeInt)
->                                ,("d", mkTypeExtra typeNumeric)]
+>        $ Right $ CompositeType [("a", mkTypeExtraNN typeInt)
+>                                ,("b", mkTypeExtraNN typeInt)
+>                                ,("d", mkTypeExtraNN typeNumeric)]
 >         --check the attribute order
 >   ,qe "select * from (select 2 as b, 1 as a) a\n\
 >       \ natural inner join (select 4.5 as d, 1 as a) b;"
->         $ Right $ CompositeType [("a", mkTypeExtra typeInt)
->                                 ,("b", mkTypeExtra typeInt)
->                                 ,("d", mkTypeExtra typeNumeric)]
+>         $ Right $ CompositeType [("a", mkTypeExtraNN typeInt)
+>                                 ,("b", mkTypeExtraNN typeInt)
+>                                 ,("d", mkTypeExtraNN typeNumeric)]
 >         -- todo: need to fix this so that the star
 >         -- expand error doesn't appear: better error
 >         -- handling in the environment
@@ -71,12 +71,12 @@
 >         $ Left [IncompatibleTypeSet [ScalarType "int4"
 >                                     ,ScalarType "bool"]]
 >   ,qe "select * from (select 1 as a1) a, (select 2 as a2) b;"
->         $ Right $ CompositeType [("a1", mkTypeExtra typeInt)
->                                 ,("a2", mkTypeExtra typeInt)]
+>         $ Right $ CompositeType [("a1", mkTypeExtraNN typeInt)
+>                                 ,("a2", mkTypeExtraNN typeInt)]
 >   -- needs tref aliases in env
 >   ,qe "select * from (select 1 as a1) a, (select 2 as a1) b;"
->         $ Right $ CompositeType [("a1", mkTypeExtra typeInt)
->                                 ,("a1", mkTypeExtra typeInt)]
+>         $ Right $ CompositeType [("a1", mkTypeExtraNN typeInt)
+>                                 ,("a1", mkTypeExtraNN typeInt)]
 >   ,qe "select a1 from (select 1 as a1) a,  (select 2 as a1) b;"
 >         $ Left [AmbiguousIdentifier "a1"]
 

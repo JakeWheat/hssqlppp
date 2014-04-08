@@ -60,7 +60,7 @@
 >       ,QueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")
 >                                      ,("b", mkCatNameExtra "text")]]
 >        "select count(*) from t"
->        $ Right $ CompositeType [("count", TypeExtra typeBigInt Nothing Nothing False)]
+>        $ Right $ CompositeType [("count", mkTypeExtraNN typeBigInt)]
 
 
 >       ,QueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")]
@@ -79,7 +79,7 @@ simple window function type
 
 >       ,QueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")]]
 >        "select a,count(*) over () as r from t"
->        $ Right $ CompositeType [("a", mkTypeExtra typeInt), ("r", TypeExtra typeBigInt Nothing Nothing False)]
+>        $ Right $ CompositeType [("a", mkTypeExtra typeInt), ("r", mkTypeExtraNN typeBigInt)]
 
 
 >   ]

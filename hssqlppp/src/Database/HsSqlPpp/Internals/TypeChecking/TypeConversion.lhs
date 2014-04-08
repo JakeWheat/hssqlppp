@@ -197,7 +197,7 @@ ToDo: Add checking whether precision/scale is relevant for a type (consider "rou
 >
 > precisionClass:: Type -> Maybe PrecisionClass
 > precisionClass (ScalarType tn)
->   | tn `elem` ["varchar","char"] = Just String
+>   | tn `elem` ["text","varchar","char"] = Just String
 >   | tn `elem` ["int2","int4","int8","float4","float8","numeric"] = Just Number
 >   | otherwise = Nothing
 > precisionClass _ = Nothing

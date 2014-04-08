@@ -31,12 +31,12 @@ and flexible combinations
 >    "select a,b,count(c) as c from t group by a,b"
 >    $ Right $ CompositeType [("a", mkTypeExtra typeInt)
 >                            ,("b", mkTypeExtra typeInt)
->                            ,("c", TypeExtra typeBigInt Nothing Nothing False)]
+>                            ,("c", mkTypeExtraNN typeBigInt)]
 >   ,QueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")
 >                                  ,("b", mkCatNameExtra "int4")
 >                                  ,("c", mkCatNameExtra "int4")]]
 >    "select a,b,count(c) as c from t group by cube(a,b)"
 >    $ Right $ CompositeType [("a", mkTypeExtra typeInt)
 >                            ,("b", mkTypeExtra typeInt)
->                            ,("c", TypeExtra typeBigInt Nothing Nothing False)]
+>                            ,("c", mkTypeExtraNN typeBigInt)]
 >   ]

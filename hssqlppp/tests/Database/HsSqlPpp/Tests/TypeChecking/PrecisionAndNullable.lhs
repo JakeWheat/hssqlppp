@@ -22,7 +22,8 @@
 >    ,ScalarExprExtra cat1 vEnv   "v"   (Right vType)
 >    ,ScalarExprExtra cat1 dnEnv  "dn"  (Right dnType)
 >    ,ScalarExprExtra cat1 dEnv   "d"   (Right dType)
->    --,ScalarExprExtra vConcatEnv vConcatExpr (Right vConcatType)
+>    --,ScalarExprExtra cat1 vConcatEnv vConcatExpr (Right vConcatType)
+>    ,ScalarExprExtra cat1 vConcatEnv "v||'test12'" (Right $ TypeExtra (ScalarType "text") (Nothing) Nothing False)
 >    ,ScalarExprExtra cat1 vEqEnv vEqExpr (Right vEqType)
 >    ,ScalarExprExtra cat2 a2Env "isnull(an,a)" (Right aType)
 >    ,ScalarExprExtra cat2 anEnv "isnull(an,an)" (Right anType)
@@ -87,7 +88,7 @@
 >       ,QueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")
 >                                      ,("b", mkCatNameExtra "text")]]
 >        "select count(*) from t"
->        $ Right $ CompositeType [("count", TypeExtra typeBigInt Nothing Nothing False)]
+>        $ Right $ CompositeType [("count", mkTypeExtraNN typeBigInt)]
 
 
 >       ,QueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")]
@@ -102,7 +103,7 @@
 >       ,QueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")]]
 >        "select a,count(*) over () as r from t"
 >        $ Right $ CompositeType  [("a", mkTypeExtra typeInt),
->                                 ("r", TypeExtra typeBigInt Nothing Nothing False)]
+>                                 ("r", mkTypeExtraNN typeBigInt)]
 >       ]
 >     ]
 >   where
@@ -110,7 +111,7 @@
 >     cat2 = defaultTSQLCatalog
 >     anType = TypeExtra typeInt Nothing Nothing True
 >     anEnv = selListEnv [("an", anType)]
->     aType = TypeExtra typeInt Nothing Nothing False
+>     aType = mkTypeExtraNN typeInt
 >     aEnv = selListEnv [("a", aType)]
 >     a2Env = selListEnv [("a", aType),("an", anType)]
 >     cnType = TypeExtra typeChar (Just 4) Nothing True
@@ -125,13 +126,13 @@
 >     dnEnv = selListEnv [("dn", dnType)]
 >     dType = TypeExtra typeNumeric (Just 9) (Just 3) False
 >     dEnv = selListEnv [("d", dType)]
->     vConcatType = TypeExtra typeVarChar (Just 13) Nothing True
->     vConcatExpr = "v||vn"
+>     vConcatType = TypeExtra (ScalarType "text") (Just 12) Nothing False
+>     vConcatExpr = "v||v"
 >     vConcatEnv = selListEnv [("vn", vnType),("v", vType)]
 >     vEqType = TypeExtra typeBool Nothing Nothing True
 >     vEqExpr = "v=vn"
 >     vEqEnv = selListEnv [("vn", vnType),("v", vType)]
->     isNType = TypeExtra typeBool Nothing Nothing False
+>     isNType = mkTypeExtraNN typeBool
 >     coalEnv = selListEnv [("a", aType),("an", anType),("dn", dnType)]
 >     coalType = TypeExtra typeNumeric (Just 10) (Just 2) False
 >     case1Env = selListEnv [("vn", vnType),("a", aType),("an", anType),("c", cType),("v", vType)]

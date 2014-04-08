@@ -31,7 +31,7 @@ moment.
 >           ,("avg_qty", mkTypeExtra typeNumeric)
 >           ,("avg_price", mkTypeExtra typeNumeric)
 >           ,("avg_disc", mkTypeExtra typeNumeric)
->           ,("count_order", TypeExtra typeBigInt Nothing Nothing False)]
+>           ,("count_order", mkTypeExtraNN typeBigInt)]
 >          ,--q2
 >           [("s_acctbal", mkTypeExtra typeNumeric)
 >           ,("s_name", mkTypeExtra typeChar)
@@ -48,7 +48,7 @@ moment.
 >           ,("o_shippriority", mkTypeExtra typeInt)]
 >          ,--q4
 >           [("o_orderpriority", mkTypeExtra typeChar)
->           ,("order_count", TypeExtra typeBigInt Nothing Nothing False)]
+>           ,("order_count", mkTypeExtraNN typeBigInt)]
 >          ,--q5
 >           [("n_name", mkTypeExtra typeChar)
 >           ,("revenue", mkTypeExtra typeNumeric)]
@@ -80,11 +80,11 @@ moment.
 >           ,("value", mkTypeExtra typeNumeric)]
 >          ,--q12
 >           [("l_shipmode", mkTypeExtra typeChar)
->           ,("high_line_count", mkTypeExtra typeBigInt)
->           ,("low_line_count", mkTypeExtra typeBigInt)]
+>           ,("high_line_count", mkTypeExtraNN typeBigInt)
+>           ,("low_line_count", mkTypeExtraNN typeBigInt)]
 >          ,--q13
->           [("c_count", TypeExtra typeBigInt Nothing Nothing False)
->           ,("custdist", TypeExtra typeBigInt Nothing Nothing False)]
+>           [("c_count", mkTypeExtraNN typeBigInt)
+>           ,("custdist", mkTypeExtraNN typeBigInt)]
 >          ,--q14
 >           [("promo_revenue", mkTypeExtra typeNumeric)]
 >          ,--q15
@@ -97,7 +97,7 @@ moment.
 >           [("p_brand", mkTypeExtra typeChar)
 >           ,("p_type", mkTypeExtra typeVarChar)
 >           ,("p_size", mkTypeExtra typeInt)
->           ,("supplier_cnt", TypeExtra typeBigInt Nothing Nothing False)]
+>           ,("supplier_cnt", mkTypeExtraNN typeBigInt)]
 >          ,--q17
 >           [("avg_yearly", mkTypeExtra typeNumeric)]
 >          ,--q18
@@ -114,9 +114,9 @@ moment.
 >           ,("s_address", mkTypeExtra typeVarChar)]
 >          ,--q21
 >           [("s_name", mkTypeExtra typeChar)
->           ,("numwait", TypeExtra typeBigInt Nothing Nothing False)]
+>           ,("numwait", mkTypeExtraNN typeBigInt)]
 >          ,--q22
 >           [("cntrycode", mkTypeExtra $ ScalarType "char")
->           ,("numcust", TypeExtra typeBigInt Nothing Nothing False)
+>           ,("numcust", mkTypeExtraNN typeBigInt)
 >           ,("totacctbal", mkTypeExtra typeNumeric)]
 >          ]

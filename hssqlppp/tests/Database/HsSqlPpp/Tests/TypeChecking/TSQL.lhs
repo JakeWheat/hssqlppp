@@ -99,10 +99,10 @@ count_big returns bigint
 >   ++
 >   [TSQLQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")]]
 >    "select count(*) as a from t"
->    $ Right $ CompositeType [("a", TypeExtra typeInt Nothing Nothing False)]
+>    $ Right $ CompositeType [("a", mkTypeExtraNN typeInt)]
 >   ,TSQLQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")]]
 >    "select count_big(*) as a from t"
->    $ Right $ CompositeType [("a", TypeExtra typeBigInt Nothing Nothing False)]]
+>    $ Right $ CompositeType [("a", mkTypeExtraNN typeBigInt)]]
 
 todo: add new dialect and stuff for oracle
 
