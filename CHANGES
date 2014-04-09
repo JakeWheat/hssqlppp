@@ -1,3 +1,7 @@
+0.4.1
+
+update to work with ghc 7.6 and 7.8
+
 0.4.0
 
 lots of breaking changes to the ast types

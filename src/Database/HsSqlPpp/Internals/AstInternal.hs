@@ -441,7 +441,7 @@ getName x = error $ "internal error getName called on: " ++ show x
 
 getTName :: Name -> String
 getTName (Name _ n) = getUnqual n
-getTName x = error $ "internal error getName called on: " ++ show x
+--getTName x = error $ "internal error getName called on: " ++ show x
 
 
 unwrapLookup :: (String,[String],Type) -> Type
