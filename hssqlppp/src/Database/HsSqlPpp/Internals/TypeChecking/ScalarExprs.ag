@@ -33,9 +33,13 @@ sem ScalarExpr
                             return expType
 
 {
--- a stub for possible more complicated logic
 needsImplicitCast:: TypeExtra -> TypeExtra -> Bool
-needsImplicitCast upType expType = teType upType /= teType expType
+needsImplicitCast upType expType
+    = tePrecision upType /= tePrecision expType
+      || teScale upType /= teScale expType
+      || teNullable upType /= teNullable expType
+      ||  teType upType /= teType expType
+          && (not . null) (nub [teType upType, teType expType] \\ [ScalarType "varchar", ScalarType "text"])
 }
 
 sem ScalarExpr
@@ -142,15 +146,18 @@ simplish ctors
         loc.tpe = Right @te
         expr.expectedType = Nothing
     | Interval
-         loc.tpe = Right $ mkTypeExtra $ ScalarType "interval"
+         loc.tpe = Right $ mkTypeExtraNN $ ScalarType "interval"
     | Extract
          loc.tpe = -- check the argument is a date
                    do
                    x <- maybe (Left []) Right @e.upType
                    if teType x == typeDate
-                     then Right $ mkTypeExtra typeFloat8
+                     then Right $ TypeExtra typeFloat8 Nothing Nothing $ teNullable x
                      else Left [NoMatchingOperator "extract" [teType x]]
-         e.expectedType = Just $ mkTypeExtra typeDate
+         e.expectedType = either
+                            (const Nothing)
+                            (Just . TypeExtra typeDate Nothing Nothing . teNullable)
+                            @loc.tpe
     | Placeholder
          loc.tpe = Right $ mkTypeExtra UnknownType
 {-
@@ -207,7 +214,7 @@ op calls, fn calls, etc.
              (App _ (Name _ [Nmc "count"]) [Star _]) ->
                  tcAppLike (tcfDialect @lhs.flags)
                            @lhs.cat @funName.originalTree
-                           [Just $ mkTypeExtra UnknownType]
+                           [Just $ mkTypeExtraNN UnknownType]
              _ -> tcAppLike (tcfDialect @lhs.flags)
                             @lhs.cat @funName.originalTree @args.upTypes
     | BinaryOp
@@ -231,7 +238,7 @@ op calls, fn calls, etc.
          loc.tpe =
            case @fn.originalTree of
              (App _ fnm@(Name _ [Nmc "count"]) [Star _]) ->
-                  fmap snd $ tcAppLike (tcfDialect @lhs.flags) @lhs.cat fnm [Just $ mkTypeExtra UnknownType]
+                  fmap snd $ tcAppLike (tcfDialect @lhs.flags) @lhs.cat fnm [Just $ mkTypeExtraNN UnknownType]
              _ -> maybe (Left []) Right @fn.upType
     | WindowApp
          loc.tpe = maybe (Left []) Right @fn.upType
@@ -247,19 +254,19 @@ tcAppLike d cat anm@(Name _ [Nmc dd]) [_,a0,a1]
   -- dodgy hack for datediff
   tys <- mapM (maybe (Left []) Right) [a0,a1]
   let Name _ ns = anm
-  (ats,rt) <- matchAppExtra d cat ns (mkTypeExtra typeInt : tys)
+  (ats,rt) <- matchAppExtra d cat ns (mkTypeExtraNN typeInt : tys)
   return (ats,rt)
 tcAppLike d cat anm@(Name _ [Nmc dd]) [_,a0]
     | map toLower dd == "datepart" = do
   tys <- mapM (maybe (Left []) Right) [a0]
   let Name _ ns = anm
-  (ats,rt) <- matchAppExtra d cat ns (mkTypeExtra typeInt : tys)
+  (ats,rt) <- matchAppExtra d cat ns (mkTypeExtraNN typeInt : tys)
   return (ats,rt)
 tcAppLike d cat anm@(Name _ [Nmc dd]) [_,a0,a1]
     | map toLower dd == "dateadd" = do
   tys <- mapM (maybe (Left []) Right) [a0,a1]
   let Name _ ns = anm
-  (ats,rt) <- matchAppExtra d cat ns (mkTypeExtra typeInt : tys)
+  (ats,rt) <- matchAppExtra d cat ns (mkTypeExtraNN typeInt : tys)
   return (ats,rt)
 
 
@@ -321,7 +328,11 @@ sem ScalarExpr
                       $ Left [WrongTypes typeBool $ map teType wt]
                   tt <- mapM (maybe (Left []) Right) @loc.thenTypes
                   resolveResultSetTypeExtra @lhs.cat tt
-        cases.whenExpectedType = Just $ mkTypeExtra typeBool
+        cases.whenExpectedType =
+            do
+            ws <- sequence $ concat @loc.whenTypes
+            w <- either (const Nothing) Just $ resolveResultSetTypeExtra @lhs.cat ws
+            Just $ TypeExtra typeBool Nothing Nothing $ teNullable w
         cases.thenExpectedType = either (const Nothing) Just @loc.tpe
         els.expectedType = either (const Nothing) Just @loc.tpe
     | CaseSimple
@@ -365,7 +376,7 @@ subqueries
 -- exists: will work on any subselect so no checking needed
 sem ScalarExpr
     | Exists
-        loc.tpe = Right $ mkTypeExtra typeBool
+        loc.tpe = Right $ mkTypeExtraNN typeBool
 
 {-
 == scalarsubquery
@@ -407,8 +418,8 @@ sem ScalarExpr
                  expt <- maybe (Left []) Right @expr.upType
                  resolveResultSetTypeExtra @lhs.cat [expt, lt]
         loc.tpe = do
-                  _ <- @loc.rt
-                  return $ mkTypeExtra typeBool
+                  r <- @loc.rt
+                  return $ TypeExtra typeBool Nothing Nothing $ teNullable r
         list.expectedType = either (const Nothing) Just @loc.rt
         expr.expectedType = either (const Nothing) Just @loc.rt
 
@@ -426,6 +437,7 @@ sem InList
                       0 -> Left [InternalError
                                  "got subquery with no columns? in inselect"]
                       1 -> Right $ head st
+                            -- ImplicitCastToDo: probably, TypeExtra goes inside, like in CompositeType
                       _ -> Right $ mkTypeExtra $ AnonymousCompositeType
                               $ map teType st
 
@@ -470,8 +482,10 @@ sem ScalarExpr
 sem ScalarExprRoot
   | ScalarExprRoot expr.expectedType = Nothing
 
+-- ImplicitCastToDo: which handling is proper: this or that of MaybeBoolExpr?
 sem JoinExpr
-  | JoinOn expr.expectedType = Just $ mkTypeExtra typeBool
+  | JoinOn expr.expectedType = Just $ TypeExtra typeBool Nothing Nothing
+                                        $ maybe False teNullable @expr.upType
 
 sem SelectItem
   | SelExp SelectItem ex.expectedType = Nothing

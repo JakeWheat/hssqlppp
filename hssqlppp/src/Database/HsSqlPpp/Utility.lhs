@@ -10,6 +10,7 @@
 >     ,canonicalizeTypeNames
 >      -- * typechecked ast utils
 >     ,addExplicitCasts
+>     ,addImplicitCasts
 >     ,tcTreeInfo
 >     ,emacsShowErrors
 >     ) where

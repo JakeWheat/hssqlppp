@@ -47,7 +47,7 @@ todo: fix it
 >      | dp <- ["day","month","year"]]
 >   ++ [TSQLQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "date")]]
 >      (pack $ "select dateadd(" ++ dp ++ ",5,'1992-001-01') as a from t")
->      $ Right $ CompositeType [("a", mkTypeExtra typeDate)]
+>      $ Right $ CompositeType [("a", mkTypeExtraNN typeDate)]
 >      | dp <- ["day","month","year"]]
 
 

@@ -22,7 +22,7 @@ http://blogs.msdn.com/b/craigfr/archive/2010/01/20/more-on-implicit-conversions.
 >     ) where
 >
 > import Data.Maybe
-> --import Data.List
+> import Data.List
 > --import Data.Either
 > --import Debug.Trace
 > import Data.Char
@@ -129,28 +129,22 @@ Handle precision and nullability of function application,
 >                 -> [TypeExtra]
 >                 -> Either [TypeError] ([TypeExtra],TypeExtra)
 > matchAppExtra dialect cat nmcs tes
->   = liftM (zipWith addArgExtra tes *** addResultExtra)
+>   = liftM (joinArgExtra appName . zipWith addArgExtra tes *** addResultExtra)
 >       $ matchApp dialect cat nmcs $ map teType tes
 >   where
 >     addArgExtra te t = te {teType = t}
->     addResultExtra t = checkPrecisionClass tes' $ TypeExtra t jp js jn
+>     addResultExtra t = checkPrecisionClass tesr $ TypeExtra t jp js jn
 >     -- infer precision and nullability of the result
 >     appName = case nmcs of
 >       [Nmc dd] -> map toLower dd
 >       _ -> ""
 >     jp = case () of
->       _ | appName == "||" -> Just $ sum $ mapMaybe tePrecision tes'
->           -- only the first argument influences the precision
->           -- ToDo: add more functions here (and possibly, to jn)
->         | appName `elem` ["nullif","substr","substring","left","right","ltrim","rtrim","replicate","translate"]
->           -> guard (not $ null tes') >> tePrecision (head tes')
+>       _ | appName == "||" -> Just $ sum $ mapMaybe tePrecision tesr
 >           -- precision of the result is unknown
 >         | appName `elem` ["replace"] -- is actually known for 2-argument "replace"
 >           -> Nothing
->       _ -> joinPrecision $ map tePrecision tes'
->     js = case appName of
->       "nullif" -> guard (not $ null tes') >> teScale (head tes')
->       _ -> joinScale $ map teScale tes'
+>       _ -> joinPrecision $ map tePrecision tesr
+>     js = joinScale $ map teScale tesr
 >     jn = case () of
 >       _ | appName `elem`
 >             ( ["isnotnull","isdate","isnumeric"]
@@ -162,21 +156,33 @@ Handle precision and nullability of function application,
 >         | appName `elem` 
 >             ( ["coalesce","greatest","least"]
 >                 -- 2-argument function "isnull" of SqlServer
+>                 -- ImplicitCastToDo: isnull has quite complex cast rules,
+>                 --    not really reflected here and in the cast of arguments
 >               ++ ["isnull" | length tes == 2]
 >                 -- nullability of corresponding SqlServer function "charindex"
 >                 --  may or may not differ, depending on database compatibility level
 >               ++ ["strpos","position"])
->           -> all teNullable tes'
+>           -> all teNullable tesr
 >           -- can produce null independently on the nullability of the arguments
+>           -- ImplicitCastToDo: check again: doesn't it depend on the presence of "else" part
 >         | appName `elem` ["case","decode","nullif","substr","substring","replicate"]
 >           -> True
 >           -- the default
->         | otherwise -> joinNullability $ map teNullable tes'
->     -- follow the behavior of matchApp for special cases
->     tes' = case appName of
+>         | otherwise -> joinNullability $ map teNullable tesr
+>     -- arguments that participate in the inference of the result type
+>     tesr = case appName of
 >       "decode" -> caseResultTypes tes
->       -- for now, a significant hack
->       _ -> tes
+>           -- only the first argument influences precision and nullability
+>       _ | appName `elem` ["nullif","substr","substring","left","right","ltrim","rtrim","replicate","translate","like","notlike"]
+>           -> take 1 tes
+>           -- the first argument doesn't influence
+>         | appName `elem` ["datepart","datediff"]
+>           -> drop 1 tes
+>           -- the first two arguments don't influence
+>         | appName `elem` ["dateadd"]
+>           -> drop 2 tes
+>       -- the default case
+>         | otherwise -> tes
 >     -- tail is safe here because matchApp did all the checks
 >     caseResultTypes tes = caseResultTypes' (tail tes) []
 >       where
@@ -207,6 +213,98 @@ ToDo: Add checking whether precision/scale is relevant for a type (consider "rou
 >   = if all (precisionClass (teType t) ==) $ map (precisionClass . teType) tes
 >     then t
 >     else t{tePrecision = Nothing, teScale = Nothing}
+
+Bring relevant arguments of a function to common precision and nullability.
+The meaning of "relevant" is complicated:
+  - the list of arguments is split into partitions;
+  - precision and nullability is partition-wise joined;
+  - the results are broadcast back to the arguments that constituted partitions.
+The algorithm follows this outline.
+Examples:
+  - for binary operators, like "=", both arguments constitute a single partition;
+  - for some functions, like "substr", each argument belongs to its own partition;
+  - arguments of "case" and "decode" form two partitions which, except for the analyzed value
+    and the 'else' argument, are intervened with one another.
+Actually, partitions for precision and partitions for nullability can be different.
+Example:
+  "||": both arguments must be brought to common nullability, but remain with same precision.
+
+> joinArgExtra:: String -> [TypeExtra] -> [TypeExtra]
+> joinArgExtra appName tes
+>     = uncurry (zipWith3 combine tes)
+>       $ (joinDim joinPrec partitionPrec &&& joinDim joinNull partitionNull) tes
+>   where
+>     -- the algorithm for a single partitioning dimension
+>     joinDim:: ([TypeExtra] -> [TypeExtra])
+>               -> ([TypeExtra] -> ([[TypeExtra]] -> [TypeExtra], [[TypeExtra]]))
+>               -> [TypeExtra] -> [TypeExtra]
+>     joinDim join partitionArgs = uncurry ($) . second (map join) . partitionArgs
+>     -- combine results for precision and nullability
+>     combine te tePrec teNull = te {
+>       tePrecision = tePrecision tePrec,
+>       teScale = teScale tePrec,
+>       teNullable = teNullable teNull
+>     }
+>     -- joins of precision and nullability partitions
+>     joinPrec tes = map promote tes
+>       where
+>         promote (TypeExtra t p s n) = TypeExtra t (p' `mplus` p) (s' `mplus` s) n
+>         p' = joinPrecision $ map tePrecision tes
+>         s' = joinScale $ map teScale tes
+>     joinNull tes = map promote tes
+>       where
+>         promote (TypeExtra t p s n) = TypeExtra t p s (n' || n)
+>         n' = joinNullability $ map teNullable tes
+>     -- the partitioning functions return partitions paired with a function
+>     --    that puts them back into their places
+>     -- because, in many cases, partitions for precision and for nullability are the same,
+>     --    the partitioning code for such cases is factored out
+>     partitionArgs:: [TypeExtra] -> ([[TypeExtra]] -> [TypeExtra], [[TypeExtra]])
+>     partitionArgs tes = case () of
+>             -- functions whose arguments are independent
+>             --  instead of splitting into partitions, just return the original list
+>         _ | appName `elem`
+>               ( ["datepart","dateadd"]
+>                 ++ ["substr","substring","left","right","ltrim","rtrim"]
+>                 ++ ["replicate","like","notlike"]
+>                 ++ ["strpos","position","replace"]
+>               )
+>             -> (const tes, [])
+>             -- first argument is special, the rest are processed together
+>           | appName `elem` ["datediff"]
+>             -> (concat, pairToList $ splitAt 1 tes)
+>           | appName `elem` ["decode"]
+>             ->  let (ws,ts) = decomposeDecodeTail (tail tes) ([],[])
+>                 in (composeDecodePartitions, [head tes :ws, ts])
+>             -- the default is to return a single partition
+>           | otherwise -> (concat, [tes])
+>     partitionPrec tes = case () of
+>             -- independent arguments
+>         _ | appName `elem` ["||","concat","translate"]
+>             -> (const tes, [])
+>             -- single partition
+>           | appName `elem`
+>               ( ["coalesce","greatest","least"]
+>                     -- ImplicitCastToDo: think how to handle this properly
+>                 ++ ["isnull" | length tes == 2]
+>               )
+>             -> (concat, [tes])
+>           | otherwise -> partitionArgs tes
+>     partitionNull tes = case () of
+>         _ | appName `elem`
+>               ( ["coalesce","greatest","least"]
+>                 ++ ["isnull" | length tes == 2]
+>               )
+>             -> (const tes, [])
+>           | otherwise -> partitionArgs tes
+>     -- utility
+>     pairToList (x,y) = [x,y]
+>     decomposeDecodeTail [] acc = (reverse***reverse) acc
+>     decomposeDecodeTail [els] acc = (reverse.(els:)***reverse) acc
+>     decomposeDecodeTail (w:t:xs) acc = decomposeDecodeTail xs $ ((w:)***(t:)) acc
+>     composeDecodePartitions [t:ts,ws] = t : concat (transpose [ts,ws])
+>     -- redundant
+>     composeDecodePartitions xs = concat xs
 
  findCallMatch :: Catalog -> String -> [Type] ->  Either [TypeError] OperatorPrototype
  findCallMatch cat fnName' argsType =

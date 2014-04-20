@@ -164,38 +164,48 @@ addExplicitCasts = transformBi removeDoubleCasts . transformBi addCast
     resetAnnotations = transformBi (const emptyAnnotation)
 -- | variation of the above, which uses ImplicitCast ctor
 addImplicitCasts :: Data a => Catalog -> a -> a
-addImplicitCasts cat = transformBi (removeDoubleCasts cat) . transformBi addCast
+addImplicitCasts cat = transformBi removeDoubleCasts . transformBi addCast
   where
     addCast:: ScalarExpr -> ScalarExpr
     addCast e = fromMaybe e $ do
                   te <- anImplicitCast (getAnnotation e)
+                  -- ImplicitCastToDo: why anImplicitCast is not Nothing above Star
+                  nameOfType $ teType te -- in order to preserve the old logic
+                  -- guard $ isCastable e $ teType te
                   return $ ImplicitCast emptyAnnotation e te
-    -- The logic is:
-    --  1. If there is an ImplicitCast over ImplicitCast, then replace with a single
-    --    ImplicitCast, provided that corresponding ImplicitCastContext
-    --    is present in the Catalog.
-    --    ? This can be still incomplete in case of 3+ ImplicitCast's.
-    --      Possibly, convert this to a more complex rewrite.
-    --  2. If there is Cast over ImplicitCast, do the same using ExplicitCastContext.
-    --  3. Do nothing for the other combinations.
-    -- This logic is questionable because it can (in theory) hide possible loss of precision.
-    --  But this reflects the difference between implicit and explicit cast. The user
-    --  hardly would expect loss of precision in such cases. Jake, what do you think?
-    removeDoubleCasts:: Catalog -> ScalarExpr -> ScalarExpr
-    removeDoubleCasts cat e = case e of
-        ImplicitCast a (ImplicitCast _ e' _) t
-          | isCastable ImplicitCastContext e' (Just t)
-            -> ImplicitCast a e' t
-        Cast a (ImplicitCast _ e' _) t
-          | isCastable ExplicitCastContext e' (anType a)
-            -> Cast a e' t
-        _ -> e
       where
-        isCastable:: CastContext -> ScalarExpr -> (Maybe TypeExtra) -> Bool
-        isCastable ctx e mte = fromMaybe False $ do
+        isCastable:: ScalarExpr -> Type -> Bool
+        isCastable e to = fromMaybe False $ do
             from <- liftM teType $ anType $ getAnnotation e
-            to <- liftM teType mte
-            either (const Nothing) Just $ catCast cat ctx from to
+            either (const Nothing) Just $ catCast cat ImplicitCastContext from to
+    removeDoubleCasts:: ScalarExpr -> ScalarExpr
+    removeDoubleCasts e = fst $ accumulateCasts e
+    -- For each implicit cast, if there is a sequence of implicit casts right under it,
+    --    that remained after bottom-up application of the described algorithm:
+    --  1. Check if there is a type in the sequence (of argument types of implicit casts),
+    --      which is implicitly castable to the target type of the current implicit cast,
+    --      according to the current catalog.
+    --  2. If there is such a type, replace a sequence of cast that starts at this type with
+    --      a single cast, and shorten the list of casts to be further investigated (snd of
+    --      output type of this function) correspondingly.
+    --    2.1. Analyze the list bottom-up, so that the longest possible sequence of casts is
+    --      replaced.
+    --  3. If there is no such a type, just add the current cast to the list.
+    -- Reset the list on a node other than ImplicitCast.
+    accumulateCasts:: ScalarExpr -> (ScalarExpr,[(ScalarExpr,Type)])
+    accumulateCasts e = case e of
+        ImplicitCast a e' te
+          ->  let (e1,ets) = accumulateCasts e'
+                  eStart = ImplicitCast a e1 te
+                  isCastable (_,t) = either (const False) id
+                      $ catCast cat ImplicitCastContext t $ teType te
+                  f z xs = case dropWhile (not . isCastable) xs of
+                      [] -> z
+                      xs'@((e'',_):rest) -> f (ImplicitCast a e'' te, xs') rest
+              in case anType $ getAnnotation e1 of
+                    Nothing -> (eStart,[]) -- cut here (should not happen in practice)
+                    Just te1 -> f (eStart, (e1, teType te1):ets) ets
+        _ -> (e,[])
 
 nameOfType :: Type -> Maybe TypeName
 nameOfType (ScalarType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc $ T.unpack t])
@@ -250,7 +260,7 @@ fixMssqlDates = transformBi $ \x -> case x of
       App aa nm [Identifier (nai ai) tn,a,b]
   x' -> x'
   where
-      nai ai = ai {anType = Just $ mkTypeExtra typeInt
+      nai ai = ai {anType = Just $ mkTypeExtraNN typeInt
                   ,anErrs = []}
 
 }
