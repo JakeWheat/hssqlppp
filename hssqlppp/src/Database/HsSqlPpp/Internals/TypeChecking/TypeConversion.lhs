@@ -53,36 +53,38 @@ This needs a lot more tests
 >          -> [NameComponent]
 >          -> [Type]
 >          -> Either [TypeError] ([Type],Type)
-> -- hack in support for sql server datediff function
-> -- need to think of a better way to handle this when
-> -- have a better idea of all the weird syntax used in
-> -- tsql
-> matchApp SQLServerDialect _cat [Nmc dd] [_
->                                         ,ScalarType "date"
->                                         ,ScalarType "date"]
->   | map toLower dd == "datediff" =
->   -- check there are 3 args
->   -- first is identifier from list
->   -- other two are date types
->   Right ([typeInt,typeDate,typeDate], typeInt)
-> matchApp SQLServerDialect _cat [Nmc dd] [_,ScalarType "date"]
->   | map toLower dd == "datepart" =
->   Right ([typeInt,typeDate], typeInt)
-> matchApp SQLServerDialect _cat [Nmc dd] [_,_,ScalarType "date"]
->   | map toLower dd == "dateadd" =
->   Right ([typeInt,typeInt,typeDate], typeDate)
+> matchApp d cat nmcs = ambiguityResolver $ matchApp' d cat nmcs
+>   where
+>     -- hack in support for sql server datediff function
+>     -- need to think of a better way to handle this when
+>     -- have a better idea of all the weird syntax used in
+>     -- tsql
+>     matchApp' SQLServerDialect _cat [Nmc dd] [_
+>                                             ,ScalarType "date"
+>                                             ,ScalarType "date"]
+>       | map toLower dd == "datediff" =
+>       -- check there are 3 args
+>       -- first is identifier from list
+>       -- other two are date types
+>       Right ([typeInt,typeDate,typeDate], typeInt)
+>     matchApp' SQLServerDialect _cat [Nmc dd] [_,ScalarType "date"]
+>       | map toLower dd == "datepart" =
+>       Right ([typeInt,typeDate], typeInt)
+>     matchApp' SQLServerDialect _cat [Nmc dd] [_,_,ScalarType "date"]
+>       | map toLower dd == "dateadd" =
+>       Right ([typeInt,typeInt,typeDate], typeDate)
 
 double hack: support oracle decode when in tsql mode:
 
-> matchApp SQLServerDialect cat [Nmc dd] as
->   | map toLower dd == "decode" =
+>     matchApp' SQLServerDialect cat [Nmc dd] as
+>       | map toLower dd == "decode" =
 
 decode is just syntax for simple case statement:
 demand at least 3 arguments
 get the type of the first argument: this is the test target
 
->   case as of
->     (tt:as'@(_:_:_)) -> do
+>       case as of
+>         (tt:as'@(_:_:_)) -> do
 
 for each pair of arguments following: check the first
 one can be compared to the test target
@@ -90,35 +92,52 @@ one can be compared to the test target
 collect all the second types
 if there is a single trailing argument this is the else
 
->         let checkBranches [] acc = return $ reverse acc
->             checkBranches [els] acc = return $ reverse (els:acc)
->             checkBranches (w:t:xs) acc = do
->               _ <- matchApp SQLServerDialect cat [Nmc "="] [tt,w]
->               checkBranches xs (t:acc)
->         sndTypes <- checkBranches as' []
+>             let checkBranches [] acc = return $ reverse acc
+>                 checkBranches [els] acc = return $ reverse (els:acc)
+>                 checkBranches (w:t:xs) acc = do
+>                   _ <- matchApp' SQLServerDialect cat [Nmc "="] [tt,w]
+>                   checkBranches xs (t:acc)
+>             sndTypes <- checkBranches as' []
 
 check the seconds types + the else for type compatilibility
 return this type
 todo: add the implicit casting where needed
 
->         (as,) <$> resolveResultSetType cat sndTypes
+>             (as,) <$> resolveResultSetType cat sndTypes
 
 
->     _ -> Left [NoMatchingOperator (T.pack dd) as]
+>         _ -> Left [NoMatchingOperator (T.pack dd) as]
 
 
 
-> matchApp d cat nmcs pts = {-trace ("matchapp: " ++ show (d,nmcs,pts)) $ -} do
->   (_,ps,r,_) <- case d of
->                   SQLServerDialect -> TSQL.findCallMatch cat nm pts
->                   _ -> findCallMatch cat nm pts
->   return (ps,r)
+>     matchApp' d cat nmcs pts = {-trace ("matchapp: " ++ show (d,nmcs,pts)) $ -} do
+>       (_,ps,r,_) <- case d of
+>                       SQLServerDialect -> TSQL.findCallMatch cat nm pts
+>                       _ -> findCallMatch cat nm pts
+>       return (ps,r)
+>       where
+>         nm = case last nmcs of
+>                Nmc n -> T.pack $ map toLower n
+>                QNmc n -> T.pack n
+>                AntiNameComponent _ -> -- todo: use left instead of error
+>                  error "tried to find function matching an antinamecomponent"
+
+this shouldn't slow down the execution because lazyness composes well with the functions used
+
+> ambiguityResolver:: ([Type] -> Either [TypeError] ([Type],Type))
+>                     -> [Type] -> Either [TypeError] ([Type],Type)
+> ambiguityResolver f ts =  let rs = map f $ expandList variants ts
+>                           -- this is needed in order to preserve the original error
+>                           --  in case when all the attempts fail
+>                           in msum rs `mplus` head rs
 >   where
->     nm = case last nmcs of
->            Nmc n -> T.pack $ map toLower n
->            QNmc n -> T.pack n
->            AntiNameComponent _ -> -- todo: use left instead of error
->              error "tried to find function matching an antinamecomponent"
+>     variants t = case t of
+>         UnknownType -> [t, ScalarType "timestamp"]
+>         _ -> [t]
+>     -- similar to handling of superaggregates
+>     -- ToDo: move to a general library
+>     expandList:: (a -> [a]) -> [a] -> [[a]]
+>     expandList f = foldr (liftM2 (:) . f) [[]]
 
 Handle precision and nullability of function application,
   using matchApp for inferring basic types

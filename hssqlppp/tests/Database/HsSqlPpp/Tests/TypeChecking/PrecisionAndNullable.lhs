@@ -22,7 +22,7 @@
 >    ,ScalarExprExtra cat1 vEnv   "v"   (Right vType)
 >    ,ScalarExprExtra cat1 dnEnv  "dn"  (Right dnType)
 >    ,ScalarExprExtra cat1 dEnv   "d"   (Right dType)
->    --,ScalarExprExtra cat1 vConcatEnv vConcatExpr (Right vConcatType)
+>    ,ScalarExprExtra cat1 vConcatEnv vConcatExpr (Right vConcatType)
 >    ,ScalarExprExtra cat1 vConcatEnv "v||'test12'" (Right $ TypeExtra (ScalarType "text") (Nothing) Nothing False)
 >    ,ScalarExprExtra cat1 vEqEnv vEqExpr (Right vEqType)
 >    ,ScalarExprExtra cat2 a2Env "isnull(an,a)" (Right aType)
@@ -36,6 +36,7 @@
 >    --,ScalarExprExtra cat1 case1Env "case an when v then a when c then an end" (Right case1Type)
 >    ,ScalarExprExtra cat2 case1Env "case vn when v then a when c then an end" (Right case1Type)
 >    ,ScalarExprExtra cat1 case2Env "case when an is null then a when v is null then an else dn end" (Right case2Type)
+>    ,ScalarExprExtra cat2 (selListEnv []) "dateadd(year,1,'1997/01/01')" (Right $ mkTypeExtraNN $ ScalarType "timestamp")
 >    ]
 >   ]
 >   ++ [Group "PrecisionAndNullableQueryExpr"
@@ -126,8 +127,8 @@
 >     dnEnv = selListEnv [("dn", dnType)]
 >     dType = TypeExtra typeNumeric (Just 9) (Just 3) False
 >     dEnv = selListEnv [("d", dType)]
->     vConcatType = TypeExtra (ScalarType "text") (Just 12) Nothing False
->     vConcatExpr = "v||v"
+>     vConcatType = TypeExtra (ScalarType "text") (Just 13) Nothing True
+>     vConcatExpr = "v||vn"
 >     vConcatEnv = selListEnv [("vn", vnType),("v", vType)]
 >     vEqType = TypeExtra typeBool Nothing Nothing True
 >     vEqExpr = "v=vn"

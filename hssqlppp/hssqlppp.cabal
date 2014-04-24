@@ -1,5 +1,5 @@
 Name:                hssqlppp
-Version:             0.5.0
+Version:             0.5.1
 Synopsis:            SQL parser and type checker
 License:             BSD3
 License-file:        LICENSE
@@ -40,6 +40,7 @@ Library
                      syb >= 0.1.0.2 && < 0.5,
                      text >= 0.11.1.13 && < 0.12,
                      uniplate >= 1.6 && < 1.7,
+                     transformers >= 0.3 && < 0.4,
                      -- temp - pulls in lgpl or something in cpphs
                      groom
 
@@ -96,6 +97,7 @@ Test-Suite Tests
                        test-framework-hunit >= 0.3 && < 0.4,
                        text >= 0.11.1.13 && < 0.12,
                        uniplate >= 1.6 && < 1.7,
+                       transformers >= 0.3 && < 0.4,
                        groom >=0.1 && < 0.2
 
                      -- rough start:
