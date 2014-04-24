@@ -41,6 +41,10 @@ add flags to typechecking to control the tree rewrites:
 better parsing for operators without whitespace, e.g. is now able to
   parse a<>-1 as a <> -1
 
+0.4.1
+Released 09/04/2014
+
+Update 0.4.0 to work with ghc 7.6 and 7.8
 
 0.4.0
 Released 30/09/2011
