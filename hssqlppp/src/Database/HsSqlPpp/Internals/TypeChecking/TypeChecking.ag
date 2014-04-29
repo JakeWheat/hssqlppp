@@ -181,13 +181,13 @@ addImplicitCasts cat = transformBi removeDoubleCasts . transformBi addCast
     removeDoubleCasts:: ScalarExpr -> ScalarExpr
     removeDoubleCasts e = fst $ accumulateCasts e
     -- For each implicit cast, if there is a sequence of implicit casts right under it,
-    --    that remained after bottom-up application of the described algorithm:
+    --    that remained after bottom-up application of the algorithm being described:
     --  1. Check if there is a type in the sequence (of argument types of implicit casts),
     --      which is implicitly castable to the target type of the current implicit cast,
     --      according to the current catalog.
-    --  2. If there is such a type, replace a sequence of cast that starts at this type with
+    --  2. If there is such a type, replace a sequence of casts that starts at this type with
     --      a single cast, and shorten the list of casts to be further investigated (snd of
-    --      output type of this function) correspondingly.
+    --      output type of this function).
     --    2.1. Analyze the list bottom-up, so that the longest possible sequence of casts is
     --      replaced.
     --  3. If there is no such a type, just add the current cast to the list.

@@ -122,7 +122,11 @@ todo: add the implicit casting where needed
 >                AntiNameComponent _ -> -- todo: use left instead of error
 >                  error "tried to find function matching an antinamecomponent"
 
-this shouldn't slow down the execution because lazyness composes well with the functions used
+hack to support literal arguments to overloaded functions
+  currently, the problem arises only for date/datetime arguments
+  the solution reflects this
+for long argument lists with several literals, there can be a lot of variants generated, but
+  this shouldn't slow down the execution because lazyness composes well with the functions used
 
 > ambiguityResolver:: ([Type] -> Either [TypeError] ([Type],Type))
 >                     -> [Type] -> Either [TypeError] ([Type],Type)

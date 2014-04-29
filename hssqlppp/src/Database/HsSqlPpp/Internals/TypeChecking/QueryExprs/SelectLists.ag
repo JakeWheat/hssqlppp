@@ -33,7 +33,7 @@ attr ScalarExpr
 
 sem ScalarExpr
     | NumberLit StringLit NullLit BooleanLit TypedStringLit Interval
-      Extract PositionalArg Placeholder Cast Identifier
+      Extract PositionalArg Placeholder Cast ImplicitCast Identifier
       Case CaseSimple Exists App AggregateApp
       WindowApp InPredicate LiftApp ScalarSubQuery
       BinaryOp PrefixOp PostfixOp SpecialOp
@@ -58,8 +58,6 @@ sem ScalarExpr
               -- the single expr info into a list
               _ -> --trace ("annotated tree in colExprs: " ++ show @annotatedTree)
                      [(columnName @originalTree,@upType,@annotatedTree)]
-    | ImplicitCast
-        lhs.colExprs = @expr.colExprs
 
 {-
 loc.annotatedTree stuff in ScalarExprs.ag:
@@ -148,11 +146,13 @@ sem SelectItemList
 attr SelectItem
   syn colExprs :: {[(NameComponent,Maybe TypeExtra,ScalarExpr)]}
   inh downEnv :: Environment
+  inh expectedType:: {Maybe TypeExtra}
 
 attr SelectItemList SelectList
   inh downEnv :: Environment
   syn colExprs :: {[(NameComponent,Maybe TypeExtra,ScalarExpr)]}
   syn upType :: {Maybe [(Text,TypeExtra)]}
+  inh expectedType :: {Maybe [TypeExtra]}
   syn upEnv :: Environment
 
 
@@ -173,6 +173,14 @@ sem SelectItemList
         lhs.colExprs = @loc.colExprs
         loc.upType = sequence $ flip map @loc.colExprs
                      $ \(n,t,_) -> fmap (ncStrT n,) t
+        loc.ett:: {Maybe (TypeExtra,[TypeExtra])}
+        loc.ett = 
+            let f ets = case ets of
+                    [] -> Nothing
+                    et:ets' -> Just (et,ets')
+            in f =<< @lhs.expectedType
+        hd.expectedType = liftM fst @loc.ett
+        tl.expectedType = liftM snd @loc.ett
   | Nil Cons
       lhs.upType = @loc.upType
       lhs.upEnv = case fmap envSelectListEnvironment @loc.upType of
@@ -189,6 +197,7 @@ sem SelectList
 sem SelectItem
     | SelectItem SelExp
       ann.tpe = Left []
+      ex.expectedType = @lhs.expectedType
 
 {
 

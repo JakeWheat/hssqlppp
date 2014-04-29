@@ -57,6 +57,7 @@ sem TableRef
   | SubTref
       loc.eEnv = maybe (Left []) id
                  $ fmap envSelectListEnvironment @sel.upType
+      sel.expectedType = liftM (map snd) @sel.upType
   | TableRefParens
       loc.eEnv = Right $ @tref.upEnv
   | FullAlias

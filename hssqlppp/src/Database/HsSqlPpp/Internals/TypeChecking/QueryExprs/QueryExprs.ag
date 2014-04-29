@@ -16,6 +16,7 @@ include "TypeChecking/QueryExprs/SelectLists.ag"
 
 attr QueryExpr
   syn upType :: {Maybe [(Text,TypeExtra)]}
+  inh expectedType :: {Maybe [TypeExtra]}
 
 --support for correlated subqueries
 attr QueryExpr
@@ -30,7 +31,9 @@ sem InList
   | InQueryExpr sel.outerDownEnv = Nothing
 
 sem WithQuery
-  | WithQuery ann.tpe = Left []
+  | WithQuery
+        ann.tpe = Left []
+        ex.expectedType = liftM (map snd) @ex.upType
 
 sem QueryExpr
     | Select
@@ -57,16 +60,7 @@ Going to punt on trying to typecheck that.
 
 -}
         selOrderBy.downEnv = orderByEnvironment @selSelectList.upEnv @selTref.upEnv
-        -- wrap the names and types in a composite which
-        -- fits with the annotation type
-        loc.tpe = maybe (Left [])
-                        (Right . mkTypeExtra . CompositeType)
-                        @selSelectList.upType
-        -- pass the fieldnames and types up in the uptype attribute without
-        -- wrapping since everything that wants to use it will have to
-        -- unwrap it straight after, so the tpe and the uptype aren't the same
-        -- but are equivalent
-        lhs.upType = @selSelectList.upType
+        loc.tpee = maybe (Left []) Right @selSelectList.upType
         -- correlated subquery support - combine the identifiers
         -- coming from outside the query expr
         selWhere.downEnv = maybe @selTref.upEnv
@@ -75,27 +69,35 @@ Going to punt on trying to typecheck that.
 
 sem QueryExpr
     | Select CombineQueryExpr Values WithQueryExpr
+        loc.tpee:: {Either [TypeError] [(Text,TypeExtra)]}
         loc.tpe :: {Either [TypeError] TypeExtra}
+        -- wrap the names and types in a composite which
+        -- fits with the annotation type
+        loc.tpe = liftM (mkTypeExtra . CompositeType) @loc.tpee
+        -- the tpe and the uptype aren't the same (because of the wrapping)
+        -- but are equivalent
+        lhs.upType = either (const Nothing) Just @loc.tpee
 
 -- temp
 
 sem QueryExpr
-    | Values WithQueryExpr
-        loc.tpe = Left []
+    | WithQueryExpr
+        loc.tpee = maybe (Left []) Right @withQe.upType
+    | Values
+        -- ToDo:
+        --    1. qeValues.upType is not actually implemented; look at ScalarExprs.ag
+        --    2. add tpee for ScalarExprList and ScalarExprListList to get the actual names
+        loc.tpee = maybe (Left []) (Right . map ("",)) @qeValues.upType
     | CombineQueryExpr
-        loc.tpee:: {Either [TypeError] [(Text,TypeExtra)]}
         loc.tpee =
           do
           a <- maybe (Left []) Right @cqQe0.upType
           b <- maybe (Left []) Right @cqQe1.upType
           let uts = zipWithM (\(_,te1) (_,te2) -> resolveResultSetTypeExtra @lhs.cat [te1,te2])
                         a b
-          -- todo: put in implicit cast info
           case uts of
             Left{} -> Left [IncompatibleUnionTypes (CompositeType a) (CompositeType b)]
             Right uts' -> return $ zipWith (\(n,_) te -> (n,te)) a uts'
-        loc.tpe = liftM (mkTypeExtra . CompositeType) @loc.tpee
-        lhs.upType = either (const Nothing) Just @loc.tpee
 
 attr MaybeBoolExpr ScalarExprDirectionPairList ScalarExprDirectionPair
      JoinExpr InList

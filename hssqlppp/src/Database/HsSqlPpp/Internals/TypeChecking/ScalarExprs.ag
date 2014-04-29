@@ -72,6 +72,27 @@ sem ScalarExprList
                 [] -> (Nothing,[])
     | Nil lhs.upTypes = []
 
+-- this is actually QueryExpr related logic, used there in Values
+
+attr ScalarExprListList
+  syn upType :: {Maybe [TypeExtra]}
+  --inh expectedType :: {[TypeExtra]}
+
+{-
+sem ScalarExprListList
+    | Cons lhs.upType =
+        do
+        as <- sequence @hd.upTypes
+        rs <- do
+              bs <- @tl.upType
+              guard (length as == length bs)
+              either (const Nothing) Just
+                  $ zipWithM (\te1 te2 -> resolveResultSetTypeExtra @lhs.cat [te1,te2]) as bs
+
+        @hd.upType : @tl.upTypes
+  inh downEnv :: Environment
+    | Nil lhs.upType = Nothing
+-}
 
 -- stop errors in the node being duplicated in the x::Name children
 -- nodes
@@ -141,7 +162,7 @@ simplish ctors
     | TypedStringLit Cast
          loc.tpe = maybe (Left []) Right @tn.namedType
     | Cast
-         expr.expectedType = @tn.namedType
+         expr.expectedType = Nothing --@tn.namedType
     | ImplicitCast
         loc.tpe = Right @te
         expr.expectedType = Nothing
@@ -399,6 +420,8 @@ sem ScalarExpr
         sel.outerDownEnv = Just @lhs.downEnv
     | Exists
         sel.outerDownEnv = Just @lhs.downEnv
+    | ScalarSubQuery Exists
+        sel.expectedType = liftM (map snd) @sel.upType
 
 {-
 == inlist
@@ -440,6 +463,7 @@ sem InList
                             -- ImplicitCastToDo: probably, TypeExtra goes inside, like in CompositeType
                       _ -> Right $ mkTypeExtra $ AnonymousCompositeType
                               $ map teType st
+        sel.expectedType = liftM (map snd) @sel.upType
 
 {-
 ----------------------------------------------------
@@ -486,9 +510,6 @@ sem ScalarExprRoot
 sem JoinExpr
   | JoinOn expr.expectedType = Just $ TypeExtra typeBool Nothing Nothing
                                         $ maybe False teNullable @expr.upType
-
-sem SelectItem
-  | SelExp SelectItem ex.expectedType = Nothing
 
 sem ScalarExpr
   | AggregateApp WindowApp fn.expectedType = Nothing

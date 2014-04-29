@@ -7,6 +7,15 @@ sem Statement
     DropSomething DropTrigger Into
     ann.tpe = Left []
 
+  | QueryStatement
+    ex.expectedType = liftM (map snd) @ex.upType
+  | Insert
+    insData.expectedType = liftM (map snd) @insData.upType
+  | CreateTableAs CreateView
+    expr.expectedType = liftM (map snd) @expr.upType
+  | ReturnQuery ForQueryStatement
+    sel.expectedType = liftM (map snd) @sel.upType
+
   | Assignment
     target.tpe = Left []
     value.downEnv = emptyEnvironment
