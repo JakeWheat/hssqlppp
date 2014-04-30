@@ -173,20 +173,21 @@ sem SelectItemList
         lhs.colExprs = @loc.colExprs
         loc.upType = sequence $ flip map @loc.colExprs
                      $ \(n,t,_) -> fmap (ncStrT n,) t
-        loc.ett:: {Maybe (TypeExtra,[TypeExtra])}
-        loc.ett = 
-            let f ets = case ets of
-                    [] -> Nothing
-                    et:ets' -> Just (et,ets')
-            in f =<< @lhs.expectedType
-        hd.expectedType = liftM fst @loc.ett
-        tl.expectedType = liftM snd @loc.ett
+        hd.expectedType = liftM fst $ splitTypeExtraList @lhs.expectedType
+        tl.expectedType = liftM snd $ splitTypeExtraList @lhs.expectedType
   | Nil Cons
       lhs.upType = @loc.upType
       lhs.upEnv = case fmap envSelectListEnvironment @loc.upType of
                     (Just (Right e)) -> e
                     _ -> brokeEnvironment
 
+{
+splitTypeExtraList:: Maybe [TypeExtra] -> Maybe (TypeExtra,[TypeExtra])
+splitTypeExtraList mte = mte >>= f
+  where
+    f [] = Nothing
+    f (et:ets') = Just (et,ets')
+}
 
 -- temporary, lots of possible errors above which are currently
 -- dropped on the floor have to find their way into the tree

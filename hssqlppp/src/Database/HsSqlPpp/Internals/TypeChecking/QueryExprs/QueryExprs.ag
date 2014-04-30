@@ -84,10 +84,7 @@ sem QueryExpr
     | WithQueryExpr
         loc.tpee = maybe (Left []) Right @withQe.upType
     | Values
-        -- ToDo:
-        --    1. qeValues.upType is not actually implemented; look at ScalarExprs.ag
-        --    2. add tpee for ScalarExprList and ScalarExprListList to get the actual names
-        loc.tpee = maybe (Left []) (Right . map ("",)) @qeValues.upType
+        loc.tpee = @qeValues.upType
     | CombineQueryExpr
         loc.tpee =
           do
@@ -98,6 +95,46 @@ sem QueryExpr
           case uts of
             Left{} -> Left [IncompatibleUnionTypes (CompositeType a) (CompositeType b)]
             Right uts' -> return $ zipWith (\(n,_) te -> (n,te)) a uts'
+
+attr ScalarExprTransposedList
+  syn upType :: {Maybe [TypeExtra]}
+  inh expectedType :: {Maybe [TypeExtra]}
+
+sem ScalarExprTransposedList
+    | Cons
+        lhs.upType = liftM2 (:) @hd.upType @tl.upType
+        hd.expectedType = liftM fst $ splitTypeExtraList @lhs.expectedType
+        tl.expectedType = liftM snd $ splitTypeExtraList @lhs.expectedType
+    | Nil
+        lhs.upType = Just []
+
+attr ScalarExprListList
+  inh downEnv :: Environment
+  -- type errors can happen at this level, so I have to declare upType as Either
+  syn upType :: {Either [TypeError] [(Text,TypeExtra)]}
+  inh expectedType :: {Maybe [TypeExtra]}
+
+sem ScalarExprListList
+    | Cons
+        lhs.upType =
+          do
+          a <- maybe (Left [InternalError "type error in VALUES clause"]) Right @hd.upType
+          b <- @tl.upType
+          -- ImplicitCastToDo: not sure that something like "VALUES ((),())" is not allowed
+          unless (not $ null a) $ Left [InternalError "empty row in VALUES clause"]
+          let a' = map ("",) a
+              itError = Left [IncompatibleUnionTypes (CompositeType a') (CompositeType b)]
+          unless (null b || length a == length b) itError
+          if null b
+            then return $ zip [T.pack ("values%" ++ show k) | k <- [0..]] a
+            else
+              do
+              let uts = zipWithM (\te1 (_,te2) -> resolveResultSetTypeExtra @lhs.cat [te1,te2])
+                            a b
+              case uts of
+                Left{} -> itError
+                Right uts' -> return $ zipWith (\(n,_) te -> (n,te)) b uts'
+    | Nil lhs.upType = Right []
 
 attr MaybeBoolExpr ScalarExprDirectionPairList ScalarExprDirectionPair
      JoinExpr InList

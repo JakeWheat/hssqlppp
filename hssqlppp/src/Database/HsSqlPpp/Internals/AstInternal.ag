@@ -987,7 +987,9 @@ type MaybeScalarExpr = maybe ScalarExpr
 type MaybeBoolExpr = maybe ScalarExpr
 
 type ScalarExprList = [ScalarExpr]
-type ScalarExprListList = [ScalarExprList]
+--type ScalarExprListList = [ScalarExprList]
+type ScalarExprListList = [ScalarExprTransposedList]
+type ScalarExprTransposedList = [ScalarExpr]
 
 type SetClauseList = [SetClause]
 type AttributeDefList = [AttributeDef]
@@ -1037,7 +1039,7 @@ set AllNodes = Statement QueryExpr FnBody TableRef
                TypeAttributeDef ParamDef VarDef Constraint
                TypeName
                ScalarExpr InList MaybeScalarExpr MaybeBoolExpr
-               ScalarExprList ScalarExprListList
+               ScalarExprList ScalarExprTransposedList ScalarExprListList
                AttributeDefList ConstraintList TypeAttributeDefList
                ParamDefList TypeNameList NameTypeNameListPair
                NameTypeNameListPairList
