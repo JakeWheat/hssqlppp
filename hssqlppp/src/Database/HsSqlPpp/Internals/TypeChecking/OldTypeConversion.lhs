@@ -50,6 +50,7 @@ off.
 > import Database.HsSqlPpp.Internals.TypeChecking.OldTediousTypeUtils
 > import Data.Text (Text)
 > import qualified Data.Text as T
+> --import Text.Groom
 
  > traceIt :: Show a => String -> a -> a
  > traceIt s t = trace (s ++ ": " ++ show t) t
@@ -155,7 +156,7 @@ against.
 > -}
 > findCallMatch :: Catalog -> Text -> [Type] ->  Either [TypeError] OperatorPrototype
 > findCallMatch cat fnName' argsType =
->     --trace ("typecheckfncall " ++ fnName' ++ show argsType) $
+>     --trace (if fnName=="=" then "typecheckfncall " ++ fnName' ++ show argsType else "") $
 >     --dependsOnRTpe argsType $
 >       case fnName of
 >               "between" | as@[_,_,_] <- argsType -> do
@@ -225,13 +226,14 @@ against.
 >             ,mostExactMatches
 >             ,filteredForPreferred
 >             ,unknownMatchesByCat]
->     in returnIfOnne x {-(if f == "-"
->                      then trace ("\n-----------------\n"
->                                  ++ groom cat
->                                  ++ "\n-----------------\n"
->                                  ++ groom (f,inArgs) ++ "\n" ++ groom x) x
->                      else x)-}
+>         y = returnIfOnne ({-trace (if f `elem` ["=","lower"]
+>                              then ("\n-----------------\n"
+>                                  -- ++ groom (let c = catUpdates cat in drop (length c - 30) c)
+>                                  -- ++ "\n-----------------\n"
+>                                  ++ groom (f,inArgs) ++ "\n" ++ groom x)
+>                              else "")-} x)
 >                     [NoMatchingOperator f inArgs]
+>     in {-trace (if f `elem` ["=","lower"] then "y = " ++ show y else "")-} y
 >     where
 >       -- basic lists which roughly mirror algo
 >       -- get the possibly matching candidates

@@ -10,6 +10,7 @@ and variables, etc.
 > module Database.HsSqlPpp.Internals.TypeChecking.Environment
 >     (-- * abstract environment value
 >      Environment
+>     ,JoinType(..)
 >      -- * environment create and update functions
 >     ,emptyEnvironment
 >     ,isEmptyEnv
@@ -43,6 +44,38 @@ and variables, etc.
 
 ---------------------------------
 
+Alex:
+  Not sure that handling of USING joins (and specifically of join keys) is correct, but
+    don't know, have to investigate all the connections in the code.
+  One problem is that types for the purpose of comparison are different from the output types.
+  Moreover, major DBs are imprecise in their definitions of USING joins.
+    For instance, what Postgre writes about output columns seems to be related only to the
+      star expansion. I still can explicitly reference a key column from the inner table
+      in the output expression, with the use of table name or alias. Or can I not?
+    Have to look at ANSI.
+  More precisely, we have:
+    1. Type check join keys to see that they are compatible.
+    2. If needed, create additional columns that would exist for the purpose of comparison
+        only. The scalar expressions that create them are casts from join keys.
+    3. If a join key is used in an output scalar expression, the original' key type is used.
+  For a qualified column reference, including qualified star expansion, original' type
+    is same as original type, except that it is possibly cast to nullable for an inner table
+    of an outer join.
+  For star expansion:
+    The original' type is defined strictly for LeftOuter and RightOuter.
+    It is unclear what to do in case of Inner and FullOuter if the types differ (but, as we
+      already know, are compatible).
+    There are two choices:
+      1. Reject the query.
+      2. Resolve the types and return the result type.
+  For now, I'll do the 2nd thing, let's see what happens.
+    And I don't implement the rest of this plan either, of course:
+      - I convert things to nullable for outer joins, but don't separate between
+        condition columns and output columns, of course;
+      - I reverse the order of input environments in listBindingsTypes for the purpose
+        of getting the key types.
+    And now I see that TypeExtra's in join ids are not actually used.
+
 > -- | Represent an environment using an abstracted version of the syntax
 > -- which produced the environment. This structure has all the catalog
 > -- queries resolved. No attempt is made to combine environment parts from
@@ -58,6 +91,7 @@ and variables, etc.
 >                  | SimpleTref Text [(Text,TypeExtra)] [(Text,TypeExtra)]
 >                  -- | environment from joining two tables
 >                  | JoinTref [(Text,TypeExtra)] -- join ids
+>                             JoinType  -- added because outer join makes some things nullabie
 >                             Environment Environment
 >                  -- | environment from a sub select
 >                  | SelectListEnv [(Text,TypeExtra)]
@@ -71,6 +105,9 @@ and variables, etc.
 >                    -- or anything from the same environment which select
 >                    -- list operates on
 >                  | OrderByEnvironment Environment Environment
+>                    deriving (Data,Typeable,Show,Eq)
+>
+> data JoinType = Inner | LeftOuter | RightOuter | FullOuter
 >                    deriving (Data,Typeable,Show,Eq)
 
 ---------------------------------------------------
@@ -102,10 +139,11 @@ TODO: remove the create prefixes
 > createJoinTrefEnvironment :: Catalog
 >                           -> Environment
 >                           -> Environment
+>                           -> JoinType
 >                           -> Maybe [NameComponent] -- join ids: empty if cross join
 >                                                    -- nothing for natural join
 >                           -> Either [TypeError] Environment
-> createJoinTrefEnvironment cat tref0 tref1 jsc = do
+> createJoinTrefEnvironment cat tref0 tref1 jt jsc = do
 >   -- todo: handle natural join case
 >   (jids::[Text]) <- case jsc of
 >             Nothing -> do
@@ -119,9 +157,16 @@ TODO: remove the create prefixes
 >   jts <- forM jids $ \i -> do
 >            (_,t0) <- envLookupIdentifier [QNmc $ T.unpack i] tref0
 >            (_,t1) <- envLookupIdentifier [QNmc $ T.unpack i] tref1
->            fmap (i,) $ resolveResultSetTypeExtra cat [t0,t1]
+>            let  adjustTypeExtra te = case jt of
+>                     Inner -> te
+>                     LeftOuter -> t0
+>                     RightOuter -> t1
+>                     FullOuter -> mkNullable te
+>            fmap ((i,) . adjustTypeExtra) $ resolveResultSetTypeExtra cat [t0,t1]
+>            -- ImplicitCastToDo: remove or restore
+>            --fmap (i,) $ resolveResultSetTypeExtra cat [t0,t1]
 >   -- todo: check type compatibility
->   return $ JoinTref jts tref0 tref1
+>   return $ JoinTref jts jt tref0 tref1
 
 > createCorrelatedSubqueryEnvironment :: Environment -> Environment -> Environment
 > createCorrelatedSubqueryEnvironment = CSQEnv
@@ -210,15 +255,14 @@ lookup and star expansion
 >            _ | q `elem` [Nothing, Just nm] -> addQual nm pus
 >              | otherwise -> [])
 
-> listBindingsTypes (JoinTref jids env0 env1) =
+> listBindingsTypes (JoinTref jids jt env0 env1) =
 >   (idens,starexp)
 >   where
 
->     idens k = let i0 = is0 k
->                   i1 = is1 k
->               in if not (null i0) && snd k `elem` jnames
->                  then i0
->                  else i0 ++ i1
+>     idens k = let [iOuter,iInner] = (if jt==RightOuter then reverse else id) [is0 k, is1 k]
+>               in if not (null iOuter) && snd k `elem` jnames
+>                  then iOuter
+>                  else iOuter ++ iInner
 
 >     _useResolvedType tr@((q,n),_) = case lookup n jids of
 >                                    Just t' -> ((q,n),t')
@@ -247,8 +291,11 @@ reorder the ids so that the join columns are first
 >            _ -> let (aj,anj) = partition isJ s0
 >                     bnj = filter (not . isJ) s1
 >                 in aj ++ anj ++ bnj
->     (is0,st0) = listBindingsTypes env0
->     (is1,st1) = listBindingsTypes env1
+>     (is0,st0) = (if jt `elem` [RightOuter,FullOuter] then addNullability else id)
+>                 $ listBindingsTypes env0
+>     (is1,st1) = (if jt `elem` [LeftOuter,FullOuter] then addNullability else id)
+>                 $ listBindingsTypes env1
+>     addNullability = (map (second mkNullable) .) *** (map (second mkNullable) .)
 
 selectlistenv: not quite right, but should always have an alias so the
 empty qualifier never gets very far

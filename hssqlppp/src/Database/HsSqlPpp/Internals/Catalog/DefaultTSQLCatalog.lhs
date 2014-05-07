@@ -55,6 +55,7 @@
 >         ,CatCreateFunction "isdate" ["char"] False "int4"
 >         ,CatCreateFunction "isdate" ["nvarchar"] False "int4"
 >         ,CatCreateFunction "len" ["nvarchar"] False "int4"
+>         ,CatCreateFunction "len" ["varchar"] False "int4"
 >         ,CatCreateAggregate "count_big" ["any"] "int8"
 >         ,CatCreateFunction "datediff" ["int4","date","date"] False "int4"
 >         ,CatCreateFunction "datediff" ["int4","timestamp","timestamp"] False "int4"
@@ -64,6 +65,23 @@
 >         ,CatCreateFunction "datepart" ["int4","timestamp"] False "int4"
 >         ,CatCreateFunction "trunc" ["timestamp"] False "timestamp"
 >         ,CatCreateCast "char" "varchar" ImplicitCastContext
+
+postponed until we have better design
+  example of a problem: in "float4 < int4", both arguments are cast to text,
+  because it has higher priority (see CatCreateTypeCategoryEntry)
+
+>         --,CatCreateCast "int1" "varchar" ImplicitCastContext
+>         --,CatCreateCast "int2" "varchar" ImplicitCastContext
+>         --,CatCreateCast "int4" "varchar" ImplicitCastContext
+>         --,CatCreateCast "int8" "varchar" ImplicitCastContext
+>         --,CatCreateCast "float4" "varchar" ImplicitCastContext
+>         --,CatCreateCast "float8" "varchar" ImplicitCastContext
+>         --,CatCreateCast "int1" "text" ImplicitCastContext
+>         --,CatCreateCast "int2" "text" ImplicitCastContext
+>         --,CatCreateCast "int4" "text" ImplicitCastContext
+>         --,CatCreateCast "int8" "text" ImplicitCastContext
+>         --,CatCreateCast "float4" "text" ImplicitCastContext
+>         --,CatCreateCast "float8" "text" ImplicitCastContext
 >         ]
 >     -- find all the functions on int2 and replace int2 with int1
 >     -- then find all the functions with int2 and int4, and

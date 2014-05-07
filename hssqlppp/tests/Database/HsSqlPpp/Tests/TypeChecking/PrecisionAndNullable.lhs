@@ -32,11 +32,12 @@
 >    ,ScalarExprExtra cat1 anEnv "an is null" (Right isNType)
 >    ,ScalarExprExtra cat1 anEnv "an is not null" (Right isNType)
 >    ,ScalarExprExtra cat1 coalEnv "coalesce(an,dn,a)" (Right coalType)
->    -- gives incompartible types
+>    -- gives incompatible types
 >    --,ScalarExprExtra cat1 case1Env "case an when v then a when c then an end" (Right case1Type)
 >    ,ScalarExprExtra cat2 case1Env "case vn when v then a when c then an end" (Right case1Type)
 >    ,ScalarExprExtra cat1 case2Env "case when an is null then a when v is null then an else dn end" (Right case2Type)
 >    ,ScalarExprExtra cat2 (selListEnv []) "dateadd(year,1,'1997/01/01')" (Right $ mkTypeExtraNN $ ScalarType "timestamp")
+>    ,ScalarExprExtra cat2 vEnv   "len(v)"   (Right aType)
 >    ]
 >   ]
 >   ++ [Group "PrecisionAndNullableQueryExpr"
@@ -105,6 +106,18 @@
 >        "select a,count(*) over () as r from t"
 >        $ Right $ CompositeType  [("a", mkTypeExtra typeInt),
 >                                 ("r", mkTypeExtraNN typeBigInt)]
+>       -- postponed until we decide about implicit casts from numeric to string types
+>       --,TSQLQueryExpr [CatCreateTable "t" [("a", CatNameExtra "int4" Nothing Nothing False)]]
+>       -- "select a, lower(a) as l from t"
+>       -- $ Right $ CompositeType  [("a", TypeExtra (ScalarType "int4") Nothing Nothing False),
+>       --                          ("l", TypeExtra (ScalarType "text") Nothing Nothing False)]
+>       ,TSQLQueryExpr [CatCreateTable "t" [("d", CatNameExtra "date" Nothing Nothing False)]]
+>        "select d from t where d > dateadd(year,1,'1997-01-01')"
+>        $ Right $ CompositeType  [("d", mkTypeExtraNN typeDate)]
+>       ,TSQLQueryExpr [CatCreateTable "t" [("a", CatNameExtra "int4" Nothing Nothing False)],
+>                       CatCreateTable "tt" [("v", CatNameExtra "varchar" (Just 6) Nothing False)]]
+>        "select t.a from t inner join tt on t.a=tt.v"
+>        $ Right $ CompositeType  [("a", mkTypeExtraNN typeInt)]
 >       ]
 >     ]
 >   where

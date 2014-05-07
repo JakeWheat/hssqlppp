@@ -15,7 +15,7 @@
 >   Group "impCasts"
 >   [e p "'1' + 2" "'1' :: int4 + 2"
 >   ,e p "1.5 :: numeric between 1.1 and 2"
->        "1.5 :: numeric between 1.1 :: numeric and 2 :: numeric"
+>        "1.5 :: numeric between 1.1 and 2 :: numeric"
 >   ,e p "'aa'::text = 'bb'"
 >        "'aa'::text = 'bb'::text"
 >   ,e s "cast(1 as int4) + cast('2' as varchar)"

@@ -69,6 +69,8 @@ where should precision and nullability go?
 > mkTypeExtra t = TypeExtra t Nothing Nothing True
 > mkTypeExtraNN :: Type -> TypeExtra
 > mkTypeExtraNN t = TypeExtra t Nothing Nothing False
+> mkNullable:: TypeExtra -> TypeExtra
+> mkNullable te = te{teNullable=True}
 
 > -- | Pseudo types: mainly used for the argument and return types of
 > -- functions. The weird undocumented types are just used to represent
@@ -210,6 +212,10 @@ TODO: add database type to canonicalize type name call:
 postgresql, mssql, db2, standard sql
 
 >                     | s `elem` tinyIntNames -> "int1"
+
+added for mssql
+
+>                     | s == "datetime" -> "timestamp"
 >                     | otherwise -> s
 >   where
 >       tinyIntNames = ["int1", "tinyint"]

@@ -150,7 +150,8 @@ import Text.Groom
 import Database.HsSqlPpp.Internals.TypesInternal
 
 import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
-import Database.HsSqlPpp.Internals.TypeChecking.Environment
+import Database.HsSqlPpp.Internals.TypeChecking.Environment hiding (JoinType(..))
+import qualified Database.HsSqlPpp.Internals.TypeChecking.Environment as E
 import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 import Database.HsSqlPpp.Utils.Utils
 import Database.HsSqlPpp.SqlDialect

@@ -21,7 +21,7 @@ sem TableRefList
                   then @hd.upEnv
                   else --problem: where to put the error?
                          either (error . show) id $
-                         createJoinTrefEnvironment @lhs.cat @hd.upEnv @tl.upEnv $ Just []
+                         createJoinTrefEnvironment @lhs.cat @hd.upEnv @tl.upEnv E.Inner $ Just []
 
 -- boilerplate: pass any error from the env to the annotation
 -- pass any successful env in the upEnv
@@ -44,7 +44,7 @@ sem TableRef
 
   | JoinTref
       loc.eEnv = createJoinTrefEnvironment @lhs.cat
-                   @tref0.upEnv @tref1.upEnv
+                   @tref0.upEnv @tref1.upEnv (convertJoinType @joinType)
                    $ case (@joinType,@onExpr.originalTree) of
                       -- natural join
                       (x,Nothing) | x /= Cross -> Nothing
@@ -154,3 +154,11 @@ sem TableRef
                         (nameComponents @tbl.originalTree)
           return (T.unpack n, (map (T.unpack . fst) cs))
         else Nothing
+
+{
+convertJoinType:: JoinType -> E.JoinType
+convertJoinType LeftOuter = E.LeftOuter
+convertJoinType RightOuter = E.RightOuter
+convertJoinType FullOuter = E.FullOuter
+convertJoinType _ = E.Inner
+}

@@ -137,9 +137,13 @@ simplish ctors
 
 -}
 
-    | TypedStringLit Cast
+    | TypedStringLit
          loc.tpe = maybe (Left []) Right @tn.namedType
     | Cast
+         loc.tpe = 
+              let nullability = fromMaybe False $ teNullable <$> @expr.upType
+                  setNullability te = te{teNullable = nullability}
+              in maybe (Left []) (Right . setNullability) @tn.namedType
          expr.expectedType = Nothing --@tn.namedType
     | ImplicitCast
         loc.tpe = Right @te

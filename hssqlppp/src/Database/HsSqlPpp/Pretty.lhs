@@ -790,7 +790,7 @@ syntax maybe should error instead of silently breaking
 >     ,ppNullability (teNullable te)]
 > ppPrec precType prec = case prec of
 >     Nothing -> text $ "no " ++ precType
->     Just p -> text $ precType ++ show p
+>     Just p -> text $ precType ++ ' ':show p
 > ppNullability n = text $ (if n then "" else "not ") ++ "nullable"
 >
 > -- expressions

@@ -47,7 +47,7 @@ attr Name
 
 sem TypeName
      | SimpleTypeName
-         loc.tpe = mkTypeExtra `liftM` catLookupType @lhs.cat (nameComponents @tn.originalTree)
+         loc.tpe = mkTypeExtraNN `liftM` catLookupType @lhs.cat (nameComponents @tn.originalTree)
 {-
 todos: check the array type exists
 check that this type can be used as a setof
@@ -61,11 +61,11 @@ check that the type can accept one or two modifiers
         loc.tpe = maybe (Left []) Right @typ.namedType
                   >>=  Right . (\t -> t{teType = Pseudo $ SetOfType $ teType t})
      | PrecTypeName
-        loc.tpe = ((\t -> t{tePrecision = Just $ fromIntegral @prec}) . mkTypeExtra)
+        loc.tpe = ((\t -> t{tePrecision = Just $ fromIntegral @prec}) . mkTypeExtraNN)
                   `liftM` catLookupType @lhs.cat (nameComponents @tn.originalTree)
      | Prec2TypeName
         loc.tpe = ((\t -> t{tePrecision = Just $ fromIntegral @prec,
                             teScale = Just $ fromIntegral @prec1})
-                        . mkTypeExtra)
+                        . mkTypeExtraNN)
                   `liftM` catLookupType @lhs.cat (nameComponents @tn.originalTree)
 
