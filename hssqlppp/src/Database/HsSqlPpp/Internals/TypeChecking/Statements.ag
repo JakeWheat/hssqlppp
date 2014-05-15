@@ -9,12 +9,16 @@ sem Statement
 
   | QueryStatement
     ex.expectedType = liftM (map snd) @ex.upType
+    ex.expectedCast = True
   | Insert
     insData.expectedType = liftM (map snd) @insData.upType
+    insData.expectedCast = True
   | CreateTableAs CreateView
     expr.expectedType = liftM (map snd) @expr.upType
+    expr.expectedCast = True
   | ReturnQuery ForQueryStatement
     sel.expectedType = liftM (map snd) @sel.upType
+    sel.expectedCast = True
 
   | Assignment
     target.tpe = Left []

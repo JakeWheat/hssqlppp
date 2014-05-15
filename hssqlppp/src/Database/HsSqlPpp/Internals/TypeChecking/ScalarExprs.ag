@@ -16,6 +16,15 @@ to help with getting the type of ? placeholders, and for inserting
 
 -}
 
+{-
+The expectedCast attribute will accompany expectedType.
+  It is not made part of expectedType for modularity reasons.
+For now, expectedCast is Bool, with the meaning of whether the nullability component
+    of the type can be cast in this context.
+  The other components (precision, scale, basic type) are always expected to be cast.
+  In the future, this can change, and the type of expectedCast will reflect the change.
+-}
+
 sem ScalarExpr
     | NumberLit StringLit NullLit BooleanLit TypedStringLit Interval
       Extract PositionalArg Placeholder Cast ImplicitCast Star QStar Identifier
@@ -29,17 +38,31 @@ sem ScalarExpr
                         Nothing -> @lhs.expectedType
                         Just upType -> do
                             expType <- @lhs.expectedType
-                            guard $ needsImplicitCast upType expType
-                            return expType
+                            guard $ needsImplicitCast @lhs.expectedCast upType expType
+                            return $ implicitCastType @lhs.expectedCast upType expType
 
 {
-needsImplicitCast:: TypeExtra -> TypeExtra -> Bool
-needsImplicitCast upType expType
+needsImplicitCast:: Bool -> TypeExtra -> TypeExtra -> Bool
+needsImplicitCast expectedCast upType expType
     = tePrecision upType /= tePrecision expType
       || teScale upType /= teScale expType
       || teNullable upType /= teNullable expType
+          && nullabilityCast
       ||  teType upType /= teType expType
           && (not . null) (nub [teType upType, teType expType] \\ [ScalarType "varchar", ScalarType "text"])
+  where
+    nullabilityCast = expectedCast
+-- this function appeared because nullability does not always influence the type to cast to
+implicitCastType:: Bool -> TypeExtra -> TypeExtra -> TypeExtra
+implicitCastType expectedCast upType expType
+    = expType{tePrecision = precision, teScale = scale, teNullable = nullability}
+  where
+    nullabilityCast = expectedCast
+    nullabilitySource = if nullabilityCast then expType else upType
+    precisionSource = expType
+    nullability = teNullable nullabilitySource
+    precision = tePrecision precisionSource
+    scale = teScale precisionSource
 }
 
 sem ScalarExpr
@@ -53,6 +76,7 @@ attr ScalarExpr MaybeScalarExpr
   inh downEnv :: Environment -- the environment from the parent
   syn upType :: {Maybe TypeExtra} -- the type of this node made available to the parent node
   inh expectedType :: {Maybe TypeExtra}
+  inh expectedCast :: {Bool}
 
 sem MaybeScalarExpr
     | Nothing lhs.upType = Nothing
@@ -63,13 +87,16 @@ attr ScalarExprList
   inh downEnv :: Environment
   syn upTypes :: {[Maybe TypeExtra]}
   inh expectedTypes :: {[TypeExtra]}
+  inh expectedCast :: {Bool}
 
 sem ScalarExprList
-    | Cons lhs.upTypes = @hd.upType : @tl.upTypes
-           (hd.expectedType,tl.expectedTypes) =
-              case @lhs.expectedTypes of
+    | Cons
+        lhs.upTypes = @hd.upType : @tl.upTypes
+        (hd.expectedType,tl.expectedTypes) =
+            case @lhs.expectedTypes of
                 (x:xs) -> (Just x,xs)
                 [] -> (Nothing,[])
+        hd.expectedCast = @lhs.expectedCast
     | Nil lhs.upTypes = []
 
 -- stop errors in the node being duplicated in the x::Name children
@@ -79,7 +106,6 @@ sem ScalarExpr
         funName.tpe = Left []
     | PrefixOp PostfixOp BinaryOp SpecialOp
         opName.tpe = Left []
-
 
 {-
 each ctor has its own typechecking code
@@ -145,22 +171,24 @@ simplish ctors
                   setNullability te = te{teNullable = nullability}
               in maybe (Left []) (Right . setNullability) @tn.namedType
          expr.expectedType = Nothing --@tn.namedType
+         expr.expectedCast = False
     | ImplicitCast
         loc.tpe = Right @te
         expr.expectedType = Nothing
     | Interval
-         loc.tpe = Right $ mkTypeExtraNN $ ScalarType "interval"
+        loc.tpe = Right $ mkTypeExtraNN $ ScalarType "interval"
     | Extract
-         loc.tpe = -- check the argument is a date
+        loc.tpe = -- check the argument is a date
                    do
                    x <- maybe (Left []) Right @e.upType
                    if teType x == typeDate
                      then Right $ TypeExtra typeFloat8 Nothing Nothing $ teNullable x
                      else Left [NoMatchingOperator "extract" [teType x]]
-         e.expectedType = either
+        e.expectedType = either
                             (const Nothing)
                             (Just . TypeExtra typeDate Nothing Nothing . teNullable)
                             @loc.tpe
+        e.expectedCast = False
     | Placeholder
          loc.tpe = Right $ mkTypeExtra UnknownType
 {-
@@ -246,6 +274,21 @@ op calls, fn calls, etc.
     | WindowApp
          loc.tpe = maybe (Left []) Right @fn.upType
 
+-- ImplicitCastToDo: incorrect for decode, but it is converted to Case earlier
+--    if there are other such functions, create a library function and call it here
+sem ScalarExpr
+    | App SpecialOp LiftApp
+        args.expectedCast = False
+    | PrefixOp PostfixOp
+        arg.expectedCast = False
+    | BinaryOp
+        arg0.expectedCast = False
+        arg1.expectedCast = False
+    | AggregateApp WindowApp
+        fn.expectedCast = False
+        orderBy.expectedCast = False
+    | WindowApp
+        partitionBy.expectedCast = False
 
 {
 tcAppLike:: SQLSyntaxDialect -> Catalog -> Name
@@ -321,7 +364,6 @@ sem ScalarExpr
     | Case CaseSimple
         loc.whenTypes = @cases.whenTypes
         loc.thenTypes = @cases.thenTypes ++ maybe [] ((:[]) . Just) @els.upType
-
     | Case
         loc.tpe = do
                   wt <- mapM (maybe (Left []) Right) $ concat @loc.whenTypes
@@ -338,6 +380,7 @@ sem ScalarExpr
             Just $ TypeExtra typeBool Nothing Nothing $ teNullable w
         cases.thenExpectedType = either (const Nothing) Just @loc.tpe
         els.expectedType = either (const Nothing) Just @loc.tpe
+        els.expectedCast = True
     | CaseSimple
         loc.whent =
           do
@@ -351,8 +394,10 @@ sem ScalarExpr
           resolveResultSetTypeExtra @lhs.cat tt
         cases.whenExpectedType = either (const Nothing) Just @loc.whent
         value.expectedType = either (const Nothing) Just @loc.whent
+        value.expectedCast = False
         cases.thenExpectedType = either (const Nothing) Just @loc.tpe
         els.expectedType = either (const Nothing) Just @loc.tpe
+        els.expectedCast = True
 
 attr CaseScalarExprListScalarExprPairList CaseScalarExprListScalarExprPair
   inh thenExpectedType :: {Maybe TypeExtra}
@@ -360,7 +405,9 @@ attr CaseScalarExprListScalarExprPairList CaseScalarExprListScalarExprPair
 
 sem CaseScalarExprListScalarExprPair
   | Tuple x1.expectedTypes = maybe [] repeat @lhs.whenExpectedType
+          x1.expectedCast = False
           x2.expectedType = @lhs.thenExpectedType
+          x2.expectedCast = True
 
 
 
@@ -404,6 +451,7 @@ sem ScalarExpr
         sel.outerDownEnv = Just @lhs.downEnv
     | ScalarSubQuery Exists
         sel.expectedType = liftM (map snd) @sel.upType
+        sel.expectedCast = True
 
 {-
 == inlist
@@ -433,6 +481,8 @@ sem InList
         lhs.listType = mapM (maybe (Left []) Right) @exprs.upTypes
                        >>= resolveResultSetTypeExtra @lhs.cat
         exprs.expectedTypes = maybe [] repeat @lhs.expectedType
+        -- ImplicitCastToDo: not sure; but this is comparison semantics
+        exprs.expectedCast = False
 
     | InQueryExpr
         lhs.listType =
@@ -446,6 +496,7 @@ sem InList
                       _ -> Right $ mkTypeExtra $ AnonymousCompositeType
                               $ map teType st
         sel.expectedType = liftM (map snd) @sel.upType
+        sel.expectedCast = True
 
 {-
 ----------------------------------------------------
@@ -490,8 +541,10 @@ sem ScalarExprRoot
 
 -- ImplicitCastToDo: which handling is proper: this or that of MaybeBoolExpr?
 sem JoinExpr
-  | JoinOn expr.expectedType = Just $ TypeExtra typeBool Nothing Nothing
+  | JoinOn
+      expr.expectedType = Just $ TypeExtra typeBool Nothing Nothing
                                         $ maybe False teNullable @expr.upType
+      expr.expectedCast = False
 
 sem ScalarExpr
   | AggregateApp WindowApp fn.expectedType = Nothing

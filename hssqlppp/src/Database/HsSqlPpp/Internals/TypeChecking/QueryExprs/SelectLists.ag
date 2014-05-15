@@ -195,6 +195,7 @@ splitTypeExtraList mte = mte >>= f
 sem SelectList
     | SelectList
       ann.tpe = Left []
+      items.expectedCast = True
 sem SelectItem
     | SelectItem SelExp
       ann.tpe = Left []
