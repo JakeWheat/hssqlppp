@@ -1,0 +1,7 @@
+Install on current machine
+
+    cabal install hssqlppp/ hssqlppp-th/
+
+Create distribution files
+
+    make sdists
