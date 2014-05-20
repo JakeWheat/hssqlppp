@@ -8,6 +8,12 @@ connection string instead of a ConnectionInfo
 >     (withConn
 >     ,module Database.PostgreSQL.Simple) where
 
+> {- ORI: If you fail here, you need to:
+>         - install the latest postgresql from a tarball
+>         - yum remove postgres\*
+>         - cabal install postgres-simple 
+>         - use 'ln -s' to link the libs in /usr/local/pgsql/lib to /usr/local/lib64 -}
+
 > import qualified Database.PostgreSQL.Simple as Pg
 > import Database.PostgreSQL.Simple
 > import Control.Exception
