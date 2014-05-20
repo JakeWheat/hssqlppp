@@ -1,6 +1,6 @@
 Install on current machine
 
-    cabal install hssqlppp/ hssqlppp-th/
+    cabal install --enable-shared hssqlppp/ hssqlppp-th/
 
 Create distribution files
 
