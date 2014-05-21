@@ -178,6 +178,10 @@ AG_FILES = $(shell find hssqlppp/src -iname '*ag')
 # with cyclic dependencies and with rebuilding stuff too often
 
 hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs : $(AG_FILES) build-src/PostprocessUuagc.lhs
+	@if ! uuagc --version | grep 0.9.39.1 > /dev/zero ; then \
+		echo "Please download uuagc-0.9.39.1 from http://hackage.haskell.org/package/uuagc-0.9.39.1" ; \
+		exit 1 ; \
+	fi
 	uuagc -dcfspwm -P hssqlppp/src/Database/HsSqlPpp/Internals/ \
 		--lckeywords --doublecolons --genlinepragmas \
 		hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.ag

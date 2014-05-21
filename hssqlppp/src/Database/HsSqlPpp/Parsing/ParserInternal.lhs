@@ -613,6 +613,9 @@ ddl
 >          ,RowCheckConstraint p cn <$> (keyword "check" *> parens expr)
 >          ,NullConstraint p cn <$ keyword "null"
 >          ,NotNullConstraint p cn <$ (keyword "not" <* keyword "null")
+>          ,IdentityConstraint p cn <$> (keyword "identity" *> 
+>                                        tryOptionMaybe (parens $ (,) <$> 
+>                                          integer <*> (symbol "," *> integer)))
 >          ,RowReferenceConstraint p cn
 >          <$> (keyword "references" *> name)
 >          <*> option Nothing (try $ parens $ Just <$> nameComponent)

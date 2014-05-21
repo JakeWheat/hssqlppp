@@ -853,6 +853,7 @@ data AttributeDef | AttributeDef ann::Annotation
 
 data RowConstraint | NullConstraint ann::Annotation name::String
                    | NotNullConstraint ann::Annotation name::String
+                   | IdentityConstraint ann::Annotation name::String seedAndInc ::{(Maybe (Integer,Integer))}
                    | RowCheckConstraint ann::Annotation name::String expr::ScalarExpr
                    | RowUniqueConstraint ann::Annotation name::String
                    | RowPrimaryKeyConstraint ann::Annotation name::String
