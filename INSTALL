@@ -4,4 +4,7 @@ Install on current machine
 
 Create distribution files
 
+    upgrade version number:
+      - in Makefile
+      - in .cabal files in folders hssqlppp/ hssqlppp-th/ hssqlppp-pg/
     make sdists
