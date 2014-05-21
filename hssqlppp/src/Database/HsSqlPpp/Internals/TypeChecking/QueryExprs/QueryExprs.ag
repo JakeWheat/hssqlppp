@@ -17,7 +17,6 @@ include "TypeChecking/QueryExprs/SelectLists.ag"
 attr QueryExpr
   syn upType :: {Maybe [(Text,TypeExtra)]}
   inh expectedType :: {Maybe [TypeExtra]}
-  inh expectedCast :: {Bool}
 
 --support for correlated subqueries
 attr QueryExpr

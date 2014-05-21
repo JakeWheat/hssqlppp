@@ -460,6 +460,7 @@ todo: make the ast and typechecking a special case of lifted operator
 
 attr InList
   inh expectedType :: {Maybe TypeExtra}
+  inh expectedCast :: {Bool}
   syn listType :: {Either [TypeError] TypeExtra}
 
 
@@ -555,7 +556,9 @@ sem ScalarExprDirectionPair
   | Tuple x1.expectedType = Nothing
 
 sem MaybeBoolExpr
-  | Just just.expectedType = Nothing -- Just $ mkTypeExtra typeBool
+  | Just
+      just.expectedType = Nothing -- Just $ mkTypeExtra typeBool
+      just.expectedCast = False
 
 sem QueryExpr
   | Select

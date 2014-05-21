@@ -147,12 +147,14 @@ attr SelectItem
   syn colExprs :: {[(NameComponent,Maybe TypeExtra,ScalarExpr)]}
   inh downEnv :: Environment
   inh expectedType:: {Maybe TypeExtra}
+  inh expectedCast :: {Bool}
 
 attr SelectItemList SelectList
   inh downEnv :: Environment
   syn colExprs :: {[(NameComponent,Maybe TypeExtra,ScalarExpr)]}
   syn upType :: {Maybe [(Text,TypeExtra)]}
   inh expectedType :: {Maybe [TypeExtra]}
+  inh expectedCast :: {Bool}
   syn upEnv :: Environment
 
 
@@ -175,6 +177,8 @@ sem SelectItemList
                      $ \(n,t,_) -> fmap (ncStrT n,) t
         hd.expectedType = liftM fst $ splitTypeExtraList @lhs.expectedType
         tl.expectedType = liftM snd $ splitTypeExtraList @lhs.expectedType
+        hd.expectedCast = @lhs.expectedCast
+        tl.expectedCast = @lhs.expectedCast
   | Nil Cons
       lhs.upType = @loc.upType
       lhs.upEnv = case fmap envSelectListEnvironment @loc.upType of
@@ -200,6 +204,7 @@ sem SelectItem
     | SelectItem SelExp
       ann.tpe = Left []
       ex.expectedType = @lhs.expectedType
+      ex.expectedCast = @lhs.expectedCast
 
 {
 
