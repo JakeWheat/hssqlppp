@@ -847,7 +847,7 @@ variable declarations in a plpgsql function
 > dropTrigger :: SParser Statement
 > dropTrigger = do
 >   p <- pos
->   x <- keyword "trigger"
+>   _ <- keyword "trigger"
 >   (i,e,t,r) <- parseDrop' nameComponent name
 >   return $ DropTrigger p i e t r
 >
@@ -918,6 +918,7 @@ variable declarations in a plpgsql function
 >                   EachRow <$ keyword "row"
 >                  ,EachStatement <$ keyword "statement"])
 
+> createAlterLoginUser :: (Annotation -> Name -> String -> Statement) -> Text -> SParser Statement
 > createAlterLoginUser ctor k = ctor
 >                             <$> pos <* keyword k
 >                             <*> name
