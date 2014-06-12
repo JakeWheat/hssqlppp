@@ -211,11 +211,15 @@ Parsing top level statements
 >                ,createDatabase
 >                ,createLanguage
 >                ,createTrigger
->                ,createIndex]
+>                ,createIndex
+>                ,createLogin
+>                ,createUser]
 >     ,keyword "alter" *>
 >              choice [
 >                 alterSequence
->                ,alterTable]
+>                ,alterTable
+>                ,alterLogin
+>                ,alterUser]
 >     ,keyword "drop" *>
 >              choice [
 >                 dropSomething
@@ -834,6 +838,8 @@ variable declarations in a plpgsql function
 >                 ,Table <$ keyword "table"
 >                 ,View <$ keyword "view"
 >                 ,Database <$ keyword "database"
+>                 ,User <$ keyword "user"
+>                 ,Login <$ keyword "login"
 >             ])
 >   (i,e,r) <- parseDrop name
 >   return $ DropSomething p x i e r
@@ -841,7 +847,7 @@ variable declarations in a plpgsql function
 > dropTrigger :: SParser Statement
 > dropTrigger = do
 >   p <- pos
->   x <- keyword "trigger"
+>   _ <- keyword "trigger"
 >   (i,e,t,r) <- parseDrop' nameComponent name
 >   return $ DropTrigger p i e t r
 >
@@ -911,6 +917,22 @@ variable declarations in a plpgsql function
 >                 choice [
 >                   EachRow <$ keyword "row"
 >                  ,EachStatement <$ keyword "statement"])
+
+> createAlterLoginUser :: (Annotation -> Name -> String -> Statement) -> Text -> SParser Statement
+> createAlterLoginUser ctor k = ctor
+>                             <$> pos <* keyword k
+>                             <*> name
+>                             <*> (keyword "with" *> keyword "password" *> symbol "=" *> (extrStr <$> stringLit))
+
+> createLogin :: SParser Statement
+> createLogin = createAlterLoginUser CreateLogin "login"
+> createUser :: SParser Statement
+> createUser = createAlterLoginUser CreateUser "user"
+> alterLogin :: SParser Statement
+> alterLogin = createAlterLoginUser AlterLogin "login"
+> alterUser :: SParser Statement
+> alterUser = createAlterLoginUser AlterUser "user"
+
 
 anti statement
 --------------

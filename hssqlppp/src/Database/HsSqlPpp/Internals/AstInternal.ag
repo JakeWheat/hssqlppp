@@ -686,6 +686,20 @@ data Statement
     | CreateType ann::Annotation
                  name :: Name
                  atts :: TypeAttributeDefList
+-- users
+    | CreateUser ann::Annotation
+                 name :: Name
+                 password :: String
+    | CreateLogin ann::Annotation
+                  name :: Name
+                  password :: String
+    | AlterUser ann::Annotation
+                name :: Name
+                password :: String
+    | AlterLogin ann::Annotation
+                 name :: Name
+                 password :: String
+
     -- language name args rettype bodyquoteused body vol
     | CreateFunction ann::Annotation
                      name :: Name
@@ -907,6 +921,8 @@ data DropType = Table
               | View
               | Type
               | Database
+              | User
+              | Login
                 deriving (Show,Eq,Typeable,Data)
 
 data Cascade = Cascade | Restrict
