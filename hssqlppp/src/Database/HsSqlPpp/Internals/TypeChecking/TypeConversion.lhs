@@ -196,7 +196,7 @@ Handle precision and nullability of function application,
 >     tesr = case appName of
 >       "decode" -> caseResultTypes tes
 >           -- only the first argument influences precision and nullability
->       _ | appName `elem` ["nullif","substr","substring","left","right","ltrim","rtrim","replicate","translate","like","notlike"]
+>       _ | appName `elem` ["nullif","substr","substring","left","right","ltrim","rtrim","replicate","translate","like","notlike","rlike"]
 >           -> take 1 tes
 >           -- the first argument doesn't influence
 >         | appName `elem` ["datepart","datediff"]
@@ -289,7 +289,7 @@ Example:
 >         _ | appName `elem`
 >               ( ["datepart","dateadd"]
 >                 ++ ["substr","substring","left","right","ltrim","rtrim"]
->                 ++ ["replicate","like","notlike"]
+>                 ++ ["replicate","like","notlike","rlike"]
 >                 ++ ["strpos","position","replace"]
 >               )
 >             -> (const tes, [])

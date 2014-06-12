@@ -72,6 +72,10 @@ test some more really basic expressions
 >                                 (ei "tst1"))
 >      ,e "'a' || 'b'" (binop "||" (stringQ "a")
 >                                  (stringQ "b"))
+>      ,e "tst | tst1" (binop "|" (ei "tst")
+>                                 (ei "tst1"))
+>      ,e "tst & tst1" (binop "&" (ei "tst")
+>                                 (ei "tst1"))
 >      ,e "'stuff'::text"
 >       (Cast ea (stringQ "stuff") (st "text"))
 >      ,e "245::float(24)" (Cast ea (num "245") (PrecTypeName ea (name "float") 24))
@@ -110,6 +114,8 @@ test some more really basic expressions
 >                          ,ei "c"])
 >      ,e "a like b"
 >         (binop "like" (ei "a") (ei "b"))
+>      ,e "a rlike b"
+>         (binop "rlike" (ei "a") (ei "b"))
 >      ,e "a not like b"
 >         (binop "notlike" (ei "a") (ei "b"))
 >      , e "a and b and c and d"

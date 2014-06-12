@@ -261,6 +261,9 @@ postgresql catalog
 >    ,("notlike",("notlike", [ScalarType "text", ScalarType "text"], typeBool, False))
 >    ,("notlike",("notlike", [ScalarType "char", ScalarType "char"], typeBool, False))
 >    ,("notlike",("notlike", [ScalarType "varchar", ScalarType "varchar"], typeBool, False))
+>    ,("rlike",("rlike", [ScalarType "text", ScalarType "text"], typeBool, False))
+>    ,("rlike",("rlike", [ScalarType "char", ScalarType "char"], typeBool, False))
+>    ,("rlike",("rlike", [ScalarType "varchar", ScalarType "varchar"], typeBool, False))
 >    ,("arrayctor",("arrayctor", [ArrayType $ Pseudo AnyElement], Pseudo AnyArray, True))
 >    ,("between",("between", [Pseudo AnyElement
 >                              ,Pseudo AnyElement

@@ -839,6 +839,7 @@ syntax maybe should error instead of silently breaking
 >                                    ,scalExpr flg e1]
 >      Just n' | Just n'' <- lookup n' [("or","or")
 >                                      ,("like","like")
+>                                      ,("rlike","rlike")
 >                                      ,("notlike","not like")] ->
 >        scalExpr flg e0
 >        <+> text n''

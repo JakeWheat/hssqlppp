@@ -1360,6 +1360,8 @@ bit better
 >         ,[postfixks ["is", "not", "null"] "isnotnull"
 >          ,postfixks ["is", "null"] "isnull"]
 >          --other operators all added in this list according to the pg docs:
+>         ,[binary "|" AssocLeft
+>          ,binary "&" AssocLeft]
 >         ,[binary "<->" AssocNone
 >          ,binary "<=" AssocRight
 >          ,binary ">=" AssocRight
@@ -1369,6 +1371,7 @@ bit better
 >          --between
 >          --overlaps
 >         ,[binaryk "like" "like" AssocNone
+>          ,binaryk "rlike" "rlike" AssocNone
 >          ,binaryks ["not","like"] "notlike" AssocNone
 >          ,binarycust (symbol "!=") "<>" AssocNone]
 >          --(also ilike similar)
@@ -1893,6 +1896,7 @@ function or type' keywords as function names, maybe there are others)
 >        ,"references"
 >        ,"returning"
 >        ,"right"
+>        ,"rlike"
 >        ,"select"
 >        ,"session_user"
 >        ,"similar"
