@@ -32,15 +32,15 @@ source-repository head
 
 Library
   Build-Depends:     base >= 4 && < 5,
-                     attoparsec >= 0.10 && < 0.11,
+                     attoparsec >= 0.10 && < 0.12,
                      containers >= 0.3.0.0 && < 0.6,
-                     mtl >= 2.0.1.0 && < 2.2,
+                     mtl >= 2.0.1.0 && < 2.3,
                      parsec >= 3.1.2 && < 3.2,
                      pretty >= 1.0 && < 1.2,
                      syb >= 0.1.0.2 && < 0.5,
-                     text >= 0.11.1.13 && < 0.12,
+                     text >= 0.11.1.13 && < 1.2,
                      uniplate >= 1.6 && < 1.7,
-                     transformers >= 0.3 && < 0.4,
+                     transformers >= 0.3 && < 0.5,
                      -- temp - pulls in lgpl or something in cpphs
                      groom
 
@@ -84,20 +84,20 @@ Test-Suite Tests
     main-is:    Tests.lhs
     hs-source-dirs:    src,tests
     Build-Depends:     base >= 4 && < 5,
-                       attoparsec >= 0.10 && < 0.11,
+                       attoparsec >= 0.10 && < 0.12,
                        HUnit >= 1.2 && < 1.3,
                        containers >= 0.3.0.0 && < 0.6,
                        haskell-src-exts >= 1.13 && < 1.14,
-                       mtl >= 2.1 && < 2.2,
+                       mtl >= 2.1 && < 2.3,
                        parsec >= 3.1 && < 3.2,
                        pretty >= 1.0 && < 1.2,
                        syb >= 0.1.0.2 && < 0.5,
                        template-haskell,
                        test-framework >= 0.8 && < 0.9,
                        test-framework-hunit >= 0.3 && < 0.4,
-                       text >= 0.11.1.13 && < 0.12,
+                       text >= 0.11.1.13 && < 1.2,
                        uniplate >= 1.6 && < 1.7,
-                       transformers >= 0.3 && < 0.4,
+                       transformers >= 0.3 && < 0.5,
                        groom >=0.1 && < 0.2
 
                      -- rough start:
