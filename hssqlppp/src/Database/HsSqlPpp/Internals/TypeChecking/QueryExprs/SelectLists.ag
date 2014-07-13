@@ -47,7 +47,9 @@ sem ScalarExpr
                   let a' = a {anType = Just t}
                       -- expanded stars always output qualifier
                   in (Nmc $ T.unpack n, Just t,
-                      Identifier a' (Name a' [Nmc $ T.unpack q,Nmc $ T.unpack n]))
+                      Identifier a' $ Name a'
+                                    $ [Nmc q' | let q' = T.unpack q, not $ null q']
+                                      ++ [Nmc $ T.unpack n])
                   ) is
           in case @originalTree of
               Star _ | Right is <- envExpandStar Nothing @lhs.downEnv ->

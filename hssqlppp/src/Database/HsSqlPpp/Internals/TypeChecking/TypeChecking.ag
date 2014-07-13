@@ -221,6 +221,8 @@ addImplicitCasts cat = transformBi removeDoubleCasts . transformBi addCast
 
 nameOfType :: Type -> Maybe TypeName
 nameOfType (ScalarType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc $ T.unpack t])
+-- a hack to support precision cast from string literals
+nameOfType UnknownType = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc "unknown"])
 nameOfType (DomainType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc $ T.unpack t])
 nameOfType (EnumType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc $ T.unpack t])
 nameOfType (NamedCompositeType t) = Just $ SimpleTypeName emptyAnnotation (Name emptyAnnotation [Nmc $ T.unpack t])

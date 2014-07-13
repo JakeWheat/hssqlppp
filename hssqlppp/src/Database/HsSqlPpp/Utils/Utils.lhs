@@ -1,13 +1,14 @@
 
 This file contains some generic utility stuff
 
+> {-# LANGUAGE TupleSections #-}
 > {-# LANGUAGE FlexibleContexts #-}
 > module Database.HsSqlPpp.Utils.Utils where
 >
-> import Data.List
-> import Data.Char
 > import Control.Arrow
 > import Control.Applicative
+> import Data.List
+> import Data.Char
 
 > infixl 9 |>
 > (|>) :: (a -> b) -> (b -> c) -> a -> c
@@ -19,8 +20,13 @@ This file contains some generic utility stuff
 > (<:>) :: (Applicative f) =>
 >          f a -> f [a] -> f [a]
 > (<:>) a b = (:) <$> a <*> b
->
->
+
+> firstM :: Functor f => (t -> f a) -> (t, t1) -> f (a, t1)
+> firstM f (a,b) = (,b) <$> f a
+
+> secondM :: Functor f => (t -> f a) -> (t1, t) -> f (t1, a)
+> secondM f (a,b) = (a,) <$> f b
+
 > replace :: (Eq a) => [a] -> [a] -> [a] -> [a]
 > replace _ _ [] = []
 > replace old new xs@(y:ys) =
