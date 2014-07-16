@@ -170,6 +170,7 @@ addImplicitCasts cat = transformBi removeDoubleCasts . transformBi addCast
     addCast e = fromMaybe e $ do
                   te <- anImplicitCast ann
                   -- ImplicitCastToDo: why anImplicitCast is not Nothing above Star
+                  guard $ (not . isStar) e -- temporary
                   nameOfType $ teType te -- in order to preserve the old logic
                   -- guard $ isCastable e $ teType te
                   return $ ImplicitCast emptyAnnotation e {-$ adjustPrec (anType ann)-} te
@@ -177,7 +178,13 @@ addImplicitCasts cat = transformBi removeDoubleCasts . transformBi addCast
         isCastable:: ScalarExpr -> Type -> Bool
         isCastable e to = fromMaybe False $ do
             from <- liftM teType $ anType $ getAnnotation e
-            either (const Nothing) Just $ catCast cat ImplicitCastContext from to
+            either  (const $ if from == UnknownType then Just True else Nothing) Just
+                    $ catCast cat ImplicitCastContext from to
+        isStar:: ScalarExpr -> Bool
+        isStar e = case e of
+          Star{} -> True
+          QStar{} -> True
+          _ -> False
         -- ImplicitCastToDo: this function must be a separate rewrite before addImplicitCasts,
         --    with a type check thereafter
         --  it also must work on explicit Casts
