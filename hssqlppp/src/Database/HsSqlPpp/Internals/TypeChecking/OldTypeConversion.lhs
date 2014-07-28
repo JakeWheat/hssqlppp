@@ -30,6 +30,7 @@ off.
 >                        findCallMatch
 >                       ,resolveResultSetType
 >                       ,resolveResultSetTypeExtra
+>                       ,adjustStringCastPrec
 >                       ,joinPrecision
 >                       ,joinScale
 >                       ,joinNullability
@@ -43,6 +44,7 @@ off.
 > --import Debug.Trace
 > import Data.Char
 > import Control.Monad
+> import Control.Arrow
 >
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
@@ -560,11 +562,24 @@ code is not as much of a mess as findCallMatch
 >   where
 >     addPrecAndNull t = if null inArgs
 >       then mkTypeExtra t
->       else TypeExtra t prec scale nullability
+>       else TypeExtra t (prec t) scale nullability
 >     nullability = joinNullability $ map teNullable inArgs
->     prec = joinPrecision $ map tePrecision inArgs
+>     prec t = joinPrecision $ adjustStringCastPrec t inArgs
 >     scale = joinScale $ map teScale inArgs
->
+
+> adjustStringCastPrec:: Type -> [TypeExtra] -> [Maybe Int]
+> adjustStringCastPrec tTo = map $ uncurry adjust . (teType&&&tePrecision)
+>   where
+>     stringTypes = map ScalarType ["char","varchar","text"]
+>     adjust tFrom precFrom = msum  [guard (tTo `elem` stringTypes) >> lookup tFrom typePrecs
+>                                   -- if there will be problems with literals, add here
+>                                   -- a treatment for UnknownType
+>                                   ,precFrom]
+>     typePrecs = map (first ScalarType)  [("bool",1)
+>                                         ,("int1",4), ("int2",6), ("int4",12), ("int8",24)
+>                                         ,("float4",23), ("float8",23)
+>                                         ,("date",40), ("timestamp",40)]
+
 > resolveResultSetType :: Catalog -> [Type] -> Either [TypeError] Type
 > resolveResultSetType cat inArgs = do
 >   when (null inArgs) $ Left [TypelessEmptyArray]
@@ -606,7 +621,7 @@ cast empty array, where else can an empty array work?
 join (in Order Theory terms) of precision, scale, and nullability
 
 > joinNullability:: [Bool] -> Bool
-> joinNullability = any id
+> joinNullability = or
 > -- questionable logic; to be revisited
 > joinPrecision:: [Maybe Int] -> Maybe Int
 > joinPrecision ps = if null ps' then Nothing else Just $ maximum ps'

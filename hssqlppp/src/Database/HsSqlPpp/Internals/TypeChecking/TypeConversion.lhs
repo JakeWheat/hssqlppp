@@ -24,13 +24,11 @@ http://blogs.msdn.com/b/craigfr/archive/2010/01/20/more-on-implicit-conversions.
 > import Data.Maybe
 > import Data.List
 > --import Data.Either
-> --import Debug.Trace
 > import Data.Char
 >
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 > import Database.HsSqlPpp.Utils.Utils
-> --import Database.HsSqlPpp.Internals.TediousTypeUtils
 > import Control.Monad
 > import Control.Applicative
 > import Control.Arrow
@@ -42,7 +40,7 @@ http://blogs.msdn.com/b/craigfr/archive/2010/01/20/more-on-implicit-conversions.
 > import qualified Data.Text as T
 > import Text.Printf
 
-------------------------------------------------------------------
+******************************************************************
 
 matchApp: takes the function name and argument types, and returns the
 matching operator/function
@@ -144,29 +142,31 @@ for long argument lists with several literals, there can be a lot of variants ge
 >     expandList:: (a -> [a]) -> [a] -> [[a]]
 >     expandList f = foldr (liftM2 (:) . f) [[]]
 
-Handle precision and nullability of function application,
-  using matchApp for inferring basic types
-Inference of the result type is performed inside (in the where clause) of this function.
-Arguments are handled in a separate function joinArgsExtra, which is called from this function.
-Both functions use a mini-library which deals with precision classes and precision relevance.
+------------- precision and nullability of function application --------------
+
+uses matchApp for inferring basic types
 
 > matchAppExtra:: SQLSyntaxDialect
 >                 -> Catalog
 >                 -> [NameComponent]
 >                 -> [TypeExtra]
 >                 -> Either [TypeError] ([TypeExtra],TypeExtra)
-> matchAppExtra dialect cat nmcs tes
->   = (firstM (joinArgsExtra appName tes) =<<)
->       $ liftM (zipWith addArgExtra tes *** addResultExtra)
->       $ matchApp dialect cat nmcs $ map teType tes
+> matchAppExtra dialect cat nmcs tes = do
+>     (ts',t') <- matchApp dialect cat nmcs $ map teType tes
+>     tes' <- joinArgsExtra appName tes $ zipWith addArgExtra tes ts'
+>     return (tes', addResultExtra appName tes' t')
 >   where
 >     addArgExtra te t = te {teType = t}
->     addResultExtra t = checkPrecisionRelevance . checkResultPrecisionClass tesr
->                         $ TypeExtra t jp js jn
->     -- infer precision and nullability of the result
 >     appName = case nmcs of
 >       [Nmc dd] -> map toLower dd
 >       _ -> ""
+
+precision and nullability of the result
+
+> addResultExtra:: String -> [TypeExtra] -> Type -> TypeExtra
+> addResultExtra appName tes t =  checkPrecisionRelevance . checkResultPrecisionClass tesr
+>                                 $ TypeExtra t jp js jn
+>   where
 >     jp = if
 >       | appName == "||" -> Just $ sum $ mapMaybe tePrecision tesr
 >         -- precision of the result is unknown
@@ -191,6 +191,7 @@ Both functions use a mini-library which deals with precision classes and precisi
 >             ++ ["isnull" | length tes == 2]
 >               -- nullability of corresponding SqlServer function "charindex"
 >               --  may or may not differ, depending on database compatibility level
+>               -- I implement the level above 70, so it goes to the default case
 >             ++ ["strpos","position"])
 >         -> all teNullable tesr
 >         -- can produce null independently on the nullability of the arguments
@@ -205,6 +206,9 @@ Both functions use a mini-library which deals with precision classes and precisi
 >           -- only the first argument influences precision and nullability
 >       _ | appName `elem` ["nullif","substr","substring","left","right","ltrim","rtrim","replicate","translate","like","notlike","rlike"]
 >           -> take 1 tes
+>           -- the first two arguments influence
+>         | appName `elem` ["charindex"]
+>           -> take 2 tes
 >           -- the first argument doesn't influence
 >         | appName `elem` ["datepart","datediff"]
 >           -> drop 1 tes
@@ -219,63 +223,6 @@ Both functions use a mini-library which deals with precision classes and precisi
 >         caseResultTypes' [] acc = acc
 >         caseResultTypes' [els] acc = els:acc
 >         caseResultTypes' (_:t:xs) acc = caseResultTypes' xs (t:acc)
-
-------------- precision class --------------
-
-This is a small library for checking whether inference of precision does make sense.
-It is used both in inference of precision of arguments and result of a function.
-
-It is theoretically possible that types belong to different precision classes,
-    but inference of precision still makes sense (consider, for instance,
-    conversion between string and decimal).
-  Such cases must be handled specially.
-
-> data PrecisionClass = String | Number | FlexiblePrecisionClass
->       deriving (Eq,Show)
->
-> precisionClass:: Type -> Maybe PrecisionClass
-> precisionClass (ScalarType tn)
->   | tn `elem` ["text","varchar","char"] = Just String
->   | tn `elem` ["int1","int2","int4","int8","float4","float8","numeric"] = Just Number
->   | otherwise = Nothing
-> precisionClass UnknownType = Just FlexiblePrecisionClass
-> precisionClass _ = Nothing
-
-Do original and new type have compatible precision classes?
-Note: this function is not commutative.
-
-> infix 4 .~>.
-> (.~>.):: TypeExtra -> TypeExtra -> Bool
-> t0 .~>. t = pc0 `elem` [Just FlexiblePrecisionClass, pc]
->   where
->     [pc0,pc] = map (precisionClass . teType) [t0,t]
-
-retreat to default when original and new type are incompatible
-
-> checkPrecisionClass:: TypeExtra -> TypeExtra -> TypeExtra
-> checkPrecisionClass t0 t = if t0 .~>. t then t else t{tePrecision = Nothing, teScale = Nothing}
-
-check precision class of result against precision classes of arguments
-
-> checkResultPrecisionClass:: [TypeExtra] -> TypeExtra -> TypeExtra
-> checkResultPrecisionClass tes t
->   = if and $ map (.~>. t) tes then t else t{tePrecision = Nothing, teScale = Nothing}
-
-check whether precision/scale is relevant for a type (consider "round").
-
-> checkPrecisionRelevance:: TypeExtra -> TypeExtra
-> checkPrecisionRelevance te = if
->   | Just String <- pc
->     -> te{teScale = Nothing}
->   | Just FlexiblePrecisionClass <- pc
->     -> te
->   | ScalarType tn <- t, tn == "numeric"
->     -> te
->   | otherwise
->     -> te{tePrecision = Nothing, teScale = Nothing}
->   where
->     t = teType te
->     pc = precisionClass t
 
 ------------- cast of arguments --------------
 
@@ -305,8 +252,12 @@ Additionaly:
 >     = liftM (uncurry $ zipWith3 combine tes) $ uncurry (liftM2 (,))
 >       $ (joinDim joinPrec partitionPrec &&& joinDim joinNull partitionNull) tes
 >   where
->     -- checks before partitioning
->     tes = map checkPrecisionRelevance $ zipWith checkPrecisionClass tes0 tes1
+>     -- checks and adjustments before partitioning
+>     tes = map checkPrecisionRelevance
+>           $ zipWith adjust tes0
+>           $ zipWith checkPrecisionClass tes0 tes1
+>       where
+>         adjust te0 te1 = te1{tePrecision = head $ adjustStringCastPrec (teType te1) [te0]}
 >     -- checks after partitioning
 >     checkPartition ptes = if length (nub ppcs) > 1
 >         then Left [InternalError $ printf "implicit cast: arguments of '%s' that belong to same partition are of different precision classes: %s -> %s" appName (show ptes) (show ppcs)]
@@ -349,6 +300,8 @@ Additionaly:
 >                 ++ ["substr","substring","left","right","ltrim","rtrim"]
 >                 ++ ["replicate","like","notlike","rlike"]
 >                 ++ ["strpos","position","replace"]
+>                     -- Oracle joins the datatypes (needed for the comparison)
+>                 ++ ["nullif"]
 >               )
 >             -> (const as, [])
 >             -- first argument is special, the rest are processed together
@@ -361,7 +314,7 @@ Additionaly:
 >           | otherwise -> (concat, [as])
 >     partitionPrec as = secondM (mapM checkPartition) $ case () of
 >             -- independent arguments
->         _ | appName `elem` ["||","concat","translate"]
+>         _ | appName `elem` ["||","concat","translate","charindex"]
 >             -> (const as, [])
 >             -- single partition
 >           | appName `elem`
@@ -377,6 +330,8 @@ Additionaly:
 >                 ++ ["isnull" | length as == 2]
 >               )
 >             -> (const as, [])
+>           | appName `elem` ["charindex"]
+>             -> (concat, pairToList $ splitAt 2 as)
 >           | otherwise -> partitionArgs as
 >     -- utility
 >     pairToList (x,y) = [x,y]
@@ -386,6 +341,65 @@ Additionaly:
 >     composeDecodePartitions [t:ts,ws] = t : concat (transpose [ts,ws])
 >     -- redundant
 >     composeDecodePartitions xs = concat xs
+
+------------- precision class --------------
+
+This is a small library for checking whether inference of precision does make sense.
+It is used both in inference of precision of arguments and result of a function.
+
+It is theoretically possible that types belong to different precision classes,
+    but inference of precision still makes sense (consider, for instance,
+    conversion between string and decimal).
+  Such cases must be handled specially.
+
+> data PrecisionClass = String | Number | FlexiblePrecisionClass
+>       deriving (Eq,Show)
+>
+> precisionClass:: Type -> Maybe PrecisionClass
+> precisionClass (ScalarType tn)
+>   | tn `elem` ["text","varchar","char"] = Just String
+>   | tn `elem` ["int1","int2","int4","int8","float4","float8","numeric"] = Just Number
+>   | otherwise = Nothing
+> precisionClass UnknownType = Just FlexiblePrecisionClass
+> precisionClass _ = Nothing
+
+Do original and new type have compatible precision classes?
+Note: this function is not commutative.
+
+> infix 4 .~>.
+> (.~>.):: TypeExtra -> TypeExtra -> Bool
+> t0 .~>. t = Just FlexiblePrecisionClass `elem` [pc0,pc] || pc0 == pc
+>   where
+>     [pc0,pc] = map (precisionClass . teType) [t0,t]
+
+retreat to default when original and new type are incompatible
+
+> checkPrecisionClass:: TypeExtra -> TypeExtra -> TypeExtra
+> checkPrecisionClass t0 t = if t0 .~>. t then t else t{tePrecision = Nothing, teScale = Nothing}
+
+check precision class of result against precision classes of arguments
+
+> checkResultPrecisionClass:: [TypeExtra] -> TypeExtra -> TypeExtra
+> checkResultPrecisionClass tes t
+>   = if and $ map (.~>. t) tes then t else t{tePrecision = Nothing, teScale = Nothing}
+
+check whether precision/scale is relevant for a type (consider "round").
+
+> checkPrecisionRelevance:: TypeExtra -> TypeExtra
+> checkPrecisionRelevance te = if
+>   | Just String <- pc
+>     -> te{teScale = Nothing}
+>   | Just FlexiblePrecisionClass <- pc
+>     -> te
+>   | ScalarType tn <- t, tn == "numeric"
+>     -> te
+>   | otherwise
+>     -> te{tePrecision = Nothing, teScale = Nothing}
+>   where
+>     t = teType te
+>     pc = precisionClass t
+
+******************************************************************
 
  findCallMatch :: Catalog -> String -> [Type] ->  Either [TypeError] OperatorPrototype
  findCallMatch cat fnName' argsType =
