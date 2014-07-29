@@ -173,7 +173,7 @@ addImplicitCasts cat = transformBi removeDoubleCasts . transformBi addCast
                   guard $ (not . isStar) e -- temporary
                   nameOfType $ teType te -- in order to preserve the old logic
                   -- guard $ isCastable e $ teType te
-                  return $ ImplicitCast emptyAnnotation e {-$ adjustPrec (anType ann)-} te
+                  return $ ImplicitCast emptyAnnotation e te
       where
         isCastable:: ScalarExpr -> Type -> Bool
         isCastable e to = fromMaybe False $ do
@@ -185,17 +185,6 @@ addImplicitCasts cat = transformBi removeDoubleCasts . transformBi addCast
           Star{} -> True
           QStar{} -> True
           _ -> False
-        -- ImplicitCastToDo: this function must be a separate rewrite before addImplicitCasts,
-        --    with a type check thereafter
-        --  it also must work on explicit Casts
-        adjustPrec::(Maybe TypeExtra) -> TypeExtra -> TypeExtra
-        adjustPrec (Just ite) te
-          | teType te `elem` [ScalarType "varchar", ScalarType "text", ScalarType "char"]
-            , tePrecision te == Nothing
-            , teType ite `elem` (UnknownType : numericTypes)
-            = te {tePrecision = Just 30}
-        adjustPrec _ te = te
-        numericTypes = [ScalarType t | t <- ["int1","int2","int4","int8","float4","float8","numeric"]]
         ann = getAnnotation e
     removeDoubleCasts:: ScalarExpr -> ScalarExpr
     removeDoubleCasts e = fst $ accumulateCasts e
