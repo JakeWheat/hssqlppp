@@ -546,6 +546,8 @@ other dml-type stuff
 >     copt = choice
 >            [CopyFormat <$> (keyword "format" *> idString)
 >            ,CopyDelimiter <$> (keyword "delimiter" *> stringN)
+>            ,CopyErrorLog <$> (keyword "error_log" *> stringN)
+>            ,CopyErrorVerbosity <$> (keyword "error_verbosity" *> (read <$> numString))
 >            ]
 >
 > copyData :: SParser Statement

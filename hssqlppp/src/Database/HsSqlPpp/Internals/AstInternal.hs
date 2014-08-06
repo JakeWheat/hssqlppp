@@ -274,6 +274,8 @@ data CopyToSource = CopyTable Name [NameComponent]
                     deriving (Show,Eq,Typeable,Data)
 data CopyOption = CopyFormat String
                 | CopyDelimiter String
+                | CopyErrorLog String
+                | CopyErrorVerbosity Int
                   deriving (Show,Eq,Typeable,Data)
 
 {-# LINE 280 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}

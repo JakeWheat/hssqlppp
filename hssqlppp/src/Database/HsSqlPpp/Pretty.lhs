@@ -706,6 +706,8 @@ syntax maybe should error instead of silently breaking
 >   where
 >       po (CopyFormat s) = text "format" <+> text s
 >       po (CopyDelimiter s) = text "delimiter" <+> quotes (text s)
+>       po (CopyErrorLog s) = text "error_log" <+> quotes (text s)
+>       po (CopyErrorVerbosity s) = text "error_verbosity" <+> quotes (text $ show s)
 
 > -- ddl
 >
