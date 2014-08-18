@@ -836,6 +836,8 @@ data CopyToSource = CopyTable Name [NameComponent]
                     deriving (Show,Eq,Typeable,Data)
 data CopyOption = CopyFormat String
                 | CopyDelimiter String
+                | CopyErrorLog String
+                | CopyErrorVerbosity Int
                   deriving (Show,Eq,Typeable,Data)
 
 }
