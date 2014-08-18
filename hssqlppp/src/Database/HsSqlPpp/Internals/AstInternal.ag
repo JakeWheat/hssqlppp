@@ -78,6 +78,7 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,TriggerWhen(..)
    ,TriggerEvent(..)
    ,TriggerFire(..)
+   ,QueryHint(..)
    ,StatementList
    ,ScalarExprListStatementListPairList
    ,ScalarExprListStatementListPair
@@ -459,6 +460,7 @@ data QueryExpr
              selOrderBy :: ScalarExprDirectionPairList
              selLimit :: MaybeScalarExpr
              selOffset :: MaybeScalarExpr
+             selOption :: {[QueryHint]}
     | CombineQueryExpr ann::Annotation
                        cqType :: CombineType
                        cqQe0 :: QueryExpr
@@ -552,7 +554,8 @@ data Natural = Natural | Unnatural
 -- >              ,selHaving = Nothing
 -- >              ,selOrderBy = []
 -- >              ,selLimit = Nothing
--- >              ,selOffset = Nothing}
+-- >              ,selOffset = Nothing
+-- >              ,selOption = []}
 --
 -- On its own, it isn't valid syntax: to use it you have to replace
 -- the select list at minimum
@@ -579,7 +582,8 @@ makeSelect = Select
              ,selHaving = Nothing
              ,selOrderBy = []
              ,selLimit = Nothing
-             ,selOffset = Nothing}
+             ,selOffset = Nothing
+             ,selOption = []}
 }
 
 {-
@@ -985,6 +989,20 @@ data VarDef | VarDef ann::Annotation
                        aliased :: Name
 {
 data RaiseType = RNotice | RException | RError
+                 deriving (Show,Eq,Typeable,Data)
+
+}
+
+{-
+
+------------------------------------------------
+
+= query hints
+
+-}
+
+{
+data QueryHint = QueryHintPartitionGroup | QueryHintColumnarCpuGroup
                  deriving (Show,Eq,Typeable,Data)
 
 }

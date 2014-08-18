@@ -566,7 +566,7 @@ Statement components
 >
 > queryExpr :: PrettyPrintFlags -> Bool -> Bool -> Maybe (Bool,[Name]) -> QueryExpr -> Doc
 > queryExpr flg writeSelect _ intoi (Select _ dis l tb wh grp hav
->                                     order lim off) =
+>                                     order lim off hs) =
 >   (text (if writeSelect then "select" else "")
 >          <+> (case dis of
 >                  All -> empty
@@ -592,6 +592,7 @@ Statement components
 >   ,Just $ orderBy flg order
 >   ,if useTop then Nothing else flip fmap lim $ \lm -> text "limit" <+> scalExpr flg lm
 >   ,flip fmap off $ \offs -> text "offset" <+> scalExpr flg offs
+>   ,Just $ text "option" $+$ sepCsvMap (text . show) hs
 >   ])
 >   where
 >     useTop = ppDialect flg == SQLServerDialect

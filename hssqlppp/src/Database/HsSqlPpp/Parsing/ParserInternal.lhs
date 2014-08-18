@@ -324,6 +324,7 @@ maybe it should still do this since it would probably be a lot clearer
 >                    <*> orderBy
 >                    <*> option tp (Just <$> limit)
 >                    <*> optionMaybe offset
+>                    <*> option [] hints
 >           return (case intoBit of
 >                       Just f -> Just $ f $ QueryStatement p s
 >                       Nothing -> Nothing
@@ -336,6 +337,7 @@ maybe it should still do this since it would probably be a lot clearer
 >         offset = keyword "offset" *> expr
 >         values = Values <$> (pos <* keyword "values")
 >                         <*> commaSep1 (parens $ commaSep1 expr)
+>         hints = keyword "option" *> (parens $ commaSep1 queryHint)
 
 
 > distinctKeyword :: SParser ()
@@ -346,6 +348,11 @@ maybe it should still do this since it would probably be a lot clearer
 >      keyword "unique"
 >      return ()
 >     ,keyword "distinct"]
+
+> queryHint :: SParser QueryHint
+> queryHint = choice
+>             [QueryHintPartitionGroup <$ keyword "partition" <* keyword "group"
+>             ,QueryHintColumnarCpuGroup <$ keyword "columnar" <* keyword "cpu" <* keyword "group"]
 
 > orderBy :: SParser [(ScalarExpr,Direction)]
 > orderBy = option []
@@ -2210,6 +2217,7 @@ Utility parsers
 >                                _ -> Nothing)
 >                       where
 >                         lcase = T.map toLower
+
 >
 > idString :: SParser String
 > idString = mytoken (\tok -> case tok of

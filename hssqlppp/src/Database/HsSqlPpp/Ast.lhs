@@ -37,6 +37,7 @@
 >     ,JoinExpr(..)
 >     ,JoinType(..)
 >     ,JoinHint(..)
+>     ,QueryHint(..)
 >     ,OnExpr
 >     ,Natural(..)
 >      -- * Statements
