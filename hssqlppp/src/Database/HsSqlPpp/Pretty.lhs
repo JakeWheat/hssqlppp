@@ -592,10 +592,12 @@ Statement components
 >   ,Just $ orderBy flg order
 >   ,if useTop then Nothing else flip fmap lim $ \lm -> text "limit" <+> scalExpr flg lm
 >   ,flip fmap off $ \offs -> text "offset" <+> scalExpr flg offs
->   ,Just $ text "option" $+$ sepCsvMap (text . show) hs
+>   ,if null hs then Nothing else Just $ text "option" $+$ parens (sepCsvMap (text . prettyQueryHint) hs)
 >   ])
 >   where
 >     useTop = ppDialect flg == SQLServerDialect
+>     prettyQueryHint QueryHintPartitionGroup = "partition group"
+>     prettyQueryHint QueryHintColumnarCpuGroup = "columnar cpu group"
 >
 > queryExpr flg writeSelect topLev _ (CombineQueryExpr _ tp s1 s2) =
 >   let p = queryExpr flg writeSelect False Nothing  s1
