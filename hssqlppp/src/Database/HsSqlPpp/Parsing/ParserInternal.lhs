@@ -553,8 +553,8 @@ other dml-type stuff
 >     copt = choice
 >            [CopyFormat <$> (keyword "format" *> idString)
 >            ,CopyDelimiter <$> (keyword "delimiter" *> stringN)
->            ,CopyErrorLog <$> (keyword "error_log" *> stringN)
->            ,CopyErrorVerbosity <$> (keyword "error_verbosity" *> (read <$> numString))
+>            ,try $ CopyErrorLog <$> (keyword "error_log" *> stringN)
+>            ,CopyErrorVerbosity <$> (keyword "error_verbosity" *> (fromIntegral <$> integer))
 >            ]
 >
 > copyData :: SParser Statement
@@ -683,15 +683,51 @@ ddl
 > alterTable = AlterTable <$> (pos <* keyword "table"
 >                              <* optional (keyword "only"))
 >                         <*> name
->                         <*> many1 action
->              where action = choice [
->                              AlterColumnDefault
+>                         <*> operation
+>              where
+>                operation = choice [try renameTable,try renameColumn,actions]
+>                renameTable = AlterTableRenameTable
+>                              <$> (pos <* keyword "rename" <* keyword "to")
+>                              <*> name
+>                renameColumn = AlterTableRenameColumn
+>                               <$> (pos <* keyword "rename" <* keyword "column")
+>                               <*> nameComponent
+>                               <*> (keyword "to" *> nameComponent)
+>                actions = AlterTableActions <$> pos <*> commaSep1 action
+>                action = choice [try addColumn
+>                                ,try dropColumn
+>                                ,try alterColumn
+>                                ,addConstraint]
+>                addColumn = AddColumn
+>                            <$> pos
+>                            <*> (keyword "add" *> keyword "column" *> tableAttribute)
+>                dropColumn = DropColumn
+>                             <$> pos
+>                             <*> (keyword "drop" *> keyword "column" *> nameComponent)
+>                alterColumn = AlterColumn
 >                              <$> (pos <* keyword "alter" <* keyword "column")
 >                              <*> nameComponent
->                              <*> (keyword "set" *> keyword "default" *> expr)
->                             ,AddConstraint
->                              <$> (pos <* keyword "add")
->                              <*> tableConstraint]
+>                              <*> alterColumnAction
+>                alterColumnAction = choice [try alterType
+>                                           ,try setNotNull
+>                                           ,try dropNotNull
+>                                           ,try setDefault
+>                                           ,dropDefault]
+>                alterType = SetDataType
+>                            <$> pos
+>                            <*> (keyword "set" *> keyword "data" *> keyword "type" *> typeName)
+>                setNotNull = SetNotNull
+>                             <$> (pos <* keyword "set" <* keyword "not" <* keyword "null")
+>                dropNotNull = DropNotNull
+>                              <$> (pos <* keyword "drop" <* keyword "not" <* keyword "null")
+>                setDefault = SetDefault
+>                             <$> pos
+>                             <*> (keyword "set" *> keyword "default" *> expr)
+>                dropDefault = DropDefault
+>                              <$> (pos <* keyword "drop" <* keyword "default")
+>                addConstraint = AddConstraint
+>                                <$> (pos <* keyword "add")
+>                                <*> tableConstraint
 >
 > createType :: SParser Statement
 > createType = CreateType
@@ -1917,6 +1953,7 @@ function or type' keywords as function names, maybe there are others)
 >        ,"offset"
 >        ,"on"
 >        ,"only"
+>        ,"option"
 >        ,"or"
 >        ,"order"
 >        ,"outer"
