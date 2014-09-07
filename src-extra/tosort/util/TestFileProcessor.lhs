@@ -99,7 +99,7 @@ compile time.
 
 > pf :: String -> IO Module
 > pf f = do
->   x <- parseFileWithExts [QuasiQuotes] f
+>   x <- parseFileWithExts [EnableExtension QuasiQuotes] f
 >   case x of
 >         ParseOk ast -> return ast
 >         e -> error $ show e

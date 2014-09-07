@@ -1,8 +1,8 @@
 
 
 -- UUAGC 0.9.39.1 (src/Database/HsSqlPpp/Internals/AstInternal.ag)
+{-# LANGUAGE DeriveDataTypeable,ScopedTypeVariables #-}
 module Database.HsSqlPpp.Internals.AstInternal(
-    -- {-# LANGUAGE DeriveDataTypeable,ScopedTypeVariables #-}
     --from the ag files:
     --ast nodes
     Statement (..)

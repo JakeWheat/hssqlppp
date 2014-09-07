@@ -12,7 +12,7 @@
 > import System.FilePath
 > import System.Directory
 > import Debug.Trace
-> import Text.Highlighting.Illuminate
+> --import Text.Highlighting.Illuminate
 > import Data.DateTime
 > import Control.Concurrent
 > import Data.List

@@ -5,6 +5,7 @@ some helpers to get ids for a table, and help with aliases
 this should eventually expand to take over the local identifier
 bindings code
 
+> {-# LANGUAGE TupleSections #-}
 > module Database.HsSqlPpp.Internals.TypeChecking.IDEnv
 >     (IDEnv(..)
 >     ,emptyIDEnv
