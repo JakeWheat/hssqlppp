@@ -150,39 +150,37 @@ Conversion routines - convert Sql asts into Docs
 >     annot ca ann <+>
 >     text "create table"
 >     <+> name tbl <+> lparen
->     $+$ nest 2 (vcat (csv (map attrDef atts ++ map (constraint flg) cns)))
+>     $+$ nest 2 (vcat (csv (map (attrDef flg) atts ++ map (constraint flg) cns)))
 >     $+$ rparen <> statementEnd se
->     where
->       attrDef (AttributeDef _ n t def cons) =
->         nmc n <+> typeName t
->         <+> maybePrint (\e -> text "default" <+> scalExpr flg e) def
->         <+> hsep (map cCons cons)
->       cCons (NullConstraint _ cn) =
->         mname cn <+> text "null"
->       cCons (NotNullConstraint _ cn) =
->         mname cn <+> text "not null"
->       cCons (RowCheckConstraint _ cn ew) =
->         mname cn <+> text "check" <+> parens (scalExpr flg ew)
->       cCons (RowUniqueConstraint _ cn) =
->         mname cn <+> text "unique"
->       cCons (RowPrimaryKeyConstraint _ cn) =
->         mname cn <+> text "primary key"
->       cCons (RowReferenceConstraint _ cn tb att ondel onupd) =
->         mname cn <+> text "references" <+> name tb
->         <+> maybePrint (parens . nmc) att
->         <+> text "on delete" <+> cascade ondel
->         <+> text "on update" <+> cascade onupd
 >
-> statement flg se ca (AlterTable ann nm act) =
+> statement flg se ca (AlterTable ann nm op) =
 >     annot ca ann <+>
 >     text "alter table" <+> name nm
->     <+> hcatCsvMap alterAction act <> statementEnd se
+>     <+> alterOperation op <> statementEnd se
 >     where
->       alterAction (AlterColumnDefault _ cnm def) =
->           text "alter column" <+> nmc cnm
->           <+> text "set default" <+> scalExpr flg def
+>       alterOperation (RenameTable _ nm) = 
+>           text "rename to" <+> name nm
+>       alterOperation (RenameColumn _ old new) = 
+>           text "rename column" <+> nmc old <+> "to" <+> nmc new
+>       alterOperation (AlterTableActions _ actions) = hcatCsvMap alterAction actions
+>       alterAction (AddColumn _ att) = 
+>           text "add column" <+> attrDef flg att
+>       alterAction (DropColumn _ nm) = 
+>           text "drop column" <+> nmc nm
+>       alterAction (AlterColumn _ nm action) = 
+>           text "alter column" <+> nmc nm <+> alterColumnAction action
 >       alterAction (AddConstraint _ con) =
->           text "add " <+> constraint flg con
+>           text "add" <+> constraint flg con
+>       alterColumnAction (SetDataType _ t) =
+>           text "set data type" <+> typeName t
+>       alterColumnAction (SetNotNull _) =
+>           text "set not null"
+>       alterColumnAction (DropNotNull _) =
+>           text "drop not null"
+>       alterColumnAction (SetDefault _ def) =
+>           text "set default" <+> scalExpr flg def
+>       alterColumnAction (DropDefault _) =
+>           text "drop default"
 >
 > statement _flg se ca (CreateSequence ann nm incr _ _ start cache) =
 >     annot ca ann <+>
@@ -710,7 +708,7 @@ syntax maybe should error instead of silently breaking
 >       po (CopyFormat s) = text "format" <+> text s
 >       po (CopyDelimiter s) = text "delimiter" <+> quotes (text s)
 >       po (CopyErrorLog s) = text "error_log" <+> quotes (text s)
->       po (CopyErrorVerbosity s) = text "error_verbosity" <+> quotes (text $ show s)
+>       po (CopyErrorVerbosity s) = text "error_verbosity" <+> int s
 
 > -- ddl
 >
@@ -747,6 +745,28 @@ syntax maybe should error instead of silently breaking
 >                         Require -> empty
 >                         IfExists -> text "if exists"
 >
+
+> attrDef flg (AttributeDef _ n t def cons) =
+>   nmc n <+> typeName t
+>   <+> maybePrint (\e -> text "default" <+> scalExpr flg e) def
+>   <+> hsep (map cCons cons)
+>   where
+>     cCons (NullConstraint _ cn) =
+>       mname cn <+> text "null"
+>     cCons (NotNullConstraint _ cn) =
+>       mname cn <+> text "not null"
+>     cCons (RowCheckConstraint _ cn ew) =
+>       mname cn <+> text "check" <+> parens (scalExpr flg ew)
+>     cCons (RowUniqueConstraint _ cn) =
+>       mname cn <+> text "unique"
+>     cCons (RowPrimaryKeyConstraint _ cn) =
+>       mname cn <+> text "primary key"
+>     cCons (RowReferenceConstraint _ cn tb att ondel onupd) =
+>       mname cn <+> text "references" <+> name tb
+>       <+> maybePrint (parens . nmc) att
+>       <+> text "on delete" <+> cascade ondel
+>       <+> text "on update" <+> cascade onupd
+
 > -- plpgsql
 >
 > nestedStatements :: PrettyPrintFlags -> (Annotation -> String) -> StatementList -> Doc

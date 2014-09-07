@@ -31,11 +31,41 @@
 >        (makeSelect
 >         {selSelectList = sl [si $ num "1"]})]
 >
->      ,s "alter table a alter column b set default 1;"
->       [AlterTable ea (name "a") [AlterColumnDefault ea (Nmc "b") (num "1")]]
+>      ,s "alter table a rename to b;"
+>       [AlterTable ea (name "a") $ RenameTable ea (name "b")]
+>      ,s "alter table a rename column b to c;"
+>       [AlterTable ea (name "a") $ RenameColumn ea (Nmc "b") (Nmc "c")]
 >
+>      ,s "alter table a add column b int;"
+>       [AlterTable ea (name "a") $ AlterTableActions ea [AddColumn ea $ att "b" "int"]]
+>
+>      ,s "alter table a drop column b;"
+>       [AlterTable ea (name "a") $ AlterTableActions ea [DropColumn ea (Nmc "b")]]
+>
+>      ,s "alter table a alter column b set data type int;"
+>       [AlterTable ea (name "a") $ AlterTableActions ea [AlterColumn ea (Nmc "b") $ SetDataType ea (st "int")]]
+>
+>      ,s "alter table a alter column b set data type int;"
+>       [AlterTable ea (name "a") $ AlterTableActions ea [AlterColumn ea (Nmc "b") $ SetDataType ea (st "int")]]
+>
+>      ,s "alter table a alter column b set default 1;"
+>       [AlterTable ea (name "a") $ AlterTableActions ea [AlterColumn ea (Nmc "b") $ SetDefault ea (num "1")]]
+>      ,s "alter table a alter column b drop default;"
+>       [AlterTable ea (name "a") $ AlterTableActions ea [AlterColumn ea (Nmc "b") $ DropDefault ea]]
+>
+>      ,s "alter table a alter column b set not null;"
+>       [AlterTable ea (name "a") $ AlterTableActions ea [AlterColumn ea (Nmc "b") $ SetNotNull ea]]
+>      ,s "alter table a alter column b drop not null;"
+>       [AlterTable ea (name "a") $ AlterTableActions ea [AlterColumn ea (Nmc "b") $ DropNotNull ea]]
+>
+>      ,s "alter table a add column b int,drop column c;"
+>       [AlterTable ea (name "a") $ AlterTableActions ea [AddColumn ea $ att "b" "int"
+>                                                        ,DropColumn ea (Nmc "c")]]
+>
+>      ,s "alter table a drop column b;"
+>       [AlterTable ea (name "a") $ AlterTableActions ea [DropColumn ea (Nmc "b")]]
 >      ,s "alter table a add constraint unique(b);"
->       [AlterTable ea (name "a") [AddConstraint ea (UniqueConstraint ea "" [Nmc "b"])]]
+>       [AlterTable ea (name "a") $ AlterTableActions ea [AddConstraint ea (UniqueConstraint ea "" [Nmc "b"])]]
 >      ]
 >     ,Group "constraints" [
 >       Group "nulls" [
