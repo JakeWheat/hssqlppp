@@ -1380,8 +1380,9 @@ bit better
 > tableAB d isB = [[{-binary "." AssocLeft-}]
 >          --[binary "::" (BinOpCall Cast) AssocLeft]
 >          --missing [] for array element select
->         ,[prefix "-" "-"]
->         ,[binary "^" AssocLeft]
+>         ,[prefix "+" "+"] -- Unary plus - Exists in pgsql 9.4
+>         ,[prefix "-" "-"] -- Unary minus
+>         ,[binary "^" AssocLeft] -- Exponent
 >         ,[binary "*" AssocLeft
 >          ,idHackBinary "*" AssocLeft
 >          ,binary "/" AssocLeft
@@ -1390,6 +1391,7 @@ bit better
 >          ,binary "-" AssocLeft]
 >         ,[postfixks ["is", "not", "null"] "isnotnull"
 >          ,postfixks ["is", "null"] "isnull"]
+>          ------- All custom operators must go here:
 >          --other operators all added in this list according to the pg docs:
 >         ,[binary "|" AssocLeft
 >          ,binary "&" AssocLeft]
@@ -1398,25 +1400,26 @@ bit better
 >          ,binary ">=" AssocRight
 >          ,binary "||" AssocLeft]
 >          ++ [prefix "@" "@" | d == PostgreSQLDialect]
+>          -- Stop custom operators.
 >          --in should be here, but is treated as a factor instead
 >          --between
 >          --overlaps
 >         ,[binaryk "like" "like" AssocNone
 >          ,binaryk "rlike" "rlike" AssocNone
->          ,binaryks ["not","like"] "notlike" AssocNone
->          ,binarycust (symbol "!=") "<>" AssocNone]
->          --(also ilike similar)
+>          ,binaryks ["not","like"] "notlike" AssocNone]
 >         ,[binary "<" AssocNone
 >          ,binary ">" AssocNone]
->         ,[binary "=" AssocRight
->          ,binary "<>" AssocNone]
+>          --(also ilike similar)
+>         ,[binary "=" AssocRight]
+>         ,[binary "<>" AssocRight
+>          ,binarycust (symbol "!=") "<>" AssocRight]
 >         ,[notNot
 >          ,prefixk "not" "not"
 >          ]
->         ,let x = [binaryk "or" "or" AssocLeft]
->          in if isB
->             then x
->             else binaryk "and" "and" AssocLeft : x
+>         ,if isB
+>          then []
+>          else [binaryk "and" "and" AssocLeft]
+>         ,[binaryk "or" "or" AssocLeft]
 >          ]
 >     where
 >       binary s = binarycust (symbol s) s
