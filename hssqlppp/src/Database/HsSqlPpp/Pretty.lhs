@@ -158,9 +158,9 @@ Conversion routines - convert Sql asts into Docs
 >     text "alter table" <+> name nm
 >     <+> alterOperation op <> statementEnd se
 >     where
->       alterOperation (AlterTableRenameTable _ nm) = 
+>       alterOperation (RenameTable _ nm) = 
 >           text "rename to" <+> name nm
->       alterOperation (AlterTableRenameColumn _ old new) = 
+>       alterOperation (RenameColumn _ old new) = 
 >           text "rename column" <+> nmc old <+> "to" <+> nmc new
 >       alterOperation (AlterTableActions _ actions) = hcatCsvMap alterAction actions
 >       alterAction (AddColumn _ att) = 

@@ -686,10 +686,10 @@ ddl
 >                         <*> operation
 >              where
 >                operation = choice [try renameTable,try renameColumn,actions]
->                renameTable = AlterTableRenameTable
+>                renameTable = RenameTable
 >                              <$> (pos <* keyword "rename" <* keyword "to")
 >                              <*> name
->                renameColumn = AlterTableRenameColumn
+>                renameColumn = RenameColumn
 >                               <$> (pos <* keyword "rename" <* keyword "column")
 >                               <*> nameComponent
 >                               <*> (keyword "to" *> nameComponent)

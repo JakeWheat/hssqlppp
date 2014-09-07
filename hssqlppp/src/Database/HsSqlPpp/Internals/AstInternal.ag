@@ -903,22 +903,13 @@ data TypeAttributeDef | TypeAttDef ann::Annotation
                                    name :: NameComponent
                                    typ :: TypeName
 
-data AlterTableOperation | AlterTableRenameTable  ann::Annotation
-                                                  newName :: Name
-                         | AlterTableRenameColumn ann::Annotation
-                                                  oldName :: NameComponent
-                                                  newName :: NameComponent
+data AlterTableOperation | RenameTable  ann::Annotation
+                                        newName :: Name
+                         | RenameColumn ann::Annotation
+                                        oldName :: NameComponent
+                                        newName :: NameComponent
                          | AlterTableActions ann::Annotation
                                              actions :: AlterTableActionList
-
-data AlterColumnAction | SetDataType ann :: Annotation
-                                     typ :: TypeName
-                       | SetNotNull ann :: Annotation
-                       | DropNotNull ann :: Annotation
-                       | SetDefault ann :: Annotation
-                                    def :: ScalarExpr
-                       | DropDefault ann :: Annotation
-
 
 data AlterTableAction | AddColumn ann :: Annotation
                                   att :: AttributeDef
@@ -929,6 +920,14 @@ data AlterTableAction | AddColumn ann :: Annotation
                                     act :: AlterColumnAction
                       | AddConstraint ann :: Annotation
                                       con:: Constraint
+
+data AlterColumnAction | SetDataType ann :: Annotation
+                                     typ :: TypeName
+                       | SetNotNull ann :: Annotation
+                       | DropNotNull ann :: Annotation
+                       | SetDefault ann :: Annotation
+                                    def :: ScalarExpr
+                       | DropDefault ann :: Annotation
 
 {
 data SetValue

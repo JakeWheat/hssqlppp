@@ -285,7 +285,7 @@ data CopyOption = CopyFormat String
 
 {-# LINE 287 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
 
-{-# LINE 933 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
+{-# LINE 932 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
 
 data SetValue
     = SetStr Annotation String
@@ -323,7 +323,7 @@ data RestartIdentity = RestartIdentity | ContinueIdentity
                        deriving (Show,Eq,Typeable,Data)
 {-# LINE 325 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
 
-{-# LINE 974 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
+{-# LINE 973 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
 
 data Replace = Replace | NoReplace
                deriving (Show,Eq,Typeable,Data)
@@ -339,21 +339,21 @@ data Language = Sql | Plpgsql
                 deriving (Show,Eq,Typeable,Data)
 {-# LINE 341 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
 
-{-# LINE 1013 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
+{-# LINE 1012 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
 
 data RaiseType = RNotice | RException | RError
                  deriving (Show,Eq,Typeable,Data)
 
 {-# LINE 348 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
 
-{-# LINE 1027 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
+{-# LINE 1026 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
 
 data QueryHint = QueryHintPartitionGroup | QueryHintColumnarCpuGroup
                  deriving (Show,Eq,Typeable,Data)
 
 {-# LINE 355 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
 
-{-# LINE 1126 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
+{-# LINE 1125 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
 
 
 -- | run canonicalizeTypeName on all the TypeName nodes in an ast
@@ -1793,14 +1793,14 @@ sem_AlterTableActionList_Nil  =
          visit 0:
             local annotatedTree : _
             local originalTree : _
-      alternative AlterTableRenameColumn:
+      alternative RenameColumn:
          child ann            : Annotation 
          child oldName        : {NameComponent}
          child newName        : {NameComponent}
          visit 0:
             local annotatedTree : _
             local originalTree : _
-      alternative AlterTableRenameTable:
+      alternative RenameTable:
          child ann            : Annotation 
          child newName        : Name 
          visit 0:
@@ -1808,18 +1808,18 @@ sem_AlterTableActionList_Nil  =
             local originalTree : _
 -}
 data AlterTableOperation  = AlterTableActions (Annotation ) (AlterTableActionList ) 
-                          | AlterTableRenameColumn (Annotation ) (NameComponent) (NameComponent) 
-                          | AlterTableRenameTable (Annotation ) (Name ) 
+                          | RenameColumn (Annotation ) (NameComponent) (NameComponent) 
+                          | RenameTable (Annotation ) (Name ) 
                           deriving ( Data,Eq,Show,Typeable)
 -- cata
 sem_AlterTableOperation :: AlterTableOperation  ->
                            T_AlterTableOperation 
 sem_AlterTableOperation (AlterTableActions _ann _actions )  =
     (sem_AlterTableOperation_AlterTableActions (sem_Annotation _ann ) (sem_AlterTableActionList _actions ) )
-sem_AlterTableOperation (AlterTableRenameColumn _ann _oldName _newName )  =
-    (sem_AlterTableOperation_AlterTableRenameColumn (sem_Annotation _ann ) _oldName _newName )
-sem_AlterTableOperation (AlterTableRenameTable _ann _newName )  =
-    (sem_AlterTableOperation_AlterTableRenameTable (sem_Annotation _ann ) (sem_Name _newName ) )
+sem_AlterTableOperation (RenameColumn _ann _oldName _newName )  =
+    (sem_AlterTableOperation_RenameColumn (sem_Annotation _ann ) _oldName _newName )
+sem_AlterTableOperation (RenameTable _ann _newName )  =
+    (sem_AlterTableOperation_RenameTable (sem_Annotation _ann ) (sem_Name _newName ) )
 -- semantic domain
 type T_AlterTableOperation  = Catalog ->
                               TypeCheckingFlags ->
@@ -1924,11 +1924,11 @@ sem_AlterTableOperation_AlterTableActions ann_ actions_  =
               ( _actionsIannotatedTree,_actionsIoriginalTree) =
                   actions_ _actionsOcat _actionsOflags _actionsOimCast 
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
-sem_AlterTableOperation_AlterTableRenameColumn :: T_Annotation  ->
-                                                  NameComponent ->
-                                                  NameComponent ->
-                                                  T_AlterTableOperation 
-sem_AlterTableOperation_AlterTableRenameColumn ann_ oldName_ newName_  =
+sem_AlterTableOperation_RenameColumn :: T_Annotation  ->
+                                        NameComponent ->
+                                        NameComponent ->
+                                        T_AlterTableOperation 
+sem_AlterTableOperation_RenameColumn ann_ oldName_ newName_  =
     (\ _lhsIcat
        _lhsIflags
        _lhsIimCast ->
@@ -1943,13 +1943,13 @@ sem_AlterTableOperation_AlterTableRenameColumn ann_ oldName_ newName_  =
               -- self rule
               _annotatedTree =
                   ({-# LINE 106 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
-                   AlterTableRenameColumn _annIannotatedTree oldName_ newName_
+                   RenameColumn _annIannotatedTree oldName_ newName_
                    {-# LINE 1948 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- self rule
               _originalTree =
                   ({-# LINE 107 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
-                   AlterTableRenameColumn _annIoriginalTree oldName_ newName_
+                   RenameColumn _annIoriginalTree oldName_ newName_
                    {-# LINE 1954 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- self rule
@@ -1985,16 +1985,16 @@ sem_AlterTableOperation_AlterTableRenameColumn ann_ oldName_ newName_  =
               -- copy rule (chain)
               _annOtpe =
                   ({-# LINE 114 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
-                   error "missing rule: AlterTableOperation.AlterTableRenameColumn.ann.tpe"
+                   error "missing rule: AlterTableOperation.RenameColumn.ann.tpe"
                    {-# LINE 1990 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               ( _annIannotatedTree,_annIoriginalTree) =
                   ann_ _annOcat _annOflags _annOimCast _annOtpe 
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
-sem_AlterTableOperation_AlterTableRenameTable :: T_Annotation  ->
-                                                 T_Name  ->
-                                                 T_AlterTableOperation 
-sem_AlterTableOperation_AlterTableRenameTable ann_ newName_  =
+sem_AlterTableOperation_RenameTable :: T_Annotation  ->
+                                       T_Name  ->
+                                       T_AlterTableOperation 
+sem_AlterTableOperation_RenameTable ann_ newName_  =
     (\ _lhsIcat
        _lhsIflags
        _lhsIimCast ->
@@ -2015,13 +2015,13 @@ sem_AlterTableOperation_AlterTableRenameTable ann_ newName_  =
               -- self rule
               _annotatedTree =
                   ({-# LINE 106 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
-                   AlterTableRenameTable _annIannotatedTree _newNameIannotatedTree
+                   RenameTable _annIannotatedTree _newNameIannotatedTree
                    {-# LINE 2020 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- self rule
               _originalTree =
                   ({-# LINE 107 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
-                   AlterTableRenameTable _annIoriginalTree _newNameIoriginalTree
+                   RenameTable _annIoriginalTree _newNameIoriginalTree
                    {-# LINE 2026 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- self rule
@@ -2057,7 +2057,7 @@ sem_AlterTableOperation_AlterTableRenameTable ann_ newName_  =
               -- copy rule (chain)
               _annOtpe =
                   ({-# LINE 114 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
-                   error "missing rule: AlterTableOperation.AlterTableRenameTable.ann.tpe"
+                   error "missing rule: AlterTableOperation.RenameTable.ann.tpe"
                    {-# LINE 2062 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- copy rule (down)
@@ -2081,7 +2081,7 @@ sem_AlterTableOperation_AlterTableRenameTable ann_ newName_  =
               -- copy rule (chain)
               _newNameOtpe =
                   ({-# LINE 46 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/Misc.ag" #-}
-                   error "missing rule: AlterTableOperation.AlterTableRenameTable.newName.tpe"
+                   error "missing rule: AlterTableOperation.RenameTable.newName.tpe"
                    {-# LINE 2086 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               ( _annIannotatedTree,_annIoriginalTree) =

@@ -32,9 +32,9 @@
 >         {selSelectList = sl [si $ num "1"]})]
 >
 >      ,s "alter table a rename to b;"
->       [AlterTable ea (name "a") $ AlterTableRenameTable ea (name "b")]
+>       [AlterTable ea (name "a") $ RenameTable ea (name "b")]
 >      ,s "alter table a rename column b to c;"
->       [AlterTable ea (name "a") $ AlterTableRenameColumn ea (Nmc "b") (Nmc "c")]
+>       [AlterTable ea (name "a") $ RenameColumn ea (Nmc "b") (Nmc "c")]
 >
 >      ,s "alter table a add column b int;"
 >       [AlterTable ea (name "a") $ AlterTableActions ea [AddColumn ea $ att "b" "int"]]
