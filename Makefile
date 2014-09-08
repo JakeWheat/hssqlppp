@@ -1,4 +1,74 @@
+
+# this command will prepare the shared sandbox. This is the
+# recommended way of developing hssqlppp
+
+.PHONY : sandbox
+sandbox :
+	cabal sandbox init --sandbox sandbox
+	cd src-extra; cabal sandbox init --sandbox ../sandbox/
+	cabal install uuagc-bootstrap uuagc-cabal -j
+	cabal install uuagc-0.9.39.1 -j
+	cabal install . src-extra/ --only-dependencies --enable-tests -j
+
+.DEFAULT : all
+all : hssqlppp sandbox/bin/TypeCheckDB sandbox/bin/TypeCheck \
+  sandbox/bin/ShowCatalog sandbox/bin/QQ sandbox/bin/Parse2 \
+  sandbox/bin/Parse sandbox/bin/MakeSelect \
+  sandbox/bin/FixSqlServerTpchSyntax \
+  sandbox/bin/MakeDefaultTemplate1Catalog \
+  test
+
+
+.PHONY : hssqlppp
+hssqlppp : src/Database/HsSqlPpp/Internals/AstInternal.hs
+	cabal configure --enable-tests && cabal build -j
+	-cabal sandbox hc-pkg unregister hssqlppp -- --force
+	cabal install -j
+
+
+sandbox/bin/TypeCheckDB sandbox/bin/TypeCheck \
+  sandbox/bin/ShowCatalog sandbox/bin/QQ sandbox/bin/Parse2 \
+  sandbox/bin/Parse sandbox/bin/MakeSelect \
+  sandbox/bin/FixSqlServerTpchSyntax \
+  sandbox/bin/MakeDefaultTemplate1Catalog :
+	cd src-extra && cabal configure && \
+          cabal build -j && cabal install -j
+
+.PHONY : test
+test : hssqlppp
+	dist/build/Tests/Tests --hide-successes
+
 AG_FILES = $(shell find src -iname '*ag')
+
+src/Database/HsSqlPpp/Internals/AstInternal.hs : $(AG_FILES)
+	sandbox/bin/uuagc -dcfspwm -P src/Database/HsSqlPpp/Internals/ \
+		--lckeywords --doublecolons --genlinepragmas \
+		src/Database/HsSqlPpp/Internals/AstInternal.ag
+
+
+.PHONY : regenDefaultTemplate1Catalog
+regenDefaultTemplate1Catalog : sandbox/bin/MakeDefaultTemplate1Catalog
+	sandbox/bin/MakeDefaultTemplate1Catalog > \
+		src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs_new
+	mv src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs_new \
+		src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs
+
+
+.PHONY : clean
+clean :
+	cabal clean
+	cd src-extra && cabal clean
+	-rm chaos.sql
+
+.PHONY : clean-sandbox
+clean-sandbox :
+	-rm -Rf sandbox
+	-rm cabal.sandbox.config
+	-rm src-extra/cabal.sandbox.config
+
+.PHONY : clean-all
+clean-all : clean clean-sandbox
+
 
 # make the website
 # devel tool needs fixing
@@ -15,41 +85,7 @@ website_haddock :
 
 # task to build the chaos sql, which takes the source sql
 # transforms it and produces something which postgres understands
-CHAOS_SQL_SRC = $(shell find src-extra/chaos/sql/ -iname '*.sql')
+#CHAOS_SQL_SRC = $(shell find src-extra/chaos/sql/ -iname '*.sql')
 
-chaos.sql : $(CHAOS_SQL_SRC) dist/build/h7c/h7c
-	dist/build/h7c/h7c > chaos.sql
-
-dist/build/h7c/h7c :
-	echo "please use cabal configure -fdevutils and cabal build"
-
-# this needs an old version of uuagc such as 0.9.39.1
-# which doesn't work with the latest ghc for some reason
-# TODO: instructions on how to make this work
-src/Database/HsSqlPpp/Internals/AstInternal.hs : $(AG_FILES)
-	uuagc -dcfwsp -P src/Database/HsSqlPpp/Internals/ \
-		src/Database/HsSqlPpp/Internals/AstInternal.ag
-
-# rule for the generated file
-# src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs
-# don't want to automatically keep this up to date, only regenerate it
-# manually
-
-regenDefaultTemplate1Catalog : dist/build/MakeDefaultTemplate1Catalog/MakeDefaultTemplate1Catalog
-	dist/build/MakeDefaultTemplate1Catalog/MakeDefaultTemplate1Catalog > \
-		src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs_new
-	mv src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs_new \
-		src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs
-
-# todo: make sure all generated files are either under dist or build
-# and simplify this
-.PHONY : clean
-clean :
-	-rm -Rf dist
-	find . -iname '*.o' -delete
-	find . -iname '*.hi' -delete
-	-rm chaos.sql
-	-rm -Rf hssqlppp
-
-maintainer-clean : clean
-	-rm src/Database/HsSqlPpp/Internals/AstInternal.hs
+#chaos.sql : $(CHAOS_SQL_SRC) sandbox/bin/h7c
+#	sandbox/bin/h7c > chaos.sql

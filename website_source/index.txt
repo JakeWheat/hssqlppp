@@ -8,8 +8,9 @@ Possible uses of this library include:
 
 * type-checker can help with SQL development and catch bugs which
   aren't statically detected by Postgres
+* front end for a sql dbms
 * generating SQL code programmatically/ generating SQL from some other
-  source
+  source, e.g. for implementing non sql code on a sql dbms
 * transforming SQL code, possibly using quasiquoting, e.g. writing
   PL/pgSQL with less boilerplate, or optimisation rewrites
 * viewing the catalog produced by some SQL code
@@ -25,15 +26,16 @@ With some extra work:
 Status
 ======
 
-Pre-alpha. Support for parsing SQL is patchy, but not too
-bad. Supports queries/DML and DDL. Here is an extract from the parsing
-tests which gives some examples of what can currently be parsed:
+Pre-alpha in the traditional sense (not yet feature complete). Support
+for parsing SQL solid on a large subset of SQL. Supports queries/DML
+and DDL. Here is an extract from the parsing tests which gives some
+examples of what can currently be parsed:
 
 * [Parsing examples](ParserTests.html)
 
 The type checker is currently still being fixed after some reworking
-of parsing and ast types. It should handle a lot of queries and dml
-fine though.
+of parsing and ast types. It is pretty solid on a wide range of
+queries.
 
 Extract from the type checking tests:
 
@@ -55,8 +57,7 @@ casts, tables, views and functions.
 Installation
 ============
 
-This project is currently developed on GHC 7.2.1. 7.0.x should be
-fine, 6.12.x might take a small amount of work.
+This project is currently developed on GHC 7.8.3.
 
 To install use
 

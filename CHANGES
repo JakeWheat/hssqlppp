@@ -1,6 +1,13 @@
-0.4.2
+0.4.3 unreleased
 
-update to work with 7.8.3
+fix up the Makefile some more so it is more straightforward
+
+0.4.2
+Released 09/04/2014
+
+update to work with ghc 7.8.3
+build tests with cabal
+remove most of the Makefile stuff
 
 0.4.1
 
