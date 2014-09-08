@@ -4,6 +4,7 @@ Focus: clean up some of the api
        complete haddocks
        clean up/rewrite lots of the typechecking internals
        start taking the sql server syntax support a bit more seriously
+make the build system much more foolproof and less byzantine
 lots of api changes, including the parsing and typechecking functions
   and the ast
 switch to using Data.Text.Lazy.Text to parse from and pretty print to

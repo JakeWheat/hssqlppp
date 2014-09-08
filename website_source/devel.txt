@@ -13,41 +13,39 @@ git clone https://github.com/JakeWheat/hssqlppp.git
 Build the library
 =================
 
-Once you have the source, you can build the library using cabal
+There is a Makefile to help with developing hssqlppp. You can use:
 
-~~~~~
-cabal configure && cabal build
-~~~~~
+~~~~
+make sandbox
+~~~~
 
-Rebuild the generated files for the syntax
-==========================================
+to initialize the shared sandbox, and then
 
-If you edit the ag files, you need to rebuild AstInternal.hs. First
-make sure you have uuagc installed (later versions of uuagc do not
-work with the code in hssqlppp):
+~~~~
+make hssqlppp
+~~~~
 
-~~~~~
-cabal install uuagc-0.9.39.1
-~~~~~
+To build the main library. This also builds the cabal tests for this
+library, and installs the library into the sandbox.
 
-Then use the makefile:
+You can also build all the code, the tests and the examples using
 
-~~~~~
-make src/Database/HsSqlPpp/Internals/AstInternal.hs
-~~~~~
+~~~~
+make all
+~~~~
 
-The makefile hasn't been heavily tested yet. If you have any problems
-with unrecognised modules, the complete list of packages referenced is
-in the Makefile (it may be missing build tools, such as cpphs, this
-hasn't been checked yet).
+All of these builds will use the cabal sandbox if you run make sandbox
+first. You don't need to rerun make sandbox unless you change the
+packages in the cabal files.
 
-To just rebuild the library in the usual way after editing the ag
-files use:
+uuagc
+=====
 
-~~~~~
-make src/Database/HsSqlPpp/Internals/AstInternal.hs
-cabal build
-~~~~~
+The .ag files are processed to produce a single file,
+AstInternal.hs. The makefile should handle this automatically. You can
+also call 'make
+hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs' to regenerate
+manually.
 
 There is one further generated file, DefaultTemplate1Catalog.lhs. You
 don't usually need to regenerate this, but this is how you do it:
@@ -59,21 +57,14 @@ make regenDefaultTemplate1Catalog
 Build and run the tests
 =======================
 
-You can build and run the tests using the makefile:
+You can build and run the tests using the makefile. You should run
+make sandbox first if you haven't already, then run:
 
 ~~~~~
 make tests
 ~~~~~
 
-or to just build the tests, then run manually:
-
-~~~~~
-make src-extra/tests/Tests
-src-extra/tests/Tests
-~~~~~
-
-This also rebuilds from the ag files if needed. When working on the
-source, this is usually the only compile command you need.
+This is a good target to use in your edit/compile/test cycle.
 
 Background reading
 ==================

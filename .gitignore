@@ -5,3 +5,12 @@
 /hssqlppp/dist/
 /hssqlppp-pg/dist/
 /hssqlppp-th/dist/
+/sandbox/
+/cabal.sandbox.config
+/hssqlppp-pg/cabal.sandbox.config
+/hssqlppp-th/cabal.sandbox.config
+/hssqlppp/cabal.sandbox.config
+/examples/cabal.sandbox.config
+/examples/dist/
+/postprocess-uuagc/dist/
+/postprocess-uuagc/cabal.sandbox.config

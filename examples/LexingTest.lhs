@@ -19,7 +19,6 @@ statements at once/ entering multiple statements on one line.
 > --import Debug.Trace
 > import System.IO
 > --import Data.Ratio
-> import Database.HsSqlPpp.SqlDialect
 > import Data.List hiding (takeWhile)
 > import Prelude hiding (takeWhile)
 > --import Control.Monad

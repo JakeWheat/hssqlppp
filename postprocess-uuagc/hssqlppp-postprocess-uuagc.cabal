@@ -1,0 +1,15 @@
+Name:                hssqlppp-postprocess-uuagc
+Version:             0.5.10
+Build-Type:          Simple
+Cabal-Version:       >=1.10
+
+Description:         this is just used to produce a file which tidies up the .hs file generated from the .ag files.
+
+executable PostprocessUuagc
+  main-is:             PostprocessUuagc.lhs
+  build-depends:       base >=4.7 && <4.8,
+                       uniplate >= 1.6 && < 1.7,
+                       text >= 0.11.1.13 && < 1.2,
+                       directory >= 1.2 && < 1.3
+  default-language:    Haskell2010
+  ghc-options:         -Wall

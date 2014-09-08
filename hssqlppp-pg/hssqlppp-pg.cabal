@@ -33,7 +33,8 @@ Library
                      split,
                      postgresql-simple,
                      template-haskell,
-                     text
+                     text,
+                     bytestring
 
   hs-source-dirs:    src
   Exposed-modules:   Database.HsSqlPpp.Utils.CatalogReader

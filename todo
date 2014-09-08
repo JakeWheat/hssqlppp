@@ -1,10 +1,20 @@
-next release: current release doesn't work with 7.6, maybe others, get
-   new release out quickly:
-documentation fixup, examples review + fixup - bit of mess atm
-haddock review
-check works with at least 7.2,7.4,7.6
+get website/ tool working again with new build instructions
+  for 0.4.x as well
+get regen catalog working with pg 9.4
 
-new release of package-o-tron
+review all the code for old bits and stuff which needs reorganising
+
+bootstrap to complete rewrite using simple-sql-parser:
+1st get simple-sql-parser to the stage where it can replace the syntax
+   and parsing in this package
+then start from scratch with the .ag code in a new branch
+things to do better this time:
+  precision and scalability
+  nullability
+  dialects
+  error messages
+
+--------------------------------------------------------
 
 next releases rough plan:
 2

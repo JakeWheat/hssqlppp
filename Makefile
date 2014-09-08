@@ -1,125 +1,71 @@
 
-# you can build the library using cabal configure && cabal build
-# more info here: http://jakewheat.github.com/hssqlppp/devel.txt.html
+# this command will prepare the shared sandbox. This is the
+# recommended way of developing hssqlppp
 
-# this makefile can be used:
-# * when the .ag files are altered to rebuild the hs
-# * to build/ run the tests
-# * to build all the examples
-# * to build/run other development utils
+.PHONY : sandbox
+sandbox :
+	cabal sandbox init --sandbox sandbox
+	cd hssqlppp; cabal sandbox init --sandbox ../sandbox/
+	cd hssqlppp-th; cabal sandbox init --sandbox ../sandbox/
+	cd hssqlppp-pg; cabal sandbox init --sandbox ../sandbox/
+	cd examples; cabal sandbox init --sandbox ../sandbox/
+	cd postprocess-uuagc; cabal sandbox init --sandbox ../sandbox/
+	cabal install uuagc-bootstrap uuagc-cabal
+	cabal install uuagc-0.9.39.1
+	cabal install hssqlppp/ hssqlppp-th/ hssqlppp-pg/ examples/ postprocess-uuagc/ --only-dependencies --enable-tests -j
 
-# the default make target is to build the automated tests exe
+# TODO: make the sandbox optional and add option to change location of
+# sandbox
 
-# Why does this project have a makefile?
-#
-# Compiling with multiple cabal projects is slow
-# Not all the code which should be compiled during development belongs in a cabal package
-# I didn't work out how to use uuagc and other custom build steps with cabal
-# Make can compile stuff in parallel
-# I have a tool which automatically works out the dependencies and package dependencies
+# TODO: support using another packagedb not via sandboxes or something
 
+.PHONY : all
+.DEFAULT : all
+all : sandbox/bin/PostprocessUuagc hssqlppp hssqlppp-th hssqlppp-pg examples test
+# postprocess-uuagc, makedefaulttemplate1cat
+# src extra?
 
-########################################################
+.PHONY : test
+test : hssqlppp hssqlppp-th
+	hssqlppp/dist/build/Tests/Tests --hide-successes
+	hssqlppp-th/dist/build/TestsTh/TestsTh --hide-successes
 
-# developing with the make file:
+# todo: get the dependencies right for these build commands
+# this means just the .ag compilation and the rest is deferred to
+# cabal
+# maybe this should change is cabal is unbelievably slow when there is
+# no work to do
 
-# to add new source folder, adjust the SRC_DIRS var below
-# to add a new binary to build, add it to EXE_FILES below
+.PHONY : hssqlppp
+hssqlppp : hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs
+	cd hssqlppp && cabal configure --enable-tests && cabal build -j
+	-cabal sandbox hc-pkg unregister hssqlppp-pg -- --force
+	-cabal sandbox hc-pkg unregister hssqlppp-th -- --force
+	-cabal sandbox hc-pkg unregister hssqlppp -- --force
+	cd hssqlppp && cabal install
 
-# you also need the package 'package-o-tron' from hackage
-# (see https://github.com/JakeWheat/package-o-tron)
+.PHONY : hssqlppp-th
+hssqlppp-th : hssqlppp
+	cd hssqlppp-th && cabal configure --enable-tests && cabal build -j
+	-cabal sandbox hc-pkg unregister hssqlppp-pg -- --force
+	-cabal sandbox hc-pkg unregister hssqlppp-th -- --force
+	cd hssqlppp-th && cabal install
 
-# if you alter the catalog type or any other dependencies, you may
-# need to regenerate the defaultTemplate1Catalog module, this is
-# never automatic, use 'make regenDefaultTemplate1Catalog'
-# this needs postgresql installed
+.PHONY : hssqlppp-pg
+hssqlppp-pg : hssqlppp-th
+	cd hssqlppp-pg && cabal configure --enable-tests && cabal build -j
+	-cabal sandbox hc-pkg unregister hssqlppp-pg -- --force
+	cd hssqlppp-pg && cabal install
 
-######################################################
+.PHONY : examples
+examples : hssqlppp hssqlppp-th hssqlppp-pg
+	cd examples && cabal configure && cabal build
 
-# this makefile is probably written wrong since I don't know how to do
-# makefiles
-
-# add new source roots to this
-SRC_DIRS = hssqlppp/src hssqlppp/tests/ \
-	   hssqlppp-pg/src \
-	   hssqlppp-th/src hssqlppp-th/tests \
-	   build-src \
-	   examples \
-	   src-extra/chaos/h7c src-extra/chaos/extensions src-extra/chaos/chaos
-	   
-# src-extra/docutil
-# src-extra/chaos src-extra/extensions src-extra/h7c \
-# src-extra/chaos/extensions
-
-# this is the list of exe files which are all compiled to check
-# nothing has been broken
-
-EXE_FILES = hssqlppp/tests/Tests \
-	    hssqlppp-th/tests/TestsTh \
-	    build-src/MakeDefaultTemplate1Catalog \
-	build-src/PostprocessUuagc \
-	examples/MakeSelect \
-	examples/Parse \
-	examples/Parse2 \
-	examples/Parse3 \
-	examples/Lex \
-	examples/TypeCheck3 \
-	examples/TypeCheck2 \
-	examples/TypeCheck \
-	examples/TypeCheckDB \
-	examples/PPPTest \
-	examples/QQ \
-	examples/FixSqlServerTpchSyntax \
-	examples/Reformat \
-	examples/LexingTest
-	#src-extra/chaos/chaos/BuildChaosSql
-
-EXE_FILENAMES = $(addsuffix ".lhs",$(EXE_FILES))
-
-#	src-extra/h7c/h7c \
-
-#	src-extra/docutil/DevelTool
-
-#	examples/ShowCatalog \
-#	src-extra/chaos/build.lhs
-
-BUILD = build
-
-# the command and options used to compile .hs/.lhs to .o
-HC              = @ghc
-HC_BASIC_OPTS   = -Wall -threaded -rtsopts -v0
-#-O2
-
-space :=
-space +=
-comma := ,
-HC_INCLUDE_DIRS = -i$(subst $(space),:,$(SRC_DIRS))
-
-HC_OPTS = $(HC_BASIC_OPTS) $(HC_INCLUDE_DIRS)
-
-# the command and options used to link .o files to an executable
-HL = $(HC)
-HL_OPTS = $(HC_OPTS)
-
-
-# default rule: compile the main tests
-build-tests : $(BUILD)/Tests
-
-EXE_FILES_TARGETS = $(addprefix $(BUILD)/, $(notdir $(EXE_FILES)))
-
-all : $(EXE_FILES_TARGETS)
-
-# more all builds everything, then runs the test and then
-# generates the website, then checks the sdists
-more-all : all tests check-sdists
-#website website-haddock
-
-# run the tests
-tests : $(BUILD)/Tests $(BUILD)/TestsTh
-	$(BUILD)/Tests --hide-successes
-	$(BUILD)/TestsTh --hide-successes
+sandbox/bin/PostprocessUuagc :
+	cd postprocess-uuagc && cabal install -j
 
 # make the website
+# the devel-tool is currently broken, it needs fixing first
 #website : src-extra/docutil/DevelTool
 #	src-extra/docutil/DevelTool makewebsite +RTS -N
 
@@ -145,25 +91,6 @@ check-sdists : sdists
 	cd hssqlppp-th; sh ~/.cabal/share/cabal-scripts-0.1/cabal-test dist/hssqlppp-th-0.5.10.tar.gz
 	cd hssqlppp-pg; sh ~/.cabal/share/cabal-scripts-0.1/cabal-test dist/hssqlppp-pg-0.5.10.tar.gz
 
-# include the autogenerated rules
-
-# regenerate the dependency and rules for exe compiles:
-ALL_HASKELL_SOURCES := $(shell find . -type f -name '*hs')
-
-.DELETE_ON_ERROR : autorules.mk
-autorules.mk : $(ALL_HASKELL_SOURCES)
-	@echo GENERATE autorules.mk
-	@MakeHaskellMake --hide-package haskell2010 --hide-package haskell98 \
-             --hide-package hssqlppp --hide-package hssqlppp-pg \
-             --hide-package hssqlppp-th --hide-package HTF \
-             $(HC_INCLUDE_DIRS) $(EXE_FILENAMES) > \
-             autorules.mk
-ifneq ($(findstring clean,$(MAKECMDGOALS)),clean)
--include autorules.mk
-endif
-
-
-
 # specific rules for generated file astinternal.hs
 # the latest version of uuagc which I know works is 0.9.39.1
 # if you get errors like this:
@@ -177,17 +104,11 @@ AG_FILES = $(shell find hssqlppp/src -iname '*ag')
 # don't want to depend on the exe since this causes build problems
 # with cyclic dependencies and with rebuilding stuff too often
 
-hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs : $(AG_FILES) build-src/PostprocessUuagc.lhs
-	@if ! uuagc --version | grep 0.9.39.1 > /dev/zero ; then \
-		echo "Install uuagc dependencies: cabal install uuagc-bootstrap uuagc-cabal" ; \
-		echo "Then download uuagc-0.9.39.1 from http://hackage.haskell.org/package/uuagc-0.9.39.1" ; \
-		exit 1 ; \
-	fi
-	uuagc -dcfspwm -P hssqlppp/src/Database/HsSqlPpp/Internals/ \
+hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs : $(AG_FILES) sandbox/bin/PostprocessUuagc
+	sandbox/bin/uuagc -dcfspwm -P hssqlppp/src/Database/HsSqlPpp/Internals/ \
 		--lckeywords --doublecolons --genlinepragmas \
 		hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.ag
-	make $(BUILD)/PostprocessUuagc
-	$(BUILD)/PostprocessUuagc
+	sandbox/bin/PostprocessUuagc
 
 
 #-dcfspwm --cycle -O
@@ -206,9 +127,27 @@ regenDefaultTemplate1Catalog : $(BUILD)/MakeDefaultTemplate1Catalog
 
 .PHONY : clean
 clean :
-	-rm -Rf hssqlppp/dist
-	-rm -Rf hssqlppp-pg/dist
-	-rm -Rf hssqlppp-th/dist
-	-rm -Rf build
+	cd hssqlppp && cabal clean
+	cd hssqlppp-th && cabal clean
+	cd hssqlppp-pg && cabal clean
+	cd examples && cabal clean
+	cd postprocess-uuagc && cabal clean
 
-# TODO: find something better than Make
+.PHONY : clean-sandbox
+clean-sandbox :
+	-rm -Rf sandbox
+	-rm cabal.sandbox.config
+	-rm hssqlppp/cabal.sandbox.config
+	-rm -Rf hssqlppp/.cabal-sandbox/
+	-rm hssqlppp-th/cabal.sandbox.config
+	-rm -Rf hssqlppp-th/.cabal-sandbox/
+	-rm hssqlppp-pg/cabal.sandbox.config
+	-rm -Rf hssqlppp-pg/.cabal-sandbox/
+	-rm -Rf examples/cabal.sandbox.config
+	-rm -Rf examples/.cabal-sandbox
+	-rm -Rf postprocess-uuagc/cabal.sandbox.config
+	-rm -Rf postprocess-uuagc/.cabal-sandbox
+
+
+.PHONY : clean-all
+clean-all : clean clean-sandbox

@@ -1,0 +1,169 @@
+Name:                hssqlppp-examples
+Version:             0.5.10
+Build-Type:          Simple
+Cabal-Version:       >=1.10
+
+Description:         this cabal file is just a convenient way to build the examples
+
+
+executable FixSqlServerTpchSyntax
+  main-is:             FixSqlServerTpchSyntax.lhs
+  build-depends:       base >=4.7 && <4.8,
+                       uniplate >= 1.6 && < 1.7,
+                       text >= 0.11.1.13 && < 1.2,
+                       hssqlppp == 0.5.10,
+                       hssqlppp-th == 0.5.10
+  default-language:    Haskell2010
+  ghc-options:         -Wall
+
+
+executable Lex
+  main-is:             Lex.lhs
+  build-depends:       base >=4.7 && <4.8,
+                       uniplate >= 1.6 && < 1.7,
+                       text >= 0.11.1.13 && < 1.2,
+                       groom >=0.1 && < 0.2,
+                       hssqlppp == 0.5.10,
+                       hssqlppp-th == 0.5.10
+  default-language:    Haskell2010
+  ghc-options:         -Wall
+
+executable LexingTest
+  main-is:             LexingTest.lhs
+  build-depends:       base >=4.7 && <4.8,
+                       uniplate >= 1.6 && < 1.7,
+                       text >= 0.11.1.13 && < 1.2,
+                       attoparsec >= 0.10 && < 0.13,
+                       hssqlppp == 0.5.10,
+                       hssqlppp-th == 0.5.10
+  default-language:    Haskell2010
+  ghc-options:         -Wall
+
+executable MakeSelect
+  main-is:             MakeSelect.lhs
+  build-depends:       base >=4.7 && <4.8,
+                       uniplate >= 1.6 && < 1.7,
+                       text >= 0.11.1.13 && < 1.2,
+                       hssqlppp == 0.5.10,
+                       hssqlppp-th == 0.5.10
+  default-language:    Haskell2010
+  ghc-options:         -Wall
+
+executable PPPTest
+  main-is:             PPPTest.lhs
+  build-depends:       base >=4.7 && <4.8,
+                       uniplate >= 1.6 && < 1.7,
+                       text >= 0.11.1.13 && < 1.2,
+                       Diff >= 0.3 && < 0.4,
+                       hssqlppp == 0.5.10,
+                       groom >=0.1 && < 0.2,
+                       hssqlppp-th == 0.5.10
+  default-language:    Haskell2010
+  ghc-options:         -Wall
+
+executable Parse
+  main-is:             Parse.lhs
+  build-depends:       base >=4.7 && <4.8,
+                       uniplate >= 1.6 && < 1.7,
+                       text >= 0.11.1.13 && < 1.2,
+                       hssqlppp == 0.5.10,
+                       hssqlppp-th == 0.5.10
+  default-language:    Haskell2010
+  ghc-options:         -Wall
+
+executable Parse2
+  main-is:             Parse2.lhs
+  build-depends:       base >=4.7 && <4.8,
+                       uniplate >= 1.6 && < 1.7,
+                       text >= 0.11.1.13 && < 1.2,
+                       groom >=0.1 && < 0.2,
+                       haskell-src-exts >= 1.13 && < 1.16,
+                       hssqlppp == 0.5.10,
+                       hssqlppp-th == 0.5.10
+  default-language:    Haskell2010
+  ghc-options:         -Wall
+
+executable Parse3
+  main-is:             Parse3.lhs
+  build-depends:       base >=4.7 && <4.8,
+                       uniplate >= 1.6 && < 1.7,
+                       text >= 0.11.1.13 && < 1.2,
+                       groom >=0.1 && < 0.2,
+                       haskell-src-exts >= 1.13 && < 1.16,
+                       hssqlppp == 0.5.10,
+                       hssqlppp-th == 0.5.10
+  default-language:    Haskell2010
+  ghc-options:         -Wall
+
+executable QQ
+  main-is:             QQ.lhs
+  build-depends:       base >=4.7 && <4.8,
+                       uniplate >= 1.6 && < 1.7,
+                       text >= 0.11.1.13 && < 1.2,
+                       hssqlppp == 0.5.10,
+                       hssqlppp-th == 0.5.10
+  default-language:    Haskell2010
+  ghc-options:         -Wall
+
+executable Reformat
+  main-is:             Reformat.lhs
+  build-depends:       base >=4.7 && <4.8,
+                       uniplate >= 1.6 && < 1.7,
+                       text >= 0.11.1.13 && < 1.2,
+                       hssqlppp == 0.5.10,
+                       hssqlppp-th == 0.5.10
+  default-language:    Haskell2010
+  ghc-options:         -Wall
+
+executable ShowCatalog
+  main-is:             ShowCatalog.lhs
+  build-depends:       base >=4.7 && <4.8,
+                       uniplate >= 1.6 && < 1.7,
+                       text >= 0.11.1.13 && < 1.2,
+                       groom >=0.1 && < 0.2,
+                       hssqlppp == 0.5.10,
+                       hssqlppp-th == 0.5.10
+  default-language:    Haskell2010
+  ghc-options:         -Wall
+
+executable TypeCheck
+  main-is:             TypeCheck.lhs
+  build-depends:       base >=4.7 && <4.8,
+                       uniplate >= 1.6 && < 1.7,
+                       text >= 0.11.1.13 && < 1.2,
+                       hssqlppp == 0.5.10,
+                       hssqlppp-th == 0.5.10
+  default-language:    Haskell2010
+  ghc-options:         -Wall
+
+executable TypeCheck2
+  main-is:             TypeCheck2.lhs
+  build-depends:       base >=4.7 && <4.8,
+                       uniplate >= 1.6 && < 1.7,
+                       text >= 0.11.1.13 && < 1.2,
+                       hssqlppp == 0.5.10,
+                       hssqlppp-th == 0.5.10
+  default-language:    Haskell2010
+  ghc-options:         -Wall
+
+-- executable TypeCheck3
+--   main-is:             TypeCheck3.lhs
+--   build-depends:       base >=4.7 && <4.8,
+--                        uniplate >= 1.6 && < 1.7,
+--                        text >= 0.11.1.13 && < 1.2,
+--                        hssqlppp == 0.5.10,
+--                        hssqlppp-th == 0.5.10
+--   default-language:    Haskell2010
+--   ghc-options:         -Wall
+
+-- executable TypeCheckDB
+--   main-is:             TypeCheckDB.lhs
+--   build-depends:       base >=4.7 && <4.8,
+--                        uniplate >= 1.6 && < 1.7,
+--                        text >= 0.11.1.13 && < 1.2,
+--                        hssqlppp == 0.5.10,
+--                        hssqlppp-th == 0.5.10,
+--                        hssqlppp-pg == 0.5.10
+--   default-language:    Haskell2010
+--   ghc-options:         -Wall
+
