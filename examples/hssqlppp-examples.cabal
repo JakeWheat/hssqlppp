@@ -8,7 +8,7 @@ Description:         this cabal file is just a convenient way to build the examp
 
 executable FixSqlServerTpchSyntax
   main-is:             FixSqlServerTpchSyntax.lhs
-  build-depends:       base >=4.7 && <4.8,
+  build-depends:       base >= 4 && < 5,
                        uniplate >= 1.6 && < 1.7,
                        text >= 0.11.1.13 && < 1.2,
                        hssqlppp == 0.5.10,
@@ -19,7 +19,7 @@ executable FixSqlServerTpchSyntax
 
 executable Lex
   main-is:             Lex.lhs
-  build-depends:       base >=4.7 && <4.8,
+  build-depends:       base >= 4 && < 5,
                        uniplate >= 1.6 && < 1.7,
                        text >= 0.11.1.13 && < 1.2,
                        groom >=0.1 && < 0.2,
@@ -30,7 +30,7 @@ executable Lex
 
 executable LexingTest
   main-is:             LexingTest.lhs
-  build-depends:       base >=4.7 && <4.8,
+  build-depends:       base >= 4 && < 5,
                        uniplate >= 1.6 && < 1.7,
                        text >= 0.11.1.13 && < 1.2,
                        attoparsec >= 0.10 && < 0.13,
@@ -41,7 +41,7 @@ executable LexingTest
 
 executable MakeSelect
   main-is:             MakeSelect.lhs
-  build-depends:       base >=4.7 && <4.8,
+  build-depends:       base >= 4 && < 5,
                        uniplate >= 1.6 && < 1.7,
                        text >= 0.11.1.13 && < 1.2,
                        hssqlppp == 0.5.10,
@@ -51,7 +51,7 @@ executable MakeSelect
 
 executable PPPTest
   main-is:             PPPTest.lhs
-  build-depends:       base >=4.7 && <4.8,
+  build-depends:       base >= 4 && < 5,
                        uniplate >= 1.6 && < 1.7,
                        text >= 0.11.1.13 && < 1.2,
                        Diff >= 0.3 && < 0.4,
@@ -63,7 +63,7 @@ executable PPPTest
 
 executable Parse
   main-is:             Parse.lhs
-  build-depends:       base >=4.7 && <4.8,
+  build-depends:       base >= 4 && < 5,
                        uniplate >= 1.6 && < 1.7,
                        text >= 0.11.1.13 && < 1.2,
                        hssqlppp == 0.5.10,
@@ -73,7 +73,7 @@ executable Parse
 
 executable Parse2
   main-is:             Parse2.lhs
-  build-depends:       base >=4.7 && <4.8,
+  build-depends:       base >= 4 && < 5,
                        uniplate >= 1.6 && < 1.7,
                        text >= 0.11.1.13 && < 1.2,
                        groom >=0.1 && < 0.2,
@@ -85,7 +85,7 @@ executable Parse2
 
 executable Parse3
   main-is:             Parse3.lhs
-  build-depends:       base >=4.7 && <4.8,
+  build-depends:       base >= 4 && < 5,
                        uniplate >= 1.6 && < 1.7,
                        text >= 0.11.1.13 && < 1.2,
                        groom >=0.1 && < 0.2,
@@ -97,7 +97,7 @@ executable Parse3
 
 executable QQ
   main-is:             QQ.lhs
-  build-depends:       base >=4.7 && <4.8,
+  build-depends:       base >= 4 && < 5,
                        uniplate >= 1.6 && < 1.7,
                        text >= 0.11.1.13 && < 1.2,
                        hssqlppp == 0.5.10,
@@ -107,7 +107,7 @@ executable QQ
 
 executable Reformat
   main-is:             Reformat.lhs
-  build-depends:       base >=4.7 && <4.8,
+  build-depends:       base >= 4 && < 5,
                        uniplate >= 1.6 && < 1.7,
                        text >= 0.11.1.13 && < 1.2,
                        hssqlppp == 0.5.10,
@@ -117,7 +117,7 @@ executable Reformat
 
 executable ShowCatalog
   main-is:             ShowCatalog.lhs
-  build-depends:       base >=4.7 && <4.8,
+  build-depends:       base >= 4 && < 5,
                        uniplate >= 1.6 && < 1.7,
                        text >= 0.11.1.13 && < 1.2,
                        groom >=0.1 && < 0.2,
@@ -128,7 +128,7 @@ executable ShowCatalog
 
 executable TypeCheck
   main-is:             TypeCheck.lhs
-  build-depends:       base >=4.7 && <4.8,
+  build-depends:       base >= 4 && < 5,
                        uniplate >= 1.6 && < 1.7,
                        text >= 0.11.1.13 && < 1.2,
                        hssqlppp == 0.5.10,
@@ -138,7 +138,7 @@ executable TypeCheck
 
 executable TypeCheck2
   main-is:             TypeCheck2.lhs
-  build-depends:       base >=4.7 && <4.8,
+  build-depends:       base >= 4 && < 5,
                        uniplate >= 1.6 && < 1.7,
                        text >= 0.11.1.13 && < 1.2,
                        hssqlppp == 0.5.10,
@@ -148,7 +148,7 @@ executable TypeCheck2
 
 -- executable TypeCheck3
 --   main-is:             TypeCheck3.lhs
---   build-depends:       base >=4.7 && <4.8,
+--   build-depends:       base >= 4 && < 5,
 --                        uniplate >= 1.6 && < 1.7,
 --                        text >= 0.11.1.13 && < 1.2,
 --                        hssqlppp == 0.5.10,
@@ -158,7 +158,7 @@ executable TypeCheck2
 
 -- executable TypeCheckDB
 --   main-is:             TypeCheckDB.lhs
---   build-depends:       base >=4.7 && <4.8,
+--   build-depends:       base >= 4 && < 5,
 --                        uniplate >= 1.6 && < 1.7,
 --                        text >= 0.11.1.13 && < 1.2,
 --                        hssqlppp == 0.5.10,

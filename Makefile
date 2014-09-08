@@ -36,6 +36,13 @@ test : hssqlppp hssqlppp-th
 # cabal
 # maybe this should change is cabal is unbelievably slow when there is
 # no work to do
+# also: better dependencies might speed things up a bit, I don't know
+# if I am using it completely wrong, but cabal seems to produce a
+# really poor amount of parallelism in the builds making them very
+# slow, and it seems to take absolutely ages on null builds which
+# shows when you want to edit one file, then recompile and run the
+# tests
+
 
 .PHONY : hssqlppp
 hssqlppp : hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs

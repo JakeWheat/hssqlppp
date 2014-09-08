@@ -58,8 +58,8 @@ casts, tables, views and functions.
 Installation
 ============
 
-This project is currently developed on GHC 7.2.1. The automated tests
-are compiled and run on 7.0.4 and 6.12.3 also.
+This project is currently developed on GHC 7.8.3. It has also been
+tested recently with 7.4.2.
 
 To install use
 
