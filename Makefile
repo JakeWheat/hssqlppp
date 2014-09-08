@@ -11,8 +11,8 @@ sandbox :
 	cd examples; cabal sandbox init --sandbox ../sandbox/
 	cd postprocess-uuagc; cabal sandbox init --sandbox ../sandbox/
 	cd build-extras; cabal sandbox init --sandbox ../sandbox/
-	cabal install uuagc-bootstrap uuagc-cabal
-	cabal install uuagc-0.9.39.1
+	cabal install uuagc-bootstrap uuagc-cabal -j
+	cabal install uuagc-0.9.39.1 -j
 	cabal install hssqlppp/ hssqlppp-th/ hssqlppp-pg/ examples/ postprocess-uuagc/ build-extras/ --only-dependencies --enable-tests -j
 
 # TODO: make the sandbox optional and add option to change location of
