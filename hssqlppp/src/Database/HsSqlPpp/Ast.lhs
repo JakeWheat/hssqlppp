@@ -37,6 +37,7 @@
 >     ,JoinExpr(..)
 >     ,JoinType(..)
 >     ,JoinHint(..)
+>     ,QueryHint(..)
 >     ,OnExpr
 >     ,Natural(..)
 >      -- * Statements
@@ -51,7 +52,9 @@
 >     ,RowConstraint(..)
 >     ,Constraint(..)
 >     ,TypeAttributeDef(..)
+>     ,AlterTableOperation(..)
 >     ,AlterTableAction(..)
+>     ,AlterColumnAction(..)
 >     ,TriggerWhen(..)
 >     ,TriggerEvent(..)
 >     ,TriggerFire(..)

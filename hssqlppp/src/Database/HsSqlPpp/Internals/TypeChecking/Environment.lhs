@@ -72,8 +72,8 @@ Alex:
     And I don't implement the rest of this plan either, of course:
       - I convert things to nullable for outer joins, but don't separate between
         condition columns and output columns, of course;
-      - I reverse the order of input environments in listBindingsTypes for the purpose
-        of getting the key types.
+      - For Right Outer Joins, I reverse the order of input environments in listBindingsTypes,
+        for the purpose of getting the key types.
     And now I see that TypeExtra's in join ids are not actually used.
 
 > -- | Represent an environment using an abstracted version of the syntax

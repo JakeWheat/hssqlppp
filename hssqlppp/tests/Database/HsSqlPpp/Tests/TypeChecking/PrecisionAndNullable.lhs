@@ -23,7 +23,7 @@
 >    ,ScalarExprExtra cat1 dnEnv  "dn"  (Right dnType)
 >    ,ScalarExprExtra cat1 dEnv   "d"   (Right dType)
 >    ,ScalarExprExtra cat1 vConcatEnv vConcatExpr (Right vConcatType)
->    ,ScalarExprExtra cat1 vConcatEnv "v||'test12'" (Right $ TypeExtra (ScalarType "text") (Nothing) Nothing False)
+>    ,ScalarExprExtra cat1 vConcatEnv "v||'test12'" (Right $ TypeExtra (ScalarType "text") (Just 12) Nothing False)
 >    ,ScalarExprExtra cat1 vEqEnv vEqExpr (Right vEqType)
 >    ,ScalarExprExtra cat2 a2Env "isnull(an,a)" (Right aType)
 >    ,ScalarExprExtra cat2 anEnv "isnull(an,an)" (Right anType)
@@ -49,10 +49,10 @@
 >                                 ,("b", TypeExtra typeVarChar (Just 7) Nothing False)]
 >
 >
->       ,QueryExpr [CatCreateTable "t" [("a", CatNameExtra "float" (Just 6) (Just 2) False)
->                                      ,("b", CatNameExtra "float" (Just 10) (Just 3) False)]]
+>       ,QueryExpr [CatCreateTable "t" [("a", CatNameExtra "numeric" (Just 6) (Just 2) False)
+>                                      ,("b", CatNameExtra "numeric" (Just 10) (Just 3) False)]]
 >        "select nullif(a,b) as ni from t"
->        $ Right $ CompositeType [("ni", TypeExtra typeFloat8 (Just 6) (Just 2) True)]
+>        $ Right $ CompositeType [("ni", TypeExtra typeNumeric (Just 6) (Just 2) True)]
 >
 >
 >       ,QueryExpr [CatCreateTable "t" [("a", CatNameExtra "float" (Just 10) (Just 2) False)

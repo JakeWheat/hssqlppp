@@ -324,6 +324,7 @@ maybe it should still do this since it would probably be a lot clearer
 >                    <*> orderBy
 >                    <*> option tp (Just <$> limit)
 >                    <*> optionMaybe offset
+>                    <*> option [] hints
 >           return (case intoBit of
 >                       Just f -> Just $ f $ QueryStatement p s
 >                       Nothing -> Nothing
@@ -336,6 +337,7 @@ maybe it should still do this since it would probably be a lot clearer
 >         offset = keyword "offset" *> expr
 >         values = Values <$> (pos <* keyword "values")
 >                         <*> commaSep1 (parens $ commaSep1 expr)
+>         hints = keyword "option" *> (parens $ commaSep1 queryHint)
 
 
 > distinctKeyword :: SParser ()
@@ -346,6 +348,11 @@ maybe it should still do this since it would probably be a lot clearer
 >      keyword "unique"
 >      return ()
 >     ,keyword "distinct"]
+
+> queryHint :: SParser QueryHint
+> queryHint = choice
+>             [QueryHintPartitionGroup <$ keyword "partition" <* keyword "group"
+>             ,QueryHintColumnarCpuGroup <$ keyword "columnar" <* keyword "cpu" <* keyword "group"]
 
 > orderBy :: SParser [(ScalarExpr,Direction)]
 > orderBy = option []
@@ -546,6 +553,8 @@ other dml-type stuff
 >     copt = choice
 >            [CopyFormat <$> (keyword "format" *> idString)
 >            ,CopyDelimiter <$> (keyword "delimiter" *> stringN)
+>            ,try $ CopyErrorLog <$> (keyword "error_log" *> stringN)
+>            ,CopyErrorVerbosity <$> (keyword "error_verbosity" *> (fromIntegral <$> integer))
 >            ]
 >
 > copyData :: SParser Statement
@@ -674,15 +683,51 @@ ddl
 > alterTable = AlterTable <$> (pos <* keyword "table"
 >                              <* optional (keyword "only"))
 >                         <*> name
->                         <*> many1 action
->              where action = choice [
->                              AlterColumnDefault
+>                         <*> operation
+>              where
+>                operation = choice [try renameTable,try renameColumn,actions]
+>                renameTable = RenameTable
+>                              <$> (pos <* keyword "rename" <* keyword "to")
+>                              <*> name
+>                renameColumn = RenameColumn
+>                               <$> (pos <* keyword "rename" <* keyword "column")
+>                               <*> nameComponent
+>                               <*> (keyword "to" *> nameComponent)
+>                actions = AlterTableActions <$> pos <*> commaSep1 action
+>                action = choice [try addColumn
+>                                ,try dropColumn
+>                                ,try alterColumn
+>                                ,addConstraint]
+>                addColumn = AddColumn
+>                            <$> pos
+>                            <*> (keyword "add" *> keyword "column" *> tableAttribute)
+>                dropColumn = DropColumn
+>                             <$> pos
+>                             <*> (keyword "drop" *> keyword "column" *> nameComponent)
+>                alterColumn = AlterColumn
 >                              <$> (pos <* keyword "alter" <* keyword "column")
 >                              <*> nameComponent
->                              <*> (keyword "set" *> keyword "default" *> expr)
->                             ,AddConstraint
->                              <$> (pos <* keyword "add")
->                              <*> tableConstraint]
+>                              <*> alterColumnAction
+>                alterColumnAction = choice [try alterType
+>                                           ,try setNotNull
+>                                           ,try dropNotNull
+>                                           ,try setDefault
+>                                           ,dropDefault]
+>                alterType = SetDataType
+>                            <$> pos
+>                            <*> (keyword "set" *> keyword "data" *> keyword "type" *> typeName)
+>                setNotNull = SetNotNull
+>                             <$> (pos <* keyword "set" <* keyword "not" <* keyword "null")
+>                dropNotNull = DropNotNull
+>                              <$> (pos <* keyword "drop" <* keyword "not" <* keyword "null")
+>                setDefault = SetDefault
+>                             <$> pos
+>                             <*> (keyword "set" *> keyword "default" *> expr)
+>                dropDefault = DropDefault
+>                              <$> (pos <* keyword "drop" <* keyword "default")
+>                addConstraint = AddConstraint
+>                                <$> (pos <* keyword "add")
+>                                <*> tableConstraint
 >
 > createType :: SParser Statement
 > createType = CreateType
@@ -1371,8 +1416,9 @@ bit better
 > tableAB d isB = [[{-binary "." AssocLeft-}]
 >          --[binary "::" (BinOpCall Cast) AssocLeft]
 >          --missing [] for array element select
->         ,[prefix "-" "-"]
->         ,[binary "^" AssocLeft]
+>         ,[prefix "+" "+"] -- Unary plus - Exists in pgsql 9.4
+>         ,[prefix "-" "-"] -- Unary minus
+>         ,[binary "^" AssocLeft] -- Exponent
 >         ,[binary "*" AssocLeft
 >          ,idHackBinary "*" AssocLeft
 >          ,binary "/" AssocLeft
@@ -1381,6 +1427,7 @@ bit better
 >          ,binary "-" AssocLeft]
 >         ,[postfixks ["is", "not", "null"] "isnotnull"
 >          ,postfixks ["is", "null"] "isnull"]
+>          ------- All custom operators must go here:
 >          --other operators all added in this list according to the pg docs:
 >         ,[binary "|" AssocLeft
 >          ,binary "&" AssocLeft]
@@ -1389,25 +1436,26 @@ bit better
 >          ,binary ">=" AssocRight
 >          ,binary "||" AssocLeft]
 >          ++ [prefix "@" "@" | d == PostgreSQLDialect]
+>          -- Stop custom operators.
 >          --in should be here, but is treated as a factor instead
 >          --between
 >          --overlaps
 >         ,[binaryk "like" "like" AssocNone
 >          ,binaryk "rlike" "rlike" AssocNone
->          ,binaryks ["not","like"] "notlike" AssocNone
->          ,binarycust (symbol "!=") "<>" AssocNone]
->          --(also ilike similar)
+>          ,binaryks ["not","like"] "notlike" AssocNone]
 >         ,[binary "<" AssocNone
 >          ,binary ">" AssocNone]
->         ,[binary "=" AssocRight
->          ,binary "<>" AssocNone]
+>          --(also ilike similar)
+>         ,[binary "=" AssocRight]
+>         ,[binary "<>" AssocRight
+>          ,binarycust (symbol "!=") "<>" AssocRight]
 >         ,[notNot
 >          ,prefixk "not" "not"
 >          ]
->         ,let x = [binaryk "or" "or" AssocLeft]
->          in if isB
->             then x
->             else binaryk "and" "and" AssocLeft : x
+>         ,if isB
+>          then []
+>          else [binaryk "and" "and" AssocLeft]
+>         ,[binaryk "or" "or" AssocLeft]
 >          ]
 >     where
 >       binary s = binarycust (symbol s) s
@@ -1908,6 +1956,7 @@ function or type' keywords as function names, maybe there are others)
 >        ,"offset"
 >        ,"on"
 >        ,"only"
+>        ,"option"
 >        ,"or"
 >        ,"order"
 >        ,"outer"
@@ -2208,6 +2257,7 @@ Utility parsers
 >                                _ -> Nothing)
 >                       where
 >                         lcase = T.map toLower
+
 >
 > idString :: SParser String
 > idString = mytoken (\tok -> case tok of

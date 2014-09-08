@@ -181,3 +181,4 @@ sem QueryExpr
                                    @selOrderBy.annotatedTree
                                    @selLimit.annotatedTree
                                    @selOffset.annotatedTree
+                                   @selOption

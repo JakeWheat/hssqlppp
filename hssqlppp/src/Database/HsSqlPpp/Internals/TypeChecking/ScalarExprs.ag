@@ -151,7 +151,7 @@ sem ScalarExpr
 
     | StringLit
         -- string lit type comes from the context
-        loc.tpe = Right $ mkTypeExtraNN UnknownType
+        loc.tpe = Right $ (mkTypeExtraNN UnknownType) {tePrecision = Just $ length @value}
     -- I think a null has the same type resolution as an unknown string lit
     | NullLit
          loc.tpe = Right $ mkTypeExtra UnknownType

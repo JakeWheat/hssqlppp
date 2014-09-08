@@ -1,6 +1,10 @@
 Install on current machine
-
-    cabal install --enable-shared hssqlppp/ hssqlppp-th/
+    Obsolete:
+      cabal install --enable-shared hssqlppp/ hssqlppp-th/
+    Current:
+      1. (if 2. doesn't work right away)
+          source /usr/local/sqream-prerequisites/versions/2.0/bin/use-prerequisites.sh
+      2. cabal install --global --package-db=/usr/local/sqream-prerequisites/package-install/ghc-7.6.3-040514 --prefix=/usr/local/sqream-prerequisites/package-install/cabal-7.6.3-040514 --enable-shared hssqlppp/ hssqlppp-th/
 
 Create distribution files
 
