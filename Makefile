@@ -10,9 +10,10 @@ sandbox :
 	cd hssqlppp-pg; cabal sandbox init --sandbox ../sandbox/
 	cd examples; cabal sandbox init --sandbox ../sandbox/
 	cd postprocess-uuagc; cabal sandbox init --sandbox ../sandbox/
+	cd build-extras; cabal sandbox init --sandbox ../sandbox/
 	cabal install uuagc-bootstrap uuagc-cabal
 	cabal install uuagc-0.9.39.1
-	cabal install hssqlppp/ hssqlppp-th/ hssqlppp-pg/ examples/ postprocess-uuagc/ --only-dependencies --enable-tests -j
+	cabal install hssqlppp/ hssqlppp-th/ hssqlppp-pg/ examples/ postprocess-uuagc/ build-extras/ --only-dependencies --enable-tests -j
 
 # TODO: make the sandbox optional and add option to change location of
 # sandbox
@@ -21,9 +22,9 @@ sandbox :
 
 .PHONY : all
 .DEFAULT : all
-all : sandbox/bin/PostprocessUuagc hssqlppp hssqlppp-th hssqlppp-pg examples test
-# postprocess-uuagc, makedefaulttemplate1cat
-# src extra?
+all : sandbox/bin/PostprocessUuagc hssqlppp hssqlppp-th \
+  hssqlppp-pg sandbox/bin/MakeDefaultTemplate1Catalog \
+  examples test
 
 .PHONY : test
 test : hssqlppp hssqlppp-th
@@ -42,27 +43,30 @@ hssqlppp : hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs
 	-cabal sandbox hc-pkg unregister hssqlppp-pg -- --force
 	-cabal sandbox hc-pkg unregister hssqlppp-th -- --force
 	-cabal sandbox hc-pkg unregister hssqlppp -- --force
-	cd hssqlppp && cabal install
+	cd hssqlppp && cabal install -j
 
 .PHONY : hssqlppp-th
 hssqlppp-th : hssqlppp
 	cd hssqlppp-th && cabal configure --enable-tests && cabal build -j
 	-cabal sandbox hc-pkg unregister hssqlppp-pg -- --force
 	-cabal sandbox hc-pkg unregister hssqlppp-th -- --force
-	cd hssqlppp-th && cabal install
+	cd hssqlppp-th && cabal install -j
 
 .PHONY : hssqlppp-pg
 hssqlppp-pg : hssqlppp-th
 	cd hssqlppp-pg && cabal configure --enable-tests && cabal build -j
 	-cabal sandbox hc-pkg unregister hssqlppp-pg -- --force
-	cd hssqlppp-pg && cabal install
+	cd hssqlppp-pg && cabal install -j
 
 .PHONY : examples
 examples : hssqlppp hssqlppp-th hssqlppp-pg
-	cd examples && cabal configure && cabal build
+	cd examples && cabal configure && cabal build -j
 
 sandbox/bin/PostprocessUuagc :
 	cd postprocess-uuagc && cabal install -j
+
+sandbox/bin/MakeDefaultTemplate1Catalog : hssqlppp-pg
+	cd build-extras && cabal install -j
 
 # make the website
 # the devel-tool is currently broken, it needs fixing first
@@ -118,8 +122,8 @@ hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs : $(AG_FILES) sandbox/bi
 # manually
 
 .PHONY : regenDefaultTemplate1Catalog
-regenDefaultTemplate1Catalog : $(BUILD)/MakeDefaultTemplate1Catalog
-	$(BUILD)/MakeDefaultTemplate1Catalog > \
+regenDefaultTemplate1Catalog : sandbox/bin/MakeDefaultTemplate1Catalog
+	sandbox/bin/MakeDefaultTemplate1Catalog > \
 		hssqlppp/src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs_new
 	mv hssqlppp/src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs_new \
 		hssqlppp/src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs
@@ -132,6 +136,7 @@ clean :
 	cd hssqlppp-pg && cabal clean
 	cd examples && cabal clean
 	cd postprocess-uuagc && cabal clean
+	cd build-extras && cabal clean
 
 .PHONY : clean-sandbox
 clean-sandbox :
@@ -147,6 +152,8 @@ clean-sandbox :
 	-rm -Rf examples/.cabal-sandbox
 	-rm -Rf postprocess-uuagc/cabal.sandbox.config
 	-rm -Rf postprocess-uuagc/.cabal-sandbox
+	-rm -Rf build-extras/cabal.sandbox.config
+	-rm -Rf build-extras/.cabal-sandbox
 
 
 .PHONY : clean-all

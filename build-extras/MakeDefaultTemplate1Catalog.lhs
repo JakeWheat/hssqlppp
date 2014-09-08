@@ -3,17 +3,23 @@
 
 > import Text.Groom
 
-> import Database.HsSqlPpp.Utils.Here
+> import Data.String.Here.Uninterpolated
 > import Database.HsSqlPpp.Utils.CatalogReader
-> import qualified Database.HsSqlPpp.Utils.PgUtils as Pg
 > import qualified Data.Text as T
+> import Control.Exception
+> import qualified Data.ByteString.Char8 as B
+
+> import qualified Database.PostgreSQL.Simple as Pg
+
+> withConn :: String -> (Pg.Connection -> IO c) -> IO c
+> withConn cs = bracket (Pg.connectPostgreSQL $ B.pack cs) Pg.close
 
 > main :: IO ()
 > main = do
 >   let cs = "dbname=template1"
 >   cus <- readCatalogFromDatabase cs
 >   let s = groom cus
->   v <- Pg.withConn cs $ \conn -> do
+>   v <- withConn cs $ \conn -> do
 >          r <- Pg.query_ conn "select version();"
 >          return (head $ head r)
 >   putStrLn $ pre (T.unpack v) ++ "\n" ++
@@ -21,7 +27,7 @@
 
 
 > pre :: String -> String
-> pre v = [here|
+> pre v = [hereLit|
 \begin{code}
 
 This file is auto generated, to regenerate run

@@ -6,13 +6,13 @@
 >     ,tpchCatalog) where
 >
 
-> import Database.HsSqlPpp.Utils.Here
+> import Data.String.Here.Uninterpolated
 > import Database.HsSqlPpp.Catalog
 > --import Database.HsSqlPpp.Types
 
 > tpchQueries :: [(String,String)]
 > tpchQueries =
->   [("Q1",[here|
+>   [("Q1",[hereLit|
 \begin{code}
 select
         l_returnflag,
@@ -39,7 +39,7 @@ order by
 --go
 \end{code}
 >                                     |])
->   ,("Q2",[here|
+>   ,("Q2",[hereLit|
 \begin{code}
 
 select
@@ -89,7 +89,7 @@ order by
 --go
 \end{code}
 >                                     |])
->   ,("Q3",[here|
+>   ,("Q3",[hereLit|
 \begin{code}
 select
         l_orderkey,
@@ -117,7 +117,7 @@ order by
 --go
 \end{code}
 >                                     |])
->   ,("Q4",[here|
+>   ,("Q4",[hereLit|
 \begin{code}
 select
         o_orderpriority,
@@ -144,7 +144,7 @@ order by
 --go
 \end{code}
 >                                     |])
->   ,("Q5",[here|
+>   ,("Q5",[hereLit|
 \begin{code}
 select
         n_name,
@@ -174,7 +174,7 @@ order by
 --go
 \end{code}
 >                                     |])
->   ,("Q6",[here|
+>   ,("Q6",[hereLit|
 \begin{code}
 select
         sum(l_extendedprice * l_discount) as revenue
@@ -189,7 +189,7 @@ where
 --go
 \end{code}
 >                                     |])
->   ,("Q7",[here|
+>   ,("Q7",[hereLit|
 \begin{code}
 select
         supp_nation,
@@ -234,7 +234,7 @@ order by
 --go
 \end{code}
 >                                     |])
->   ,("Q8",[here|
+>   ,("Q8",[hereLit|
 \begin{code}
 select
         o_year,
@@ -278,7 +278,7 @@ order by
 
 \end{code}
 >                                     |])
->   ,("Q9",[here|
+>   ,("Q9",[hereLit|
 \begin{code}
 
 
@@ -319,7 +319,7 @@ order by
 
 \end{code}
 >                                     |])
->   ,("Q10",[here|
+>   ,("Q10",[hereLit|
 \begin{code}
 
 
@@ -359,7 +359,7 @@ order by
 
 \end{code}
 >                                     |])
->   ,("Q11",[here|
+>   ,("Q11",[hereLit|
 \begin{code}
 
 
@@ -395,7 +395,7 @@ order by
 
 \end{code}
 >                                     |])
->   ,("Q12",[here|
+>   ,("Q12",[hereLit|
 \begin{code}
 
 
@@ -432,7 +432,7 @@ order by
 
 \end{code}
 >                                     |])
->   ,("Q13",[here|
+>   ,("Q13",[hereLit|
 \begin{code}
 
 
@@ -461,7 +461,7 @@ order by
 
 \end{code}
 >                                     |])
->   ,("Q14",[here|
+>   ,("Q14",[hereLit|
 \begin{code}
 
 select
@@ -482,7 +482,7 @@ where
 
 \end{code}
 >                                     |])
->   ,("Q15",[here|
+>   ,("Q15",[hereLit|
 \begin{code}
 
 /*create view revenue0 (supplier_no, total_revenue) as
@@ -535,7 +535,7 @@ order by
 
 \end{code}
 >                                     |])
->   ,("Q16",[here|
+>   ,("Q16",[hereLit|
 \begin{code}
 
 
@@ -574,7 +574,7 @@ order by
 
 \end{code}
 >                                     |])
->   ,("Q17",[here|
+>   ,("Q17",[hereLit|
 \begin{code}
 
 
@@ -600,7 +600,7 @@ where
 
 \end{code}
 >                                     |])
->   ,("Q18",[here|
+>   ,("Q18",[hereLit|
 \begin{code}
 
 
@@ -641,7 +641,7 @@ order by
 
 \end{code}
 >                                     |])
->   ,("Q19",[here|
+>   ,("Q19",[hereLit|
 \begin{code}
 
 
@@ -685,7 +685,7 @@ where
 
 \end{code}
 >                                     |])
->   ,("Q20",[here|
+>   ,("Q20",[hereLit|
 \begin{code}
 
 
@@ -731,7 +731,7 @@ order by
 
 \end{code}
 >                                     |])
->   ,("Q21",[here|
+>   ,("Q21",[hereLit|
 \begin{code}
 
 
@@ -779,7 +779,7 @@ order by
 
 \end{code}
 >                                     |])
->   ,("Q22",[here|
+>   ,("Q22",[hereLit|
 \begin{code}
 
 

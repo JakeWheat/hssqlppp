@@ -1,0 +1,18 @@
+Name:                hssqlppp-build-extras
+Version:             0.5.10
+Build-Type:          Simple
+Cabal-Version:       >=1.10
+
+Description:         build some extra utils for working with hssqlppp development
+
+executable MakeDefaultTemplate1Catalog
+  main-is:             MakeDefaultTemplate1Catalog.lhs
+  build-depends:       base >=4.7 && <4.8,
+                       text >= 0.11.1.13 && < 1.2,
+                       groom >=0.1 && < 0.2,
+                       here >= 1.2 && < 1.3,
+                       postgresql-simple >= 0.4 && < 0.5,
+                       bytestring >= 0.10 && < 0.11,
+                       hssqlppp-pg
+  default-language:    Haskell2010
+  ghc-options:         -Wall

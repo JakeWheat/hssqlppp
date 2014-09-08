@@ -14,3 +14,5 @@
 /examples/dist/
 /postprocess-uuagc/dist/
 /postprocess-uuagc/cabal.sandbox.config
+/build-extras/dist/
+/build-extras/cabal.sandbox.config

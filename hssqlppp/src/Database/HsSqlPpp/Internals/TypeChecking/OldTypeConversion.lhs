@@ -25,7 +25,7 @@ seems to do the job reasonably well at the moment so keeps getting put
 off.
 
 
-> {-# LANGUAGE PatternGuards,OverloadedStrings #-}
+> {-# LANGUAGE PatternGuards,OverloadedStrings,NondecreasingIndentation #-}
 > module Database.HsSqlPpp.Internals.TypeChecking.OldTypeConversion (
 >                        findCallMatch
 >                       ,resolveResultSetType
