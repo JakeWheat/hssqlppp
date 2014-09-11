@@ -1,8 +1,7 @@
 
 missing from the web pages:
 
-header
-footer
+rename index.html
 generated test files
 source highlighting ?
 read source filter which does the markdown rendered literal source
@@ -21,7 +20,7 @@ transformed sql renders
 > import Text.Pandoc
 > --import Text.Groom
 > import Control.Arrow
-
+> import Data.DateTime
 > --import Text.DocTool.DocTool
 > --import TestFileProcessor
 > --import DoChaosSql
@@ -31,8 +30,13 @@ transformed sql renders
 > main = do
 >     fs <- getSourceFiles
 >     mds <- mapM readSourceFile fs
->     let mds' = map (first outputFilename) mds
->     mapM_ writef mds'
+>     let v = "0.5.10"
+>     t <- getCurrentTime
+>     let tm = formatDateTime "%D %T" t
+>         ft = "generated on " ++ tm ++ ", hssqlppp-" ++ v
+>         mds' = map (second $ decoratePandoc v ft) mds
+>         mds'' = map (first outputFilename) mds'
+>     mapM_ writef mds''
 
 > writef :: (FilePath,Pandoc) -> IO ()
 > writef (fp,p) = do
@@ -40,10 +44,6 @@ transformed sql renders
 >     let p' = writeHtmlString opt p
 >     createDirectoryIfMissing True $ dropFileName fp
 >     writeFile fp p'
->   where
->     {-opt = def {writerStandalone = True
->               --,writerTableOfContents = True
->               }-}
 
 > getHtmlOpts :: IO WriterOptions
 > getHtmlOpts = do
@@ -51,12 +51,17 @@ transformed sql renders
 >         `fmap` getDefaultTemplate Nothing "html"
 >     return $ def
 >         { writerStandalone = True
+>         , writerTableOfContents = True
 >         , writerTemplate = template
 >         , writerVariables = [
 >             ("css", "main.css")
 >             ]
 >         }
 
+
+> decoratePandoc :: String -> String -> Pandoc -> Pandoc
+> decoratePandoc v ft (Pandoc m b) =
+>     Pandoc m (header v ++ b ++ wfooter ft)
 
 > getSourceFiles :: IO [FilePath]
 > getSourceFiles = find always supportedFileP "website-source"
@@ -67,6 +72,20 @@ transformed sql renders
 > outputFilename :: FilePath -> FilePath
 > outputFilename fp = "build/website/" ++ takeFileName fp ++ ".html"
 
+> readMarkdownFragment :: String -> [Block]
+> readMarkdownFragment s =
+>     case readMarkdown def s of
+>         Pandoc _ b -> b
+
+> header :: String -> [Block]
+> header v = [makeDiv "header" [Plain [Link [Str $ "HsSqlPpp-" ++ v] ("index.html","")]]]
+
+> wfooter :: String -> [Block]
+> wfooter ft = [RawBlock (Format "html") "<br /><br /><br />"
+>              ,makeDiv "footer" $ [Plain [Str ft]]]
+
+> makeDiv :: String -> [Block] -> Block
+> makeDiv cls = Div ("", [cls], [])
 
 > {-makeWebsite :: IO ()
 > makeWebsite = do
