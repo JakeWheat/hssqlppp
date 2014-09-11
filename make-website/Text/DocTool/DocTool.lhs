@@ -1,4 +1,24 @@
 
+Plan to fix the documentation:
+
+the current entire website:
+the website-source files rendered
++ 3 generated files from the automated tests
+
+1. read the website-source files to pandoc internal
+2. generate the automated tests files to pandoc internal
+   refactor the tests completely: how to share stuff between hssqlppp and
+   hssqlppp-th?
+3. generate html from these
+4. add the transforms and tweaks at the pandoc internal level:
+  add header and footer
+  process the non standard markdown headers with =
+5. fix the syntax highlighting, pandoc should be fast enough now?
+
+6. get h7c working somehow, and redo the crazy rendering of this. I
+think this is more performance art than real programming because it is
+mental.
+
 > {-# LANGUAGE PatternGuards #-}
 > module Text.DocTool.DocTool
 >     (OutputFile(..)
@@ -8,16 +28,20 @@
 >     ,docify) where
 
 > import Text.Pandoc
-> import Text.XHtml.Transitional hiding (toHtml)
+> --import Text.XHtml.Transitional hiding (toHtml)
 > import System.FilePath
 > import System.Directory
 > import Debug.Trace
-> import Text.Highlighting.Illuminate
+> --import Text.Highlighting.Illuminate
 > import Data.DateTime
 > import Control.Concurrent
 > import Data.List
 > import Control.Exception
-
+> import Text.Groom
+> import qualified Text.Pandoc.Builder as P
+> import qualified Data.Set as S
+> import Data.String
+> import Text.Blaze.Html
 
 > import Text.DocTool.Parser as Parser
 
@@ -55,9 +79,9 @@
 
 =========================================================
 
-> {-ppPandoc :: OutputFile -> IO String
+> ppPandoc :: OutputFile -> IO String
 > ppPandoc (OutputFile s t _ _) =
->     asText s >>= return . (toPandoc t |> ppExpr)-}
+>     asText s >>= return . (toPandoc t |> groom)
 
 > asText :: Source -> IO String
 > asText (File fp) = readFile fp
@@ -76,18 +100,16 @@
 >                  H -> readSource "/*" "*/" "c" s
 
 > setTitle :: String -> Pandoc -> Pandoc
-> setTitle t (Pandoc m bs) = Pandoc m' bs
->     where
->       m' = m {docTitle = [Str t]}
+> setTitle t m = P.setTitle (P.fromList [Str t]) m
 
 > toHtml :: Pandoc -> Html
-> toHtml pa = writeHtml defaultWriterOptions {writerLiterateHaskell = True} highlightCode
+> toHtml pa = writeHtml def {writerExtensions = S.fromList [Ext_literate_haskell]} highlightCode
 >     where
 >       highlightCode = case pa of
 >                           Pandoc m bs -> Pandoc m (map hi bs)
 >       hi (CodeBlock a b) | Just t <- getType a b =
 >          case illuminate t b of
->            Right result -> RawBlock "html" $ getPres a ++ result ++ getClosePres a
+>            Right result -> RawBlock (fromString "html") $ getPres a ++ result ++ getClosePres a
 >            Left  err    -> error $ "Could not parse input: " ++ err
 >       hi x = x
 >       getClasses (_,x,_) = x
@@ -107,7 +129,7 @@
 
 > wrapHtmlFragment :: String -> Html -> Html
 > wrapHtmlFragment ti h =
->   header << [t,c]
+>   P.header << [t,c]
 >   +++ body << h
 >   where
 >     t = thetitle << ti
@@ -187,13 +209,13 @@ try illuminate, need to write sql highlighter?
 
 > -- pure wrappers to do various rendering
 > readMd :: String -> Pandoc
-> readMd = readMarkdown defaultParserState
+> readMd = readMarkdown def
 >
 > readLhs :: String -> Pandoc
 > readLhs = readMarkdown ropt
 >   where
->     ropt = defaultParserState {
->             stateLiterateHaskell = True
+>     ropt = def {
+>               readerExtensions = S.fromList [Ext_literate_haskell]
 >            }
 
 
@@ -207,10 +229,10 @@ try illuminate, need to write sql highlighter?
 >       convl cs = w $ concatMap conv cs
 >       conv :: Cc -> [Block]
 >       conv (Parser.Code c) = cb c
->       conv (Comments m) = case readMarkdown defaultParserState m of
+>       conv (Comments m) = case readMarkdown def m of
 >                            Pandoc _ b -> b
 >       cb s = [CodeBlock ("", ["sourceCode", "literate", ty], []) s]
->       w = Pandoc Meta {docTitle = [], docAuthors = [], docDate = []}
+>       w = Pandoc nullMeta
 
 todo:
 do hack for =,==,etc. headers
@@ -227,11 +249,11 @@ navigation, sitemap, breadcrumbs
 ================================================
 
 > illuminate :: String -> String -> Either String String
-> illuminate ty txt = do
+> illuminate ty txt = Right txt {- do
 >     let lexer = lexerByName ty
 >     tokens <- tokenize lexer txt
 >     let html = toXHtmlCSS defaultOptions tokens
->     return $ showHtmlFragment html
+>     return $ showHtmlFragment html -}
 
 
 > replace :: (Eq a) => [a] -> [a] -> [a] -> [a]

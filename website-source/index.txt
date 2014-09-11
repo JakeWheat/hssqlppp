@@ -95,20 +95,6 @@ doesn't parse/typecheck correctly where relevant.
 
 <https://github.com/JakeWheat/hssqlppp/issues>
 
-
-Provisional future plans
-========================
-
-* parameterized statements/typesafe haskell access
-* some simple syntax extension support for SQL
-* a 'compiler' command to help developing SQL
-* parse most Postgres syntax, possibly other SQL dialects as well
-* improve the typechecker - fix current regressions, get more sql type
-  checking correctly
-* improve the catalog - add more checking, more item types
-* improve the quasi-quoting - is a bit ad hoc and limited at the moment
-* documentation generator for SQL codebases
-
 Contact
 =======
 

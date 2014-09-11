@@ -10,8 +10,8 @@ examples.
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Utils.Here
 > import Text.Groom
-> import Database.HsSqlPpp.Tests.Parsing.ParserTests as PT
-> import Database.HsSqlPpp.Tests.TypeChecking.TypeCheckTests as TT
+> --import Database.HsSqlPpp.Tests.Parsing.ParserTests as PT
+> --import Database.HsSqlPpp.Tests.TypeChecking.TypeCheckTests as TT
 > import Language.Haskell.Exts hiding (String)
 > --import qualified Language.Haskell.Exts as Exts
 > --import Data.Generics
@@ -26,10 +26,10 @@ examples.
 >           | Haskell String
 >
 > parserTestsTable :: String
-> parserTestsTable = parserIntro ++ rowsToHtml (mapParserTests PT.parserTestData)
+> parserTestsTable = "" -- parserIntro ++ rowsToHtml (mapParserTests PT.parserTestData)
 >
 > typeCheckTestsTable :: String
-> typeCheckTestsTable = typeCheckIntro ++ rowsToHtml (mapTypeCheckTests TT.typeCheckTestData)
+> typeCheckTestsTable = "" {- typeCheckIntro ++ rowsToHtml (mapTypeCheckTests TT.typeCheckTestData)
 >
 
 >
@@ -84,12 +84,12 @@ compile time.
 >     tToH (Haskell s) = code "haskell" s
 >     code t s = "\n\n~~~~~~{." ++ t ++ "}\n"
 >                ++ trim s
->                ++ "\n~~~~~~\n\n"
+>                ++ "\n~~~~~~\n\n" -}
 
 -------------------------------------------------------------------------------
 
 > quasiQuoteTestsTable :: IO String
-> quasiQuoteTestsTable = do
+> quasiQuoteTestsTable = return "" {-do
 >
 >   ast <- pf "src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs"
 >   let lets = [l | l@(Let _ _) <- universeBi ast]
@@ -147,4 +147,7 @@ compile time.
 > |]
 
 source/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs.html)
+
+
+> -}
 

@@ -11,8 +11,13 @@ sandbox :
 	cd examples; cabal sandbox init --sandbox ../sandbox/
 	cd postprocess-uuagc; cabal sandbox init --sandbox ../sandbox/
 	cd build-extras; cabal sandbox init --sandbox ../sandbox/
+	cd make-website && cabal sandbox init --sandbox ../sandbox/
 	cabal install happy -j
 	cabal install hssqlppp/ hssqlppp-th/ hssqlppp-pg/ examples/ postprocess-uuagc/ build-extras/ --only-dependencies --enable-tests -j --constraint "Cabal==1.18.1.3"
+
+.PHONY : sandbox-website
+sandbox-website : hssqlppp hssqlppp-th
+	cabal install --only-dependencies make-website/
 
 # TODO: make the sandbox optional and add option to change location of
 # sandbox
@@ -74,19 +79,27 @@ sandbox/bin/PostprocessUuagc :
 sandbox/bin/MakeDefaultTemplate1Catalog : hssqlppp-pg
 	cd build-extras && cabal install -j
 
+make-website/dist/build/MakeWebsite/MakeWebsite :
+	cd make-website && cabal build -j
+
 # make the website
 # the devel-tool is currently broken, it needs fixing first
-#website : src-extra/docutil/DevelTool
-#	src-extra/docutil/DevelTool makewebsite +RTS -N
+.PHONY : website
+website : make-website/dist/build/MakeWebsite/MakeWebsite build/website/main.css
+	make-website/dist/build/MakeWebsite/MakeWebsite
+
+build/website/main.css : website-source/main.css
+	-mkdir -p build/website/
+	cp website-source/main.css build/website/main.css
 
 # make the haddock and put in the correct place in the generated
 # website
-#website-haddock :
-#	cabal configure
-#	cabal haddock
-#	-mkdir hssqlppp
-#	-rm -Rf hssqlppp/haddock
-#	mv dist/doc/html/hssqlppp hssqlppp/haddock
+.PHONY : website-haddock
+website-haddock :
+	cd hssqlppp && cabal configure && cabal haddock
+	-mkdir -p build/website
+	-rm -Rf build/website/haddock
+	cp -R hssqlppp/dist/doc/html/hssqlppp build/website/haddock
 
 .PHONY : sdists
 sdists :
@@ -143,6 +156,8 @@ clean :
 	cd examples && cabal clean
 	cd postprocess-uuagc && cabal clean
 	cd build-extras && cabal clean
+	cd make-website && cabal clean
+	rm -Rf build
 
 .PHONY : clean-sandbox
 clean-sandbox :
@@ -160,6 +175,7 @@ clean-sandbox :
 	-rm -Rf postprocess-uuagc/.cabal-sandbox
 	-rm -Rf build-extras/cabal.sandbox.config
 	-rm -Rf build-extras/.cabal-sandbox
+	-rm make-website/cabal.sandbox.config
 
 
 .PHONY : clean-all

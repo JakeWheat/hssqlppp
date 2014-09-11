@@ -22,24 +22,20 @@ make sandbox
 to initialize the shared cabal sandbox, and then
 
 ~~~~
-make hssqlppp
+make test
 ~~~~
 
-To build the main library. This also builds the cabal tests for this
-library, and installs the library into the sandbox.
+To build all the code and run the tests.
 
-You can also build all the code, the tests and the examples using
+Additional notes
+================
 
-~~~~
-make all
-~~~~
+If you want to do something more complicated, look at the Makefile. It
+is pretty simple, and mainly just strings the various cabal projects
+together and uses cabal to do all the real work.
 
-All of these builds will use the cabal sandbox if you run make sandbox
-first. You don't need to rerun make sandbox unless you change the
-packages in the cabal files.
-
-uuagc
-=====
+generated files
+---------------
 
 The .ag files are processed to produce a single file,
 AstInternal.hs. The makefile should handle this automatically. You can
@@ -62,18 +58,6 @@ make regenDefaultTemplate1Catalog
 This takes the catalog information from a local install of
 postgres. The latest version which has been checked with hssqlppp is
 9.1.something.
-
-Build and run the tests
-=======================
-
-You can build and run the tests using the makefile. You should run
-make sandbox first if you haven't already, then run:
-
-~~~~~
-make tests
-~~~~~
-
-This is a good target to use in your edit/compile/test cycle.
 
 Background reading
 ==================

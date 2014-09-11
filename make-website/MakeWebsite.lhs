@@ -1,23 +1,74 @@
 
-Used to build the website. To compile and run use
+missing from the web pages:
 
-make website
+header
+footer
+generated test files
+source highlighting ?
+read source filter which does the markdown rendered literal source
+header fixup
+source file renders
+transformed sql renders
 
-> module MakeWebsite (makeWebsite, sourceLinks) where
-
+> {-# LANGUAGE TupleSections #-}
 > import System.FilePath.Find
 > import System.FilePath
-> import Data.Char
+> --import Data.Char
 > import System.Directory
-> import Control.Monad
+> --import Control.Monad
 > --import System.Environment
-> import Data.List hiding (find)
+> --import Data.List hiding (find)
+> import Text.Pandoc
+> --import Text.Groom
+> import Control.Arrow
 
-> import Text.DocTool.DocTool
-> import TestFileProcessor
+> --import Text.DocTool.DocTool
+> --import TestFileProcessor
 > --import DoChaosSql
 
-> makeWebsite :: IO ()
+
+> main :: IO ()
+> main = do
+>     fs <- getSourceFiles
+>     mds <- mapM readSourceFile fs
+>     let mds' = map (first outputFilename) mds
+>     mapM_ writef mds'
+
+> writef :: (FilePath,Pandoc) -> IO ()
+> writef (fp,p) = do
+>     opt <- getHtmlOpts
+>     let p' = writeHtmlString opt p
+>     createDirectoryIfMissing True $ dropFileName fp
+>     writeFile fp p'
+>   where
+>     {-opt = def {writerStandalone = True
+>               --,writerTableOfContents = True
+>               }-}
+
+> getHtmlOpts :: IO WriterOptions
+> getHtmlOpts = do
+>     template <- either (error . show) id
+>         `fmap` getDefaultTemplate Nothing "html"
+>     return $ def
+>         { writerStandalone = True
+>         , writerTemplate = template
+>         , writerVariables = [
+>             ("css", "main.css")
+>             ]
+>         }
+
+
+> getSourceFiles :: IO [FilePath]
+> getSourceFiles = find always supportedFileP "website-source"
+
+> readSourceFile :: FilePath -> IO (FilePath,Pandoc)
+> readSourceFile f = (f,) `fmap` readMarkdown def `fmap` readFile f
+
+> outputFilename :: FilePath -> FilePath
+> outputFilename fp = "build/website/" ++ takeFileName fp ++ ".html"
+
+
+> {-makeWebsite :: IO ()
 > makeWebsite = do
 >           f <- fileList
 >           docify "hssqlppp/" f
@@ -78,7 +129,7 @@ make website
 >                           ++ case ft fn of
 >                                Css -> ""
 >                                _ -> ".html")
->                          (takeBaseName fn)
+>                          (takeBaseName fn) -}
 
 
 > supportedFileP :: FindClause Bool
@@ -93,7 +144,7 @@ make website
 >                  ||? extension ==? ".chs"
 
 
-> sourceLinks :: IO ()
+> {-sourceLinks :: IO ()
 > sourceLinks = do
 >   fns <- find always supportedFileP "."
 >   mapM_ putStrLn $ sortBy sf fns
@@ -111,7 +162,7 @@ make website
 >            compareLists (c:cs) (d:ds) = case compare c d of
 >                                           LT -> LT
 >                                           GT -> GT
->                                           EQ -> compareLists cs ds
+>                                           EQ -> compareLists cs ds-}
 
 
 comparing splitDirectories a b

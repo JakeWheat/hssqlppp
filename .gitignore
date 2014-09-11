@@ -16,3 +16,5 @@
 /postprocess-uuagc/cabal.sandbox.config
 /build-extras/dist/
 /build-extras/cabal.sandbox.config
+/make-website/cabal.sandbox.config
+/make-website/dist/

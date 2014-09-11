@@ -1,6 +1,12 @@
 get website/ tool working again with new build instructions
   for 0.4.x as well
-get regen catalog working with pg 9.4
+refactor the tests so that all the tests are formed into a big data
+   tree before being turning into testcase code
+
+
+
+get regen catalog working with pg 9.4: just fixing the new anyrange
+   stuff?
 
 review all the code for old bits and stuff which needs reorganising
 
