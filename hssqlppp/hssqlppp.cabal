@@ -79,7 +79,6 @@ Library
   default-language:    Haskell2010
   ghc-options:         -Wall
 
-
 Test-Suite Tests
     type:       exitcode-stdio-1.0
     main-is:    Tests.lhs
@@ -99,7 +98,6 @@ Test-Suite Tests
                        text >= 0.11.1.13 && < 1.2,
                        uniplate >= 1.6 && < 1.7,
                        transformers >= 0.3 && < 0.5,
-                       here >= 1.2 && < 1.3,
                        groom >=0.1 && < 0.2
 
                      -- rough start:
@@ -158,7 +156,7 @@ Test-Suite Tests
                      Database.HsSqlPpp.Tests.Parsing.ParserTests
                      Database.HsSqlPpp.Tests.Parsing.LexerTests
                      Database.HsSqlPpp.Tests.TpchData
-                     --Database.HsSqlPpp.Tests.TestUtils
+                     Database.HsSqlPpp.Utils.Here
 
   default-extensions:  TupleSections
                        DeriveDataTypeable,

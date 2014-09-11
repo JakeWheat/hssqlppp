@@ -3,7 +3,7 @@
 >
 > module Database.HsSqlPpp.Tests.Parsing.ScalarExprs (scalarExprs) where
 >
-> import Data.String.Here.Uninterpolated
+> import Database.HsSqlPpp.Utils.Here
 >
 > import Database.HsSqlPpp.Ast
 
@@ -151,7 +151,7 @@ test some more really basic expressions
 >      ]
 
 >    ,Group "case expressions" [
->       e [hereLit|
+>       e [here|
 >          case when a,b then 3
 >               when c then 4
 >               else 5

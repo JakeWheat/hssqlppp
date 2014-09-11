@@ -19,7 +19,7 @@ There is a Makefile to help with developing hssqlppp. You can use:
 make sandbox
 ~~~~
 
-to initialize the shared sandbox, and then
+to initialize the shared cabal sandbox, and then
 
 ~~~~
 make hssqlppp
@@ -43,9 +43,14 @@ uuagc
 
 The .ag files are processed to produce a single file,
 AstInternal.hs. The makefile should handle this automatically. You can
-also call 'make
-hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs' to regenerate
-manually.
+also use
+
+~~~~
+mv hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs.bak
+make hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs
+~~~~
+
+to force regenerate it manually.
 
 There is one further generated file, DefaultTemplate1Catalog.lhs. You
 don't usually need to regenerate this, but this is how you do it:
@@ -53,6 +58,10 @@ don't usually need to regenerate this, but this is how you do it:
 ~~~~~
 make regenDefaultTemplate1Catalog
 ~~~~~
+
+This takes the catalog information from a local install of
+postgres. The latest version which has been checked with hssqlppp is
+9.1.something.
 
 Build and run the tests
 =======================

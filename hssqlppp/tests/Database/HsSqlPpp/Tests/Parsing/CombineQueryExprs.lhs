@@ -4,7 +4,7 @@
 >
 > module Database.HsSqlPpp.Tests.Parsing.CombineQueryExprs (combineQueryExprs) where
 >
-> import Data.String.Here.Uninterpolated
+> import Database.HsSqlPpp.Utils.Here
 >
 > import Database.HsSqlPpp.Ast
 
@@ -36,13 +36,13 @@
 >       $ cq Union (cq Union (sel 1) (sel 2)) (sel 3)
 >    ,q "select 1 union (select 2 union select 3);"
 >       $ cq Union (sel 1) (cq Union (sel 2) (sel 3))
->    ,q [hereLit|
+>    ,q [here|
 >          with a as (select a from tbl),
 >               b as (select a from tbl1)
 >               select 1; |]
 >          $ with [("a",stbl)
 >                 ,("b",stbl1)] $ sel 1
->    ,q [hereLit|
+>    ,q [here|
 >          with a as (select a from tbl),
 >               b as (select a from tbl1)
 >               select 1

@@ -3,7 +3,7 @@
 
 > import Text.Groom
 
-> import Data.String.Here.Uninterpolated
+> import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Utils.CatalogReader
 > import qualified Data.Text as T
 > import Control.Exception
@@ -27,7 +27,7 @@
 
 
 > pre :: String -> String
-> pre v = [hereLit|
+> pre v = [here|
 \begin{code}
 
 This file is auto generated, to regenerate run
