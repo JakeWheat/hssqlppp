@@ -13,6 +13,7 @@ executable MakeDefaultTemplate1Catalog
                        groom >=0.1 && < 0.2,
                        postgresql-simple >= 0.4 && < 0.5,
                        bytestring >= 0.10 && < 0.11,
+                       template-haskell,
                        hssqlppp-pg
   default-language:    Haskell2010
   ghc-options:         -Wall

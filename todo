@@ -1,8 +1,19 @@
+fix website
+refactor tests
+
 get website/ tool working again with new build instructions
   for 0.4.x as well
-refactor the tests so that all the tests are formed into a big data
-   tree before being turning into testcase code
+review docs, note about Cabal and the sandbox
+add generated tests
 
+speed up rebuilds in makefile
+
+
+get h7c compiling + chaos sql working again, quick hack
+review how to get the rendered version of this working again
+
+fix compile warnings: ask the perpetrators to do this
+upgrade to new uuagc
 
 
 get regen catalog working with pg 9.4: just fixing the new anyrange
@@ -10,34 +21,16 @@ get regen catalog working with pg 9.4: just fixing the new anyrange
 
 review all the code for old bits and stuff which needs reorganising
 
-bootstrap to complete rewrite using simple-sql-parser:
-1st get simple-sql-parser to the stage where it can replace the syntax
-   and parsing in this package
-then start from scratch with the .ag code in a new branch
-things to do better this time:
-  precision and scalability
-  nullability
-  dialects
-  error messages
 
 --------------------------------------------------------
 
-next releases rough plan:
-2
-either a)
-  nullable typechecking
-  typesafe haskell access
-or b)
-  rewrite the parser, syntax, uuagc from scratch (use attoparsec or
-     uu-parsinglib?)
-then the other one
+
+
+
+
 
 review source documentation
 qualify imports
-group by type checker
-error handling
-unique ids for identifiers/nodes
-complete typechecking for crud
 better framework for supporting pg, mssql, oracle (+db2) syntax?
   conversion between different syntax helpers
 syntax review + syntax fixes + compare with official sql grammar?
