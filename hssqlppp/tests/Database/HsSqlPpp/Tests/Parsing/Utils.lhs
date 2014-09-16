@@ -7,14 +7,14 @@ shortcuts for constructing test data and asts
 > module Database.HsSqlPpp.Tests.Parsing.Utils where
 
 > import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.LexicalSyntax (Token)
+> --import Database.HsSqlPpp.LexicalSyntax (Token)
 > import Database.HsSqlPpp.Annotation
 > import qualified Data.Text as T
 > import Data.Text (Text)
-> import qualified Data.Text.Lazy as L
+> --import qualified Data.Text.Lazy as L
 > import Control.Arrow
-> import Database.HsSqlPpp.SqlDialect
-> import Database.HsSqlPpp.Tests.TestTypes
+> --import Database.HsSqlPpp.SqlDialect
+> --import Database.HsSqlPpp.Tests.TestTypes
 
 > stringQ :: Text -> ScalarExpr
 > stringQ = StringLit ea . T.unpack
@@ -124,8 +124,8 @@ shortcuts for constructing test data and asts
 > usingInnerJoin a b us = JoinTref ea a Unnatural Inner Nothing b
 >                            (Just $ JoinUsing ea $ map (Nmc . T.unpack) us)
 
-> join :: TableRef -> JoinType -> TableRef -> Maybe ScalarExpr -> TableRef
-> join a b c o = JoinTref ea a Unnatural b Nothing c (fmap (JoinOn ea) o)
+> tjoin :: TableRef -> JoinType -> TableRef -> Maybe ScalarExpr -> TableRef
+> tjoin a b c o = JoinTref ea a Unnatural b Nothing c (fmap (JoinOn ea) o)
 
 > with :: [(Text,QueryExpr)] -> QueryExpr -> QueryExpr
 > with ws e =

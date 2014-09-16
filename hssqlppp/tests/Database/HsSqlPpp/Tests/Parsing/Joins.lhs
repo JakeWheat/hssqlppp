@@ -26,59 +26,59 @@ a using or on clause. maybe the syntax should be fixed to represent
 this?
 
 >   ,q "select a from t1 left outer join t2"
->    stbl {selTref = [join (tref "t1") LeftOuter (tref "t2") Nothing]}
+>    stbl {selTref = [tjoin (tref "t1") LeftOuter (tref "t2") Nothing]}
 >   ,q "select a from t1 right outer join t2"
->    stbl {selTref = [join (tref "t1") RightOuter (tref "t2") Nothing]}
+>    stbl {selTref = [tjoin (tref "t1") RightOuter (tref "t2") Nothing]}
 >   ,q "select a from t1 full outer join t2"
->    stbl {selTref = [join (tref "t1") FullOuter (tref "t2") Nothing]}
+>    stbl {selTref = [tjoin (tref "t1") FullOuter (tref "t2") Nothing]}
 >   ,q "select a from t1 cross join t2"
->    stbl {selTref = [join (tref "t1") Cross (tref "t2") Nothing]}
+>    stbl {selTref = [tjoin (tref "t1") Cross (tref "t2") Nothing]}
 >   ,q "select a from t1 join t2"
->    stbl {selTref = [join (tref "t1") Inner (tref "t2") Nothing]}
+>    stbl {selTref = [tjoin (tref "t1") Inner (tref "t2") Nothing]}
 >   ,q "select a from (b natural join c);"
 >    stbl {selTref = [tfp $ naturalInnerJoin (tref "b") (tref "c")]}
 
 >   ,q "select a from a cross join b cross join c;"
->    stbl {selTref = [join
->                     (join (tref "a") Cross (tref "b") Nothing)
+>    stbl {selTref = [tjoin
+>                     (tjoin (tref "a") Cross (tref "b") Nothing)
 >                     Cross
 >                     (tref "c") Nothing]}
 >   ,q "select a from (a cross join b) cross join c;"
->    stbl {selTref = [join
->                     (tfp $ join (tref "a") Cross (tref "b") Nothing)
+>    stbl {selTref = [tjoin
+>                     (tfp $ tjoin (tref "a") Cross (tref "b") Nothing)
 >                     Cross
 >                     (tref "c") Nothing]}
 >   ,q "select a from ((a cross join b) cross join c);"
->    stbl {selTref = [tfp $ join
->                     (tfp $ join (tref "a") Cross (tref "b") Nothing)
+>    stbl {selTref = [tfp $ tjoin
+>                     (tfp $ tjoin (tref "a") Cross (tref "b") Nothing)
 >                     Cross
 >                     (tref "c") Nothing]}
 
 >   ,q "select a from a cross join (b cross join c);"
->    stbl {selTref = [join
+>    stbl {selTref = [tjoin
 >                     (tref "a") Cross
->                     (tfp $ join (tref "b") Cross (tref "c") Nothing)
+>                     (tfp $ tjoin (tref "b") Cross (tref "c") Nothing)
 >                     Nothing]}
 
 >   ,q "select a from (a cross join (b cross join c));"
->    stbl {selTref = [tfp $ join
+>    stbl {selTref = [tfp $ tjoin
 >                     (tref "a") Cross
->                     (tfp $ join (tref "b") Cross (tref "c") Nothing)
+>                     (tfp $ tjoin (tref "b") Cross (tref "c") Nothing)
 >                     Nothing]}
 
 >   ,q "select a from ((a cross join b) cross join c) cross join d;"
->    stbl {selTref = [join
->                     (tfp $ join
->                      (tfp $ join (tref "a") Cross (tref "b") Nothing)
+>    stbl {selTref = [tjoin
+>                     (tfp $ tjoin
+>                      (tfp $ tjoin (tref "a") Cross (tref "b") Nothing)
 >                      Cross
 >                      (tref "c") Nothing)
 >                     Cross
 >                     (tref "d") Nothing]}
 
 >   ,q "select a from a cross join b cross join c cross join d;"
->    stbl {selTref = [join
->                     (join
->                      (join (tref "a") Cross (tref "b") Nothing)
+>    stbl {selTref = [tjoin
+>                     (tjoin
+>                      (tjoin (tref "a") Cross (tref "b") Nothing)
 >                      Cross
 >                      (tref "c") Nothing)
 >                     Cross

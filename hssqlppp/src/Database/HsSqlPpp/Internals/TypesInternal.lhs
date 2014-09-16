@@ -12,8 +12,9 @@ notes on what the types are for and how they are used in postgres.
 > import Data.Text (Text)
 > import qualified Data.Text as T
 >
-> import Control.Monad.Error
-> import Control.Monad.Trans.Error
+> --import Control.Monad.Error
+> --import Control.Monad.Except
+> --import Control.Monad.Trans.Except
 
 where should precision and nullability go?
 
@@ -170,8 +171,8 @@ gutted and rewritten
 >                | AmbiguousIdentifier Text
 >                  deriving (Eq,Show,Ord,Typeable,Data)
 >
-> instance ErrorList TypeError where
->   listMsg s = [InternalError s]
+> --instance ErrorList TypeError where
+> --  listMsg s = [InternalError s]
 
 > -- | Using these gives the hssqlppp canonical names of these
 > -- types, which have multiple names in postgres and SQL. The names which

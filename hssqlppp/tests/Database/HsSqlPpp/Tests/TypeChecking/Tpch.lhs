@@ -6,7 +6,7 @@ moment.
 > module Database.HsSqlPpp.Tests.TypeChecking.Tpch
 >     (tpch) where
 > import Database.HsSqlPpp.Internals.TypesInternal
-> import Database.HsSqlPpp.Types
+> --import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Tests.TpchData
 > import Database.HsSqlPpp.Tests.TestTypes
 > import qualified Data.Text.Lazy as L

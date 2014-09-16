@@ -153,9 +153,9 @@ Conversion routines - convert Sql asts into Docs
 >     $+$ nest 2 (vcat (csv (map (attrDef flg) atts ++ map (constraint flg) cns)))
 >     $+$ rparen <> statementEnd se
 >
-> statement flg se ca (AlterTable ann nm op) =
+> statement flg se ca (AlterTable ann tnm op) =
 >     annot ca ann <+>
->     text "alter table" <+> name nm
+>     text "alter table" <+> name tnm
 >     <+> alterOperation op <> statementEnd se
 >     where
 >       alterOperation (RenameTable _ nm) = 
@@ -746,6 +746,7 @@ syntax maybe should error instead of silently breaking
 >                         IfExists -> text "if exists"
 >
 
+> attrDef :: PrettyPrintFlags -> AttributeDef -> Doc
 > attrDef flg (AttributeDef _ n t def cons) =
 >   nmc n <+> typeName t
 >   <+> maybePrint (\e -> text "default" <+> scalExpr flg e) def
@@ -813,9 +814,13 @@ syntax maybe should error instead of silently breaking
 >     ,ppPrec "precision" (tePrecision te)
 >     ,ppPrec "scale" (teScale te)
 >     ,ppNullability (teNullable te)]
+
+> ppPrec :: String -> Maybe Int -> Doc
 > ppPrec precType prec = case prec of
 >     Nothing -> text $ "no " ++ precType
 >     Just p -> text $ precType ++ ' ':show p
+
+> ppNullability :: Bool -> Doc
 > ppNullability n = text $ (if n then "" else "not ") ++ "nullable"
 >
 > -- expressions

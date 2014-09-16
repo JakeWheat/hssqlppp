@@ -470,7 +470,7 @@ queries
 > getCatName ncs = case last ncs of
 >                                Nmc n -> T.pack $ map toLower n
 >                                QNmc n -> T.pack n
-
+>                                AntiNameComponent x -> error $ "anti name component in getCatName " ++ x
 
 > -- | takes a [NameComponent] and returns the type for that name
 > -- will return a type not recognised if the type isn't in the catalog

@@ -4,31 +4,31 @@
 > import Database.HsSqlPpp.LexicalSyntax (Token)
 > import Database.HsSqlPpp.Annotation
 > import qualified Data.Text as T
-> import Data.Text (Text)
+> --import Data.Text (Text)
 > import qualified Data.Text.Lazy as L
-> import Control.Arrow
+> --import Control.Arrow
 > import Database.HsSqlPpp.SqlDialect
-> import Test.HUnit
-> import Test.Framework.Providers.HUnit
-> import Test.Framework
+> --import Test.HUnit
+> --import Test.Framework.Providers.HUnit
+> --import Test.Framework
 > --import Data.List
 > --import Data.Generics.Uniplate.Data
-> import Database.HsSqlPpp.Parser
+> --import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.TypeChecker
-> import Database.HsSqlPpp.Annotation
+> --import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Catalog
 > --import Database.HsSqlPpp.Ast hiding (App)
 > import Database.HsSqlPpp.Types
-> import Database.HsSqlPpp.Pretty
-> import Database.HsSqlPpp.Utility
+> --import Database.HsSqlPpp.Pretty
+> --import Database.HsSqlPpp.Utility
 > import Database.HsSqlPpp.Internals.TypeChecking.Environment
 > --import Text.Groom
-> import Debug.Trace
+> --import Debug.Trace
 > --import Database.HsSqlPpp.Tests.TestUtils
-> import Control.Monad
+> --import Control.Monad
 
-> import Database.HsSqlPpp.Utils.GroomUtils
-> import qualified Data.Text.Lazy as L
+> --import Database.HsSqlPpp.Utils.GroomUtils
+> --import qualified Data.Text.Lazy as L
 
 > data Item = Group String [Item]
 >           | Expr L.Text ScalarExpr

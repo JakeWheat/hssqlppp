@@ -393,7 +393,7 @@ use listBindingsTypes to implement expandstar and lookupid
 >                         else new
 >     noLower (QNmc n) = T.pack n
 >     noLower (Nmc n) = T.pack n
-
+>     noLower (AntiNameComponent n) = error $ "bad antinamecomponent in Environment.envLookupIdentifier.noLower " ++ n
 
 --------------------------
 adding for plpgsql notes:

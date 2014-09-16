@@ -5,7 +5,7 @@
 
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Tests.TestTypes
-> import Database.HsSqlPpp.Types
+> --import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Catalog
 > --import Database.HsSqlPpp.TypeChecker
 

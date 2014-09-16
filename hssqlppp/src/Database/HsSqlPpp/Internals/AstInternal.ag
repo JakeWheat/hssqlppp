@@ -136,18 +136,18 @@ module {Database.HsSqlPpp.Internals.AstInternal}
 
 {
 import Data.Maybe
-import Data.Either
+--import Data.Either
 import Data.List
 import Control.Applicative
 import Data.Data
 import Data.Char
 import Control.Monad.State
-import Control.Arrow
+--import Control.Arrow
 
 import Data.Generics
 import Data.Generics.Uniplate.Data
-import Debug.Trace
-import Text.Groom
+--import Debug.Trace
+--import Text.Groom
 
 
 import Database.HsSqlPpp.Internals.TypesInternal
@@ -156,11 +156,11 @@ import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
 import Database.HsSqlPpp.Internals.TypeChecking.Environment hiding (JoinType(..))
 import qualified Database.HsSqlPpp.Internals.TypeChecking.Environment as E
 import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
-import Database.HsSqlPpp.Utils.Utils
+--import Database.HsSqlPpp.Utils.Utils
 import Database.HsSqlPpp.SqlDialect
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Lazy as LT
+--import qualified Data.Text.Lazy as LT
 
 
 }

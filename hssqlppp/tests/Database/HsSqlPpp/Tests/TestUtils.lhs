@@ -6,7 +6,7 @@
 > import Test.Framework
 > import Test.Framework.Providers.HUnit
 > --import Data.List
-> import Data.Generics.Uniplate.Data
+> --import Data.Generics.Uniplate.Data
 > import Data.Data
 
 > import Debug.Trace
@@ -32,27 +32,27 @@
 
 > import Database.HsSqlPpp.Tests.TestTypes
 
-> import Test.HUnit
-> import Test.Framework.Providers.HUnit
-> import Test.Framework
+> --import Test.HUnit
+> --import Test.Framework.Providers.HUnit
+> --import Test.Framework
 > --import Data.List
 > --import Data.Generics.Uniplate.Data
-> import Database.HsSqlPpp.Parser
-> import Database.HsSqlPpp.TypeChecker
-> import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.Catalog
+> --import Database.HsSqlPpp.Parser
+> --import Database.HsSqlPpp.TypeChecker
+> --import Database.HsSqlPpp.Annotation
+> --import Database.HsSqlPpp.Catalog
 > --import Database.HsSqlPpp.Ast hiding (App)
 > import Database.HsSqlPpp.Types
-> import Database.HsSqlPpp.Pretty
-> import Database.HsSqlPpp.Utility
+> --import Database.HsSqlPpp.Pretty
+> --import Database.HsSqlPpp.Utility
 > import Database.HsSqlPpp.Internals.TypeChecking.Environment
 > --import Text.Groom
-> import Debug.Trace
+> --import Debug.Trace
 > --import Database.HsSqlPpp.Tests.TestUtils
-> import Control.Monad
+> --import Control.Monad
 
-> import Database.HsSqlPpp.Utils.GroomUtils
-> import qualified Data.Text.Lazy as L
+> --import Database.HsSqlPpp.Utils.GroomUtils
+> --import qualified Data.Text.Lazy as L
 
 > assertTrace :: (Show a,Eq a) => String -> String -> a -> a -> IO ()
 > assertTrace nem s a1 a2 = do
@@ -80,7 +80,6 @@
 > itemToTft (OracleQueryExpr cus s r) = testQueryExprType OracleDialect cus s r
 > itemToTft (RewriteQueryExpr f cus s s') = testRewrite f cus s s'
 > itemToTft (ImpCastsScalar f s s') = testImpCastsScalar f s s'
-> itemToTft (Group s is) = testGroup s $ map itemToTft is
 > itemToTft (ScalarExprExtra cat env s r) = testScalarExprTypeExtra cat env s r
 
 > testParseScalarExpr :: Text -> ScalarExpr -> Test.Framework.Test
@@ -239,8 +238,8 @@ rewrite the queryexpr with all the options true
 pretty print, then check that the resultant sql parses the same, and
 type checks properly and produces the same type
 
-> queryExprRewrites :: [CatalogUpdate] -> L.Text -> Either [TypeError] Type -> IO () --Test.Framework.Test
-> queryExprRewrites cus src et = {-testCase ("rewrite expanded " ++ src) $-} do
+> _queryExprRewrites :: [CatalogUpdate] -> L.Text -> Either [TypeError] Type -> IO () --Test.Framework.Test
+> _queryExprRewrites cus src et = {-testCase ("rewrite expanded " ++ src) $-} do
 >   let ast = case parseQueryExpr defaultParseFlags "" Nothing src of
 >               Left e -> error $ "parse: " ++ L.unpack src ++ "\n" ++ show e
 >               Right l -> l

@@ -111,18 +111,18 @@ module Database.HsSqlPpp.Internals.AstInternal(
 ) where
 
 import Data.Maybe
-import Data.Either
+--import Data.Either
 import Data.List
 import Control.Applicative
 import Data.Data
 import Data.Char
 import Control.Monad.State
-import Control.Arrow
+--import Control.Arrow
 
 import Data.Generics
 import Data.Generics.Uniplate.Data
-import Debug.Trace
-import Text.Groom
+--import Debug.Trace
+--import Text.Groom
 
 
 import Database.HsSqlPpp.Internals.TypesInternal
@@ -131,11 +131,11 @@ import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
 import Database.HsSqlPpp.Internals.TypeChecking.Environment hiding (JoinType(..))
 import qualified Database.HsSqlPpp.Internals.TypeChecking.Environment as E
 import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
-import Database.HsSqlPpp.Utils.Utils
+--import Database.HsSqlPpp.Utils.Utils
 import Database.HsSqlPpp.SqlDialect
 import Data.Text (Text)
 import qualified Data.Text as T
-import qualified Data.Text.Lazy as LT
+--import qualified Data.Text.Lazy as LT
 
 
 
@@ -535,24 +535,24 @@ addImplicitCasts cat = transformBi removeDoubleCasts . transformBi addCast
   where
     addCast:: ScalarExpr -> ScalarExpr
     addCast e = fromMaybe e $ do
-                  te <- anImplicitCast ann
+                  te <- anImplicitCast ann'
                   -- ImplicitCastToDo: why anImplicitCast is not Nothing above Star
                   guard $ (not . isStar) e -- temporary
-                  nameOfType $ teType te -- in order to preserve the old logic
+                  _ <- nameOfType $ teType te -- in order to preserve the old logic
                   -- guard $ isCastable e $ teType te
                   return $ ImplicitCast emptyAnnotation e te
       where
-        isCastable:: ScalarExpr -> Type -> Bool
-        isCastable e to = fromMaybe False $ do
-            from <- liftM teType $ anType $ getAnnotation e
+        _isCastable:: ScalarExpr -> Type -> Bool
+        _isCastable e' to = fromMaybe False $ do
+            from <- liftM teType $ anType $ getAnnotation e'
             either  (const $ if from == UnknownType then Just True else Nothing) Just
                     $ catCast cat ImplicitCastContext from to
         isStar:: ScalarExpr -> Bool
-        isStar e = case e of
+        isStar e' = case e' of
           Star{} -> True
           QStar{} -> True
           _ -> False
-        ann = getAnnotation e
+        ann' = getAnnotation e
     removeDoubleCasts:: ScalarExpr -> ScalarExpr
     removeDoubleCasts e = fst $ accumulateCasts e
     -- For each implicit cast, if there is a sequence of implicit casts right under it,
@@ -13710,7 +13710,7 @@ sem_ScalarExprListList_Cons hd_ tl_  =
                        itError = Left [IncompatibleUnionTypes (CompositeType a') (CompositeType b)]
                    unless (null b || length a == length b) itError
                    if null b
-                     then return $ zip [T.pack ("values%" ++ show k) | k <- [0..]] a
+                     then return $ zip [T.pack ("values%" ++ show k) | k <- [(0::Int)..]] a
                      else
                        do
                        let uts = zipWithM (\te1 (_,te2) -> resolveResultSetTypeExtra _lhsIcat [te1,te2])

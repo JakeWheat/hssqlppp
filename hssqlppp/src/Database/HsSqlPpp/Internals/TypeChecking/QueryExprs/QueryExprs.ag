@@ -126,7 +126,7 @@ sem ScalarExprListList
               itError = Left [IncompatibleUnionTypes (CompositeType a') (CompositeType b)]
           unless (null b || length a == length b) itError
           if null b
-            then return $ zip [T.pack ("values%" ++ show k) | k <- [0..]] a
+            then return $ zip [T.pack ("values%" ++ show k) | k <- [(0::Int)..]] a
             else
               do
               let uts = zipWithM (\te1 (_,te2) -> resolveResultSetTypeExtra @lhs.cat [te1,te2])

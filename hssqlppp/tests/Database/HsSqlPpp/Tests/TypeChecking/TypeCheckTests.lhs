@@ -4,7 +4,7 @@
 >     (typeCheckTestData
 >     ,Item(..)) where
 
-> import Test.Framework
+> --import Test.Framework
 
 
 > import Database.HsSqlPpp.Tests.TestTypes

@@ -13,16 +13,16 @@ There are no tests for invalid syntax at the moment.
 >     ,Item(..)
 >     ) where
 >
-> import Data.Generics
-> import Control.Monad
-> import Database.HsSqlPpp.Ast
+> --import Data.Generics
+> --import Control.Monad
+> --import Database.HsSqlPpp.Ast
 > --import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.Parser
-> import Database.HsSqlPpp.Pretty
-> import Database.HsSqlPpp.Utility
+> --import Database.HsSqlPpp.Parser
+> --import Database.HsSqlPpp.Pretty
+> --import Database.HsSqlPpp.Utility
 >
 
-> import Database.HsSqlPpp.Tests.Parsing.Utils
+> --import Database.HsSqlPpp.Tests.Parsing.Utils
 > import Database.HsSqlPpp.Tests.Parsing.ScalarExprs
 > import Database.HsSqlPpp.Tests.Parsing.MiscQueryExprs
 > import Database.HsSqlPpp.Tests.Parsing.CombineQueryExprs
@@ -42,14 +42,14 @@ There are no tests for invalid syntax at the moment.
 > import Database.HsSqlPpp.Tests.Parsing.Oracle
 > import Database.HsSqlPpp.Tests.Parsing.LexerTests
 
-> import Control.Applicative
+> --import Control.Applicative
 > import Database.HsSqlPpp.Tests.TestTypes
 
 
 > --import Database.HsSqlPpp.Tests.TestUtils
-> import Data.Text.Lazy (Text)
-> import qualified Data.Text as T
-> import qualified Data.Text.Lazy as L
+> --import Data.Text.Lazy (Text)
+> --import qualified Data.Text as T
+> --import qualified Data.Text.Lazy as L
 
 > parserTestData :: Item
 > parserTestData =

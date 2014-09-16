@@ -6,8 +6,8 @@
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Tests.TestTypes
 > import Database.HsSqlPpp.Catalog
-> import Database.HsSqlPpp.Types
-> import Database.HsSqlPpp.Internals.AstInternal
+> --import Database.HsSqlPpp.Types
+> --import Database.HsSqlPpp.Internals.AstInternal
 > import Database.HsSqlPpp.Internals.TypeChecking.Environment
 
 > precisionAndNullable :: Item
