@@ -7,9 +7,9 @@
 
 > import Database.HsSqlPpp.Tests.TypeChecking.TypeCheckTests
 
+> import Database.HsSqlPpp.Tests.TestUtils
 
 > allTests :: [Test]
-> allTests =
->     parserTests
->     : typeCheckTests
->     : []
+> allTests = map itemToTft
+>            [parserTestData
+>            ,typeCheckTestData]

@@ -3,7 +3,8 @@
 > module Database.HsSqlPpp.Tests.TypeChecking.CaseExpressions
 >     (caseExpressions) where
 >
-> import Database.HsSqlPpp.Tests.TypeChecking.Utils
+> import Database.HsSqlPpp.Tests.TestTypes
+
 
 > import Database.HsSqlPpp.Types
 >

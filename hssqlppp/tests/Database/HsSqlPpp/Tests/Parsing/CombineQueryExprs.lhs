@@ -9,6 +9,8 @@
 > import Database.HsSqlPpp.Ast
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
+> import Database.HsSqlPpp.Tests.TestTypes
+
 > import qualified Data.Text as T
 
 > combineQueryExprs :: Item

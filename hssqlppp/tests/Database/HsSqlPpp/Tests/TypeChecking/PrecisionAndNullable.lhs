@@ -4,7 +4,7 @@
 >     (precisionAndNullable) where
 
 > import Database.HsSqlPpp.Internals.TypesInternal
-> import Database.HsSqlPpp.Tests.TypeChecking.Utils
+> import Database.HsSqlPpp.Tests.TestTypes
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Internals.AstInternal
@@ -40,8 +40,8 @@
 >    ,ScalarExprExtra cat2 vEnv   "len(v)"   (Right aType)
 >    ]
 >   ]
->   ++ [Group "PrecisionAndNullableQueryExpr"
->       [QueryExpr
+>   ++ [Group "PrecisionAndNullableTCQueryExpr"
+>       [TCQueryExpr
 >         [CatCreateTable "t" [("a", mkCatNameExtra "int4")
 >                             ,("b", CatNameExtra "varchar" (Just 7) Nothing False)]]
 >         "select a,b from t"
@@ -49,13 +49,13 @@
 >                                 ,("b", TypeExtra typeVarChar (Just 7) Nothing False)]
 >
 >
->       ,QueryExpr [CatCreateTable "t" [("a", CatNameExtra "numeric" (Just 6) (Just 2) False)
+>       ,TCQueryExpr [CatCreateTable "t" [("a", CatNameExtra "numeric" (Just 6) (Just 2) False)
 >                                      ,("b", CatNameExtra "numeric" (Just 10) (Just 3) False)]]
 >        "select nullif(a,b) as ni from t"
 >        $ Right $ CompositeType [("ni", TypeExtra typeNumeric (Just 6) (Just 2) True)]
 >
 >
->       ,QueryExpr [CatCreateTable "t" [("a", CatNameExtra "float" (Just 10) (Just 2) False)
+>       ,TCQueryExpr [CatCreateTable "t" [("a", CatNameExtra "float" (Just 10) (Just 2) False)
 >                                      ,("b", CatNameExtra "varchar" (Just 12) Nothing True)]]
 >        "select * from t"
 >        $ Right $ CompositeType [("a", TypeExtra typeFloat8 (Just 10) (Just 2) False)
@@ -69,17 +69,17 @@
 >        $ Right $ CompositeType [("a", TypeExtra typeFloat8 (Just 10) (Just 2) True)
 >                                ,("b", TypeExtra typeVarChar (Just 6) Nothing False)]
 
->       ,QueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")
+>       ,TCQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")
 >                                      ,("b", CatNameExtra "varchar" (Just 13) Nothing False)
 >                                      ,("c", CatNameExtra "varchar" (Just 15) Nothing True)]]
 >        "select case when a is null then b else c end as cs from t u"
 >        $ Right $ CompositeType [("cs", TypeExtra typeVarChar (Just 15) Nothing True)]
->       ,QueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")
+>       ,TCQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")
 >                                      ,("b", mkCatNameExtra "text")]]
 >        "select * from t u(c,d)"
 >        $ Right $ CompositeType [("c", mkTypeExtra typeInt)
 >                                ,("d", mkTypeExtra $ ScalarType "text")]
->       ,QueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")
+>       ,TCQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")
 >                                      ,("b", mkCatNameExtra "text")]]
 >        "select u.a,u.b from t u"
 >        $ Right $ CompositeType [("a", mkTypeExtra typeInt)
@@ -87,22 +87,22 @@
 
 >
 >
->       ,QueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")
+>       ,TCQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")
 >                                      ,("b", mkCatNameExtra "text")]]
 >        "select count(*) from t"
 >        $ Right $ CompositeType [("count", mkTypeExtraNN typeBigInt)]
 
 
->       ,QueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")]
+>       ,TCQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")]
 >                  ,CatCreateTable "u" [("a", mkCatNameExtra "int4")]]
 >        "select * from t union select * from u"
 >        $ Right $ CompositeType [("a", mkTypeExtra typeInt)]
 
->       ,QueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")]
+>       ,TCQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")]
 >                  ,CatCreateTable "u" [("b", mkCatNameExtra "int4")]]
 >        "select * from t union select * from u"
 >        $ Right $ CompositeType [("a", mkTypeExtra typeInt)]
->       ,QueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")]]
+>       ,TCQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")]]
 >        "select a,count(*) over () as r from t"
 >        $ Right $ CompositeType  [("a", mkTypeExtra typeInt),
 >                                 ("r", mkTypeExtraNN typeBigInt)]

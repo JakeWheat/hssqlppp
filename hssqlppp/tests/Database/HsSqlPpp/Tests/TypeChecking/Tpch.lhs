@@ -8,7 +8,7 @@ moment.
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Tests.TpchData
-> import Database.HsSqlPpp.Tests.TypeChecking.Utils
+> import Database.HsSqlPpp.Tests.TestTypes
 > import qualified Data.Text.Lazy as L
 
 > tpch :: Item
@@ -18,7 +18,7 @@ moment.
 >         let (s,e) = splitAt 14 t
 >         in s ++ drop 1 e
 >   where
->     t = zipWith (\(_n,s) t' -> QueryExpr tpchCatalog (L.pack s)
+>     t = zipWith (\(_n,s) t' -> TCQueryExpr tpchCatalog (L.pack s)
 >                               (Right $ {-Pseudo $ SetOfType $ -}CompositeType t'))
 >          tpchQueries
 >          [-- q1

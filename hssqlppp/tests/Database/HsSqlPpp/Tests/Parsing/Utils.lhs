@@ -14,15 +14,7 @@ shortcuts for constructing test data and asts
 > import qualified Data.Text.Lazy as L
 > import Control.Arrow
 > import Database.HsSqlPpp.SqlDialect
-
-> data Item = Expr L.Text ScalarExpr
->           | Stmt L.Text [Statement]
->           | QueryExpr L.Text QueryExpr
->           | TSQL L.Text [Statement]
->           | Oracle L.Text [Statement]
->           | PgSqlStmt L.Text [Statement]
->           | Group String [Item]
->           | Lex SQLSyntaxDialect T.Text [Token]
+> import Database.HsSqlPpp.Tests.TestTypes
 
 > stringQ :: Text -> ScalarExpr
 > stringQ = StringLit ea . T.unpack

@@ -5,7 +5,7 @@
 >     (trefIdentifiers) where
 
 > import Database.HsSqlPpp.Internals.TypesInternal
-> import Database.HsSqlPpp.Tests.TypeChecking.Utils
+> import Database.HsSqlPpp.Tests.TestTypes
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Catalog
 
@@ -90,11 +90,11 @@
 
 >   ]
 >   where
->     qenc = QueryExpr [CatCreateTable "t0" [("a", mkCatNameExtra "int4")
+>     qenc = TCQueryExpr [CatCreateTable "t0" [("a", mkCatNameExtra "int4")
 >                                           ,("b", mkCatNameExtra "text")]
 >                      ,CatCreateTable "t1" [("c", mkCatNameExtra "int4")
 >                                           ,("d", mkCatNameExtra "text")]]
->     qec = QueryExpr [CatCreateTable "t0" [("a", mkCatNameExtra "int4")
+>     qec = TCQueryExpr [CatCreateTable "t0" [("a", mkCatNameExtra "int4")
 >                                          ,("b", mkCatNameExtra "text")]
 >                     ,CatCreateTable "t1" [("a", mkCatNameExtra "int4")
 >                                          ,("c", mkCatNameExtra "text")]]

@@ -3,8 +3,8 @@
 > module Database.HsSqlPpp.Tests.TypeChecking.ScalarExprs
 >     (scalarExprs) where
 
-> import Database.HsSqlPpp.Tests.TypeChecking.Utils
 > import Database.HsSqlPpp.Types
+> import Database.HsSqlPpp.Tests.TestTypes
 
 > scalarExprs :: Item
 > scalarExprs =
