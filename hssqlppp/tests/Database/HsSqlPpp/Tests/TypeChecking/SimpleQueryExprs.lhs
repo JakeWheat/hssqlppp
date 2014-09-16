@@ -3,12 +3,14 @@
 > module Database.HsSqlPpp.Tests.TypeChecking.SimpleQueryExprs
 >     (simpleQueryExprs) where
 
-> import Database.HsSqlPpp.Internals.TypesInternal
+> --import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Tests.TestTypes
 > --import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Catalog
 > --import Database.HsSqlPpp.TypeChecker
+> import Database.HsSqlPpp.Types
 
+> import Database.HsSqlPpp.Tests.TypeChecking.Utils
 
 > simpleQueryExprs :: Item
 > simpleQueryExprs =

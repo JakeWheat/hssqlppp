@@ -45,8 +45,13 @@ Forward the public part of CatalogInternal.
 >      -- * Functions
 >     ,updateCatalog
 >     ,deconstructCatalog
+>      -- * testing support
+>     ,Environment
+>     ,brokeEnvironment
+>     ,envSelectListEnvironment
 >     ) where
 >
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 > import Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
 > import Database.HsSqlPpp.Internals.Catalog.DefaultTSQLCatalog
+> import Database.HsSqlPpp.Internals.TypeChecking.Environment

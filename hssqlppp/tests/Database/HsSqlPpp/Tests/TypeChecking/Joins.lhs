@@ -3,9 +3,10 @@
 > module Database.HsSqlPpp.Tests.TypeChecking.Joins
 >     (joins) where
 
-> import Database.HsSqlPpp.Internals.TypesInternal
+> --import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Tests.TestTypes
-> --import Database.HsSqlPpp.Types
+> import Database.HsSqlPpp.Types
+> import Database.HsSqlPpp.Tests.TypeChecking.Utils
 > import Database.HsSqlPpp.Catalog
 
 

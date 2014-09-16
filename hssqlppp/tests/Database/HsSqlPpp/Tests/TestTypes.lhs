@@ -7,7 +7,6 @@
 > --import Data.Text (Text)
 > import qualified Data.Text.Lazy as L
 > --import Control.Arrow
-> import Database.HsSqlPpp.SqlDialect
 > --import Test.HUnit
 > --import Test.Framework.Providers.HUnit
 > --import Test.Framework
@@ -21,7 +20,7 @@
 > import Database.HsSqlPpp.Types
 > --import Database.HsSqlPpp.Pretty
 > --import Database.HsSqlPpp.Utility
-> import Database.HsSqlPpp.Internals.TypeChecking.Environment
+> --import Database.HsSqlPpp.Internals.TypeChecking.Environment
 > --import Text.Groom
 > --import Debug.Trace
 > --import Database.HsSqlPpp.Tests.TestUtils

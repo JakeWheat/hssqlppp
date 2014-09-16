@@ -1,7 +1,7 @@
 Code to read some of the test files and convert to html to serve as
 examples.
 
-> {-# LANGUAGE QuasiQuotes #-}
+> {-# LANGUAGE QuasiQuotes,OverloadedStrings #-}
 > module TestFileProcessor
 >     (parserTestsTable
 >     ,typeCheckTestsTable
@@ -10,13 +10,14 @@ examples.
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Utils.Here
 > import Text.Groom
-> --import Database.HsSqlPpp.Tests.Parsing.ParserTests as PT
-> --import Database.HsSqlPpp.Tests.TypeChecking.TypeCheckTests as TT
+> import Database.HsSqlPpp.Tests.Parsing.ParserTests as PT
+> import Database.HsSqlPpp.Tests.TypeChecking.TypeCheckTests as TT
 > import Language.Haskell.Exts hiding (String)
 > --import qualified Language.Haskell.Exts as Exts
 > --import Data.Generics
 > import Data.Generics.Uniplate.Data
 > import Database.HsSqlPpp.Utils.GroomUtils
+> import qualified Data.Text.Lazy as L
 
 > data Row = Row [[Text]]
 >          | HHeader String
@@ -26,20 +27,21 @@ examples.
 >           | Haskell String
 >
 > parserTestsTable :: String
-> parserTestsTable = "" -- parserIntro ++ rowsToHtml (mapParserTests PT.parserTestData)
+> parserTestsTable = parserIntro ++ rowsToHtml (mapParserTests PT.parserTestData)
 >
 > typeCheckTestsTable :: String
-> typeCheckTestsTable = "" {- typeCheckIntro ++ rowsToHtml (mapTypeCheckTests TT.typeCheckTestData)
+> typeCheckTestsTable = typeCheckIntro ++ rowsToHtml (mapTypeCheckTests TT.typeCheckTestData)
 >
 
 >
 > mapParserTests :: PT.Item -> [Row]
-> mapParserTests (PT.Expr s e) = [Row [[Sql s],[Haskell (groomNoAnns e)]]]
-> mapParserTests (PT.QueryExpr s e) = [Row [[Sql s],[Haskell (groomNoAnns e)]]]
-> mapParserTests (PT.Stmt s e) = [Row [[Sql s],[Haskell (groomNoAnns e)]]]
-> mapParserTests (PT.PgSqlStmt s e) = [Row [[Sql s],[Haskell (groomNoAnns e)]]]
+> mapParserTests (PT.Expr s e) = [Row [[Sql $ L.unpack s],[Haskell (groomNoAnns e)]]]
+> mapParserTests (PT.QueryExpr s e) = [Row [[Sql $ L.unpack s],[Haskell (groomNoAnns e)]]]
+> mapParserTests (PT.Stmt s e) = [Row [[Sql $ L.unpack s],[Haskell (groomNoAnns e)]]]
+> mapParserTests (PT.PgSqlStmt s e) = [Row [[Sql $ L.unpack s],[Haskell (groomNoAnns e)]]]
 > mapParserTests (PT.Group n is) = HHeader n : concatMap mapParserTests is
-> mapParserTests (PT.TSQL s e) = [Row [[Sql s],[Haskell (groomNoAnns e)]]]
+> mapParserTests (PT.TSQL s e) = [Row [[Sql $ L.unpack s],[Haskell (groomNoAnns e)]]]
+> mapParserTests _ = [] -- Row [[Sql $ L.unpack s],[Haskell (groomNoAnns e)]]]
 
 
 need to use haskell-src-exts for the quasi quote tests since we want
@@ -50,16 +52,18 @@ compile time.
 > mapTypeCheckTests (TT.Group n is) =
 >    HHeader n : concatMap mapTypeCheckTests is
 > mapTypeCheckTests (TT.ScalExpr s r) =
->    [Row [[Sql s],[Haskell (groom r)]]]
-> mapTypeCheckTests (TT.QueryExpr c s r) =
->    [Row [[Haskell (groom c),Sql s],[Haskell (groom r)]]]
+>    [Row [[Sql $ L.unpack s],[Haskell (groom r)]]]
+> mapTypeCheckTests (TT.TCQueryExpr c s r) =
+>    [Row [[Haskell (groom c),Sql $ L.unpack s],[Haskell (groom r)]]]
 > mapTypeCheckTests (TT.RewriteQueryExpr fs cus s0 s1) =
 >    [Row [[Haskell (groom fs)
 >          ,Haskell (groom cus)]
->         ,[Sql s0,Text "rewritten to",Sql s1]]]
+>         ,[Sql $ L.unpack s0,Text "rewritten to",Sql $ L.unpack s1]]]
 > mapTypeCheckTests (TT.ImpCastsScalar _ s0 s1) =
->    [Row [[Sql s0]
->         ,[Sql s1]]]
+>    [Row [[Sql $ L.unpack s0]
+>         ,[Sql $ L.unpack s1]]]
+
+> mapTypeCheckTests _ = []
 
 > {-mapTypeCheckTests (TT.StmtType s r) = [Row [[Sql s],[Haskell (groom r)]]]
 > mapTypeCheckTests (TT.CatStmtType s c r) = [Row [[Haskell (groom c),Sql s],[Haskell (groom r)]]]
@@ -84,12 +88,12 @@ compile time.
 >     tToH (Haskell s) = code "haskell" s
 >     code t s = "\n\n~~~~~~{." ++ t ++ "}\n"
 >                ++ trim s
->                ++ "\n~~~~~~\n\n" -}
+>                ++ "\n~~~~~~\n\n"
 
 -------------------------------------------------------------------------------
 
 > quasiQuoteTestsTable :: IO String
-> quasiQuoteTestsTable = return "" {-do
+> quasiQuoteTestsTable = do
 >
 >   ast <- pf "src-extra/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs"
 >   let lets = [l | l@(Let _ _) <- universeBi ast]
@@ -99,14 +103,14 @@ compile time.
 
 > pf :: String -> IO Module
 > pf f = do
->   x <- parseFileWithExts [QuasiQuotes] f
+>   x <- parseFileWithExts [EnableExtension QuasiQuotes] f
 >   case x of
 >         ParseOk ast -> return ast
 >         e -> error $ show e
 
 
 > parserIntro :: String
-> parserIntro = [$here|
+> parserIntro = [here|
 >
 > The parser examples have the sql source on the left, and the ast that the parser produces
 > the right, the annotations have been replaced with a placeholder 'A' to make the output a bit more readable.
@@ -118,7 +122,7 @@ compile time.
  [ParserTests.lhs](source/tests/Database/HsSqlPpp/Tests/ParserTests.lhs.html)
 
 > typeCheckIntro :: String
-> typeCheckIntro = [$here|
+> typeCheckIntro = [here|
 >
 > The type checking examples have the sql on the left and the result of type checking
 > on the right. Different sections are using different tests:
@@ -137,7 +141,7 @@ compile time.
 (source/tests/Database/HsSqlPpp/Tests/TypeCheckTests.lhs.html
 
 > qqIntro :: String
-> qqIntro = [$here|
+> qqIntro = [here|
 >
 > Pretty rough presentation, each example is a lets, with a pair of sql
 > quasiquotes: one with antiquotes, and one with the resultant sql without antiquotes.
@@ -149,5 +153,5 @@ compile time.
 source/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs.html)
 
 
-> -}
+>
 

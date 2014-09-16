@@ -22,7 +22,7 @@ transformed sql renders
 > import Control.Arrow
 > import Data.DateTime
 > --import Text.DocTool.DocTool
-> --import TestFileProcessor
+> import TestFileProcessor
 > --import DoChaosSql
 
 

@@ -5,8 +5,9 @@
 > import Database.HsSqlPpp.Tests.TestTypes
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Catalog
-> import Database.HsSqlPpp.Internals.TypesInternal
+> --import Database.HsSqlPpp.Internals.TypesInternal
 > --import Database.HsSqlPpp.TypeChecker
+> import Database.HsSqlPpp.Tests.TypeChecking.Utils
 
 dodgy hack to support cube:
 special case the cube

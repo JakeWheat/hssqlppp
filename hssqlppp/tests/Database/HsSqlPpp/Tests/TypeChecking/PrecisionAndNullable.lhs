@@ -3,12 +3,14 @@
 > module Database.HsSqlPpp.Tests.TypeChecking.PrecisionAndNullable
 >     (precisionAndNullable) where
 
-> import Database.HsSqlPpp.Internals.TypesInternal
+> --import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Tests.TestTypes
 > import Database.HsSqlPpp.Catalog
 > --import Database.HsSqlPpp.Types
 > --import Database.HsSqlPpp.Internals.AstInternal
-> import Database.HsSqlPpp.Internals.TypeChecking.Environment
+> --import Database.HsSqlPpp.Internals.TypeChecking.Environment
+> import Database.HsSqlPpp.Types
+> import Database.HsSqlPpp.Tests.TypeChecking.Utils
 
 > precisionAndNullable :: Item
 > precisionAndNullable =
