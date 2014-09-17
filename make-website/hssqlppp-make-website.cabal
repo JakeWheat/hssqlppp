@@ -61,6 +61,8 @@ executable MakeWebsite
                        -- containers >= 0.3.0.0 && < 0.6,
                        template-haskell,
                        groom >=0.1 && < 0.2,
+                       blaze-markup >= 0.6 && < 0.8,
+                       highlighting-kate >= 0.5.9 && < 0.6,
                        hssqlppp,
                        hssqlppp-th
   default-language:    Haskell2010
