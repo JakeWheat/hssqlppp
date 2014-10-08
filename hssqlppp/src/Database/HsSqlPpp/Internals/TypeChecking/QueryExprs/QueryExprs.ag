@@ -73,7 +73,7 @@ sem QueryExpr
         loc.tpe :: {Either [TypeError] TypeExtra}
         -- wrap the names and types in a composite which
         -- fits with the annotation type
-        loc.tpe = liftM (mkTypeExtra . CompositeType) @loc.tpee
+        loc.tpe = liftM (mkTypeExtraNN . CompositeType) @loc.tpee
         -- the tpe and the uptype aren't the same (because of the wrapping)
         -- but are equivalent
         lhs.upType = either (const Nothing) Just @loc.tpee

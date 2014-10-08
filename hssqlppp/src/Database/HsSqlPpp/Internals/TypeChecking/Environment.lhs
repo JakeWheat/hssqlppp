@@ -128,7 +128,7 @@ TODO: remove the create prefixes
 > envCreateTrefEnvironment :: Catalog -> [NameComponent] -> Either [TypeError] Environment
 > envCreateTrefEnvironment cat tbnm = do
 >   (nm,pub,prv) <- catLookupTableAndAttrs cat tbnm
->   return $ SimpleTref nm pub (second mkTypeExtra `map` prv)
+>   return $ SimpleTref nm pub (second mkTypeExtraNN `map` prv)
 
 > envSelectListEnvironment :: [(Text,TypeExtra)] -> Either [TypeError] Environment
 > envSelectListEnvironment cols =

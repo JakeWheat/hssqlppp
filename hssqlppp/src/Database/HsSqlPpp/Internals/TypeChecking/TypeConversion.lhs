@@ -196,9 +196,10 @@ precision and nullability of the result
 >         -> all teNullable tesr
 >         -- can produce null independently on the nullability of the arguments
 >         -- ImplicitCastToDo: check again: doesn't it depend on the presence of "else" part
->       | appName `elem` ["case","decode","nullif","substr","substring","replicate"]
+>       | appName `elem` ["case","decode","nullif","replicate"]
 >         -> True
 >         -- the default
+>      -- | appName `elem` ["substr","substring"] -> False
 >       | otherwise -> joinNullability $ map teNullable tesr
 >     -- arguments that participate in the inference of the result type
 >     tesr = case appName of

@@ -4049,7 +4049,7 @@ sem_InList_InQueryExpr ann_ sel_  =
                              0 -> Left [InternalError
                                         "got subquery with no columns? in inselect"]
                              1 -> Right $ head st
-                             _ -> Right $ mkTypeExtra $ AnonymousCompositeType
+                             _ -> Right $ mkTypeExtraNN $ AnonymousCompositeType
                                      $ map teType st
                    {-# LINE 4039 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -6079,7 +6079,7 @@ sem_QueryExpr_CombineQueryExpr ann_ cqType_ cqQe0_ cqQe1_  =
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag"(line 76, column 9)
               _tpe =
                   ({-# LINE 76 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag" #-}
-                   liftM (mkTypeExtra . CompositeType) _tpee
+                   liftM (mkTypeExtraNN . CompositeType) _tpee
                    {-# LINE 6041 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag"(line 79, column 9)
@@ -6366,7 +6366,7 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag"(line 76, column 9)
               _tpe =
                   ({-# LINE 76 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag" #-}
-                   liftM (mkTypeExtra . CompositeType) _tpee
+                   liftM (mkTypeExtraNN . CompositeType) _tpee
                    {-# LINE 6328 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag"(line 79, column 9)
@@ -6680,7 +6680,7 @@ sem_QueryExpr_Values ann_ qeValues_  =
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag"(line 76, column 9)
               _tpe =
                   ({-# LINE 76 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag" #-}
-                   liftM (mkTypeExtra . CompositeType) _tpee
+                   liftM (mkTypeExtraNN . CompositeType) _tpee
                    {-# LINE 6642 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag"(line 79, column 9)
@@ -6815,7 +6815,7 @@ sem_QueryExpr_WithQueryExpr ann_ withs_ withQe_  =
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag"(line 76, column 9)
               _tpe =
                   ({-# LINE 76 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag" #-}
-                   liftM (mkTypeExtra . CompositeType) _tpee
+                   liftM (mkTypeExtraNN . CompositeType) _tpee
                    {-# LINE 6777 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag"(line 79, column 9)
@@ -11379,7 +11379,7 @@ sem_ScalarExpr_Placeholder ann_  =
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 193, column 10)
               _tpe =
                   ({-# LINE 193 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
-                   Right $ mkTypeExtra UnknownType
+                   Right $ mkTypeExtraNN UnknownType
                    {-# LINE 11341 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag"(line 41, column 7)
@@ -12035,7 +12035,7 @@ sem_ScalarExpr_QStar ann_ q_  =
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 523, column 9)
               _starCS =
                   ({-# LINE 523 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
-                   Right . mkTypeExtra . CompositeType . map (\((_q,n),t) -> (n,t))
+                   Right . mkTypeExtraNN . CompositeType . map (\((_q,n),t) -> (n,t))
                    {-# LINE 11997 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag"(line 41, column 7)
@@ -12163,7 +12163,7 @@ sem_ScalarExpr_ScalarSubQuery ann_ sel_  =
                    case length selType of
                      0 -> Left [InternalError "no columns in scalar subquery?"]
                      1 -> Right $ snd $ head selType
-                     _ -> Right $ mkTypeExtra $ AnonymousCompositeType
+                     _ -> Right $ mkTypeExtraNN $ AnonymousCompositeType
                              $ map (teType . snd) selType
                    {-# LINE 12126 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -12527,7 +12527,7 @@ sem_ScalarExpr_Star ann_  =
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag"(line 523, column 9)
               _starCS =
                   ({-# LINE 523 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
-                   Right . mkTypeExtra . CompositeType . map (\((_q,n),t) -> (n,t))
+                   Right . mkTypeExtraNN . CompositeType . map (\((_q,n),t) -> (n,t))
                    {-# LINE 12489 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag"(line 41, column 7)
@@ -22763,7 +22763,7 @@ sem_TableRef_FullAlias ann_ tb_ cols_ tref_  =
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 33, column 7)
               _annOtpe =
                   ({-# LINE 33 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
-                   either Left (Right . mkTypeExtra . TrefType)
+                   either Left (Right . mkTypeExtraNN . TrefType)
                    (_eEnv     >>= envExpandStar Nothing)
                    {-# LINE 22726 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -22879,7 +22879,7 @@ sem_TableRef_FunTref ann_ fn_  =
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 33, column 7)
               _annOtpe =
                   ({-# LINE 33 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
-                   either Left (Right . mkTypeExtra . TrefType)
+                   either Left (Right . mkTypeExtraNN . TrefType)
                    (_eEnv     >>= envExpandStar Nothing)
                    {-# LINE 22842 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -23043,7 +23043,7 @@ sem_TableRef_JoinTref ann_ tref0_ nat_ joinType_ joinHint_ tref1_ onExpr_  =
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 33, column 7)
               _annOtpe =
                   ({-# LINE 33 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
-                   either Left (Right . mkTypeExtra . TrefType)
+                   either Left (Right . mkTypeExtraNN . TrefType)
                    (_eEnv     >>= envExpandStar Nothing)
                    {-# LINE 23006 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -23231,7 +23231,7 @@ sem_TableRef_SubTref ann_ sel_  =
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 33, column 7)
               _annOtpe =
                   ({-# LINE 33 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
-                   either Left (Right . mkTypeExtra . TrefType)
+                   either Left (Right . mkTypeExtraNN . TrefType)
                    (_eEnv     >>= envExpandStar Nothing)
                    {-# LINE 23194 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -23368,7 +23368,7 @@ sem_TableRef_TableAlias ann_ tb_ tref_  =
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 33, column 7)
               _annOtpe =
                   ({-# LINE 33 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
-                   either Left (Right . mkTypeExtra . TrefType)
+                   either Left (Right . mkTypeExtraNN . TrefType)
                    (_eEnv     >>= envExpandStar Nothing)
                    {-# LINE 23331 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -23479,7 +23479,7 @@ sem_TableRef_TableRefParens ann_ tref_  =
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 33, column 7)
               _annOtpe =
                   ({-# LINE 33 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
-                   either Left (Right . mkTypeExtra . TrefType)
+                   either Left (Right . mkTypeExtraNN . TrefType)
                    (_eEnv     >>= envExpandStar Nothing)
                    {-# LINE 23442 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -23608,7 +23608,7 @@ sem_TableRef_Tref ann_ tbl_  =
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag"(line 33, column 7)
               _annOtpe =
                   ({-# LINE 33 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
-                   either Left (Right . mkTypeExtra . TrefType)
+                   either Left (Right . mkTypeExtraNN . TrefType)
                    (_eEnv     >>= envExpandStar Nothing)
                    {-# LINE 23571 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
