@@ -216,7 +216,7 @@ brackets which we can use to check these things
 >               -- these two sets get added if there are create tables
 >               ++ case flip find ast (\s ->
 >                                   case s of
->                                     CreateTable _ _ _ _ -> True
+>                                     CreateTable _ _ _ _ _ -> True
 >                                     _ -> False) of
 >                    Nothing -> []
 >                    Just _ -> [Set ea "default_tablespace" [SetStr ea ""]

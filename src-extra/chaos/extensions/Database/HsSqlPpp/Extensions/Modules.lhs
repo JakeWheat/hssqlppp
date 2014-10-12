@@ -111,7 +111,7 @@ hidden, without having to create a separate module.
 >                       return $ replaceSourcePos1 s [sqlStmt|
 >                                 insert into modules (module_name)
 >                                 values ($e(modname));|] : tl
->                s@(CreateTable _ n _ _) : tl -> insertIt s tl (getTName n) "table"
+>                s@(CreateTable _ n _ _ _) : tl -> insertIt s tl (getTName n) "table"
 >                s@(CreateView _ n _ _) : tl -> insertIt s tl (getTName n) "view"
 >                s@(CreateType _ n _) : tl -> insertIt s tl (getTName n) "type"
 >                s@(CreateFunction _ n _ _ _ _ _ _) : tl -> insertIt s tl (getTName n) "function"

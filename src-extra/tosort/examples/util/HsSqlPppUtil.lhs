@@ -156,7 +156,7 @@ $ HsSqlPppUtil parse test2.sql
       [NotNullConstraint Ann ""],
     AttributeDef Ann "city" (SimpleTypeName Ann "text") Nothing
       [NotNullConstraint Ann ""]]
-   []]
+   [] Nothing]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 test3.sql:

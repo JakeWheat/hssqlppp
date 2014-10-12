@@ -45,6 +45,8 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,CopyFromSource (..)
    ,CopyToSource(..)
    ,CopyOption(..)
+   ,TablePartitionDef(..)
+   ,TablePartitionDateTimeInterval(..)
    ,AttributeDef (..)
    ,RowConstraint (..)
    ,AlterTableOperation(..)
@@ -669,6 +671,7 @@ data Statement
                   name :: Name
                   atts :: AttributeDefList
                   cons :: ConstraintList
+                  partition :: MaybeTablePartitionDef
     | AlterTable ann::Annotation
                  name :: Name
                  operation :: AlterTableOperation
@@ -762,7 +765,7 @@ data Statement
            strict::Bool
            into :: {[Name]}
            stmt :: Statement
-    | Assignment ann::Annotation
+   | Assignment ann::Annotation
                  target :: Name
                  value :: ScalarExpr
     | Return ann::Annotation
@@ -855,7 +858,6 @@ data SetClause | SetClause ann::Annotation
                                 setTargets::{[NameComponent]}
                                 ex::ScalarExpr
 
-
 {-
 
 ------------------------------------------------
@@ -902,6 +904,21 @@ data Constraint | UniqueConstraint ann::Annotation name::String x::{[NameCompone
 data TypeAttributeDef | TypeAttDef ann::Annotation
                                    name :: NameComponent
                                    typ :: TypeName
+
+
+
+--partition definition
+data TablePartitionDef | TablePartitionDef ann :: Annotation
+                                 colname :: NameComponent
+                                 interval :: Integer
+                                 timeframe :: TablePartitionDateTimeInterval
+
+--partition intervals definition
+{
+data TablePartitionDateTimeInterval = Year | Month | Day | Hour | Minute | Second | Millisecond
+                                 deriving (Show,Eq,Typeable,Data)
+}
+
 
 data AlterTableOperation | RenameTable  ann::Annotation
                                         newName :: Name
@@ -964,6 +981,7 @@ data IfExists = Require | IfExists
 
 data RestartIdentity = RestartIdentity | ContinueIdentity
                        deriving (Show,Eq,Typeable,Data)
+
 }
 
 {-
@@ -1054,6 +1072,7 @@ type ScalarExprTransposedList = [ScalarExpr]
 type SetClauseList = [SetClause]
 type AttributeDefList = [AttributeDef]
 type ConstraintList = [Constraint]
+type MaybeTablePartitionDef = maybe TablePartitionDef
 type TypeAttributeDefList = [TypeAttributeDef]
 type ParamDefList = [ParamDef]
 type TypeNameList = [TypeName]
@@ -1096,7 +1115,8 @@ attributes which every node has
 set AllNodes = Statement QueryExpr FnBody TableRef
                JoinExpr
                SelectList SelectItem AttributeDef RowConstraint
-               TypeAttributeDef ParamDef VarDef Constraint
+               TypeAttributeDef ParamDef VarDef Constraint 
+               MaybeTablePartitionDef TablePartitionDef
                TypeName
                ScalarExpr InList MaybeScalarExpr MaybeBoolExpr
                ScalarExprList ScalarExprTransposedList ScalarExprListList

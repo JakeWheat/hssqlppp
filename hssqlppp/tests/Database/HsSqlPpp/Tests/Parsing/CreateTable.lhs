@@ -19,12 +19,13 @@
 >        [att "fielda" "text"
 >        ,att "fieldb" "int"
 >        ]
->        []]
+>        []
+>        Nothing]
 >      ,s "create table tbl (\n\
 >         \  fld boolean default false);"
 >       [CreateTable ea (name "tbl")
 >        [AttributeDef ea (Nmc "fld") (st "boolean")
->                          (Just lFalse) []][]]
+>                          (Just lFalse) []][] Nothing]
 >
 >      ,s "create table tbl as select 1;"
 >       [CreateTableAs ea (name "tbl")
@@ -74,13 +75,13 @@
 >         \);"
 >         [CreateTable ea (name "t1") [AttributeDef ea (Nmc "a") (st "text")
 >                            Nothing [NullConstraint ea ""]]
->          []]
+>          [] Nothing]
 >      ,s "create table t1 (\n\
 >         \ a text not null\n\
 >         \);"
 >         [CreateTable ea (name "t1") [AttributeDef ea (Nmc "a") (st "text")
 >                                     Nothing [NotNullConstraint ea ""]]
->          []]
+>          [] Nothing]
 >      ]
 >
 >      ,Group "unique" [
@@ -91,7 +92,7 @@
 >         \);"
 >         [CreateTable ea (name "t1") [att "x" "int"
 >                                    ,att "y" "int"]
->          [UniqueConstraint ea "" [Nmc "x",Nmc "y"]]]
+>          [UniqueConstraint ea "" [Nmc "x",Nmc "y"]] Nothing]
 
 test arbitrary ordering
 
@@ -102,7 +103,24 @@ test arbitrary ordering
 >         \);"
 >         [CreateTable ea (name "t1") [att "x" "int"
 >                                    ,att "y" "int"]
->          [UniqueConstraint ea "" [Nmc "x"]]]
+>          [UniqueConstraint ea "" [Nmc "x"]] Nothing]
+
+
+test partitioning parser
+
+>      ,s "create table t1(\n\
+>         \ x int,\n\
+>         \ ts datetime\n\
+>         \ )\n\
+>         \ partition by range(ts)\n\
+>         \  (\n\
+>         \   every 5 months\n\
+>         \);"
+>         [CreateTable ea (name "t1") [att "x" "int"
+>                                     ,att "ts" "datetime"]
+>           []
+>          (Just (TablePartitionDef ea (Nmc "ts") 5 Month))]
+
 
 unique row
 
@@ -111,14 +129,14 @@ unique row
 >         \);"
 >         [CreateTable ea (name "t1")
 >          [AttributeDef ea (Nmc "x") (st "int") Nothing
->           [RowUniqueConstraint ea ""]][]]
+>           [RowUniqueConstraint ea ""]][] Nothing]
 >
 >      ,s "create table t1 (\n\
 >         \ x int unique not null\n\
 >         \);"
 >         [CreateTable ea (name "t1") [AttributeDef ea (Nmc "x") (st "int") Nothing
 >                                     [RowUniqueConstraint ea ""
->                                     ,NotNullConstraint ea ""]][]]
+>                                     ,NotNullConstraint ea ""]][] Nothing]
 
 quick sanity check
 
@@ -127,7 +145,7 @@ quick sanity check
 >         \);"
 >         [CreateTable ea (name "t1") [AttributeDef ea (Nmc "x") (st "int") Nothing
 >                                     [NotNullConstraint ea ""
->                                     ,RowUniqueConstraint ea ""]][]]
+>                                     ,RowUniqueConstraint ea ""]][] Nothing]
 >      ]
 >
 >      ,Group "primary key" [
@@ -135,7 +153,7 @@ quick sanity check
 >         \ x int primary key\n\
 >         \);"
 >         [CreateTable ea (name "t1") [AttributeDef ea (Nmc "x") (st "int") Nothing
->                            [RowPrimaryKeyConstraint ea ""]][]]
+>                            [RowPrimaryKeyConstraint ea ""]][] Nothing]
 >
 >      ,s "create table t1 (\n\
 >         \ x int,\n\
@@ -144,7 +162,7 @@ quick sanity check
 >         \);"
 >         [CreateTable ea (name "t1") [att "x" "int"
 >                           ,att "y" "int"]
->          [PrimaryKeyConstraint ea "" [Nmc "x", Nmc "y"]]]
+>          [PrimaryKeyConstraint ea "" [Nmc "x", Nmc "y"]] Nothing]
 >      ]
 >
 >      ,Group "check" [
@@ -155,7 +173,7 @@ quick sanity check
 >          [AttributeDef ea (Nmc "f") (st "text") Nothing
 >           [RowCheckConstraint ea "" (InPredicate ea
 >                                   (ei "f") True
->                                   (InList ea [stringQ "a", stringQ "b"]))]] []]
+>                                   (InList ea [stringQ "a", stringQ "b"]))]] [] Nothing]
 >
 >      ,s "create table t1 (\n\
 >         \ x int,\n\
@@ -164,7 +182,7 @@ quick sanity check
 >         \);"
 >         [CreateTable ea (name "t1") [att "x" "int"
 >                                    ,att "y" "int"]
->          [CheckConstraint ea "" (binop ">" (ei "x") (ei "y"))]]
+>          [CheckConstraint ea "" (binop ">" (ei "x") (ei "y"))] Nothing]
 >      ]
 >
 >      ,Group "misc" [
@@ -178,7 +196,7 @@ quick sanity check
 >            ,RowCheckConstraint ea "" (InPredicate ea
 >                                    (ei "f") True
 >                                    (InList ea [stringQ "a"
->                                               ,stringQ "b"]))]] []]
+>                                               ,stringQ "b"]))]] [] Nothing]
 >      ]
 
 >      ,Group "references" [
@@ -187,14 +205,14 @@ quick sanity check
 >         \);"
 >         [CreateTable ea (name "t1") [AttributeDef ea (Nmc "x") (st "int") Nothing
 >                            [RowReferenceConstraint ea "" (name "t2") Nothing
->                             Restrict Restrict]][]]
+>                             Restrict Restrict]][] Nothing]
 >
 >      ,s "create table t1 (\n\
 >         \ x int references t2(y)\n\
 >         \);"
 >         [CreateTable ea (name "t1") [AttributeDef ea (Nmc "x") (st "int") Nothing
 >                            [RowReferenceConstraint ea "" (name "t2") (Just $ Nmc "y")
->                             Restrict Restrict]][]]
+>                             Restrict Restrict]][] Nothing]
 >      ,s "create table t1 (\n\
 >         \ x int,\n\
 >         \ y int,\n\
@@ -203,7 +221,7 @@ quick sanity check
 >         [CreateTable ea (name "t1") [att "x" "int"
 >                                    ,att "y" "int"]
 >          [ReferenceConstraint ea "" [Nmc "x", Nmc "y"] (name "t2") []
->           Restrict Restrict]]
+>           Restrict Restrict] Nothing]
 >
 >      ,s "create table t1 (\n\
 >         \ x int,\n\
@@ -213,28 +231,28 @@ quick sanity check
 >         [CreateTable ea (name "t1") [att "x" "int"
 >                           ,att "y" "int"]
 >          [ReferenceConstraint ea "" [Nmc "x", Nmc "y"] (name "t2") [Nmc "z", Nmc "w"]
->           Restrict Restrict]]
+>           Restrict Restrict] Nothing]
 >
 >      ,s "create table t1 (\n\
 >         \ x int references t2 on delete cascade\n\
 >         \);"
 >         [CreateTable ea (name "t1") [AttributeDef ea (Nmc "x") (st "int") Nothing
 >                            [RowReferenceConstraint ea "" (name "t2") Nothing
->                             Cascade Restrict]][]]
+>                             Cascade Restrict]][] Nothing]
 >
 >      ,s "create table t1 (\n\
 >         \ x int references t2 on update cascade\n\
 >         \);"
 >         [CreateTable ea (name "t1") [AttributeDef ea (Nmc "x") (st "int") Nothing
 >                            [RowReferenceConstraint ea "" (name "t2") Nothing
->                             Restrict Cascade]][]]
+>                             Restrict Cascade]][] Nothing]
 >
 >      ,s "create table t1 (\n\
 >         \ x int references t2 on delete cascade on update cascade\n\
 >         \);"
 >         [CreateTable ea (name "t1") [AttributeDef ea (Nmc "x") (st "int") Nothing
 >                                     [RowReferenceConstraint ea "" (name "t2") Nothing
->                                      Cascade Cascade]][]]
+>                                      Cascade Cascade]][] Nothing]
 >
 >      ,s "create table t1 (\n\
 >         \ x int,\n\
@@ -244,7 +262,7 @@ quick sanity check
 >         [CreateTable ea (name "t1") [att "x" "int"
 >                                    ,att "y" "int"]
 >          [ReferenceConstraint ea "" [Nmc "x", Nmc "y"] (name "t2") []
->           Cascade Cascade]]
+>           Cascade Cascade] Nothing]
 >
 >      ]
 >      ]

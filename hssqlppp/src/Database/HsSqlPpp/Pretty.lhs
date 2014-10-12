@@ -146,12 +146,13 @@ Conversion routines - convert Sql asts into Docs
 >
 > -- ddl
 >
-> statement flg se ca (CreateTable ann tbl atts cns) =
+> statement flg se ca (CreateTable ann tbl atts cns partition) =
 >     annot ca ann <+>
 >     text "create table"
 >     <+> name tbl <+> lparen
 >     $+$ nest 2 (vcat (csv (map (attrDef flg) atts ++ map (constraint flg) cns)))
->     $+$ rparen <> statementEnd se
+>     $+$ rparen 
+>     $+$ (tablePartition partition) <> statementEnd se
 >
 > statement flg se ca (AlterTable ann nm op) =
 >     annot ca ann <+>
@@ -745,6 +746,21 @@ syntax maybe should error instead of silently breaking
 >                         Require -> empty
 >                         IfExists -> text "if exists"
 >
+
+> tablePartition Nothing = text ""
+> tablePartition (Just (TablePartitionDef _ cn tf interval)) = 
+>      text "partition by range" <+> parens (nmc cn)
+>      <> parens ((text "every") <+> (text $ show tf) <+> (intervalify interval))
+>  where 
+>   intervalify = \x-> text $ case x of
+>            Year -> "years"
+>            Month -> "months"
+>            Day -> "days"
+>            Hour -> "hours"
+>            Minute -> "minutes"
+>            Second -> "seconds"
+>            Millisecond -> "milliseconds"
+>            _ -> "unknown type " ++ (show x)
 
 > attrDef flg (AttributeDef _ n t def cons) =
 >   nmc n <+> typeName t

@@ -597,17 +597,24 @@ ddl
 >   tname <- name
 >   choice [
 >      CreateTableAs p tname <$> (keyword "as" *> pQueryExpr)
->     ,uncurry (CreateTable p tname) <$> readAttsAndCons]
+>     ,do 
+>      (atts,cons) <- readAttsAndCons
+>      pdata <- readPartition
+>      return $ CreateTable p tname atts cons pdata
+>     ]
 >   where
 >     --parse the unordered list of attribute defs or constraints, for
 >     --each line want to try the constraint parser first, then the
 >     --attribute parser, so you need the swap to feed them in the
 >     --right order into createtable
->     readAttsAndCons = parens (swap <$> multiPerm
->                                          (try tableConstraint)
->                                          tableAttribute
->                                          (symbol ","))
->                       where swap (a,b) = (b,a)
+>     readAttsAndCons = 
+>               parens (swap <$> multiPerm
+>                                  (try tableConstraint)
+>                                  tableAttribute
+>                                  (symbol ","))
+>               where swap (a,b) = (b,a)
+>     readPartition = tryOptionMaybe (tablePartition)
+
 >
 > tableAttribute :: SParser AttributeDef
 > tableAttribute = AttributeDef
@@ -635,8 +642,33 @@ ddl
 >          <*> onDelete
 >          <*> onUpdate
 >          ]
+>
 
-
+> tablePartition :: SParser TablePartitionDef
+> tablePartition = do
+>         p <- pos 
+>         cn <- (keyword "partition" *> keyword "by" *> keyword "range" *> (parens nameComponent)) -- partition by range (<col name>)
+>         (a,b) <- parens $ keyword "every" *> try ((,) <$>  -- every 5 minute[s]
+>                                         integer <*> timeframe)
+>         return $ TablePartitionDef p cn a b
+>                       
+>   where
+>     timeframe =
+>       choice [Year <$ keyword "years"
+>              ,Year <$ keyword "year"
+>              ,Month <$ keyword "months"
+>              ,Month <$ keyword "month"
+>              ,Day <$ keyword "days"
+>              ,Day <$ keyword "day"
+>              ,Hour <$ keyword "hours"
+>              ,Hour <$ keyword "hour"
+>              ,Minute <$ keyword "minutes"
+>              ,Minute <$ keyword "minute"
+>              ,Second <$ keyword "seconds"
+>              ,Second <$ keyword "second"
+>              ,Millisecond <$ keyword "milliseconds"
+>              ,Millisecond <$ keyword "millisecond"
+>              ]
 >
 > onDelete,onUpdate :: SParser Cascade
 > onDelete = onSomething "delete"
@@ -2423,7 +2455,7 @@ a1,a2,b1,b2,a2,b3,b4 parses to ([a1,a2,a3],[b1,b2,b3,b4])
 >   return (catMaybes r1, catMaybes r2)
 >   where
 >     parseAorB = choice [
->                   (\x -> (Just x,Nothing)) <$> p1
+>                   (\x -> (Just x, Nothing)) <$> p1
 >                  ,(\y -> (Nothing, Just y)) <$> p2]
 
 == position stuff

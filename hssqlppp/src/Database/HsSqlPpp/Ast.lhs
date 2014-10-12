@@ -51,6 +51,8 @@
 >     ,AttributeDef(..)
 >     ,RowConstraint(..)
 >     ,Constraint(..)
+>     ,TablePartitionDef(..)
+>     ,TablePartitionDateTimeInterval(..)
 >     ,TypeAttributeDef(..)
 >     ,AlterTableOperation(..)
 >     ,AlterTableAction(..)

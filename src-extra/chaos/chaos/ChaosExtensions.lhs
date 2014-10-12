@@ -329,8 +329,8 @@ nulls and ignore them when checking for nullable attributes.
 > notNull =
 >     transformBi $ \x ->
 >       case x of
->         CreateTable a nm@(Name _ nmcs) atts c | not ("_mr" `isSuffixOf` ncStr (last nmcs)) ->
->           CreateTable a nm (map fixAtt atts) c
+>         CreateTable a nm@(Name _ nmcs) atts c pt| not ("_mr" `isSuffixOf` ncStr (last nmcs)) ->
+>           CreateTable a nm (map fixAtt atts) c pt
 >         x1 -> x1
 >     where
 >       -- this works because there are no null or not null
