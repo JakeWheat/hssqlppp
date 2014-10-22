@@ -1366,7 +1366,7 @@ expression, and then add a suffix on
 >   fct >>= tryExprSuffix
 >   where
 >     tryExprSuffix e =
->       option e (choice (map (\f -> f e)
+>       option e (choice (map (\f -> try $ f e) -- Try added because betweenSuffix may eat up "not" in betweenSuffix
 >                                  [inPredicateSuffix
 >                                  ,functionCallSuffix
 >                                  ,windowFnSuffix
@@ -1687,13 +1687,14 @@ and () is a syntax error.
 >     ks = mapM keyword
 >
 > betweenSuffix :: ScalarExpr -> SParser ScalarExpr
-> betweenSuffix a = do
+> betweenSuffix a = try $ do
 >   p <- pos
+>   opname <- option "between" ("notbetween" <$ keyword "not") -- Discern between `between` and `not between`
 >   keyword "between"
 >   b <- b_expr
 >   keyword "and"
 >   c <- b_expr
->   return $ SpecialOp p (nm p "between") [a,b,c]
+>   return $ SpecialOp p (nm p opname) [a,b,c]
 
 handles aggregate business as well
 

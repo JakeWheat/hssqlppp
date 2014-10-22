@@ -859,6 +859,10 @@ syntax maybe should error instead of silently breaking
 >                         <+> scalExpr flg (es !! 1)
 >                         <+> text "and"
 >                         <+> scalExpr flg (es !! 2)
+>      Just "notbetween" -> scalExpr flg (head es) <+> text "not between"
+>                         <+> scalExpr flg (es !! 1)
+>                         <+> text "and"
+>                         <+> scalExpr flg (es !! 2)
 >      Just "substring" -> text "substring"
 >                      <> parens (scalExpr flg (head es)
 >                                 <+> text "from" <+> scalExpr flg (es !! 1)
