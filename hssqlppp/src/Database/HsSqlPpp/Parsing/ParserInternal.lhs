@@ -647,9 +647,10 @@ ddl
 > tablePartition :: SParser TablePartitionDef
 > tablePartition = do
 >         p <- pos 
->         cn <- (keyword "partition" *> keyword "by" *> keyword "range" *> (parens nameComponent)) -- partition by range (<col name>)
->         (a,b) <- parens $ keyword "every" *> try ((,) <$>  -- every 5 minute[s]
->                                         integer <*> timeframe)
+>          -- partition by range (<col name>) ( every 5 minutes )
+>         cn <- (keyword "partition" *> keyword "by" *> keyword "range" *> (parens nameComponent))
+>         (a,b) <- parens $ keyword "every" *> try ((,) <$>
+>                                         (option 1 integer) <*> timeframe)
 >         return $ TablePartitionDef p cn a b
 >                       
 >   where
