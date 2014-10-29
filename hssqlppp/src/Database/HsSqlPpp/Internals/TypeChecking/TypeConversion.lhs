@@ -199,7 +199,7 @@ precision and nullability of the result
 >       | appName `elem` ["case","decode","nullif","replicate"]
 >         -> True
 >         -- the default
->      -- | appName `elem` ["substr","substring"] -> False
+>       | appName `elem` ["substr","substring"] -> any teNullable tes
 >       | otherwise -> joinNullability $ map teNullable tesr
 >     -- arguments that participate in the inference of the result type
 >     tesr = case appName of

@@ -1,6 +1,6 @@
 
 
-> {-# LANGUAGE QuasiQuotes,OverloadedStrings #-}
+> {-# LANGUAGE QuasiQuotes,OverloadedStrings,TemplateHaskell #-}
 >
 > module Database.HsSqlPpp.Tests.Parsing.CombineQueryExprs (combineQueryExprs) where
 >

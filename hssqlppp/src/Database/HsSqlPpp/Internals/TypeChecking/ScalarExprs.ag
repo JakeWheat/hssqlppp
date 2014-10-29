@@ -442,7 +442,7 @@ sem ScalarExpr
             case length selType of
               0 -> Left [InternalError "no columns in scalar subquery?"]
               1 -> Right $ snd $ head selType
-              _ -> Right $ mkTypeExtraNN $ AnonymousCompositeType
+              _ -> Right $ mkTypeExtra $ AnonymousCompositeType
                       $ map (teType . snd) selType
 
         -- support for correlated subqueries
@@ -494,7 +494,7 @@ sem InList
                                  "got subquery with no columns? in inselect"]
                       1 -> Right $ head st
                             -- ImplicitCastToDo: probably, TypeExtra goes inside, like in CompositeType
-                      _ -> Right $ mkTypeExtraNN $ AnonymousCompositeType
+                      _ -> Right $ mkTypeExtra $ AnonymousCompositeType
                               $ map teType st
         sel.expectedType = liftM (map snd) @sel.upType
         sel.expectedCast = True

@@ -134,14 +134,16 @@ Conversion routines - convert Sql asts into Docs
 >    $+$ returning flg rt
 >    <> statementEnd se
 >
-> statement _flg se ca (Truncate ann names ri casc) =
+> statement flg se ca (Truncate ann names ri casc) =
 >     annot ca ann <+>
 >     text "truncate"
 >     <+> sepCsvMap name names
->     <+> text (case ri of
+>     <+> case (ppDialect flg) of
+>        SQLServerDialect -> empty
+>        _ -> text (case ri of
 >                       RestartIdentity -> "restart identity"
 >                       ContinueIdentity -> "continue identity")
->     <+> cascade casc
+>             <+> cascade casc
 >     <> statementEnd se
 >
 > -- ddl
@@ -152,7 +154,10 @@ Conversion routines - convert Sql asts into Docs
 >     <+> name tbl <+> lparen
 >     $+$ nest 2 (vcat (csv (map (attrDef flg) atts ++ map (constraint flg) cns)))
 >     $+$ rparen 
->     $+$ (tablePartition partition) <> statementEnd se
+>     $+$ case (ppDialect flg) of
+>          SQLServerDialect -> empty
+>          _ -> (tablePartition partition)
+>     <> statementEnd se
 >
 > statement flg se ca (AlterTable ann nm op) =
 >     annot ca ann <+>
@@ -284,7 +289,7 @@ Conversion routines - convert Sql asts into Docs
 >     doFunction (nm,types) =
 >       name nm <> parens (sepCsvMap typeName types)
 >
-> statement _flg se ca (DropSomething ann dropType ifE names casc) =
+> statement flg se ca (DropSomething ann dropType ifE names casc) =
 >     annot ca ann <+>
 >     text "drop"
 >     <+> text (case dropType of
@@ -295,7 +300,9 @@ Conversion routines - convert Sql asts into Docs
 >                 Database -> "database")
 >     <+> ifExists ifE
 >     <+> sepCsvMap name names
->     <+> cascade casc
+>     <+> case (ppDialect flg) of
+>            SQLServerDialect -> empty
+>            _ -> cascade casc
 >     <> statementEnd se
 >
 > statement _flg se ca (DropTrigger ann ifE nam tbn casc) =

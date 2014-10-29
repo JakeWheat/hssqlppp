@@ -4058,7 +4058,7 @@ sem_InList_InQueryExpr ann_ sel_  =
                              0 -> Left [InternalError
                                         "got subquery with no columns? in inselect"]
                              1 -> Right $ head st
-                             _ -> Right $ mkTypeExtraNN $ AnonymousCompositeType
+                             _ -> Right $ mkTypeExtra $ AnonymousCompositeType
                                      $ map teType st
                    {-# LINE 4048 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -6220,7 +6220,7 @@ sem_QueryExpr_CombineQueryExpr ann_ cqType_ cqQe0_ cqQe1_  =
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag"(line 76, column 9)
               _tpe =
                   ({-# LINE 76 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag" #-}
-                   liftM (mkTypeExtraNN . CompositeType) _tpee
+                   liftM (mkTypeExtra . CompositeType) _tpee
                    {-# LINE 6182 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag"(line 79, column 9)
@@ -6507,7 +6507,7 @@ sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGrou
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag"(line 76, column 9)
               _tpe =
                   ({-# LINE 76 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag" #-}
-                   liftM (mkTypeExtraNN . CompositeType) _tpee
+                   liftM (mkTypeExtra . CompositeType) _tpee
                    {-# LINE 6469 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag"(line 79, column 9)
@@ -6821,7 +6821,7 @@ sem_QueryExpr_Values ann_ qeValues_  =
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag"(line 76, column 9)
               _tpe =
                   ({-# LINE 76 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag" #-}
-                   liftM (mkTypeExtraNN . CompositeType) _tpee
+                   liftM (mkTypeExtra . CompositeType) _tpee
                    {-# LINE 6783 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag"(line 79, column 9)
@@ -6956,7 +6956,7 @@ sem_QueryExpr_WithQueryExpr ann_ withs_ withQe_  =
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag"(line 76, column 9)
               _tpe =
                   ({-# LINE 76 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag" #-}
-                   liftM (mkTypeExtraNN . CompositeType) _tpee
+                   liftM (mkTypeExtra . CompositeType) _tpee
                    {-# LINE 6918 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/QueryExprs.ag"(line 79, column 9)
@@ -12304,7 +12304,7 @@ sem_ScalarExpr_ScalarSubQuery ann_ sel_  =
                    case length selType of
                      0 -> Left [InternalError "no columns in scalar subquery?"]
                      1 -> Right $ snd $ head selType
-                     _ -> Right $ mkTypeExtraNN $ AnonymousCompositeType
+                     _ -> Right $ mkTypeExtra $ AnonymousCompositeType
                              $ map (teType . snd) selType
                    {-# LINE 12267 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
