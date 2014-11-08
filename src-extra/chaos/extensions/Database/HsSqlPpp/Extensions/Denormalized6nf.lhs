@@ -101,7 +101,7 @@ to deal with nulls/ maybe types?
 > makeTable cs dss =
 >     let (s2,f2) = head [(s1,f1) | DTable s1 [] f1 <- universeBi dss]
 >         f3 = [f1 | DTable s3 _ f1 <- universeBi dss, s3 /= s2]
->     in CreateTable ea (Name ea [Nmc s2]) (map notNullify f2 ++ map nullify (concat f3)) cs
+>     in CreateTable ea (Name ea [Nmc s2]) (map notNullify f2 ++ map nullify (concat f3)) cs Nothing
 >
 >
 > notNullify :: AttributeDef -> AttributeDef

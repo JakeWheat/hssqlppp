@@ -79,7 +79,7 @@ server...obj
 >      \             [fieldname] [typename])"
 >    $ [CreateTable ea (Name ea [QNmc "schema",QNmc "table_name"])
 >       [AttributeDef ea (QNmc "fieldname")
->        (SimpleTypeName ea (Name ea [QNmc "typename"])) Nothing []] []]
+>        (SimpleTypeName ea (Name ea [QNmc "typename"])) Nothing []] [] Nothing]
 
 >   ,s "select a from t  -- no semi colon\n\
 >      \select b from t"

@@ -597,17 +597,24 @@ ddl
 >   tname <- name
 >   choice [
 >      CreateTableAs p tname <$> (keyword "as" *> pQueryExpr)
->     ,uncurry (CreateTable p tname) <$> readAttsAndCons]
+>     ,do 
+>      (atts,cons) <- readAttsAndCons
+>      pdata <- readPartition
+>      return $ CreateTable p tname atts cons pdata
+>     ]
 >   where
 >     --parse the unordered list of attribute defs or constraints, for
 >     --each line want to try the constraint parser first, then the
 >     --attribute parser, so you need the swap to feed them in the
 >     --right order into createtable
->     readAttsAndCons = parens (swap <$> multiPerm
->                                          (try tableConstraint)
->                                          tableAttribute
->                                          (symbol ","))
->                       where swap (a,b) = (b,a)
+>     readAttsAndCons = 
+>               parens (swap <$> multiPerm
+>                                  (try tableConstraint)
+>                                  tableAttribute
+>                                  (symbol ","))
+>               where swap (a,b) = (b,a)
+>     readPartition = tryOptionMaybe (tablePartition)
+
 >
 > tableAttribute :: SParser AttributeDef
 > tableAttribute = AttributeDef
@@ -635,8 +642,34 @@ ddl
 >          <*> onDelete
 >          <*> onUpdate
 >          ]
+>
 
-
+> tablePartition :: SParser TablePartitionDef
+> tablePartition = do
+>         p <- pos 
+>          -- partition by range (<col name>) ( every 5 minutes )
+>         cn <- (keyword "partition" *> keyword "by" *> keyword "range" *> (parens nameComponent))
+>         (a,b) <- parens $ keyword "every" *> try ((,) <$>
+>                                         (option 1 integer) <*> timeframe)
+>         return $ TablePartitionDef p cn a b
+>                       
+>   where
+>     timeframe =
+>       choice [Year <$ keyword "years"
+>              ,Year <$ keyword "year"
+>              ,Month <$ keyword "months"
+>              ,Month <$ keyword "month"
+>              ,Day <$ keyword "days"
+>              ,Day <$ keyword "day"
+>              ,Hour <$ keyword "hours"
+>              ,Hour <$ keyword "hour"
+>              ,Minute <$ keyword "minutes"
+>              ,Minute <$ keyword "minute"
+>              ,Second <$ keyword "seconds"
+>              ,Second <$ keyword "second"
+>              ,Millisecond <$ keyword "milliseconds"
+>              ,Millisecond <$ keyword "millisecond"
+>              ]
 >
 > onDelete,onUpdate :: SParser Cascade
 > onDelete = onSomething "delete"
@@ -1334,7 +1367,7 @@ expression, and then add a suffix on
 >   fct >>= tryExprSuffix
 >   where
 >     tryExprSuffix e =
->       option e (choice (map (\f -> f e)
+>       option e (choice (map (\f -> try $ f e) -- Try added because betweenSuffix may eat up "not" in betweenSuffix
 >                                  [inPredicateSuffix
 >                                  ,functionCallSuffix
 >                                  ,windowFnSuffix
@@ -1655,13 +1688,14 @@ and () is a syntax error.
 >     ks = mapM keyword
 >
 > betweenSuffix :: ScalarExpr -> SParser ScalarExpr
-> betweenSuffix a = do
+> betweenSuffix a = try $ do
 >   p <- pos
+>   opname <- option "between" ("notbetween" <$ keyword "not") -- Discern between `between` and `not between`
 >   keyword "between"
 >   b <- b_expr
 >   keyword "and"
 >   c <- b_expr
->   return $ SpecialOp p (nm p "between") [a,b,c]
+>   return $ SpecialOp p (nm p opname) [a,b,c]
 
 handles aggregate business as well
 
@@ -2423,7 +2457,7 @@ a1,a2,b1,b2,a2,b3,b4 parses to ([a1,a2,a3],[b1,b2,b3,b4])
 >   return (catMaybes r1, catMaybes r2)
 >   where
 >     parseAorB = choice [
->                   (\x -> (Just x,Nothing)) <$> p1
+>                   (\x -> (Just x, Nothing)) <$> p1
 >                  ,(\y -> (Nothing, Just y)) <$> p2]
 
 == position stuff

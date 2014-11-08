@@ -128,7 +128,7 @@ TODO: remove the create prefixes
 > envCreateTrefEnvironment :: Catalog -> [NameComponent] -> Either [TypeError] Environment
 > envCreateTrefEnvironment cat tbnm = do
 >   (nm,pub,prv) <- catLookupTableAndAttrs cat tbnm
->   return $ SimpleTref nm pub (second mkTypeExtra `map` prv)
+>   return $ SimpleTref nm pub (second mkTypeExtraNN `map` prv)
 
 > envSelectListEnvironment :: [(Text,TypeExtra)] -> Either [TypeError] Environment
 > envSelectListEnvironment cols =
@@ -225,7 +225,7 @@ lookup and star expansion
 >                                      $ -}
 >                             -- map to change the qualifier name to match
 >                             -- this alias not the source tref
->                             map (\((_,j),t) -> ((ta,j),t)) $ take 1 $ drop i s
+>                             map (\((_,j),t) -> ((ta,n),t)) $ take 1 $ drop i s
 >                Nothing -> []
 >      else []
 >   ,\q -> if q `elem` [Nothing, Just ta]
@@ -236,10 +236,10 @@ lookup and star expansion
 >                   repColNames = map Just cs ++ repeat Nothing
 >                   aliasize :: [((Text, Text), TypeExtra)] -> [((Text, Text), TypeExtra)]
 >                   aliasize =
->                     zipWith (\r ((_,n),t) ->
+>                     flip zipWith repColNames (\r ((_,n),t) ->
 >                              case r of
 >                                Just r' -> ((ta,r'),t)
->                                Nothing -> ((ta,n),t)) repColNames
+>                                Nothing -> ((ta,n),t))
 >               in aliasize $ snd (listBindingsTypes env) Nothing
 >          else [])
 >   where

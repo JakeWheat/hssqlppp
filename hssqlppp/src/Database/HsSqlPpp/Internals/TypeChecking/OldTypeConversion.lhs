@@ -171,6 +171,16 @@ against.
 >                     f2 <- lookupReturnType "<=" [t,t]
 >                     _ <- lookupFn "and" [f1,f2]
 >                     return ("between", [t,t,t], typeBool, False)
+>               "notbetween" | as@[_,_,_] <- argsType -> do
+>                     -- not sure if this is correct - use the result set resolution
+>                     -- to make the argument types compatible
+>                     -- then just check there is a >=, <= returning a pair
+>                     -- of somethings which can be anded
+>                     t <- resolveResultSetType cat as
+>                     f1 <- lookupReturnType "<" [t,t]
+>                     f2 <- lookupReturnType ">" [t,t]
+>                     _ <- lookupFn "or" [f1,f2]
+>                     return ("notbetween", [t,t,t], typeBool, False)
 >               "greatest" -> do
 >                     (_,a,t,x) <- lookupFn fnName argsType
 >                     _ <- lookupFn ">=" [t,t]
