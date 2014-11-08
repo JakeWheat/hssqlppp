@@ -1,11 +1,11 @@
 
 missing from the web pages:
 
-rename index.html
-generated test files
-source highlighting ?
-read source filter which does the markdown rendered literal source
-header fixup
+generated test files:
+  check the background colour and the rendering/style
+  add the headers back
+
+
 source file renders
 transformed sql renders
 
@@ -22,7 +22,7 @@ transformed sql renders
 > import Control.Arrow
 > import Data.DateTime
 > --import Text.DocTool.DocTool
-> --import TestFileProcessor
+> import TestFileProcessor
 > --import DoChaosSql
 
 
@@ -30,13 +30,19 @@ transformed sql renders
 > main = do
 >     fs <- getSourceFiles
 >     mds <- mapM readSourceFile fs
+>     qq <- quasiQuoteTestsTable
+
+>     let mdsExtra = [("ParserTests", Pandoc nullMeta parserTestsTable)
+>                    ,("TypeCheckTests", Pandoc nullMeta typeCheckTestsTable)
+>                    ,("QuasiQuoteTests", Pandoc nullMeta qq)]
+>         mds' = mds ++ mdsExtra
 >     let v = "0.5.10"
 >     t <- getCurrentTime
 >     let tm = formatDateTime "%D %T" t
 >         ft = "generated on " ++ tm ++ ", hssqlppp-" ++ v
->         mds' = map (second $ decoratePandoc v ft) mds
->         mds'' = map (first outputFilename) mds'
->     mapM_ writef mds''
+>         mds'' = map (second $ decoratePandoc v ft) mds'
+>         mds''' = map (first outputFilename) mds''
+>     mapM_ writef mds'''
 
 > writef :: (FilePath,Pandoc) -> IO ()
 > writef (fp,p) = do
@@ -56,6 +62,7 @@ transformed sql renders
 >         , writerVariables = [
 >             ("css", "main.css")
 >             ]
+>         , writerHighlight = True
 >         }
 
 
@@ -72,10 +79,10 @@ transformed sql renders
 > outputFilename :: FilePath -> FilePath
 > outputFilename fp = "build/website/" ++ takeFileName fp ++ ".html"
 
-> readMarkdownFragment :: String -> [Block]
-> readMarkdownFragment s =
->     case readMarkdown def s of
->         Pandoc _ b -> b
+> --readMarkdownFragment :: String -> [Block]
+> --readMarkdownFragment s =
+> --    case readMarkdown def s of
+> --        Pandoc _ b -> b
 
 > header :: String -> [Block]
 > header v = [makeDiv "header" [Plain [Link [Str $ "HsSqlPpp-" ++ v] ("index.html","")]]]

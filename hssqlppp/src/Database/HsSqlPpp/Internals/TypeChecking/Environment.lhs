@@ -394,7 +394,6 @@ use listBindingsTypes to implement expandstar and lookupid
 >     noLower (QNmc n) = T.pack n
 >     noLower (Nmc n) = T.pack n
 
-
 --------------------------
 adding for plpgsql notes:
 

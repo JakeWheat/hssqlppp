@@ -40,7 +40,7 @@ Library
                      syb >= 0.1.0.2 && < 0.5,
                      text >= 0.11.1.13 && < 1.2,
                      uniplate >= 1.6 && < 1.7,
-                     transformers >= 0.3 && < 0.5,
+                     transformers >= 0.4 && < 0.5,
                      groom >=0.1 && < 0.2
 
   hs-source-dirs:    src
@@ -97,7 +97,7 @@ Test-Suite Tests
                        test-framework-hunit >= 0.3 && < 0.4,
                        text >= 0.11.1.13 && < 1.2,
                        uniplate >= 1.6 && < 1.7,
-                       transformers >= 0.3 && < 0.5,
+                       transformers >= 0.4 && < 0.5,
                        groom >=0.1 && < 0.2
 
                      -- rough start:
@@ -133,7 +133,6 @@ Test-Suite Tests
                      Database.HsSqlPpp.Tests.TypeChecking.Tpch
                      Database.HsSqlPpp.Tests.TypeChecking.Joins
                      Database.HsSqlPpp.Tests.TypeChecking.TSQL
-                     Database.HsSqlPpp.Tests.TypeChecking.Utils
                      Database.HsSqlPpp.Tests.TypeChecking.Rewrites
                      Database.HsSqlPpp.Tests.TypeChecking.SimpleQueryExprs
                      Database.HsSqlPpp.Tests.TypeChecking.ImplicitCasts
@@ -156,6 +155,7 @@ Test-Suite Tests
                      Database.HsSqlPpp.Tests.Parsing.ParserTests
                      Database.HsSqlPpp.Tests.Parsing.LexerTests
                      Database.HsSqlPpp.Tests.TpchData
+                     Database.HsSqlPpp.Tests.TestTypes
                      Database.HsSqlPpp.Utils.Here
 
   default-extensions:  TupleSections

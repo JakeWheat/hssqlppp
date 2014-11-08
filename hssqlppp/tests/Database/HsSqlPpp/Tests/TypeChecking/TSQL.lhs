@@ -4,12 +4,14 @@
 > module Database.HsSqlPpp.Tests.TypeChecking.TSQL
 >     (tsqlQueryExprs) where
 
-> import Database.HsSqlPpp.Internals.TypesInternal
-> import Database.HsSqlPpp.Tests.TypeChecking.Utils
-> import Database.HsSqlPpp.Types
+> --import Database.HsSqlPpp.Internals.TypesInternal
+> import Database.HsSqlPpp.Tests.TestTypes
+> --import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Catalog
 > --import Database.HsSqlPpp.TypeChecker
 > import Data.Text.Lazy (pack)
+> import Database.HsSqlPpp.Types
+> import Database.HsSqlPpp.Tests.TypeChecking.Utils
 
 > tsqlQueryExprs :: Item
 > tsqlQueryExprs =

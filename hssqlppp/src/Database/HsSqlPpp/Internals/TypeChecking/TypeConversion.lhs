@@ -13,7 +13,7 @@ http://msdn.microsoft.com/en-us/library/ms190309.aspx
 linked from here:
 http://blogs.msdn.com/b/craigfr/archive/2010/01/20/more-on-implicit-conversions.aspx
 
-> {-# LANGUAGE OverloadedStrings, TupleSections, MultiWayIf #-}
+> {-# LANGUAGE OverloadedStrings, TupleSections, MultiWayIf,FlexibleInstances #-}
 > module Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
 >     (matchApp
 >     ,matchAppExtra
@@ -23,7 +23,7 @@ http://blogs.msdn.com/b/craigfr/archive/2010/01/20/more-on-implicit-conversions.
 >
 > import Data.Maybe
 > import Data.List
-> --import Data.Either
+> import Data.Either
 > import Data.Char
 >
 > import Database.HsSqlPpp.Internals.TypesInternal
@@ -52,30 +52,30 @@ This needs a lot more tests
 >          -> [NameComponent]
 >          -> [Type]
 >          -> Either [TypeError] ([Type],Type)
-> matchApp d cat nmcs = ambiguityResolver $ matchApp' d cat nmcs
+> matchApp d cat nmcs = ambiguityResolver $ matchApp' d nmcs
 >   where
 >     -- hack in support for sql server datediff function
 >     -- need to think of a better way to handle this when
 >     -- have a better idea of all the weird syntax used in
 >     -- tsql
->     matchApp' SQLServerDialect _cat [Nmc dd] [_
->                                             ,ScalarType "date"
->                                             ,ScalarType "date"]
+>     matchApp' SQLServerDialect [Nmc dd] [_
+>                                         ,ScalarType "date"
+>                                         ,ScalarType "date"]
 >       | map toLower dd == "datediff" =
 >       -- check there are 3 args
 >       -- first is identifier from list
 >       -- other two are date types
 >       Right ([typeInt,typeDate,typeDate], typeInt)
->     matchApp' SQLServerDialect _cat [Nmc dd] [_,ScalarType "date"]
+>     matchApp' SQLServerDialect [Nmc dd] [_,ScalarType "date"]
 >       | map toLower dd == "datepart" =
 >       Right ([typeInt,typeDate], typeInt)
->     matchApp' SQLServerDialect _cat [Nmc dd] [_,_,ScalarType "date"]
+>     matchApp' SQLServerDialect [Nmc dd] [_,_,ScalarType "date"]
 >       | map toLower dd == "dateadd" =
 >       Right ([typeInt,typeInt,typeDate], typeDate)
 
 double hack: support oracle decode when in tsql mode:
 
->     matchApp' SQLServerDialect cat [Nmc dd] as
+>     matchApp' SQLServerDialect [Nmc dd] as
 >       | map toLower dd == "decode" =
 
 decode is just syntax for simple case statement:
@@ -94,7 +94,7 @@ if there is a single trailing argument this is the else
 >             let checkBranches [] acc = return $ reverse acc
 >                 checkBranches [els] acc = return $ reverse (els:acc)
 >                 checkBranches (w:t:xs) acc = do
->                   _ <- matchApp' SQLServerDialect cat [Nmc "="] [tt,w]
+>                   _ <- matchApp' SQLServerDialect [Nmc "="] [tt,w]
 >                   checkBranches xs (t:acc)
 >             sndTypes <- checkBranches as' []
 
@@ -109,13 +109,13 @@ todo: add the implicit casting where needed
 
 
 
->     matchApp' d cat nmcs pts = {-trace ("matchapp: " ++ show (d,nmcs,pts)) $ -} do
->       (_,ps,r,_) <- case d of
+>     matchApp' d' nmcs' pts = {-trace ("matchapp: " ++ show (d,nmcs,pts)) $ -} do
+>       (_,ps,r,_) <- case d' of
 >                       SQLServerDialect -> TSQL.findCallMatch cat nm pts
 >                       _ -> findCallMatch cat nm pts
 >       return (ps,r)
 >       where
->         nm = case last nmcs of
+>         nm = case last nmcs' of
 >                Nmc n -> T.pack $ map toLower n
 >                QNmc n -> T.pack n
 >                AntiNameComponent _ -> -- todo: use left instead of error
@@ -129,10 +129,13 @@ for long argument lists with several literals, there can be a lot of variants ge
 
 > ambiguityResolver:: ([Type] -> Either [TypeError] ([Type],Type))
 >                     -> [Type] -> Either [TypeError] ([Type],Type)
-> ambiguityResolver f ts =  let rs = map f $ expandList variants ts
+> ambiguityResolver f ts =  let rs :: [Either [TypeError] ([Type], Type)]
+>                               rs = map f $ expandList variants ts
 >                           -- this is needed in order to preserve the original error
 >                           --  in case when all the attempts fail
->                           in msum rs `mplus` head rs
+>                           in case rights rs of
+>                                  x:_ -> Right x
+>                                  [] -> head rs
 >   where
 >     variants t = case t of
 >         UnknownType -> [t, ScalarType "timestamp"]
@@ -140,7 +143,7 @@ for long argument lists with several literals, there can be a lot of variants ge
 >     -- similar to handling of superaggregates
 >     -- ToDo: move to a general library
 >     expandList:: (a -> [a]) -> [a] -> [[a]]
->     expandList f = foldr (liftM2 (:) . f) [[]]
+>     expandList f' = foldr (liftM2 (:) . f') [[]]
 
 ------------- precision and nullability of function application --------------
 
@@ -218,11 +221,11 @@ precision and nullability of the result
 >       -- the default case
 >         | otherwise -> tes
 >     -- tail is safe here because matchApp did all the checks
->     caseResultTypes tes = caseResultTypes' (tail tes) []
+>     caseResultTypes tes' = caseResultTypes' (tail tes') []
 >       where
 >         caseResultTypes' [] acc = acc
 >         caseResultTypes' [els] acc = els:acc
->         caseResultTypes' (_:t:xs) acc = caseResultTypes' xs (t:acc)
+>         caseResultTypes' (_:t':xs) acc = caseResultTypes' xs (t':acc)
 
 ------------- cast of arguments --------------
 
@@ -269,8 +272,8 @@ Additionaly:
 >               -> ([TypeExtra] -> Either [TypeError]
 >                                         ([[TypeExtra]] -> [TypeExtra], [[TypeExtra]]))
 >               -> [TypeExtra] -> Either [TypeError] [TypeExtra]
->     joinDim join partitionArgs
->         = liftM (uncurry ($) . second (map join)) . partitionArgs
+>     joinDim join' partitionArgs'
+>         = liftM (uncurry ($) . second (map join')) . partitionArgs'
 >     -- combine results for precision and nullability
 >     combine te tePrec teNull = te {
 >       tePrecision = tePrecision tePrec,
@@ -278,12 +281,12 @@ Additionaly:
 >       teNullable = teNullable teNull
 >     }
 >     -- joins of precision and nullability partitions
->     joinPrec tes = map promote tes
+>     joinPrec tes' = map promote tes'
 >       where
 >         promote (TypeExtra t p s n) = TypeExtra t (p' `mplus` p) (s' `mplus` s) n
 >         p' = joinPrecision $ map tePrecision tes
 >         s' = joinScale $ map teScale tes
->     joinNull tes = map promote tes
+>     joinNull tes' = map promote tes'
 >       where
 >         promote (TypeExtra t p s n) = TypeExtra t p s (n' || n)
 >         n' = joinNullability $ map teNullable tes

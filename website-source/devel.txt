@@ -94,6 +94,33 @@ The automated tests use test-framework and HUnit.
 Source overview
 ===============
 
+The project is broken up into multiple directories.
+
+* build: this is a directory with generated files
+* build-extras: contains the executable which generates the default
+  template 1 catalog - this is the catalog from postgresql which is
+  used in typechecking
+* examples: this contains example files which use hssqlppp
+* hssqlppp: this contains the main library which parses and typechecks
+* hssqlppp-pg: this contains the additional code which uses
+  postgresql, this is used for typechecking against a database in
+  postgres, and to help generate the default template 1 catalog
+* hssqlppp-th: this contains the extra template haskell code, mostly
+  the quasi quoting, this is kept separate so that the main library
+  doesn't depend on template-haskell. I'm not sure this is really so
+  important to keep separate
+* make-website: this contains the dodgy code to generate the hssqlppp
+  website
+* postprocess-uuagc: this contains some code to add haddock (and some
+  other stuff?) back to the generated AstInternal.hs which the uuagc
+  processor doesn't deal with
+* sandbox: this is where the shared sandbox for builds is
+* src-extra: this is old code which needs redoing
+* website-source: this is the markdown files for the non-generated
+  parts of the website. You can get more information from these files
+  for the development version compared with the published website on
+  github
+
 A good place to start is with the syntax, which is in uuagc format in
 the file src/Database/HsSqlPpp/Internals/AstInternal.ag. The main
 parsing code might also be interesting:

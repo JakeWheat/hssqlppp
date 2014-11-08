@@ -8,6 +8,7 @@
 > import Database.HsSqlPpp.Ast
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
+> import Database.HsSqlPpp.Tests.TestTypes
 
 > scalarExprs:: Item
 > scalarExprs =

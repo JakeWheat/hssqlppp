@@ -10,6 +10,7 @@ Tests for oracle syntax variations
 > import Database.HsSqlPpp.Ast
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
+> import Database.HsSqlPpp.Tests.TestTypes
 
 > oracle :: Item
 > oracle =

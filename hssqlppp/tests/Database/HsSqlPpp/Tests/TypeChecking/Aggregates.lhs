@@ -2,11 +2,12 @@
 > module Database.HsSqlPpp.Tests.TypeChecking.Aggregates
 >     (aggregates) where
 
-> import Database.HsSqlPpp.Tests.TypeChecking.Utils
+> import Database.HsSqlPpp.Tests.TestTypes
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Catalog
-> import Database.HsSqlPpp.Internals.TypesInternal
+> --import Database.HsSqlPpp.Internals.TypesInternal
 > --import Database.HsSqlPpp.TypeChecker
+> import Database.HsSqlPpp.Tests.TypeChecking.Utils
 
 dodgy hack to support cube:
 special case the cube
@@ -25,14 +26,14 @@ and flexible combinations
 > aggregates :: Item
 > aggregates =
 >   Group "aggregates"
->   [QueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")
+>   [TCQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")
 >                                  ,("b", mkCatNameExtra "int4")
 >                                  ,("c", mkCatNameExtra "int4")]]
 >    "select a,b,count(c) as c from t group by a,b"
 >    $ Right $ CompositeType [("a", mkTypeExtra typeInt)
 >                            ,("b", mkTypeExtra typeInt)
 >                            ,("c", mkTypeExtraNN typeBigInt)]
->   ,QueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")
+>   ,TCQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")
 >                                  ,("b", mkCatNameExtra "int4")
 >                                  ,("c", mkCatNameExtra "int4")]]
 >    "select a,b,count(c) as c from t group by cube(a,b)"

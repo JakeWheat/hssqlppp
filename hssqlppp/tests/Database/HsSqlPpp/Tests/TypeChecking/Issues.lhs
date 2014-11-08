@@ -4,7 +4,7 @@
 > module Database.HsSqlPpp.Tests.TypeChecking.Issues
 >     (issues) where
 >
-> import Database.HsSqlPpp.Tests.TypeChecking.Utils
+> import Database.HsSqlPpp.Tests.TestTypes
 > import Database.HsSqlPpp.TypeChecker
 > import Database.HsSqlPpp.Catalog
 

@@ -13,7 +13,8 @@ There are no tests for invalid syntax at the moment.
 > import Database.HsSqlPpp.Ast
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
->
+> import Database.HsSqlPpp.Tests.TestTypes
+
 > misc :: Item
 > misc =
 >   Group "miscParserTests"
