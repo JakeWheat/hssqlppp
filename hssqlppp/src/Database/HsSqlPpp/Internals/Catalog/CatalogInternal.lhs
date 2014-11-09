@@ -266,8 +266,11 @@ postgresql catalog
 >    ,("rlike",("rlike", [ScalarType "varchar", ScalarType "varchar"], typeBool, False))
 >    ,("arrayctor",("arrayctor", [ArrayType $ Pseudo AnyElement], Pseudo AnyArray, True))
 >    ,("between",("between", [Pseudo AnyElement
->                              ,Pseudo AnyElement
->                              ,Pseudo AnyElement], typeBool, False))
+>                            ,Pseudo AnyElement
+>                            ,Pseudo AnyElement], typeBool, False))
+>    ,("notbetween",("mptbetween", [Pseudo AnyElement
+>                                  ,Pseudo AnyElement
+>                                  ,Pseudo AnyElement], typeBool, False))
 >    ,("substring",("substring",[ScalarType "text",typeInt,typeInt],ScalarType "text",False))
 >    ,("substring",("substring",[ScalarType "varchar",typeInt,typeInt],ScalarType "varchar",False))
 >    ,("substring",("substring",[ScalarType "char",typeInt,typeInt],ScalarType "char",False))

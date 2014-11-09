@@ -190,7 +190,7 @@ simplish ctors
                             @loc.tpe
         e.expectedCast = False
     | Placeholder
-         loc.tpe = Right $ mkTypeExtra UnknownType
+         loc.tpe = Right $ mkTypeExtraNN UnknownType
 {-
 
 ---------------------------------------
@@ -520,7 +520,7 @@ sem ScalarExpr
                       >>= @loc.starCS
                     _ -> Left [InternalError "wrong ctor in sem rule for star, qstar in scalarexprs.ag"]
 
-        loc.starCS = Right . mkTypeExtra . CompositeType . map (\((_q,n),t) -> (n,t))
+        loc.starCS = Right . mkTypeExtraNN . CompositeType . map (\((_q,n),t) -> (n,t))
 
 
 {-

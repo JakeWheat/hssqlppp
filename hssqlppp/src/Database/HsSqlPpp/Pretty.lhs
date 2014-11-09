@@ -134,24 +134,30 @@ Conversion routines - convert Sql asts into Docs
 >    $+$ returning flg rt
 >    <> statementEnd se
 >
-> statement _flg se ca (Truncate ann names ri casc) =
+> statement flg se ca (Truncate ann names ri casc) =
 >     annot ca ann <+>
 >     text "truncate"
 >     <+> sepCsvMap name names
->     <+> text (case ri of
+>     <+> case (ppDialect flg) of
+>        SQLServerDialect -> empty
+>        _ -> text (case ri of
 >                       RestartIdentity -> "restart identity"
 >                       ContinueIdentity -> "continue identity")
->     <+> cascade casc
+>             <+> cascade casc
 >     <> statementEnd se
 >
 > -- ddl
 >
-> statement flg se ca (CreateTable ann tbl atts cns) =
+> statement flg se ca (CreateTable ann tbl atts cns partition) =
 >     annot ca ann <+>
 >     text "create table"
 >     <+> name tbl <+> lparen
 >     $+$ nest 2 (vcat (csv (map (attrDef flg) atts ++ map (constraint flg) cns)))
->     $+$ rparen <> statementEnd se
+>     $+$ rparen 
+>     $+$ case (ppDialect flg) of
+>          SQLServerDialect -> empty
+>          _ -> (tablePartition partition)
+>     <> statementEnd se
 >
 > statement flg se ca (AlterTable ann tnm op) =
 >     annot ca ann <+>
@@ -283,7 +289,7 @@ Conversion routines - convert Sql asts into Docs
 >     doFunction (nm,types) =
 >       name nm <> parens (sepCsvMap typeName types)
 >
-> statement _flg se ca (DropSomething ann dropType ifE names casc) =
+> statement flg se ca (DropSomething ann dropType ifE names casc) =
 >     annot ca ann <+>
 >     text "drop"
 >     <+> text (case dropType of
@@ -294,7 +300,9 @@ Conversion routines - convert Sql asts into Docs
 >                 Database -> "database")
 >     <+> ifExists ifE
 >     <+> sepCsvMap name names
->     <+> cascade casc
+>     <+> case (ppDialect flg) of
+>            SQLServerDialect -> empty
+>            _ -> cascade casc
 >     <> statementEnd se
 >
 > statement _flg se ca (DropTrigger ann ifE nam tbn casc) =
@@ -746,6 +754,21 @@ syntax maybe should error instead of silently breaking
 >                         IfExists -> text "if exists"
 >
 
+> tablePartition Nothing = text ""
+> tablePartition (Just (TablePartitionDef _ cn tf interval)) =
+>      text "partition by range" <+> parens (nmc cn)
+>      <> parens ((text "every") <+> (text $ show tf) <+> (intervalify interval))
+>  where
+>   intervalify = \x-> text $ case x of
+>            Year -> "years"
+>            Month -> "months"
+>            Day -> "days"
+>            Hour -> "hours"
+>            Minute -> "minutes"
+>            Second -> "seconds"
+>            Millisecond -> "milliseconds"
+>            _ -> "unknown type " ++ (show x)
+
 > attrDef :: PrettyPrintFlags -> AttributeDef -> Doc
 > attrDef flg (AttributeDef _ n t def cons) =
 >   nmc n <+> typeName t
@@ -845,6 +868,10 @@ syntax maybe should error instead of silently breaking
 >    case getTName n of
 >      Just "arrayctor" -> text "array" <> brackets (csvExp flg es)
 >      Just "between" -> scalExpr flg (head es) <+> text "between"
+>                         <+> scalExpr flg (es !! 1)
+>                         <+> text "and"
+>                         <+> scalExpr flg (es !! 2)
+>      Just "notbetween" -> scalExpr flg (head es) <+> text "not between"
 >                         <+> scalExpr flg (es !! 1)
 >                         <+> text "and"
 >                         <+> scalExpr flg (es !! 2)

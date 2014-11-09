@@ -88,7 +88,7 @@ it and quits.
 >
 > listTables :: Data a => a  -> [(Text,Statement)]
 > listTables ast =
->   [(getTName tn,t) | t@(CreateTable  _ tn _ _ ) <- universeBi ast]
+>   [(getTName tn,t) | t@(CreateTable  _ tn _ _ _) <- universeBi ast]
 
 > replaceSourcePos1 :: Statement -> Statement -> Statement
 > replaceSourcePos1 st st1 = head $ replaceSourcePos st [st1]

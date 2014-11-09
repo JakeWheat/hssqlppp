@@ -48,10 +48,30 @@ sandbox-devel : sandbox-init sandbox/bin/happy
   build-extras/ hssqlppp-pg/ make-website/ \
   --only-dependencies --enable-tests -j --constraint "Cabal==1.18.1.3"
 
-# TODO: make the sandbox optional and add option to change location of
-# sandbox?
+# if you get an error like this:
 
-# TODO: support using another packagedb not via sandboxes or something?
+# uuagc-0.9.39.1 failed during the configure step. The exception was:
+# user error (
+# /tmp/uuagc-0.9.39.1-31295/uuagc-0.9.39.1/dist/dist-sandbox-4d052f7a/setup/setup.hs:8:30:
+# Couldn't match expected type ‘UserHooks’
+# with actual type ‘Cabal-1.18.1.3:Distribution.Simple.UserHooks.UserHooks’
+# NB: ‘UserHooks’
+# is defined in ‘Distribution.Simple.UserHooks’
+# in package ‘Cabal-1.20.0.0’
+# ‘Cabal-1.18.1.3:Distribution.Simple.UserHooks.UserHooks’
+# is defined in ‘Distribution.Simple.UserHooks’
+# in package ‘Cabal-1.18.1.3’
+# In the first argument of ‘defaultMainWithHooks’, namely
+# ‘(uuagcUserHook' compiler)’
+# In the expression: defaultMainWithHooks (uuagcUserHook' compiler)
+# )
+
+# the work around is to unregister all the versions of Cabal in your
+# user package database except version 1.18.1.3
+# this could break some things, but you can reinstall the versions you
+# unregister after uuagc is compiled
+# (this is a bug in cabal-install/ Cabal, which is only an issue
+# because we are using a really old version of uuagc)
 
 ##############################################################################
 
