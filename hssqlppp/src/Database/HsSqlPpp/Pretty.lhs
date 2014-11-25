@@ -789,7 +789,8 @@ syntax maybe should error instead of silently breaking
 >       <+> maybePrint (parens . nmc) att
 >       <+> text "on delete" <+> cascade ondel
 >       <+> text "on update" <+> cascade onupd
-
+>     cCons (IdentityConstraint _ cn si) = 
+>       mname cn <+> text "identity" <> text (maybe "" show si)
 > -- plpgsql
 >
 > nestedStatements :: PrettyPrintFlags -> (Annotation -> String) -> StatementList -> Doc
