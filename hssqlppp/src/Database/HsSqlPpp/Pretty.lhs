@@ -603,7 +603,7 @@ Statement components
 >   where
 >     useTop = ppDialect flg == SQLServerDialect
 >     prettyQueryHint QueryHintPartitionGroup = "partition group"
->     prettyQueryHint QueryHintColumnarCpuGroup = "columnar cpu group"
+>     prettyQueryHint QueryHintColumnarHostGroup = "columnar host group"
 >
 > queryExpr flg writeSelect topLev _ (CombineQueryExpr _ tp s1 s2) =
 >   let p = queryExpr flg writeSelect False Nothing  s1

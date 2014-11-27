@@ -357,7 +357,7 @@ data RaiseType = RNotice | RException | RError
 
 {-# LINE 1044 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.ag" #-}
 
-data QueryHint = QueryHintPartitionGroup | QueryHintColumnarCpuGroup
+data QueryHint = QueryHintPartitionGroup | QueryHintColumnarHostGroup
                  deriving (Show,Eq,Typeable,Data)
 
 {-# LINE 364 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}

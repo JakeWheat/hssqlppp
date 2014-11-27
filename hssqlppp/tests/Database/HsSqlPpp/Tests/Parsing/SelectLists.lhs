@@ -92,8 +92,8 @@ aggregates, group by, having
 >              ,selHaving = Just $ binop  ">" (ei "cnt") (num "4")}
 >    ,q "select a from tbl option (partition group);"
 >       $ stbl {selOption = [QueryHintPartitionGroup]}
->    ,q "select a from tbl option (partition group,columnar cpu group);"
->       $ stbl {selOption = [QueryHintPartitionGroup,QueryHintColumnarCpuGroup]}
+>    ,q "select a from tbl option (partition group,columnar host group);"
+>       $ stbl {selOption = [QueryHintPartitionGroup,QueryHintColumnarHostGroup]}
 >    ]
 >    where
 >      stbl = makeSelect
