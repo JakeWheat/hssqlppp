@@ -11,12 +11,12 @@
 > import Database.HsSqlPpp.TypeChecker
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Catalog
-> --import Database.HsSqlPpp.Ast hiding (App)
+> import qualified Database.HsSqlPpp.Ast as Ast
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Pretty
 > import Database.HsSqlPpp.Utility
 > import Database.HsSqlPpp.Internals.TypeChecking.Environment
-> --import Text.Groom
+> import Text.Groom
 > import Debug.Trace
 > --import Database.HsSqlPpp.Tests.TestUtils
 > import Control.Monad
@@ -28,6 +28,7 @@
 > data Item = Group String [Item]
 >           | ScalExpr L.Text (Either [TypeError] Type)
 >           | QueryExpr [CatalogUpdate] L.Text (Either [TypeError] Type)
+>           | InsertQueryExpr [CatalogUpdate] L.Text (Either [TypeError] Type)
 >           | TSQLQueryExpr [CatalogUpdate] L.Text (Either [TypeError] Type)
 >           | OracleQueryExpr [CatalogUpdate] L.Text (Either [TypeError] Type)
 >           | RewriteQueryExpr TypeCheckingFlags [CatalogUpdate] L.Text L.Text
@@ -133,6 +134,40 @@
 >   assertEqual "" et got
 >   --queryExprRewrites cus src et
 
+> testInsertQueryExprType :: SQLSyntaxDialect -> [CatalogUpdate] -> L.Text -> Either [TypeError] Type -> Test.Framework.Test
+> testInsertQueryExprType dl cus src et = testCase ("typecheck " ++ L.unpack src) $ do
+>   let Right cat = updateCatalog cus $ case dl of
+>           PostgreSQLDialect -> defaultTemplate1Catalog
+>           SQLServerDialect -> defaultTSQLCatalog
+>           OracleDialect -> defaultTSQLCatalog
+>       flg = case dl of
+>           PostgreSQLDialect -> defaultTypeCheckingFlags
+>           SQLServerDialect -> defaultTypeCheckingFlags {tcfDialect = SQLServerDialect}
+>           OracleDialect -> defaultTypeCheckingFlags {tcfDialect = OracleDialect}
+>       asts = either (error . show) id $ parseStatements defaultParseFlags "" Nothing src
+>       Ast.Insert _ _ _ q _ = extractInsert $ snd $ typeCheckStatements flg cat asts
+>       q' = addImplicitCasts cat q
+>       q'' = typeCheckQueryExpr flg cat q'
+>       (ty,errs,noTypeQEs,noTypeSEs) = tcTreeInfo q''
+>       er = concatMap fst errs
+>       got :: Either [TypeError] Type
+>       got = case () of
+>               _ | null er -> maybe (Left []) (Right . teType) ty
+>                 | otherwise -> Left er
+>       allTyped = case et of
+>                    Left _ -> True -- don't check if everything is typed
+>                                   -- if expecting a type error
+>                    Right _ -> null noTypeSEs && null noTypeQEs
+>   unless allTyped $
+>        trace ("MISSING TYPES: " ++ groomTypes q'')
+>        $ assertBool "" allTyped
+>   unless (et == got) $ trace (groomTypes q'') $ return ()
+>   assertEqual "" et got
+>   where
+>     extractInsert [i@Ast.Insert{}] = i
+>     extractInsert x = error $ "expected a single insert statement, got " ++ groom x
+
+
 rewrite the queryexpr with all the options true
 
 pretty print, then check that the resultant sql parses the same, and
@@ -175,9 +210,6 @@ type checks properly and produces the same type
 >        trace ("MISSING TYPES: " ++ groomTypes aastrw)
 >        $ assertBool "" allTyped
 
-
-
-
 > testRewrite :: TypeCheckingFlags -> [CatalogUpdate] -> L.Text -> L.Text
 >             -> Test.Framework.Test
 > testRewrite f cus src src' = testCase ("rewrite " ++ L.unpack src) $ do
@@ -213,6 +245,7 @@ type checks properly and produces the same type
 > itemToTft :: Item -> Test.Framework.Test
 > itemToTft (ScalExpr s r) = testScalarExprType s r
 > itemToTft (QueryExpr cus s r) = testQueryExprType PostgreSQLDialect cus s r
+> itemToTft (InsertQueryExpr cus s r) = testInsertQueryExprType PostgreSQLDialect cus s r
 > itemToTft (TSQLQueryExpr cus s r) = testQueryExprType SQLServerDialect cus s r
 > itemToTft (OracleQueryExpr cus s r) = testQueryExprType OracleDialect cus s r
 > itemToTft (RewriteQueryExpr f cus s s') = testRewrite f cus s s'

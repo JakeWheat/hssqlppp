@@ -60,6 +60,7 @@ sequences
 >     ,CatName
 >     ,CatNameExtra(..)
 >     ,mkCatNameExtra
+>     ,mkCatNameExtraNN
 >      -- catalog updates
 >     ,CatalogUpdate(..)
 >     ,updateCatalog
@@ -176,6 +177,8 @@ catalog values
 > } deriving (Eq,Ord,Show,Typeable,Data)
 > mkCatNameExtra:: CatName -> CatNameExtra
 > mkCatNameExtra cn = CatNameExtra cn Nothing Nothing True
+> mkCatNameExtraNN:: CatName -> CatNameExtra
+> mkCatNameExtraNN cn = CatNameExtra cn Nothing Nothing False
 
 > data CompositeFlavour = Composite | TableComposite | ViewComposite
 >                         deriving (Eq,Ord,Show)

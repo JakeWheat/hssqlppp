@@ -21,6 +21,7 @@
 > import Database.HsSqlPpp.Tests.TypeChecking.Issues
 > import Database.HsSqlPpp.Tests.TypeChecking.Aggregates
 > import Database.HsSqlPpp.Tests.TypeChecking.PrecisionAndNullable
+> import Database.HsSqlPpp.Tests.TypeChecking.InsertQueryExprs
 
 > typeCheckTestData :: Item
 > typeCheckTestData =
@@ -37,6 +38,7 @@
 >     ,issues
 >     ,aggregates
 >     ,precisionAndNullable
+>     ,insertQueryExprs
 >     ]
 
 > typeCheckTests :: Test.Framework.Test
