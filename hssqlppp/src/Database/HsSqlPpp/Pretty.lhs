@@ -603,7 +603,7 @@ Statement components
 >   where
 >     useTop = ppDialect flg == SQLServerDialect
 >     prettyQueryHint QueryHintPartitionGroup = "partition group"
->     prettyQueryHint QueryHintColumnarCpuGroup = "columnar cpu group"
+>     prettyQueryHint QueryHintColumnarHostGroup = "columnar host group"
 >
 > queryExpr flg writeSelect topLev _ (CombineQueryExpr _ tp s1 s2) =
 >   let p = queryExpr flg writeSelect False Nothing  s1
@@ -790,7 +790,8 @@ syntax maybe should error instead of silently breaking
 >       <+> maybePrint (parens . nmc) att
 >       <+> text "on delete" <+> cascade ondel
 >       <+> text "on update" <+> cascade onupd
-
+>     cCons (IdentityConstraint _ cn si) = 
+>       mname cn <+> text "identity" <> text (maybe "" show si)
 > -- plpgsql
 >
 > nestedStatements :: PrettyPrintFlags -> (Annotation -> String) -> StatementList -> Doc

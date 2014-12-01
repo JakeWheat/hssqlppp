@@ -352,7 +352,7 @@ maybe it should still do this since it would probably be a lot clearer
 > queryHint :: SParser QueryHint
 > queryHint = choice
 >             [QueryHintPartitionGroup <$ keyword "partition" <* keyword "group"
->             ,QueryHintColumnarCpuGroup <$ keyword "columnar" <* keyword "cpu" <* keyword "group"]
+>             ,QueryHintColumnarHostGroup <$ keyword "columnar" <* keyword "host" <* keyword "group"]
 
 > orderBy :: SParser [(ScalarExpr,Direction)]
 > orderBy = option []
