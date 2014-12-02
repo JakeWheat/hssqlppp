@@ -29,6 +29,7 @@ Forward the public part of CatalogInternal.
 >     ,CatName
 >     ,CatNameExtra(..)
 >     ,mkCatNameExtra
+>     ,mkCatNameExtraNN
 >     --,CompositeDef
 >     --,FunctionPrototype
 >     --,DomainDefinition
