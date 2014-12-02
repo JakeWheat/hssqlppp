@@ -264,8 +264,8 @@
 >   unless (et == got) $ trace (groomTypes q'') $ return ()
 >   assertEqual "" et got
 >   where
->     extractInsert [i@Ast.Insert{}] = i
->     extractInsert x = error $ "expected a single insert statement, got " ++ groom x
+>     extractInsert [i@Insert{}] = i
+>     extractInsert x = error $ "expected a single insert statement, got " ++ groomTypes x
 
 rewrite the queryexpr with all the options true
 
