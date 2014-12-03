@@ -10,11 +10,13 @@ sem Statement
     ex.expectedType = liftM (map snd) @ex.upType
     ex.expectedCast = True
   | Insert
+    -- the expected type for the insert data is the target columns' type
+    -- TODO: make sure that the number of target columns match the number of columns in insData
     insData.expectedType = do
                            let tnm = nameComponents @table.originalTree
-                           (_,pub,_) <- eitherToMaybe $ catLookupTableAndAttrs @lhs.cat tnm
+                           (_,pub,_) <- either (const Nothing) Just $ catLookupTableAndAttrs @lhs.cat tnm
                            case @targetCols of
-                                []  -> return $ map snd pub
+                                []  -> return $ map snd pub  -- if there's no column list, we take the entire table
                                 tcs -> do
                                        tcs' <- mapM nmcString tcs
                                        mapM (`lookup` pub) tcs'
@@ -31,9 +33,6 @@ sem Statement
     value.downEnv = emptyEnvironment
 
 {
-eitherToMaybe :: Either a b -> Maybe b
-eitherToMaybe = either (const Nothing) Just
-
 nmcString :: NameComponent -> Maybe Text
 nmcString (QNmc n) = Just $ T.pack n
 nmcString (Nmc n) = Just $ T.pack $ map toLower n
