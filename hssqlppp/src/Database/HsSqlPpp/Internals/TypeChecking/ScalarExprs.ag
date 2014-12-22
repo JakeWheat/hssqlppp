@@ -25,6 +25,12 @@ For now, expectedCast is Bool, with the meaning of whether the nullability compo
   In the future, this can change, and the type of expectedCast will reflect the change.
 -}
 
+imports
+{
+import Text.Read
+}
+
+
 sem ScalarExpr
     | NumberLit StringLit NullLit BooleanLit TypedStringLit Interval
       Extract PositionalArg Placeholder Cast ImplicitCast Star QStar Identifier
@@ -145,7 +151,7 @@ sem ScalarExpr
         -- needs to improve a lot then this won't be possible any
         -- more (e.g. 10e-5)
         loc.tpe = Right $ if all (`elem` @loc.digChars) @d
-                          then mkTypeExtraNN typeInt
+                          then mkTypeExtraNN $ classifyInteger @d
                           else mkTypeExtraNN typeNumeric
         loc.digChars = concatMap show [(0::Int)..9]
 
@@ -590,3 +596,12 @@ sem QueryExpr
 
 
 -}
+
+{
+classifyInteger :: String -> Type
+classifyInteger s = case (readMaybe s :: Maybe Integer) of
+                      -- assuming number literals are always positive
+                      Just n | n < 2 ^ 31 -> typeInt
+                             | n < 2 ^ 63 -> typeBigInt
+                      _ -> typeNumeric
+}

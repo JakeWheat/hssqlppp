@@ -13,6 +13,8 @@
 >    [ScalExpr "true" $ Right typeBool
 >    ,ScalExpr "false" $ Right typeBool
 >    ,ScalExpr "41" $ Right typeInt
+>    ,ScalExpr "2147483648" $ Right typeBigInt
+>    ,ScalExpr "9223372036854775808" $ Right typeNumeric
 >    ,ScalExpr "1.6" $ Right typeNumeric
 >    ,ScalExpr "'test'" $ Right UnknownType
 >    ,ScalExpr "null" $ Right UnknownType
