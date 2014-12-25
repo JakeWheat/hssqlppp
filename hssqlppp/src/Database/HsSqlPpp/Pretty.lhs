@@ -264,6 +264,15 @@ Conversion routines - convert Sql asts into Docs
 >     <+> text "as"
 >     $+$ nest 2 (queryExpr flg True True Nothing sel) <> statementEnd se
 >
+> statement flg se ca (AlterView ann nm cols sel) =
+>     annot ca ann <+>
+>     text "alter view" <+> name nm
+>     <> case cols of
+>          Nothing -> empty
+>          Just cs -> parens (sepCsvMap nmc cs)
+>     <+> text "as"
+>     $+$ nest 2 (queryExpr flg True True Nothing sel) <> statementEnd se
+>
 > statement flg se ca (CreateDomain ann nm tp n ex) =
 >     annot ca ann <+>
 >     text "create domain" <+> name nm <+> text "as"

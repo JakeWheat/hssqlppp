@@ -692,6 +692,10 @@ data Statement
                  name :: Name
                  colNames :: {MaybeNameComponentList}
                  expr :: QueryExpr
+    | AlterView ann::Annotation
+                 name :: Name
+                 colNames :: {MaybeNameComponentList}
+                 expr :: QueryExpr
     | CreateType ann::Annotation
                  name :: Name
                  atts :: TypeAttributeDefList

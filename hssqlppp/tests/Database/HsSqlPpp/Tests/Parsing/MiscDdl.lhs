@@ -21,9 +21,25 @@
 >         {selSelectList = sl [si $ ei "a"
 >                             ,si $ ei "b"]
 >         ,selTref = [tref "t"]})]
+>      ,s "alter view v1 as\n\
+>         \select a,b from t;"
+>       [AlterView ea
+>        (name "v1") Nothing
+>        (makeSelect
+>         {selSelectList = sl [si $ ei "a"
+>                             ,si $ ei "b"]
+>         ,selTref = [tref "t"]})]
 >      ,s "create view v1(c,d) as\n\
 >         \select a,b from t;"
 >       [CreateView ea
+>        (name "v1") (Just [Nmc "c",Nmc "d"])
+>        (makeSelect
+>         {selSelectList = sl [si $ ei "a"
+>                             ,si $ ei "b"]
+>         ,selTref = [tref "t"]})]
+>      ,s "alter view v1(c,d) as\n\
+>         \select a,b from t;"
+>       [AlterView ea
 >        (name "v1") (Just [Nmc "c",Nmc "d"])
 >        (makeSelect
 >         {selSelectList = sl [si $ ei "a"

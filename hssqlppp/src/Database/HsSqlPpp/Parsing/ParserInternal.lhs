@@ -219,7 +219,8 @@ Parsing top level statements
 >                 alterSequence
 >                ,alterTable
 >                ,alterLogin
->                ,alterUser]
+>                ,alterUser
+>                ,alterView]
 >     ,keyword "drop" *>
 >              choice [
 >                 dropSomething
@@ -761,7 +762,6 @@ ddl
 >                addConstraint = AddConstraint
 >                                <$> (pos <* keyword "add")
 >                                <*> tableConstraint
->
 > createType :: SParser Statement
 > createType = CreateType
 >              <$> pos <* keyword "type"
@@ -887,6 +887,13 @@ variable declarations in a plpgsql function
 >
 > createView :: SParser Statement
 > createView = CreateView
+>              <$> pos <* keyword "view"
+>              <*> name
+>              <*> tryOptionMaybe (parens $ commaSep nameComponent)
+>              <*> (keyword "as" *> pQueryExpr)
+
+> alterView :: SParser Statement
+> alterView = AlterView
 >              <$> pos <* keyword "view"
 >              <*> name
 >              <*> tryOptionMaybe (parens $ commaSep nameComponent)
