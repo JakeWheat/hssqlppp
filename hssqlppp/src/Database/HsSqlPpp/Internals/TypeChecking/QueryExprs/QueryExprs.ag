@@ -85,6 +85,7 @@ sem QueryExpr
         loc.tpee = maybe (Left []) Right @withQe.upType
     | Values
         loc.tpee = @qeValues.upType
+        qeValues.expectedCast=True
     | CombineQueryExpr
         loc.tpee =
           do
@@ -99,12 +100,15 @@ sem QueryExpr
 attr ScalarExprTransposedList
   syn upType :: {Maybe [TypeExtra]}
   inh expectedType :: {Maybe [TypeExtra]}
+  inh expectedCast :: Bool
 
 sem ScalarExprTransposedList
     | Cons
         lhs.upType = liftM2 (:) @hd.upType @tl.upType
         hd.expectedType = liftM fst $ splitTypeExtraList @lhs.expectedType
         tl.expectedType = liftM snd $ splitTypeExtraList @lhs.expectedType
+        hd.expectedCast = @lhs.expectedCast
+        tl.expectedCast = @lhs.expectedCast
     | Nil
         lhs.upType = Just []
 
@@ -113,6 +117,7 @@ attr ScalarExprListList
   -- type errors can happen at this level, so I have to declare upType as Either
   syn upType :: {Either [TypeError] [(Text,TypeExtra)]}
   inh expectedType :: {Maybe [TypeExtra]}
+  inh expectedCast :: Bool
 
 sem ScalarExprListList
     | Cons
@@ -134,6 +139,8 @@ sem ScalarExprListList
               case uts of
                 Left{} -> itError
                 Right uts' -> return $ zipWith (\(n,_) te -> (n,te)) b uts'
+        hd.expectedCast = @lhs.expectedCast
+        tl.expectedCast = @lhs.expectedCast
     | Nil lhs.upType = Right []
 
 attr MaybeBoolExpr ScalarExprDirectionPairList ScalarExprDirectionPair

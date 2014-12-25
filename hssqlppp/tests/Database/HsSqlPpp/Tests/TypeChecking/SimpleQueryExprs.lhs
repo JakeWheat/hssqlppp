@@ -83,6 +83,22 @@ simple window function type
 >        "select a,count(*) over () as r from t"
 >        $ Right $ CompositeType [("a", mkTypeExtra typeInt), ("r", mkTypeExtraNN typeBigInt)]
 
+values
 
+>       ,TCQueryExpr []
+>        "values (1)"
+>        $ Right $ CompositeType [("values%0", mkTypeExtraNN typeInt)]
+
+>       ,TCQueryExpr []
+>        "values (1),(2)"
+>        $ Right $ CompositeType [("values%0", mkTypeExtraNN typeInt)]
+
+>       ,TCQueryExpr []
+>        "values (1,1.5),(2,2.5)"
+>        $ Right $ CompositeType [("values%0", mkTypeExtraNN typeInt), ("values%1", mkTypeExtraNN $ ScalarType "numeric")]
+
+>       ,TCQueryExpr []
+>        "values (1.5),(1)"
+>        $ Right $ CompositeType [("values%0", mkTypeExtraNN $ ScalarType "numeric")]
 >   ]
 
