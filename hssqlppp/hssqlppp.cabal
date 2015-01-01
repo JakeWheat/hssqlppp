@@ -3,11 +3,11 @@ Version:             0.5.14
 Synopsis:            SQL parser and type checker
 License:             BSD3
 License-file:        LICENSE
-Author:              Jake Wheat
+Author:              Jake Wheat, SQream
 Maintainer:          jakewheatmail@gmail.com
 Build-Type:          Simple
 Cabal-Version:       >=1.10
-copyright:           Copyright 2009-2012 Jake Wheat
+copyright:           Copyright 2009-2015 Jake Wheat, Copyright 2011-2015 SQream
 homepage:            http://jakewheat.github.com/hssqlppp/
 bug-reports:         https://github.com/JakeWheat/hssqlppp/issues
 category:            Database,Language
@@ -38,7 +38,7 @@ Library
                      parsec >= 3.1.2 && < 3.2,
                      pretty >= 1.0 && < 1.2,
                      syb >= 0.1.0.2 && < 0.5,
-                     text >= 0.11.1.13 && < 1.2,
+                     text >= 0.11.1.13 && < 1.3,
                      uniplate >= 1.6 && < 1.7,
                      transformers >= 0.4 && < 0.5,
                      groom >=0.1 && < 0.2
@@ -95,7 +95,7 @@ Test-Suite Tests
                        template-haskell,
                        test-framework >= 0.8 && < 0.9,
                        test-framework-hunit >= 0.3 && < 0.4,
-                       text >= 0.11.1.13 && < 1.2,
+                       text >= 0.11.1.13 && < 1.3,
                        uniplate >= 1.6 && < 1.7,
                        transformers >= 0.4 && < 0.5,
                        groom >=0.1 && < 0.2

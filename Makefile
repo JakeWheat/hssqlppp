@@ -32,7 +32,7 @@ sandbox-init :
 .PHONY : sandbox
 sandbox : sandbox-init sandbox/bin/happy
 	cabal install hssqlppp/ hssqlppp-th/ examples/ postprocess-uuagc/ \
-  --only-dependencies --enable-tests -j --constraint "Cabal==1.18.1.3"
+  --only-dependencies --enable-tests -j
 
 sandbox/bin/happy : sandbox-init
 	cabal install happy -j
@@ -46,7 +46,7 @@ sandbox/bin/happy : sandbox-init
 sandbox-devel : sandbox-init sandbox/bin/happy
 	cabal install hssqlppp/ hssqlppp-th/ examples/ postprocess-uuagc/ \
   build-extras/ hssqlppp-pg/ make-website/ \
-  --only-dependencies --enable-tests -j --constraint "Cabal==1.18.1.3"
+  --only-dependencies --enable-tests -j
 
 # if you get an error like this:
 
