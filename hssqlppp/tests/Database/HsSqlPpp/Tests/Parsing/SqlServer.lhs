@@ -158,6 +158,30 @@ needs to be better: the style is lost
 >                    (Just Merge) (tref "u") Nothing]}
 >      ]
 
+The following will fail if the words are not marked as keywords
+in ParserInternal.lhs
+
+>   ,s "select * from t loop join u"
+>      [qs $ makeSelect
+>        {selSelectList = sl [si $ Star ea]
+>        ,selTref = [JoinTref ea (tref "t") Unnatural Inner
+>                    (Just Loop) (tref "u") Nothing]}
+>      ]
+
+>   ,s "select * from t merge join u"
+>      [qs $ makeSelect
+>        {selSelectList = sl [si $ Star ea]
+>        ,selTref = [JoinTref ea (tref "t") Unnatural Inner
+>                    (Just Merge) (tref "u") Nothing]}
+>      ]
+
+>   ,s "select * from t hash join u"
+>      [qs $ makeSelect
+>        {selSelectList = sl [si $ Star ea]
+>        ,selTref = [JoinTref ea (tref "t") Unnatural Inner
+>                    (Just Hash) (tref "u") Nothing]}
+>      ]
+
 >   ]
 >   where
 >     s = TSQL

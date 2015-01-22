@@ -36,7 +36,7 @@ transformed sql renders
 >                    ,("TypeCheckTests", Pandoc nullMeta typeCheckTestsTable)
 >                    ,("QuasiQuoteTests", Pandoc nullMeta qq)]
 >         mds' = mds ++ mdsExtra
->     let v = "0.5.14"
+>     let v = "0.5.15"
 >     t <- getCurrentTime
 >     let tm = formatDateTime "%D %T" t
 >         ft = "generated on " ++ tm ++ ", hssqlppp-" ++ v

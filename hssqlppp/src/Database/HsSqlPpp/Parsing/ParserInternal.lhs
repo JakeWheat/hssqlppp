@@ -2030,7 +2030,7 @@ function or type' keywords as function names, maybe there are others)
 >        ,"window"
 >        ,"with"
 >        --extras for hssqlppp: Todo: fix this
->        ,"loop"]
+>        ,"loop","merge","hash"]
 
 sql server keywords from this page:
 http://msdn.microsoft.com/en-us/library/ms189822.aspx
@@ -2113,6 +2113,7 @@ http://msdn.microsoft.com/en-us/library/ms189822.aspx
 >        ,"goto"
 >        ,"grant"
 >        ,"group"
+>        ,"hash"
 >        ,"having"
 >        ,"holdlock"
 >        ,"identity"
@@ -2133,6 +2134,7 @@ http://msdn.microsoft.com/en-us/library/ms189822.aspx
 >        ,"like"
 >        ,"lineno"
 >        ,"load"
+>        ,"loop"
 >        ,"merge"
 >        ,"national"
 >        ,"natural"
