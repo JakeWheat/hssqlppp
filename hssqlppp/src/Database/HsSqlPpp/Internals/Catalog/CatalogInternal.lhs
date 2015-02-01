@@ -92,12 +92,8 @@ sequences
 > import qualified Data.Map as M
 > import qualified Data.Set as S
 > import Database.HsSqlPpp.Internals.TypesInternal
-> --import Database.HsSqlPpp.Utils.Utils
 > import Data.Text (Text)
-> import Data.List (intercalate)
 > import qualified Data.Text as T
-> import Debug.Trace
-> --import qualified Data.Text.Lazy as LT
 
 -----------------------------------
 
@@ -476,7 +472,7 @@ queries
 > getCatName :: [NameComponent] -> CatName
 > getCatName [] = error "empty name component in catalog code"
 > getCatName ncs = case last ncs of
->                                Nmc n -> T.pack $ intercalate "$" [map toLower n' | Nmc n' <- ncs]
+>                                Nmc n -> T.pack $ map toLower n
 >                                QNmc n -> T.pack n
 >                                AntiNameComponent x -> error $ "anti name component in getCatName " ++ x
 
