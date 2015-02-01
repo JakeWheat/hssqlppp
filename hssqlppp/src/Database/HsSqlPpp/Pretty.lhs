@@ -287,6 +287,13 @@ Conversion routines - convert Sql asts into Docs
 >     annot ca ann <+>
 >     text "create database" <+> name nm <> statementEnd se
 >
+> statement _flg se ca (AlterDatabase ann nm op) =
+>     annot ca ann <+> text "alter database" <+>
+>           name nm <+> alterDbOperation op <> statementEnd se
+>     where
+>      alterDbOperation (RenameDatabase _ nm) =
+>       text "modify name = " <+> name nm
+>
 > statement _flg se ca (DropFunction ann ifE fns casc) =
 >   annot ca ann <+>
 >   text "drop function"
