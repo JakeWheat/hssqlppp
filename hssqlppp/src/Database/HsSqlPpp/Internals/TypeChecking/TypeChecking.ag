@@ -179,11 +179,6 @@ addImplicitCasts cat = transformBi removeDoubleCasts . transformBi addCast
             from <- liftM teType $ anType $ getAnnotation e'
             either  (const $ if from == UnknownType then Just True else Nothing) Just
                     $ catCast cat ImplicitCastContext from to
-        isStar:: ScalarExpr -> Bool
-        isStar e' = case e' of
-          Star{} -> True
-          QStar{} -> True
-          _ -> False
         ann' = getAnnotation e
     removeDoubleCasts:: ScalarExpr -> ScalarExpr
     removeDoubleCasts e = fst $ accumulateCasts e

@@ -45,4 +45,11 @@
 >         ,CatCreateTable "t2" [("b", mkCatNameExtraNN "int8")]]
 >         "insert into t2 select * from t1;"
 >         $ Right $ CompositeType [("?column?", mkTypeExtraNN typeBigInt)]
+>        -- where (uses outerDownEnv)
+>       ,InsertQueryExpr
+>         [CatCreateTable "t1" [("a", mkCatNameExtraNN "int4")]
+>         ,CatCreateTable "t2" [("b", mkCatNameExtraNN "int4")]]
+>         "insert into t2 select a from t1 where a>0;"
+>         $ Right $ CompositeType [("a", mkTypeExtraNN typeInt)]
+
 >       ]
