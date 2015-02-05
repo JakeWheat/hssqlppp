@@ -170,7 +170,6 @@ addImplicitCasts cat = transformBi removeDoubleCasts . transformBi addCast
     addCast e = fromMaybe e $ do
                   te <- anImplicitCast ann'
                   -- ImplicitCastToDo: why anImplicitCast is not Nothing above Star
-                  guard $ (not . isStar) e -- temporary
                   _ <- nameOfType $ teType te -- in order to preserve the old logic
                   -- guard $ isCastable e $ teType te
                   return $ ImplicitCast emptyAnnotation e te

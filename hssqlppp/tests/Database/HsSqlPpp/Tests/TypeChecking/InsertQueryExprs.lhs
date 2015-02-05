@@ -38,4 +38,11 @@
 >         ,CatCreateTable "t2" [("b", mkCatNameExtra "int4")]]
 >         "insert into t2 select a from t1;"
 >         $ Right $ CompositeType [("a", mkTypeExtra typeInt)]
+>        -- star expansion
+>        -- todo: why '?column?'?
+>       ,InsertQueryExpr
+>         [CatCreateTable "t1" [("a", mkCatNameExtraNN "int4")]
+>         ,CatCreateTable "t2" [("b", mkCatNameExtraNN "int8")]]
+>         "insert into t2 select * from t1;"
+>         $ Right $ CompositeType [("?column?", mkTypeExtraNN typeBigInt)]
 >       ]
