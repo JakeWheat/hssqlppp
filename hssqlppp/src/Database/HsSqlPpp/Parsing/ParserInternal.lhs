@@ -218,7 +218,6 @@ Parsing top level statements
 >              choice [
 >                 alterSequence
 >                ,alterTable
->                ,alterDatabase
 >                ,alterLogin
 >                ,alterUser
 >                ,alterView]
@@ -714,17 +713,6 @@ ddl
 >                               then fail $ "not keyword (constraint name): " ++ x
 >                               else return x
 >
-> alterDatabase :: SParser Statement
-> alterDatabase = AlterDatabase
->                  <$> (pos <* keyword "database")
->                     <*> name
->                     <*> operation
->  where
->   operation = try renameDatabase
->   renameDatabase = RenameDatabase
->                      <$> (pos <* keyword "modify" <* keyword "name" <* symbol "=")
->                      <*> name
-
 > alterTable :: SParser Statement
 > alterTable = AlterTable <$> (pos <* keyword "table"
 >                              <* optional (keyword "only"))

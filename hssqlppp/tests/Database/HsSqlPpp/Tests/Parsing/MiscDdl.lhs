@@ -10,11 +10,9 @@
 > miscDdl:: Item
 > miscDdl =
 >   Group "misc ddl" [
->     Group "misc create/alter" [
+>     Group "misc create" [
 >       s "create database dbname;"
 >       [CreateDatabase ea (name "dbname")]
->      ,s "alter database dbname modify name = otherdb;"
->       [AlterDatabase ea (name "dbname") (RenameDatabase ea (name "otherdb"))]
 >      ,s "create view v1 as\n\
 >         \select a,b from t;"
 >       [CreateView ea

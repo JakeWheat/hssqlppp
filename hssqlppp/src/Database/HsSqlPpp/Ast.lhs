@@ -54,7 +54,6 @@
 >     ,TablePartitionDef(..)
 >     ,TablePartitionDateTimeInterval(..)
 >     ,TypeAttributeDef(..)
->     ,AlterDatabaseOperation(..)
 >     ,AlterTableOperation(..)
 >     ,AlterTableAction(..)
 >     ,AlterColumnAction(..)
