@@ -38,6 +38,7 @@
 >         ,CatCreateTable "t2" [("b", mkCatNameExtra "int4")]]
 >         "insert into t2 select a from t1;"
 >         $ Right $ CompositeType [("a", mkTypeExtra typeInt)]
+
 >        -- star expansion
 >        -- todo: why '?column?'?
 >       ,InsertQueryExpr
@@ -52,4 +53,14 @@
 >         "insert into t2 select a from t1 where a>0;"
 >         $ Right $ CompositeType [("a", mkTypeExtraNN typeInt)]
 
+>        -- int to bigint - values
+>       ,InsertQueryExpr
+>         [CatCreateTable "t2" [("b", mkCatNameExtra "int8")]]
+>         "insert into t2(b) values (1);"
+>         $ Right $ CompositeType [("values%0", mkTypeExtra typeBigInt)]
+>        -- not null to null - values
+>       ,InsertQueryExpr
+>         [CatCreateTable "t2" [("b", mkCatNameExtra "int4")]]
+>         "insert into t2(b) values (1);"
+>         $ Right $ CompositeType [("values%0", mkTypeExtra typeInt)]
 >       ]
