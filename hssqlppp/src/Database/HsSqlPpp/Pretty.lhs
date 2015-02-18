@@ -286,7 +286,14 @@ Conversion routines - convert Sql asts into Docs
 > statement _flg se ca (CreateDatabase ann nm) =
 >     annot ca ann <+>
 >     text "create database" <+> name nm <> statementEnd se
->
+
+> statement _flg se ca (AlterDatabase ann nm op) =
+>     annot ca ann <+> text "alter database" <+>
+>           name nm <+> alterDbOperation op <> statementEnd se
+>     where
+>      alterDbOperation (RenameDatabase _ nm') =
+>       text "rename to" <+> name nm'
+
 > statement _flg se ca (DropFunction ann ifE fns casc) =
 >   annot ca ann <+>
 >   text "drop function"
@@ -306,7 +313,9 @@ Conversion routines - convert Sql asts into Docs
 >                 View -> "view"
 >                 Domain -> "domain"
 >                 Type -> "type"
->                 Database -> "database")
+>                 Database -> "database"
+>                 User -> "user"
+>                 Login -> "login")
 >     <+> ifExists ifE
 >     <+> sepCsvMap name names
 >     <+> case (ppDialect flg) of
@@ -726,7 +735,7 @@ syntax maybe should error instead of silently breaking
 >       po (CopyDelimiter s) = text "delimiter" <+> quotes (text s)
 >       po (CopyErrorLog s) = text "error_log" <+> quotes (text s)
 >       po (CopyErrorVerbosity s) = text "error_verbosity" <+> int s
-
+>       po (CopyParsers s) = text "parsers" <+> quotes (text s)
 > -- ddl
 >
 > constraint :: PrettyPrintFlags -> Constraint -> Doc
@@ -763,6 +772,7 @@ syntax maybe should error instead of silently breaking
 >                         IfExists -> text "if exists"
 >
 
+> tablePartition :: Maybe TablePartitionDef -> Doc
 > tablePartition Nothing = text ""
 > tablePartition (Just (TablePartitionDef _ cn tf interval)) =
 >      text "partition by range" <+> parens (nmc cn)
@@ -863,6 +873,7 @@ syntax maybe should error instead of silently breaking
 > scalExpr _ (AntiScalarExpr s) = text $ "$(" ++ s ++ ")"
 > scalExpr _ (Star _) = text "*"
 > scalExpr _ (QStar _ i) = nmc i <> text ".*"
+> scalExpr _ (Identifier _ (AntiName _)) = error "Antiname component"
 
 > scalExpr _flg (Identifier _a (Name _ is)) =
 >   hcat (punctuate (text ".") (map nmc is))
