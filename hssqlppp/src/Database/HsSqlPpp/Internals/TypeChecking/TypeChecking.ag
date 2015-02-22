@@ -172,6 +172,7 @@ addImplicitCasts cat = transformBi removeDoubleCasts . transformBi addCast
                   -- ImplicitCastToDo: why anImplicitCast is not Nothing above Star
                   _ <- nameOfType $ teType te -- in order to preserve the old logic
                   -- guard $ isCastable e $ teType te
+                  guard $ anType ann' /= Just te
                   return $ ImplicitCast emptyAnnotation e te
       where
         _isCastable:: ScalarExpr -> Type -> Bool

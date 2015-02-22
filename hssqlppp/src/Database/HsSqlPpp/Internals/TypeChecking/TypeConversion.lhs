@@ -69,9 +69,19 @@ This needs a lot more tests
 >     matchApp' SQLServerDialect [Nmc dd] [_,ScalarType "date"]
 >       | map toLower dd == "datepart" =
 >       Right ([typeInt,typeDate], typeInt)
+
+>     matchApp' SQLServerDialect [Nmc dd] [_,ScalarType "timestamp"]
+>       | map toLower dd == "datepart" =
+>       Right ([typeInt,(ScalarType "timestamp")], typeInt)
+
+
 >     matchApp' SQLServerDialect [Nmc dd] [_,_,ScalarType "date"]
 >       | map toLower dd == "dateadd" =
 >       Right ([typeInt,typeInt,typeDate], typeDate)
+
+>     matchApp' SQLServerDialect [Nmc dd] [_,_,ScalarType "timestamp"]
+>       | map toLower dd == "dateadd" =
+>       Right ([typeInt,typeInt,ScalarType "timestamp"], ScalarType "timestamp")
 
 double hack: support oracle decode when in tsql mode:
 

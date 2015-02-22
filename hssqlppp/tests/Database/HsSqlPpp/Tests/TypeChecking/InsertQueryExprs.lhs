@@ -70,4 +70,9 @@
 >         [CatCreateTable "t2" [("b", mkCatNameExtra "int4")]]
 >         "insert into t2(b) values (1);"
 >         $ Right $ CompositeType [("values%0", mkTypeExtra typeInt)]
+>       ,InsertQueryExpr
+>         [CatCreateTable "tt" [("b", mkCatNameExtraNN "int4")]
+>         ,CatCreateTable "t" [("d", mkCatNameExtraNN "date")]]
+>         "insert into tt select datepart(day,d) from t;"
+>        $ Right $ CompositeType [("datepart",mkTypeExtraNN typeInt)]
 >       ]
