@@ -30,7 +30,7 @@ type ParameterizedStatementType = ([Type],[(String,Type)])
 data Annotation | Annotation
                              -- | source position for this node
                              anSrc :: {Maybe SourcePosition}
-                             -- | type of the node, 'Nothing' if the tree hasn't been typechecked or if a type error prevents determining the type
+                             -- | type of the node, 'Nothing' if the tree hasn't been typechecked or if a type error elsewhere prevents determining this node's type
                              anType :: {Maybe TypeExtra}
                              -- | any type errors
                              anErrs :: {[TypeError]}

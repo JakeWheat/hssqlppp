@@ -103,8 +103,8 @@ main global attributes
 attr AllNodes Root ScalarExprRoot Annotation
   inh cat :: Catalog
      ,flags :: TypeCheckingFlags
-  syn annotatedTree :: SELF -- annotated tree is the output tree with the types added
-     ,originalTree :: SELF -- this is the original tree, should not be changed
+  syn annotatedTree :: self -- annotated tree is the output tree with the types added
+     ,originalTree :: self -- this is the original tree, should not be changed
 
 -- the types and errors are pulled out of the attributes, which
 -- are set by the sem for each type/ ctor in the various files in

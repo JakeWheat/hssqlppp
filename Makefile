@@ -48,31 +48,6 @@ sandbox-devel : sandbox-init sandbox/bin/happy
   build-extras/ hssqlppp-pg/ make-website/ \
   --only-dependencies --enable-tests -j
 
-# if you get an error like this:
-
-# uuagc-0.9.39.1 failed during the configure step. The exception was:
-# user error (
-# /tmp/uuagc-0.9.39.1-31295/uuagc-0.9.39.1/dist/dist-sandbox-4d052f7a/setup/setup.hs:8:30:
-# Couldn't match expected type ‘UserHooks’
-# with actual type ‘Cabal-1.18.1.3:Distribution.Simple.UserHooks.UserHooks’
-# NB: ‘UserHooks’
-# is defined in ‘Distribution.Simple.UserHooks’
-# in package ‘Cabal-1.20.0.0’
-# ‘Cabal-1.18.1.3:Distribution.Simple.UserHooks.UserHooks’
-# is defined in ‘Distribution.Simple.UserHooks’
-# in package ‘Cabal-1.18.1.3’
-# In the first argument of ‘defaultMainWithHooks’, namely
-# ‘(uuagcUserHook' compiler)’
-# In the expression: defaultMainWithHooks (uuagcUserHook' compiler)
-# )
-
-# the work around is to unregister all the versions of Cabal in your
-# user package database except version 1.18.1.3
-# this could break some things, but you can reinstall the versions you
-# unregister after uuagc is compiled
-# (this is a bug in cabal-install/ Cabal, which is only an issue
-# because we are using a really old version of uuagc)
-
 ##############################################################################
 
 # the default target
@@ -221,10 +196,6 @@ check-sdists : sdists
 # generated from the .ag files under hssqlppp/src/Database/HsSqlPpp/Internals/
 
 # specific rules for generated file astinternal.hs
-# the latest version of uuagc which I know works is 0.9.39.1
-# if you get errors like this:
-# error: Undefined local variable or field ...
-# then try downgrading your version of uuagc (or fix the .ag code!)
 AG_FILES = $(shell find hssqlppp/src -iname '*ag')
 
 # the dependency on build-src/PostprocessUuagc.lhs isn't quite right

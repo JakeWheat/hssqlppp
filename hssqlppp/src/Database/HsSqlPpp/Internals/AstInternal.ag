@@ -17,9 +17,6 @@ see here for how to compile:
 
 http://jakewheat.github.com/hssqlppp/devel.txt.html
 
-Please use uuagc version 0.9.39.1 since later versions do not work
-with this code. If you know how to fix this please let me know!
-
 -}
 
 
@@ -393,7 +390,6 @@ data LiftFlavour = LiftAny | LiftAll
 data Direction = Asc | Desc
                  deriving (Show,Eq,Typeable,Data)
 
--- todo: rename Dupes to all?
 data Distinct = Distinct | All
                 deriving (Show,Eq,Typeable,Data)
 
@@ -756,7 +752,7 @@ data Statement
     | DropTrigger ann::Annotation
                   ifE :: IfExists
                   name :: NameComponent
-				  tbl :: Name
+                  tbl :: Name
                   cascade :: Cascade
     | CreateDatabase ann::Annotation nm::Name
 
@@ -1157,7 +1153,7 @@ include "Annotation.ag"
 include "TypeChecking/TypeChecking.ag"
 
 {
-
+-- TODO: move this somewhere better
 -- | run canonicalizeTypeName on all the TypeName nodes in an ast
 canonicalizeTypeNames :: Data a => a -> a
 canonicalizeTypeNames =
