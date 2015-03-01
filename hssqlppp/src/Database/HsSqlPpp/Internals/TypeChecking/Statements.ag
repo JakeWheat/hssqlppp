@@ -21,6 +21,7 @@ sem Statement
                                        tcs' <- mapM nmcString tcs
                                        mapM (`lookup` pub) tcs'
     insData.expectedCast = True
+    insData.outerDownEnv = Nothing
   | CreateTableAs CreateView
     expr.expectedType = liftM (map snd) @expr.upType
     expr.expectedCast = True

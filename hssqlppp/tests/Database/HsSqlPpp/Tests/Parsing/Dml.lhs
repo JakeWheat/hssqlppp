@@ -125,6 +125,10 @@ copy, bit crap at the moment
 >       [CopyFrom ea (name "tbl") [Nmc "a", Nmc "b"]
 >       (CopyFilename "filename")
 >        [CopyDelimiter "|"]]
+>      ,s "copy tbl (a,b) from 'filename' with delimiter '|' parsers 'b=oracle';"
+>       [CopyFrom ea (name "tbl") [Nmc "a", Nmc "b"]
+>       (CopyFilename "filename")
+>        [CopyDelimiter "|",CopyParsers "b=oracle"]]
 >      ,s "copy tbl (a,b) from 'filename' with delimiter '|' error_log 'errors.log';"
 >       [CopyFrom ea (name "tbl") [Nmc "a", Nmc "b"]
 >       (CopyFilename "filename")
@@ -133,6 +137,10 @@ copy, bit crap at the moment
 >       [CopyFrom ea (name "tbl") [Nmc "a", Nmc "b"]
 >       (CopyFilename "filename")
 >        [CopyDelimiter "|", CopyErrorLog "errors.log", CopyErrorVerbosity 1]]
+>      ,s "copy tbl (a,b) from 'filename' with delimiter '|' error_log 'errors.log' error_verbosity 1 parsers 'b=oracle';"
+>       [CopyFrom ea (name "tbl") [Nmc "a", Nmc "b"]
+>       (CopyFilename "filename")
+>        [CopyDelimiter "|", CopyErrorLog "errors.log", CopyErrorVerbosity 1,CopyParsers "b=oracle"]]
 >      ,s "copy tbl to 'file';"
 >       [CopyTo ea (CopyTable (name "tbl") []) "file" []]
 >      ,s "copy tbl(a,b) to 'file';"

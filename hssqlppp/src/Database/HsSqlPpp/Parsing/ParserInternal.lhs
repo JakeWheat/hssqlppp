@@ -218,6 +218,7 @@ Parsing top level statements
 >              choice [
 >                 alterSequence
 >                ,alterTable
+>                ,alterDatabase
 >                ,alterLogin
 >                ,alterUser
 >                ,alterView]
@@ -536,7 +537,7 @@ other dml-type stuff
 >        src <- choice [
 >                CopyFilename <$> extrStr <$> stringLit
 >               ,Stdin <$ keyword "stdin"]
->        opts <- copts
+>        opts <- copts False
 >        return $ CopyFrom p tableName cols src opts
 >     to p = do
 >        src <- choice
@@ -546,17 +547,23 @@ other dml-type stuff
 >                <*> option [] (parens $ commaSep1 nameComponent)]
 >        keyword "to"
 >        fn <- extrStr <$> stringLit
->        opts <- copts
+>        opts <- copts True
 >        return $ CopyTo p src fn opts
->     copts = option [] $ do
+>     -- isTo differentiates between COPY .. TO and COPY .. FROM
+>     copts isTo = option [] $ do
 >                  keyword "with"
->                  many1 copt
->     copt = choice
->            [CopyFormat <$> (keyword "format" *> idString)
->            ,CopyDelimiter <$> (keyword "delimiter" *> stringN)
->            ,try $ CopyErrorLog <$> (keyword "error_log" *> stringN)
->            ,CopyErrorVerbosity <$> (keyword "error_verbosity" *> (fromIntegral <$> integer))
->            ]
+>                  many1 $ if isTo then coptTo
+>                                  else coptFrom
+>     -- Base copy options
+>     baseCopt = [CopyFormat <$> (keyword "format" *> idString)
+>                ,CopyDelimiter <$> (keyword "delimiter" *> stringN)
+>                ,try $ CopyErrorLog <$> (keyword "error_log" *> stringN)
+>                ,CopyErrorVerbosity <$> (keyword "error_verbosity" *> (fromIntegral <$> integer))
+>                ]
+>     -- In COPY .. FROM we also have a "parsers" clause
+>     coptFrom = choice $ baseCopt ++ [CopyParsers <$> (keyword "parsers" *> stringN)]
+>     -- That we don't have in COPY .. TO
+>     coptTo = choice baseCopt
 >
 > copyData :: SParser Statement
 > copyData = CopyData <$> pos <*> mytoken (\tok ->
@@ -598,7 +605,7 @@ ddl
 >   tname <- name
 >   choice [
 >      CreateTableAs p tname <$> (keyword "as" *> pQueryExpr)
->     ,do 
+>     ,do
 >      (atts,cons) <- readAttsAndCons
 >      pdata <- readPartition
 >      return $ CreateTable p tname atts cons pdata
@@ -608,7 +615,7 @@ ddl
 >     --each line want to try the constraint parser first, then the
 >     --attribute parser, so you need the swap to feed them in the
 >     --right order into createtable
->     readAttsAndCons = 
+>     readAttsAndCons =
 >               parens (swap <$> multiPerm
 >                                  (try tableConstraint)
 >                                  tableAttribute
@@ -634,8 +641,8 @@ ddl
 >          ,RowCheckConstraint p cn <$> (keyword "check" *> parens expr)
 >          ,NullConstraint p cn <$ keyword "null"
 >          ,NotNullConstraint p cn <$ (keyword "not" <* keyword "null")
->          ,IdentityConstraint p cn <$> (keyword "identity" *> 
->                                        tryOptionMaybe (parens $ (,) <$> 
+>          ,IdentityConstraint p cn <$> (keyword "identity" *>
+>                                        tryOptionMaybe (parens $ (,) <$>
 >                                          integer <*> (symbol "," *> integer)))
 >          ,RowReferenceConstraint p cn
 >          <$> (keyword "references" *> name)
@@ -647,13 +654,12 @@ ddl
 
 > tablePartition :: SParser TablePartitionDef
 > tablePartition = do
->         p <- pos 
+>         p <- pos
 >          -- partition by range (<col name>) ( every 5 minutes )
 >         cn <- (keyword "partition" *> keyword "by" *> keyword "range" *> (parens nameComponent))
 >         (a,b) <- parens $ keyword "every" *> try ((,) <$>
 >                                         (option 1 integer) <*> timeframe)
 >         return $ TablePartitionDef p cn a b
->                       
 >   where
 >     timeframe =
 >       choice [Year <$ keyword "years"
@@ -713,6 +719,16 @@ ddl
 >                               then fail $ "not keyword (constraint name): " ++ x
 >                               else return x
 >
+> alterDatabase :: SParser Statement
+> alterDatabase = AlterDatabase
+>                  <$> (pos <* keyword "database")
+>                     <*> name
+>                     <*> operation
+>  where
+>   operation = try renameDatabase
+>   renameDatabase = RenameDatabase
+>                      <$> (pos <* keyword "rename" <* keyword "to")
+>                      <*> name
 > alterTable :: SParser Statement
 > alterTable = AlterTable <$> (pos <* keyword "table"
 >                              <* optional (keyword "only"))
@@ -957,7 +973,7 @@ variable declarations in a plpgsql function
 >                  (try $ IfExists <$ (keyword "if"
 >                                      *> keyword "exists"))
 >
-> parseDrop' :: SParser a 
+> parseDrop' :: SParser a
 >            -> SParser b
 >            -> SParser (IfExists, a, b, Cascade)
 > parseDrop' p q = (,,,)
@@ -2030,7 +2046,7 @@ function or type' keywords as function names, maybe there are others)
 >        ,"window"
 >        ,"with"
 >        --extras for hssqlppp: Todo: fix this
->        ,"loop"]
+>        ,"loop","merge","hash"]
 
 sql server keywords from this page:
 http://msdn.microsoft.com/en-us/library/ms189822.aspx
@@ -2113,6 +2129,7 @@ http://msdn.microsoft.com/en-us/library/ms189822.aspx
 >        ,"goto"
 >        ,"grant"
 >        ,"group"
+>        ,"hash"
 >        ,"having"
 >        ,"holdlock"
 >        ,"identity"
@@ -2133,6 +2150,7 @@ http://msdn.microsoft.com/en-us/library/ms189822.aspx
 >        ,"like"
 >        ,"lineno"
 >        ,"load"
+>        ,"loop"
 >        ,"merge"
 >        ,"national"
 >        ,"natural"

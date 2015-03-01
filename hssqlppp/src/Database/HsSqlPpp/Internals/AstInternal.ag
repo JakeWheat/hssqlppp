@@ -49,6 +49,7 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,TablePartitionDateTimeInterval(..)
    ,AttributeDef (..)
    ,RowConstraint (..)
+   ,AlterDatabaseOperation(..)
    ,AlterTableOperation(..)
    ,AlterTableAction(..)
    ,AlterColumnAction(..)
@@ -675,6 +676,9 @@ data Statement
     | AlterTable ann::Annotation
                  name :: Name
                  operation :: AlterTableOperation
+    | AlterDatabase ann::Annotation
+                    name :: Name
+                    operation :: AlterDatabaseOperation
     | CreateSequence ann::Annotation
                      name::Name
                      incr::Integer
@@ -851,6 +855,7 @@ data CopyOption = CopyFormat String
                 | CopyDelimiter String
                 | CopyErrorLog String
                 | CopyErrorVerbosity Int
+                | CopyParsers String
                   deriving (Show,Eq,Typeable,Data)
 
 }
@@ -932,15 +937,15 @@ data AlterTableOperation | RenameTable  ann::Annotation
                          | AlterTableActions ann::Annotation
                                              actions :: AlterTableActionList
 
-data AlterTableAction | AddColumn ann :: Annotation
-                                  att :: AttributeDef
-                      | DropColumn ann :: Annotation
-                                   nm :: NameComponent
-                      | AlterColumn ann :: Annotation
-                                    nm :: NameComponent                                
-                                    act :: AlterColumnAction
+data AlterTableAction | AddColumn     ann :: Annotation
+                                      att :: AttributeDef
+                      | DropColumn    ann :: Annotation
+                                      nm :: NameComponent
+                      | AlterColumn   ann :: Annotation
+                                      nm :: NameComponent
+                                      act :: AlterColumnAction
                       | AddConstraint ann :: Annotation
-                                      con:: Constraint
+                                      con :: Constraint
 
 data AlterColumnAction | SetDataType ann :: Annotation
                                      typ :: TypeName
@@ -949,6 +954,10 @@ data AlterColumnAction | SetDataType ann :: Annotation
                        | SetDefault ann :: Annotation
                                     def :: ScalarExpr
                        | DropDefault ann :: Annotation
+
+data AlterDatabaseOperation | RenameDatabase ann :: Annotation
+                                             newName :: Name
+
 
 {
 data SetValue
@@ -1134,6 +1143,7 @@ set AllNodes = Statement QueryExpr FnBody TableRef
                CaseScalarExprListScalarExprPairList
                TableRefList TableRef OnExpr MaybeSelectList
                AlterTableOperation AlterTableAction AlterColumnAction
+               AlterDatabaseOperation
                ScalarExprDirectionPair
                ScalarExprDirectionPairList AlterTableActionList
                WithQueryList WithQuery

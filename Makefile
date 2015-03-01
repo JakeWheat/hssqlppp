@@ -207,11 +207,11 @@ sdists :
 check-sdists : sdists
 	-rm -Rf /tmp/hssqlppp*
 	cd hssqlppp; sh ~/.cabal/share/cabal-scripts-0.1/cabal-test \
-          dist/hssqlppp-0.5.14.tar.gz
+          dist/hssqlppp-0.5.16.tar.gz
 	cd hssqlppp-th; sh ~/.cabal/share/cabal-scripts-0.1/cabal-test \
-          dist/hssqlppp-th-0.5.14.tar.gz
+          dist/hssqlppp-th-0.5.16.tar.gz
 	cd hssqlppp-pg; sh ~/.cabal/share/cabal-scripts-0.1/cabal-test \
-          dist/hssqlppp-pg-0.5.14.tar.gz
+          dist/hssqlppp-pg-0.5.16.tar.gz
 
 ##############################################################################
 

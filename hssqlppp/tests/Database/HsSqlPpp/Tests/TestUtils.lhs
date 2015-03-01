@@ -76,7 +76,7 @@
 
 > itemToTft (ScalExpr s r) = testScalarExprType s r
 > itemToTft (TCQueryExpr cus s r) = testQueryExprType PostgreSQLDialect cus s r
-> itemToTft (InsertQueryExpr cus s r) = testInsertQueryExprType PostgreSQLDialect cus s r
+> itemToTft (InsertQueryExpr cus s r) = testInsertQueryExprType SQLServerDialect {-PostgreSQLDialect-} cus s r
 > itemToTft (TSQLQueryExpr cus s r) = testQueryExprType SQLServerDialect cus s r
 > itemToTft (OracleQueryExpr cus s r) = testQueryExprType OracleDialect cus s r
 > itemToTft (RewriteQueryExpr f cus s s') = testRewrite f cus s s'
