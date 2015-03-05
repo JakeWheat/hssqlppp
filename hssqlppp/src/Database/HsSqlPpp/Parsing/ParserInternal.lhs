@@ -643,7 +643,7 @@ ddl
 >          ,NotNullConstraint p cn <$ (keyword "not" <* keyword "null")
 >          ,IdentityConstraint p cn <$> (keyword "identity" *>
 >                                        tryOptionMaybe (parens $ (,) <$>
->                                          integer <*> (symbol "," *> integer)))
+>                                          signedInteger <*> (symbol "," *> signedInteger)))
 >          ,RowReferenceConstraint p cn
 >          <$> (keyword "references" *> name)
 >          <*> option Nothing (try $ parens $ Just <$> nameComponent)
@@ -1628,6 +1628,11 @@ and () is a syntax error.
 >   return $ read l
 >   where
 >     digChars = concatMap show [(0::Int)..9]
+
+> signedInteger :: SParser Integer
+> signedInteger = choice [try $ negate <$> (symbol "-" *> integer)
+>                        ,integer]
+
 
 >
 > caseScalarExpr :: SParser ScalarExpr

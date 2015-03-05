@@ -40,6 +40,12 @@
 >                          Nothing [NotNullConstraint ea "", IdentityConstraint ea "" (Just(1,1))]][] Nothing]
 >
 >      ,s "create table tbl  (\n\
+>         \  fld int not null identity(-1,-1));"
+>       [CreateTable ea (name "tbl")
+>        [AttributeDef ea (Nmc "fld") (st "int")
+>                          Nothing [NotNullConstraint ea "", IdentityConstraint ea "" (Just(-1,-1))]][] Nothing]
+>
+>      ,s "create table tbl  (\n\
 >         \  fld int not null identity);"
 >       [CreateTable ea (name "tbl")
 >        [AttributeDef ea (Nmc "fld") (st "int")
