@@ -39,6 +39,7 @@ http://blogs.msdn.com/b/craigfr/archive/2010/01/20/more-on-implicit-conversions.
 > import Data.Text ()
 > import qualified Data.Text as T
 > import Text.Printf
+> import Debug.Trace
 
 ******************************************************************
 
@@ -159,7 +160,7 @@ for long argument lists with several literals, there can be a lot of variants ge
 
 uses matchApp for inferring basic types
 
-> matchAppExtra:: SQLSyntaxDialect
+> matchAppExtra :: SQLSyntaxDialect
 >                 -> Catalog
 >                 -> [NameComponent]
 >                 -> [TypeExtra]
@@ -182,6 +183,10 @@ precision and nullability of the result
 >   where
 >     jp = if
 >       | appName == "||" -> Just $ sum $ mapMaybe tePrecision tesr
+>       | appName == "substring" -> do
+>            --let (thrde:snde:_) = reverse tes
+>            joinPrecision $ map teScale tesr
+>            --Just $ sum $ (maybeToList tePrecision tesr) ++ ([-1*snde,thrde])
 >         -- precision of the result is unknown
 >       | appName `elem` ["replace"] -- is actually known for 2-argument "replace"
 >         -> Nothing
@@ -316,6 +321,8 @@ Additionaly:
 >                 ++ ["strpos","position","replace"]
 >                     -- Oracle joins the datatypes (needed for the comparison)
 >                 ++ ["nullif"]
+>                 -- SQream specific regex functions
+>                 ++ ["regexp_substr","regexp_count","regexp_instr"]
 >               )
 >             -> (const as, [])
 >             -- first argument is special, the rest are processed together
