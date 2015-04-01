@@ -19,6 +19,7 @@ http://blogs.msdn.com/b/craigfr/archive/2010/01/20/more-on-implicit-conversions.
 >     ,matchAppExtra
 >     ,resolveResultSetType
 >     ,resolveResultSetTypeExtra
+>     ,MatchAppLiteralList(..)
 >     ) where
 >
 > import Data.Maybe
@@ -47,6 +48,8 @@ matchApp: takes the function name and argument types, and returns the
 matching operator/function
 
 This needs a lot more tests
+
+> type MatchAppLiteralList = [Maybe Int]
 
 > matchApp :: SQLSyntaxDialect
 >          -> Catalog
@@ -163,12 +166,13 @@ uses matchApp for inferring basic types
 > matchAppExtra :: SQLSyntaxDialect
 >                 -> Catalog
 >                 -> [NameComponent]
+>                 -> MatchAppLiteralList
 >                 -> [TypeExtra]
 >                 -> Either [TypeError] ([TypeExtra],TypeExtra)
-> matchAppExtra dialect cat nmcs tes = do
+> matchAppExtra dialect cat nmcs lits tes = do
 >     (ts',t') <- matchApp dialect cat nmcs $ map teType tes
 >     tes' <- joinArgsExtra appName tes $ zipWith addArgExtra tes ts'
->     return (tes', addResultExtra appName tes' t')
+>     return (tes', addResultExtra appName tes' t' lits)
 >   where
 >     addArgExtra te t = te {teType = t}
 >     appName = case nmcs of
@@ -177,16 +181,26 @@ uses matchApp for inferring basic types
 
 precision and nullability of the result
 
-> addResultExtra:: String -> [TypeExtra] -> Type -> TypeExtra
-> addResultExtra appName tes t =  checkPrecisionRelevance . checkResultPrecisionClass tesr
+> addResultExtra:: String -> [TypeExtra] -> Type -> MatchAppLiteralList -> TypeExtra
+> addResultExtra appName tes t lits = checkPrecisionRelevance . checkResultPrecisionClass tesr
 >                                 $ TypeExtra t jp js jn
 >   where
 >     jp = if
 >       | appName == "||" -> Just $ sum $ mapMaybe tePrecision tesr
->       | appName == "substring" -> do
->            --let (thrde:snde:_) = reverse tes
->            joinPrecision $ map teScale tesr
->            --Just $ sum $ (maybeToList tePrecision tesr) ++ ([-1*snde,thrde])
+>       | appName == "substring" ->
+>            -- Substring is an interesting case. If we have both the
+>            -- start and length as literals, we can figure out the resulting precision
+>            -- Otherwise, treat as before with joinPrecision
+>            case lits of
+>              (Nothing:(Just startPos):(Just len):_) -> do
+>                 let totalLen = joinPrecision $ map tePrecision tesr
+>                 if (isNothing totalLen) then joinPrecision $ map tePrecision tesr
+>                 else do
+>                   let endPos = startPos + len
+>                       totalLen' = fromJust totalLen
+>                   if endPos > totalLen' then Just $ totalLen' - startPos
+>                   else Just len
+>              _ -> joinPrecision $ map tePrecision tesr
 >         -- precision of the result is unknown
 >       | appName `elem` ["replace"] -- is actually known for 2-argument "replace"
 >         -> Nothing
@@ -201,7 +215,7 @@ precision and nullability of the result
 >               -- currently, aggregate functions are handled as scalar functions
 >             ++ ["count","count_big"])
 >         -> False
->       | appName `elem` 
+>       | appName `elem`
 >           ( ["coalesce","greatest","least"]
 >               -- 2-argument function "isnull" of SqlServer
 >               -- ImplicitCastToDo: isnull has quite complex cast rules,

@@ -250,32 +250,32 @@ op calls, fn calls, etc.
            case @originalTree of
              (App _ (Name _ [Nmc "count"]) [Star _]) ->
                  tcAppLike (tcfDialect @lhs.flags)
-                           @lhs.cat @funName.originalTree
+                           @lhs.cat @funName.originalTree @args.originalTree
                            [Just $ mkTypeExtraNN UnknownType]
              _ -> tcAppLike (tcfDialect @lhs.flags)
-                            @lhs.cat @funName.originalTree @args.upTypes
+                            @lhs.cat @funName.originalTree @args.originalTree @args.upTypes
     | BinaryOp
          loc.ttpe = tcAppLike (tcfDialect @lhs.flags)
-                              @lhs.cat @opName.originalTree
+                              @lhs.cat @opName.originalTree [@arg0.originalTree,@arg1.originalTree]
                               [@arg0.upType,@arg1.upType]
          (arg0.expectedType,arg1.expectedType) =
             case @loc.ttpe of
               Right ([t0,t1],_) -> (Just t0,Just t1)
               _ -> (Nothing,Nothing)
     | PrefixOp PostfixOp
-         loc.ttpe = tcAppLike (tcfDialect @lhs.flags) @lhs.cat @opName.originalTree [@arg.upType]
+         loc.ttpe = tcAppLike (tcfDialect @lhs.flags) @lhs.cat @opName.originalTree [@arg.originalTree] [@arg.upType]
          arg.expectedType =
             case @loc.ttpe of
               Right ([t],_) -> Just t
               _ -> Nothing
     | SpecialOp
-         loc.ttpe = tcAppLike (tcfDialect @lhs.flags) @lhs.cat @opName.originalTree @args.upTypes
+         loc.ttpe = tcAppLike (tcfDialect @lhs.flags) @lhs.cat @opName.originalTree @args.originalTree @args.upTypes
          args.expectedTypes = either (const []) id $ fmap fst @loc.ttpe
     | AggregateApp
          loc.tpe =
            case @fn.originalTree of
              (App _ fnm@(Name _ [Nmc "count"]) [Star _]) ->
-                  fmap snd $ tcAppLike (tcfDialect @lhs.flags) @lhs.cat fnm [Just $ mkTypeExtraNN UnknownType]
+                  fmap snd $ tcAppLike (tcfDialect @lhs.flags) @lhs.cat fnm [] [Just $ mkTypeExtraNN UnknownType]
              _ -> maybe (Left []) Right @fn.upType
     | WindowApp
          loc.tpe = maybe (Left []) Right @fn.upType
@@ -298,38 +298,49 @@ sem ScalarExpr
 
 {
 tcAppLike:: SQLSyntaxDialect -> Catalog -> Name
-            -> [Maybe TypeExtra]
+            -> [ScalarExpr] -> [Maybe TypeExtra]
             -> Either [TypeError] ([TypeExtra],TypeExtra)
 
-tcAppLike d cat anm@(Name _ [Nmc dd]) [_,a0,a1]
+tcAppLike d cat anm@(Name _ [Nmc dd]) types [_,a0,a1]
     | map toLower dd == "datediff" = do
   -- dodgy hack for datediff
   tys <- mapM (maybe (Left []) Right) [a0,a1]
   let Name _ ns = anm
-  (ats,rt) <- matchAppExtra d cat ns (mkTypeExtraNN typeInt : tys)
+      lits = getMaybeIntsFromLiterals types
+  (ats,rt) <- matchAppExtra d cat ns lits (mkTypeExtraNN typeInt : tys)
   return (ats,rt)
-tcAppLike d cat anm@(Name _ [Nmc dd]) [_,a0]
+tcAppLike d cat anm@(Name _ [Nmc dd]) types [_,a0]
     | map toLower dd == "datepart" = do
   tys <- mapM (maybe (Left []) Right) [a0]
   let Name _ ns = anm
-  (ats,rt) <- matchAppExtra d cat ns (mkTypeExtraNN typeInt : tys)
+      lits = getMaybeIntsFromLiterals types
+  (ats,rt) <- matchAppExtra d cat ns lits (mkTypeExtraNN typeInt : tys)
   return (ats,rt)
-tcAppLike d cat anm@(Name _ [Nmc dd]) [_,a0,a1]
+tcAppLike d cat anm@(Name _ [Nmc dd]) types [_,a0,a1]
     | map toLower dd == "dateadd" = do
   tys <- mapM (maybe (Left []) Right) [a0,a1]
   let Name _ ns = anm
-  (ats,rt) <- matchAppExtra d cat ns (mkTypeExtraNN typeInt : tys)
+      lits = getMaybeIntsFromLiterals types
+  (ats,rt) <- matchAppExtra d cat ns lits (mkTypeExtraNN typeInt : tys)
   return (ats,rt)
 
-
-tcAppLike d cat anm args = do
+tcAppLike d cat anm types teArgs = do
   -- get the types of the arguments
   -- then lookup in TypeConversion.matchAppExtra
-  tys <- mapM (maybe (Left []) Right) args
+  tys <- mapM (maybe (Left []) Right) teArgs
   let Name _ ns = anm
-  (ats,rt) <- matchAppExtra d cat ns tys
+      lits = getMaybeIntsFromLiterals types
+  (ats,rt) <- matchAppExtra d cat ns lits tys
   return (ats,rt)
+}
 
+{
+getMaybeIntsFromLiterals :: [ScalarExpr] -> MatchAppLiteralList
+getMaybeIntsFromLiterals sel = map extractor sel
+  where
+   extractor :: ScalarExpr -> Maybe Int
+   extractor (NumberLit _ s) = readMaybe s :: Maybe Int
+   extractor _ = Nothing
 }
 {-
 --------------------------------------------
@@ -601,7 +612,7 @@ sem QueryExpr
 classifyInteger :: String -> Type
 classifyInteger s = case (readMaybe s :: Maybe Integer) of
                       -- assuming number literals are always positive
-                      Just n | n < 2 ^ 31 -> typeInt
-                             | n < 2 ^ 63 -> typeBigInt
+                      Just n | n < (2 ^ (31 :: Integer)) -> typeInt
+                             | n < (2 ^ (63 :: Integer)) -> typeBigInt
                       _ -> typeNumeric
 }
