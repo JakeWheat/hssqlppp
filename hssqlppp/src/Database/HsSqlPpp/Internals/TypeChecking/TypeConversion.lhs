@@ -191,16 +191,12 @@ precision and nullability of the result
 >            -- Substring is an interesting case. If we have both the
 >            -- start and length as literals, we can figure out the resulting precision
 >            -- Otherwise, treat as before with joinPrecision
->            case lits of
->              (Nothing:(Just startPos):(Just len):_) -> do
->                 let totalLen = joinPrecision $ map tePrecision tesr
->                 if (isNothing totalLen) then joinPrecision $ map tePrecision tesr
->                 else do
->                   let endPos = startPos + len
->                       totalLen' = fromJust totalLen
->                   if endPos > totalLen' then Just $ totalLen' - startPos
->                   else Just len
->              _ -> joinPrecision $ map tePrecision tesr
+>            let totalLen = joinPrecision $ map tePrecision tesr
+>            in case lits of
+>               (Nothing:(Just startPos):(Just len):_) -> do
+>                 totalLen' <- totalLen
+>                 return $ if startPos + len > totalLen' then totalLen' - startPos else len
+>               _ -> totalLen
 >         -- precision of the result is unknown
 >       | appName `elem` ["replace"] -- is actually known for 2-argument "replace"
 >         -> Nothing
@@ -337,6 +333,7 @@ Additionaly:
 >                 ++ ["nullif"]
 >                 -- SQream specific regex functions
 >                 ++ ["regexp_substr","regexp_count","regexp_instr"]
+>                 ++ ["string_agg"]
 >               )
 >             -> (const as, [])
 >             -- first argument is special, the rest are processed together
