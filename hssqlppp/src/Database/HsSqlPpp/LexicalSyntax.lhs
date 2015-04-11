@@ -276,8 +276,9 @@ variants.
 >                 normalStringSuffix $ T.concat [t,s,"''"]
 >                ,return $ T.concat [t,s]]
 >     eString = SqlString "E'" <$> (string "E'" *> eStringSuffix "")
+>     eStringSuffix :: T.Text -> Parser T.Text
 >     eStringSuffix t = do
->         s <- takeTill (`elem` "\\'")
+>         s <- takeTill (`elem` ("\\'"::String))
 >         choice [do
 >                 void $ string "\\'"
 >                 eStringSuffix $ T.concat [t,s,"\\'"]
@@ -385,6 +386,7 @@ TODO: try to match this behaviour
 >     ,T.pack <$> anotherOp
 >     ]
 >   where
+>     anotherOp :: Parser String
 >     anotherOp = do
 >       -- first char can be any, this is always a valid operator name
 >       c0 <- satisfy (`elem` compoundFirst)
@@ -397,7 +399,7 @@ TODO: try to match this behaviour
 >                        return $ c1 : x
 >                       ,return [c1]]
 >               ,try $ do
->                a <- satisfy (`elem` "+-")
+>                a <- satisfy (`elem` ("+-"::String))
 >                b <- r
 >                return $ a : b]
 >       choice [do
@@ -408,10 +410,13 @@ TODO: try to match this behaviour
 >     {-biggerSymbol =
 >         startsWith (inClass compoundFirst)
 >                    (inClass compoundTail) -}
+>     simpleSymbols :: String
 >     simpleSymbols | dialect == PostgreSQLDialect = "(),;[]"
 >                   | otherwise = "(),;"
+>     compoundFirst :: String
 >     compoundFirst | dialect == PostgreSQLDialect = "*/<>=~!@#%^&|`?+-"
 >                   | otherwise = "*/<>=~!%^&|`?+-"
+>     compoundTail :: String
 >     compoundTail | dialect == PostgreSQLDialect = "*/<>=~!@#%^&|`?"
 >                  | otherwise = "*/<>=~!%^&|`?"
 

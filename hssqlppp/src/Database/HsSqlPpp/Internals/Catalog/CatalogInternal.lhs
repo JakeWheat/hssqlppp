@@ -574,7 +574,7 @@ to new code or deleted as typeconversion is rewritten
 >   fmap fst $ catGetCategoryInfo cat ty
 
 > isOperatorName :: Text -> Bool
-> isOperatorName = T.any (`elem` "+-*/<>=~!@#%^&|`?.")
+> isOperatorName = T.any (`elem` ("+-*/<>=~!@#%^&|`?."::String))
 
 > catGetCategoryInfo :: Catalog -> Type -> Either [TypeError] (Text, Bool)
 > catGetCategoryInfo cat ty =

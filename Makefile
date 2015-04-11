@@ -11,6 +11,14 @@
 # make sandbox-devel
 # make really-all
 
+
+# works with ghc 7.10.1 on 110415
+# make sandbox && make test
+# but make sandbox-all doesn't work
+# you don't need this just to work on hssqlppp
+
+# everything should work with ghc 7.6.3 and 7.8.4
+
 ##############################################################################
 
 # cabal sandbox stuff
