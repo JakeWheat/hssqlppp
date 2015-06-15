@@ -20,11 +20,12 @@ transformed sql renders
 > import Text.Pandoc
 > --import Text.Groom
 > import Control.Arrow
-> import Data.DateTime
+> --import Data.DateTime
 > --import Text.DocTool.DocTool
 > import TestFileProcessor
 > --import DoChaosSql
-
+> import Data.Time.Clock
+> import Data.Time.Format
 
 > main :: IO ()
 > main = do
@@ -38,7 +39,7 @@ transformed sql renders
 >         mds' = mds ++ mdsExtra
 >     let v = "0.5.16"
 >     t <- getCurrentTime
->     let tm = formatDateTime "%D %T" t
+>     let tm = formatTime defaultTimeLocale "%d/%m/%y %T" t
 >         ft = "generated on " ++ tm ++ ", hssqlppp-" ++ v
 >         mds'' = map (second $ decoratePandoc v ft) mds'
 >         mds''' = map (first outputFilename) mds''
