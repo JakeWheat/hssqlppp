@@ -90,6 +90,7 @@ where should precision and nullability go?
 >                 | AnyEnum
 >                   -- | like AnyElement, but the type must be a non array type
 >                 | AnyNonArray
+>                 | AnyRange
 >                   -- | Any drops the restriction that all the Any types must
 >                   -- be the same type
 >                 | Any

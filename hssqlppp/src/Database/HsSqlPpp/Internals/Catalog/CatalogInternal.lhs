@@ -236,7 +236,8 @@ catalog values
 >   emptyCatalog {catBinaryOps = insertOperators systemBinaryOps M.empty
 >                ,catPrefixOps = insertOperators systemPrefixOps M.empty
 >                ,catPostfixOps = insertOperators systemPostfixOps M.empty
->                ,catFunctions = insertOperators systemFunctions M.empty}
+>                ,catFunctions = insertOperators systemFunctions M.empty
+>                ,catScalarTypeNames = rangeTypes}
 
 > insertOperators :: [(CatName,OperatorPrototype)]
 >                 -> M.Map CatName [OperatorPrototype]
@@ -305,10 +306,13 @@ names to refer to the pseudo types
 >     ,("anyarray",Pseudo AnyArray)
 >     ,("anyelement",Pseudo AnyElement)
 >     ,("anyenum",Pseudo AnyEnum)
+>     ,("anyrange",Pseudo AnyRange)
 >     ,("anynonarray",Pseudo AnyNonArray)
 >     ,("cstring",Pseudo Cstring)
 >     ,("record",Pseudo (Record Nothing))
 >     ,("trigger",Pseudo Trigger)
+>      -- todo: fix this?
+>     ,("event_trigger",Pseudo Trigger)
 >     ,("void",Pseudo Void)
 >     ,("_cstring",ArrayType $ Pseudo Cstring)
 >     ,("_record",ArrayType $ Pseudo (Record Nothing))
@@ -318,7 +322,15 @@ names to refer to the pseudo types
 >     ,("fdw_handler", Pseudo FdwHandler)
 >     ]
 
+built in range types in postgresql
 
+todo: maybe these are in the catalog somewhere and should come from
+postgres?
+
+> rangeTypes :: S.Set CatName
+> rangeTypes = S.fromList ["int4range", "int8range"
+>                         ,"numrange","daterange"
+>                         ,"tsrange","tstzrange"]
 
 ---------------------------------------------------------
 
