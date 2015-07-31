@@ -484,17 +484,17 @@ fixMssqlDates = transformBi $ \x -> case x of
   App aa nm@(Name _ [Nmc fn]) [Identifier ai tn@(Name _ [Nmc tnn]),a]
     | map toLower fn == "datepart"
     , map toLower tnn `elem` ["day","dd","d","month","mm","m","year","yyyy",
-			      "yy","quarter","qq","q","dayofyear","doy","dy","y",
-			      "weekday","dw","week","ww","wk","hour","hh",
-			      "minute","mi","n","second","ss","s","millisecond","ms",
+                  "yy","quarter","qq","q","dayofyear","doy","dy","y",
+                  "weekday","dw","week","ww","wk","hour","hh",
+                  "minute","mi","n","second","ss","s","millisecond","ms",
                               "microsecond","mcs","nanosecond","ns"] ->
       App aa nm [Identifier (nai ai) tn,a]
   App aa nm@(Name _ [Nmc fn]) [Identifier ai tn@(Name _ [Nmc tnn]),a,b]
     | map toLower fn == "dateadd"
     , map toLower tnn `elem` ["day","dd","d","month","mm","m","year","yyyy",
-			      "yy","quarter","qq","q","dayofyear","doy","dy","y",
-			      "weekday","dw","week","ww","wk","hour","hh",
-			      "minute","mi","n","second","ss","s","millisecond","ms",
+                  "yy","quarter","qq","q","dayofyear","doy","dy","y",
+                  "weekday","dw","week","ww","wk","hour","hh",
+                  "minute","mi","n","second","ss","s","millisecond","ms",
                               "microsecond","mcs","nanosecond","ns"] ->
       App aa nm [Identifier (nai ai) tn,a,b]
   x' -> x'

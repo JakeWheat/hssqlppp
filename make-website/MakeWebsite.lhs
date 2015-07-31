@@ -76,7 +76,12 @@ transformed sql renders
 > getSourceFiles = find always supportedFileP "website-source"
 
 > readSourceFile :: FilePath -> IO (FilePath,Pandoc)
-> readSourceFile f = (f,) `fmap` readMarkdown def `fmap` readFile f
+> readSourceFile f = (f,) `fmap` rm `fmap` readFile f
+>   where
+>     rm x = let y = readMarkdown def x
+>            in case y of
+>                 Right z -> z
+>                 Left e -> error $ show e
 
 > outputFilename :: FilePath -> FilePath
 > outputFilename fp = "build/website/" ++ takeFileName fp ++ ".html"

@@ -22,7 +22,7 @@ type check tests
 type inference tests
 
 > import Database.HsSqlPpp.Tests.Tests
-> import Test.Framework
+> import Test.Tasty
 
 > main :: IO ()
-> main = defaultMain allTests
+> main = defaultMain $ testGroup "Tests" $ allTests

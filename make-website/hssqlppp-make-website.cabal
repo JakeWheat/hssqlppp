@@ -48,7 +48,7 @@ executable MakeWebsite
                        haskell-src-exts >= 1.13 && < 1.17,
                        uniplate >= 1.6 && < 1.7,
                        -- parsec >= 3.1.2 && < 3.2,
-                       pandoc >= 1.13 && < 1.14,
+                       pandoc >= 1.14 && < 1.15,
                        -- pandoc-types >= 1.12 && < 1.13,
                        -- blaze-html >= 0.7 && < 0.8,
                        directory >= 1.2 && < 1.3,
@@ -64,7 +64,7 @@ executable MakeWebsite
                        template-haskell,
                        groom >=0.1 && < 0.2,
                        blaze-markup >= 0.6 && < 0.8,
-                       highlighting-kate >= 0.5.9 && < 0.6,
+                       highlighting-kate >= 0.5.9 && < 0.7,
                        hssqlppp,
                        hssqlppp-th
   default-language:    Haskell2010

@@ -137,7 +137,8 @@ List of highlighted source lines
 
 > readMarkdownBlocks :: String -> [Block]
 > readMarkdownBlocks s = case readMarkdown def s of
->     Pandoc _ b -> b
+>     Right (Pandoc _ b) -> b
+>     Left x -> error $ show x
 
 > parserIntro :: [Block]
 > parserIntro = readMarkdownBlocks [here|

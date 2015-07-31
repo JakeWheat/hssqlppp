@@ -5,9 +5,9 @@ Tests mainly for antiquotation, plus examples of where antiquotes work.
 >
 > module Database.HsSqlPpp.Tests.QuasiQuoteTests (quasiQuoteTests, quasiQuoteTestData, Item(..)) where
 >
-> import Test.HUnit
-> import Test.Framework
-> import Test.Framework.Providers.HUnit
+> import qualified Test.Tasty as T
+> import qualified Test.Tasty.HUnit as H
+
 > import Data.Data
 >
 > import Database.HsSqlPpp.Ast
@@ -25,7 +25,7 @@ Tests mainly for antiquotation, plus examples of where antiquotes work.
 >           | PgSqlStmt Statement Statement
 >           | Group String [Item]
 
-> quasiQuoteTests :: Test.Framework.Test
+> quasiQuoteTests :: T.TestTree
 > quasiQuoteTests = itemToTft quasiQuoteTestData
 >
 > quasiQuoteTestData :: Item
@@ -140,16 +140,16 @@ expressions
 
 Unit test helpers
 
-> itemToTft :: Item -> Test.Framework.Test
-> itemToTft (Expr a b) = testCase (L.unpack $ printScalarExpr defaultPPFlags b) $ stripEqual a b
-> itemToTft (PgSqlStmt a b) = testCase (L.unpack $ printStatements defaultPPFlags [b]) $ stripEqual a b
-> itemToTft (Stmt a b) = testCase (L.unpack $ printStatements defaultPPFlags [b]) $  stripEqual a b
-> itemToTft (PgSqlStmts a b) = testCase (L.unpack $ printStatements defaultPPFlags b) $ stripEqual a b
-> itemToTft (Stmts a b) = testCase (L.unpack $ printStatements defaultPPFlags b) $ stripEqual a b
-> itemToTft (Group s is) = testGroup s $ map itemToTft is
+> itemToTft :: Item -> T.TestTree
+> itemToTft (Expr a b) = H.testCase (L.unpack $ printScalarExpr defaultPPFlags b) $ stripEqual a b
+> itemToTft (PgSqlStmt a b) = H.testCase (L.unpack $ printStatements defaultPPFlags [b]) $ stripEqual a b
+> itemToTft (Stmt a b) = H.testCase (L.unpack $ printStatements defaultPPFlags [b]) $  stripEqual a b
+> itemToTft (PgSqlStmts a b) = H.testCase (L.unpack $ printStatements defaultPPFlags b) $ stripEqual a b
+> itemToTft (Stmts a b) = H.testCase (L.unpack $ printStatements defaultPPFlags b) $ stripEqual a b
+> itemToTft (Group s is) = T.testGroup s $ map itemToTft is
 > stripEqual :: (Data a, Eq a, Show a) =>
->               a -> a -> Assertion
-> stripEqual a b = assertEqual "" (resetAnnotations a) (resetAnnotations b)
+>               a -> a -> H.Assertion
+> stripEqual a b = H.assertEqual "" (resetAnnotations a) (resetAnnotations b)
 
 > ea :: Annotation
 > ea = emptyAnnotation
