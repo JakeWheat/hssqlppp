@@ -26,7 +26,8 @@
 > import qualified Data.Text.Lazy as L
 > import qualified Data.Text as T
 > import Database.HsSqlPpp.LexicalSyntax (sqlToken,prettyToken,Token)
-> import Data.Attoparsec.Text (parseOnly,many1,endOfInput)
+> import Text.Parsec (runParser,many1,eof)
+> --import Text.Parsec.Text (runParser)
 > import Control.Applicative
 
 > import Database.HsSqlPpp.Tests.TestTypes
@@ -127,7 +128,7 @@
 
 > testLex :: SQLSyntaxDialect -> T.Text -> [Token] -> T.TestTree
 > testLex d t r = H.testCase ("lex "++ T.unpack t) $ do
->     let x = parseOnly (many1 (sqlToken d ("",1,0)) <* endOfInput) t
+>     let x = runParser (many1 (sqlToken d ("",1,0)) <* eof) () "" t
 >         y = either (error . show) id x
 >     H.assertEqual "lex" r (map snd y)
 >     let t' = L.concat $ map (prettyToken d) r

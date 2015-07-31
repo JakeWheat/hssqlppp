@@ -32,7 +32,6 @@ source-repository head
 
 Library
   Build-Depends:     base >= 4 && < 5,
-                     attoparsec >= 0.10 && < 0.14,
                      containers >= 0.3.0.0 && < 0.6,
                      mtl >= 2.0.1.0 && < 2.3,
                      parsec >= 3.1.2 && < 3.2,
@@ -84,7 +83,6 @@ Test-Suite Tests
     main-is:    Tests.lhs
     hs-source-dirs:    src,tests
     Build-Depends:     base >= 4 && < 5,
-                       attoparsec >= 0.10 && < 0.14,
                        containers >= 0.3.0.0 && < 0.6,
                        haskell-src-exts >= 1.13 && < 1.17,
                        mtl >= 2.1 && < 2.3,

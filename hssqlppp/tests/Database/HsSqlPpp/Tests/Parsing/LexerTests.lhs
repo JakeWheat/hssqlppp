@@ -61,6 +61,12 @@ whitespace
 >     ,Lex PostgreSQLDialect "\n" [Whitespace "\n"]
 >     ,Lex PostgreSQLDialect "\t" [Whitespace "\t"]
 
+check dots
+
+>     ,Lex PostgreSQLDialect "a.b" [Identifier Nothing "a"
+>                                  ,Symbol "."
+>                                  ,Identifier Nothing "b"]
+
 positional arg
 
 >     ,Lex PostgreSQLDialect "$1" [PositionalArg 1]

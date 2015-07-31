@@ -12,11 +12,14 @@
 
 > import qualified Data.Text as T
 > import qualified Data.Text.Lazy as LT
-> import Data.Attoparsec.Text as AP
-> import Control.Applicative
+> import Text.Parsec
+> --Cimport Text.Parsec.String hdi
+> import Text.Parsec.Text
+> import Control.Applicative hiding ((<|>), many)
 > import Data.Char
 > import Database.HsSqlPpp.SqlDialect
 > import Control.Monad
+> import Prelude hiding (takeWhile)
 
 > -- | Represents a lexed token
 > data Token
@@ -131,8 +134,8 @@ investigate differences for sql server, oracle, maybe db2 and mysql
 > addPosition' (f,l,_) ('\n':xs) = addPosition' (f,l+1,0) xs
 > addPosition' (f,l,c) (_:xs) = addPosition' (f,l,c+1) xs
 
-> sqlTokens :: SQLSyntaxDialect -> Position -> T.Text -> Either String [(Position,Token)]
-> sqlTokens dialect pos txt = parseOnly (many_p pos) txt
+> sqlTokens :: SQLSyntaxDialect -> Position -> T.Text -> Either ParseError [(Position,Token)]
+> sqlTokens dialect pos txt = runParser (many_p pos <* eof) () "" txt
 >    where
 
 pretty hacky, want to switch to a different lexer for copy from stdin
@@ -163,7 +166,7 @@ if we see 'from stdin;' then try to lex a copy payload
 >      copyPayload pos' = do
 >        tok <- char '\n' *>
 >             ((\x -> (pos', CopyPayload $ T.pack $ x ++ "\n"))
->              <$> manyTill anyChar (string "\n\\.\n"))
+>              <$> manyTill anyChar (try $ string "\n\\.\n"))
 >        --let (_,CopyPayload t) = tok
 >        --trace ("payload is '" ++ T.unpack t ++ "'") $ return ()
 >        let pos'' = advancePos dialect pos' (snd tok)
@@ -180,7 +183,7 @@ if we see 'from stdin;' then try to lex a copy payload
 > isWs (LineComment {}) = True
 > isWs _ = False
 
-> -- | attoparsec parser for a sql token
+> -- | parser for a sql token
 > sqlToken :: SQLSyntaxDialect -> Position -> Parser (Position,Token)
 > sqlToken d p =
 >     (p,) <$> choice [sqlString d
@@ -190,8 +193,27 @@ if we see 'from stdin;' then try to lex a copy payload
 >                     ,sqlNumber d
 >                     ,symbol d
 >                     ,sqlWhitespace d
->                     ,positionalArg d
+>                     ,try $ positionalArg d
 >                     ,splice d]
+
+> takeWhile1 :: (Char -> Bool) -> Parser T.Text
+> takeWhile1 p = T.pack <$> many1 (satisfy p)
+
+> takeWhile :: (Char -> Bool) -> Parser T.Text
+> takeWhile p = T.pack <$> many (satisfy p)
+
+> takeTill :: (Char -> Bool) -> Parser T.Text
+> takeTill p =
+>     try (T.pack <$> manyTill anyChar (peekSatisfy p))
+
+> peekSatisfy :: (Char -> Bool) -> Parser ()
+> peekSatisfy p = do
+>     void $ try $ lookAhead (satisfy p)
+
+> peekChar :: Parser (Maybe Char)
+> peekChar = try $ choice
+>     [Just <$> lookAhead anyChar
+>     ,Nothing <$ eof]
 
 > identifier :: SQLSyntaxDialect -> Parser Token
 
@@ -280,10 +302,10 @@ variants.
 >     eStringSuffix t = do
 >         s <- takeTill (`elem` ("\\'"::String))
 >         choice [do
->                 void $ string "\\'"
+>                 try $ void $ string "\\'"
 >                 eStringSuffix $ T.concat [t,s,"\\'"]
 >                ,do
->                 void $ string "''"
+>                 void $ try $ string "''"
 >                 eStringSuffix $ T.concat [t,s,"''"]
 >                ,do
 >                 void $ char '\''
@@ -293,10 +315,10 @@ variants.
 >                 eStringSuffix $ T.concat [t,s,T.singleton c]]
 >     dollarString = do
 >         delim <- dollarDelim
->         y <- manyTill anyChar (string delim)
+>         y <- manyTill anyChar (try $ string $ T.unpack delim)
 >         return $ SqlString delim $ T.pack y
 >     dollarDelim :: Parser T.Text
->     dollarDelim = do
+>     dollarDelim = try $ do
 >       void $ char '$'
 >       tag <- option "" identifierString
 >       void $ char '$'
@@ -321,14 +343,14 @@ where digits is one or more decimal digits (0 through 9). At least one digit mus
 >     choice [do
 >             s <- dotSuffix
 >             return $ SqlNumber $ T.pack $ d ++ s
->            ,do
+>            ,try $ do
 >             void $ char '.'
 >             -- avoid parsing e.g. 4..5 as "4.",...
 >             -- want to parse it as "4","..","5"
 >             -- use choice to avoid impossible error
 >             -- when peekCharing at end of input on parseonly
 >             choice [do
->                     endOfInput
+>                     eof
 >                     return $ SqlNumber (T.pack $ d ++ ".")
 >                    ,do
 >                     x <- peekChar
@@ -340,7 +362,7 @@ where digits is one or more decimal digits (0 through 9). At least one digit mus
 >            ,return $ SqlNumber $ T.pack d]
 >    ,(SqlNumber . T.pack) <$> dotSuffix]
 >  where
->    dotSuffix = do
+>    dotSuffix = try $ do
 >        void $ char '.'
 >        d <- digits
 >        choice [do
@@ -374,16 +396,18 @@ When working with non-SQL-standard operator names, you will usually need to sepa
 
 TODO: try to match this behaviour
 
+inClass :: String -> Char -> Bool
+
 > symbol :: SQLSyntaxDialect -> Parser Token
-> symbol dialect = Symbol <$>
+> symbol dialect = Symbol <$> T.pack <$>
 >     choice
->     [satisfyT (inClass simpleSymbols)
->     ,string ".."
+>     [(:[]) <$> satisfy (`elem` simpleSymbols)
+>     ,try $ string ".."
 >     ,string "."
->     ,string "::"
->     ,string ":="
+>     ,try $ string "::"
+>     ,try $ string ":="
 >     ,string ":"
->     ,T.pack <$> anotherOp
+>     ,anotherOp
 >     ]
 >   where
 >     anotherOp :: Parser String
@@ -406,7 +430,6 @@ TODO: try to match this behaviour
 >               tl <- r
 >               return $ c0 : tl
 >              ,return [c0]]
->     satisfyT p = T.singleton <$> satisfy p
 >     {-biggerSymbol =
 >         startsWith (inClass compoundFirst)
 >                    (inClass compoundTail) -}
@@ -426,35 +449,35 @@ TODO: try to match this behaviour
 
 > positionalArg :: SQLSyntaxDialect -> Parser Token
 > positionalArg PostgreSQLDialect =
->   PositionalArg <$> (char '$' *> decimal)
+>   PositionalArg <$> (char '$' *> (read <$> many1 digit))
 
 > positionalArg _ = satisfy (const False) >> error "positional arg unsupported"
 
 > lineComment :: SQLSyntaxDialect -> Parser Token
 > lineComment _ =
 >     (\s -> LineComment $ T.concat ["--",s]) <$>
->     (string "--" *> choice
+>     (try (string "--") *> choice
 >                     [flip T.snoc '\n' <$> takeTill (=='\n') <* char '\n'
->                     ,AP.takeWhile (/='\n') <* endOfInput
+>                     ,takeWhile (/='\n') <* eof
 >                     ])
 
 > blockComment :: SQLSyntaxDialect -> Parser Token
 > blockComment _ =
 >     (\s -> BlockComment $ T.concat ["/*",s]) <$>
->     (string "/*" *> commentSuffix 0)
+>     (try (string "/*") *> commentSuffix 0)
 >   where
 >     commentSuffix :: Int -> Parser T.Text
 >     commentSuffix n = do
 >       -- read until a possible end comment or nested comment
->       x <- AP.takeWhile (\e -> e /= '/' && e /= '*')
+>       x <- takeWhile (\e -> e /= '/' && e /= '*')
 >       choice [-- close comment: if the nesting is 0, done
 >               -- otherwise recurse on commentSuffix
->               string "*/" *> let t = T.concat [x,"*/"]
->                              in if n == 0
->                                 then return t
->                                 else (\s -> T.concat [t,s]) <$> commentSuffix (n - 1)
+>               try (string "*/") *> let t = T.concat [x,"*/"]
+>                                    in if n == 0
+>                                       then return t
+>                                       else (\s -> T.concat [t,s]) <$> commentSuffix (n - 1)
 >               -- nested comment, recurse
->              ,string "/*" *> ((\s -> T.concat [x,"/*",s]) <$> commentSuffix (n + 1))
+>              ,try (string "/*") *> ((\s -> T.concat [x,"/*",s]) <$> commentSuffix (n + 1))
 >               -- not an end comment or nested comment, continue
 >              ,T.cons <$> anyChar <*> commentSuffix n]
 
@@ -468,5 +491,5 @@ TODO: try to match this behaviour
 > startsWith :: (Char -> Bool) -> (Char -> Bool) -> Parser T.Text
 > startsWith p ps = do
 >   c <- satisfy p
->   choice [T.cons c <$> (AP.takeWhile1 ps)
+>   choice [T.cons c <$> (takeWhile1 ps)
 >          ,return $ T.singleton c]
