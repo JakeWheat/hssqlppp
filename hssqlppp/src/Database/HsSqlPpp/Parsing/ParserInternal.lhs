@@ -121,7 +121,7 @@ Top level parsing functions
 > lexem d fn sp src =
 >   let ts :: Either ParseErrorExtra [Token]
 >       ts = either (error . show) Right
->             $ Lex.sqlTokens d (uncurry (fn,,) $ maybe (1,0) id sp) $ T.concat $ L.toChunks src
+>             $ Lex.sqlTokens d fn sp $ T.concat $ L.toChunks src
 >   in --trace ((\(Right r) -> intercalate "\n" $ map show r) ts) $
 >      filter keep `fmap` ts
 >   where
@@ -176,7 +176,7 @@ couple of wrapper functions for the quoting
 --------------------------------------------------------------------------------
 
 
-> type Token = (Lex.Position,Lex.Token)
+> type Token = ((FilePath,Int,Int),Lex.Token)
 
 > type SParser =  GenParser Token ParseState
 

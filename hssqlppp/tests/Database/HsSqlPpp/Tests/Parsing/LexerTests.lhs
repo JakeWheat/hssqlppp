@@ -86,4 +86,12 @@ splice
 
 >     ,Lex PostgreSQLDialect "$c(splice)" [Splice 'c' "splice"]
 
+>     ,Lex PostgreSQLDialect "1 .. 2"
+>        [SqlNumber "1", Whitespace " ", Symbol ".."
+>        ,Whitespace " ", SqlNumber "2"]
+
+>     ,Lex PostgreSQLDialect "1..2"
+>        [SqlNumber "1", Symbol "..", SqlNumber "2"]
+
+
 >     ]

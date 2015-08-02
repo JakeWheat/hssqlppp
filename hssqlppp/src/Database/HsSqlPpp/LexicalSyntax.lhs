@@ -3,10 +3,8 @@
 > module Database.HsSqlPpp.LexicalSyntax
 >     (Token(..)
 >     ,prettyToken
->     ,Position
 >     ,sqlToken
 >     ,sqlTokens
->     ,addPosition
 >     ,module Database.HsSqlPpp.SqlDialect
 >     ) where
 
@@ -20,6 +18,7 @@
 > import Database.HsSqlPpp.SqlDialect
 > import Control.Monad
 > import Prelude hiding (takeWhile)
+> import Data.Maybe
 
 > -- | Represents a lexed token
 > data Token
@@ -124,68 +123,59 @@ investigate what is missing for postgresql
 investigate differences for sql server, oracle, maybe db2 and mysql
   also
 
-> type Position = (String,Int,Int)
-
-> addPosition :: Position -> LT.Text -> Position
-> addPosition p s = addPosition' p $ LT.unpack s
-
-> addPosition' :: Position -> String -> Position
-> addPosition' (f,l,c) [] = (f,l,c)
-> addPosition' (f,l,_) ('\n':xs) = addPosition' (f,l+1,0) xs
-> addPosition' (f,l,c) (_:xs) = addPosition' (f,l,c+1) xs
-
-> sqlTokens :: SQLSyntaxDialect -> Position -> T.Text -> Either ParseError [(Position,Token)]
-> sqlTokens dialect pos txt = runParser (many_p pos <* eof) () "" txt
->    where
+> sqlTokens :: SQLSyntaxDialect -> FilePath -> Maybe (Int,Int) -> T.Text -> Either ParseError [((FilePath,Int,Int),Token)]
+> sqlTokens dialect fn' mp txt =
+>     let (l',c') = fromMaybe (1,1) mp
+>     in runParser (setPos (fn',l',c') *> many_p <* eof) () "" txt
+>   where
 
 pretty hacky, want to switch to a different lexer for copy from stdin
 statements
 
 if we see 'from stdin;' then try to lex a copy payload
 
->      many_p pos' = some_p pos' `mplus` return []
->      some_p pos' = do
->        tok <- sqlToken dialect pos'
->        let pos'' = advancePos dialect pos' (snd tok)
+>      many_p = some_p `mplus` return []
+>      some_p = do
+>        tok <- sqlToken dialect
 >        case tok of
->          (_, Identifier Nothing t) | T.map toLower t == "from" -> (tok:) <$> seeStdin pos''
->          _ -> (tok:) <$> many_p pos''
->      seeStdin pos' = do
->        tok <- sqlToken dialect pos'
->        let pos'' = advancePos dialect pos' (snd tok)
+>          (_, Identifier Nothing t) | T.map toLower t == "from" -> (tok:) <$> seeStdin
+>          _ -> (tok:) <$> many_p
+>      seeStdin = do
+>        tok <- sqlToken dialect
 >        case tok of
->          (_,Identifier Nothing t) | T.map toLower t == "stdin" -> (tok:) <$> seeColon pos''
->          (_,x) | isWs x -> (tok:) <$> seeStdin pos''
->          _ -> (tok:) <$> many_p pos''
->      seeColon pos' = do
->        tok <- sqlToken dialect pos'
->        let pos'' = advancePos dialect pos' (snd tok)
+>          (_,Identifier Nothing t) | T.map toLower t == "stdin" -> (tok:) <$> seeColon
+>          (_,x) | isWs x -> (tok:) <$> seeStdin
+>          _ -> (tok:) <$> many_p
+>      seeColon = do
+>        tok <- sqlToken dialect
 >        case tok of
->          (_,Symbol ";") -> (tok:) <$> copyPayload pos''
->          _ -> (tok:) <$> many_p pos''
->      copyPayload pos' = do
+>          (_,Symbol ";") -> (tok:) <$> copyPayload
+>          _ -> (tok:) <$> many_p
+>      copyPayload = do
+>        p' <- getPosition
+>        let pos = (sourceName p',sourceLine p', sourceColumn p')
 >        tok <- char '\n' *>
->             ((\x -> (pos', CopyPayload $ T.pack $ x ++ "\n"))
+>             ((\x -> (pos, CopyPayload $ T.pack $ x ++ "\n"))
 >              <$> manyTill anyChar (try $ string "\n\\.\n"))
 >        --let (_,CopyPayload t) = tok
 >        --trace ("payload is '" ++ T.unpack t ++ "'") $ return ()
->        let pos'' = advancePos dialect pos' (snd tok)
->        (tok:) <$> many_p pos''
-
-> advancePos :: SQLSyntaxDialect -> Position -> Token -> Position
-> advancePos dialect pos tok =
->     let pt = prettyToken dialect tok
->     in addPosition pos pt
-
-> isWs :: Token -> Bool
-> isWs (Whitespace {}) = True
-> isWs (BlockComment {}) = True
-> isWs (LineComment {}) = True
-> isWs _ = False
+>        (tok:) <$> many_p
+>      setPos (fn,l,c) = do
+>         fmap (flip setSourceName fn
+>                . flip setSourceLine l
+>                . flip setSourceColumn c) getPosition
+>           >>= setPosition
+>      isWs :: Token -> Bool
+>      isWs (Whitespace {}) = True
+>      isWs (BlockComment {}) = True
+>      isWs (LineComment {}) = True
+>      isWs _ = False
 
 > -- | parser for a sql token
-> sqlToken :: SQLSyntaxDialect -> Position -> Parser (Position,Token)
-> sqlToken d p =
+> sqlToken :: SQLSyntaxDialect -> Parser ((FilePath,Int,Int),Token)
+> sqlToken d = do
+>     p' <- getPosition
+>     let p = (sourceName p',sourceLine p', sourceColumn p')
 >     (p,) <$> choice [sqlString d
 >                     ,identifier d
 >                     ,lineComment d
@@ -193,27 +183,8 @@ if we see 'from stdin;' then try to lex a copy payload
 >                     ,sqlNumber d
 >                     ,symbol d
 >                     ,sqlWhitespace d
->                     ,try $ positionalArg d
+>                     ,positionalArg d
 >                     ,splice d]
-
-> takeWhile1 :: (Char -> Bool) -> Parser T.Text
-> takeWhile1 p = T.pack <$> many1 (satisfy p)
-
-> takeWhile :: (Char -> Bool) -> Parser T.Text
-> takeWhile p = T.pack <$> many (satisfy p)
-
-> takeTill :: (Char -> Bool) -> Parser T.Text
-> takeTill p =
->     try (T.pack <$> manyTill anyChar (peekSatisfy p))
-
-> peekSatisfy :: (Char -> Bool) -> Parser ()
-> peekSatisfy p = do
->     void $ try $ lookAhead (satisfy p)
-
-> peekChar :: Parser (Maybe Char)
-> peekChar = try $ choice
->     [Just <$> lookAhead anyChar
->     ,Nothing <$ eof]
 
 > identifier :: SQLSyntaxDialect -> Parser Token
 
@@ -324,9 +295,6 @@ variants.
 >       void $ char '$'
 >       return $ T.concat ["$", tag, "$"]
 
-> sqlNumber :: SQLSyntaxDialect -> Parser Token
-> sqlNumber _ =
-
 postgresql number parsing
 
 digits
@@ -335,46 +303,39 @@ digits.[digits][e[+-]digits]
 digitse[+-]digits
 where digits is one or more decimal digits (0 through 9). At least one digit must be before or after the decimal point, if one is used. At least one digit must follow the exponent marker (e), if one is present. There cannot be any spaces or other characters embedded in the constant. Note that any leading plus or minus sign is not actually considered part of the constant; it is an operator applied to the constant.
 
->    choice
->    [do
->     -- first char is a digit
->     d <- digits
->     -- try to read an fractional part or sci notation suffix
->     choice [do
->             s <- dotSuffix
->             return $ SqlNumber $ T.pack $ d ++ s
->            ,try $ do
->             void $ char '.'
->             -- avoid parsing e.g. 4..5 as "4.",...
->             -- want to parse it as "4","..","5"
->             -- use choice to avoid impossible error
->             -- when peekCharing at end of input on parseonly
->             choice [do
->                     eof
->                     return $ SqlNumber (T.pack $ d ++ ".")
->                    ,do
->                     x <- peekChar
->                     guard (x /= Just '.')
->                     return $ SqlNumber (T.pack $ d ++ ".")]
->            ,do
->             s <- eSuffix
->             return $ SqlNumber $ T.pack $ d ++ s
->            ,return $ SqlNumber $ T.pack d]
->    ,(SqlNumber . T.pack) <$> dotSuffix]
->  where
->    dotSuffix = try $ do
->        void $ char '.'
->        d <- digits
->        choice [do
->                s <- eSuffix
->                return $ '.':(d ++ s)
->               ,return $ '.':d]
->    eSuffix = do
->        void $ char 'e'
->        sn <- option Nothing (Just <$> (char '+' <|> char '-'))
->        d <- digits
->        maybe (return $ 'e':d) (\sn' -> return $ 'e':sn':d) sn
->    digits = many1 digit
+> sqlNumber :: SQLSyntaxDialect -> Parser Token
+> sqlNumber _ = (SqlNumber . T.pack) <$>
+>     (int <??> (pp dot <??.> pp int)
+>      -- try is used in case we read a dot
+>      -- and it isn't part of a number
+>      -- if there are any following digits, then we commit
+>      -- to it being a number and not something else
+>      <|> try ((++) <$> dot <*> int))
+>     <??> pp expon
+>   where
+>     int = many1 digit
+>     dot = do
+>           -- make sure we don't parse '..' as part of a number
+>           -- this is so we can parser e.g. 1..2 correctly
+>           -- as '1', '..', '2', and not as '1.' '.2' or
+>           -- '1.' '.' '2'
+>           notFollowedBy (string "..")
+>           string "."
+>     expon = (:) <$> oneOf "eE" <*> sInt
+>     sInt = (++) <$> option "" (string "+" <|> string "-") <*> int
+>     pp = (<$$> (++))
+
+> (<??>) :: Parser a -> Parser (a -> a) -> Parser a
+> p <??> q = p <**> option id q
+
+> (<??.>) :: Parser (a -> a) -> Parser (a -> a) -> Parser (a -> a)
+> (<??.>) pa pb = (.) `c` pa <*> option id pb
+>   -- todo: fix this mess
+>   where c = (<$>) . flip
+
+> (<$$>) :: Applicative f =>
+>       f b -> (a -> b -> c) -> f (a -> c)
+> (<$$>) pa c = pa <**> pure (flip c)
 
 Symbols:
 
@@ -448,18 +409,23 @@ inClass :: String -> Char -> Bool
 > sqlWhitespace _ = (Whitespace . T.pack) <$> many1 (satisfy isSpace)
 
 > positionalArg :: SQLSyntaxDialect -> Parser Token
-> positionalArg PostgreSQLDialect =
->   PositionalArg <$> (char '$' *> (read <$> many1 digit))
+> -- uses try so we don't get confused with $splices
+> positionalArg PostgreSQLDialect = try (
+>   PositionalArg <$> (char '$' *> (read <$> many1 digit)))
 
 > positionalArg _ = satisfy (const False) >> error "positional arg unsupported"
 
 > lineComment :: SQLSyntaxDialect -> Parser Token
 > lineComment _ =
->     (\s -> LineComment $ T.concat ["--",s]) <$>
->     (try (string "--") *> choice
->                     [flip T.snoc '\n' <$> takeTill (=='\n') <* char '\n'
->                     ,takeWhile (/='\n') <* eof
->                     ])
+>     (\s -> (LineComment . T.pack) $ concat ["--",s]) <$>
+>     -- try is used here in case we see a - symbol
+>     -- once we read two -- then we commit to the comment token
+>     (try (string "--") *> (
+>      conc <$> manyTill anyChar (lookAhead lineCommentEnd) <*> lineCommentEnd))
+>   where
+>     conc a Nothing = a
+>     conc a (Just b) = a ++ b
+>     lineCommentEnd = Just "\n" <$ char '\n' <|> Nothing <$ eof
 
 > blockComment :: SQLSyntaxDialect -> Parser Token
 > blockComment _ =
@@ -479,7 +445,7 @@ inClass :: String -> Char -> Bool
 >               -- nested comment, recurse
 >              ,try (string "/*") *> ((\s -> T.concat [x,"/*",s]) <$> commentSuffix (n + 1))
 >               -- not an end comment or nested comment, continue
->              ,T.cons <$> anyChar <*> commentSuffix n]
+>              ,(\c s -> T.concat [x,T.pack [c], s]) <$> anyChar <*> commentSuffix n]
 
 > splice :: SQLSyntaxDialect -> Parser Token
 > splice _ = do
@@ -487,9 +453,22 @@ inClass :: String -> Char -> Bool
 >   <$> (char '$' *> letter)
 >   <*> (char '(' *> identifierString <* char ')')
 
-
 > startsWith :: (Char -> Bool) -> (Char -> Bool) -> Parser T.Text
 > startsWith p ps = do
 >   c <- satisfy p
 >   choice [T.cons c <$> (takeWhile1 ps)
 >          ,return $ T.singleton c]
+
+> takeWhile1 :: (Char -> Bool) -> Parser T.Text
+> takeWhile1 p = T.pack <$> many1 (satisfy p)
+
+> takeWhile :: (Char -> Bool) -> Parser T.Text
+> takeWhile p = T.pack <$> many (satisfy p)
+
+> takeTill :: (Char -> Bool) -> Parser T.Text
+> takeTill p =
+>     T.pack <$> manyTill anyChar (peekSatisfy p)
+
+> peekSatisfy :: (Char -> Bool) -> Parser ()
+> peekSatisfy p = do
+>     void $ lookAhead (satisfy p)
