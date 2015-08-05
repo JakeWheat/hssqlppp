@@ -147,7 +147,7 @@ import Control.Monad.State
 import Data.Generics
 import Data.Generics.Uniplate.Data
 --import Debug.Trace
---import Text.Groom
+--import Text.Show.Pretty
 
 
 import Database.HsSqlPpp.Internals.TypesInternal

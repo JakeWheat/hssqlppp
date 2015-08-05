@@ -26,12 +26,12 @@ now you can try the functions out, e g.
 
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.Utils.GroomUtils
-> import Text.Groom
+> import Text.Show.Pretty
 > import qualified Data.Text.Lazy as T
 
 > testParseStatements src = do
 >   let ast = parseStatements defaultParseFlags "unknown" Nothing src
->   putStrLn $ either groom groomNoAnns ast
+>   putStrLn $ either ppShow groomNoAnns ast
 
 
 

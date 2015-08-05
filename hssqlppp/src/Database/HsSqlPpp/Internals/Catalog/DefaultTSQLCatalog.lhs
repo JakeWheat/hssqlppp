@@ -10,7 +10,7 @@
 > --import Data.List
 > import Data.Generics.Uniplate.Data
 > --import Debug.Trace
-> --import Text.Groom
+> --import Text.Show.Pretty
 
 > defaultTSQLCatalog :: Catalog
 > defaultTSQLCatalog = either (error . show) id catr

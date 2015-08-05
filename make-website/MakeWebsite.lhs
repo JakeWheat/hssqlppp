@@ -18,7 +18,7 @@ transformed sql renders
 > --import System.Environment
 > --import Data.List hiding (find)
 > import Text.Pandoc
-> --import Text.Groom
+> --import Text.Show.Pretty
 > import Control.Arrow
 > --import Data.DateTime
 

@@ -52,7 +52,7 @@ off.
 > import Database.HsSqlPpp.Internals.TypeChecking.OldTediousTypeUtils
 > import Data.Text (Text)
 > import qualified Data.Text as T
-> --import Text.Groom
+> --import Text.Show.Pretty
 
  > traceIt :: Show a => String -> a -> a
  > traceIt s t = trace (s ++ ": " ++ show t) t
@@ -240,9 +240,9 @@ against.
 >             ,unknownMatchesByCat]
 >         y = returnIfOnne ({-trace (if f `elem` ["=","lower"]
 >                              then ("\n-----------------\n"
->                                  -- ++ groom (let c = catUpdates cat in drop (length c - 30) c)
+>                                  -- ++ ppShow (let c = catUpdates cat in drop (length c - 30) c)
 >                                  -- ++ "\n-----------------\n"
->                                  ++ groom (f,inArgs) ++ "\n" ++ groom x)
+>                                  ++ ppShoe (f,inArgs) ++ "\n" ++ groom x)
 >                              else "")-} x)
 >                     [NoMatchingOperator f inArgs]
 >     in {-trace (if f `elem` ["=","lower"] then "y = " ++ show y else "")-} y

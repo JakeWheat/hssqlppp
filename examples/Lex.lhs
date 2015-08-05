@@ -1,6 +1,6 @@
 
 > import Database.HsSqlPpp.LexicalSyntax
-> import Text.Groom
+> import Text.Show.Pretty
 > import System.Environment
 > import qualified Data.Text.IO as T
 
@@ -8,5 +8,5 @@
 > main = do
 >   [s] <- getArgs
 >   f <- T.readFile s
->   putStrLn $ groom $ sqlTokens PostgreSQLDialect ("",1,0) f
->   --putStrLn $ groom $ parsePlpgsql "" s
+>   putStrLn $ ppShow $ sqlTokens PostgreSQLDialect ("",1,0) f
+>   --putStrLn $ ppShow $ parsePlpgsql "" s

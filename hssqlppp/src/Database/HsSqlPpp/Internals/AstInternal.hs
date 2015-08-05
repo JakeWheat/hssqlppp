@@ -125,7 +125,7 @@ import Control.Monad.State
 import Data.Generics
 import Data.Generics.Uniplate.Data
 --import Debug.Trace
---import Text.Groom
+--import Text.Show.Pretty
 
 
 import Database.HsSqlPpp.Internals.TypesInternal
@@ -23679,7 +23679,7 @@ sem_TableRef_FunTref ann_ fn_ =
                      if all (== head qs) qs
                        then return (T.unpack $ head qs, map (T.unpack . snd . fst) cs)
                        else
-                                                           Nothing
+                                                            Nothing
                    else Nothing
                    {-# LINE 23642 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -23835,7 +23835,7 @@ sem_TableRef_SubTref ann_ sel_ =
                      if all (== head qs) qs
                        then return (T.unpack $ head qs, map (T.unpack . snd . fst) cs)
                        else
-                                                           Nothing
+                                                            Nothing
                    else Nothing
                    {-# LINE 23798 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -23998,7 +23998,7 @@ sem_TableRef_JoinTref ann_ tref0_ nat_ joinType_ joinHint_ tref1_ onExpr_ =
                      if all (== head qs) qs
                        then return (T.unpack $ head qs, map (T.unpack . snd . fst) cs)
                        else
-                                                           Nothing
+                                                            Nothing
                    else Nothing
                    {-# LINE 23961 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
@@ -24393,7 +24393,7 @@ sem_TableRef_TableRefParens ann_ tref_ =
                      if all (== head qs) qs
                        then return (T.unpack $ head qs, map (T.unpack . snd . fst) cs)
                        else
-                                                           Nothing
+                                                            Nothing
                    else Nothing
                    {-# LINE 24356 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )

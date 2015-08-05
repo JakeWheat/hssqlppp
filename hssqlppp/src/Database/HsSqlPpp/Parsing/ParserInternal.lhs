@@ -1466,6 +1466,10 @@ be used here.
 TODO: handle the completely different list of sql server operators a
 bit better
 
+TODO: this follows the old, incorrect postgresql precedence, update to
+the 9.5 behaviour which is much more in line with ansi sql and other
+sql dbmss.
+
 > tableAB :: SQLSyntaxDialect
 >         -> Bool
 >         -> [[Operator [Token] ParseState Identity ScalarExpr]]
@@ -1473,46 +1477,57 @@ bit better
 >          --[binary "::" (BinOpCall Cast) AssocLeft]
 >          --missing [] for array element select
 >         ,[prefix "+" "+"] -- Unary plus - Exists in pgsql 9.4
+
 >         ,[prefix "-" "-"] -- Unary minus
+
 >         ,[binary "^" AssocLeft] -- Exponent
+
 >         ,[binary "*" AssocLeft
 >          ,idHackBinary "*" AssocLeft
 >          ,binary "/" AssocLeft
 >          ,binary "%" AssocLeft]
+
 >         ,[binary "+" AssocLeft
 >          ,binary "-" AssocLeft]
->         ,[postfixks ["is", "not", "null"] "isnotnull"
->          ,postfixks ["is", "null"] "isnull"]
+
 >          ------- All custom operators must go here:
 >          --other operators all added in this list according to the pg docs:
 >         ,[binary "|" AssocLeft
->          ,binary "&" AssocLeft]
->         ,[binary "<->" AssocNone
->          ,binary "<=" AssocRight
->          ,binary ">=" AssocRight
+>          ,binary "&" AssocLeft
+>          ,binary "<->" AssocNone
 >          ,binary "||" AssocLeft]
 >          ++ [prefix "@" "@" | d == PostgreSQLDialect]
 >          -- Stop custom operators.
 >          --in should be here, but is treated as a factor instead
 >          --between
 >          --overlaps
+
 >         ,[binaryk "like" "like" AssocNone
 >          ,binaryk "rlike" "rlike" AssocNone
 >          ,binaryks ["not","like"] "notlike" AssocNone]
+
 >         ,[binary "<" AssocNone
->          ,binary ">" AssocNone]
+>          ,binary ">" AssocNone
 >          --(also ilike similar)
->         ,[binary "=" AssocRight]
->         ,[binary "<>" AssocRight
+>          ,binary "=" AssocRight
+>          ,binary "<=" AssocRight
+>          ,binary ">=" AssocRight
+>          ,binary "<>" AssocRight
 >          ,binarycust (symbol "!=") "<>" AssocRight]
+
+>         ,[postfixks ["is", "not", "null"] "isnotnull"
+>          ,postfixks ["is", "null"] "isnull"]
+
 >         ,[notNot
 >          ,prefixk "not" "not"
 >          ]
+
 >         ,if isB
 >          then []
 >          else [binaryk "and" "and" AssocLeft]
+
 >         ,[binaryk "or" "or" AssocLeft]
->          ]
+>         ] 
 >     where
 >       binary s = binarycust (symbol s) s
 >       -- '*' is lexed as an id token rather than a symbol token, so

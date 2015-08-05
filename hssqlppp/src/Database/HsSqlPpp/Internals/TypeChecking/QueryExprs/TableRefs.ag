@@ -141,8 +141,8 @@ sem TableRef
           if all (== head qs) qs
             then return (T.unpack $ head qs, map (T.unpack . snd . fst) cs)
             else {-trace ("not all same:" ++ show qs
-                       ++ "\n" ++ groom @originalTree
-                       ++ "\n" ++ groom env) -} Nothing
+                       ++ "\n" ++ ppShow @originalTree
+                       ++ "\n" ++ ppShow env) -} Nothing
         else Nothing
   | Tref
       -- special case for tref, the expand star will give the

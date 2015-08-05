@@ -33,7 +33,7 @@ and variables, etc.
 > import Control.Arrow
 > import Data.List
 > --import Debug.Trace
-> --import Text.Groom
+> --import Text.Show.Pretty
 
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
@@ -366,7 +366,7 @@ use listBindingsTypes to implement expandstar and lookupid
 
 > envLookupIdentifier :: [NameComponent] -> Environment
 >                      -> Either [TypeError] ((Text,Text), TypeExtra)
-> envLookupIdentifier nmc env = --trace ("lookup: " ++ show nmc  ++ "\n" ++ groom env) $
+> envLookupIdentifier nmc env = --trace ("lookup: " ++ show nmc  ++ "\n" ++ ppShow env) $
 >   if isBroken env
 >   then Left []
 >   else do
@@ -383,7 +383,7 @@ use listBindingsTypes to implement expandstar and lookupid
 >       case nmc of
 >         [a,b] -> let x = ((keepcase a na,keepcase b nb),t)
 >                  in {-(if True -- map toLower nb == "ou_id"
->                      then trace ("\n\n*********************\n\nlookup: " ++ show x ++ "\n\n********************************\n\n" ++ groom env ++ "\n\n********************************\n\n")
+>                      then trace ("\n\n*********************\n\nlookup: " ++ show x ++ "\n\n********************************\n\n" ++ ppShow env ++ "\n\n********************************\n\n")
 >                      else id)-} x
 >         [b] -> ((na,keepcase b nb),t)
 >         _ -> error "too many nmc components in envlookupiden(2)"

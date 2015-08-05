@@ -9,7 +9,7 @@ examples.
 >
 > import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Utils.Here
-> import Text.Groom
+> import Text.Show.Pretty
 > import Database.HsSqlPpp.Tests.Parsing.ParserTests as PT
 > import Database.HsSqlPpp.Tests.TypeChecking.TypeCheckTests as TT
 > import Language.Haskell.Exts hiding (String)
@@ -61,12 +61,12 @@ compile time.
 > mapTypeCheckTests (TT.Group n is) =
 >    HHeader n : concatMap mapTypeCheckTests is
 > mapTypeCheckTests (TT.ScalExpr s r) =
->   [Row [[Sql $ L.unpack s],[Haskell (groom r)]]]
+>   [Row [[Sql $ L.unpack s],[Haskell (ppShow r)]]]
 > mapTypeCheckTests (TT.TCQueryExpr c s r) =
->    [Row [[Haskell (groom c),Sql $ L.unpack s],[Haskell (groom r)]]]
+>    [Row [[Haskell (ppShow c),Sql $ L.unpack s],[Haskell (ppShow r)]]]
 > mapTypeCheckTests (TT.RewriteQueryExpr fs cus s0 s1) =
->    [Row [[Haskell (groom fs)
->          ,Haskell (groom cus)]
+>    [Row [[Haskell (ppShow fs)
+>          ,Haskell (ppShow cus)]
 >         ,[Sql $ L.unpack s0,Text "rewritten to",Sql $ L.unpack s1]]]
 > mapTypeCheckTests (TT.ImpCastsScalar _ s0 s1) =
 >    [Row [[Sql $ L.unpack s0]
@@ -74,9 +74,9 @@ compile time.
 
 > mapTypeCheckTests _ = []
 
-> {-mapTypeCheckTests (TT.StmtType s r) = [Row [[Sql s],[Haskell (groom r)]]]
-> mapTypeCheckTests (TT.CatStmtType s c r) = [Row [[Haskell (groom c),Sql s],[Haskell (groom r)]]]
-> mapTypeCheckTests (TT.Ddl s c) = [Row [[Sql s],[Haskell (groom c)]]]-}
+> {-mapTypeCheckTests (TT.StmtType s r) = [Row [[Sql s],[Haskell (ppShow r)]]]
+> mapTypeCheckTests (TT.CatStmtType s c r) = [Row [[Haskell (ppShow c),Sql s],[Haskell (ppShow r)]]]
+> mapTypeCheckTests (TT.Ddl s c) = [Row [[Sql s],[Haskell (ppShow c)]]]-}
 >
 > rowsToHtml :: [Row] -> [Block] -- String
 > rowsToHtml rs =

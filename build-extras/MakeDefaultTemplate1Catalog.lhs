@@ -1,7 +1,7 @@
 
 > {-# LANGUAGE QuasiQuotes,OverloadedStrings #-}
 
-> import Text.Groom
+> import Text.Show.Pretty
 
 > import Database.HsSqlPpp.Utils.Here
 > import Database.HsSqlPpp.Utils.CatalogReader
@@ -18,7 +18,7 @@
 > main = do
 >   let cs = "dbname=template1"
 >   cus <- readCatalogFromDatabase cs
->   let s = groom cus
+>   let s = ppShow cus
 >   v <- withConn cs $ \conn -> do
 >          r <- Pg.query_ conn "select version();"
 >          return (head $ head r)

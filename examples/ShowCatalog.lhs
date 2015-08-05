@@ -2,7 +2,7 @@
 > import System.Environment
 > import Data.List
 
-> import Text.Groom
+> import Text.Show.Pretty
 
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.TypeChecker
@@ -16,4 +16,4 @@
 >   let Right ast = parseStatements defaultParseFlags f Nothing src
 >   let (cat,_) = typeCheckStatements defaultTypeCheckingFlags defaultTemplate1Catalog ast
 >       cc = deconstructCatalog cat \\ deconstructCatalog defaultTemplate1Catalog
->   putStrLn $ groom cc
+>   putStrLn $ ppShow cc

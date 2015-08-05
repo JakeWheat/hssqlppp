@@ -13,7 +13,7 @@ that pretty print . parse == id
 > import Database.HsSqlPpp.Utility
 > import Control.Monad
 > import Data.Algorithm.Diff
-> import Text.Groom
+> import Text.Show.Pretty
 > --import Data.Generics.Uniplate.Data
 > --import Data.Data
 > --import Database.HsSqlPpp.Annotation
@@ -32,7 +32,7 @@ that pretty print . parse == id
 >              $ parseStatements defaultParseFlags f Nothing pp
 >   when (ast /= ast2) $ do
 >     putStrLn "error: pretty print . parse /= id"
->     putStrLn $ unlines $ diff (lines $ groom ast) (lines $ groom ast2)
+>     putStrLn $ unlines $ diff (lines $ ppShow ast) (lines $ groom ast2)
 
 
 > diff :: [String] -> [String] -> [String]

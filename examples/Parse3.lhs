@@ -6,7 +6,7 @@
 
 > import Database.HsSqlPpp.Parser
 > import GroomUtils
-> import Text.Groom
+> import Text.Show.Pretty
 > import qualified Data.Text.Lazy.IO as LT
 
 > main :: IO ()
@@ -15,4 +15,4 @@
 >   src <- LT.readFile f
 >   let ast = parsePlpgsql defaultParseFlags {pfDialect=SQLServerDialect}
 >                          f Nothing src
->   putStrLn $ either groom groomNoAnns ast
+>   putStrLn $ either ppShow groomNoAnns ast

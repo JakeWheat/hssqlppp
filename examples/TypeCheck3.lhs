@@ -15,7 +15,7 @@
 > --import Text.Groom
 > import Database.HsSqlPpp.Tests.TpchData
 > import qualified Data.Text.Lazy.IO as LT
-> import Text.Groom
+> import Text.Show.Pretty
 
 > main :: IO ()
 > main = do
@@ -27,9 +27,9 @@
 >       -- type check the ast
 >       aast :: [Statement]
 >       aast = snd $ typeCheckStatements defaultTypeCheckingFlags { tcfDialect = SQLServerDialect } cat ast
->   putStrLn $ groom aast
+>   putStrLn $ ppShow aast
 >   where
->     cat = either (error . groom) id $
+>     cat = either (error . ppShow) id $
 >           updateCatalog
 >                   catu
 >                   defaultTSQLCatalog

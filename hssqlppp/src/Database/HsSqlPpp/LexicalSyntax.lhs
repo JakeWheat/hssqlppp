@@ -191,6 +191,8 @@ if we see 'from stdin;' then try to lex a copy payload
 sql server: identifiers can start with @ or #
 quoting uses [] or ""
 
+TODO: fix all the "qiden" parsers to allow "qid""en"
+
 > identifier SQLServerDialect =
 >     choice
 >     [Identifier (Just ('[',']'))
@@ -413,7 +415,7 @@ inClass :: String -> Char -> Bool
 > positionalArg PostgreSQLDialect = try (
 >   PositionalArg <$> (char '$' *> (read <$> many1 digit)))
 
-> positionalArg _ = satisfy (const False) >> error "positional arg unsupported"
+> positionalArg _ = satisfy (const False) >> fail "positional arg unsupported"
 
 > lineComment :: SQLSyntaxDialect -> Parser Token
 > lineComment _ =

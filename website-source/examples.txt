@@ -198,7 +198,7 @@ Bit rough at the moment:
 ~~~~{.haskell}
 > import System.Environment
 > import Data.List
-> import Text.Groom
+> import Text.Show.Pretty
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.TypeChecker
 > import Database.HsSqlPpp.Catalog
@@ -209,7 +209,7 @@ Bit rough at the moment:
 >   Right ast <- parseStatementsFromFile f
 >   let (cat,_) = typeCheckStatements defaultTemplate1Catalog ast
 >       cc = deconstructCatalog cat \\ deconstructCatalog defaultTemplate1Catalog
->   putStrLn $ groom cc
+>   putStrLn $ ppShow cc
 ~~~~
 
 Pass in the following sql file:

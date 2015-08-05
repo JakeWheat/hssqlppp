@@ -45,7 +45,7 @@
 > --import Database.HsSqlPpp.Pretty
 > --import Database.HsSqlPpp.Utility
 > --import Database.HsSqlPpp.Internals.TypeChecking.Environment
-> --import Text.Groom
+> --import Text.Show.Pretty
 > --import Debug.Trace
 > --import Database.HsSqlPpp.Tests.TestUtils
 > --import Control.Monad

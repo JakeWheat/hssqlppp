@@ -37,7 +37,7 @@ mental.
 > import Control.Concurrent
 > import Data.List
 > import Control.Exception
-> import Text.Groom
+> import Text.Show.Pretty
 > import qualified Text.Pandoc.Builder as P
 > import qualified Data.Set as S
 > import Data.String
@@ -81,7 +81,7 @@ mental.
 
 > ppPandoc :: OutputFile -> IO String
 > ppPandoc (OutputFile s t _ _) =
->     asText s >>= return . (toPandoc t |> groom)
+>     asText s >>= return . (toPandoc t |> ppShow)
 
 > asText :: Source -> IO String
 > asText (File fp) = readFile fp

@@ -11,7 +11,7 @@
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Utility
-> --import Text.Groom
+> --import Text.Show.Pretty
 > import qualified Data.Text.Lazy.IO as LT
 
 > main :: IO ()
