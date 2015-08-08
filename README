@@ -7,7 +7,7 @@ lots of unfinished areas and the api is likely to change a lot from
 release to release at this time.
 
 Website, with some docs and examples:
-http://jakewheat.github.com/hssqlppp/
+http://jakewheat.github.com/hssqlppp/latest
 
 Hackage: http://hackage.haskell.org/package/hssqlppp
 
