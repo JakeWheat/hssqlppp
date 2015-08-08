@@ -1,16 +1,27 @@
 
+:toc: right
+:sectnums:
+:toclevels: 10
+:source-highlighter: pygments
+
+= hssqlppp examples
+
+== Overview
+
 These examples should be kept up to date, but if any are out of date,
 you can see the latest versions in the examples folder in the repo
 (the files there should definitely compile and run fine with the
 latest version of hssqlppp):
-<https://github.com/JakeWheat/hssqlppp/tree/master/src-extra/examples>
+https://github.com/JakeWheat/hssqlppp/tree/master/examples
 
-Parsing
-=======
+TODO: This is a pretty bold claim...
+
+== Parsing
 
 Here is a program to parse some SQL from a file and print the ast:
 
-~~~~~{.haskell}
+[source,haskell]
+----
 > import System.Environment
 
 > import Database.HsSqlPpp.Parser
@@ -20,17 +31,18 @@ Here is a program to parse some SQL from a file and print the ast:
 >   [f] <- getArgs
 >   ast <- parseStatementsFromFile f
 >   print ast
-~~~~~
+----
 
 Given the SQL file x.sql:
 
-~~~~~{.sql}
+[source,sql]
+----
 select * from t;
-~~~~~
+----
 
 the result is something like:
 
-~~~~~
+----
 $ Parse x.sql
 Right [QueryStatement (Annotation {asrc = Just ("x.sql",1,1), atype =
 Nothing, errs = [], stType = Nothing, catUpd = [], fnProt = Nothing,
@@ -51,11 +63,12 @@ infType = Nothing}) (SQIdentifier (Annotation {asrc = Just
 {asrc = Just ("x.sql",1,16), atype = Nothing, errs = [], stType =
 Nothing, catUpd = [], fnProt = Nothing, infType = Nothing}))] Nothing
 [] Nothing [] Nothing Nothing)]
-~~~~~
+----
 
 More readable output from this variation:
 
-~~~~~{.haskell}
+[source,haskell]
+----
 > import System.Environment
 
 > import Language.Haskell.Exts
@@ -82,12 +95,12 @@ More readable output from this variation:
 >         case parseExp (show s) of
 >           ParseOk ast -> prettyPrint (f ast)
 >           x -> error $ show x
-~~~~~
+----
 
 The annotation values have been replaced with the string 'Ann', and
 the output indented using haskell-src-exts:
 
-~~~~~
+----
 $ Parse2 x.sql
 Right
   [QueryStatement Ann
@@ -100,18 +113,18 @@ Right
         []
         Nothing
         Nothing)]
-~~~~~
+----
 
 You can see the various parsing functions in the haddock docs here:
-[Database.HsSqlPpp.Parser](haddock/Database-HsSqlPpp-Parser.html)
+link:haddock/Database-HsSqlPpp-Parser.html[Database.HsSqlPpp.Parser]
 
-Typechecking
-============
+== Typechecking
 
 Here is a program which parses and typechecks a query and outputs the
 result type:
 
-~~~~~{.haskell}
+[source,haskell]
+----
 > import Database.HsSqlPpp.Parser
 > import Database.HsSqlPpp.TypeChecker
 > import Database.HsSqlPpp.Catalog
@@ -136,18 +149,19 @@ result type:
 >                   [CatCreateTable "t" [("a", typeInt)
 >                                       ,("b", typeInt)
 >                                       ] []]
-~~~~~
+----
 
 Running gives:
 
-~~~~~
+----
 $ src-extra/examples/TypeCheck
 Just (SetOfType (CompositeType [("a",ScalarType "int4"),("b",ScalarType "int4")]))
-~~~~~
+----
 
 Typecheck against an existing database:
 
-~~~~~{.haskell}
+[source,haskell]
+----
 > import System.Environment
 
 > import Database.HsSqlPpp.Parser
@@ -174,28 +188,29 @@ Typecheck against an existing database:
 >       ty :: Maybe Type
 >       ty = atype ann
 >   print ty
-~~~~~
+----
 
 Assume the database 'db' has the following table:
 
-~~~~~{.sql}
+[source,sql]
+----
 create table t (a int, b float);
-~~~~~
+----
 
-~~~~~
+----
 $ TypeCheckDB "dbname=db"
 Just (SetOfType (CompositeType [("a",ScalarType "int4"),("b",ScalarType "float8")]))
-~~~~~
+----
 
 This uses some extra utils which are only available in the repo at the moment:
-[CatalogReader](https://github.com/JakeWheat/hssqlppp/blob/master/src-extra/util/Database/HsSqlPpp/Utils/CatalogReader.lhs)
+link:https://github.com/JakeWheat/hssqlppp/blob/master/hssqlppp-pg/src/Database/HsSqlPpp/Utils/CatalogReader.lhs[CatalogReader]
 
-Show catalog
-============
+== Show catalog
 
 Bit rough at the moment:
 
-~~~~{.haskell}
+[source,haskell]
+----
 > import System.Environment
 > import Data.List
 > import Text.Show.Pretty
@@ -210,16 +225,17 @@ Bit rough at the moment:
 >   let (cat,_) = typeCheckStatements defaultTemplate1Catalog ast
 >       cc = deconstructCatalog cat \\ deconstructCatalog defaultTemplate1Catalog
 >   putStrLn $ ppShow cc
-~~~~
+----
 
 Pass in the following sql file:
 
-~~~~{.sql}
+[source,sql]
+----
 create table t (a int, b float);
 create view v as select a from t;
-~~~~
+----
 
-~~~~
+----
 $ ./ShowCatalog sc.sql
 [CatCreateTable "t"
    [("a", ScalarType "int4"), ("b", ScalarType "float8")]
@@ -227,14 +243,14 @@ $ ./ShowCatalog sc.sql
     ("xmax", ScalarType "xid"), ("cmin", ScalarType "cid"),
     ("xmin", ScalarType "xid"), ("ctid", ScalarType "tid")],
  CatCreateView "v" [("a", ScalarType "int4")]]
-~~~~
+----
 
-Generating SQL
-==============
+== Generating SQL
 
 Here is a program which generates SQL:
 
-~~~~~{.haskell}
+[source,haskell]
+----
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Pretty
@@ -260,22 +276,22 @@ Here is a program which generates SQL:
 > main = do
 >   let s = MakeSelect ["a", "b"] "t"
 >   putStrLn $ printQueryExpr $ sqlGen s
-~~~~~
+----
 
-~~~~~
+----
 $ MakeSelect
 select
     a, b
   from
     t;
-~~~~~
+----
 
 TODO: add about use of helpers and approach in the parse test code
 
-Using quasiquotes
-=================
+== Using quasiquotes
 
-~~~~~{.haskell}
+[source,haskell]
+----
 > {-# LANGUAGE QuasiQuotes #-}
 > import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Quote
@@ -297,21 +313,18 @@ Using quasiquotes
 
 > main :: IO ()
 > main = putStrLn $ printStatements [test]
-
-~~~~~
+----
 
 The output is:
 
-~~~~~
+----
 $ QQ
 create table my_table (
   my_field text
 );
-~~~~~
+----
 
-
-Transforming SQL
-================
+== Transforming SQL
 
 The TPC-H qgen program generates the SQL queries for the TPC-H
 benchmarks and includes an option for SQL Server. For some reason, it
@@ -320,7 +333,8 @@ is a short program to take the qgen output and convert it into a
 format which SQL Server understands. (I haven't checked carefully to
 see if the produced SQL is correct.)
 
-~~~~{.haskell}
+[source,haskell]
+----
 
 Convert qgen output into sql server format
 
@@ -400,11 +414,13 @@ Instead of:
 > fixDate = transformBi $ \x -> case x of
 >    TypedStringLit a (SimpleTypeName _ "date") d -> StringLit a d
 >    x' -> x'
-~~~~
+----
+
 
 Example, a Q1 query:
 
-~~~~{.sql}
+[source,sql]
+----
 select
         l_returnflag,
         l_linestatus,
@@ -426,11 +442,12 @@ group by
 order by
         l_returnflag,
         l_linestatus;
-~~~~
+----
 
 Output from running the program on this sql:
 
-~~~~{.sql}
+[source,sql]
+----
 select
     l_returnflag,
     l_linestatus,
@@ -450,4 +467,4 @@ select
     l_returnflag, l_linestatus
   order by
     l_returnflag asc, l_linestatus asc;
-~~~~
+----

@@ -1,4 +1,11 @@
 
+TODO:
+
+convert the website-source/ .txt files to asciidoc
+new exe which just generates the test page sources in asciidoc
+new script which builds everything using asciidoc
+get rid of most of this stuff
+
 missing from the web pages:
 
 generated test files:

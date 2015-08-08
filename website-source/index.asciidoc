@@ -1,9 +1,20 @@
+
+:toc: right
+:sectnums:
+:toclevels: 10
+:source-highlighter: pygments
+
+= hssqlppp
+
+== Overview
+
 A parser, pretty printer, and type checker for SQL written in
 Haskell. Targets the PostgreSQL dialect of SQL and PL/pgSQL
 syntax only. BSD licensed.
 
-Purpose
-=======
+This is the documentation for version 0.5.x.
+
+== Purpose
 
 Possible uses of this library include:
 
@@ -24,15 +35,14 @@ With some extra work:
 * typesafe database access from Haskell
 * lint or semantic analysis for SQL or PL/pgSQL
 
-Status
-======
+== Status
 
 Pre-alpha in the traditional sense (not yet feature complete). Support
 for parsing SQL solid on a large subset of SQL. Supports queries/DML
 and DDL. Here is an extract from the parsing tests which gives some
 examples of what can currently be parsed:
 
-* [Parsing examples](ParserTests.html)
+* link:ParserTests.html[Parsing examples]
 
 The type checker is currently still being fixed after some reworking
 of parsing and ast types. It is pretty solid on a wide range of
@@ -40,12 +50,12 @@ queries.
 
 Extract from the type checking tests:
 
-* [Type-checking examples](TypeCheckTests.html)
+* link:TypeCheckTests.html[Type-checking examples]
 
 Currently limited support for quasiquoting, here are the extracts from
 the tests:
 
-* [Quasiquotation examples](QuasiQuoteTests.html)
+* link:QuasiQuoteTests.html[Quasiquotation examples]
 
 The pretty printer should support everything the parser supports
 (i.e. it pretty prints code which both the parser and Postgres
@@ -55,51 +65,35 @@ Catalog information is limited, supports the type checking. Some
 information is collected on scalar types, domains, composite types,
 casts, tables, views and functions.
 
-Installation
-============
+== Installation
 
-This project is currently developed on GHC 7.8.3. It has also been
-tested recently with 7.6.3.
+This project is currently developed on GHC 7.10.2. It has also been
+tested recently with 7.8.4 and 7.6.3.
 
 To install use
 
-~~~~~{.sh}
+----
 cabal install hssqlppp
-~~~~~
+----
 
-Documentation
-=============
+== Documentation
 
-[Haddock docs](haddock/index.html)
+link:haddock/index.html[Haddock docs]
 
-[Examples](examples.txt.html)
+link:examples.html[Usage examples]
 
-[Some notes on hacking on hssqlppp itself](devel.txt.html)
+== Links
 
-Links
-=====
+Homepage: http://jakewheat.github.com/hssqlppp/
 
-Homepage: <http://jakewheat.github.com/hssqlppp/>
+Hackage: http://hackage.haskell.org/package/hssqlppp
 
-Hackage: <http://hackage.haskell.org/package/hssqlppp>
+Repository: https://github.com/JakeWheat/hssqlppp
 
-Repository: <https://github.com/JakeWheat/hssqlppp>
+Changes: https://github.com/JakeWheat/hssqlppp/blob/master/CHANGES
 
-Changes: <https://github.com/JakeWheat/hssqlppp/blob/master/CHANGES>
+Bug tracker: https://github.com/JakeWheat/hssqlppp/issues
 
-Reporting issues and feature requests
-=====================================
+== Contact
 
-Use the github issue tracker. Please supply an example of SQL which
-doesn't parse/typecheck correctly where relevant.
-
-<https://github.com/JakeWheat/hssqlppp/issues>
-
-Contact
-=======
-
-Let me know if you're using/ interested in using the library, if you
-have any problems, bug reports, or suggestions, etc.. All
-contributions, comments and criticism welcome:
-
-jakewheatmail@gmail.com
++++jakewheatmail@gmail.com+++

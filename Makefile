@@ -150,14 +150,21 @@ make-website/dist/build/MakeWebsite/MakeWebsite :
 
 # make the website
 .PHONY : website
-website : make-website/dist/build/MakeWebsite/MakeWebsite \
-  build/website/main.css
-	make-website/dist/build/MakeWebsite/MakeWebsite
-	mv build/website/index.txt.html build/website/index.html
+website : #make-website/dist/build/MakeWebsite/MakeWebsite \
+  #build/website/main.css
+	mkdir -p build/website
+	asciidoctor website-source/index.asciidoc -o build/website/index.html
+	asciidoctor website-source/examples.asciidoc -o build/website/examples.html
+	#make-website/dist/build/MakeWebsite/MakeWebsite
+	#asciidoctor build/website/ParserTests.asciidoc -o build/website/ParserTests.html
+	#asciidoctor build/website/TypeCheckTests.asciidoc -o build/website/TypeCheckTests.html
+	#asciidoctor build/website/QuasiQuoteTests.asciidoc -o build/website/QuasiQuoteTests.html
 
-build/website/main.css : website-source/main.css
-	-mkdir -p build/website/
-	cp website-source/main.css build/website/main.css
+	#mv build/website/index.txt.html build/website/index.html
+
+# build/website/main.css : website-source/main.css
+# 	-mkdir -p build/website/
+# 	cp website-source/main.css build/website/main.css
 
 # make the haddock and put in the correct place in the generated
 # website
@@ -169,7 +176,7 @@ build/website/main.css : website-source/main.css
 
 .PHONY : website-haddock
 website-haddock :
-	cd hssqlppp && cabal configure && cabal haddock
+	cd hssqlppp && cabal haddock
 	-mkdir -p build/website
 	-rm -Rf build/website/haddock
 	cp -R hssqlppp/dist/doc/html/hssqlppp build/website/haddock
