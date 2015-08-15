@@ -8,5 +8,5 @@
 > main = do
 >   [s] <- getArgs
 >   f <- T.readFile s
->   putStrLn $ ppShow $ sqlTokens PostgreSQLDialect ("",1,0) f
+>   putStrLn $ ppShow $ sqlTokens PostgreSQLDialect "" (Just (1,0)) f
 >   --putStrLn $ ppShow $ parsePlpgsql "" s

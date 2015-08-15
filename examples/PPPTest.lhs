@@ -32,7 +32,7 @@ that pretty print . parse == id
 >              $ parseStatements defaultParseFlags f Nothing pp
 >   when (ast /= ast2) $ do
 >     putStrLn "error: pretty print . parse /= id"
->     putStrLn $ unlines $ diff (lines $ ppShow ast) (lines $ groom ast2)
+>     putStrLn $ unlines $ diff (lines $ ppShow ast) (lines $ ppShow ast2)
 
 
 > diff :: [String] -> [String] -> [String]

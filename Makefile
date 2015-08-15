@@ -79,7 +79,8 @@ test : hssqlppp hssqlppp-th
 
 # this does everything, make sure you've done all the sandbox targets
 .PHONY : really-all
-really-all : test hssqlppp-pg sandbox/bin/MakeDefaultTemplate1Catalog \
+really-all : test examples hssqlppp-pg \
+  sandbox/bin/MakeDefaultTemplate1Catalog \
   website website-haddock
 
 

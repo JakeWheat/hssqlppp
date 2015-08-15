@@ -7,13 +7,24 @@ when a complete statement is read, call a function. Want to support
 sql statements which cover multiple lines and pasting in multiple
 statements at once/ entering multiple statements on one line.
 
+Incremental lexer cancelled.
+
+To reproduce the behaviour, read until get a semi colon.
+
+When is a semi colon not the end of a command?
+Inside a string, quoted identifier, comment, copy payload.
+
+Write a custom little incremental scanner. Still have tricky issues
+(postgres copy from stdin) and dialect issues (ms quoted ids are [],
+myssql are ``, etc.).
+
 > {-# LANGUAGE OverloadedStrings,TupleSections,ScopedTypeVariables #-}
 
-> import qualified Data.Text.IO as T
-> import qualified Data.Text as T
-> import qualified Data.Text.Lazy as LT
-> import qualified Data.Text.Lazy.IO as LT
-> import Data.Attoparsec.Text
+> --import qualified Data.Text.IO as T
+> --import qualified Data.Text as T
+> --import qualified Data.Text.Lazy as LT
+> --import qualified Data.Text.Lazy.IO as LT
+> --import Data.Attoparsec.Text
 > --import Control.Applicative
 > import Data.Char
 > --import Debug.Trace
@@ -26,76 +37,89 @@ statements at once/ entering multiple statements on one line.
 > --import Test.Framework
 > --import Test.HUnit
 > --import Test.Framework.Providers.HUnit
-> import Database.HsSqlPpp.LexicalSyntax
+> --import Database.HsSqlPpp.LexicalSyntax
+> import Control.Monad
+> --import Debug.Trace
+
+TODO: write test cases, pull out the parsing code to do this
+
+> readAnotherStatement :: String -> IO ()
+> readAnotherStatement prefix' = do
+>     let prefix = if all isSpace prefix'
+>                  then ""
+>                  else prefix' ++ "\n"
+>     --putStr $ "> " ++ prefix
+>     when (null prefix) (putStr "> " >> hFlush stdout)
+>     line <- getLine
+>     --putStrLn $ "got: " ++ line
+>     let stmts :: [String]
+>         (stmts, leftOver) = parseStatements (prefix ++ line)
+>     --putStrLn $ "stuff :" ++ show (stmts, leftOver)
+>     when (not (null stmts)) $ do
+>         putStr "ST: "
+>         putStrLn $ intercalate "\nST: " stmts
+>         hFlush stdout
+>     --when (not (null leftOver)) $
+>     --    putStrLn $ "LEFTOVER: " ++ leftOver
+>     readAnotherStatement leftOver
+>     --parseStatements stmts curSt xs
+>     --   | trace ("stmts: " ++ show (stmts, curSt, xs)) False = undefined
 
 
+> parseStatements :: String -> ([String],String)
+> parseStatements txt = statements [] "" txt
+>   where
+>     statements stmts curSt (';':xs) =
+>         statements (stmts ++ [curSt ++ ";"]) "" xs
+>     -- switch to quoted iden
+>     statements stmts curSt ('"':xs) =
+>         quotedIden stmts (curSt ++ "\"") xs
+>     -- switch to string lit
+>     statements stmts curSt ('\'':xs) =
+>         stringLit stmts (curSt ++ "'") xs
+>     -- switch to block comment
+>     statements stmts curSt ('/':'*':xs) =
+>         blockComment stmts (curSt ++ "/*") xs
+>     -- switch to line comment
+>     statements stmts curSt ('-':'-':xs) =
+>         lineComment stmts (curSt ++ "--") xs
+>     -- normal char
+>     statements stmts curSt (x:xs) =
+>         statements stmts (curSt ++ [x]) xs
+>     -- end of current input
+>     statements stmts curSt [] = (stmts, curSt)
 
-> type Partial = T.Text -> SResult
-> type SResult = Result [(Position,Token)]
+>     -- quotedIden stmts curSt xs
+>     --    | trace ("qi: " ++ show (stmts, curSt, xs)) False = undefined
+>     quotedIden stmts curSt ('"':'"':xs) =
+>         quotedIden stmts (curSt ++ "\"\"") xs
+>     quotedIden stmts curSt ('"':xs) =
+>         statements stmts (curSt ++ "\"") xs
+>     quotedIden stmts curSt (x:xs) =
+>         quotedIden stmts (curSt ++ [x]) xs
+>     quotedIden stmts curSt [] = (stmts, curSt)
 
-> dialect :: SQLSyntaxDialect
-> dialect = PostgreSQLDialect --SQLServerDialect
+>     stringLit stmts curSt ('\'':'\'':xs) =
+>         stringLit stmts (curSt ++ "''") xs
+>     stringLit stmts curSt ('\'':xs) =
+>         statements stmts (curSt ++ "'") xs
+>     stringLit stmts curSt (x:xs) =
+>         stringLit stmts (curSt ++ [x]) xs
+>     stringLit stmts curSt [] = (stmts, curSt)
+
+>     blockComment stmts curSt ('*':'/':xs) =
+>         statements stmts (curSt ++ "*/") xs
+>     blockComment stmts curSt (x:xs) =
+>         blockComment stmts (curSt ++ [x]) xs
+>     blockComment stmts curSt [] = (stmts, curSt)
+
+>     lineComment stmts curSt ('\n':xs) =
+>         statements stmts (curSt ++ "\n") xs
+>     lineComment stmts curSt (x:xs) =
+>         lineComment stmts (curSt ++ [x]) xs
+>     lineComment stmts curSt [] = (stmts, curSt)
+
+
 
 > main :: IO ()
-> main = do
->         let readloop :: Maybe Partial -> IO ()
->             readloop mpr = do
->                 putStr $ maybe ("> ") (const ". ") mpr
->                 hFlush stdout
->                 line <- T.getLine
->                 loopText mpr (T.snoc line '\n')
->             loopText :: Maybe Partial -> T.Text -> IO ()
->             loopText mpr txt = do
->                 let y = case mpr of
->                           Nothing -> --trace ("parse '" ++ T.unpack txt ++ "'") $
->                                      parse (sqlStatement ("",1,0)) txt
->                           Just pr -> --trace ("feed '" ++ T.unpack txt ++ "'") $
->                                      feed (Partial pr) txt
->                 case y of
->                   Done leftover st -> do
->                          runStatement st
->                          -- keep processing the partial results
->                          -- in case there are multiple statements
->                          -- todo: checks the leftover to see if
->                          -- it is just whitespace, add to this
->                          -- checking to see if it is just comments
->                          -- and whitespace
->                          if not (T.all isSpace leftover)
->                             then loopText Nothing leftover
->                             else readloop Nothing
->                   Partial pr -> readloop (Just pr)
->                   Fail _leftover ctx err -> do
->                       putStrLn $ err ++ " " ++ show ctx
->                       readloop Nothing
->         readloop Nothing
-
-> runStatement :: [(Position,Token)] -> IO ()
-> runStatement s = do --trace "runstatement" $
->                  putStr "Statement: "
->                  LT.putStrLn $ LT.concat (map (prettyToken dialect . snd) s)
->                  putStrLn $ intercalate "\n" $ map show s
-
-> sqlStatement :: Position -> Parser [(Position,Token)]
-> sqlStatement p = sqlStatement' p []
-> sqlStatement' :: Position -> [(Position,Token)] -> Parser [(Position,Token)]
-> sqlStatement' p acc = do
->     -- keep lexing until get a ';' symbol
->     x <- sqlToken dialect p
->     let ts = x:acc
->     if snd x == Symbol ";"
->       then return $ reverse ts
->       else
->           -- dodgy: the work out the position
->           -- by pretty printing the previous token
->           -- and adding it to the current position
->           let pt = prettyToken dialect (snd x)
->               p' = addPosition p pt
->           in sqlStatement' p' ts
-
------------------------------------------------
-
-
-TODO:
-support copy from stdin for postgresql (later)
-replace the existing lexer in hssqlppp
-public api in hssqlppp
+> main = readAnotherStatement ""
