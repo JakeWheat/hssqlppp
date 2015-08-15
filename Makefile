@@ -154,8 +154,8 @@ make-website/dist/build/MakeWebsite/MakeWebsite :
 website : #make-website/dist/build/MakeWebsite/MakeWebsite \
   #build/website/main.css
 	mkdir -p build/website
-	asciidoctor website-source/index.asciidoc -o build/website/index.html
-	asciidoctor website-source/examples.asciidoc -o build/website/examples.html
+	asciidoctor website-source/index.asciidoc -o - | runhaskell website-source/AddLinks.lhs > build/website/index.html
+	asciidoctor website-source/examples.asciidoc -o - | runhaskell website-source/AddLinks.lhs > build/website/examples.html
 	#make-website/dist/build/MakeWebsite/MakeWebsite
 	#asciidoctor build/website/ParserTests.asciidoc -o build/website/ParserTests.html
 	#asciidoctor build/website/TypeCheckTests.asciidoc -o build/website/TypeCheckTests.html

@@ -8,11 +8,31 @@
 
 == Overview
 
-A parser, pretty printer, and type checker for SQL written in
-Haskell. Targets the PostgreSQL dialect of SQL and PL/pgSQL
-syntax only. BSD licensed.
+A parser and type checker for SQL written in Haskell. Targets the
+PostgreSQL dialect of SQL and PL/pgSQL syntax only. BSD licensed.
 
-This is the documentation for version 0.5.x.
+This is the documentation for version 0.5.x. Documentation for other
+versions is available here: http://jakewheat.github.io/hssqlppp/.
+
+If you just need a SQL parser, this is an updated project focused on
+parsing SQL only:
+http://jakewheat.github.io/simple-sql-parser/latest/.
+
+== Links
+
+* Haddock: link:haddock/index.html[]
+* Usage examples: link:examples.html[]
+* Parsing test cases: link:ParserTests.html[]
+* Type-checking test cases: link:TypeCheckTests.html[]
+* Quasiquotation test cases: link:QuasiQuoteTests.html[]
+* Homepage: http://jakewheat.github.io/hssqlppp/latest
+* Hackage: http://hackage.haskell.org/package/hssqlppp
+* Repository: https://github.com/JakeWheat/hssqlppp
+* Bug tracker: https://github.com/JakeWheat/hssqlppp/issues
+* Changes: https://github.com/JakeWheat/hssqlppp/blob/master/CHANGES
+* Other versions: http://jakewheat.github.io/hssqlppp/
+* Parent project: http://jakewheat.github.io/
+* Contact: +++jakewheatmail@gmail.com+++
 
 == Purpose
 
@@ -20,9 +40,9 @@ Possible uses of this library include:
 
 * type-checker can help with SQL development and catch bugs which
   aren't statically detected by Postgres
-* front end for a sql dbms
+* front end for a SQL DBMS
 * generating SQL code programmatically/ generating SQL from some other
-  source, e.g. for implementing non sql code on a sql dbms
+  source
 * transforming SQL code, possibly using quasiquoting, e.g. writing
   PL/pgSQL with less boilerplate, or optimisation rewrites
 * viewing the catalog produced by some SQL code
@@ -76,24 +96,40 @@ To install use
 cabal install hssqlppp
 ----
 
-== Documentation
+To work with the development version:
 
-link:haddock/index.html[Haddock docs]
+----
 
-link:examples.html[Usage examples]
+git clone https://github.com/JakeWheat/hssqlppp.git
 
-== Links
+cd hssqlppp
 
-Homepage: http://jakewheat.github.com/hssqlppp/
+make sandbox
 
-Hackage: http://hackage.haskell.org/package/hssqlppp
+make all
 
-Repository: https://github.com/JakeWheat/hssqlppp
+make test
 
-Changes: https://github.com/JakeWheat/hssqlppp/blob/master/CHANGES
+# this will set up a sandbox and build and test the
+# main packages, hssqlppp, hssqlppp-th and hssqlppp-pg
 
-Bug tracker: https://github.com/JakeWheat/hssqlppp/issues
+# or
 
-== Contact
+make sandbox-devel
 
-+++jakewheatmail@gmail.com+++
+make really-all
+
+# this builds a lot more and takes ages
+
+# or you can:
+
+cd hssqlppp
+
+# wd is now .../hssqlppp/hssqlppp/
+
+cabal install --only-dependencies --enable-tests
+cabal build
+cabal test
+build/dist/Tests/Tests --hide-successes
+
+----
