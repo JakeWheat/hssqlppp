@@ -62,8 +62,8 @@ module Database.HsSqlPpp.Internals.AstInternal(
    ,TriggerFire(..)
    ,QueryHint(..)
    ,StatementList
-   ,ScalarExprListStatementListPairList
-   ,ScalarExprListStatementListPair
+   ,ScalarExprListStatementListTripleList
+   ,ScalarExprListStatementListTriple
    ,ScalarExprList
    ,ParamDefList
    ,AttributeDefList
@@ -13416,7 +13416,7 @@ sem_ScalarExpr_Parens ann_ ex_ =
             local annotatedTree : _
             local originalTree : _
 -}
-type ScalarExprDirectionPair = (ScalarExpr,Direction,NullsOrder)
+type ScalarExprDirectionPair = ( ScalarExpr,(Direction),(NullsOrder))
 -- cata
 sem_ScalarExprDirectionPair :: ScalarExprDirectionPair ->
                                T_ScalarExprDirectionPair
@@ -14156,7 +14156,7 @@ sem_ScalarExprListList_Nil =
                    {-# LINE 14114 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
           in  ( _lhsOannotatedTree,_lhsOoriginalTree,_lhsOupType)))
--- ScalarExprListStatementListPair -----------------------------
+-- ScalarExprListStatementListTriple ---------------------------
 {-
    visit 0:
       inherited attributes:
@@ -14164,8 +14164,8 @@ sem_ScalarExprListList_Nil =
          flags                : TypeCheckingFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
-         annotatedTree        : ScalarExprListStatementListPair 
-         originalTree         : ScalarExprListStatementListPair 
+         annotatedTree        : ScalarExprListStatementListTriple 
+         originalTree         : ScalarExprListStatementListTriple 
    alternatives:
       alternative Tuple:
          child x1             : ScalarExprList 
@@ -14174,34 +14174,34 @@ sem_ScalarExprListList_Nil =
             local annotatedTree : _
             local originalTree : _
 -}
-type ScalarExprListStatementListPair = ( ScalarExprList,StatementList)
+type ScalarExprListStatementListTriple = ( ScalarExprList,StatementList)
 -- cata
-sem_ScalarExprListStatementListPair :: ScalarExprListStatementListPair ->
-                                       T_ScalarExprListStatementListPair
-sem_ScalarExprListStatementListPair ( x1,x2) =
-    (sem_ScalarExprListStatementListPair_Tuple (sem_ScalarExprList x1) (sem_StatementList x2))
+sem_ScalarExprListStatementListTriple :: ScalarExprListStatementListTriple ->
+                                         T_ScalarExprListStatementListTriple
+sem_ScalarExprListStatementListTriple ( x1,x2) =
+    (sem_ScalarExprListStatementListTriple_Tuple (sem_ScalarExprList x1) (sem_StatementList x2))
 -- semantic domain
-type T_ScalarExprListStatementListPair = Catalog ->
-                                         TypeCheckingFlags ->
-                                         (Maybe TypeExtra) ->
-                                         ( ScalarExprListStatementListPair,ScalarExprListStatementListPair)
-data Inh_ScalarExprListStatementListPair = Inh_ScalarExprListStatementListPair {cat_Inh_ScalarExprListStatementListPair :: Catalog,flags_Inh_ScalarExprListStatementListPair :: TypeCheckingFlags,imCast_Inh_ScalarExprListStatementListPair :: (Maybe TypeExtra)}
-data Syn_ScalarExprListStatementListPair = Syn_ScalarExprListStatementListPair {annotatedTree_Syn_ScalarExprListStatementListPair :: ScalarExprListStatementListPair,originalTree_Syn_ScalarExprListStatementListPair :: ScalarExprListStatementListPair}
-wrap_ScalarExprListStatementListPair :: T_ScalarExprListStatementListPair ->
-                                        Inh_ScalarExprListStatementListPair ->
-                                        Syn_ScalarExprListStatementListPair
-wrap_ScalarExprListStatementListPair sem (Inh_ScalarExprListStatementListPair _lhsIcat _lhsIflags _lhsIimCast) =
+type T_ScalarExprListStatementListTriple = Catalog ->
+                                           TypeCheckingFlags ->
+                                           (Maybe TypeExtra) ->
+                                           ( ScalarExprListStatementListTriple,ScalarExprListStatementListTriple)
+data Inh_ScalarExprListStatementListTriple = Inh_ScalarExprListStatementListTriple {cat_Inh_ScalarExprListStatementListTriple :: Catalog,flags_Inh_ScalarExprListStatementListTriple :: TypeCheckingFlags,imCast_Inh_ScalarExprListStatementListTriple :: (Maybe TypeExtra)}
+data Syn_ScalarExprListStatementListTriple = Syn_ScalarExprListStatementListTriple {annotatedTree_Syn_ScalarExprListStatementListTriple :: ScalarExprListStatementListTriple,originalTree_Syn_ScalarExprListStatementListTriple :: ScalarExprListStatementListTriple}
+wrap_ScalarExprListStatementListTriple :: T_ScalarExprListStatementListTriple ->
+                                          Inh_ScalarExprListStatementListTriple ->
+                                          Syn_ScalarExprListStatementListTriple
+wrap_ScalarExprListStatementListTriple sem (Inh_ScalarExprListStatementListTriple _lhsIcat _lhsIflags _lhsIimCast) =
     (let ( _lhsOannotatedTree,_lhsOoriginalTree) = sem _lhsIcat _lhsIflags _lhsIimCast
-     in  (Syn_ScalarExprListStatementListPair _lhsOannotatedTree _lhsOoriginalTree))
-sem_ScalarExprListStatementListPair_Tuple :: T_ScalarExprList ->
-                                             T_StatementList ->
-                                             T_ScalarExprListStatementListPair
-sem_ScalarExprListStatementListPair_Tuple x1_ x2_ =
+     in  (Syn_ScalarExprListStatementListTriple _lhsOannotatedTree _lhsOoriginalTree))
+sem_ScalarExprListStatementListTriple_Tuple :: T_ScalarExprList ->
+                                               T_StatementList ->
+                                               T_ScalarExprListStatementListTriple
+sem_ScalarExprListStatementListTriple_Tuple x1_ x2_ =
     (\ _lhsIcat
        _lhsIflags
        _lhsIimCast ->
-         (let _lhsOannotatedTree :: ScalarExprListStatementListPair
-              _lhsOoriginalTree :: ScalarExprListStatementListPair
+         (let _lhsOannotatedTree :: ScalarExprListStatementListTriple
+              _lhsOoriginalTree :: ScalarExprListStatementListTriple
               _x1Ocat :: Catalog
               _x1OdownEnv :: Environment
               _x1OexpectedCast :: Bool
@@ -14249,19 +14249,19 @@ sem_ScalarExprListStatementListPair_Tuple x1_ x2_ =
               -- copy rule (chain)
               _x1OdownEnv =
                   ({-# LINE 93 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
-                   error "missing rule: ScalarExprListStatementListPair.Tuple.x1.downEnv"
+                   error "missing rule: ScalarExprListStatementListTriple.Tuple.x1.downEnv"
                    {-# LINE 14211 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- copy rule (chain)
               _x1OexpectedCast =
                   ({-# LINE 96 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
-                   error "missing rule: ScalarExprListStatementListPair.Tuple.x1.expectedCast"
+                   error "missing rule: ScalarExprListStatementListTriple.Tuple.x1.expectedCast"
                    {-# LINE 14217 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- copy rule (chain)
               _x1OexpectedTypes =
                   ({-# LINE 95 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
-                   error "missing rule: ScalarExprListStatementListPair.Tuple.x1.expectedTypes"
+                   error "missing rule: ScalarExprListStatementListTriple.Tuple.x1.expectedTypes"
                    {-# LINE 14223 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
                    )
               -- copy rule (down)
@@ -14299,7 +14299,7 @@ sem_ScalarExprListStatementListPair_Tuple x1_ x2_ =
               ( _x2IannotatedTree,_x2IoriginalTree) =
                   x2_ _x2Ocat _x2Oflags _x2OimCast
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
--- ScalarExprListStatementListPairList -------------------------
+-- ScalarExprListStatementListTripleList -----------------------
 {-
    visit 0:
       inherited attributes:
@@ -14307,12 +14307,12 @@ sem_ScalarExprListStatementListPair_Tuple x1_ x2_ =
          flags                : TypeCheckingFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
-         annotatedTree        : ScalarExprListStatementListPairList 
-         originalTree         : ScalarExprListStatementListPairList 
+         annotatedTree        : ScalarExprListStatementListTripleList 
+         originalTree         : ScalarExprListStatementListTripleList 
    alternatives:
       alternative Cons:
-         child hd             : ScalarExprListStatementListPair 
-         child tl             : ScalarExprListStatementListPairList 
+         child hd             : ScalarExprListStatementListTriple 
+         child tl             : ScalarExprListStatementListTripleList 
          visit 0:
             local annotatedTree : _
             local originalTree : _
@@ -14321,44 +14321,44 @@ sem_ScalarExprListStatementListPair_Tuple x1_ x2_ =
             local annotatedTree : _
             local originalTree : _
 -}
-type ScalarExprListStatementListPairList = [ScalarExprListStatementListPair]
+type ScalarExprListStatementListTripleList = [ScalarExprListStatementListTriple]
 -- cata
-sem_ScalarExprListStatementListPairList :: ScalarExprListStatementListPairList ->
-                                           T_ScalarExprListStatementListPairList
-sem_ScalarExprListStatementListPairList list =
-    (Prelude.foldr sem_ScalarExprListStatementListPairList_Cons sem_ScalarExprListStatementListPairList_Nil (Prelude.map sem_ScalarExprListStatementListPair list))
+sem_ScalarExprListStatementListTripleList :: ScalarExprListStatementListTripleList ->
+                                             T_ScalarExprListStatementListTripleList
+sem_ScalarExprListStatementListTripleList list =
+    (Prelude.foldr sem_ScalarExprListStatementListTripleList_Cons sem_ScalarExprListStatementListTripleList_Nil (Prelude.map sem_ScalarExprListStatementListTriple list))
 -- semantic domain
-type T_ScalarExprListStatementListPairList = Catalog ->
-                                             TypeCheckingFlags ->
-                                             (Maybe TypeExtra) ->
-                                             ( ScalarExprListStatementListPairList,ScalarExprListStatementListPairList)
-data Inh_ScalarExprListStatementListPairList = Inh_ScalarExprListStatementListPairList {cat_Inh_ScalarExprListStatementListPairList :: Catalog,flags_Inh_ScalarExprListStatementListPairList :: TypeCheckingFlags,imCast_Inh_ScalarExprListStatementListPairList :: (Maybe TypeExtra)}
-data Syn_ScalarExprListStatementListPairList = Syn_ScalarExprListStatementListPairList {annotatedTree_Syn_ScalarExprListStatementListPairList :: ScalarExprListStatementListPairList,originalTree_Syn_ScalarExprListStatementListPairList :: ScalarExprListStatementListPairList}
-wrap_ScalarExprListStatementListPairList :: T_ScalarExprListStatementListPairList ->
-                                            Inh_ScalarExprListStatementListPairList ->
-                                            Syn_ScalarExprListStatementListPairList
-wrap_ScalarExprListStatementListPairList sem (Inh_ScalarExprListStatementListPairList _lhsIcat _lhsIflags _lhsIimCast) =
+type T_ScalarExprListStatementListTripleList = Catalog ->
+                                               TypeCheckingFlags ->
+                                               (Maybe TypeExtra) ->
+                                               ( ScalarExprListStatementListTripleList,ScalarExprListStatementListTripleList)
+data Inh_ScalarExprListStatementListTripleList = Inh_ScalarExprListStatementListTripleList {cat_Inh_ScalarExprListStatementListTripleList :: Catalog,flags_Inh_ScalarExprListStatementListTripleList :: TypeCheckingFlags,imCast_Inh_ScalarExprListStatementListTripleList :: (Maybe TypeExtra)}
+data Syn_ScalarExprListStatementListTripleList = Syn_ScalarExprListStatementListTripleList {annotatedTree_Syn_ScalarExprListStatementListTripleList :: ScalarExprListStatementListTripleList,originalTree_Syn_ScalarExprListStatementListTripleList :: ScalarExprListStatementListTripleList}
+wrap_ScalarExprListStatementListTripleList :: T_ScalarExprListStatementListTripleList ->
+                                              Inh_ScalarExprListStatementListTripleList ->
+                                              Syn_ScalarExprListStatementListTripleList
+wrap_ScalarExprListStatementListTripleList sem (Inh_ScalarExprListStatementListTripleList _lhsIcat _lhsIflags _lhsIimCast) =
     (let ( _lhsOannotatedTree,_lhsOoriginalTree) = sem _lhsIcat _lhsIflags _lhsIimCast
-     in  (Syn_ScalarExprListStatementListPairList _lhsOannotatedTree _lhsOoriginalTree))
-sem_ScalarExprListStatementListPairList_Cons :: T_ScalarExprListStatementListPair ->
-                                                T_ScalarExprListStatementListPairList ->
-                                                T_ScalarExprListStatementListPairList
-sem_ScalarExprListStatementListPairList_Cons hd_ tl_ =
+     in  (Syn_ScalarExprListStatementListTripleList _lhsOannotatedTree _lhsOoriginalTree))
+sem_ScalarExprListStatementListTripleList_Cons :: T_ScalarExprListStatementListTriple ->
+                                                  T_ScalarExprListStatementListTripleList ->
+                                                  T_ScalarExprListStatementListTripleList
+sem_ScalarExprListStatementListTripleList_Cons hd_ tl_ =
     (\ _lhsIcat
        _lhsIflags
        _lhsIimCast ->
-         (let _lhsOannotatedTree :: ScalarExprListStatementListPairList
-              _lhsOoriginalTree :: ScalarExprListStatementListPairList
+         (let _lhsOannotatedTree :: ScalarExprListStatementListTripleList
+              _lhsOoriginalTree :: ScalarExprListStatementListTripleList
               _hdOcat :: Catalog
               _hdOflags :: TypeCheckingFlags
               _hdOimCast :: (Maybe TypeExtra)
               _tlOcat :: Catalog
               _tlOflags :: TypeCheckingFlags
               _tlOimCast :: (Maybe TypeExtra)
-              _hdIannotatedTree :: ScalarExprListStatementListPair
-              _hdIoriginalTree :: ScalarExprListStatementListPair
-              _tlIannotatedTree :: ScalarExprListStatementListPairList
-              _tlIoriginalTree :: ScalarExprListStatementListPairList
+              _hdIannotatedTree :: ScalarExprListStatementListTriple
+              _hdIoriginalTree :: ScalarExprListStatementListTriple
+              _tlIannotatedTree :: ScalarExprListStatementListTripleList
+              _tlIoriginalTree :: ScalarExprListStatementListTripleList
               -- self rule
               _annotatedTree =
                   ({-# LINE 106 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
@@ -14424,13 +14424,13 @@ sem_ScalarExprListStatementListPairList_Cons hd_ tl_ =
               ( _tlIannotatedTree,_tlIoriginalTree) =
                   tl_ _tlOcat _tlOflags _tlOimCast
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
-sem_ScalarExprListStatementListPairList_Nil :: T_ScalarExprListStatementListPairList
-sem_ScalarExprListStatementListPairList_Nil =
+sem_ScalarExprListStatementListTripleList_Nil :: T_ScalarExprListStatementListTripleList
+sem_ScalarExprListStatementListTripleList_Nil =
     (\ _lhsIcat
        _lhsIflags
        _lhsIimCast ->
-         (let _lhsOannotatedTree :: ScalarExprListStatementListPairList
-              _lhsOoriginalTree :: ScalarExprListStatementListPairList
+         (let _lhsOannotatedTree :: ScalarExprListStatementListTripleList
+              _lhsOoriginalTree :: ScalarExprListStatementListTripleList
               -- self rule
               _annotatedTree =
                   ({-# LINE 106 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag" #-}
@@ -16683,14 +16683,14 @@ sem_SetClauseList_Nil =
       alternative CaseStatementSimple:
          child ann            : Annotation 
          child val            : ScalarExpr 
-         child cases          : ScalarExprListStatementListPairList 
+         child cases          : ScalarExprListStatementListTripleList 
          child els            : StatementList 
          visit 0:
             local annotatedTree : _
             local originalTree : _
       alternative CaseStatement:
          child ann            : Annotation 
-         child cases          : ScalarExprListStatementListPairList 
+         child cases          : ScalarExprListStatementListTripleList 
          child els            : StatementList 
          visit 0:
             local annotatedTree : _
@@ -16783,8 +16783,8 @@ data Statement = QueryStatement (Annotation) (QueryExpr)
                | WhileStatement (Annotation) ((Maybe String)) (ScalarExpr) (StatementList)
                | ContinueStatement (Annotation) ((Maybe String))
                | ExitStatement (Annotation) ((Maybe String))
-               | CaseStatementSimple (Annotation) (ScalarExpr) (ScalarExprListStatementListPairList) (StatementList)
-               | CaseStatement (Annotation) (ScalarExprListStatementListPairList) (StatementList)
+               | CaseStatementSimple (Annotation) (ScalarExpr) (ScalarExprListStatementListTripleList) (StatementList)
+               | CaseStatement (Annotation) (ScalarExprListStatementListTripleList) (StatementList)
                | If (Annotation) (ScalarExprStatementListPairList) (StatementList)
                | Block (Annotation) ((Maybe String)) (VarDefList) (StatementList)
                | AntiStatement (String)
@@ -16888,9 +16888,9 @@ sem_Statement (ContinueStatement _ann _lb) =
 sem_Statement (ExitStatement _ann _lb) =
     (sem_Statement_ExitStatement (sem_Annotation _ann) _lb)
 sem_Statement (CaseStatementSimple _ann _val _cases _els) =
-    (sem_Statement_CaseStatementSimple (sem_Annotation _ann) (sem_ScalarExpr _val) (sem_ScalarExprListStatementListPairList _cases) (sem_StatementList _els))
+    (sem_Statement_CaseStatementSimple (sem_Annotation _ann) (sem_ScalarExpr _val) (sem_ScalarExprListStatementListTripleList _cases) (sem_StatementList _els))
 sem_Statement (CaseStatement _ann _cases _els) =
-    (sem_Statement_CaseStatement (sem_Annotation _ann) (sem_ScalarExprListStatementListPairList _cases) (sem_StatementList _els))
+    (sem_Statement_CaseStatement (sem_Annotation _ann) (sem_ScalarExprListStatementListTripleList _cases) (sem_StatementList _els))
 sem_Statement (If _ann _cases _els) =
     (sem_Statement_If (sem_Annotation _ann) (sem_ScalarExprStatementListPairList _cases) (sem_StatementList _els))
 sem_Statement (Block _ann _lb _vars _sts) =
@@ -22244,7 +22244,7 @@ sem_Statement_ExitStatement ann_ lb_ =
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
 sem_Statement_CaseStatementSimple :: T_Annotation ->
                                      T_ScalarExpr ->
-                                     T_ScalarExprListStatementListPairList ->
+                                     T_ScalarExprListStatementListTripleList ->
                                      T_StatementList ->
                                      T_Statement
 sem_Statement_CaseStatementSimple ann_ val_ cases_ els_ =
@@ -22275,8 +22275,8 @@ sem_Statement_CaseStatementSimple ann_ val_ cases_ els_ =
               _valIcolExprs :: ([(NameComponent,Maybe TypeExtra,ScalarExpr)])
               _valIoriginalTree :: ScalarExpr
               _valIupType :: (Maybe TypeExtra)
-              _casesIannotatedTree :: ScalarExprListStatementListPairList
-              _casesIoriginalTree :: ScalarExprListStatementListPairList
+              _casesIannotatedTree :: ScalarExprListStatementListTripleList
+              _casesIoriginalTree :: ScalarExprListStatementListTripleList
               _elsIannotatedTree :: StatementList
               _elsIoriginalTree :: StatementList
               -- self rule
@@ -22409,7 +22409,7 @@ sem_Statement_CaseStatementSimple ann_ val_ cases_ els_ =
                   els_ _elsOcat _elsOflags _elsOimCast
           in  ( _lhsOannotatedTree,_lhsOoriginalTree)))
 sem_Statement_CaseStatement :: T_Annotation ->
-                               T_ScalarExprListStatementListPairList ->
+                               T_ScalarExprListStatementListTripleList ->
                                T_StatementList ->
                                T_Statement
 sem_Statement_CaseStatement ann_ cases_ els_ =
@@ -22430,8 +22430,8 @@ sem_Statement_CaseStatement ann_ cases_ els_ =
               _elsOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
-              _casesIannotatedTree :: ScalarExprListStatementListPairList
-              _casesIoriginalTree :: ScalarExprListStatementListPairList
+              _casesIannotatedTree :: ScalarExprListStatementListTripleList
+              _casesIoriginalTree :: ScalarExprListStatementListTripleList
               _elsIannotatedTree :: StatementList
               _elsIoriginalTree :: StatementList
               -- self rule

@@ -366,9 +366,9 @@ maybe it should still do this since it would probably be a lot clearer
 >             direction = option Asc (choice [
 >                                        Asc <$ keyword "asc"
 >                                       ,Desc <$ keyword "desc"])
->             nullsOrder = option NullsDefault (choice [
->                                         try $ NullsFirst <$ keyword "nulls" <* keyword "first"
->                                        ,NullsLast  <$ keyword "nulls" <* keyword "last"])
+>             nullsOrder = option NullsDefault (keyword "nulls" >> choice [
+>                                         NullsFirst <$ keyword "first"
+>                                        ,NullsLast  <$ keyword "last"])
 
 table refs
 

@@ -713,10 +713,10 @@ syntax maybe should error instead of silently breaking
 >
 
 > nullsOrder :: NullsOrder -> Doc
-> nullsOrder d = text $ case d of
->                           NullsDefault -> ""
->                           NullsFirst -> "nulls first"
->                           NullsLast -> "nulls last"
+> nullsOrder d = case d of
+>                     NullsDefault -> empty
+>                     NullsFirst -> text "nulls " <+> text "first"
+>                     NullsLast  -> text "nulls " <+> text "last"
 >
 > whr :: PrettyPrintFlags -> Maybe ScalarExpr -> Doc
 > whr flg (Just ex) = text "where" $+$ nest 2 (scalExpr flg ex)

@@ -92,8 +92,8 @@
 >     ,TypeNameList
 >     ,NameTypeNameListPair
 >     ,NameTypeNameListPairList
->     ,ScalarExprListStatementListPair
->     ,ScalarExprListStatementListPairList
+>     ,ScalarExprListStatementListTriple
+>     ,ScalarExprListStatementListTripleList
 >     ,ScalarExprStatementListPair
 >     ,ScalarExprStatementListPairList
 >     ,VarDefList

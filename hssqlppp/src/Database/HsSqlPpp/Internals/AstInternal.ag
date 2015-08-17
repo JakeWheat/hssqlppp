@@ -83,8 +83,8 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,TriggerFire(..)
    ,QueryHint(..)
    ,StatementList
-   ,ScalarExprListStatementListPairList
-   ,ScalarExprListStatementListPair
+   ,ScalarExprListStatementListTripleList
+   ,ScalarExprListStatementListTriple
    ,ScalarExprList
    ,ParamDefList
    ,AttributeDefList
@@ -814,10 +814,10 @@ data Statement
     --variable, list of when parts, else part
     | CaseStatementSimple ann::Annotation
                     val :: ScalarExpr
-                    cases :: ScalarExprListStatementListPairList
+                    cases :: ScalarExprListStatementListTripleList
                     els :: StatementList
     | CaseStatement ann::Annotation
-                    cases :: ScalarExprListStatementListPairList
+                    cases :: ScalarExprListStatementListTripleList
                     els :: StatementList
     --list is
     --first if (condition, statements)::elseifs(condition, statements)
@@ -1091,8 +1091,8 @@ type ParamDefList = [ParamDef]
 type TypeNameList = [TypeName]
 type NameTypeNameListPair = (Name, TypeNameList)
 type NameTypeNameListPairList = [NameTypeNameListPair]
-type ScalarExprListStatementListPair = (ScalarExprList,StatementList)
-type ScalarExprListStatementListPairList = [ScalarExprListStatementListPair]
+type ScalarExprListStatementListTriple = (ScalarExprList,StatementList)
+type ScalarExprListStatementListTripleList = [ScalarExprListStatementListTriple]
 type ScalarExprStatementListPair = (ScalarExpr, StatementList)
 type ScalarExprStatementListPairList = [ScalarExprStatementListPair]
 type VarDefList = [VarDef]
@@ -1136,8 +1136,8 @@ set AllNodes = Statement QueryExpr FnBody TableRef
                AttributeDefList ConstraintList TypeAttributeDefList
                ParamDefList TypeNameList NameTypeNameListPair
                NameTypeNameListPairList
-               StatementList ScalarExprListStatementListPair
-               ScalarExprListStatementListPairList ScalarExprStatementListPair
+               StatementList ScalarExprListStatementListTriple
+               ScalarExprListStatementListTripleList ScalarExprStatementListPair
                ScalarExprStatementListPairList VarDefList SelectItemList
                RowConstraintList CaseScalarExprListScalarExprPair
                CaseScalarExprListScalarExprPairList
