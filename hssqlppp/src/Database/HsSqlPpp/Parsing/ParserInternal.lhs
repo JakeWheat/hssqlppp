@@ -356,16 +356,19 @@ maybe it should still do this since it would probably be a lot clearer
 >             [QueryHintPartitionGroup <$ keyword "partition" <* keyword "group"
 >             ,QueryHintColumnarHostGroup <$ keyword "columnar" <* keyword "host" <* keyword "group"]
 
-> orderBy :: SParser [(ScalarExpr,Direction)]
+> orderBy :: SParser [(ScalarExpr,Direction, NullsOrder)]
 > orderBy = option []
 >             (keyword "order" *> keyword "by"
 >                              *> commaSep1 oneOrder)
->           where
->             oneOrder = (,) <$> expr
->                        <*> option Asc (choice [
->                                         Asc <$ keyword "asc"
->                                        ,Desc <$ keyword "desc"])
 
+>           where
+>             oneOrder = (,,) <$> expr <*> direction <*> nullsOrder
+>             direction = option Asc (choice [
+>                                        Asc <$ keyword "asc"
+>                                       ,Desc <$ keyword "desc"])
+>             nullsOrder = option NullsDefault (keyword "nulls" >> choice [
+>                                         NullsFirst <$ keyword "first"
+>                                        ,NullsLast  <$ keyword "last"])
 
 table refs
 

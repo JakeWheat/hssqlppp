@@ -30,29 +30,41 @@
 >                                  (st "INT")]
 >      ,selTref = [trefa "TBL" "T"]}
 >    ,s "select a from t order by a;"
->     $ tblat {selOrderBy = [(ei "a",Asc)]}
+>     $ tblat {selOrderBy = [(ei "a",Asc, NullsDefault)]}
 >    ,s "select a from t order by a asc;"
->     $ tblat {selOrderBy = [(ei "a",Asc)]}
+>     $ tblat {selOrderBy = [(ei "a",Asc, NullsDefault)]}
 >    ,s "select a from t order by a desc;"
->     $ tblat {selOrderBy = [(ei "a",Desc)]}
+>     $ tblat {selOrderBy = [(ei "a",Desc, NullsDefault)]}
 >    ,s "select a from t order by a,b;"
->     $ tblat {selOrderBy = [(ei "a",Asc)
->                           ,(ei "b",Asc)]}
+>     $ tblat {selOrderBy = [(ei "a",Asc, NullsDefault)
+>                           ,(ei "b",Asc, NullsDefault)]}
 >    ,s "select a from t order by a asc,b;"
->     $ tblat {selOrderBy = [(ei "a",Asc)
->                           ,(ei "b",Asc)]}
+>     $ tblat {selOrderBy = [(ei "a",Asc, NullsDefault)
+>                           ,(ei "b",Asc, NullsDefault)]}
 >    ,s "select a from t order by a desc,b;"
->     $ tblat {selOrderBy = [(ei "a",Desc)
->                           ,(ei "b",Asc)]}
+>     $ tblat {selOrderBy = [(ei "a",Desc, NullsDefault)
+>                           ,(ei "b",Asc, NullsDefault)]}
 >    ,s "select a from t order by a desc,b desc;"
->     $ tblat {selOrderBy = [(ei "a",Desc)
->                           ,(ei "b",Desc)]}
+>     $ tblat {selOrderBy = [(ei "a",Desc, NullsDefault)
+>                           ,(ei "b",Desc, NullsDefault)]}
+>    ,s "select a from t order by a nulls first;"
+>     $ tblat {selOrderBy = [(ei "a",Asc, NullsFirst)]}
+>    ,s "select a from t order by a nulls last;"
+>     $ tblat {selOrderBy = [(ei "a",Asc, NullsLast)]}
+>    ,s "select a from t order by a asc nulls first;"
+>     $ tblat {selOrderBy = [(ei "a",Asc, NullsFirst)]}
+>    ,s "select a from t order by a asc nulls last;"
+>     $ tblat {selOrderBy = [(ei "a",Asc, NullsLast)]}
+>    ,s "select a from t order by a desc nulls first;"
+>     $ tblat {selOrderBy = [(ei "a",Desc, NullsFirst)]}
+>    ,s "select a from t order by a desc nulls last;"
+>     $ tblat {selOrderBy = [(ei "a",Desc, NullsLast)]}
 >    ,s "select a from t limit 1;"
 >     $ tblat {selLimit = Just $ num "1"}
 >    ,s "select a from t offset 1;"
 >     $ tblat {selOffset = Just $ num "1"}
 >    ,s "select a from t order by a limit 1 offset 1;"
->     $ tblat {selOrderBy = [(ei "a",Asc)]
+>     $ tblat {selOrderBy = [(ei "a",Asc, NullsDefault)]
 >             ,selLimit = Just $ num "1"
 >             ,selOffset = Just $ num "1"}
 >    ,s "select (p).x, (p).y from pos;"

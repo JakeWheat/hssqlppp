@@ -32,7 +32,7 @@
 >           sl [sia (WindowApp ea
 >                     (app "row_number" [])
 >                     []
->                     [(ei "a", Asc)] Nothing)
+>                     [(ei "a", Asc, NullsDefault)] Nothing)
 >               $ Nmc "place"]}
 >    ,q "select row_number() over(order by a asc) as place from tbl;"
 >       $ stbl
@@ -40,7 +40,7 @@
 >           sl [sia (WindowApp ea
 >                     (app "row_number" [])
 >                     []
->                     [(ei "a", Asc)] Nothing)
+>                     [(ei "a", Asc, NullsDefault)] Nothing)
 >               $ Nmc "place"]}
 >    ,q "select row_number() over(order by a desc) as place from tbl;"
 >       $ stbl
@@ -48,7 +48,7 @@
 >           sl [sia (WindowApp ea
 >                     (app "row_number" [])
 >                     []
->                     [(ei "a", Desc)] Nothing)
+>                     [(ei "a", Desc, NullsDefault)] Nothing)
 >               $ Nmc "place"]}
 >    ,q "select row_number()\n\
 >         \over(partition by a,b order by c) as place\n\
@@ -57,7 +57,7 @@
 >         {selSelectList = sl [sia (WindowApp ea
 >                                   (app "row_number" [])
 >                                   [ei "a", ei "b"]
->                                   [(ei "c", Asc)]
+>                                   [(ei "c", Asc, NullsDefault)]
 >                                   Nothing)
 >                              (Nmc "place")]}
 >    ,q "select row_number() over(), x from tbl;"
@@ -79,7 +79,7 @@ aggregates, group by, having
 >       $ stbl {selSelectList =
 >               sl [si $ AggregateApp ea Distinct
 >                   (app "string_agg" [ei "relname",str ","])
->                   [(ei "relname1", Asc)]]}
+>                   [(ei "relname1", Asc, NullsDefault)]]}
 >    ,q "select a, count(b) from tbl group by a;"
 >       $ stbl {selSelectList =
 >               sl [si $ ei "a"

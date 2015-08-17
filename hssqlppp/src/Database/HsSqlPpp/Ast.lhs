@@ -22,6 +22,7 @@
 >     ,InList(..)
 >     ,LiftFlavour(..)
 >     ,Direction(..)
+>     ,NullsOrder(..)
 >     ,Distinct(..)
 >     ,CombineType(..)
 >     ,IntervalField(..)
@@ -91,8 +92,8 @@
 >     ,TypeNameList
 >     ,NameTypeNameListPair
 >     ,NameTypeNameListPairList
->     ,ScalarExprListStatementListPair
->     ,ScalarExprListStatementListPairList
+>     ,ScalarExprListStatementListTriple
+>     ,ScalarExprListStatementListTripleList
 >     ,ScalarExprStatementListPair
 >     ,ScalarExprStatementListPairList
 >     ,VarDefList
