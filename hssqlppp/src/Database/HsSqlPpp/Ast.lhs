@@ -22,6 +22,7 @@
 >     ,InList(..)
 >     ,LiftFlavour(..)
 >     ,Direction(..)
+>     ,NullsOrder(..)
 >     ,Distinct(..)
 >     ,CombineType(..)
 >     ,IntervalField(..)

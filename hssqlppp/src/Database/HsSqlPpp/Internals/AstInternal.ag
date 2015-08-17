@@ -63,6 +63,7 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,Cascade (..)
    ,Direction (..)
    ,Distinct (..)
+   ,NullsOrder(..)
    ,Natural (..)
    ,IfExists (..)
    ,Replace(..)
@@ -388,6 +389,9 @@ data LiftFlavour = LiftAny | LiftAll
                    deriving (Show,Eq,Typeable,Data)
 
 data Direction = Asc | Desc
+                 deriving (Show,Eq,Typeable,Data)
+
+data NullsOrder = NullsDefault | NullsFirst | NullsLast
                  deriving (Show,Eq,Typeable,Data)
 
 data Distinct = Distinct | All
@@ -1097,7 +1101,7 @@ type RowConstraintList = [RowConstraint]
 type CaseScalarExprListScalarExprPair = (ScalarExprList,ScalarExpr)
 type CaseScalarExprListScalarExprPairList = [CaseScalarExprListScalarExprPair]
 type StatementList = [Statement]
-type ScalarExprDirectionPair = (ScalarExpr,Direction)
+type ScalarExprDirectionPair = (ScalarExpr,Direction, NullsOrder)
 type ScalarExprDirectionPairList = [ScalarExprDirectionPair]
 type AlterTableActionList = [AlterTableAction]
 type MaybeNameComponentList = maybe NameComponentList

@@ -711,6 +711,13 @@ syntax maybe should error instead of silently breaking
 >                           Asc -> "asc"
 >                           Desc -> "desc"
 >
+
+> nullsOrder :: NullsOrder -> Doc
+> nullsOrder d = text $ case d of
+>                           NullsDefault -> ""
+>                           NullsFirst -> "nulls first"
+>                           NullsLast -> "nulls last"
+>
 > whr :: PrettyPrintFlags -> Maybe ScalarExpr -> Doc
 > whr flg (Just ex) = text "where" $+$ nest 2 (scalExpr flg ex)
 > whr _ Nothing = empty
@@ -1117,12 +1124,12 @@ syntax maybe should error instead of silently breaking
 > sepCsvMap :: (a -> Doc) -> [a] -> Doc
 > sepCsvMap ex = sepCsv . map ex
 
-> orderBy :: PrettyPrintFlags -> [(ScalarExpr,Direction)] -> Doc
+> orderBy :: PrettyPrintFlags -> [(ScalarExpr,Direction,NullsOrder)] -> Doc
 > orderBy _ [] = empty
 > orderBy flg os =
 >   text "order by"
->   $+$ nest 2 (sepCsvMap (\(oe,od) -> scalExpr flg oe
->                                      <+> direction od) os)
+>   $+$ nest 2 (sepCsvMap (\(oe,od,on) -> scalExpr flg oe
+>                                      <+> direction od <+> nullsOrder on) os)
 
 > --vcatCsvMap :: (a -> Doc) -> [a] -> Doc
 > --vcatCsvMap ex = vcat . csv . map ex
