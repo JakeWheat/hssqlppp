@@ -90,7 +90,7 @@ test some more really basic expressions
 >       (TypedStringLit ea (st "date") "1998-12-01")
 >      ,e "interval '63' day" (Interval ea "63" IntervalDay Nothing)
 >      ,e "interval '63' day (3)" (Interval ea "63" IntervalDay $ Just 3)
->      ,e "extract(year from a)" (Extract ea ExtractYear $ ei "a")
+>      ,e "EXTRACT(year from a)" (Extract ea ExtractYear $ ei "a")
 >      ,e "a between 1 and 3"
 >         (specop "between" [ei "a", num "1", num "3"])
 >      ,e "a between 7 - 1 and 7 + 1"

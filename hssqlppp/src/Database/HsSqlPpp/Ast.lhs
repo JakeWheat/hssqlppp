@@ -28,7 +28,8 @@
 >     ,IntervalField(..)
 >     ,ExtractField(..)
 >     ,FrameClause(..)
->      -- * Query expressions
+>     ,OdbcLiteralType(..)
+>     -- * Query expressions
 >     ,QueryExpr(..)
 >     ,makeSelect
 >     ,WithQuery(..)

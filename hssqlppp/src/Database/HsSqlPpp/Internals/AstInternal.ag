@@ -76,6 +76,7 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,IntervalField(..)
    ,ExtractField(..)
    ,FrameClause(..)
+   ,OdbcLiteralType(..)
    ,InList (..)
    ,LiftFlavour(..)
    ,TriggerWhen(..)
@@ -350,6 +351,20 @@ data ScalarExpr | NumberLit ann::Annotation d::String
                 | AntiScalarExpr String
                 | Parens ann::Annotation
                          ex :: ScalarExpr
+                  -- an odbc date/time literal
+                  -- e.g. {d '2005-01-01}
+                  -- see the odbc tests
+                | OdbcLiteral ann :: Annotation
+                              olt :: OdbcLiteralType
+                              val :: String
+                  -- parses an odbc function call
+                  -- it wraps a scalarexpr because we can write
+                  -- {fn extract(day from x)}
+                  -- as well as regular functions
+                  -- maybe this should be a special case since there is
+                  -- only one?
+                | OdbcFunc ann :: Annotation
+                           ex :: ScalarExpr
 
 {-
 
@@ -446,6 +461,12 @@ data FrameClause = FrameUnboundedPreceding
                  | FrameUnboundedFull
                  | FrameRowsUnboundedPreceding
                    deriving (Show,Eq,Typeable,Data)
+
+
+data OdbcLiteralType = OLDate
+                     | OLTime
+                     | OLTimestamp
+                       deriving (Show,Eq,Typeable,Data)
 }
 {-
 -----------------------------------------------------------
@@ -522,6 +543,9 @@ data TableRef | Tref ann::Annotation
                           cols::{[NameComponent]}
                           tref::TableRef
               | TableRefParens ann::Annotation tref::TableRef
+                -- represents e.g. {oj t1 left join t2}
+                -- see the odbc tests for more info
+              | OdbcTableRef ann::Annotation tref::TableRef
 
 data JoinExpr | JoinOn ann::Annotation expr::ScalarExpr
               | JoinUsing ann::Annotation x::{[NameComponent]}

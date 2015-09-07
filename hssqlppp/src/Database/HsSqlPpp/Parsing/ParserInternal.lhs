@@ -389,6 +389,8 @@ makes it easy
 >                     -- should combine the funtref and tref parsing
 >                    ,try $ FunTref <$> pos
 >                                   <*> (identifier >>= functionCallSuffix)
+>                    ,OdbcTableRef <$> (pos <* symbol "{" <* keyword "oj")
+>                                  <*> (tableRef <* symbol "}")
 >                    ,Tref <$> pos <*> name]
 >               optionalAlias t
 >     optionalAlias t = do
@@ -1436,6 +1438,7 @@ with a function, so you don't try an parse a keyword as a function name
 >       ,castKeyword
 >       ,try substring -- use try cos there is also a regular function called substring
 >       ,extract
+>       ,odbcExpr
 
 >       ,try interval
 >       ,try typedStringLit
@@ -1530,7 +1533,7 @@ sql dbmss.
 >          else [binaryk "and" "and" AssocLeft]
 
 >         ,[binaryk "or" "or" AssocLeft]
->         ] 
+>         ]
 >     where
 >       binary s = binarycust (symbol s) s
 >       -- '*' is lexed as an id token rather than a symbol token, so
@@ -1903,6 +1906,26 @@ a special case for them
 >             symbol ")"
 >             return $ SpecialOp p (nm p "substring") [a,b,c]
 >
+
+odbc
+
+date, time, and timestamp literals, and scalar function calls
+
+> odbcExpr :: SParser ScalarExpr
+> odbcExpr = between (symbol "{") (symbol "}")
+>            (odbcTimeLit <|> odbcFunc)
+>   where
+>     odbcTimeLit =
+>         OdbcLiteral <$> pos
+>                     <*> choice [OLDate <$ keyword "d"
+>                                ,OLTime <$ keyword "t"
+>                                ,OLTimestamp <$ keyword "ts"]
+>                     <*> stringN
+>     odbcFunc = OdbcFunc
+>                <$> pos
+>                <*> (keyword "fn" *> expr) -- TODO: should limit this to function call or extract
+
+
 
 ------------------------------------------------------------
 
