@@ -8,7 +8,7 @@ sem Statement
 
   | QueryStatement
     ex.expectedType = liftM (map snd) @ex.upType
-    ex.expectedCast = True
+    --ex.expectedCast = True
   | Insert
     -- the expected type for the insert data is the target columns' type
     -- TODO: make sure that the number of target columns match the number of columns in insData
@@ -20,14 +20,14 @@ sem Statement
                                 tcs -> do
                                        tcs' <- mapM nmcString tcs
                                        mapM (`lookup` pub) tcs'
-    insData.expectedCast = True
+    --insData.expectedCast = True
     insData.outerDownEnv = Nothing
   | CreateTableAs CreateView
     expr.expectedType = liftM (map snd) @expr.upType
-    expr.expectedCast = True
+    --expr.expectedCast = True
   | ReturnQuery ForQueryStatement
     sel.expectedType = liftM (map snd) @sel.upType
-    sel.expectedCast = True
+    --sel.expectedCast = True
 
   | Assignment
     target.tpe = Left []

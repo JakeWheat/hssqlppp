@@ -24,15 +24,54 @@ code. Since odbc is old, this is considered a fixed list and is just
 implemented as a separate list of function prototypes to check against
 when you are directly inside a {fn ... } node.
 
+Here is the 'catalog' for odbc scalar functions:
+
+https://msdn.microsoft.com/en-us/library/ms711813(v=vs.85).aspx
+
+
+
 > {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Tests.TypeChecking.OdbcTypechecking (odbcTypechecking) where
 >
-> import Database.HsSqlPpp.Ast
+> --import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Types
+> import Database.HsSqlPpp.Catalog
 
-> import Database.HsSqlPpp.Tests.Parsing.Utils
+> --import Database.HsSqlPpp.Tests.Parsing.Utils
 > import Database.HsSqlPpp.Tests.TestTypes
+> import Database.HsSqlPpp.Tests.TypeChecking.Utils
 
 > odbcTypechecking:: Item
 > odbcTypechecking =
 >    Group "odbcTypechecking" [
->    ]
+>        -- literals
+>        ScalExpr "{d '2000-01-01'}" $ Right typeDate
+>       ,ScalExpr "{t '12:00:01.1'}" $ Right $ ScalarType "time"
+>       ,ScalExpr "{ts '2000-01-01 12:00:01.1'}" $ Right typeTimestamp
+>       -- scalar functions
+>       ,ScalExpr "{fn ascii('test')}" $ Right typeInt
+>       ,ScalExpr "{fn extract(hour from date 'dt')}" $ Right typeFloat8
+>       ,ScalExpr "(extract(hour from date 'dt'))" $ Right typeFloat8
+>        -- args are opposite way round
+>       ,ScalExpr "{fn left('test',3)}" $ Right $ ScalarType "text"
+>       ,ScalExpr "left(3,'test')" $ Right $ ScalarType "text"
+
+>       ,ScalExpr "{fn left(3,'test')}" $ Left [NoMatchingOperator "!odbc-left" [ScalarType "int4",UnknownType]]
+>       ,ScalExpr "left('test',3)" $ Left [NoMatchingOperator "left" [UnknownType,ScalarType "int4"]]
+
+>       ,ScalExpr "{fn left(left(3,'test'),3)}" $ Right $ ScalarType "text"
+>       ,ScalExpr "left(3,{fn left('test',3)})" $ Right $ ScalarType "text"
+
+>       -- outer join
+>       ,TCQueryExpr [CatCreateTable "t0" [("a", mkCatNameExtra "int4")
+>                                         ,("b", mkCatNameExtra "text")]
+>                    ,CatCreateTable "t1" [("c", mkCatNameExtra "int4")
+>                                         ,("d", mkCatNameExtra "text")]]
+>        "select * from {oj t0 left outer join t1 on t0.a=t1.c}"
+>        $ Right $ CompositeType [("a", mkTypeExtra typeInt)
+>                                ,("b", mkTypeExtra $ ScalarType "text")
+>                                ,("c", mkTypeExtra typeInt)
+>                                ,("d", mkTypeExtra $ ScalarType "text")]
+
+>   ]
+

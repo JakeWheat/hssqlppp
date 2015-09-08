@@ -1800,10 +1800,10 @@ a special case for them
 > keywordFunction = try $ do
 >   p <- pos
 >   i <- nameComponentAllows kfs
->   unless (iskfs i) $ fail "not any or all"
+>   guard (iskfs i)
 >   functionCallSuffix (Identifier p (Name p [i]))
 >   where
->     kfs = ["any","all","isnull"]
+>     kfs = ["any","all","isnull","left"]
 >     iskfs (Nmc n) | map toLower n `elem` kfs = True
 >     iskfs _ = False
 

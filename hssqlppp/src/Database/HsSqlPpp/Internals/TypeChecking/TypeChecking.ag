@@ -74,6 +74,7 @@ typeCheckScalarExpr f cat ex =
         rt = (annotatedTree_Syn_ScalarExprRoot
               (wrap_ScalarExprRoot t Inh_ScalarExprRoot {cat_Inh_ScalarExprRoot = cat
                                                         ,flags_Inh_ScalarExprRoot = f
+                                                        ,downEnv_Inh_ScalarExprRoot = emptyEnvironment
                                                         {-,lib_Inh_ScalarExprRoot = emptyBindings
                                                         ,idenv_Inh_ScalarExprRoot = emptyIDEnv "t
 cse"-}}))

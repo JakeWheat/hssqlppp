@@ -60,6 +60,7 @@ Library
                      Database.HsSqlPpp.Internals.Catalog.CatalogInternal
                      Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
                      Database.HsSqlPpp.Internals.Catalog.DefaultTSQLCatalog
+                     Database.HsSqlPpp.Internals.Catalog.OdbcCatalog
                      Database.HsSqlPpp.Internals.TypesInternal
                      Database.HsSqlPpp.Internals.TypeChecking.Environment
                      Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
@@ -135,6 +136,7 @@ Test-Suite Tests
                      Database.HsSqlPpp.Tests.TypeChecking.ImplicitCasts
                      Database.HsSqlPpp.Tests.TypeChecking.TypeCheckTests
                      Database.HsSqlPpp.Tests.TypeChecking.Issues
+                     Database.HsSqlPpp.Tests.TypeChecking.OdbcTypechecking
                      Database.HsSqlPpp.Tests.Parsing.SqlServer
                      Database.HsSqlPpp.Tests.Parsing.CreateTable
                      Database.HsSqlPpp.Tests.Parsing.Dml
@@ -151,6 +153,7 @@ Test-Suite Tests
                      Database.HsSqlPpp.Tests.Parsing.MiscDdl
                      Database.HsSqlPpp.Tests.Parsing.ParserTests
                      Database.HsSqlPpp.Tests.Parsing.LexerTests
+                     Database.HsSqlPpp.Tests.Parsing.OdbcParsing
                      Database.HsSqlPpp.Tests.TpchData
                      Database.HsSqlPpp.Tests.TestTypes
                      Database.HsSqlPpp.Utils.Here

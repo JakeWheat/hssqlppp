@@ -13,13 +13,30 @@ http://msdn.microsoft.com/en-us/library/ms190309.aspx
 linked from here:
 http://blogs.msdn.com/b/craigfr/archive/2010/01/20/more-on-implicit-conversions.aspx
 
+
+TODO: rewrite
+Wrappers to zap:
+
+tcAppLike
+matchApp
+matchAppExtra
+resolveResultSetType
+resolveResultSetTypeExtra
+findcallmatch
+resolveresultsettype
+checkassignments
+
+We should have one function for each of the resolvers (3 just like
+postgres) all the nullability, precision, dialect and special hacks
+should all be in one place.
+
 > {-# LANGUAGE OverloadedStrings, TupleSections, MultiWayIf,FlexibleInstances #-}
 > module Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
 >     (matchApp
 >     ,matchAppExtra
 >     ,resolveResultSetType
 >     ,resolveResultSetTypeExtra
->     ,MatchAppLiteralList(..)
+>     ,MatchAppLiteralList -- (..)
 >     ) where
 >
 > import Data.Maybe
@@ -276,7 +293,11 @@ Additionaly:
   After splitting onto partitions, check each precision partition:
     - all arguments must have same precision class (return an error if they don't).
 
+What the is this function doing? What is it for?
+
 > joinArgsExtra:: String -> [TypeExtra] -> [TypeExtra] -> Either [TypeError] [TypeExtra]
+> joinArgsExtra "!odbc-left" _t0 t1 = Right t1
+
 > joinArgsExtra appName tes0 tes1
 >     = liftM (uncurry $ zipWith3 combine tes) $ uncurry (liftM2 (,))
 >       $ (joinDim joinPrec partitionPrec &&& joinDim joinNull partitionNull) tes
