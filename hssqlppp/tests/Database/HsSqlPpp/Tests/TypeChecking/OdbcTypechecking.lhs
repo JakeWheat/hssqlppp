@@ -52,6 +52,11 @@ https://msdn.microsoft.com/en-us/library/ms711813(v=vs.85).aspx
 >       ,ScalExpr "{fn ascii('test')}" $ Right typeInt
 >       ,ScalExpr "{fn extract(hour from date 'dt')}" $ Right typeFloat8
 >       ,ScalExpr "(extract(hour from date 'dt'))" $ Right typeFloat8
+>       -- position not supported in the parser
+>       --,ScalExpr "{fn POSITION('aaa' IN 'bbb')}" $ Right typeVarChar
+>       ,ScalExpr "{fn CONVERT(3, SQL_BIGINT)}" $ Right typeBigInt
+>       ,ScalExpr "{fn CONVERT(3, SQL_FLOAT)}" $ Right typeFloat8
+
 >        -- args are opposite way round
 >       ,ScalExpr "{fn left('test',3)}" $ Right $ ScalarType "text"
 >       ,ScalExpr "left(3,'test')" $ Right $ ScalarType "text"

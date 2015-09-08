@@ -28,7 +28,8 @@ For now, expectedCast is Bool, with the meaning of whether the nullability compo
 imports
 {
 import Text.Read
---import Debug.Trace
+import Debug.Trace
+import Database.HsSqlPpp.Internals.Catalog.OdbcCatalog
 }
 
 
@@ -351,12 +352,36 @@ is treated as:
                                     in (\(Name a nms) -> Name a (f nms)) @funName.originalTree
                                else @funName.originalTree
                        in {-trace (show y)-} y
+{-
+
+special case for odbc convert. this is here since we need to look at
+the value of the second arg which is a keyword to determine the result
+type. The proper solution should be:
+
+1. same sort of thing as for datepart, etc.: type check the identifier
+better using a proper special case
+
+2. pass the value of the literal keyword (which is basically an enum)
+to tcAppLike so that this function or one of the 20 wrappers and
+helpers inside it can determine the correct return type
+
+-}
          loc.ttpe =
            case @originalTree of
              (App _ (Name _ [Nmc "count"]) [Star _]) ->
                  tcAppLike (tcfDialect @lhs.flags)
                            @lhs.cat @loc.funName @args.originalTree
                            [Just $ mkTypeExtraNN UnknownType]
+             --(App _ (Name _ [Nmc n]) [_,Identifier _ (Name _ [Nmc tyi])])
+             --    | trace (show n) False -> undefined
+             (App _ (Name _ [Nmc n]) [_,Identifier _ (Name _ [Nmc tyi])])
+                 | @lhs.odbcFunction && map toLower n == "convert" -> do
+                 (ts,r) <- tcAppLike (tcfDialect @lhs.flags)
+                           @lhs.cat @loc.funName @args.originalTree
+                           [Just $ mkTypeExtraNN UnknownType, Just $ mkTypeExtraNN typeInt]
+                 r' <- maybe (Left [UnrecognisedIdentifier $ T.pack tyi]) (Right . mkTypeExtra)
+                          $ lookup (map toLower tyi) odbcConvertTypes
+                 Right (ts, r')
              _ -> tcAppLike (tcfDialect @lhs.flags)
                             @lhs.cat @loc.funName @args.originalTree @args.upTypes
     | BinaryOp
@@ -428,6 +453,16 @@ tcAppLike d cat anm@(Name _ [Nmc dd]) types [_,a0,a1]
       lits = getMaybeIntsFromLiterals types
   (ats,rt) <- matchAppExtra d cat ns lits (mkTypeExtraNN typeInt : tys)
   return (ats,rt)
+
+--tcAppLike d cat anm@(Name _ [Nmc dd]) a b
+--    |  trace ("xz: " ++ show (a,b)) False = undefined
+
+tcAppLike d cat anm@(Name _ [Nmc dd]) _ ts
+    | map toLower dd == "!odbc-convert" = do
+                 (tys :: [TypeExtra]) <- mapM (maybe (Left []) Right) ts
+                 let Name _ ns = anm
+                 (ats,rt) <- matchAppExtra d cat ns [] tys
+                 return (ats,rt)
 
 tcAppLike d cat anm types teArgs = do
   -- get the types of the arguments

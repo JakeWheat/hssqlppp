@@ -7,9 +7,10 @@ TODO: this needs finishing
 
 > {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Internals.Catalog.OdbcCatalog
->      (odbcCatalog) where
+>      (odbcCatalog,odbcConvertTypes) where
 >
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+> import Database.HsSqlPpp.Internals.TypesInternal
 > --import Database.HsSqlPpp.Internals.TypesInternal
 > -- | The catalog from a default template1 database in roughly the
 > -- latest postgres. 'select version()' from the dbms this catalog
@@ -290,5 +291,57 @@ SQL_INTERVAL_DAY_TO_MINUTE
 SQL_INTERVAL_DAY_TO_SECOND
 
 
-
 >    ]
+
+>    ++ [CatCreateFunction "!odbc-convert" [t,"int4"] False t
+>       | t <- ["int2","int4","int8", "float4", "float8", "numeric"
+>              ,"date","time","timestamp","char","varchar","text"
+>              ,"bool","any"]
+>       ]
+
+TODO : all the weird ones are commented out. I couldn't find a clear
+reference on what the correspondence between the convert enum
+identifiers and sql types are. The interval ones are the most likely
+to be needed out of the commented out ones. Maybe they return smallint
+or int or something.
+
+> odbcConvertTypes :: [(String,Type)]
+> odbcConvertTypes = [("sql_bigint", typeBigInt)
+>                    ,("sql_float", typeFloat8)
+>                    --,("sql_interval_hour_to_minute", typeFloat8)
+>                    --,("sql_binary", $ ScalarType "unknown")
+>                    --,("sql_interval_hour_to_second", typeFloat8)
+>                    --,("sql_bit", $ ScalarType "unknown")
+>                    --,("sql_interval_minute_to_second", typeFloat8)
+>                    ,("sql_char", typeChar)
+>                    --,("sql_longvarbinary", $ ScalarType "unknown")
+>                    ,("sql_decimal", typeNumeric)
+>                    --,("sql_longvarchar", typeVarChar)
+>                    ,("sql_double", typeFloat8)
+>                    ,("sql_numeric", typeNumeric)
+>                    ,("sql_float", typeFloat8)
+>                    ,("sql_real", typeFloat4)
+>                    --,("sql_guid", $ ScalarType "unknown")
+>                    ,("sql_smallint", typeSmallInt)
+>                    ,("sql_integer", typeInt)
+>                    ,("sql_date", typeDate)
+>                    --,("sql_interval_month", typeFloat8)
+>                    ,("sql_time", ScalarType "time")
+>                    --,("sql_interval_year", typeFloat8)
+>                    ,("sql_timestamp", typeTimestamp)
+>                    --,("sql_interval_year_to_month", typeFloat8)
+>                    --,("sql_tinyint", $ ScalarType "unknown")
+>                    --,("sql_interval_day", typeFloat8)
+>                    --,("sql_varbinary", $ ScalarType "unknown")
+>                    --,("sql_interval_hour", typeFloat8)
+>                    ,("sql_varchar", typeVarChar)
+>                    --,("sql_interval_minute", typeFloat8)
+>                    --,("sql_wchar", $ ScalarType "unknown")
+>                    --,("sql_interval_second", typeFloat8)
+>                    --,("sql_wlongvarchar", typeVarChar)
+>                    --,("sql_interval_day_to_hour", typeFloat8)
+>                    --,("sql_wvarchar", $ ScalarType "unknown")
+>                    --,("sql_interval_day_to_minute", typeFloat8)
+>                    --,("sql_interval_day_to_second", typeFloat8)
+>                    ]
+>

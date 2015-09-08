@@ -246,6 +246,7 @@ store the list of different pseudo enum collections and the possible
 values for each somewhere (in the catalog?) and link functions like
 datepart to the correct lists
 
+Also does the odbc convert types
 
 -}
 
@@ -257,22 +258,25 @@ fixMssqlDates = transformBi $ \x -> case x of
       App aa nm [Identifier (nai ai) tn,a,b]
   App aa nm@(Name _ [Nmc fn]) [Identifier ai tn@(Name _ [Nmc tnn]),a]
     | map toLower fn == "datepart"
-    , map toLower tnn `elem` ["day","dd","d","month","mm","m","year","yyyy",
-                  "yy","quarter","qq","q","dayofyear","doy","dy","y",
-                  "weekday","dw","week","ww","wk","hour","hh",
-                  "minute","mi","n","second","ss","s","millisecond","ms",
-                              "microsecond","mcs","nanosecond","ns"] ->
+    , map toLower tnn `elem` dateparts ->
       App aa nm [Identifier (nai ai) tn,a]
   App aa nm@(Name _ [Nmc fn]) [Identifier ai tn@(Name _ [Nmc tnn]),a,b]
     | map toLower fn == "dateadd"
-    , map toLower tnn `elem` ["day","dd","d","month","mm","m","year","yyyy",
-                  "yy","quarter","qq","q","dayofyear","doy","dy","y",
-                  "weekday","dw","week","ww","wk","hour","hh",
-                  "minute","mi","n","second","ss","s","millisecond","ms",
-                              "microsecond","mcs","nanosecond","ns"] ->
+    , map toLower tnn `elem` dateparts ->
       App aa nm [Identifier (nai ai) tn,a,b]
+  App aa nm@(Name _ [Nmc fn]) [a,Identifier ai tn@(Name _ [Nmc tnn])]
+    | map toLower fn == "convert"
+    , map toLower tnn `elem` map fst odbcConvertTypes ->
+      App aa nm [a,Identifier (nai ai) tn]
   x' -> x'
   where
+      dateparts :: [String]
+      dateparts = ["day","dd","d","month","mm","m","year","yyyy"
+                  ,"yy","quarter","qq","q","dayofyear","doy","dy","y"
+                  ,"weekday","dw","week","ww","wk","hour","hh"
+                  ,"minute","mi","n","second","ss","s","millisecond","ms"
+                  ,"microsecond","mcs","nanosecond","ns"]
+
       nai ai = ai {anType = Just $ mkTypeExtraNN typeInt
                   ,anErrs = []}
 
