@@ -82,8 +82,22 @@ of the result type also.
 
 todo: fix nulls and precision
 
->     fixNP (_,ts,r,_) = (map lt ts, lt r)
->     lt ty = TypeExtra ty Nothing Nothing False
+precision and scale:
+
+default is to match the precision and scale of any matching input args
+or to choose the default for that type
+
+for nulls: default is to assume function produces nullable if any
+input args are nullable, and doesn't produce nullable otherwise
+
+>     fixNP :: MyFunType -> ([TypeExtra],TypeExtra)
+>     fixNP (_,ts,r,_) =
+>         let anyInputsNull = isJust $ find (teNullable . fst) argTypes
+>             -- copy nullability of input types
+>             carryNulls = zipWith (\(a,_) b -> lt b $ teNullable a)
+>                          argTypes ts
+>         in (carryNulls, lt r anyInputsNull)
+>     lt ty n = TypeExtra ty Nothing Nothing n
 
 
 find matching app is the code which matches a function prototype to a
@@ -322,7 +336,7 @@ otherwise fail
 
 
 >   where
->     -- don't use left
+>     -- don't use last
 >     -- check for empty list
 >     appName' = case last appName of
 >                Nmc n -> T.pack $ map toLower n

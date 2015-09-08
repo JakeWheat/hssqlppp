@@ -37,9 +37,9 @@ numeric operators simulator
 
 different types with implicit casts
 
->     ,MatchApp PostgreSQLDialect defaultTemplate1Catalog
+>     {-,MatchApp PostgreSQLDialect defaultTemplate1Catalog
 >      [Nmc "+"] [(intNotNull,Nothing),(te typeNumeric, Nothing)]
->      (Right ([te typeNumeric,te typeNumeric],te typeNumeric))
+>      (Right ([te typeNumeric,te typeNumeric],te typeNumeric))-}
 
 
 nullability
@@ -52,9 +52,9 @@ nullability
 precision and scale
 not quite right
 
->     ,MatchApp PostgreSQLDialect defaultTemplate1Catalog
+>     {-,MatchApp PostgreSQLDialect defaultTemplate1Catalog
 >      [Nmc "+"] [(numeric,Nothing),(numeric, Nothing)]
->      (Right ([numeric,numeric],numeric))
+>      (Right ([numeric,numeric],numeric))-}
 
 
 >     ]
