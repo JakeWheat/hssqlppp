@@ -24,12 +24,16 @@ ASCII(string_exp) (ODBC 1.0)
 Returns the ASCII code value of the leftmost character of string_exp as an integer.
 
 >         CatCreateFunction "!odbc-ascii" ["text"] False "int4"
+>        ,CatCreateFunction "!odbc-ascii" ["char"] False "int4"
+>        ,CatCreateFunction "!odbc-ascii" ["varchar"] False "int4"
 
 BIT_LENGTH(string_exp) (ODBC 3.0)
 Returns the length in bits of the string expression.
 Does not work only for string data types, therefore will not implicitly convert string_exp to string but instead will return the (internal) size of whatever datatype it is given.
 
 >        ,CatCreateFunction "!odbc-bit_length" ["text"] False "int4"
+>        ,CatCreateFunction "!odbc-bit_length" ["char"] False "int4"
+>        ,CatCreateFunction "!odbc-bit_length" ["varchar"] False "int4"
 
 CHAR(code) (ODBC 1.0)
 Returns the character that has the ASCII code value specified by code. The value of code should be between 0 and 255; otherwise, the return value is data source–dependent.
@@ -40,11 +44,15 @@ CHAR_LENGTH(string_exp) (ODBC 3.0)
 Returns the length in characters of the string expression, if the string expression is of a character data type; otherwise, returns the length in bytes of the string expression (the smallest integer not less than the number of bits divided by 8). (This function is the same as the CHARACTER_LENGTH function.)
 
 >        ,CatCreateFunction "!odbc-char_length" ["text"] False "int4"
+>        ,CatCreateFunction "!odbc-char_length" ["char"] False "int4"
+>        ,CatCreateFunction "!odbc-char_length" ["varchar"] False "int4"
 
 CHARACTER_LENGTH(string_exp) (ODBC 3.0)
 Returns the length in characters of the string expression, if the string expression is of a character data type; otherwise, returns the length in bytes of the string expression (the smallest integer not less tha the number of bits divided by 8). (This function is the same as the CHAR_LENGTH function.)
 
 >        ,CatCreateFunction "!odbc-character_length" ["text"] False "int4"
+>        ,CatCreateFunction "!odbc-character_length" ["char"] False "int4"
+>        ,CatCreateFunction "!odbc-character_length" ["varchar"] False "int4"
 
 CONCAT(string_exp1,string_exp2) (ODBC 1.0)
 Returns a character string that is the result of concatenating string_exp2 to string_exp1. The resulting string is DBMS-dependent. For example, if the column represented by string_exp1 contained a NULL value, DB2 would return NULL but SQL Server would return the non-NULL string.
@@ -52,6 +60,8 @@ Returns a character string that is the result of concatenating string_exp2 to st
 concat not in pg
 
 >       ,CatCreateFunction "!odbc-concat" ["text","text"] False "text"
+>       ,CatCreateFunction "!odbc-concat" ["char","char"] False "char"
+>       ,CatCreateFunction "!odbc-concat" ["varchar","varchar"] False "varchar"
 
 DIFFERENCE(string_exp1,string_exp2) (ODBC 2.0)
 Returns an integer value that indicates the difference between the values returned by the SOUNDEX function for string_exp1 and string_exp2.
@@ -59,6 +69,8 @@ Returns an integer value that indicates the difference between the values return
 difference not in pg
 
 >       ,CatCreateFunction "!odbc-difference" ["text","text"] False "int4"
+>       ,CatCreateFunction "!odbc-difference" ["char","char"] False "int4"
+>       ,CatCreateFunction "!odbc-difference" ["varchar","varchar"] False "int4"
 
 INSERT(string_exp1, start, length, string_exp2) (ODBC 1.0)
 Returns a character string where length characters have been deleted from string_exp1, beginning at start, and where string_exp2 has been inserted into string_exp, beginning at start.
@@ -66,6 +78,8 @@ Returns a character string where length characters have been deleted from string
 insert not in pg
 
 >       ,CatCreateFunction "!odbc-insert" ["text","int4","int4","text"] False "text"
+>       ,CatCreateFunction "!odbc-insert" ["char","int4","int4","char"] False "char"
+>       ,CatCreateFunction "!odbc-insert" ["varchar","int4","int4","varchar"] False "varchar"
 
 lcase not in pg
 
@@ -73,6 +87,8 @@ LCASE(string_exp) (ODBC 1.0)
 Returns a string equal to that in string_exp, with all uppercase characters converted to lowercase.
 
 >       ,CatCreateFunction "!odbc-lcase" ["text"] False "text"
+>       ,CatCreateFunction "!odbc-lcase" ["char"] False "char"
+>       ,CatCreateFunction "!odbc-lcase" ["varchar"] False "varchar"
 
 left is opposite in pg
 
@@ -80,10 +96,21 @@ LEFT(string_exp, count) (ODBC 1.0)
 Returns the leftmost count characters of string_exp.
 
 >       ,CatCreateFunction "!odbc-left" ["text","int4"] False "text"
+>       ,CatCreateFunction "!odbc-left" ["char","int4"] False "char"
+>       ,CatCreateFunction "!odbc-left" ["varchar","int4"] False "varchar"
 
 LENGTH(string_exp) (ODBC 1.0)
 Returns the number of characters in string_exp, excluding trailing blanks.
 LENGTH only accepts strings. Therefore will implicitly convert string_exp to a string, and return the length of this string (not the internal size of the datatype).
+
+TODO: we don't support the custom implicit conversion to string unless
+there is a standard implicit conversion usable.
+
+>       ,CatCreateFunction "!length" ["text"] False "text"
+>       ,CatCreateFunction "!length" ["char"] False "char"
+>       ,CatCreateFunction "!length" ["varchar"] False "varchar"
+
+
 LOCATE(string_exp1, string_exp2[, start])  (ODBC 1.0)
 Returns the starting position of the first occurrence of string_exp1 within string_exp2. The search for the first occurrence of string_exp1 begins with the first character position in string_exp2 unless the optional argument, start, is specified. If start is specified, the search begins with the character position indicated by the value of start. The first character position in string_exp2 is indicated by the value 1. If string_exp1 is not found within string_exp2, the value 0 is returned.
 If an application can call the LOCATE scalar function with the string_exp1, string_exp2, and start arguments, the driver returns SQL_FN_STR_LOCATE when SQLGetInfo is called with an Option of SQL_STRING_FUNCTIONS. If the application can call the LOCATE scalar function with only the string_exp1 and string_exp2 arguments, the driver returns SQL_FN_STR_LOCATE_2 when SQLGetInfo is called with an Option of SQL_STRING_FUNCTIONS. Drivers that support calling the LOCATE function with either two or three arguments return both SQL_FN_STR_LOCATE and SQL_FN_STR_LOCATE_2.
