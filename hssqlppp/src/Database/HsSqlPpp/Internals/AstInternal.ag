@@ -63,6 +63,7 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,Cascade (..)
    ,Direction (..)
    ,Distinct (..)
+   ,NullsOrder(..)
    ,Natural (..)
    ,IfExists (..)
    ,Replace(..)
@@ -75,6 +76,7 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,IntervalField(..)
    ,ExtractField(..)
    ,FrameClause(..)
+   ,OdbcLiteralType(..)
    ,InList (..)
    ,LiftFlavour(..)
    ,TriggerWhen(..)
@@ -82,8 +84,8 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,TriggerFire(..)
    ,QueryHint(..)
    ,StatementList
-   ,ScalarExprListStatementListPairList
-   ,ScalarExprListStatementListPair
+   ,ScalarExprListStatementListTripleList
+   ,ScalarExprListStatementListTriple
    ,ScalarExprList
    ,ParamDefList
    ,AttributeDefList
@@ -349,6 +351,20 @@ data ScalarExpr | NumberLit ann::Annotation d::String
                 | AntiScalarExpr String
                 | Parens ann::Annotation
                          ex :: ScalarExpr
+                  -- an odbc date/time literal
+                  -- e.g. {d '2005-01-01}
+                  -- see the odbc tests
+                | OdbcLiteral ann :: Annotation
+                              olt :: OdbcLiteralType
+                              val :: String
+                  -- parses an odbc function call
+                  -- it wraps a scalarexpr because we can write
+                  -- {fn extract(day from x)}
+                  -- as well as regular functions
+                  -- maybe this should be a special case since there is
+                  -- only one?
+                | OdbcFunc ann :: Annotation
+                           ex :: ScalarExpr
 
 {-
 
@@ -388,6 +404,9 @@ data LiftFlavour = LiftAny | LiftAll
                    deriving (Show,Eq,Typeable,Data)
 
 data Direction = Asc | Desc
+                 deriving (Show,Eq,Typeable,Data)
+
+data NullsOrder = NullsDefault | NullsFirst | NullsLast
                  deriving (Show,Eq,Typeable,Data)
 
 data Distinct = Distinct | All
@@ -442,6 +461,12 @@ data FrameClause = FrameUnboundedPreceding
                  | FrameUnboundedFull
                  | FrameRowsUnboundedPreceding
                    deriving (Show,Eq,Typeable,Data)
+
+
+data OdbcLiteralType = OLDate
+                     | OLTime
+                     | OLTimestamp
+                       deriving (Show,Eq,Typeable,Data)
 }
 {-
 -----------------------------------------------------------
@@ -518,6 +543,9 @@ data TableRef | Tref ann::Annotation
                           cols::{[NameComponent]}
                           tref::TableRef
               | TableRefParens ann::Annotation tref::TableRef
+                -- represents e.g. {oj t1 left join t2}
+                -- see the odbc tests for more info
+              | OdbcTableRef ann::Annotation tref::TableRef
 
 data JoinExpr | JoinOn ann::Annotation expr::ScalarExpr
               | JoinUsing ann::Annotation x::{[NameComponent]}
@@ -810,10 +838,10 @@ data Statement
     --variable, list of when parts, else part
     | CaseStatementSimple ann::Annotation
                     val :: ScalarExpr
-                    cases :: ScalarExprListStatementListPairList
+                    cases :: ScalarExprListStatementListTripleList
                     els :: StatementList
     | CaseStatement ann::Annotation
-                    cases :: ScalarExprListStatementListPairList
+                    cases :: ScalarExprListStatementListTripleList
                     els :: StatementList
     --list is
     --first if (condition, statements)::elseifs(condition, statements)
@@ -1087,8 +1115,8 @@ type ParamDefList = [ParamDef]
 type TypeNameList = [TypeName]
 type NameTypeNameListPair = (Name, TypeNameList)
 type NameTypeNameListPairList = [NameTypeNameListPair]
-type ScalarExprListStatementListPair = (ScalarExprList,StatementList)
-type ScalarExprListStatementListPairList = [ScalarExprListStatementListPair]
+type ScalarExprListStatementListTriple = (ScalarExprList,StatementList)
+type ScalarExprListStatementListTripleList = [ScalarExprListStatementListTriple]
 type ScalarExprStatementListPair = (ScalarExpr, StatementList)
 type ScalarExprStatementListPairList = [ScalarExprStatementListPair]
 type VarDefList = [VarDef]
@@ -1097,7 +1125,7 @@ type RowConstraintList = [RowConstraint]
 type CaseScalarExprListScalarExprPair = (ScalarExprList,ScalarExpr)
 type CaseScalarExprListScalarExprPairList = [CaseScalarExprListScalarExprPair]
 type StatementList = [Statement]
-type ScalarExprDirectionPair = (ScalarExpr,Direction)
+type ScalarExprDirectionPair = (ScalarExpr,Direction, NullsOrder)
 type ScalarExprDirectionPairList = [ScalarExprDirectionPair]
 type AlterTableActionList = [AlterTableAction]
 type MaybeNameComponentList = maybe NameComponentList
@@ -1132,8 +1160,8 @@ set AllNodes = Statement QueryExpr FnBody TableRef
                AttributeDefList ConstraintList TypeAttributeDefList
                ParamDefList TypeNameList NameTypeNameListPair
                NameTypeNameListPairList
-               StatementList ScalarExprListStatementListPair
-               ScalarExprListStatementListPairList ScalarExprStatementListPair
+               StatementList ScalarExprListStatementListTriple
+               ScalarExprListStatementListTripleList ScalarExprStatementListPair
                ScalarExprStatementListPairList VarDefList SelectItemList
                RowConstraintList CaseScalarExprListScalarExprPair
                CaseScalarExprListScalarExprPairList

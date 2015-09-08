@@ -667,6 +667,7 @@ Statement components
 >       error $ "internal error: node not supported in function tref: "
 >             ++ show x
 > tref flg (TableRefParens _ t) = parens (tref flg t)
+> tref flg (OdbcTableRef _ t) = text "{oj" <+> tref flg t <> text "}"
 > tref flg (TableAlias _ t tr) = maybeParen flg tr <+> text "as" <+> nmc t
 > -- hack this out for now. When the type checking is fixed, can try
 > -- to eliminate unneeded aliases?
@@ -710,6 +711,13 @@ syntax maybe should error instead of silently breaking
 > direction d = text $ case d of
 >                           Asc -> "asc"
 >                           Desc -> "desc"
+>
+
+> nullsOrder :: NullsOrder -> Doc
+> nullsOrder d = case d of
+>                     NullsDefault -> empty
+>                     NullsFirst -> text "nulls " <+> text "first"
+>                     NullsLast  -> text "nulls " <+> text "last"
 >
 > whr :: PrettyPrintFlags -> Maybe ScalarExpr -> Doc
 > whr flg (Just ex) = text "where" $+$ nest 2 (scalExpr flg ex)
@@ -786,7 +794,7 @@ syntax maybe should error instead of silently breaking
 >            Minute -> "minutes"
 >            Second -> "seconds"
 >            Millisecond -> "milliseconds"
->            _ -> "unknown type " ++ (show x)
+>            -- _ -> "unknown type " ++ (show x)
 
 > attrDef :: PrettyPrintFlags -> AttributeDef -> Doc
 > attrDef flg (AttributeDef _ n t def cons) =
@@ -1070,6 +1078,16 @@ syntax maybe should error instead of silently breaking
 >              ExtractWeek -> "week"
 >              ExtractYear -> "year"
 
+> scalExpr _flg (OdbcLiteral _ t s) =
+>     text "{" <> lt t <+> quotes (text s) <> text "}"
+>   where
+>     lt OLDate = "d"
+>     lt OLTime = "t"
+>     lt OLTimestamp = "ts"
+
+> scalExpr flg (OdbcFunc _ e) =
+>     text "{fn" <+> scalExpr flg e <> text "}"
+
 
 > scalExprSl :: PrettyPrintFlags ->  ScalarExpr -> Doc
 > scalExprSl flg (App _ f es) | Just "." <- getTName f
@@ -1117,12 +1135,12 @@ syntax maybe should error instead of silently breaking
 > sepCsvMap :: (a -> Doc) -> [a] -> Doc
 > sepCsvMap ex = sepCsv . map ex
 
-> orderBy :: PrettyPrintFlags -> [(ScalarExpr,Direction)] -> Doc
+> orderBy :: PrettyPrintFlags -> [(ScalarExpr,Direction,NullsOrder)] -> Doc
 > orderBy _ [] = empty
 > orderBy flg os =
 >   text "order by"
->   $+$ nest 2 (sepCsvMap (\(oe,od) -> scalExpr flg oe
->                                      <+> direction od) os)
+>   $+$ nest 2 (sepCsvMap (\(oe,od,on) -> scalExpr flg oe
+>                                      <+> direction od <+> nullsOrder on) os)
 
 > --vcatCsvMap :: (a -> Doc) -> [a] -> Doc
 > --vcatCsvMap ex = vcat . csv . map ex

@@ -22,12 +22,14 @@
 >     ,InList(..)
 >     ,LiftFlavour(..)
 >     ,Direction(..)
+>     ,NullsOrder(..)
 >     ,Distinct(..)
 >     ,CombineType(..)
 >     ,IntervalField(..)
 >     ,ExtractField(..)
 >     ,FrameClause(..)
->      -- * Query expressions
+>     ,OdbcLiteralType(..)
+>     -- * Query expressions
 >     ,QueryExpr(..)
 >     ,makeSelect
 >     ,WithQuery(..)
@@ -91,8 +93,8 @@
 >     ,TypeNameList
 >     ,NameTypeNameListPair
 >     ,NameTypeNameListPairList
->     ,ScalarExprListStatementListPair
->     ,ScalarExprListStatementListPairList
+>     ,ScalarExprListStatementListTriple
+>     ,ScalarExprListStatementListTripleList
 >     ,ScalarExprStatementListPair
 >     ,ScalarExprStatementListPairList
 >     ,VarDefList

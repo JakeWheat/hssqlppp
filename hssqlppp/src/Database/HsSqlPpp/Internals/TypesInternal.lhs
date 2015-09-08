@@ -171,6 +171,7 @@ gutted and rewritten
 >                | BadStarExpand
 >                | InternalError String
 >                | AmbiguousIdentifier Text
+>                | OdbcFuncBadContent
 >                  deriving (Eq,Show,Ord,Typeable,Data)
 >
 > --instance ErrorList TypeError where
@@ -181,7 +182,7 @@ gutted and rewritten
 > -- hssqlppp uses as canonical are the names that postgres uses in a pg_dump.
 > typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4,
 >   typeFloat8,typeVarChar,typeChar,typeBool,typeDate,
->   typeInterval :: Type
+>   typeTimestamp, typeInterval :: Type
 > typeSmallInt = ScalarType "int2"
 > typeBigInt = ScalarType "int8"
 > typeInt = ScalarType "int4"
@@ -192,6 +193,7 @@ gutted and rewritten
 > typeChar = ScalarType "char"
 > typeBool = ScalarType "bool"
 > typeDate = ScalarType "date"
+> typeTimestamp = ScalarType "timestamp"
 > typeInterval = ScalarType "interval"
 
 > -- | convert the name of a type to its canonical name. For types

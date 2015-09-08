@@ -28,7 +28,7 @@ sem TableRefList
 -- Alex: default precision and nullable values that mkTypeExtra produces
 --        above the TrefType ctor are not used; the information is inside TrefType
 sem TableRef
-  | Tref FunTref SubTref JoinTref TableAlias FullAlias TableRefParens
+  | Tref FunTref SubTref JoinTref TableAlias FullAlias TableRefParens OdbcTableRef
       loc.eEnv :: {Either [TypeError] Environment}
       ann.tpe = either Left (Right . mkTypeExtraNN . TrefType)
                 (@loc.eEnv >>= envExpandStar Nothing)
@@ -58,8 +58,8 @@ sem TableRef
       loc.eEnv = maybe (Left []) id
                  $ fmap envSelectListEnvironment @sel.upType
       sel.expectedType = liftM (map snd) @sel.upType
-      sel.expectedCast = True
-  | TableRefParens
+      --sel.expectedCast = True
+  | TableRefParens OdbcTableRef
       loc.eEnv = Right $ @tref.upEnv
   | FullAlias
       loc.eEnv = Right $ createTrefAliasedEnvironment
@@ -71,7 +71,7 @@ sem TableRef
       loc.eEnv = Left []
 
 sem TableRef
-  | Tref FunTref JoinTref TableRefParens SubTref
+  | Tref FunTref JoinTref TableRefParens SubTref OdbcTableRef
       lhs.annotatedTree =
           let mk (q,is) = FullAlias emptyAnnotation
                                    (Nmc q)
@@ -129,7 +129,7 @@ will still be quite complicated
             _ -> @annotatedTree
 
 sem TableRef
-  | JoinTref FunTref TableRefParens SubTref
+  | JoinTref FunTref TableRefParens SubTref OdbcTableRef
       -- try to add a full table alias if possible
       -- not possible for some joins
       loc.newAlias =

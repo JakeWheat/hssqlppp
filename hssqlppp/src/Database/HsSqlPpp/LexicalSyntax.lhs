@@ -24,7 +24,7 @@
 > data Token
 >     -- | a symbol in postgresql dialect is one of the following:
 >     --
->     -- * one of the characters (),;[]
+>     -- * one of the characters (),;[]{}  (the {} is for odbc)
 >     --
 >     -- * \'..\' or \':=\' or \'.\' or \':\'
 >     --
@@ -270,7 +270,7 @@ variants.
 >                 void $ char '\''
 >                 normalStringSuffix $ T.concat [t,s,"''"]
 >                ,return $ T.concat [t,s]]
->     eString = SqlString "E'" <$> (string "E'" *> eStringSuffix "")
+>     eString = SqlString "E'" <$> (try (string "E'") *> eStringSuffix "")
 >     eStringSuffix :: T.Text -> Parser T.Text
 >     eStringSuffix t = do
 >         s <- takeTill (`elem` ("\\'"::String))
@@ -397,8 +397,8 @@ inClass :: String -> Char -> Bool
 >         startsWith (inClass compoundFirst)
 >                    (inClass compoundTail) -}
 >     simpleSymbols :: String
->     simpleSymbols | dialect == PostgreSQLDialect = "(),;[]"
->                   | otherwise = "(),;"
+>     simpleSymbols | dialect == PostgreSQLDialect = "(),;[]{}"
+>                   | otherwise = "(),;{}"
 >     compoundFirst :: String
 >     compoundFirst | dialect == PostgreSQLDialect = "*/<>=~!@#%^&|`?+-"
 >                   | otherwise = "*/<>=~!%^&|`?+-"

@@ -41,6 +41,7 @@ There are no tests for invalid syntax at the moment.
 > import Database.HsSqlPpp.Tests.Parsing.SqlServer
 > import Database.HsSqlPpp.Tests.Parsing.Oracle
 > import Database.HsSqlPpp.Tests.Parsing.LexerTests
+> import Database.HsSqlPpp.Tests.Parsing.OdbcParsing
 
 > --import Control.Applicative
 > import Database.HsSqlPpp.Tests.TestTypes
@@ -69,5 +70,6 @@ There are no tests for invalid syntax at the moment.
 >             ,misc
 >             ,sqlServer
 >             ,oracle
+>             ,odbcParsing
 >             ]
 

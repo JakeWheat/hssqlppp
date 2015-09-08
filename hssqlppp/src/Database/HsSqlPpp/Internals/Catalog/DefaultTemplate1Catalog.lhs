@@ -10,6 +10,7 @@ installed to do this.
 >      (defaultTemplate1Catalog) where
 >
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+> import Database.HsSqlPpp.Internals.Catalog.OdbcCatalog
 > --import Database.HsSqlPpp.Internals.TypesInternal
 > -- | The catalog from a default template1 database in roughly the
 > -- latest postgres. 'select version()' from the dbms this catalog
@@ -19,7 +20,7 @@ installed to do this.
 >     (\l -> case l of
 >              Left x -> error $ show x
 >              Right e -> e) $
->      flip updateCatalog defaultCatalog
+>      flip updateCatalog defaultCatalog (
 
     
 >        [CatCreateScalarType "abstime", CatCreateScalarType "aclitem",
@@ -5420,4 +5421,4 @@ installed to do this.
 >         CatCreateTypeCategoryEntry "varchar" ("S", False),
 >         CatCreateTypeCategoryEntry "xid" ("U", False),
 >         CatCreateTypeCategoryEntry "xml" ("U", False)]
-
+>         ++ odbcCatalog)

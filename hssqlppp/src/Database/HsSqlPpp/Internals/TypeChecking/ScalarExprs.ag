@@ -28,6 +28,8 @@ For now, expectedCast is Bool, with the meaning of whether the nullability compo
 imports
 {
 import Text.Read
+import Debug.Trace
+import Database.HsSqlPpp.Internals.Catalog.OdbcCatalog
 }
 
 
@@ -37,6 +39,7 @@ sem ScalarExpr
       Case CaseSimple Exists App AggregateApp
       WindowApp InPredicate LiftApp ScalarSubQuery
       BinaryOp PrefixOp PostfixOp SpecialOp
+      Parens OdbcLiteral OdbcFunc
         ann.tpe = @loc.tpe
         loc.upType = either (const Nothing) Just @loc.tpe
         lhs.upType = @loc.upType
@@ -86,6 +89,70 @@ attr ScalarExpr MaybeScalarExpr
 
 sem MaybeScalarExpr
     | Nothing lhs.upType = Nothing
+
+
+-- this is used to indicate the typechecking should rename
+-- a function in an odbc context, when we look up the function
+-- like this {fn f(...)} we change the name from "f" to
+-- "!odbc-f" so we can hack a different namespace for odbc functions
+attr ScalarExpr
+    inh odbcFunction :: Bool
+
+sem AlterColumnAction
+    | SetDefault def.odbcFunction = False
+
+sem CaseScalarExprListScalarExprPair
+    | Tuple x2.odbcFunction = False
+
+sem Constraint
+    | CheckConstraint expr.odbcFunction = False
+
+sem JoinExpr
+    | JoinOn expr.odbcFunction = False
+
+sem MaybeBoolExpr
+    | Just just.odbcFunction = False
+
+sem MaybeScalarExpr
+    | Just just.odbcFunction = False
+
+sem RowConstraint
+    | RowCheckConstraint expr.odbcFunction = False
+
+sem ScalarExprDirectionPair
+    | Tuple x1.odbcFunction = False
+
+sem ScalarExprList
+    | Cons hd.odbcFunction = False
+
+sem ScalarExprRoot
+    | ScalarExprRoot expr.odbcFunction = False
+
+
+sem ScalarExprTransposedList
+    | Cons hd.odbcFunction = False
+
+sem SelectItem
+    | SelExp SelectItem ex.odbcFunction = False
+
+sem SetClause
+    | SetClause MultiSetClause ex.odbcFunction = False
+
+sem ScalarExpr
+    | Extract e.odbcFunction = False
+    | Cast expr.odbcFunction = False
+    | ImplicitCast expr.odbcFunction = False
+    | CaseSimple value.odbcFunction = False
+    | PrefixOp PostfixOp arg.odbcFunction = False
+    | BinaryOp arg0.odbcFunction = False
+               arg1.odbcFunction = False
+    | AggregateApp fn.odbcFunction = False
+    | WindowApp fn.odbcFunction = False
+    | InPredicate expr.odbcFunction = False
+    | Parens ex.odbcFunction = False
+    | OdbcFunc ex.odbcFunction = True -- meat!!
+
+
 
 -- collect the uptypes for a list of scalarexprs
 
@@ -172,7 +239,7 @@ simplish ctors
     | TypedStringLit
          loc.tpe = maybe (Left []) Right @tn.namedType
     | Cast
-         loc.tpe = 
+         loc.tpe =
               let nullability = fromMaybe False $ teNullable <$> @expr.upType
                   setNullability te = te{teNullable = nullability}
               in maybe (Left []) (Right . setNullability) @tn.namedType
@@ -197,6 +264,23 @@ simplish ctors
         e.expectedCast = False
     | Placeholder
          loc.tpe = Right $ mkTypeExtraNN UnknownType
+
+      -- odbc literals: the tag gives the type
+      -- if we added checking the syntax inside the string literal
+      -- then we would do it here
+    | OdbcLiteral
+         loc.tpe = case @olt of
+                     OLDate -> Right $ mkTypeExtra typeDate
+                     OLTime -> Right $ mkTypeExtra $ ScalarType "time"
+                     OLTimestamp -> Right $ mkTypeExtra typeTimestamp
+
+    | OdbcFunc
+         ex.cat = id @lhs.cat
+         loc.tpe = case @ex.originalTree of
+                     Extract {} -> maybe (Left []) Right @ex.upType
+                     App {} -> maybe (Left []) Right @ex.upType
+                     _ -> Left [OdbcFuncBadContent]
+
 {-
 
 ---------------------------------------
@@ -246,14 +330,60 @@ op calls, fn calls, etc.
          loc.tpe = fmap snd @loc.ttpe
     | App
          args.expectedTypes = either (const []) id $ fmap fst @loc.ttpe
+{-
+
+this is the hack for odbc functions
+
+if we are immediately inside an odbc {fn ...} node, then the
+odbcFunction attr will be set to true. If this is the case, we prefix
+the function name with !odbc- which simulates the fact that the odbc
+functions come from a different namespace to the non odbc functions. In the catalog, we have the odbc function entries under these modified names e.g
+{fn left(x,1)}
+is treated as:
+{fn "!odbc-left"(x,1)}
+
+-}
+         loc.funName = let y = if @lhs.odbcFunction
+                               then let f [] = []
+                                        f [Nmc x] = [Nmc $ "!odbc-" ++ x]
+                                        f [QNmc x] = [QNmc $ "!odbc-" ++ x]
+                                        f [x] = [x]
+                                        f (x:xs) = x:f xs
+                                    in (\(Name a nms) -> Name a (f nms)) @funName.originalTree
+                               else @funName.originalTree
+                       in {-trace (show y)-} y
+{-
+
+special case for odbc convert. this is here since we need to look at
+the value of the second arg which is a keyword to determine the result
+type. The proper solution should be:
+
+1. same sort of thing as for datepart, etc.: type check the identifier
+better using a proper special case
+
+2. pass the value of the literal keyword (which is basically an enum)
+to tcAppLike so that this function or one of the 20 wrappers and
+helpers inside it can determine the correct return type
+
+-}
          loc.ttpe =
            case @originalTree of
              (App _ (Name _ [Nmc "count"]) [Star _]) ->
                  tcAppLike (tcfDialect @lhs.flags)
-                           @lhs.cat @funName.originalTree @args.originalTree
+                           @lhs.cat @loc.funName @args.originalTree
                            [Just $ mkTypeExtraNN UnknownType]
+             --(App _ (Name _ [Nmc n]) [_,Identifier _ (Name _ [Nmc tyi])])
+             --    | trace (show n) False -> undefined
+             (App _ (Name _ [Nmc n]) [_,Identifier _ (Name _ [Nmc tyi])])
+                 | @lhs.odbcFunction && map toLower n == "convert" -> do
+                 (ts,r) <- tcAppLike (tcfDialect @lhs.flags)
+                           @lhs.cat @loc.funName @args.originalTree
+                           [Just $ mkTypeExtraNN UnknownType, Just $ mkTypeExtraNN typeInt]
+                 r' <- maybe (Left [UnrecognisedIdentifier $ T.pack tyi]) (Right . mkTypeExtra)
+                          $ lookup (map toLower tyi) odbcConvertTypes
+                 Right (ts, r')
              _ -> tcAppLike (tcfDialect @lhs.flags)
-                            @lhs.cat @funName.originalTree @args.originalTree @args.upTypes
+                            @lhs.cat @loc.funName @args.originalTree @args.upTypes
     | BinaryOp
          loc.ttpe = tcAppLike (tcfDialect @lhs.flags)
                               @lhs.cat @opName.originalTree [@arg0.originalTree,@arg1.originalTree]
@@ -292,7 +422,7 @@ sem ScalarExpr
         arg1.expectedCast = False
     | AggregateApp WindowApp
         fn.expectedCast = False
-        orderBy.expectedCast = False
+        --orderBy.expectedCast = False
     | WindowApp
         partitionBy.expectedCast = False
 
@@ -323,6 +453,16 @@ tcAppLike d cat anm@(Name _ [Nmc dd]) types [_,a0,a1]
       lits = getMaybeIntsFromLiterals types
   (ats,rt) <- matchAppExtra d cat ns lits (mkTypeExtraNN typeInt : tys)
   return (ats,rt)
+
+--tcAppLike d cat anm@(Name _ [Nmc dd]) a b
+--    |  trace ("xz: " ++ show (a,b)) False = undefined
+
+tcAppLike d cat anm@(Name _ [Nmc dd]) _ ts
+    | map toLower dd == "!odbc-convert" = do
+                 (tys :: [TypeExtra]) <- mapM (maybe (Left []) Right) ts
+                 let Name _ ns = anm
+                 (ats,rt) <- matchAppExtra d cat ns [] tys
+                 return (ats,rt)
 
 tcAppLike d cat anm types teArgs = do
   -- get the types of the arguments
@@ -430,7 +570,7 @@ sem CaseScalarExprListScalarExprPair
 
 sem ScalarExpr
   | Parens
-    ann.tpe = maybe (Left []) Right @ex.upType
+    loc.tpe = maybe (Left []) Right @ex.upType
 
 
 {-
@@ -468,7 +608,7 @@ sem ScalarExpr
         sel.outerDownEnv = Just @lhs.downEnv
     | ScalarSubQuery Exists
         sel.expectedType = liftM (map snd) @sel.upType
-        sel.expectedCast = True
+        --sel.expectedCast = True
 
 {-
 == inlist
@@ -514,7 +654,7 @@ sem InList
                       _ -> Right $ mkTypeExtra $ AnonymousCompositeType
                               $ map teType st
         sel.expectedType = liftM (map snd) @sel.upType
-        sel.expectedCast = True
+        --sel.expectedCast = True
 
 {-
 ----------------------------------------------------
