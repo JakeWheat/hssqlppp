@@ -148,6 +148,7 @@ added.
 type conversion errors
 
 >                | -} NoMatchingOperator Text [Type]
+>                | AmbigiousOperator Text [Type]
 >                | TypelessEmptyArray
 >                | IncompatibleTypeSet [Type]
 >                | IncompatibleTypes Type Type

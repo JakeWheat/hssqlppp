@@ -1,0 +1,462 @@
+
+
+TODO: most of this code will move to the internals type conversion.
+rewrite the code to be nice and literate explaining everything
+
+> {-# LANGUAGE OverloadedStrings,LambdaCase #-}
+> module Database.HsSqlPpp.Internals.TypeChecking.TypeConversion2
+>        (matchApp,LitArg(..)) where
+
+TODO: explicit imports
+
+> import Control.Monad
+> --import Control.Applicative
+> --import Control.Arrow
+
+> import Data.Text ()
+> import qualified Data.Text as T
+> import Data.Maybe
+> import Data.List
+> import Data.Either
+> import Data.Char
+> import Control.Arrow
+
+> import Text.Show.Pretty
+> --import Debug.Trace
+
+> import Database.HsSqlPpp.Internals.TypesInternal
+> import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+> --import Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
+> --import Database.HsSqlPpp.Utils.Utils
+
+> -- import Database.HsSqlPpp.Internals.TypeChecking.OldTypeConversion
+> import Database.HsSqlPpp.SqlDialect
+> -- import qualified Database.HsSqlPpp.Internals.TypeChecking.SqlTypeConversion as TSQL
+
+
+three kinds of type conversion where we might have to insert implicit
+casts:
+
+function overload resolution
+result set type resolution
+is assignment valid
+
+The arg types take a LitArg since we want to say the result type of e.g.
+substring(x from 2 for 3) as varchar(3), but if we get
+substring(x from a for b) then we don't know the precision from the
+for part (but it can't be bigger than the x)
+
+It also supports stuff like odbc convert whose return type depends on
+the identifier in the second parameter.
+
+for the special cases for null and precision, have a map of functions
+from the function name to the special case transform function which
+modifies the return type. Then can try to isolate the special cases a
+little bit -> probably need some other special cases, add hooks and
+maps of functions for these too
+
+> data LitArg = NumLitArg String
+>             | StringLitArg String
+>             | NullLitArg
+>             | BooleanLitArg Bool
+>               deriving (Show,Eq)
+>               -- todo: add other literals if needed
+
+
+> type MyFunType = (CatName, [Type], Type, Bool)
+
+match app matches a function + argument types, and determines (using a
+bunch of hacks and special cases) the precision, scale and nullability
+of the result type also.
+
+> matchApp :: SQLSyntaxDialect
+>          -> Catalog
+>          -> [NameComponent]
+>          -> [(TypeExtra, Maybe LitArg)]
+>          -> Either [TypeError] ([TypeExtra],TypeExtra)
+> matchApp d cat appName argTypes = do
+>      x <- findMatchingApp d cat appName
+>                    (map (first teType) argTypes)
+>      return $ fixNP x
+>   where
+
+todo: fix nulls and precision
+
+>     fixNP (_,ts,r,_) = (map lt ts, lt r)
+>     lt ty = TypeExtra ty Nothing Nothing False
+
+
+find matching app is the code which matches a function prototype to a
+list of input argument types, dealing with implicit casts and
+overloaded functions. It is based on the algorithm in postgresql.
+
+> findMatchingApp :: SQLSyntaxDialect
+>          -> Catalog
+>          -> [NameComponent]
+>          -> [(Type, Maybe LitArg)]
+>          -> Either [TypeError] (CatName,[Type],Type,Bool)
+> findMatchingApp _d cat appName argTypes =
+>     (\case
+>         -- represents a short cut error
+>         Left (Left e) -> Left e
+>         -- represents a short cut valid result
+>         Left (Right r) -> Right r
+>         -- represents a normal result at the end
+>         Right r -> Right r) $ do
+>     let
+
+1. get all the candidates - matching by name
+
+
+todo: variadic stuff, default stuff
+todo: if there are multiple matches with different schemas
+     only keep the matches in the first schema in the search path
+
+todo: deal with case and with schemas
+
+todo: polymorphic
+
+>         nameMatches :: [MyFunType]
+>         nameMatches = catLookupFns cat appName'
+>         -- create a map from arg types to prototype
+>         nameMatchMap :: [([Type], MyFunType)]
+>         nameMatchMap = map (\v@(_,as,_,_) -> (as,v)) nameMatches
+>         -- the raw input types to match against
+>         rawArgTypes = map fst argTypes
+
+2. if there is one candidate with the exact args - choose it
+
+>         exactMatches :: [MyFunType]
+>         exactMatches = map snd $ flip filter nameMatchMap
+>                                       ((==rawArgTypes) . fst)
+
+if this is a binary operator, and one of the types is unknown and the
+other is known, and there is onne exact match if the unknown is made
+to match the known type, then select it
+
+>         oneKnown = case rawArgTypes of
+>                        [UnknownType,UnknownType] -> Nothing
+>                        [UnknownType,t] -> Just t
+>                        [t,UnknownType] -> Just t
+>                        _ -> Nothing
+>         binaryOpKnownUnknownMatches :: [MyFunType]
+>         binaryOpKnownUnknownMatches =
+>             case () of
+>                 _ | isOperatorName appName'
+>                   , Just t <- oneKnown
+>                   -> map snd $ flip filter nameMatchMap
+>                                       ((==[t,t]) . fst)
+>                   | otherwise -> []
+
+2.5 check for type conversion function?: function name is name of type
+    only has one argument, this type is unknown or castable to target
+
+>         typeConversionMatch :: [MyFunType]
+>         typeConversionMatch = case (appName', rawArgTypes) of
+>             _ -> [] -- todo
+
+3. discard candidates which cannot be reached by implicit casts
+   convert domains to base types
+   keep only candidates which have the most exact matches
+     if one: use it
+     if none: still consider them all
+
+>         reachableViaImplicitCasts :: [MyFunType]
+>         reachableViaImplicitCasts =
+>             let candReachableViaImplicitCasts as =
+>                     length rawArgTypes == length as
+>                     && and (zipWith canImplicitCastOrSame rawArgTypes as)
+>             in map snd $ flip filter nameMatchMap
+>                (candReachableViaImplicitCasts . fst)
+
+4. keep candidates which accept the most preferred types where type
+   conversion is needed: if one, use it
+   else continue with all
+
+>         acceptsMostPreferredTypes :: [MyFunType]
+>         acceptsMostPreferredTypes =
+>             let preferredTypeCounts :: [(Int,MyFunType)]
+>                 preferredTypeCounts = flip map reachableViaImplicitCasts
+>                     $ \v@(_,as,_,_) ->
+>                            (length $ filter id $
+>                             zipWith isCastToPreferred rawArgTypes as
+>                            ,v)
+>                 maxCount = maximum $ map fst preferredTypeCounts
+>             in map snd $ filter ((==maxCount) .fst) preferredTypeCounts
+
+Keep all candidates if none accept preferred types. If only one
+candidate remains, use it; else continue to the next step.
+
+>         acceptsMostPreferredNextStep :: [MyFunType]
+>         acceptsMostPreferredNextStep =
+>             if null acceptsMostPreferredTypes
+>             then reachableViaImplicitCasts
+>             else acceptsMostPreferredTypes
+
+5. if any input types are unknown:
+for each unknown
+
+a) select string cat for each position if any cands accept string in
+that position
+
+b) if all the cands accept the same category for that position, choose
+it, otherwise fail
+
+discard any candidates not matching the selected category (this can
+only happen if string was chosen for an unknown)
+
+for each unknown, if any cands accept the preferred type in that
+position, drop all the ones which don't accept that type in that
+position
+if one left: use it
+else: keep all for next
+
+>         bestPreferredMatches :: [MyFunType]
+>         bestPreferredMatches =
+>             let -- which positions in the input args are unknown type
+>                 isUnknown :: [Bool]
+>                 isUnknown = map (==UnknownType) rawArgTypes
+>                 -- get the categories for each candidate args
+>                 -- todo: fix this either to propagate error
+>                 -- (should only happen if there is a programming mistake)
+>                 typeCat :: Type -> T.Text
+>                 typeCat ty = either (const "U") id $
+>                              catTypeCategory cat ty
+>                 -- get the categories for each argument for each candidate
+>                 candsWithCats :: [([T.Text],MyFunType)]
+>                 candsWithCats = flip map acceptsMostPreferredNextStep
+>                     $ \v@(_,as,_,_) -> (map typeCat as,v)
+>                 -- for each arg position
+>                 -- if the input arg is unknown
+>                 -- and all the candidates agree on a category
+>                 -- keep that category
+>                 -- otherwise nothing
+>                 chooseCat :: Bool -> [T.Text] -> Maybe T.Text
+>                 chooseCat False _ = Nothing
+>                 -- if any arg accepts string choose string
+>                 chooseCat True cs | any (=="S") cs = Just "S"
+>                 -- protect error, shouldn't happen
+>                 chooseCat True [] = Nothing
+>                 -- if all the args in that position have the same
+>                 -- category choose that category
+>                 chooseCat True cs | all (==head cs) cs = Just $ head cs
+>                                   | otherwise = Nothing
+>                 argCats :: [Maybe T.Text]
+>                 argCats = let xs = transpose $ map fst candsWithCats
+>                           in zipWith chooseCat isUnknown xs
+>                 --preferredTypes :: [Maybe Type]
+>                 --preferredTypes = flip map argCats $ fmap $ \c ->
+>                 --   either Nothing Just 
+>                 -- todo: finish this
+>             in []
+
+>         bestPreferredMatchesNextStep :: [MyFunType]
+>         bestPreferredMatchesNextStep =
+>             if null bestPreferredMatches
+>             then acceptsMostPreferredTypes
+>             else bestPreferredMatches
+
+6. if there are unknown and known, and all the knowns are the same,
+assume the unknowns to be this type. If there is one match, use it
+
+>         hasUnknown = isJust $ find (==UnknownType) rawArgTypes
+>         allKnownsType :: Maybe Type
+>         allKnownsType =
+>             let allNonUnknowns = filter (/=UnknownType) rawArgTypes
+>             in case allNonUnknowns of
+>                    [] -> Nothing
+>                    (x:xs) | all (==x) xs -> Just x
+>                           | otherwise -> Nothing
+>         allUnknownsMatchAllKnowns :: [MyFunType]
+>         allUnknownsMatchAllKnowns =
+>             [c | c@(_,as,_,_) <- bestPreferredMatchesNextStep
+>             , hasUnknown
+>             , t <- maybeToList allKnownsType
+>             , let tys = map (\x -> case x of
+>                              UnknownType -> t
+>                              _ -> x) rawArgTypes
+>             , as == tys
+>             ]
+
+>     let showl l = show (length l) ++ "\n" ++ ppShow l
+>     let _showProcess =
+>           "Name matches: " ++ showl nameMatches
+>           ++ "\n\nRaw arg types: " ++ ppShow rawArgTypes
+>           ++ "\n\nexactMatches: " ++ showl exactMatches
+>           ++ "\n\nbinaryOpKnownUnknownMatches: " ++ showl binaryOpKnownUnknownMatches
+>           ++ "\n\ntypeConversionMatches: " ++ showl typeConversionMatch
+>           ++ "\n\nreachableViaImplicitCasts: " ++ showl reachableViaImplicitCasts
+>           -- ++ "\n\npreferredTypeCounts: " ++ showl preferredTypeCounts
+>           ++ "\n\nacceptsMostPreferredTypes: " ++ showl acceptsMostPreferredTypes
+>           ++ "\n\nbestPreferredMatches: " ++ showl bestPreferredMatches
+>           ++ "\n\nallUnknownsMatchAllKnowns: " ++ showl allUnknownsMatchAllKnowns
+
+2. exact matches
+2.1 binary operator known/unknown special case
+2.5 typeConversion matches
+4. candidate which accepts most preferred types
+5. candidate matching preferred types
+6. unknowns match knowns
+
+>     let zeroOrOne x = case x of
+>               [] -> Right ()
+>               [a] -> Left (Right a)
+>               _ -> Left (Left [AmbigiousOperator appName' rawArgTypes])
+>         oneOrContinue x = case x of
+>               [a] -> Left (Right a)
+>               _ -> Right ()
+>     {-trace (ppShow (hasUnknown,allKnownsType,allUnknownsMatchAllKnowns)
+>            ++ "\n" ++ showProcess) $-}
+>     do
+>         zeroOrOne exactMatches
+>         zeroOrOne typeConversionMatch
+>         oneOrContinue binaryOpKnownUnknownMatches
+>         oneOrContinue reachableViaImplicitCasts
+>         oneOrContinue acceptsMostPreferredTypes
+>         oneOrContinue bestPreferredMatches
+>         oneOrContinue allUnknownsMatchAllKnowns
+
+otherwise fail
+
+>         Left $ Left [NoMatchingOperator appName' rawArgTypes]
+
+
+>   where
+>     -- don't use left
+>     -- check for empty list
+>     appName' = case last appName of
+>                Nmc n -> T.pack $ map toLower n
+>                QNmc n -> T.pack n
+>                AntiNameComponent _ -> -- todo: use left instead of error
+>                  error "tried to find function matching an antinamecomponent"
+>     canImplicitCastOrSame :: Type -> Type -> Bool
+>     canImplicitCastOrSame from to =
+>         from == to || isRight (catCast cat ImplicitCastContext from to)
+>     -- check if casting type 'from' to type 'to' is casting
+>     -- to the 'from' type's prefered type in the 'from' type's
+>     -- category
+>     isCastToPreferred :: Type -> Type -> Bool
+>     isCastToPreferred from to = maybe False (const True) $ do
+>         when (from == to) Nothing
+>         when (isLeft (catPreferredType cat to)) Nothing
+>         t1 <- either (const Nothing) Just
+>               $ catTypeCategory cat from
+>         t2 <- either (const Nothing) Just
+>               $ catTypeCategory cat to
+>         if t1 == t2
+>           then Just ()
+>           else Nothing
+
+what are all the special cases currently:
+special cases for precision
+special cases for result null
+in OldTypeConverion.findCallMatch:
+   between, not between, greatest, least
+   rowctor
+   .
+   comparisons for composite/set types
+more stuff in TypeConversion.matchApp
+  sql server date stuff
+  decode
+  something to do with datetimes?
+  string precisions?:
+    ||, substring, replace
+  some nullability special cases?
+  jesus, more bullshit, no idea what it is all for
+    no tests and documentation as per usual
+SqlTypeConversions: special case for implicit casts from text types to
+  numeric (see if can handle in rule system)
+ScalarExprs.ag
+  needs implicit cast
+  implicit cast type
+  check the types (e.g. cast syntax should use this typeconversion
+   machinery)
+  tcAppLike: more mssql date shit
+
+  getmaybeintsfromliterals: also suggests only need to support int
+    literals in the matchapp function here
+
+on the way out:
+
+we have to add implicit casts for possible nullability and precision
+adjustments and work out the result type precision and nullability
+
+dealing with nullable: assume functions are strict, and never return
+null if none of the inputs are null. Every function which doesn't work
+this way will be special cased here.
+
+precision
+precision and scale apply to the following types:
+array-style types (will we need 2d arrays?)
+numeric
+strings
+byte arrays
+
+for numeric, the precision and scale for a result are always -1 which
+represents the text equivalent for numeric: unlimited scale and
+precision.
+
+the precision on a float is fake, and represents a weird short hand to
+one of two fixed types, float4 and float8
+
+the precision of char and varchar is the sum of all the precisions of
+these in the input by default, lots of special cases here. Also have
+literals to deal with.
+
+
+> --resolveResultSetType :: Catalog -> [TypeExtra] -> Either [TypeError] TypeExtra
+> --resolveResultSetType cat tys = undefined
+
+
+> --checkAssignmentValid :: Catalog -> Type -> Type -> Either [TypeError] ()
+> --checkAssignmentValid cat from to = undefined
+
+
+resolve result set types:
+numeric
+text
+domains
+time
+precision
+nullability
+
+used for union, intersect, except, case, array, values, greatest,
+least, join keys
+
+
+If all inputs are of the same type, and it is not unknown, resolve as
+that type.
+
+If any input is of a domain type, treat it as being of the domain's
+base type for all subsequent steps. [1]
+
+If all inputs are of type unknown, resolve as type text (the preferred
+type of the string category). Otherwise, unknown inputs are ignored.
+
+If the non-unknown inputs are not all of the same type category, fail.
+
+Choose the first non-unknown input type which is a preferred type in
+that category, if there is one.
+
+Otherwise, choose the last non-unknown input type that allows all the
+preceding non-unknown inputs to be implicitly converted to it. (There
+always is such a type, since at least the first type in the list must
+satisfy this condition.)
+
+Convert all inputs to the selected type. Fail if there is not a
+conversion from a given input to the selected type.
+
+
+
+checkassignmentvalid:
+
+
+
+
+
+also:
+text encoding, char set + collations, what else?
+
+
+TODO: get the list of all the hacks sqream does at the
+typechecking sql layer and move it here

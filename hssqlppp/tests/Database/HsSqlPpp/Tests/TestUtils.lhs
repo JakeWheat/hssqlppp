@@ -30,6 +30,7 @@
 > import Control.Applicative
 
 > import Database.HsSqlPpp.Tests.TestTypes
+> import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion2
 
 > --import Test.HUnit
 > --import Test.Framework.Providers.HUnit
@@ -81,6 +82,7 @@
 > itemToTft (RewriteQueryExpr f cus s s') = testRewrite f cus s s'
 > itemToTft (ImpCastsScalar f s s') = testImpCastsScalar f s s'
 > itemToTft (ScalarExprExtra cat env s r) = testScalarExprTypeExtra cat env s r
+> itemToTft (MatchApp d cat f as r) = testMatchApp d cat f as r
 
 > testParseScalarExpr :: Text -> ScalarExpr -> T.TestTree
 > testParseScalarExpr src ast =
@@ -343,7 +345,12 @@ type checks properly and produces the same type
 >       else id) $ assertEqual "second rewrite" astrw astrw2-}
 
 
-
+> testMatchApp :: SQLSyntaxDialect -> Catalog -> [NameComponent]
+>              -> [(TypeExtra, Maybe LitArg)]
+>              -> (Either [TypeError] ([TypeExtra],TypeExtra))
+>              -> T.TestTree
+> testMatchApp d cat f as r = H.testCase (show f ++ show as) $
+>     H.assertEqual "" r $ matchApp d cat f as
 
 
 ~~~~

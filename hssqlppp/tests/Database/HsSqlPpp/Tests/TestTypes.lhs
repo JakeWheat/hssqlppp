@@ -28,6 +28,7 @@
 
 > --import Database.HsSqlPpp.Utils.GroomUtils
 > --import qualified Data.Text.Lazy as L
+> import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion2
 
 > data Item = Group String [Item]
 >           | Expr L.Text ScalarExpr
@@ -45,3 +46,8 @@
 >           | RewriteQueryExpr TypeCheckingFlags [CatalogUpdate] L.Text L.Text
 >           | ImpCastsScalar TypeCheckingFlags L.Text L.Text
 >           | ScalarExprExtra Catalog Environment L.Text (Either [TypeError] TypeExtra)
+>           | MatchApp SQLSyntaxDialect Catalog [NameComponent]
+>                      [(TypeExtra, Maybe LitArg)]
+>                      (Either [TypeError] ([TypeExtra],TypeExtra))
+
+
