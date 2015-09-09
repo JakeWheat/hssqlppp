@@ -298,6 +298,8 @@ What the is this function doing? What is it for?
 
 > joinArgsExtra:: String -> [TypeExtra] -> [TypeExtra] -> Either [TypeError] [TypeExtra]
 > joinArgsExtra "!odbc-left" _t0 t1 = Right t1
+> joinArgsExtra "!odbc-timestampdiff" _t0 t1 = Right t1
+> joinArgsExtra "!odbc-timestampadd" _t0 t1 = Right t1
 
 > joinArgsExtra appName tes0 tes1
 >     = liftM (uncurry $ zipWith3 combine tes) $ uncurry (liftM2 (,))

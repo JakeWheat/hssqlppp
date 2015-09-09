@@ -464,6 +464,14 @@ tcAppLike d cat anm@(Name _ [Nmc dd]) _ ts
                  (ats,rt) <- matchAppExtra d cat ns [] tys
                  return (ats,rt)
 
+tcAppLike d cat anm@(Name _ [Nmc dd]) types [_,a0,a1]
+    | map toLower dd `elem` ["!odbc-timestampadd","!odbc-timestampdiff"] = do
+  tys <- mapM (maybe (Left []) Right) [a0,a1]
+  let Name _ ns = anm
+  (ats,rt) <- matchAppExtra d cat ns [] (mkTypeExtraNN typeInt : tys)
+  return (ats,rt)
+
+
 tcAppLike d cat anm types teArgs = do
   -- get the types of the arguments
   -- then lookup in TypeConversion.matchAppExtra

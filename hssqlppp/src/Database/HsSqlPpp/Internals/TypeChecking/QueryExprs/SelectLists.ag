@@ -38,7 +38,7 @@ sem ScalarExpr
       Case CaseSimple Exists App AggregateApp
       WindowApp InPredicate LiftApp ScalarSubQuery
       BinaryOp PrefixOp PostfixOp SpecialOp
-      Star QStar
+      Star QStar Parens OdbcLiteral OdbcFunc
       lhs.colExprs =
           let a = @ann.originalTree --save the source position in the generated nodes
               doStar is = -- todo: quote identifiers if needed

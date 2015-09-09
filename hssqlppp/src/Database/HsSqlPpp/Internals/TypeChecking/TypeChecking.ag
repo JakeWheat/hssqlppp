@@ -227,26 +227,33 @@ fixTree = fixMssqlDates
 {-
 
 
-fix up datediff,datepart for sql server: set the type for the first
-argument to type in if it is in the acceptable list
+disgusting hack to fix up datediff,datepart, convert and other
+functions which accept a fixed list of keywords for one or more of the
+arguments for sql server: set the type for the first argument to type
+in if it is in the acceptable list.
 
-todo: make this approach more generic
+This is really bad. What happens is that the normal typechecker will
+check the keyword as an identifier and (usually!) put in unknown
+identifier error. Then, when the function is typechecked, it will
+ignore the type for this argument. After we've finished, the type
+error is replaced with int type here.
 
-plan:
-add a new type called pseudo enum
+The proper fix:
 
-add functions like datepart to the normal catalog to be looked up in
-the normal way. type them using the pseudo enum for the identifiers which aren't really identifiers, just symbols
+I think a good way to look at these is to consider them fixed enums
+which can only accept a literal (and not an enum valued
+expression). We set a flag/enum thing in the typecheck environment of
+the identifier, so that it can check the identifier fits one of the
+valid functions in the identifier itself. Then, there doesn't need to
+be a fix here, and typechecking the function should work without a
+hack here too. The typechecking of the function itself still needs
+some special casing (e.g. for the convert function in odbc (and
+similar in regular sql server syntax), the result type depends on the
+value of the 'enum'. This can be implemented in a similar way to the
+literal ints being passed to the function type checker.
 
-fix the environment passed to these identifiers during type checking
-to look up the correct set of possible values so there are no bogus
-type errors introduced which then need to be fixed layer
-
-store the list of different pseudo enum collections and the possible
-values for each somewhere (in the catalog?) and link functions like
-datepart to the correct lists
-
-Also does the odbc convert types
+This will be fixed with the rewrite of the findcallmatch/matchapp/a
+million different fns for precision and nullability/tcApplike mess.
 
 -}
 
@@ -268,6 +275,10 @@ fixMssqlDates = transformBi $ \x -> case x of
     | map toLower fn == "convert"
     , map toLower tnn `elem` map fst odbcConvertTypes ->
       App aa nm [a,Identifier (nai ai) tn]
+  App aa nm@(Name _ [Nmc fn]) (Identifier ai tn@(Name _ [Nmc tnn]):as)
+    | map toLower fn `elem` ["timestampadd","timestampdiff"]
+    , map toLower tnn `elem` odbcIntervalTypes ->
+      App aa nm (Identifier (nai ai) tn:as)
   x' -> x'
   where
       dateparts :: [String]
