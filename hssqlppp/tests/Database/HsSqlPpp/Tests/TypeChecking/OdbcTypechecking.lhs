@@ -67,6 +67,14 @@ https://msdn.microsoft.com/en-us/library/ms711813(v=vs.85).aspx
 >       ,ScalExpr "{fn left(left(3,'test'),3)}" $ Right $ ScalarType "text"
 >       ,ScalExpr "left(3,{fn left('test',3)})" $ Right $ ScalarType "text"
 
+>       ,TCQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")]]
+>         "select {fn ascii('test')} as a, a as b, {d '2000-01-01'} as c,\n\
+>         \       {fn CONVERT('text', SQL_VARCHAR)} || {t '12:00:01.1'} as d from t"
+>        $ Right $ CompositeType [("a", (mkTypeExtra typeInt) {teNullable=False})
+>                                ,("b", mkTypeExtra typeInt)
+>                                ,("c", mkTypeExtra typeDate)
+>                                ,("d", mkTypeExtra $ ScalarType "text")]
+
 >       -- outer join
 >       ,TCQueryExpr [CatCreateTable "t0" [("a", mkCatNameExtra "int4")
 >                                         ,("b", mkCatNameExtra "text")]
@@ -77,6 +85,7 @@ https://msdn.microsoft.com/en-us/library/ms711813(v=vs.85).aspx
 >                                ,("b", mkTypeExtra $ ScalarType "text")
 >                                ,("c", mkTypeExtra typeInt)
 >                                ,("d", mkTypeExtra $ ScalarType "text")]
+
 
 >   ]
 
