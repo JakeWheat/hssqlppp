@@ -181,7 +181,7 @@ gutted and rewritten
 > -- hssqlppp uses as canonical are the names that postgres uses in a pg_dump.
 > typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4,
 >   typeFloat8,typeVarChar,typeChar,typeBool,typeDate,
->   typeTimestamp, typeInterval :: Type
+>   typeTime,typeTimestamp, typeInterval :: Type
 > typeSmallInt = ScalarType "int2"
 > typeBigInt = ScalarType "int8"
 > typeInt = ScalarType "int4"
@@ -192,6 +192,7 @@ gutted and rewritten
 > typeChar = ScalarType "char"
 > typeBool = ScalarType "bool"
 > typeDate = ScalarType "date"
+> typeTime = ScalarType "time"
 > typeTimestamp = ScalarType "timestamp"
 > typeInterval = ScalarType "interval"
 

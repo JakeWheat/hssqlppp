@@ -7,7 +7,7 @@ TODO: this needs finishing
 
 > {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Internals.Catalog.OdbcCatalog
->      (odbcCatalog,odbcConvertTypes) where
+>      (odbcCatalog,odbcConvertTypes,odbcIntervalTypes) where
 >
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 > import Database.HsSqlPpp.Internals.TypesInternal
@@ -230,6 +230,8 @@ QUARTER(date_exp) (ODBC 1.0)
 Returns the quarter in date_exp as an integer value in the range of 1–4, where 1 represents January 1 through March 31.
 SECOND(time_exp) (ODBC 1.0)
 Returns the second based on the second field in time_exp as an integer value in the range of 0–59.
+
+TIMESTAMPADD(interval, integer_exp, timestamp_exp) (ODBC 2.0)
 Returns the timestamp calculated by adding integer_exp intervals of type interval to timestamp_exp. Valid values of interval are the following keywords:
 SQL_TSI_FRAC_SECOND
 SQL_TSI_SECOND
@@ -245,6 +247,11 @@ SELECT NAME, {fn TIMESTAMPADD(SQL_TSI_YEAR, 1, HIRE_DATE)} FROM EMPLOYEES
 If timestamp_exp is a time value and interval specifies days, weeks, months, quarters, or years, the date portion of timestamp_exp is set to the current date before calculating the resulting timestamp.
 If timestamp_exp is a date value and interval specifies fractional seconds, seconds, minutes, or hours, the time portion of timestamp_exp is set to 0 before calculating the resulting timestamp.
 An application determines which intervals a data source supports by calling SQLGetInfo with the SQL_TIMEDATE_ADD_INTERVALS option.
+
+>       ,CatCreateFunction "!odbc-timestampadd" ["int4","int4","date"] False "date"
+>       ,CatCreateFunction "!odbc-timestampadd" ["int4","int4","time"] False "time"
+>       ,CatCreateFunction "!odbc-timestampadd" ["int4","int4","timestamp"] False "timestamp"
+
 TIMESTAMPDIFF(interval, timestamp_exp1, timestamp_exp2) (ODBC 2.0)
 Returns the integer number of intervals of type interval by which timestamp_exp2 is greater than timestamp_exp1. Valid values of interval are the following keywords:
 SQL_TSI_FRAC_SECOND
@@ -261,6 +268,12 @@ SELECT NAME, {fn TIMESTAMPDIFF(SQL_TSI_YEAR, {fn CURDATE()}, HIRE_DATE)} FROM EM
 If either timestamp expression is a time value and interval specifies days, weeks, months, quarters, or years, the date portion of that timestamp is set to the current date before calculating the difference between the timestamps.
 If either timestamp expression is a date value and interval specifies fractional seconds, seconds, minutes, or hours, the time portion of that timestamp is set to 0 before calculating the difference between the timestamps.
 An application determines which intervals a data source supports by calling SQLGetInfo with the SQL_TIMEDATE_DIFF_INTERVALS option.
+
+>       ,CatCreateFunction "!odbc-timestampdiff" ["int4","time","time"] False "int4"
+>       ,CatCreateFunction "!odbc-timestampdiff" ["int4","date","date"] False "int4"
+>       ,CatCreateFunction "!odbc-timestampdiff" ["int4","timestamp","timestamp"] False "int4"
+
+
 WEEK(date_exp) (ODBC 1.0)
 Returns the week of the year based on the week field in date_exp as an integer value in the range of 1–53.
 YEAR(date_exp) (ODBC 1.0)
@@ -371,4 +384,14 @@ or int or something.
 >                    --,("sql_interval_day_to_minute", typeFloat8)
 >                    --,("sql_interval_day_to_second", typeFloat8)
 >                    ]
->
+
+> odbcIntervalTypes :: [String]
+> odbcIntervalTypes = ["sql_tsi_frac_second"
+>                     ,"sql_tsi_second"
+>                     ,"sql_tsi_minute"
+>                     ,"sql_tsi_hour"
+>                     ,"sql_tsi_day"
+>                     ,"sql_tsi_week"
+>                     ,"sql_tsi_month"
+>                     ,"sql_tsi_quarter"
+>                     ,"sql_tsi_year"]

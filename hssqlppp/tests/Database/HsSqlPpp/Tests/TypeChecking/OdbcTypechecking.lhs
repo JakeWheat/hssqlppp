@@ -57,6 +57,13 @@ https://msdn.microsoft.com/en-us/library/ms711813(v=vs.85).aspx
 >       ,ScalExpr "{fn CONVERT(3, SQL_BIGINT)}" $ Right typeBigInt
 >       ,ScalExpr "{fn CONVERT(3, SQL_FLOAT)}" $ Right typeFloat8
 
+>       ,ScalExpr "{fn timestampadd(SQL_TSI_SECOND,3, {t '12:00:00'})}" $ Right typeTime
+>       ,ScalExpr "{fn timestampadd(SQL_TSI_MINUTE,3, {ts '2001-01-01 12:00:00'})}" $ Right typeTimestamp
+>       ,ScalExpr "{fn timestampadd(SQL_TSI_YEAR,3, {d '2001-01-01'})}" $ Right typeDate
+
+>       ,ScalExpr "{fn timestampdiff(SQL_TSI_YEAR,{d '2001-01-01'}, {d '2001-01-01'})}" $ Right typeInt
+
+
 >        -- args are opposite way round
 >       ,ScalExpr "{fn left('test',3)}" $ Right $ ScalarType "text"
 >       ,ScalExpr "left(3,'test')" $ Right $ ScalarType "text"
@@ -66,6 +73,8 @@ https://msdn.microsoft.com/en-us/library/ms711813(v=vs.85).aspx
 
 >       ,ScalExpr "{fn left(left(3,'test'),3)}" $ Right $ ScalarType "text"
 >       ,ScalExpr "left(3,{fn left('test',3)})" $ Right $ ScalarType "text"
+
+
 
 >       ,TCQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")]]
 >         "select {fn ascii('test')} as a, a as b, {d '2000-01-01'} as c,\n\
