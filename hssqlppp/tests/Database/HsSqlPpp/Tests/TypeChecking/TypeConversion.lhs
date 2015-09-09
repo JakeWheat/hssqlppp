@@ -25,13 +25,13 @@ numeric operators simulator
 
 > binaryOperators :: Item
 > binaryOperators = Group "binaryOperators"
->     [MatchApp PostgreSQLDialect defaultTemplate1Catalog
+>     [{-MatchApp PostgreSQLDialect defaultTemplate1Catalog
 >      [Nmc "+"] [(intNotNull,Nothing),(intNotNull, Nothing)]
 >      (Right ([intNotNull,intNotNull],intNotNull))
 >     ,MatchApp PostgreSQLDialect defaultTemplate1Catalog
 >      [Nmc "+"] [(intNotNull,Nothing),(unk, Nothing)]
 >      (Right ([intNotNull,intNotNull],intNotNull))
->     ,MatchApp PostgreSQLDialect defaultTemplate1Catalog
+>     ,-}MatchApp PostgreSQLDialect defaultTemplate1Catalog
 >      [Nmc "+"] [(unk,Nothing),(unk, Nothing)]
 >      (Left [NoMatchingOperator "+" [UnknownType,UnknownType]])
 
@@ -39,14 +39,14 @@ different types with implicit casts
 
 >     {-,MatchApp PostgreSQLDialect defaultTemplate1Catalog
 >      [Nmc "+"] [(intNotNull,Nothing),(te typeNumeric, Nothing)]
->      (Right ([te typeNumeric,te typeNumeric],te typeNumeric))-}
+>      (Right ([te typeNumeric,te typeNumeric],te typeNumeric))
 
 
 nullability
 
 >     ,MatchApp PostgreSQLDialect defaultTemplate1Catalog
 >      [Nmc "+"] [(intNull,Nothing),(intNotNull, Nothing)]
->      (Right ([intNull,intNotNull],intNull))
+>      (Right ([intNull,intNotNull],intNull))-}
 
 
 precision and scale

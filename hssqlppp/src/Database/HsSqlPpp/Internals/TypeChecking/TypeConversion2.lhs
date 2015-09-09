@@ -3,7 +3,7 @@
 TODO: most of this code will move to the internals type conversion.
 rewrite the code to be nice and literate explaining everything
 
-> {-# LANGUAGE OverloadedStrings,LambdaCase #-}
+> {-# LANGUAGE OverloadedStrings,LambdaCase,MultiWayIf,PatternGuards #-}
 > module Database.HsSqlPpp.Internals.TypeChecking.TypeConversion2
 >        (matchApp,LitArg(..)) where
 
@@ -22,7 +22,7 @@ TODO: explicit imports
 > import Control.Arrow
 
 > import Text.Show.Pretty
-> --import Debug.Trace
+> import Debug.Trace
 
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
@@ -225,44 +225,88 @@ position
 if one left: use it
 else: keep all for next
 
+
+transpose the arguments
+calculate the category for each argument:
+  will be just string if any strings
+  will be just cat if all the same cat
+  otherwise nothing
+
+This doesn't take into account which positions are unknown in the
+input arg list yet.
+
+>         transposedCandidateArgs = transpose $ map (\(_,x,_,_) -> x)
+>                                   acceptsMostPreferredNextStep
+
+>         argumentCategories :: [Maybe T.Text]
+>         argumentCategories =
+>             let resolveTypeSetCat ts =
+>                     case () of
+>                      _ | any (==UnknownType) ts -> Just "unk"
+>                        | Right (c:cs) <- mapM (catTypeCategory cat) ts
+>                        , all (==c) cs -> Just c
+>                        | otherwise -> Nothing
+>             in map resolveTypeSetCat transposedCandidateArgs
+
+then: zip with the unknown positions
+  if we get any pairs of unknown + nothing for the cat:
+  fail with ambiguous error
+
+>         chooseCat :: Type -> Maybe T.Text
+>                   -> Either [TypeError] (Maybe T.Text)
+>         chooseCat a x = case (a,x) of
+>              (UnknownType,Nothing) ->Left [AmbigiousOperator appName' rawArgTypes]
+>              (UnknownType,Just y) -> Right (Just y)
+>              (_,_) -> Right Nothing
+>     let argumentCategoriesNeeded :: Either [TypeError] [Maybe T.Text]
+>         argumentCategoriesNeeded =
+>             zipWithM chooseCat rawArgTypes argumentCategories
+
+TODO: filter the cands by argument categories needed
+keep the left, if we need to use bestPreferredMatches then the left
+escapes
+
+>         {-matchesPreferredCategories =
+>             let candMatches (_,ts,_,_) cn =
+>                     catTypeCategory-}
+
+then:
+  convert the list of just cat to a list of preferred types
+  do another transpose of the remaining functions and
+  zip with the preferred type
+  keep the preferred type as just if any cands match this preferred
+   type, otherwise set to nothing
+
+>     let myIsPreferred ty = either (const False) (const True)
+>                            $ catPreferredType cat ty
+>         choosePreferredType :: [Type] -> Maybe Type
+>         choosePreferredType ts =
+>             let pts = filter myIsPreferred ts
+>             in case pts of
+>                    (t:_) -> Just t
+>                    [] -> Nothing
+
+>         preferredTypes :: [Maybe Type]
+>         preferredTypes = map choosePreferredType transposedCandidateArgs
+
+
+now have a list of just/nothings with justs for the types which have
+to match
+
+filter the cands using this just list
+now have the final best prefered match list and can
+  either return one if there is one
+  return ambiguous if there is more than one ?is this possible
+  or return ambiguous with the previous list if none get through this
+    filter
+
+>         matchesPreferred (_,ts,_,_) =
+>             let f _ Nothing = True
+>                 f t (Just pt) = t == pt
+>             in and $ zipWith f ts preferredTypes
 >         bestPreferredMatches :: [MyFunType]
 >         bestPreferredMatches =
->             let -- which positions in the input args are unknown type
->                 isUnknown :: [Bool]
->                 isUnknown = map (==UnknownType) rawArgTypes
->                 -- get the categories for each candidate args
->                 -- todo: fix this either to propagate error
->                 -- (should only happen if there is a programming mistake)
->                 typeCat :: Type -> T.Text
->                 typeCat ty = either (const "U") id $
->                              catTypeCategory cat ty
->                 -- get the categories for each argument for each candidate
->                 candsWithCats :: [([T.Text],MyFunType)]
->                 candsWithCats = flip map acceptsMostPreferredNextStep
->                     $ \v@(_,as,_,_) -> (map typeCat as,v)
->                 -- for each arg position
->                 -- if the input arg is unknown
->                 -- and all the candidates agree on a category
->                 -- keep that category
->                 -- otherwise nothing
->                 chooseCat :: Bool -> [T.Text] -> Maybe T.Text
->                 chooseCat False _ = Nothing
->                 -- if any arg accepts string choose string
->                 chooseCat True cs | any (=="S") cs = Just "S"
->                 -- protect error, shouldn't happen
->                 chooseCat True [] = Nothing
->                 -- if all the args in that position have the same
->                 -- category choose that category
->                 chooseCat True cs | all (==head cs) cs = Just $ head cs
->                                   | otherwise = Nothing
->                 argCats :: [Maybe T.Text]
->                 argCats = let xs = transpose $ map fst candsWithCats
->                           in zipWith chooseCat isUnknown xs
->                 --preferredTypes :: [Maybe Type]
->                 --preferredTypes = flip map argCats $ fmap $ \c ->
->                 --   either Nothing Just 
->                 -- todo: finish this
->             in []
+>             filter matchesPreferred acceptsMostPreferredNextStep
 
 >         bestPreferredMatchesNextStep :: [MyFunType]
 >         bestPreferredMatchesNextStep =
@@ -319,9 +363,7 @@ assume the unknowns to be this type. If there is one match, use it
 >         oneOrContinue x = case x of
 >               [a] -> Left (Right a)
 >               _ -> Right ()
->     {-trace (ppShow (hasUnknown,allKnownsType,allUnknownsMatchAllKnowns)
->            ++ "\n" ++ showProcess) $-}
->     do
+>     trace (_showProcess) $ do
 >         zeroOrOne exactMatches
 >         zeroOrOne typeConversionMatch
 >         oneOrContinue binaryOpKnownUnknownMatches
@@ -331,6 +373,37 @@ assume the unknowns to be this type. If there is one match, use it
 >         oneOrContinue allUnknownsMatchAllKnowns
 
 otherwise fail
+
+TODO:
+
+When the matching errors, what are the possibilities in user
+understandable terms?
+
+1. no functions with that name match
+(could return functions with a similar name + show types)
+
+2. have functions which match the name, but the number of args is
+wrong:
+
+list the functions + show types
+should this show similarly named functions? (what about highlighting
+ones with matching arg types?)
+
+3. have functions which have the right # args, but aren't reachable
+via implicit casts
+
+could list all the functions, does it make sense to highlight the ones
+which can be reached by explicit casts (or are there basically
+explicit casts for nearly all pairs of types?)
+should this show similarly named functions?
+should this show name matches with the wrong number of args
+
+4. I think the only other one that matters is that there are functions
+which match via implicit casts, but the system cannot pick a particlar
+one
+should it also list the other possibilities as above?
+
+Fix the error to contain this information.
 
 >         Left $ Left [NoMatchingOperator appName' rawArgTypes]
 
