@@ -1803,15 +1803,18 @@ a special case for them
 >   guard (iskfs i)
 >   functionCallSuffix (Identifier p (Name p [i]))
 >   where
->     kfs = ["any","all","isnull","left"]
+>     kfs = ["any","all","isnull","left","convert"]
 >     iskfs (Nmc n) | map toLower n `elem` kfs = True
 >     iskfs _ = False
 
 >
 > castKeyword :: SParser ScalarExpr
 > castKeyword =
->    choice
->    [do
+>    choice -- todo: have to parse this better
+>           -- make a new ctor for the sql server convert function
+>           -- since it can optionally take three args
+>           -- and representing it as an ansi sql cast is a bit ghetto also
+>    [try $ do
 >     -- parse tsql convert function to cast ast
 >     isSqlServer >>= guard
 >     p <- pos
