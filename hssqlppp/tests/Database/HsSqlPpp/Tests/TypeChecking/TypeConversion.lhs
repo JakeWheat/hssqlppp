@@ -31,9 +31,9 @@ numeric operators simulator
 >     ,MatchApp PostgreSQLDialect defaultTemplate1Catalog
 >      [Nmc "+"] [(intNotNull,Nothing),(unk, Nothing)]
 >      (Right ([intNotNull,intNotNull],intNotNull))
->     ,-}MatchApp PostgreSQLDialect defaultTemplate1Catalog
+>     ,MatchApp PostgreSQLDialect defaultTemplate1Catalog
 >      [Nmc "+"] [(unk,Nothing),(unk, Nothing)]
->      (Left [NoMatchingOperator "+" [UnknownType,UnknownType]])
+>      (Left [NoMatchingOperator "+" [UnknownType,UnknownType]])-}
 
 different types with implicit casts
 

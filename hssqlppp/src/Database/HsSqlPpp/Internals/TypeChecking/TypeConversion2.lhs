@@ -255,7 +255,7 @@ then: zip with the unknown positions
 >         chooseCat :: Type -> Maybe T.Text
 >                   -> Either [TypeError] (Maybe T.Text)
 >         chooseCat a x = case (a,x) of
->              (UnknownType,Nothing) ->Left [AmbigiousOperator appName' rawArgTypes]
+>              (UnknownType,Nothing) ->Left [AmbiguousOperator appName' rawArgTypes]
 >              (UnknownType,Just y) -> Right (Just y)
 >              (_,_) -> Right Nothing
 >     let argumentCategoriesNeeded :: Either [TypeError] [Maybe T.Text]
@@ -359,7 +359,7 @@ assume the unknowns to be this type. If there is one match, use it
 >     let zeroOrOne x = case x of
 >               [] -> Right ()
 >               [a] -> Left (Right a)
->               _ -> Left (Left [AmbigiousOperator appName' rawArgTypes])
+>               _ -> Left (Left [AmbiguousOperator appName' rawArgTypes])
 >         oneOrContinue x = case x of
 >               [a] -> Left (Right a)
 >               _ -> Right ()
