@@ -12,9 +12,11 @@ TODO: this needs finishing
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 > import Database.HsSqlPpp.Internals.TypesInternal
 > --import Database.HsSqlPpp.Internals.TypesInternal
-> -- | The catalog from a default template1 database in roughly the
-> -- latest postgres. 'select version()' from the dbms this catalog
-> -- was generated from: 'PostgreSQL 9.4.2 on x86_64-unknown-linux-gnu, compiled by gcc-4.9.real (Debian 4.9.2-17) 4.9.2, 64-bit'.
+
+> -- | The odbc catalog contains the odbc specific functions
+> -- if you want to type check sql with odbc specific functions, you
+> -- can add these catalog updates to your catalog and then it should
+> -- work
 > odbcCatalog :: [CatalogUpdate]
 > odbcCatalog = [
 
