@@ -133,6 +133,10 @@ The odbc syntax is currently available in all dialects.
 >              $ OdbcFunc ea (Extract ea ExtractYear $ ei "my_date")
 >             ,Expr "{fn now()}"
 >              $ OdbcFunc ea (App ea (name "now") [])
+>             ,Expr "{fn CONVERT('2000-01-01', SQL_DATE)}"
+>              $ OdbcFunc ea (App ea (name "CONVERT")
+>               [StringLit ea "2000-01-01"
+>               ,ei "SQL_DATE"])
 >             ,Expr "{fn CONVERT({fn CURDATE()}, SQL_DATE)}"
 >              $ OdbcFunc ea (App ea (name "CONVERT")
 >               [OdbcFunc ea (App ea (name "CURDATE") [])
