@@ -22,6 +22,7 @@ installed to do this.
 >              Right e -> e) $
 >      flip updateCatalog defaultCatalog (
 
+
     
 >        [CatCreateScalarType "abstime", CatCreateScalarType "aclitem",
 >         CatCreateScalarType "bit", CatCreateScalarType "bool",
@@ -33,16 +34,14 @@ installed to do this.
 >         CatCreateScalarType "gtsvector", CatCreateScalarType "inet",
 >         CatCreateScalarType "int2", CatCreateScalarType "int2vector",
 >         CatCreateScalarType "int4", CatCreateScalarType "int8",
->         CatCreateScalarType "interval", CatCreateScalarType "json",
->         CatCreateScalarType "jsonb", CatCreateScalarType "line",
+>         CatCreateScalarType "interval", CatCreateScalarType "line",
 >         CatCreateScalarType "lseg", CatCreateScalarType "macaddr",
 >         CatCreateScalarType "money", CatCreateScalarType "name",
 >         CatCreateScalarType "numeric", CatCreateScalarType "oid",
 >         CatCreateScalarType "oidvector", CatCreateScalarType "path",
->         CatCreateScalarType "pg_lsn", CatCreateScalarType "pg_node_tree",
->         CatCreateScalarType "point", CatCreateScalarType "polygon",
->         CatCreateScalarType "refcursor", CatCreateScalarType "regclass",
->         CatCreateScalarType "regconfig",
+>         CatCreateScalarType "pg_node_tree", CatCreateScalarType "point",
+>         CatCreateScalarType "polygon", CatCreateScalarType "refcursor",
+>         CatCreateScalarType "regclass", CatCreateScalarType "regconfig",
 >         CatCreateScalarType "regdictionary", CatCreateScalarType "regoper",
 >         CatCreateScalarType "regoperator", CatCreateScalarType "regproc",
 >         CatCreateScalarType "regprocedure", CatCreateScalarType "regtype",
@@ -85,10 +84,6 @@ installed to do this.
 >         CatCreateTypeCategoryEntry "_txid_snapshot" ("A", False),
 >         CatCreateArrayType "_tsvector" "tsvector",
 >         CatCreateTypeCategoryEntry "_tsvector" ("A", False),
->         CatCreateArrayType "_tstzrange" "tstzrange",
->         CatCreateTypeCategoryEntry "_tstzrange" ("A", False),
->         CatCreateArrayType "_tsrange" "tsrange",
->         CatCreateTypeCategoryEntry "_tsrange" ("A", False),
 >         CatCreateArrayType "_tsquery" "tsquery",
 >         CatCreateTypeCategoryEntry "_tsquery" ("A", False),
 >         CatCreateArrayType "_tinterval" "tinterval",
@@ -131,16 +126,12 @@ installed to do this.
 >         CatCreateTypeCategoryEntry "_polygon" ("A", False),
 >         CatCreateArrayType "_point" "point",
 >         CatCreateTypeCategoryEntry "_point" ("A", False),
->         CatCreateArrayType "_pg_lsn" "pg_lsn",
->         CatCreateTypeCategoryEntry "_pg_lsn" ("A", False),
 >         CatCreateArrayType "_path" "path",
 >         CatCreateTypeCategoryEntry "_path" ("A", False),
 >         CatCreateArrayType "_oidvector" "oidvector",
 >         CatCreateTypeCategoryEntry "_oidvector" ("A", False),
 >         CatCreateArrayType "_oid" "oid",
 >         CatCreateTypeCategoryEntry "_oid" ("A", False),
->         CatCreateArrayType "_numrange" "numrange",
->         CatCreateTypeCategoryEntry "_numrange" ("A", False),
 >         CatCreateArrayType "_numeric" "numeric",
 >         CatCreateTypeCategoryEntry "_numeric" ("A", False),
 >         CatCreateArrayType "_name" "name",
@@ -153,18 +144,10 @@ installed to do this.
 >         CatCreateTypeCategoryEntry "_lseg" ("A", False),
 >         CatCreateArrayType "_line" "line",
 >         CatCreateTypeCategoryEntry "_line" ("A", False),
->         CatCreateArrayType "_jsonb" "jsonb",
->         CatCreateTypeCategoryEntry "_jsonb" ("A", False),
->         CatCreateArrayType "_json" "json",
->         CatCreateTypeCategoryEntry "_json" ("A", False),
 >         CatCreateArrayType "_interval" "interval",
 >         CatCreateTypeCategoryEntry "_interval" ("A", False),
->         CatCreateArrayType "_int8range" "int8range",
->         CatCreateTypeCategoryEntry "_int8range" ("A", False),
 >         CatCreateArrayType "_int8" "int8",
 >         CatCreateTypeCategoryEntry "_int8" ("A", False),
->         CatCreateArrayType "_int4range" "int4range",
->         CatCreateTypeCategoryEntry "_int4range" ("A", False),
 >         CatCreateArrayType "_int4" "int4",
 >         CatCreateTypeCategoryEntry "_int4" ("A", False),
 >         CatCreateArrayType "_int2vector" "int2vector",
@@ -179,8 +162,6 @@ installed to do this.
 >         CatCreateTypeCategoryEntry "_float8" ("A", False),
 >         CatCreateArrayType "_float4" "float4",
 >         CatCreateTypeCategoryEntry "_float4" ("A", False),
->         CatCreateArrayType "_daterange" "daterange",
->         CatCreateTypeCategoryEntry "_daterange" ("A", False),
 >         CatCreateArrayType "_date" "date",
 >         CatCreateTypeCategoryEntry "_date" ("A", False),
 >         CatCreateArrayType "_cstring" "cstring",
@@ -247,7 +228,6 @@ installed to do this.
 >         CatCreatePrefixOp "~" "int8" "int8",
 >         CatCreatePrefixOp "~" "int2" "int2",
 >         CatCreatePrefixOp "~" "int4" "int4",
->         CatCreatePrefixOp "~" "macaddr" "macaddr",
 >         CatCreatePrefixOp "~" "inet" "inet",
 >         CatCreatePrefixOp "~" "bit" "bit",
 >         CatCreatePostfixOp "!" "int8" "numeric",
@@ -283,12 +263,8 @@ installed to do this.
 >         CatCreateBinaryOp "#<=" "tinterval" "reltime" "bool",
 >         CatCreateBinaryOp "#<>" "tinterval" "reltime" "bool",
 >         CatCreateBinaryOp "#=" "tinterval" "reltime" "bool",
->         CatCreateBinaryOp "#>" "json" "_text" "json",
 >         CatCreateBinaryOp "#>" "tinterval" "reltime" "bool",
->         CatCreateBinaryOp "#>" "jsonb" "_text" "jsonb",
 >         CatCreateBinaryOp "#>=" "tinterval" "reltime" "bool",
->         CatCreateBinaryOp "#>>" "json" "_text" "text",
->         CatCreateBinaryOp "#>>" "jsonb" "_text" "text",
 >         CatCreateBinaryOp "%" "int8" "int8" "int8",
 >         CatCreateBinaryOp "%" "int2" "int2" "int2",
 >         CatCreateBinaryOp "%" "int4" "int4" "int4",
@@ -296,28 +272,23 @@ installed to do this.
 >         CatCreateBinaryOp "&" "int8" "int8" "int8",
 >         CatCreateBinaryOp "&" "int2" "int2" "int2",
 >         CatCreateBinaryOp "&" "int4" "int4" "int4",
->         CatCreateBinaryOp "&" "macaddr" "macaddr" "macaddr",
 >         CatCreateBinaryOp "&" "inet" "inet" "inet",
 >         CatCreateBinaryOp "&" "bit" "bit" "bit",
 >         CatCreateBinaryOp "&&" "box" "box" "bool",
 >         CatCreateBinaryOp "&&" "polygon" "polygon" "bool",
 >         CatCreateBinaryOp "&&" "tinterval" "tinterval" "bool",
 >         CatCreateBinaryOp "&&" "circle" "circle" "bool",
->         CatCreateBinaryOp "&&" "inet" "inet" "bool",
 >         CatCreateBinaryOp "&&" "anyarray" "anyarray" "bool",
 >         CatCreateBinaryOp "&&" "tsquery" "tsquery" "tsquery",
->         CatCreateBinaryOp "&&" "anyrange" "anyrange" "bool",
 >         CatCreateBinaryOp "&<" "box" "box" "bool",
 >         CatCreateBinaryOp "&<" "polygon" "polygon" "bool",
 >         CatCreateBinaryOp "&<" "circle" "circle" "bool",
->         CatCreateBinaryOp "&<" "anyrange" "anyrange" "bool",
 >         CatCreateBinaryOp "&<|" "box" "box" "bool",
 >         CatCreateBinaryOp "&<|" "polygon" "polygon" "bool",
 >         CatCreateBinaryOp "&<|" "circle" "circle" "bool",
 >         CatCreateBinaryOp "&>" "box" "box" "bool",
 >         CatCreateBinaryOp "&>" "polygon" "polygon" "bool",
 >         CatCreateBinaryOp "&>" "circle" "circle" "bool",
->         CatCreateBinaryOp "&>" "anyrange" "anyrange" "bool",
 >         CatCreateBinaryOp "*" "int8" "int8" "int8",
 >         CatCreateBinaryOp "*" "int8" "int2" "int8",
 >         CatCreateBinaryOp "*" "int8" "int4" "int8",
@@ -346,13 +317,6 @@ installed to do this.
 >         CatCreateBinaryOp "*" "money" "float8" "money",
 >         CatCreateBinaryOp "*" "interval" "float8" "interval",
 >         CatCreateBinaryOp "*" "numeric" "numeric" "numeric",
->         CatCreateBinaryOp "*" "anyrange" "anyrange" "anyrange",
->         CatCreateBinaryOp "*<" "record" "record" "bool",
->         CatCreateBinaryOp "*<=" "record" "record" "bool",
->         CatCreateBinaryOp "*<>" "record" "record" "bool",
->         CatCreateBinaryOp "*=" "record" "record" "bool",
->         CatCreateBinaryOp "*>" "record" "record" "bool",
->         CatCreateBinaryOp "*>=" "record" "record" "bool",
 >         CatCreateBinaryOp "+" "int8" "int8" "int8",
 >         CatCreateBinaryOp "+" "int8" "int2" "int8",
 >         CatCreateBinaryOp "+" "int8" "int4" "int8",
@@ -394,7 +358,6 @@ installed to do this.
 >         CatCreateBinaryOp "+" "timetz" "date" "timestamptz",
 >         CatCreateBinaryOp "+" "timetz" "interval" "timetz",
 >         CatCreateBinaryOp "+" "numeric" "numeric" "numeric",
->         CatCreateBinaryOp "+" "anyrange" "anyrange" "anyrange",
 >         CatCreateBinaryOp "-" "int8" "int8" "int8",
 >         CatCreateBinaryOp "-" "int8" "int2" "int8",
 >         CatCreateBinaryOp "-" "int8" "int4" "int8",
@@ -429,17 +392,6 @@ installed to do this.
 >         CatCreateBinaryOp "-" "interval" "interval" "interval",
 >         CatCreateBinaryOp "-" "timetz" "interval" "timetz",
 >         CatCreateBinaryOp "-" "numeric" "numeric" "numeric",
->         CatCreateBinaryOp "-" "pg_lsn" "pg_lsn" "numeric",
->         CatCreateBinaryOp "-" "anyrange" "anyrange" "anyrange",
->         CatCreateBinaryOp "->" "json" "int4" "json",
->         CatCreateBinaryOp "->" "json" "text" "json",
->         CatCreateBinaryOp "->" "jsonb" "int4" "jsonb",
->         CatCreateBinaryOp "->" "jsonb" "text" "jsonb",
->         CatCreateBinaryOp "->>" "json" "int4" "text",
->         CatCreateBinaryOp "->>" "json" "text" "text",
->         CatCreateBinaryOp "->>" "jsonb" "int4" "text",
->         CatCreateBinaryOp "->>" "jsonb" "text" "text",
->         CatCreateBinaryOp "-|-" "anyrange" "anyrange" "bool",
 >         CatCreateBinaryOp "/" "int8" "int8" "int8",
 >         CatCreateBinaryOp "/" "int8" "int2" "int8",
 >         CatCreateBinaryOp "/" "int8" "int4" "int8",
@@ -497,15 +449,15 @@ installed to do this.
 >         CatCreateBinaryOp "<" "inet" "inet" "bool",
 >         CatCreateBinaryOp "<" "bpchar" "bpchar" "bool",
 >         CatCreateBinaryOp "<" "date" "date" "bool",
->         CatCreateBinaryOp "<" "date" "timestamp" "bool",
->         CatCreateBinaryOp "<" "date" "timestamptz" "bool",
+>         --CatCreateBinaryOp "<" "date" "timestamp" "bool",
+>         --CatCreateBinaryOp "<" "date" "timestamptz" "bool",
 >         CatCreateBinaryOp "<" "time" "time" "bool",
->         CatCreateBinaryOp "<" "timestamp" "date" "bool",
+>         --CatCreateBinaryOp "<" "timestamp" "date" "bool",
 >         CatCreateBinaryOp "<" "timestamp" "timestamp" "bool",
->         CatCreateBinaryOp "<" "timestamp" "timestamptz" "bool",
->         CatCreateBinaryOp "<" "timestamptz" "date" "bool",
->         CatCreateBinaryOp "<" "timestamptz" "timestamp" "bool",
->         CatCreateBinaryOp "<" "timestamptz" "timestamptz" "bool",
+>         --CatCreateBinaryOp "<" "timestamp" "timestamptz" "bool",
+>         --CatCreateBinaryOp "<" "timestamptz" "date" "bool",
+>         --CatCreateBinaryOp "<" "timestamptz" "timestamp" "bool",
+>         --CatCreateBinaryOp "<" "timestamptz" "timestamptz" "bool",
 >         CatCreateBinaryOp "<" "interval" "interval" "bool",
 >         CatCreateBinaryOp "<" "timetz" "timetz" "bool",
 >         CatCreateBinaryOp "<" "bit" "bit" "bool",
@@ -514,12 +466,9 @@ installed to do this.
 >         CatCreateBinaryOp "<" "record" "record" "bool",
 >         CatCreateBinaryOp "<" "anyarray" "anyarray" "bool",
 >         CatCreateBinaryOp "<" "uuid" "uuid" "bool",
->         CatCreateBinaryOp "<" "pg_lsn" "pg_lsn" "bool",
 >         CatCreateBinaryOp "<" "anyenum" "anyenum" "bool",
 >         CatCreateBinaryOp "<" "tsvector" "tsvector" "bool",
 >         CatCreateBinaryOp "<" "tsquery" "tsquery" "bool",
->         CatCreateBinaryOp "<" "jsonb" "jsonb" "bool",
->         CatCreateBinaryOp "<" "anyrange" "anyrange" "bool",
 >         CatCreateBinaryOp "<#>" "abstime" "abstime" "tinterval",
 >         CatCreateBinaryOp "<->" "point" "point" "float8",
 >         CatCreateBinaryOp "<->" "point" "lseg" "float8",
@@ -547,7 +496,6 @@ installed to do this.
 >         CatCreateBinaryOp "<<" "circle" "circle" "bool",
 >         CatCreateBinaryOp "<<" "inet" "inet" "bool",
 >         CatCreateBinaryOp "<<" "bit" "int4" "bit",
->         CatCreateBinaryOp "<<" "anyrange" "anyrange" "bool",
 >         CatCreateBinaryOp "<<=" "inet" "inet" "bool",
 >         CatCreateBinaryOp "<<|" "box" "box" "bool",
 >         CatCreateBinaryOp "<<|" "polygon" "polygon" "bool",
@@ -585,15 +533,15 @@ installed to do this.
 >         CatCreateBinaryOp "<=" "inet" "inet" "bool",
 >         CatCreateBinaryOp "<=" "bpchar" "bpchar" "bool",
 >         CatCreateBinaryOp "<=" "date" "date" "bool",
->         CatCreateBinaryOp "<=" "date" "timestamp" "bool",
->         CatCreateBinaryOp "<=" "date" "timestamptz" "bool",
+>         --CatCreateBinaryOp "<=" "date" "timestamp" "bool",
+>         --CatCreateBinaryOp "<=" "date" "timestamptz" "bool",
 >         CatCreateBinaryOp "<=" "time" "time" "bool",
->         CatCreateBinaryOp "<=" "timestamp" "date" "bool",
+>         --CatCreateBinaryOp "<=" "timestamp" "date" "bool",
 >         CatCreateBinaryOp "<=" "timestamp" "timestamp" "bool",
->         CatCreateBinaryOp "<=" "timestamp" "timestamptz" "bool",
->         CatCreateBinaryOp "<=" "timestamptz" "date" "bool",
->         CatCreateBinaryOp "<=" "timestamptz" "timestamp" "bool",
->         CatCreateBinaryOp "<=" "timestamptz" "timestamptz" "bool",
+>         --CatCreateBinaryOp "<=" "timestamp" "timestamptz" "bool",
+>         --CatCreateBinaryOp "<=" "timestamptz" "date" "bool",
+>         --CatCreateBinaryOp "<=" "timestamptz" "timestamp" "bool",
+>         --CatCreateBinaryOp "<=" "timestamptz" "timestamptz" "bool",
 >         CatCreateBinaryOp "<=" "interval" "interval" "bool",
 >         CatCreateBinaryOp "<=" "timetz" "timetz" "bool",
 >         CatCreateBinaryOp "<=" "bit" "bit" "bool",
@@ -602,12 +550,9 @@ installed to do this.
 >         CatCreateBinaryOp "<=" "record" "record" "bool",
 >         CatCreateBinaryOp "<=" "anyarray" "anyarray" "bool",
 >         CatCreateBinaryOp "<=" "uuid" "uuid" "bool",
->         CatCreateBinaryOp "<=" "pg_lsn" "pg_lsn" "bool",
 >         CatCreateBinaryOp "<=" "anyenum" "anyenum" "bool",
 >         CatCreateBinaryOp "<=" "tsvector" "tsvector" "bool",
 >         CatCreateBinaryOp "<=" "tsquery" "tsquery" "bool",
->         CatCreateBinaryOp "<=" "jsonb" "jsonb" "bool",
->         CatCreateBinaryOp "<=" "anyrange" "anyrange" "bool",
 >         CatCreateBinaryOp "<>" "bool" "bool" "bool",
 >         CatCreateBinaryOp "<>" "bytea" "bytea" "bool",
 >         CatCreateBinaryOp "<>" "char" "char" "bool",
@@ -640,15 +585,15 @@ installed to do this.
 >         CatCreateBinaryOp "<>" "inet" "inet" "bool",
 >         CatCreateBinaryOp "<>" "bpchar" "bpchar" "bool",
 >         CatCreateBinaryOp "<>" "date" "date" "bool",
->         CatCreateBinaryOp "<>" "date" "timestamp" "bool",
->         CatCreateBinaryOp "<>" "date" "timestamptz" "bool",
+>         --CatCreateBinaryOp "<>" "date" "timestamp" "bool",
+>         --CatCreateBinaryOp "<>" "date" "timestamptz" "bool",
 >         CatCreateBinaryOp "<>" "time" "time" "bool",
->         CatCreateBinaryOp "<>" "timestamp" "date" "bool",
+>         --CatCreateBinaryOp "<>" "timestamp" "date" "bool",
 >         CatCreateBinaryOp "<>" "timestamp" "timestamp" "bool",
->         CatCreateBinaryOp "<>" "timestamp" "timestamptz" "bool",
->         CatCreateBinaryOp "<>" "timestamptz" "date" "bool",
->         CatCreateBinaryOp "<>" "timestamptz" "timestamp" "bool",
->         CatCreateBinaryOp "<>" "timestamptz" "timestamptz" "bool",
+>         --CatCreateBinaryOp "<>" "timestamp" "timestamptz" "bool",
+>         --CatCreateBinaryOp "<>" "timestamptz" "date" "bool",
+>         --CatCreateBinaryOp "<>" "timestamptz" "timestamp" "bool",
+>         --CatCreateBinaryOp "<>" "timestamptz" "timestamptz" "bool",
 >         CatCreateBinaryOp "<>" "interval" "interval" "bool",
 >         CatCreateBinaryOp "<>" "timetz" "timetz" "bool",
 >         CatCreateBinaryOp "<>" "bit" "bit" "bool",
@@ -657,12 +602,9 @@ installed to do this.
 >         CatCreateBinaryOp "<>" "record" "record" "bool",
 >         CatCreateBinaryOp "<>" "anyarray" "anyarray" "bool",
 >         CatCreateBinaryOp "<>" "uuid" "uuid" "bool",
->         CatCreateBinaryOp "<>" "pg_lsn" "pg_lsn" "bool",
 >         CatCreateBinaryOp "<>" "anyenum" "anyenum" "bool",
 >         CatCreateBinaryOp "<>" "tsvector" "tsvector" "bool",
 >         CatCreateBinaryOp "<>" "tsquery" "tsquery" "bool",
->         CatCreateBinaryOp "<>" "jsonb" "jsonb" "bool",
->         CatCreateBinaryOp "<>" "anyrange" "anyrange" "bool",
 >         CatCreateBinaryOp "<?>" "abstime" "tinterval" "bool",
 >         CatCreateBinaryOp "<@" "point" "lseg" "bool",
 >         CatCreateBinaryOp "<@" "point" "path" "bool",
@@ -676,10 +618,7 @@ installed to do this.
 >         CatCreateBinaryOp "<@" "polygon" "polygon" "bool",
 >         CatCreateBinaryOp "<@" "circle" "circle" "bool",
 >         CatCreateBinaryOp "<@" "anyarray" "anyarray" "bool",
->         CatCreateBinaryOp "<@" "anyelement" "anyrange" "bool",
 >         CatCreateBinaryOp "<@" "tsquery" "tsquery" "bool",
->         CatCreateBinaryOp "<@" "jsonb" "jsonb" "bool",
->         CatCreateBinaryOp "<@" "anyrange" "anyrange" "bool",
 >         CatCreateBinaryOp "<^" "point" "point" "bool",
 >         CatCreateBinaryOp "<^" "box" "box" "bool",
 >         CatCreateBinaryOp "=" "bool" "bool" "bool",
@@ -721,15 +660,15 @@ installed to do this.
 >         CatCreateBinaryOp "=" "aclitem" "aclitem" "bool",
 >         CatCreateBinaryOp "=" "bpchar" "bpchar" "bool",
 >         CatCreateBinaryOp "=" "date" "date" "bool",
->         CatCreateBinaryOp "=" "date" "timestamp" "bool",
->         CatCreateBinaryOp "=" "date" "timestamptz" "bool",
+>         --CatCreateBinaryOp "=" "date" "timestamp" "bool",
+>         --CatCreateBinaryOp "=" "date" "timestamptz" "bool",
 >         CatCreateBinaryOp "=" "time" "time" "bool",
->         CatCreateBinaryOp "=" "timestamp" "date" "bool",
+>         --CatCreateBinaryOp "=" "timestamp" "date" "bool",
 >         CatCreateBinaryOp "=" "timestamp" "timestamp" "bool",
->         CatCreateBinaryOp "=" "timestamp" "timestamptz" "bool",
->         CatCreateBinaryOp "=" "timestamptz" "date" "bool",
->         CatCreateBinaryOp "=" "timestamptz" "timestamp" "bool",
->         CatCreateBinaryOp "=" "timestamptz" "timestamptz" "bool",
+>         --CatCreateBinaryOp "=" "timestamp" "timestamptz" "bool",
+>         --CatCreateBinaryOp "=" "timestamptz" "date" "bool",
+>         --CatCreateBinaryOp "=" "timestamptz" "timestamp" "bool",
+>         --CatCreateBinaryOp "=" "timestamptz" "timestamptz" "bool",
 >         CatCreateBinaryOp "=" "interval" "interval" "bool",
 >         CatCreateBinaryOp "=" "timetz" "timetz" "bool",
 >         CatCreateBinaryOp "=" "bit" "bit" "bool",
@@ -738,12 +677,9 @@ installed to do this.
 >         CatCreateBinaryOp "=" "record" "record" "bool",
 >         CatCreateBinaryOp "=" "anyarray" "anyarray" "bool",
 >         CatCreateBinaryOp "=" "uuid" "uuid" "bool",
->         CatCreateBinaryOp "=" "pg_lsn" "pg_lsn" "bool",
 >         CatCreateBinaryOp "=" "anyenum" "anyenum" "bool",
 >         CatCreateBinaryOp "=" "tsvector" "tsvector" "bool",
 >         CatCreateBinaryOp "=" "tsquery" "tsquery" "bool",
->         CatCreateBinaryOp "=" "jsonb" "jsonb" "bool",
->         CatCreateBinaryOp "=" "anyrange" "anyrange" "bool",
 >         CatCreateBinaryOp ">" "bool" "bool" "bool",
 >         CatCreateBinaryOp ">" "bytea" "bytea" "bool",
 >         CatCreateBinaryOp ">" "char" "char" "bool",
@@ -777,15 +713,15 @@ installed to do this.
 >         CatCreateBinaryOp ">" "inet" "inet" "bool",
 >         CatCreateBinaryOp ">" "bpchar" "bpchar" "bool",
 >         CatCreateBinaryOp ">" "date" "date" "bool",
->         CatCreateBinaryOp ">" "date" "timestamp" "bool",
->         CatCreateBinaryOp ">" "date" "timestamptz" "bool",
+>         --CatCreateBinaryOp ">" "date" "timestamp" "bool",
+>         --CatCreateBinaryOp ">" "date" "timestamptz" "bool",
 >         CatCreateBinaryOp ">" "time" "time" "bool",
->         CatCreateBinaryOp ">" "timestamp" "date" "bool",
+>         --CatCreateBinaryOp ">" "timestamp" "date" "bool",
 >         CatCreateBinaryOp ">" "timestamp" "timestamp" "bool",
->         CatCreateBinaryOp ">" "timestamp" "timestamptz" "bool",
->         CatCreateBinaryOp ">" "timestamptz" "date" "bool",
->         CatCreateBinaryOp ">" "timestamptz" "timestamp" "bool",
->         CatCreateBinaryOp ">" "timestamptz" "timestamptz" "bool",
+>         --CatCreateBinaryOp ">" "timestamp" "timestamptz" "bool",
+>         --CatCreateBinaryOp ">" "timestamptz" "date" "bool",
+>         --CatCreateBinaryOp ">" "timestamptz" "timestamp" "bool",
+>         --CatCreateBinaryOp ">" "timestamptz" "timestamptz" "bool",
 >         CatCreateBinaryOp ">" "interval" "interval" "bool",
 >         CatCreateBinaryOp ">" "timetz" "timetz" "bool",
 >         CatCreateBinaryOp ">" "bit" "bit" "bool",
@@ -794,12 +730,9 @@ installed to do this.
 >         CatCreateBinaryOp ">" "record" "record" "bool",
 >         CatCreateBinaryOp ">" "anyarray" "anyarray" "bool",
 >         CatCreateBinaryOp ">" "uuid" "uuid" "bool",
->         CatCreateBinaryOp ">" "pg_lsn" "pg_lsn" "bool",
 >         CatCreateBinaryOp ">" "anyenum" "anyenum" "bool",
 >         CatCreateBinaryOp ">" "tsvector" "tsvector" "bool",
 >         CatCreateBinaryOp ">" "tsquery" "tsquery" "bool",
->         CatCreateBinaryOp ">" "jsonb" "jsonb" "bool",
->         CatCreateBinaryOp ">" "anyrange" "anyrange" "bool",
 >         CatCreateBinaryOp ">=" "bool" "bool" "bool",
 >         CatCreateBinaryOp ">=" "bytea" "bytea" "bool",
 >         CatCreateBinaryOp ">=" "char" "char" "bool",
@@ -833,15 +766,15 @@ installed to do this.
 >         CatCreateBinaryOp ">=" "inet" "inet" "bool",
 >         CatCreateBinaryOp ">=" "bpchar" "bpchar" "bool",
 >         CatCreateBinaryOp ">=" "date" "date" "bool",
->         CatCreateBinaryOp ">=" "date" "timestamp" "bool",
->         CatCreateBinaryOp ">=" "date" "timestamptz" "bool",
+>         --CatCreateBinaryOp ">=" "date" "timestamp" "bool",
+>         --CatCreateBinaryOp ">=" "date" "timestamptz" "bool",
 >         CatCreateBinaryOp ">=" "time" "time" "bool",
->         CatCreateBinaryOp ">=" "timestamp" "date" "bool",
+>         --CatCreateBinaryOp ">=" "timestamp" "date" "bool",
 >         CatCreateBinaryOp ">=" "timestamp" "timestamp" "bool",
->         CatCreateBinaryOp ">=" "timestamp" "timestamptz" "bool",
->         CatCreateBinaryOp ">=" "timestamptz" "date" "bool",
->         CatCreateBinaryOp ">=" "timestamptz" "timestamp" "bool",
->         CatCreateBinaryOp ">=" "timestamptz" "timestamptz" "bool",
+>         --CatCreateBinaryOp ">=" "timestamp" "timestamptz" "bool",
+>         --CatCreateBinaryOp ">=" "timestamptz" "date" "bool",
+>         --CatCreateBinaryOp ">=" "timestamptz" "timestamp" "bool",
+>         --CatCreateBinaryOp ">=" "timestamptz" "timestamptz" "bool",
 >         CatCreateBinaryOp ">=" "interval" "interval" "bool",
 >         CatCreateBinaryOp ">=" "timetz" "timetz" "bool",
 >         CatCreateBinaryOp ">=" "bit" "bit" "bool",
@@ -850,12 +783,9 @@ installed to do this.
 >         CatCreateBinaryOp ">=" "record" "record" "bool",
 >         CatCreateBinaryOp ">=" "anyarray" "anyarray" "bool",
 >         CatCreateBinaryOp ">=" "uuid" "uuid" "bool",
->         CatCreateBinaryOp ">=" "pg_lsn" "pg_lsn" "bool",
 >         CatCreateBinaryOp ">=" "anyenum" "anyenum" "bool",
 >         CatCreateBinaryOp ">=" "tsvector" "tsvector" "bool",
 >         CatCreateBinaryOp ">=" "tsquery" "tsquery" "bool",
->         CatCreateBinaryOp ">=" "jsonb" "jsonb" "bool",
->         CatCreateBinaryOp ">=" "anyrange" "anyrange" "bool",
 >         CatCreateBinaryOp ">>" "int8" "int4" "int8",
 >         CatCreateBinaryOp ">>" "int2" "int4" "int2",
 >         CatCreateBinaryOp ">>" "int4" "int4" "int4",
@@ -865,11 +795,9 @@ installed to do this.
 >         CatCreateBinaryOp ">>" "circle" "circle" "bool",
 >         CatCreateBinaryOp ">>" "inet" "inet" "bool",
 >         CatCreateBinaryOp ">>" "bit" "int4" "bit",
->         CatCreateBinaryOp ">>" "anyrange" "anyrange" "bool",
 >         CatCreateBinaryOp ">>=" "inet" "inet" "bool",
 >         CatCreateBinaryOp ">^" "point" "point" "bool",
 >         CatCreateBinaryOp ">^" "box" "box" "bool",
->         CatCreateBinaryOp "?" "jsonb" "text" "bool",
 >         CatCreateBinaryOp "?#" "lseg" "lseg" "bool",
 >         CatCreateBinaryOp "?#" "lseg" "box" "bool",
 >         CatCreateBinaryOp "?#" "lseg" "line" "bool",
@@ -877,12 +805,10 @@ installed to do this.
 >         CatCreateBinaryOp "?#" "box" "box" "bool",
 >         CatCreateBinaryOp "?#" "line" "box" "bool",
 >         CatCreateBinaryOp "?#" "line" "line" "bool",
->         CatCreateBinaryOp "?&" "jsonb" "_text" "bool",
 >         CatCreateBinaryOp "?-" "point" "point" "bool",
 >         CatCreateBinaryOp "?-|" "lseg" "lseg" "bool",
 >         CatCreateBinaryOp "?-|" "line" "line" "bool",
 >         CatCreateBinaryOp "?|" "point" "point" "bool",
->         CatCreateBinaryOp "?|" "jsonb" "_text" "bool",
 >         CatCreateBinaryOp "?||" "lseg" "lseg" "bool",
 >         CatCreateBinaryOp "?||" "line" "line" "bool",
 >         CatCreateBinaryOp "@>" "path" "point" "bool",
@@ -895,9 +821,6 @@ installed to do this.
 >         CatCreateBinaryOp "@>" "_aclitem" "aclitem" "bool",
 >         CatCreateBinaryOp "@>" "anyarray" "anyarray" "bool",
 >         CatCreateBinaryOp "@>" "tsquery" "tsquery" "bool",
->         CatCreateBinaryOp "@>" "jsonb" "jsonb" "bool",
->         CatCreateBinaryOp "@>" "anyrange" "anyelement" "bool",
->         CatCreateBinaryOp "@>" "anyrange" "anyrange" "bool",
 >         CatCreateBinaryOp "@@" "text" "text" "bool",
 >         CatCreateBinaryOp "@@" "text" "tsquery" "bool",
 >         CatCreateBinaryOp "@@" "tsvector" "tsquery" "bool",
@@ -909,7 +832,6 @@ installed to do this.
 >         CatCreateBinaryOp "|" "int8" "int8" "int8",
 >         CatCreateBinaryOp "|" "int2" "int2" "int2",
 >         CatCreateBinaryOp "|" "int4" "int4" "int4",
->         CatCreateBinaryOp "|" "macaddr" "macaddr" "macaddr",
 >         CatCreateBinaryOp "|" "inet" "inet" "inet",
 >         CatCreateBinaryOp "|" "bit" "bit" "bit",
 >         CatCreateBinaryOp "|&>" "box" "box" "bool",
@@ -983,14 +905,13 @@ installed to do this.
 >         CatCreateFunction "abstimesend" ["abstime"] False "bytea",
 >         CatCreateFunction "aclcontains" ["aclitem", "_aclitem"] False
 >           "bool",
->         CatCreateFunction "acldefault" ["char", "oid"] False "_aclitem",
 >         CatCreateFunction "aclexplode" ["_aclitem"] True "record",
->         CatCreateFunction "aclinsert" ["aclitem", "_aclitem"] False
+>         CatCreateFunction "aclinsert" ["_aclitem", "aclitem"] False
 >           "_aclitem",
 >         CatCreateFunction "aclitemeq" ["aclitem", "aclitem"] False "bool",
 >         CatCreateFunction "aclitemin" ["cstring"] False "aclitem",
 >         CatCreateFunction "aclitemout" ["aclitem"] False "cstring",
->         CatCreateFunction "aclremove" ["aclitem", "_aclitem"] False
+>         CatCreateFunction "aclremove" ["_aclitem", "aclitem"] False
 >           "_aclitem",
 >         CatCreateFunction "acos" ["float8"] False "float8",
 >         CatCreateFunction "age" ["xid"] False "int4",
@@ -1013,28 +934,24 @@ installed to do this.
 >         CatCreateFunction "anynonarray_in" ["cstring"] False "anynonarray",
 >         CatCreateFunction "anynonarray_out" ["anynonarray"] False
 >           "cstring",
->         CatCreateFunction "anyrange_in" ["int4", "cstring", "oid"] False
->           "anyrange",
->         CatCreateFunction "anyrange_out" ["anyrange"] False "cstring",
->         CatCreateFunction "anytextcat" ["text", "anynonarray"] False
+>         CatCreateFunction "anytextcat" ["anynonarray", "text"] False
 >           "text",
 >         CatCreateFunction "area" ["box"] False "float8",
 >         CatCreateFunction "area" ["path"] False "float8",
 >         CatCreateFunction "area" ["circle"] False "float8",
 >         CatCreateFunction "areajoinsel"
->           ["internal", "internal", "oid", "internal", "int2"]
+>           ["internal", "int2", "internal", "oid", "internal"]
 >           False
 >           "float8",
->         CatCreateFunction "areasel" ["internal", "int4", "oid", "internal"]
+>         CatCreateFunction "areasel" ["internal", "oid", "internal", "int4"]
 >           False
 >           "float8",
->         CatCreateFunction "array_agg_finalfn" ["anyelement", "internal"]
->           False
+>         CatCreateFunction "array_agg_finalfn" ["internal"] False
 >           "anyarray",
 >         CatCreateFunction "array_agg_transfn" ["internal", "anyelement"]
 >           False
 >           "internal",
->         CatCreateFunction "array_append" ["anyelement", "anyarray"] False
+>         CatCreateFunction "array_append" ["anyarray", "anyelement"] False
 >           "anyarray",
 >         CatCreateFunction "array_cat" ["anyarray", "anyarray"] False
 >           "anyarray",
@@ -1042,17 +959,17 @@ installed to do this.
 >         CatCreateFunction "array_eq" ["anyarray", "anyarray"] False "bool",
 >         CatCreateFunction "array_fill" ["_int4", "anyelement"] False
 >           "anyarray",
->         CatCreateFunction "array_fill" ["_int4", "anyelement", "_int4"]
+>         CatCreateFunction "array_fill" ["anyelement", "_int4", "_int4"]
 >           False
 >           "anyarray",
 >         CatCreateFunction "array_ge" ["anyarray", "anyarray"] False "bool",
 >         CatCreateFunction "array_gt" ["anyarray", "anyarray"] False "bool",
->         CatCreateFunction "array_in" ["int4", "cstring", "oid"] False
+>         CatCreateFunction "array_in" ["cstring", "oid", "int4"] False
 >           "anyarray",
 >         CatCreateFunction "array_larger" ["anyarray", "anyarray"] False
 >           "anyarray",
 >         CatCreateFunction "array_le" ["anyarray", "anyarray"] False "bool",
->         CatCreateFunction "array_length" ["int4", "anyarray"] False "int4",
+>         CatCreateFunction "array_length" ["anyarray", "int4"] False "int4",
 >         CatCreateFunction "array_lower" ["anyarray", "int4"] False "int4",
 >         CatCreateFunction "array_lt" ["anyarray", "anyarray"] False "bool",
 >         CatCreateFunction "array_ndims" ["anyarray"] False "int4",
@@ -1060,74 +977,56 @@ installed to do this.
 >         CatCreateFunction "array_out" ["anyarray"] False "cstring",
 >         CatCreateFunction "array_prepend" ["anyelement", "anyarray"] False
 >           "anyarray",
->         CatCreateFunction "array_recv" ["int4", "internal", "oid"] False
->           "anyarray",
->         CatCreateFunction "array_remove" ["anyarray", "anyelement"] False
->           "anyarray",
->         CatCreateFunction "array_replace"
->           ["anyelement", "anyelement", "anyarray"]
->           False
+>         CatCreateFunction "array_recv" ["internal", "oid", "int4"] False
 >           "anyarray",
 >         CatCreateFunction "array_send" ["anyarray"] False "bytea",
 >         CatCreateFunction "array_smaller" ["anyarray", "anyarray"] False
 >           "anyarray",
->         CatCreateFunction "array_to_json" ["anyarray"] False "json",
->         CatCreateFunction "array_to_json" ["bool", "anyarray"] False
->           "json",
->         CatCreateFunction "array_to_string" ["text", "anyarray", "text"]
+>         CatCreateFunction "array_to_string" ["anyarray", "text", "text"]
 >           False
 >           "text",
 >         CatCreateFunction "array_to_string" ["text", "anyarray"] False
 >           "text",
->         CatCreateFunction "array_typanalyze" ["internal"] False "bool",
 >         CatCreateFunction "array_upper" ["anyarray", "int4"] False "int4",
 >         CatCreateFunction "arraycontained" ["anyarray", "anyarray"] False
 >           "bool",
 >         CatCreateFunction "arraycontains" ["anyarray", "anyarray"] False
 >           "bool",
->         CatCreateFunction "arraycontjoinsel"
->           ["internal", "internal", "oid", "internal", "int2"]
->           False
->           "float8",
->         CatCreateFunction "arraycontsel"
->           ["int4", "internal", "internal", "oid"]
->           False
->           "float8",
 >         CatCreateFunction "arrayoverlap" ["anyarray", "anyarray"] False
 >           "bool",
 >         CatCreateFunction "ascii" ["text"] False "int4",
 >         CatCreateFunction "ascii_to_mic"
->           ["int4", "int4", "int4", "cstring", "internal"]
+>           ["cstring", "int4", "int4", "internal", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "ascii_to_utf8"
->           ["int4", "cstring", "int4", "int4", "internal"]
+>           ["int4", "int4", "cstring", "internal", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "asin" ["float8"] False "float8",
 >         CatCreateFunction "atan" ["float8"] False "float8",
 >         CatCreateFunction "atan2" ["float8", "float8"] False "float8",
 >         CatCreateFunction "big5_to_euc_tw"
->           ["int4", "int4", "int4", "internal", "cstring"]
+>           ["int4", "internal", "cstring", "int4", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "big5_to_mic"
->           ["int4", "cstring", "internal", "int4", "int4"]
+>           ["int4", "int4", "internal", "cstring", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "big5_to_utf8"
->           ["int4", "int4", "cstring", "int4", "internal"]
+>           ["int4", "int4", "int4", "cstring", "internal"]
 >           False
 >           "void",
 >         CatCreateFunction "bit" ["int4", "int4"] False "bit",
->         CatCreateFunction "bit" ["int4", "bit", "bool"] False "bit",
+>         CatCreateFunction "bit" ["bit", "int4", "bool"] False "bit",
 >         CatCreateFunction "bit" ["int8", "int4"] False "bit",
->         CatCreateFunction "bit_in" ["int4", "cstring", "oid"] False "bit",
+>         CatCreateFunction "bit_in" ["cstring", "oid", "int4"] False "bit",
 >         CatCreateFunction "bit_length" ["bytea"] False "int4",
 >         CatCreateFunction "bit_length" ["text"] False "int4",
 >         CatCreateFunction "bit_length" ["bit"] False "int4",
 >         CatCreateFunction "bit_out" ["bit"] False "cstring",
->         CatCreateFunction "bit_recv" ["internal", "oid", "int4"] False
+>         CatCreateFunction "bit_recv" ["oid", "int4", "internal"] False
 >           "bit",
 >         CatCreateFunction "bit_send" ["bit"] False "bytea",
 >         CatCreateFunction "bitand" ["bit", "bit"] False "bit",
@@ -1141,18 +1040,12 @@ installed to do this.
 >         CatCreateFunction "bitne" ["bit", "bit"] False "bool",
 >         CatCreateFunction "bitnot" ["bit"] False "bit",
 >         CatCreateFunction "bitor" ["bit", "bit"] False "bit",
->         CatCreateFunction "bitshiftleft" ["int4", "bit"] False "bit",
+>         CatCreateFunction "bitshiftleft" ["bit", "int4"] False "bit",
 >         CatCreateFunction "bitshiftright" ["bit", "int4"] False "bit",
 >         CatCreateFunction "bittypmodin" ["_cstring"] False "int4",
 >         CatCreateFunction "bittypmodout" ["int4"] False "cstring",
 >         CatCreateFunction "bitxor" ["bit", "bit"] False "bit",
 >         CatCreateFunction "bool" ["int4"] False "bool",
->         CatCreateFunction "bool_accum" ["bool", "internal"] False
->           "internal",
->         CatCreateFunction "bool_accum_inv" ["bool", "internal"] False
->           "internal",
->         CatCreateFunction "bool_alltrue" ["internal"] False "bool",
->         CatCreateFunction "bool_anytrue" ["internal"] False "bool",
 >         CatCreateFunction "booland_statefunc" ["bool", "bool"] False
 >           "bool",
 >         CatCreateFunction "booleq" ["bool", "bool"] False "bool",
@@ -1171,15 +1064,15 @@ installed to do this.
 >         CatCreateFunction "box" ["circle"] False "box",
 >         CatCreateFunction "box_above" ["box", "box"] False "bool",
 >         CatCreateFunction "box_above_eq" ["box", "box"] False "bool",
->         CatCreateFunction "box_add" ["point", "box"] False "box",
+>         CatCreateFunction "box_add" ["box", "point"] False "box",
 >         CatCreateFunction "box_below" ["box", "box"] False "bool",
 >         CatCreateFunction "box_below_eq" ["box", "box"] False "bool",
 >         CatCreateFunction "box_center" ["box"] False "point",
 >         CatCreateFunction "box_contain" ["box", "box"] False "bool",
->         CatCreateFunction "box_contain_pt" ["point", "box"] False "bool",
+>         CatCreateFunction "box_contain_pt" ["box", "point"] False "bool",
 >         CatCreateFunction "box_contained" ["box", "box"] False "bool",
 >         CatCreateFunction "box_distance" ["box", "box"] False "float8",
->         CatCreateFunction "box_div" ["point", "box"] False "box",
+>         CatCreateFunction "box_div" ["box", "point"] False "box",
 >         CatCreateFunction "box_eq" ["box", "box"] False "bool",
 >         CatCreateFunction "box_ge" ["box", "box"] False "bool",
 >         CatCreateFunction "box_gt" ["box", "box"] False "bool",
@@ -1188,7 +1081,7 @@ installed to do this.
 >         CatCreateFunction "box_le" ["box", "box"] False "bool",
 >         CatCreateFunction "box_left" ["box", "box"] False "bool",
 >         CatCreateFunction "box_lt" ["box", "box"] False "bool",
->         CatCreateFunction "box_mul" ["point", "box"] False "box",
+>         CatCreateFunction "box_mul" ["box", "point"] False "box",
 >         CatCreateFunction "box_out" ["box"] False "cstring",
 >         CatCreateFunction "box_overabove" ["box", "box"] False "bool",
 >         CatCreateFunction "box_overbelow" ["box", "box"] False "bool",
@@ -1201,7 +1094,7 @@ installed to do this.
 >         CatCreateFunction "box_send" ["box"] False "bytea",
 >         CatCreateFunction "box_sub" ["point", "box"] False "box",
 >         CatCreateFunction "bpchar" ["name"] False "bpchar",
->         CatCreateFunction "bpchar" ["bpchar", "bool", "int4"] False
+>         CatCreateFunction "bpchar" ["bpchar", "int4", "bool"] False
 >           "bpchar",
 >         CatCreateFunction "bpchar" ["char"] False "bpchar",
 >         CatCreateFunction "bpchar_larger" ["bpchar", "bpchar"] False
@@ -1224,19 +1117,19 @@ installed to do this.
 >         CatCreateFunction "bpcharicnlike" ["bpchar", "text"] False "bool",
 >         CatCreateFunction "bpcharicregexeq" ["text", "bpchar"] False
 >           "bool",
->         CatCreateFunction "bpcharicregexne" ["bpchar", "text"] False
+>         CatCreateFunction "bpcharicregexne" ["text", "bpchar"] False
 >           "bool",
 >         CatCreateFunction "bpcharin" ["cstring", "oid", "int4"] False
 >           "bpchar",
 >         CatCreateFunction "bpcharle" ["bpchar", "bpchar"] False "bool",
->         CatCreateFunction "bpcharlike" ["text", "bpchar"] False "bool",
+>         CatCreateFunction "bpcharlike" ["bpchar", "text"] False "bool",
 >         CatCreateFunction "bpcharlt" ["bpchar", "bpchar"] False "bool",
 >         CatCreateFunction "bpcharne" ["bpchar", "bpchar"] False "bool",
->         CatCreateFunction "bpcharnlike" ["text", "bpchar"] False "bool",
+>         CatCreateFunction "bpcharnlike" ["bpchar", "text"] False "bool",
 >         CatCreateFunction "bpcharout" ["bpchar"] False "cstring",
->         CatCreateFunction "bpcharrecv" ["int4", "oid", "internal"] False
+>         CatCreateFunction "bpcharrecv" ["internal", "oid", "int4"] False
 >           "bpchar",
->         CatCreateFunction "bpcharregexeq" ["text", "bpchar"] False "bool",
+>         CatCreateFunction "bpcharregexeq" ["bpchar", "text"] False "bool",
 >         CatCreateFunction "bpcharregexne" ["text", "bpchar"] False "bool",
 >         CatCreateFunction "bpcharsend" ["bpchar"] False "bytea",
 >         CatCreateFunction "bpchartypmodin" ["_cstring"] False "int4",
@@ -1261,20 +1154,17 @@ installed to do this.
 >           ["internal", "internal", "internal", "internal"]
 >           False
 >           "internal",
->         CatCreateFunction "btcanreturn" ["internal"] False "bool",
 >         CatCreateFunction "btcharcmp" ["char", "char"] False "int4",
 >         CatCreateFunction "btcostestimate"
 >           ["internal", "internal", "internal", "internal", "internal",
->            "internal", "internal"]
+>            "internal", "internal", "internal", "internal"]
 >           False
 >           "void",
 >         CatCreateFunction "btendscan" ["internal"] False "void",
->         CatCreateFunction "btfloat48cmp" ["float8", "float4"] False "int4",
+>         CatCreateFunction "btfloat48cmp" ["float4", "float8"] False "int4",
 >         CatCreateFunction "btfloat4cmp" ["float4", "float4"] False "int4",
->         CatCreateFunction "btfloat4sortsupport" ["internal"] False "void",
->         CatCreateFunction "btfloat84cmp" ["float4", "float8"] False "int4",
+>         CatCreateFunction "btfloat84cmp" ["float8", "float4"] False "int4",
 >         CatCreateFunction "btfloat8cmp" ["float8", "float8"] False "int4",
->         CatCreateFunction "btfloat8sortsupport" ["internal"] False "void",
 >         CatCreateFunction "btgetbitmap" ["internal", "internal"] False
 >           "int8",
 >         CatCreateFunction "btgettuple" ["internal", "internal"] False
@@ -1287,26 +1177,19 @@ installed to do this.
 >         CatCreateFunction "btint24cmp" ["int4", "int2"] False "int4",
 >         CatCreateFunction "btint28cmp" ["int2", "int8"] False "int4",
 >         CatCreateFunction "btint2cmp" ["int2", "int2"] False "int4",
->         CatCreateFunction "btint2sortsupport" ["internal"] False "void",
->         CatCreateFunction "btint42cmp" ["int2", "int4"] False "int4",
+>         CatCreateFunction "btint42cmp" ["int4", "int2"] False "int4",
 >         CatCreateFunction "btint48cmp" ["int4", "int8"] False "int4",
 >         CatCreateFunction "btint4cmp" ["int4", "int4"] False "int4",
->         CatCreateFunction "btint4sortsupport" ["internal"] False "void",
 >         CatCreateFunction "btint82cmp" ["int8", "int2"] False "int4",
->         CatCreateFunction "btint84cmp" ["int8", "int4"] False "int4",
+>         CatCreateFunction "btint84cmp" ["int4", "int8"] False "int4",
 >         CatCreateFunction "btint8cmp" ["int8", "int8"] False "int4",
->         CatCreateFunction "btint8sortsupport" ["internal"] False "void",
 >         CatCreateFunction "btmarkpos" ["internal"] False "void",
 >         CatCreateFunction "btnamecmp" ["name", "name"] False "int4",
->         CatCreateFunction "btnamesortsupport" ["internal"] False "void",
 >         CatCreateFunction "btoidcmp" ["oid", "oid"] False "int4",
->         CatCreateFunction "btoidsortsupport" ["internal"] False "void",
 >         CatCreateFunction "btoidvectorcmp" ["oidvector", "oidvector"] False
 >           "int4",
 >         CatCreateFunction "btoptions" ["bool", "_text"] False "bytea",
 >         CatCreateFunction "btrecordcmp" ["record", "record"] False "int4",
->         CatCreateFunction "btrecordimagecmp" ["record", "record"] False
->           "int4",
 >         CatCreateFunction "btreltimecmp" ["reltime", "reltime"] False
 >           "int4",
 >         CatCreateFunction "btrescan"
@@ -1325,12 +1208,6 @@ installed to do this.
 >           "int4",
 >         CatCreateFunction "btvacuumcleanup" ["internal", "internal"] False
 >           "internal",
->         CatCreateFunction "bytea_string_agg_finalfn" ["internal"] False
->           "bytea",
->         CatCreateFunction "bytea_string_agg_transfn"
->           ["internal", "bytea", "bytea"]
->           False
->           "internal",
 >         CatCreateFunction "byteacat" ["bytea", "bytea"] False "bytea",
 >         CatCreateFunction "byteacmp" ["bytea", "bytea"] False "int4",
 >         CatCreateFunction "byteaeq" ["bytea", "bytea"] False "bool",
@@ -1345,16 +1222,15 @@ installed to do this.
 >         CatCreateFunction "byteaout" ["bytea"] False "cstring",
 >         CatCreateFunction "bytearecv" ["internal"] False "bytea",
 >         CatCreateFunction "byteasend" ["bytea"] False "bytea",
->         CatCreateFunction "cardinality" ["anyarray"] False "int4",
 >         CatCreateFunction "cash_cmp" ["money", "money"] False "int4",
 >         CatCreateFunction "cash_div_cash" ["money", "money"] False
 >           "float8",
->         CatCreateFunction "cash_div_flt4" ["float4", "money"] False
+>         CatCreateFunction "cash_div_flt4" ["money", "float4"] False
 >           "money",
 >         CatCreateFunction "cash_div_flt8" ["money", "float8"] False
 >           "money",
 >         CatCreateFunction "cash_div_int2" ["money", "int2"] False "money",
->         CatCreateFunction "cash_div_int4" ["int4", "money"] False "money",
+>         CatCreateFunction "cash_div_int4" ["money", "int4"] False "money",
 >         CatCreateFunction "cash_eq" ["money", "money"] False "bool",
 >         CatCreateFunction "cash_ge" ["money", "money"] False "bool",
 >         CatCreateFunction "cash_gt" ["money", "money"] False "bool",
@@ -1362,12 +1238,12 @@ installed to do this.
 >         CatCreateFunction "cash_le" ["money", "money"] False "bool",
 >         CatCreateFunction "cash_lt" ["money", "money"] False "bool",
 >         CatCreateFunction "cash_mi" ["money", "money"] False "money",
->         CatCreateFunction "cash_mul_flt4" ["float4", "money"] False
+>         CatCreateFunction "cash_mul_flt4" ["money", "float4"] False
 >           "money",
 >         CatCreateFunction "cash_mul_flt8" ["money", "float8"] False
 >           "money",
->         CatCreateFunction "cash_mul_int2" ["money", "int2"] False "money",
->         CatCreateFunction "cash_mul_int4" ["int4", "money"] False "money",
+>         CatCreateFunction "cash_mul_int2" ["int2", "money"] False "money",
+>         CatCreateFunction "cash_mul_int4" ["money", "int4"] False "money",
 >         CatCreateFunction "cash_ne" ["money", "money"] False "bool",
 >         CatCreateFunction "cash_out" ["money"] False "cstring",
 >         CatCreateFunction "cash_pl" ["money", "money"] False "money",
@@ -1435,7 +1311,7 @@ installed to do this.
 >         CatCreateFunction "circle_le" ["circle", "circle"] False "bool",
 >         CatCreateFunction "circle_left" ["circle", "circle"] False "bool",
 >         CatCreateFunction "circle_lt" ["circle", "circle"] False "bool",
->         CatCreateFunction "circle_mul_pt" ["point", "circle"] False
+>         CatCreateFunction "circle_mul_pt" ["circle", "point"] False
 >           "circle",
 >         CatCreateFunction "circle_ne" ["circle", "circle"] False "bool",
 >         CatCreateFunction "circle_out" ["circle"] False "cstring",
@@ -1456,22 +1332,22 @@ installed to do this.
 >         CatCreateFunction "circle_sub_pt" ["point", "circle"] False
 >           "circle",
 >         CatCreateFunction "close_lb" ["line", "box"] False "point",
->         CatCreateFunction "close_ls" ["lseg", "line"] False "point",
+>         CatCreateFunction "close_ls" ["line", "lseg"] False "point",
 >         CatCreateFunction "close_lseg" ["lseg", "lseg"] False "point",
 >         CatCreateFunction "close_pb" ["box", "point"] False "point",
 >         CatCreateFunction "close_pl" ["point", "line"] False "point",
 >         CatCreateFunction "close_ps" ["point", "lseg"] False "point",
->         CatCreateFunction "close_sb" ["lseg", "box"] False "point",
+>         CatCreateFunction "close_sb" ["box", "lseg"] False "point",
 >         CatCreateFunction "close_sl" ["lseg", "line"] False "point",
->         CatCreateFunction "col_description" ["int4", "oid"] False "text",
+>         CatCreateFunction "col_description" ["oid", "int4"] False "text",
 >         CatCreateFunction "contjoinsel"
->           ["internal", "int2", "internal", "oid", "internal"]
+>           ["internal", "oid", "internal", "int2", "internal"]
 >           False
 >           "float8",
->         CatCreateFunction "contsel" ["int4", "internal", "oid", "internal"]
+>         CatCreateFunction "contsel" ["internal", "oid", "internal", "int4"]
 >           False
 >           "float8",
->         CatCreateFunction "convert" ["name", "bytea", "name"] False
+>         CatCreateFunction "convert" ["bytea", "name", "name"] False
 >           "bytea",
 >         CatCreateFunction "convert_from" ["name", "bytea"] False "text",
 >         CatCreateFunction "convert_to" ["text", "name"] False "bytea",
@@ -1483,108 +1359,100 @@ installed to do this.
 >         CatCreateFunction "cstring_send" ["cstring"] False "bytea",
 >         CatCreateFunction "current_schemas" ["bool"] False "_name",
 >         CatCreateFunction "current_setting" ["text"] False "text",
->         CatCreateFunction "currtid" ["tid", "oid"] False "tid",
->         CatCreateFunction "currtid2" ["tid", "text"] False "tid",
+>         CatCreateFunction "currtid" ["oid", "tid"] False "tid",
+>         CatCreateFunction "currtid2" ["text", "tid"] False "tid",
 >         CatCreateFunction "currval" ["regclass"] False "int8",
 >         CatCreateFunction "cursor_to_xml"
->           ["bool", "int4", "refcursor", "bool", "text"]
+>           ["refcursor", "int4", "bool", "bool", "text"]
 >           False
 >           "xml",
 >         CatCreateFunction "cursor_to_xmlschema"
->           ["text", "bool", "bool", "refcursor"]
+>           ["refcursor", "bool", "bool", "text"]
 >           False
 >           "xml",
 >         CatCreateFunction "database_to_xml" ["bool", "bool", "text"] False
 >           "xml",
 >         CatCreateFunction "database_to_xml_and_xmlschema"
->           ["bool", "text", "bool"]
+>           ["text", "bool", "bool"]
 >           False
 >           "xml",
->         CatCreateFunction "database_to_xmlschema" ["text", "bool", "bool"]
+>         CatCreateFunction "database_to_xmlschema" ["bool", "bool", "text"]
 >           False
 >           "xml",
 >         CatCreateFunction "date" ["timestamptz"] False "date",
 >         CatCreateFunction "date" ["abstime"] False "date",
 >         CatCreateFunction "date" ["timestamp"] False "date",
 >         CatCreateFunction "date_cmp" ["date", "date"] False "int4",
->         CatCreateFunction "date_cmp_timestamp" ["timestamp", "date"] False
+>         CatCreateFunction "date_cmp_timestamp" ["date", "timestamp"] False
 >           "int4",
 >         CatCreateFunction "date_cmp_timestamptz" ["date", "timestamptz"]
 >           False
 >           "int4",
 >         CatCreateFunction "date_eq" ["date", "date"] False "bool",
->         CatCreateFunction "date_eq_timestamp" ["date", "timestamp"] False
+>         CatCreateFunction "date_eq_timestamp" ["timestamp", "date"] False
 >           "bool",
->         CatCreateFunction "date_eq_timestamptz" ["timestamptz", "date"]
+>         CatCreateFunction "date_eq_timestamptz" ["date", "timestamptz"]
 >           False
 >           "bool",
 >         CatCreateFunction "date_ge" ["date", "date"] False "bool",
->         CatCreateFunction "date_ge_timestamp" ["date", "timestamp"] False
+>         CatCreateFunction "date_ge_timestamp" ["timestamp", "date"] False
 >           "bool",
->         CatCreateFunction "date_ge_timestamptz" ["timestamptz", "date"]
+>         CatCreateFunction "date_ge_timestamptz" ["date", "timestamptz"]
 >           False
 >           "bool",
 >         CatCreateFunction "date_gt" ["date", "date"] False "bool",
 >         CatCreateFunction "date_gt_timestamp" ["date", "timestamp"] False
 >           "bool",
->         CatCreateFunction "date_gt_timestamptz" ["timestamptz", "date"]
+>         CatCreateFunction "date_gt_timestamptz" ["date", "timestamptz"]
 >           False
 >           "bool",
 >         CatCreateFunction "date_in" ["cstring"] False "date",
 >         CatCreateFunction "date_larger" ["date", "date"] False "date",
 >         CatCreateFunction "date_le" ["date", "date"] False "bool",
->         CatCreateFunction "date_le_timestamp" ["timestamp", "date"] False
+>         CatCreateFunction "date_le_timestamp" ["date", "timestamp"] False
 >           "bool",
 >         CatCreateFunction "date_le_timestamptz" ["date", "timestamptz"]
 >           False
 >           "bool",
 >         CatCreateFunction "date_lt" ["date", "date"] False "bool",
->         CatCreateFunction "date_lt_timestamp" ["date", "timestamp"] False
+>         CatCreateFunction "date_lt_timestamp" ["timestamp", "date"] False
 >           "bool",
 >         CatCreateFunction "date_lt_timestamptz" ["date", "timestamptz"]
 >           False
 >           "bool",
 >         CatCreateFunction "date_mi" ["date", "date"] False "int4",
->         CatCreateFunction "date_mi_interval" ["interval", "date"] False
+>         CatCreateFunction "date_mi_interval" ["date", "interval"] False
 >           "timestamp",
->         CatCreateFunction "date_mii" ["int4", "date"] False "date",
+>         CatCreateFunction "date_mii" ["date", "int4"] False "date",
 >         CatCreateFunction "date_ne" ["date", "date"] False "bool",
 >         CatCreateFunction "date_ne_timestamp" ["date", "timestamp"] False
 >           "bool",
->         CatCreateFunction "date_ne_timestamptz" ["date", "timestamptz"]
+>         CatCreateFunction "date_ne_timestamptz" ["timestamptz", "date"]
 >           False
 >           "bool",
 >         CatCreateFunction "date_out" ["date"] False "cstring",
 >         CatCreateFunction "date_part" ["timestamptz", "text"] False
 >           "float8",
->         CatCreateFunction "date_part" ["interval", "text"] False "float8",
->         CatCreateFunction "date_part" ["timetz", "text"] False "float8",
->         CatCreateFunction "date_part" ["abstime", "text"] False "float8",
+>         CatCreateFunction "date_part" ["text", "interval"] False "float8",
+>         CatCreateFunction "date_part" ["text", "timetz"] False "float8",
+>         CatCreateFunction "date_part" ["text", "abstime"] False "float8",
 >         CatCreateFunction "date_part" ["text", "reltime"] False "float8",
->         CatCreateFunction "date_part" ["date", "text"] False "float8",
->         CatCreateFunction "date_part" ["time", "text"] False "float8",
+>         CatCreateFunction "date_part" ["text", "date"] False "float8",
+>         CatCreateFunction "date_part" ["text", "time"] False "float8",
 >         CatCreateFunction "date_part" ["text", "timestamp"] False "float8",
 >         CatCreateFunction "date_pl_interval" ["interval", "date"] False
 >           "timestamp",
->         CatCreateFunction "date_pli" ["int4", "date"] False "date",
+>         CatCreateFunction "date_pli" ["date", "int4"] False "date",
 >         CatCreateFunction "date_recv" ["internal"] False "date",
 >         CatCreateFunction "date_send" ["date"] False "bytea",
 >         CatCreateFunction "date_smaller" ["date", "date"] False "date",
->         CatCreateFunction "date_sortsupport" ["internal"] False "void",
->         CatCreateFunction "date_trunc" ["timestamptz", "text"] False
+>         CatCreateFunction "date_trunc" ["text", "timestamptz"] False
 >           "timestamptz",
->         CatCreateFunction "date_trunc" ["text", "interval"] False
+>         CatCreateFunction "date_trunc" ["interval", "text"] False
 >           "interval",
 >         CatCreateFunction "date_trunc" ["text", "timestamp"] False
 >           "timestamp",
->         CatCreateFunction "daterange" ["date", "date"] False "daterange",
->         CatCreateFunction "daterange" ["date", "text", "date"] False
->           "daterange",
->         CatCreateFunction "daterange_canonical" ["daterange"] False
->           "daterange",
->         CatCreateFunction "daterange_subdiff" ["date", "date"] False
->           "float8",
->         CatCreateFunction "datetime_pl" ["time", "date"] False "timestamp",
+>         CatCreateFunction "datetime_pl" ["date", "time"] False "timestamp",
 >         CatCreateFunction "datetimetz_pl" ["date", "timetz"] False
 >           "timestamptz",
 >         CatCreateFunction "dcbrt" ["float8"] False "float8",
@@ -1600,10 +1468,10 @@ installed to do this.
 >           "internal",
 >         CatCreateFunction "dist_cpoly" ["polygon", "circle"] False
 >           "float8",
->         CatCreateFunction "dist_lb" ["line", "box"] False "float8",
+>         CatCreateFunction "dist_lb" ["box", "line"] False "float8",
 >         CatCreateFunction "dist_pb" ["box", "point"] False "float8",
->         CatCreateFunction "dist_pc" ["circle", "point"] False "float8",
->         CatCreateFunction "dist_pl" ["point", "line"] False "float8",
+>         CatCreateFunction "dist_pc" ["point", "circle"] False "float8",
+>         CatCreateFunction "dist_pl" ["line", "point"] False "float8",
 >         CatCreateFunction "dist_ppath" ["point", "path"] False "float8",
 >         CatCreateFunction "dist_ps" ["point", "lseg"] False "float8",
 >         CatCreateFunction "dist_sb" ["lseg", "box"] False "float8",
@@ -1611,9 +1479,9 @@ installed to do this.
 >         CatCreateFunction "div" ["numeric", "numeric"] False "numeric",
 >         CatCreateFunction "dlog1" ["float8"] False "float8",
 >         CatCreateFunction "dlog10" ["float8"] False "float8",
->         CatCreateFunction "domain_in" ["oid", "cstring", "int4"] False
+>         CatCreateFunction "domain_in" ["cstring", "oid", "int4"] False
 >           "any",
->         CatCreateFunction "domain_recv" ["oid", "int4", "internal"] False
+>         CatCreateFunction "domain_recv" ["internal", "oid", "int4"] False
 >           "any",
 >         CatCreateFunction "dpow" ["float8", "float8"] False "float8",
 >         CatCreateFunction "dround" ["float8"] False "float8",
@@ -1634,10 +1502,6 @@ installed to do this.
 >           False
 >           "internal",
 >         CatCreateFunction "dtrunc" ["float8"] False "float8",
->         CatCreateFunction "elem_contained_by_range"
->           ["anyrange", "anyelement"]
->           False
->           "bool",
 >         CatCreateFunction "encode" ["bytea", "text"] False "text",
 >         CatCreateFunction "enum_cmp" ["anyenum", "anyenum"] False "int4",
 >         CatCreateFunction "enum_eq" ["anyenum", "anyenum"] False "bool",
@@ -1655,69 +1519,65 @@ installed to do this.
 >         CatCreateFunction "enum_range" ["anyenum", "anyenum"] False
 >           "anyarray",
 >         CatCreateFunction "enum_range" ["anyenum"] False "anyarray",
->         CatCreateFunction "enum_recv" ["internal", "oid"] False "anyenum",
+>         CatCreateFunction "enum_recv" ["oid", "cstring"] False "anyenum",
 >         CatCreateFunction "enum_send" ["anyenum"] False "bytea",
 >         CatCreateFunction "enum_smaller" ["anyenum", "anyenum"] False
 >           "anyenum",
 >         CatCreateFunction "eqjoinsel"
->           ["internal", "oid", "internal", "int2", "internal"]
+>           ["oid", "internal", "internal", "int2", "internal"]
 >           False
 >           "float8",
->         CatCreateFunction "eqsel" ["internal", "internal", "int4", "oid"]
+>         CatCreateFunction "eqsel" ["oid", "internal", "internal", "int4"]
 >           False
 >           "float8",
 >         CatCreateFunction "euc_cn_to_mic"
->           ["cstring", "int4", "internal", "int4", "int4"]
->           False
->           "void",
->         CatCreateFunction "euc_cn_to_utf8"
->           ["int4", "cstring", "internal", "int4", "int4"]
->           False
->           "void",
->         CatCreateFunction "euc_jis_2004_to_shift_jis_2004"
->           ["int4", "cstring", "internal", "int4", "int4"]
->           False
->           "void",
->         CatCreateFunction "euc_jis_2004_to_utf8"
 >           ["internal", "int4", "cstring", "int4", "int4"]
 >           False
 >           "void",
->         CatCreateFunction "euc_jp_to_mic"
->           ["int4", "int4", "cstring", "internal", "int4"]
+>         CatCreateFunction "euc_cn_to_utf8"
+>           ["int4", "internal", "int4", "cstring", "int4"]
 >           False
 >           "void",
->         CatCreateFunction "euc_jp_to_sjis"
->           ["int4", "cstring", "int4", "internal", "int4"]
->           False
->           "void",
->         CatCreateFunction "euc_jp_to_utf8"
->           ["int4", "int4", "cstring", "internal", "int4"]
->           False
->           "void",
->         CatCreateFunction "euc_kr_to_mic"
->           ["cstring", "int4", "internal", "int4", "int4"]
->           False
->           "void",
->         CatCreateFunction "euc_kr_to_utf8"
->           ["internal", "int4", "int4", "cstring", "int4"]
->           False
->           "void",
->         CatCreateFunction "euc_tw_to_big5"
->           ["cstring", "int4", "internal", "int4", "int4"]
->           False
->           "void",
->         CatCreateFunction "euc_tw_to_mic"
->           ["cstring", "int4", "int4", "int4", "internal"]
->           False
->           "void",
->         CatCreateFunction "euc_tw_to_utf8"
+>         CatCreateFunction "euc_jis_2004_to_shift_jis_2004"
 >           ["int4", "int4", "int4", "internal", "cstring"]
 >           False
 >           "void",
->         CatCreateFunction "event_trigger_in" ["cstring"] False
->           "event_trigger",
->         CatCreateFunction "event_trigger_out" ["event_trigger"] False
->           "cstring",
+>         CatCreateFunction "euc_jis_2004_to_utf8"
+>           ["internal", "int4", "int4", "int4", "cstring"]
+>           False
+>           "void",
+>         CatCreateFunction "euc_jp_to_mic"
+>           ["int4", "cstring", "int4", "int4", "internal"]
+>           False
+>           "void",
+>         CatCreateFunction "euc_jp_to_sjis"
+>           ["internal", "cstring", "int4", "int4", "int4"]
+>           False
+>           "void",
+>         CatCreateFunction "euc_jp_to_utf8"
+>           ["internal", "int4", "int4", "cstring", "int4"]
+>           False
+>           "void",
+>         CatCreateFunction "euc_kr_to_mic"
+>           ["cstring", "internal", "int4", "int4", "int4"]
+>           False
+>           "void",
+>         CatCreateFunction "euc_kr_to_utf8"
+>           ["int4", "int4", "int4", "internal", "cstring"]
+>           False
+>           "void",
+>         CatCreateFunction "euc_tw_to_big5"
+>           ["cstring", "int4", "int4", "internal", "int4"]
+>           False
+>           "void",
+>         CatCreateFunction "euc_tw_to_mic"
+>           ["int4", "internal", "cstring", "int4", "int4"]
+>           False
+>           "void",
+>         CatCreateFunction "euc_tw_to_utf8"
+>           ["int4", "cstring", "internal", "int4", "int4"]
+>           False
+>           "void",
 >         CatCreateFunction "exp" ["float8"] False "float8",
 >         CatCreateFunction "exp" ["numeric"] False "numeric",
 >         CatCreateFunction "factorial" ["int8"] False "numeric",
@@ -1730,17 +1590,17 @@ installed to do this.
 >         CatCreateFunction "float4" ["int4"] False "float4",
 >         CatCreateFunction "float4" ["int8"] False "float4",
 >         CatCreateFunction "float4" ["numeric"] False "float4",
->         CatCreateFunction "float48div" ["float8", "float4"] False "float8",
+>         CatCreateFunction "float48div" ["float4", "float8"] False "float8",
 >         CatCreateFunction "float48eq" ["float4", "float8"] False "bool",
 >         CatCreateFunction "float48ge" ["float4", "float8"] False "bool",
->         CatCreateFunction "float48gt" ["float4", "float8"] False "bool",
->         CatCreateFunction "float48le" ["float8", "float4"] False "bool",
+>         CatCreateFunction "float48gt" ["float8", "float4"] False "bool",
+>         CatCreateFunction "float48le" ["float4", "float8"] False "bool",
 >         CatCreateFunction "float48lt" ["float4", "float8"] False "bool",
->         CatCreateFunction "float48mi" ["float4", "float8"] False "float8",
->         CatCreateFunction "float48mul" ["float8", "float4"] False "float8",
+>         CatCreateFunction "float48mi" ["float8", "float4"] False "float8",
+>         CatCreateFunction "float48mul" ["float4", "float8"] False "float8",
 >         CatCreateFunction "float48ne" ["float8", "float4"] False "bool",
 >         CatCreateFunction "float48pl" ["float4", "float8"] False "float8",
->         CatCreateFunction "float4_accum" ["float4", "_float8"] False
+>         CatCreateFunction "float4_accum" ["_float8", "float4"] False
 >           "_float8",
 >         CatCreateFunction "float4abs" ["float4"] False "float4",
 >         CatCreateFunction "float4div" ["float4", "float4"] False "float4",
@@ -1769,15 +1629,15 @@ installed to do this.
 >         CatCreateFunction "float8" ["int8"] False "float8",
 >         CatCreateFunction "float8" ["numeric"] False "float8",
 >         CatCreateFunction "float84div" ["float4", "float8"] False "float8",
->         CatCreateFunction "float84eq" ["float4", "float8"] False "bool",
->         CatCreateFunction "float84ge" ["float8", "float4"] False "bool",
->         CatCreateFunction "float84gt" ["float8", "float4"] False "bool",
+>         CatCreateFunction "float84eq" ["float8", "float4"] False "bool",
+>         CatCreateFunction "float84ge" ["float4", "float8"] False "bool",
+>         CatCreateFunction "float84gt" ["float4", "float8"] False "bool",
 >         CatCreateFunction "float84le" ["float4", "float8"] False "bool",
 >         CatCreateFunction "float84lt" ["float8", "float4"] False "bool",
->         CatCreateFunction "float84mi" ["float4", "float8"] False "float8",
+>         CatCreateFunction "float84mi" ["float8", "float4"] False "float8",
 >         CatCreateFunction "float84mul" ["float8", "float4"] False "float8",
->         CatCreateFunction "float84ne" ["float8", "float4"] False "bool",
->         CatCreateFunction "float84pl" ["float8", "float4"] False "float8",
+>         CatCreateFunction "float84ne" ["float4", "float8"] False "bool",
+>         CatCreateFunction "float84pl" ["float4", "float8"] False "float8",
 >         CatCreateFunction "float8_accum" ["_float8", "float8"] False
 >           "_float8",
 >         CatCreateFunction "float8_avg" ["_float8"] False "float8",
@@ -1785,7 +1645,7 @@ installed to do this.
 >         CatCreateFunction "float8_covar_pop" ["_float8"] False "float8",
 >         CatCreateFunction "float8_covar_samp" ["_float8"] False "float8",
 >         CatCreateFunction "float8_regr_accum"
->           ["float8", "_float8", "float8"]
+>           ["_float8", "float8", "float8"]
 >           False
 >           "_float8",
 >         CatCreateFunction "float8_regr_avgx" ["_float8"] False "float8",
@@ -1824,7 +1684,7 @@ installed to do this.
 >         CatCreateFunction "float8up" ["float8"] False "float8",
 >         CatCreateFunction "floor" ["numeric"] False "numeric",
 >         CatCreateFunction "floor" ["float8"] False "float8",
->         CatCreateFunction "flt4_mul_cash" ["money", "float4"] False
+>         CatCreateFunction "flt4_mul_cash" ["float4", "money"] False
 >           "money",
 >         CatCreateFunction "flt8_mul_cash" ["money", "float8"] False
 >           "money",
@@ -1832,21 +1692,21 @@ installed to do this.
 >         CatCreateFunction "fmgr_internal_validator" ["oid"] False "void",
 >         CatCreateFunction "fmgr_sql_validator" ["oid"] False "void",
 >         CatCreateFunction "format" ["text"] False "text",
->         CatCreateFunction "format_type" ["int4", "oid"] False "text",
+>         CatCreateFunction "format_type" ["oid", "int4"] False "text",
 >         CatCreateFunction "gb18030_to_utf8"
->           ["int4", "int4", "cstring", "internal", "int4"]
+>           ["int4", "cstring", "internal", "int4", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "gbk_to_utf8"
->           ["internal", "int4", "int4", "cstring", "int4"]
+>           ["int4", "int4", "internal", "cstring", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "generate_series"
->           ["timestamp", "timestamp", "interval"]
+>           ["interval", "timestamp", "timestamp"]
 >           True
 >           "timestamp",
 >         CatCreateFunction "generate_series"
->           ["timestamptz", "interval", "timestamptz"]
+>           ["timestamptz", "timestamptz", "interval"]
 >           True
 >           "timestamptz",
 >         CatCreateFunction "generate_series" ["int4", "int4", "int4"] True
@@ -1856,92 +1716,47 @@ installed to do this.
 >           "int8",
 >         CatCreateFunction "generate_series" ["int8", "int8"] True "int8",
 >         CatCreateFunction "generate_subscripts"
->           ["int4", "bool", "anyarray"]
+>           ["anyarray", "int4", "bool"]
 >           True
 >           "int4",
 >         CatCreateFunction "generate_subscripts" ["anyarray", "int4"] True
 >           "int4",
 >         CatCreateFunction "get_bit" ["bytea", "int4"] False "int4",
 >         CatCreateFunction "get_bit" ["bit", "int4"] False "int4",
->         CatCreateFunction "get_byte" ["int4", "bytea"] False "int4",
+>         CatCreateFunction "get_byte" ["bytea", "int4"] False "int4",
 >         CatCreateFunction "gin_cmp_prefix"
->           ["text", "text", "internal", "int2"]
+>           ["text", "text", "int2", "internal"]
 >           False
 >           "int4",
 >         CatCreateFunction "gin_cmp_tslexeme" ["text", "text"] False "int4",
->         CatCreateFunction "gin_compare_jsonb" ["text", "text"] False
->           "int4",
->         CatCreateFunction "gin_consistent_jsonb"
->           ["internal", "internal", "internal", "internal", "internal",
->            "int2", "anyarray", "int4"]
->           False
->           "bool",
->         CatCreateFunction "gin_consistent_jsonb_path"
->           ["int2", "anyarray", "int4", "internal", "internal", "internal",
->            "internal", "internal"]
->           False
->           "bool",
->         CatCreateFunction "gin_extract_jsonb"
->           ["internal", "internal", "internal"]
->           False
->           "internal",
->         CatCreateFunction "gin_extract_jsonb_path"
->           ["internal", "internal", "internal"]
->           False
->           "internal",
->         CatCreateFunction "gin_extract_jsonb_query"
->           ["internal", "internal", "internal", "internal", "int2",
->            "anyarray", "internal"]
->           False
->           "internal",
->         CatCreateFunction "gin_extract_jsonb_query_path"
->           ["internal", "anyarray", "internal", "internal", "internal",
->            "internal", "int2"]
+>         CatCreateFunction "gin_extract_tsquery"
+>           ["internal", "int2", "internal", "tsquery", "internal"]
 >           False
 >           "internal",
 >         CatCreateFunction "gin_extract_tsquery"
->           ["tsquery", "internal", "int2", "internal", "internal"]
->           False
->           "internal",
->         CatCreateFunction "gin_extract_tsquery"
->           ["internal", "internal", "tsquery", "internal", "internal",
->            "internal", "int2"]
+>           ["internal", "tsquery", "internal", "int2", "internal", "internal",
+>            "internal"]
 >           False
 >           "internal",
 >         CatCreateFunction "gin_extract_tsvector" ["internal", "tsvector"]
 >           False
 >           "internal",
 >         CatCreateFunction "gin_extract_tsvector"
->           ["internal", "internal", "tsvector"]
+>           ["internal", "tsvector", "internal"]
 >           False
 >           "internal",
->         CatCreateFunction "gin_triconsistent_jsonb"
->           ["internal", "internal", "int4", "internal", "internal", "int2",
->            "anyarray"]
->           False
->           "char",
->         CatCreateFunction "gin_triconsistent_jsonb_path"
->           ["int4", "internal", "internal", "anyarray", "int2", "internal",
->            "internal"]
->           False
->           "char",
 >         CatCreateFunction "gin_tsquery_consistent"
->           ["tsquery", "internal", "internal", "int4", "int2", "internal"]
+>           ["internal", "internal", "internal", "tsquery", "int2", "int4"]
 >           False
 >           "bool",
 >         CatCreateFunction "gin_tsquery_consistent"
->           ["tsquery", "internal", "int4", "internal", "internal", "int2",
+>           ["internal", "tsquery", "internal", "internal", "int2", "int4",
 >            "internal", "internal"]
 >           False
 >           "bool",
->         CatCreateFunction "gin_tsquery_triconsistent"
->           ["internal", "internal", "int2", "tsquery", "int4", "internal",
->            "internal"]
->           False
->           "char",
 >         CatCreateFunction "ginarrayconsistent"
->           ["int2", "int4", "anyarray", "internal", "internal", "internal",
->            "internal", "internal"]
+>           ["internal", "internal", "int2", "int4", "internal", "internal",
+>            "anyarray", "internal"]
 >           False
 >           "bool",
 >         CatCreateFunction "ginarrayextract"
@@ -1950,11 +1765,6 @@ installed to do this.
 >           "internal",
 >         CatCreateFunction "ginarrayextract" ["anyarray", "internal"] False
 >           "internal",
->         CatCreateFunction "ginarraytriconsistent"
->           ["int2", "anyarray", "int4", "internal", "internal", "internal",
->            "internal"]
->           False
->           "char",
 >         CatCreateFunction "ginbeginscan"
 >           ["internal", "internal", "internal"]
 >           False
@@ -1969,7 +1779,7 @@ installed to do this.
 >           "internal",
 >         CatCreateFunction "gincostestimate"
 >           ["internal", "internal", "internal", "internal", "internal",
->            "internal", "internal"]
+>            "internal", "internal", "internal", "internal"]
 >           False
 >           "void",
 >         CatCreateFunction "ginendscan" ["internal"] False "void",
@@ -1981,9 +1791,9 @@ installed to do this.
 >           False
 >           "bool",
 >         CatCreateFunction "ginmarkpos" ["internal"] False "void",
->         CatCreateFunction "ginoptions" ["bool", "_text"] False "bytea",
+>         CatCreateFunction "ginoptions" ["_text", "bool"] False "bytea",
 >         CatCreateFunction "ginqueryarrayextract"
->           ["internal", "int2", "internal", "internal", "anyarray",
+>           ["internal", "anyarray", "internal", "int2", "internal",
 >            "internal", "internal"]
 >           False
 >           "internal",
@@ -1997,7 +1807,7 @@ installed to do this.
 >         CatCreateFunction "gist_box_compress" ["internal"] False
 >           "internal",
 >         CatCreateFunction "gist_box_consistent"
->           ["internal", "internal", "box", "int4", "oid"]
+>           ["internal", "int4", "internal", "box", "oid"]
 >           False
 >           "bool",
 >         CatCreateFunction "gist_box_decompress" ["internal"] False
@@ -2009,30 +1819,30 @@ installed to do this.
 >         CatCreateFunction "gist_box_picksplit" ["internal", "internal"]
 >           False
 >           "internal",
->         CatCreateFunction "gist_box_same" ["box", "internal", "box"] False
+>         CatCreateFunction "gist_box_same" ["box", "box", "internal"] False
 >           "internal",
 >         CatCreateFunction "gist_box_union" ["internal", "internal"] False
 >           "box",
 >         CatCreateFunction "gist_circle_compress" ["internal"] False
 >           "internal",
 >         CatCreateFunction "gist_circle_consistent"
->           ["int4", "internal", "circle", "internal", "oid"]
+>           ["int4", "internal", "internal", "circle", "oid"]
 >           False
 >           "bool",
 >         CatCreateFunction "gist_point_compress" ["internal"] False
 >           "internal",
 >         CatCreateFunction "gist_point_consistent"
->           ["point", "internal", "oid", "int4", "internal"]
+>           ["internal", "point", "int4", "internal", "oid"]
 >           False
 >           "bool",
 >         CatCreateFunction "gist_point_distance"
->           ["internal", "int4", "oid", "point"]
+>           ["int4", "internal", "point", "oid"]
 >           False
 >           "float8",
 >         CatCreateFunction "gist_poly_compress" ["internal"] False
 >           "internal",
 >         CatCreateFunction "gist_poly_consistent"
->           ["internal", "polygon", "internal", "oid", "int4"]
+>           ["polygon", "oid", "internal", "int4", "internal"]
 >           False
 >           "bool",
 >         CatCreateFunction "gistbeginscan"
@@ -2049,7 +1859,7 @@ installed to do this.
 >           "internal",
 >         CatCreateFunction "gistcostestimate"
 >           ["internal", "internal", "internal", "internal", "internal",
->            "internal", "internal"]
+>            "internal", "internal", "internal", "internal"]
 >           False
 >           "void",
 >         CatCreateFunction "gistendscan" ["internal"] False "void",
@@ -2075,7 +1885,7 @@ installed to do this.
 >         CatCreateFunction "gtsquery_compress" ["internal"] False
 >           "internal",
 >         CatCreateFunction "gtsquery_consistent"
->           ["int4", "oid", "internal", "internal", "internal"]
+>           ["internal", "oid", "int4", "internal", "internal"]
 >           False
 >           "bool",
 >         CatCreateFunction "gtsquery_decompress" ["internal"] False
@@ -2087,7 +1897,7 @@ installed to do this.
 >         CatCreateFunction "gtsquery_picksplit" ["internal", "internal"]
 >           False
 >           "internal",
->         CatCreateFunction "gtsquery_same" ["internal", "int8", "int8"]
+>         CatCreateFunction "gtsquery_same" ["int8", "internal", "int8"]
 >           False
 >           "internal",
 >         CatCreateFunction "gtsquery_union" ["internal", "internal"] False
@@ -2095,7 +1905,7 @@ installed to do this.
 >         CatCreateFunction "gtsvector_compress" ["internal"] False
 >           "internal",
 >         CatCreateFunction "gtsvector_consistent"
->           ["int4", "oid", "internal", "internal", "gtsvector"]
+>           ["oid", "internal", "internal", "gtsvector", "int4"]
 >           False
 >           "bool",
 >         CatCreateFunction "gtsvector_decompress" ["internal"] False
@@ -2108,7 +1918,7 @@ installed to do this.
 >           False
 >           "internal",
 >         CatCreateFunction "gtsvector_same"
->           ["gtsvector", "internal", "gtsvector"]
+>           ["internal", "gtsvector", "gtsvector"]
 >           False
 >           "internal",
 >         CatCreateFunction "gtsvector_union" ["internal", "internal"] False
@@ -2120,7 +1930,7 @@ installed to do this.
 >           False
 >           "bool",
 >         CatCreateFunction "has_any_column_privilege"
->           ["text", "oid", "name"]
+>           ["name", "oid", "text"]
 >           False
 >           "bool",
 >         CatCreateFunction "has_any_column_privilege"
@@ -2132,34 +1942,34 @@ installed to do this.
 >           "bool",
 >         CatCreateFunction "has_any_column_privilege" ["text", "text"] False
 >           "bool",
->         CatCreateFunction "has_any_column_privilege" ["text", "oid"] False
+>         CatCreateFunction "has_any_column_privilege" ["oid", "text"] False
 >           "bool",
 >         CatCreateFunction "has_column_privilege"
 >           ["name", "text", "text", "text"]
 >           False
 >           "bool",
 >         CatCreateFunction "has_column_privilege"
->           ["int2", "text", "name", "text"]
+>           ["name", "text", "int2", "text"]
 >           False
 >           "bool",
 >         CatCreateFunction "has_column_privilege"
->           ["text", "name", "oid", "text"]
+>           ["name", "oid", "text", "text"]
 >           False
 >           "bool",
 >         CatCreateFunction "has_column_privilege"
->           ["int2", "name", "text", "oid"]
+>           ["name", "oid", "int2", "text"]
 >           False
 >           "bool",
 >         CatCreateFunction "has_column_privilege"
->           ["text", "oid", "text", "text"]
+>           ["oid", "text", "text", "text"]
 >           False
 >           "bool",
 >         CatCreateFunction "has_column_privilege"
->           ["text", "text", "int2", "oid"]
+>           ["oid", "text", "int2", "text"]
 >           False
 >           "bool",
 >         CatCreateFunction "has_column_privilege"
->           ["text", "text", "oid", "oid"]
+>           ["oid", "oid", "text", "text"]
 >           False
 >           "bool",
 >         CatCreateFunction "has_column_privilege"
@@ -2169,30 +1979,30 @@ installed to do this.
 >         CatCreateFunction "has_column_privilege" ["text", "text", "text"]
 >           False
 >           "bool",
->         CatCreateFunction "has_column_privilege" ["text", "text", "int2"]
+>         CatCreateFunction "has_column_privilege" ["text", "int2", "text"]
 >           False
 >           "bool",
->         CatCreateFunction "has_column_privilege" ["oid", "text", "text"]
+>         CatCreateFunction "has_column_privilege" ["text", "text", "oid"]
 >           False
 >           "bool",
->         CatCreateFunction "has_column_privilege" ["oid", "text", "int2"]
+>         CatCreateFunction "has_column_privilege" ["int2", "oid", "text"]
 >           False
 >           "bool",
 >         CatCreateFunction "has_database_privilege" ["name", "text", "text"]
 >           False
 >           "bool",
->         CatCreateFunction "has_database_privilege" ["text", "oid", "name"]
+>         CatCreateFunction "has_database_privilege" ["name", "oid", "text"]
 >           False
 >           "bool",
 >         CatCreateFunction "has_database_privilege" ["oid", "text", "text"]
 >           False
 >           "bool",
->         CatCreateFunction "has_database_privilege" ["oid", "text", "oid"]
+>         CatCreateFunction "has_database_privilege" ["oid", "oid", "text"]
 >           False
 >           "bool",
 >         CatCreateFunction "has_database_privilege" ["text", "text"] False
 >           "bool",
->         CatCreateFunction "has_database_privilege" ["text", "oid"] False
+>         CatCreateFunction "has_database_privilege" ["oid", "text"] False
 >           "bool",
 >         CatCreateFunction "has_foreign_data_wrapper_privilege"
 >           ["name", "text", "text"]
@@ -2207,7 +2017,7 @@ installed to do this.
 >           False
 >           "bool",
 >         CatCreateFunction "has_foreign_data_wrapper_privilege"
->           ["oid", "text", "oid"]
+>           ["oid", "oid", "text"]
 >           False
 >           "bool",
 >         CatCreateFunction "has_foreign_data_wrapper_privilege"
@@ -2218,29 +2028,29 @@ installed to do this.
 >           ["oid", "text"]
 >           False
 >           "bool",
->         CatCreateFunction "has_function_privilege" ["text", "name", "text"]
+>         CatCreateFunction "has_function_privilege" ["name", "text", "text"]
 >           False
 >           "bool",
->         CatCreateFunction "has_function_privilege" ["name", "text", "oid"]
+>         CatCreateFunction "has_function_privilege" ["name", "oid", "text"]
 >           False
 >           "bool",
->         CatCreateFunction "has_function_privilege" ["text", "oid", "text"]
+>         CatCreateFunction "has_function_privilege" ["oid", "text", "text"]
 >           False
 >           "bool",
->         CatCreateFunction "has_function_privilege" ["text", "oid", "oid"]
+>         CatCreateFunction "has_function_privilege" ["oid", "oid", "text"]
 >           False
 >           "bool",
 >         CatCreateFunction "has_function_privilege" ["text", "text"] False
 >           "bool",
 >         CatCreateFunction "has_function_privilege" ["oid", "text"] False
 >           "bool",
->         CatCreateFunction "has_language_privilege" ["text", "text", "name"]
+>         CatCreateFunction "has_language_privilege" ["name", "text", "text"]
 >           False
 >           "bool",
 >         CatCreateFunction "has_language_privilege" ["name", "oid", "text"]
 >           False
 >           "bool",
->         CatCreateFunction "has_language_privilege" ["text", "text", "oid"]
+>         CatCreateFunction "has_language_privilege" ["oid", "text", "text"]
 >           False
 >           "bool",
 >         CatCreateFunction "has_language_privilege" ["oid", "oid", "text"]
@@ -2256,17 +2066,17 @@ installed to do this.
 >         CatCreateFunction "has_schema_privilege" ["name", "oid", "text"]
 >           False
 >           "bool",
->         CatCreateFunction "has_schema_privilege" ["text", "text", "oid"]
+>         CatCreateFunction "has_schema_privilege" ["oid", "text", "text"]
 >           False
 >           "bool",
->         CatCreateFunction "has_schema_privilege" ["oid", "text", "oid"]
+>         CatCreateFunction "has_schema_privilege" ["oid", "oid", "text"]
 >           False
 >           "bool",
 >         CatCreateFunction "has_schema_privilege" ["text", "text"] False
 >           "bool",
->         CatCreateFunction "has_schema_privilege" ["text", "oid"] False
+>         CatCreateFunction "has_schema_privilege" ["oid", "text"] False
 >           "bool",
->         CatCreateFunction "has_sequence_privilege" ["text", "text", "name"]
+>         CatCreateFunction "has_sequence_privilege" ["name", "text", "text"]
 >           False
 >           "bool",
 >         CatCreateFunction "has_sequence_privilege" ["name", "oid", "text"]
@@ -2275,7 +2085,7 @@ installed to do this.
 >         CatCreateFunction "has_sequence_privilege" ["oid", "text", "text"]
 >           False
 >           "bool",
->         CatCreateFunction "has_sequence_privilege" ["text", "oid", "oid"]
+>         CatCreateFunction "has_sequence_privilege" ["oid", "oid", "text"]
 >           False
 >           "bool",
 >         CatCreateFunction "has_sequence_privilege" ["text", "text"] False
@@ -2285,7 +2095,7 @@ installed to do this.
 >         CatCreateFunction "has_server_privilege" ["name", "text", "text"]
 >           False
 >           "bool",
->         CatCreateFunction "has_server_privilege" ["text", "name", "oid"]
+>         CatCreateFunction "has_server_privilege" ["name", "oid", "text"]
 >           False
 >           "bool",
 >         CatCreateFunction "has_server_privilege" ["oid", "text", "text"]
@@ -2298,32 +2108,32 @@ installed to do this.
 >           "bool",
 >         CatCreateFunction "has_server_privilege" ["oid", "text"] False
 >           "bool",
->         CatCreateFunction "has_table_privilege" ["text", "name", "text"]
+>         CatCreateFunction "has_table_privilege" ["name", "text", "text"]
 >           False
 >           "bool",
->         CatCreateFunction "has_table_privilege" ["text", "oid", "name"]
+>         CatCreateFunction "has_table_privilege" ["name", "oid", "text"]
 >           False
 >           "bool",
 >         CatCreateFunction "has_table_privilege" ["oid", "text", "text"]
 >           False
 >           "bool",
->         CatCreateFunction "has_table_privilege" ["oid", "text", "oid"]
+>         CatCreateFunction "has_table_privilege" ["oid", "oid", "text"]
 >           False
 >           "bool",
 >         CatCreateFunction "has_table_privilege" ["text", "text"] False
 >           "bool",
->         CatCreateFunction "has_table_privilege" ["text", "oid"] False
+>         CatCreateFunction "has_table_privilege" ["oid", "text"] False
 >           "bool",
 >         CatCreateFunction "has_tablespace_privilege"
 >           ["name", "text", "text"]
 >           False
 >           "bool",
 >         CatCreateFunction "has_tablespace_privilege"
->           ["text", "oid", "name"]
+>           ["oid", "text", "name"]
 >           False
 >           "bool",
 >         CatCreateFunction "has_tablespace_privilege"
->           ["text", "text", "oid"]
+>           ["oid", "text", "text"]
 >           False
 >           "bool",
 >         CatCreateFunction "has_tablespace_privilege" ["oid", "oid", "text"]
@@ -2333,25 +2143,9 @@ installed to do this.
 >           "bool",
 >         CatCreateFunction "has_tablespace_privilege" ["oid", "text"] False
 >           "bool",
->         CatCreateFunction "has_type_privilege" ["name", "text", "text"]
->           False
->           "bool",
->         CatCreateFunction "has_type_privilege" ["name", "text", "oid"]
->           False
->           "bool",
->         CatCreateFunction "has_type_privilege" ["text", "text", "oid"]
->           False
->           "bool",
->         CatCreateFunction "has_type_privilege" ["oid", "text", "oid"] False
->           "bool",
->         CatCreateFunction "has_type_privilege" ["text", "text"] False
->           "bool",
->         CatCreateFunction "has_type_privilege" ["oid", "text"] False
->           "bool",
 >         CatCreateFunction "hash_aclitem" ["aclitem"] False "int4",
 >         CatCreateFunction "hash_array" ["anyarray"] False "int4",
 >         CatCreateFunction "hash_numeric" ["numeric"] False "int4",
->         CatCreateFunction "hash_range" ["anyrange"] False "int4",
 >         CatCreateFunction "hashbeginscan"
 >           ["internal", "internal", "internal"]
 >           False
@@ -2368,7 +2162,7 @@ installed to do this.
 >         CatCreateFunction "hashchar" ["char"] False "int4",
 >         CatCreateFunction "hashcostestimate"
 >           ["internal", "internal", "internal", "internal", "internal",
->            "internal", "internal"]
+>            "internal", "internal", "internal", "internal"]
 >           False
 >           "void",
 >         CatCreateFunction "hashendscan" ["internal"] False "void",
@@ -2409,64 +2203,44 @@ installed to do this.
 >         CatCreateFunction "host" ["inet"] False "text",
 >         CatCreateFunction "hostmask" ["inet"] False "inet",
 >         CatCreateFunction "iclikejoinsel"
->           ["int2", "internal", "internal", "internal", "oid"]
+>           ["internal", "oid", "internal", "int2", "internal"]
 >           False
 >           "float8",
 >         CatCreateFunction "iclikesel"
->           ["int4", "internal", "internal", "oid"]
+>           ["internal", "oid", "internal", "int4"]
 >           False
 >           "float8",
 >         CatCreateFunction "icnlikejoinsel"
->           ["internal", "int2", "internal", "internal", "oid"]
+>           ["internal", "oid", "internal", "int2", "internal"]
 >           False
 >           "float8",
 >         CatCreateFunction "icnlikesel"
->           ["internal", "oid", "int4", "internal"]
+>           ["internal", "oid", "internal", "int4"]
 >           False
 >           "float8",
 >         CatCreateFunction "icregexeqjoinsel"
->           ["internal", "int2", "internal", "oid", "internal"]
+>           ["internal", "oid", "internal", "int2", "internal"]
 >           False
 >           "float8",
 >         CatCreateFunction "icregexeqsel"
->           ["internal", "int4", "oid", "internal"]
+>           ["internal", "oid", "internal", "int4"]
 >           False
 >           "float8",
 >         CatCreateFunction "icregexnejoinsel"
->           ["internal", "internal", "oid", "internal", "int2"]
+>           ["internal", "oid", "internal", "int2", "internal"]
 >           False
 >           "float8",
 >         CatCreateFunction "icregexnesel"
->           ["internal", "int4", "internal", "oid"]
+>           ["internal", "oid", "internal", "int4"]
 >           False
 >           "float8",
->         CatCreateFunction "inet_gist_compress" ["internal"] False
->           "internal",
->         CatCreateFunction "inet_gist_consistent"
->           ["int4", "inet", "oid", "internal", "internal"]
->           False
->           "bool",
->         CatCreateFunction "inet_gist_decompress" ["internal"] False
->           "internal",
->         CatCreateFunction "inet_gist_penalty"
->           ["internal", "internal", "internal"]
->           False
->           "internal",
->         CatCreateFunction "inet_gist_picksplit" ["internal", "internal"]
->           False
->           "internal",
->         CatCreateFunction "inet_gist_same" ["inet", "inet", "internal"]
->           False
->           "internal",
->         CatCreateFunction "inet_gist_union" ["internal", "internal"] False
->           "internal",
 >         CatCreateFunction "inet_in" ["cstring"] False "inet",
 >         CatCreateFunction "inet_out" ["inet"] False "cstring",
 >         CatCreateFunction "inet_recv" ["internal"] False "inet",
 >         CatCreateFunction "inet_send" ["inet"] False "bytea",
 >         CatCreateFunction "inetand" ["inet", "inet"] False "inet",
 >         CatCreateFunction "inetmi" ["inet", "inet"] False "int8",
->         CatCreateFunction "inetmi_int8" ["int8", "inet"] False "inet",
+>         CatCreateFunction "inetmi_int8" ["inet", "int8"] False "inet",
 >         CatCreateFunction "inetnot" ["inet"] False "inet",
 >         CatCreateFunction "inetor" ["inet", "inet"] False "inet",
 >         CatCreateFunction "inetpl" ["inet", "int8"] False "inet",
@@ -2478,31 +2252,27 @@ installed to do this.
 >         CatCreateFunction "int2" ["numeric"] False "int2",
 >         CatCreateFunction "int24div" ["int2", "int4"] False "int4",
 >         CatCreateFunction "int24eq" ["int4", "int2"] False "bool",
->         CatCreateFunction "int24ge" ["int4", "int2"] False "bool",
->         CatCreateFunction "int24gt" ["int2", "int4"] False "bool",
->         CatCreateFunction "int24le" ["int4", "int2"] False "bool",
->         CatCreateFunction "int24lt" ["int4", "int2"] False "bool",
->         CatCreateFunction "int24mi" ["int4", "int2"] False "int4",
+>         CatCreateFunction "int24ge" ["int2", "int4"] False "bool",
+>         CatCreateFunction "int24gt" ["int4", "int2"] False "bool",
+>         CatCreateFunction "int24le" ["int2", "int4"] False "bool",
+>         CatCreateFunction "int24lt" ["int2", "int4"] False "bool",
+>         CatCreateFunction "int24mi" ["int2", "int4"] False "int4",
 >         CatCreateFunction "int24mul" ["int2", "int4"] False "int4",
 >         CatCreateFunction "int24ne" ["int4", "int2"] False "bool",
 >         CatCreateFunction "int24pl" ["int2", "int4"] False "int4",
 >         CatCreateFunction "int28div" ["int2", "int8"] False "int8",
->         CatCreateFunction "int28eq" ["int8", "int2"] False "bool",
+>         CatCreateFunction "int28eq" ["int2", "int8"] False "bool",
 >         CatCreateFunction "int28ge" ["int2", "int8"] False "bool",
->         CatCreateFunction "int28gt" ["int8", "int2"] False "bool",
->         CatCreateFunction "int28le" ["int2", "int8"] False "bool",
+>         CatCreateFunction "int28gt" ["int2", "int8"] False "bool",
+>         CatCreateFunction "int28le" ["int8", "int2"] False "bool",
 >         CatCreateFunction "int28lt" ["int8", "int2"] False "bool",
 >         CatCreateFunction "int28mi" ["int2", "int8"] False "int8",
->         CatCreateFunction "int28mul" ["int2", "int8"] False "int8",
->         CatCreateFunction "int28ne" ["int8", "int2"] False "bool",
+>         CatCreateFunction "int28mul" ["int8", "int2"] False "int8",
+>         CatCreateFunction "int28ne" ["int2", "int8"] False "bool",
 >         CatCreateFunction "int28pl" ["int2", "int8"] False "int8",
->         CatCreateFunction "int2_accum" ["internal", "int2"] False
->           "internal",
->         CatCreateFunction "int2_accum_inv" ["int2", "internal"] False
->           "internal",
+>         CatCreateFunction "int2_accum" ["_numeric", "int2"] False
+>           "_numeric",
 >         CatCreateFunction "int2_avg_accum" ["_int8", "int2"] False "_int8",
->         CatCreateFunction "int2_avg_accum_inv" ["_int8", "int2"] False
->           "_int8",
 >         CatCreateFunction "int2_mul_cash" ["int2", "money"] False "money",
 >         CatCreateFunction "int2_sum" ["int8", "int2"] False "int8",
 >         CatCreateFunction "int2abs" ["int2"] False "int2",
@@ -2512,7 +2282,6 @@ installed to do this.
 >         CatCreateFunction "int2ge" ["int2", "int2"] False "bool",
 >         CatCreateFunction "int2gt" ["int2", "int2"] False "bool",
 >         CatCreateFunction "int2in" ["cstring"] False "int2",
->         CatCreateFunction "int2int4_sum" ["_int8"] False "int8",
 >         CatCreateFunction "int2larger" ["int2", "int2"] False "int2",
 >         CatCreateFunction "int2le" ["int2", "int2"] False "bool",
 >         CatCreateFunction "int2lt" ["int2", "int2"] False "bool",
@@ -2527,7 +2296,7 @@ installed to do this.
 >         CatCreateFunction "int2recv" ["internal"] False "int2",
 >         CatCreateFunction "int2send" ["int2"] False "bytea",
 >         CatCreateFunction "int2shl" ["int2", "int4"] False "int2",
->         CatCreateFunction "int2shr" ["int4", "int2"] False "int2",
+>         CatCreateFunction "int2shr" ["int2", "int4"] False "int2",
 >         CatCreateFunction "int2smaller" ["int2", "int2"] False "int2",
 >         CatCreateFunction "int2um" ["int2"] False "int2",
 >         CatCreateFunction "int2up" ["int2"] False "int2",
@@ -2546,35 +2315,31 @@ installed to do this.
 >         CatCreateFunction "int4" ["bit"] False "int4",
 >         CatCreateFunction "int4" ["numeric"] False "int4",
 >         CatCreateFunction "int4" ["bool"] False "int4",
->         CatCreateFunction "int42div" ["int2", "int4"] False "int4",
+>         CatCreateFunction "int42div" ["int4", "int2"] False "int4",
 >         CatCreateFunction "int42eq" ["int4", "int2"] False "bool",
->         CatCreateFunction "int42ge" ["int4", "int2"] False "bool",
->         CatCreateFunction "int42gt" ["int4", "int2"] False "bool",
->         CatCreateFunction "int42le" ["int2", "int4"] False "bool",
->         CatCreateFunction "int42lt" ["int4", "int2"] False "bool",
+>         CatCreateFunction "int42ge" ["int2", "int4"] False "bool",
+>         CatCreateFunction "int42gt" ["int2", "int4"] False "bool",
+>         CatCreateFunction "int42le" ["int4", "int2"] False "bool",
+>         CatCreateFunction "int42lt" ["int2", "int4"] False "bool",
 >         CatCreateFunction "int42mi" ["int4", "int2"] False "int4",
 >         CatCreateFunction "int42mul" ["int4", "int2"] False "int4",
->         CatCreateFunction "int42ne" ["int2", "int4"] False "bool",
+>         CatCreateFunction "int42ne" ["int4", "int2"] False "bool",
 >         CatCreateFunction "int42pl" ["int4", "int2"] False "int4",
->         CatCreateFunction "int48div" ["int8", "int4"] False "int8",
->         CatCreateFunction "int48eq" ["int8", "int4"] False "bool",
+>         CatCreateFunction "int48div" ["int4", "int8"] False "int8",
+>         CatCreateFunction "int48eq" ["int4", "int8"] False "bool",
 >         CatCreateFunction "int48ge" ["int4", "int8"] False "bool",
 >         CatCreateFunction "int48gt" ["int4", "int8"] False "bool",
->         CatCreateFunction "int48le" ["int8", "int4"] False "bool",
+>         CatCreateFunction "int48le" ["int4", "int8"] False "bool",
 >         CatCreateFunction "int48lt" ["int4", "int8"] False "bool",
 >         CatCreateFunction "int48mi" ["int4", "int8"] False "int8",
 >         CatCreateFunction "int48mul" ["int4", "int8"] False "int8",
 >         CatCreateFunction "int48ne" ["int4", "int8"] False "bool",
->         CatCreateFunction "int48pl" ["int8", "int4"] False "int8",
->         CatCreateFunction "int4_accum" ["int4", "internal"] False
->           "internal",
->         CatCreateFunction "int4_accum_inv" ["internal", "int4"] False
->           "internal",
->         CatCreateFunction "int4_avg_accum" ["int4", "_int8"] False "_int8",
->         CatCreateFunction "int4_avg_accum_inv" ["int4", "_int8"] False
->           "_int8",
->         CatCreateFunction "int4_mul_cash" ["money", "int4"] False "money",
->         CatCreateFunction "int4_sum" ["int4", "int8"] False "int8",
+>         CatCreateFunction "int48pl" ["int4", "int8"] False "int8",
+>         CatCreateFunction "int4_accum" ["_numeric", "int4"] False
+>           "_numeric",
+>         CatCreateFunction "int4_avg_accum" ["_int8", "int4"] False "_int8",
+>         CatCreateFunction "int4_mul_cash" ["int4", "money"] False "money",
+>         CatCreateFunction "int4_sum" ["int8", "int4"] False "int8",
 >         CatCreateFunction "int4abs" ["int4"] False "int4",
 >         CatCreateFunction "int4and" ["int4", "int4"] False "int4",
 >         CatCreateFunction "int4div" ["int4", "int4"] False "int4",
@@ -2594,13 +2359,6 @@ installed to do this.
 >         CatCreateFunction "int4or" ["int4", "int4"] False "int4",
 >         CatCreateFunction "int4out" ["int4"] False "cstring",
 >         CatCreateFunction "int4pl" ["int4", "int4"] False "int4",
->         CatCreateFunction "int4range" ["int4", "int4"] False "int4range",
->         CatCreateFunction "int4range" ["int4", "text", "int4"] False
->           "int4range",
->         CatCreateFunction "int4range_canonical" ["int4range"] False
->           "int4range",
->         CatCreateFunction "int4range_subdiff" ["int4", "int4"] False
->           "float8",
 >         CatCreateFunction "int4recv" ["internal"] False "int4",
 >         CatCreateFunction "int4send" ["int4"] False "bytea",
 >         CatCreateFunction "int4shl" ["int4", "int4"] False "int4",
@@ -2618,45 +2376,41 @@ installed to do this.
 >         CatCreateFunction "int8" ["bit"] False "int8",
 >         CatCreateFunction "int82div" ["int2", "int8"] False "int8",
 >         CatCreateFunction "int82eq" ["int8", "int2"] False "bool",
->         CatCreateFunction "int82ge" ["int2", "int8"] False "bool",
+>         CatCreateFunction "int82ge" ["int8", "int2"] False "bool",
 >         CatCreateFunction "int82gt" ["int8", "int2"] False "bool",
 >         CatCreateFunction "int82le" ["int8", "int2"] False "bool",
 >         CatCreateFunction "int82lt" ["int8", "int2"] False "bool",
->         CatCreateFunction "int82mi" ["int2", "int8"] False "int8",
+>         CatCreateFunction "int82mi" ["int8", "int2"] False "int8",
 >         CatCreateFunction "int82mul" ["int8", "int2"] False "int8",
 >         CatCreateFunction "int82ne" ["int8", "int2"] False "bool",
->         CatCreateFunction "int82pl" ["int2", "int8"] False "int8",
+>         CatCreateFunction "int82pl" ["int8", "int2"] False "int8",
 >         CatCreateFunction "int84div" ["int8", "int4"] False "int8",
->         CatCreateFunction "int84eq" ["int4", "int8"] False "bool",
+>         CatCreateFunction "int84eq" ["int8", "int4"] False "bool",
 >         CatCreateFunction "int84ge" ["int8", "int4"] False "bool",
 >         CatCreateFunction "int84gt" ["int8", "int4"] False "bool",
 >         CatCreateFunction "int84le" ["int8", "int4"] False "bool",
 >         CatCreateFunction "int84lt" ["int8", "int4"] False "bool",
->         CatCreateFunction "int84mi" ["int4", "int8"] False "int8",
->         CatCreateFunction "int84mul" ["int4", "int8"] False "int8",
->         CatCreateFunction "int84ne" ["int4", "int8"] False "bool",
->         CatCreateFunction "int84pl" ["int4", "int8"] False "int8",
->         CatCreateFunction "int8_accum" ["internal", "int8"] False
->           "internal",
->         CatCreateFunction "int8_accum_inv" ["int8", "internal"] False
->           "internal",
+>         CatCreateFunction "int84mi" ["int8", "int4"] False "int8",
+>         CatCreateFunction "int84mul" ["int8", "int4"] False "int8",
+>         CatCreateFunction "int84ne" ["int8", "int4"] False "bool",
+>         CatCreateFunction "int84pl" ["int8", "int4"] False "int8",
+>         CatCreateFunction "int8_accum" ["_numeric", "int8"] False
+>           "_numeric",
 >         CatCreateFunction "int8_avg" ["_int8"] False "numeric",
->         CatCreateFunction "int8_avg_accum" ["internal", "int8"] False
->           "internal",
+>         CatCreateFunction "int8_avg_accum" ["_numeric", "int8"] False
+>           "_numeric",
 >         CatCreateFunction "int8_sum" ["numeric", "int8"] False "numeric",
 >         CatCreateFunction "int8abs" ["int8"] False "int8",
 >         CatCreateFunction "int8and" ["int8", "int8"] False "int8",
->         CatCreateFunction "int8dec" ["int8"] False "int8",
->         CatCreateFunction "int8dec_any" ["any", "int8"] False "int8",
 >         CatCreateFunction "int8div" ["int8", "int8"] False "int8",
 >         CatCreateFunction "int8eq" ["int8", "int8"] False "bool",
 >         CatCreateFunction "int8ge" ["int8", "int8"] False "bool",
 >         CatCreateFunction "int8gt" ["int8", "int8"] False "bool",
 >         CatCreateFunction "int8in" ["cstring"] False "int8",
 >         CatCreateFunction "int8inc" ["int8"] False "int8",
->         CatCreateFunction "int8inc_any" ["any", "int8"] False "int8",
+>         CatCreateFunction "int8inc_any" ["int8", "any"] False "int8",
 >         CatCreateFunction "int8inc_float8_float8"
->           ["float8", "int8", "float8"]
+>           ["int8", "float8", "float8"]
 >           False
 >           "int8",
 >         CatCreateFunction "int8larger" ["int8", "int8"] False "int8",
@@ -2671,13 +2425,6 @@ installed to do this.
 >         CatCreateFunction "int8out" ["int8"] False "cstring",
 >         CatCreateFunction "int8pl" ["int8", "int8"] False "int8",
 >         CatCreateFunction "int8pl_inet" ["int8", "inet"] False "inet",
->         CatCreateFunction "int8range" ["int8", "int8"] False "int8range",
->         CatCreateFunction "int8range" ["int8", "int8", "text"] False
->           "int8range",
->         CatCreateFunction "int8range_canonical" ["int8range"] False
->           "int8range",
->         CatCreateFunction "int8range_subdiff" ["int8", "int8"] False
->           "float8",
 >         CatCreateFunction "int8recv" ["internal"] False "int8",
 >         CatCreateFunction "int8send" ["int8"] False "bytea",
 >         CatCreateFunction "int8shl" ["int8", "int4"] False "int8",
@@ -2686,19 +2433,16 @@ installed to do this.
 >         CatCreateFunction "int8um" ["int8"] False "int8",
 >         CatCreateFunction "int8up" ["int8"] False "int8",
 >         CatCreateFunction "int8xor" ["int8", "int8"] False "int8",
->         CatCreateFunction "integer_pl_date" ["date", "int4"] False "date",
+>         CatCreateFunction "integer_pl_date" ["int4", "date"] False "date",
 >         CatCreateFunction "inter_lb" ["line", "box"] False "bool",
->         CatCreateFunction "inter_sb" ["box", "lseg"] False "bool",
+>         CatCreateFunction "inter_sb" ["lseg", "box"] False "bool",
 >         CatCreateFunction "inter_sl" ["lseg", "line"] False "bool",
 >         CatCreateFunction "internal_in" ["cstring"] False "internal",
 >         CatCreateFunction "internal_out" ["internal"] False "cstring",
 >         CatCreateFunction "interval" ["reltime"] False "interval",
->         CatCreateFunction "interval" ["int4", "interval"] False "interval",
+>         CatCreateFunction "interval" ["interval", "int4"] False "interval",
 >         CatCreateFunction "interval" ["time"] False "interval",
->         CatCreateFunction "interval_accum" ["interval", "_interval"] False
->           "_interval",
->         CatCreateFunction "interval_accum_inv" ["_interval", "interval"]
->           False
+>         CatCreateFunction "interval_accum" ["_interval", "interval"] False
 >           "_interval",
 >         CatCreateFunction "interval_avg" ["_interval"] False "interval",
 >         CatCreateFunction "interval_cmp" ["interval", "interval"] False
@@ -2712,7 +2456,7 @@ installed to do this.
 >         CatCreateFunction "interval_gt" ["interval", "interval"] False
 >           "bool",
 >         CatCreateFunction "interval_hash" ["interval"] False "int4",
->         CatCreateFunction "interval_in" ["cstring", "int4", "oid"] False
+>         CatCreateFunction "interval_in" ["cstring", "oid", "int4"] False
 >           "interval",
 >         CatCreateFunction "interval_larger" ["interval", "interval"] False
 >           "interval",
@@ -2733,29 +2477,26 @@ installed to do this.
 >           "timestamp",
 >         CatCreateFunction "interval_pl_time" ["interval", "time"] False
 >           "time",
->         CatCreateFunction "interval_pl_timestamp" ["timestamp", "interval"]
+>         CatCreateFunction "interval_pl_timestamp" ["interval", "timestamp"]
 >           False
 >           "timestamp",
 >         CatCreateFunction "interval_pl_timestamptz"
->           ["timestamptz", "interval"]
+>           ["interval", "timestamptz"]
 >           False
 >           "timestamptz",
->         CatCreateFunction "interval_pl_timetz" ["interval", "timetz"] False
+>         CatCreateFunction "interval_pl_timetz" ["timetz", "interval"] False
 >           "timetz",
->         CatCreateFunction "interval_recv" ["int4", "oid", "internal"] False
+>         CatCreateFunction "interval_recv" ["int4", "internal", "oid"] False
 >           "interval",
 >         CatCreateFunction "interval_send" ["interval"] False "bytea",
 >         CatCreateFunction "interval_smaller" ["interval", "interval"] False
 >           "interval",
->         CatCreateFunction "interval_transform" ["internal"] False
->           "internal",
 >         CatCreateFunction "interval_um" ["interval"] False "interval",
 >         CatCreateFunction "intervaltypmodin" ["_cstring"] False "int4",
 >         CatCreateFunction "intervaltypmodout" ["int4"] False "cstring",
 >         CatCreateFunction "intinterval" ["abstime", "tinterval"] False
 >           "bool",
 >         CatCreateFunction "isclosed" ["path"] False "bool",
->         CatCreateFunction "isempty" ["anyrange"] False "bool",
 >         CatCreateFunction "isfinite" ["abstime"] False "bool",
 >         CatCreateFunction "isfinite" ["date"] False "bool",
 >         CatCreateFunction "isfinite" ["timestamptz"] False "bool",
@@ -2765,27 +2506,27 @@ installed to do this.
 >         CatCreateFunction "ishorizontal" ["lseg"] False "bool",
 >         CatCreateFunction "ishorizontal" ["line"] False "bool",
 >         CatCreateFunction "iso8859_1_to_utf8"
->           ["int4", "internal", "cstring", "int4", "int4"]
+>           ["int4", "int4", "cstring", "internal", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "iso8859_to_utf8"
->           ["int4", "int4", "internal", "int4", "cstring"]
+>           ["cstring", "int4", "int4", "int4", "internal"]
 >           False
 >           "void",
 >         CatCreateFunction "iso_to_koi8r"
->           ["cstring", "int4", "internal", "int4", "int4"]
+>           ["cstring", "int4", "int4", "internal", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "iso_to_mic"
->           ["int4", "int4", "int4", "cstring", "internal"]
+>           ["internal", "int4", "int4", "cstring", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "iso_to_win1251"
->           ["int4", "int4", "internal", "cstring", "int4"]
+>           ["int4", "int4", "int4", "cstring", "internal"]
 >           False
 >           "void",
 >         CatCreateFunction "iso_to_win866"
->           ["internal", "int4", "cstring", "int4", "int4"]
+>           ["int4", "cstring", "internal", "int4", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "isopen" ["path"] False "bool",
@@ -2797,113 +2538,26 @@ installed to do this.
 >         CatCreateFunction "isvertical" ["lseg"] False "bool",
 >         CatCreateFunction "isvertical" ["line"] False "bool",
 >         CatCreateFunction "johab_to_utf8"
->           ["int4", "cstring", "internal", "int4", "int4"]
+>           ["cstring", "int4", "int4", "internal", "int4"]
 >           False
 >           "void",
->         CatCreateFunction "json_agg_finalfn" ["internal"] False "json",
->         CatCreateFunction "json_agg_transfn" ["internal", "anyelement"]
->           False
->           "internal",
->         CatCreateFunction "json_array_element" ["int4", "json"] False
->           "json",
->         CatCreateFunction "json_array_element_text" ["int4", "json"] False
->           "text",
->         CatCreateFunction "json_array_elements" ["json"] True "json",
->         CatCreateFunction "json_array_elements_text" ["json"] True "text",
->         CatCreateFunction "json_array_length" ["json"] False "int4",
->         CatCreateFunction "json_each" ["json"] True "record",
->         CatCreateFunction "json_each_text" ["json"] True "record",
->         CatCreateFunction "json_in" ["cstring"] False "json",
->         CatCreateFunction "json_object" ["_text"] False "json",
->         CatCreateFunction "json_object" ["_text", "_text"] False "json",
->         CatCreateFunction "json_object_agg_finalfn" ["internal"] False
->           "json",
->         CatCreateFunction "json_object_agg_transfn"
->           ["any", "internal", "any"]
->           False
->           "internal",
->         CatCreateFunction "json_object_field" ["text", "json"] False
->           "json",
->         CatCreateFunction "json_object_field_text" ["json", "text"] False
->           "text",
->         CatCreateFunction "json_object_keys" ["json"] True "text",
->         CatCreateFunction "json_out" ["json"] False "cstring",
->         CatCreateFunction "json_populate_record"
->           ["json", "anyelement", "bool"]
->           False
->           "anyelement",
->         CatCreateFunction "json_populate_recordset"
->           ["anyelement", "json", "bool"]
->           True
->           "anyelement",
->         CatCreateFunction "json_recv" ["internal"] False "json",
->         CatCreateFunction "json_send" ["json"] False "bytea",
->         CatCreateFunction "json_to_record" ["json"] False "record",
->         CatCreateFunction "json_to_recordset" ["json"] True "record",
->         CatCreateFunction "json_typeof" ["json"] False "text",
->         CatCreateFunction "jsonb_array_element" ["int4", "jsonb"] False
->           "jsonb",
->         CatCreateFunction "jsonb_array_element_text" ["int4", "jsonb"]
->           False
->           "text",
->         CatCreateFunction "jsonb_array_elements" ["jsonb"] True "jsonb",
->         CatCreateFunction "jsonb_array_elements_text" ["jsonb"] True
->           "text",
->         CatCreateFunction "jsonb_array_length" ["jsonb"] False "int4",
->         CatCreateFunction "jsonb_cmp" ["jsonb", "jsonb"] False "int4",
->         CatCreateFunction "jsonb_contained" ["jsonb", "jsonb"] False
->           "bool",
->         CatCreateFunction "jsonb_contains" ["jsonb", "jsonb"] False "bool",
->         CatCreateFunction "jsonb_each" ["jsonb"] True "record",
->         CatCreateFunction "jsonb_each_text" ["jsonb"] True "record",
->         CatCreateFunction "jsonb_eq" ["jsonb", "jsonb"] False "bool",
->         CatCreateFunction "jsonb_exists" ["jsonb", "text"] False "bool",
->         CatCreateFunction "jsonb_exists_all" ["_text", "jsonb"] False
->           "bool",
->         CatCreateFunction "jsonb_exists_any" ["_text", "jsonb"] False
->           "bool",
->         CatCreateFunction "jsonb_ge" ["jsonb", "jsonb"] False "bool",
->         CatCreateFunction "jsonb_gt" ["jsonb", "jsonb"] False "bool",
->         CatCreateFunction "jsonb_hash" ["jsonb"] False "int4",
->         CatCreateFunction "jsonb_in" ["cstring"] False "jsonb",
->         CatCreateFunction "jsonb_le" ["jsonb", "jsonb"] False "bool",
->         CatCreateFunction "jsonb_lt" ["jsonb", "jsonb"] False "bool",
->         CatCreateFunction "jsonb_ne" ["jsonb", "jsonb"] False "bool",
->         CatCreateFunction "jsonb_object_field" ["text", "jsonb"] False
->           "jsonb",
->         CatCreateFunction "jsonb_object_field_text" ["jsonb", "text"] False
->           "text",
->         CatCreateFunction "jsonb_object_keys" ["jsonb"] True "text",
->         CatCreateFunction "jsonb_out" ["jsonb"] False "cstring",
->         CatCreateFunction "jsonb_populate_record" ["jsonb", "anyelement"]
->           False
->           "anyelement",
->         CatCreateFunction "jsonb_populate_recordset"
->           ["anyelement", "jsonb"]
->           True
->           "anyelement",
->         CatCreateFunction "jsonb_recv" ["internal"] False "jsonb",
->         CatCreateFunction "jsonb_send" ["jsonb"] False "bytea",
->         CatCreateFunction "jsonb_to_record" ["jsonb"] False "record",
->         CatCreateFunction "jsonb_to_recordset" ["jsonb"] True "record",
->         CatCreateFunction "jsonb_typeof" ["jsonb"] False "text",
 >         CatCreateFunction "justify_days" ["interval"] False "interval",
 >         CatCreateFunction "justify_hours" ["interval"] False "interval",
 >         CatCreateFunction "justify_interval" ["interval"] False "interval",
 >         CatCreateFunction "koi8r_to_iso"
->           ["int4", "int4", "cstring", "internal", "int4"]
->           False
->           "void",
->         CatCreateFunction "koi8r_to_mic"
 >           ["int4", "int4", "internal", "cstring", "int4"]
 >           False
 >           "void",
+>         CatCreateFunction "koi8r_to_mic"
+>           ["int4", "int4", "cstring", "internal", "int4"]
+>           False
+>           "void",
 >         CatCreateFunction "koi8r_to_utf8"
->           ["int4", "cstring", "int4", "int4", "internal"]
+>           ["int4", "int4", "int4", "internal", "cstring"]
 >           False
 >           "void",
 >         CatCreateFunction "koi8r_to_win1251"
->           ["int4", "internal", "cstring", "int4", "int4"]
+>           ["cstring", "int4", "int4", "internal", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "koi8r_to_win866"
@@ -2911,7 +2565,7 @@ installed to do this.
 >           False
 >           "void",
 >         CatCreateFunction "koi8u_to_utf8"
->           ["internal", "int4", "int4", "int4", "cstring"]
+>           ["cstring", "int4", "int4", "internal", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "language_handler_in" ["cstring"] False
@@ -2923,22 +2577,22 @@ installed to do this.
 >           False
 >           "void",
 >         CatCreateFunction "latin2_to_mic"
->           ["int4", "int4", "cstring", "int4", "internal"]
+>           ["cstring", "int4", "internal", "int4", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "latin2_to_win1250"
->           ["int4", "int4", "cstring", "internal", "int4"]
+>           ["cstring", "int4", "int4", "int4", "internal"]
 >           False
 >           "void",
 >         CatCreateFunction "latin3_to_mic"
->           ["int4", "int4", "int4", "cstring", "internal"]
+>           ["int4", "internal", "cstring", "int4", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "latin4_to_mic"
->           ["internal", "int4", "int4", "cstring", "int4"]
+>           ["internal", "cstring", "int4", "int4", "int4"]
 >           False
 >           "void",
->         CatCreateFunction "left" ["int4", "text"] False "text",
+>         CatCreateFunction "left" ["text", "int4"] False "text",
 >         CatCreateFunction "length" ["text"] False "int4",
 >         CatCreateFunction "length" ["bpchar"] False "int4",
 >         CatCreateFunction "length" ["lseg"] False "float8",
@@ -2948,15 +2602,15 @@ installed to do this.
 >         CatCreateFunction "length" ["bytea"] False "int4",
 >         CatCreateFunction "length" ["tsvector"] False "int4",
 >         CatCreateFunction "like" ["text", "text"] False "bool",
->         CatCreateFunction "like" ["text", "name"] False "bool",
+>         CatCreateFunction "like" ["name", "text"] False "bool",
 >         CatCreateFunction "like" ["bytea", "bytea"] False "bool",
 >         CatCreateFunction "like_escape" ["text", "text"] False "text",
 >         CatCreateFunction "like_escape" ["bytea", "bytea"] False "bytea",
 >         CatCreateFunction "likejoinsel"
->           ["int2", "internal", "internal", "internal", "oid"]
+>           ["internal", "oid", "internal", "int2", "internal"]
 >           False
 >           "float8",
->         CatCreateFunction "likesel" ["int4", "oid", "internal", "internal"]
+>         CatCreateFunction "likesel" ["internal", "oid", "internal", "int4"]
 >           False
 >           "float8",
 >         CatCreateFunction "line" ["point", "point"] False "line",
@@ -2977,32 +2631,21 @@ installed to do this.
 >         CatCreateFunction "lo_close" ["int4"] False "int4",
 >         CatCreateFunction "lo_creat" ["int4"] False "oid",
 >         CatCreateFunction "lo_create" ["oid"] False "oid",
->         CatCreateFunction "lo_export" ["text", "oid"] False "int4",
->         CatCreateFunction "lo_from_bytea" ["oid", "bytea"] False "oid",
->         CatCreateFunction "lo_get" ["oid"] False "bytea",
->         CatCreateFunction "lo_get" ["int8", "int4", "oid"] False "bytea",
+>         CatCreateFunction "lo_export" ["oid", "text"] False "int4",
 >         CatCreateFunction "lo_import" ["text"] False "oid",
->         CatCreateFunction "lo_import" ["oid", "text"] False "oid",
+>         CatCreateFunction "lo_import" ["text", "oid"] False "oid",
 >         CatCreateFunction "lo_lseek" ["int4", "int4", "int4"] False "int4",
->         CatCreateFunction "lo_lseek64" ["int4", "int8", "int4"] False
->           "int8",
->         CatCreateFunction "lo_open" ["int4", "oid"] False "int4",
->         CatCreateFunction "lo_put" ["bytea", "oid", "int8"] False "void",
+>         CatCreateFunction "lo_open" ["oid", "int4"] False "int4",
 >         CatCreateFunction "lo_tell" ["int4"] False "int4",
->         CatCreateFunction "lo_tell64" ["int4"] False "int8",
 >         CatCreateFunction "lo_truncate" ["int4", "int4"] False "int4",
->         CatCreateFunction "lo_truncate64" ["int4", "int8"] False "int4",
 >         CatCreateFunction "lo_unlink" ["oid"] False "int4",
 >         CatCreateFunction "log" ["float8"] False "float8",
 >         CatCreateFunction "log" ["numeric", "numeric"] False "numeric",
 >         CatCreateFunction "log" ["numeric"] False "numeric",
 >         CatCreateFunction "loread" ["int4", "int4"] False "bytea",
 >         CatCreateFunction "lower" ["text"] False "text",
->         CatCreateFunction "lower" ["anyrange"] False "anyelement",
->         CatCreateFunction "lower_inc" ["anyrange"] False "bool",
->         CatCreateFunction "lower_inf" ["anyrange"] False "bool",
->         CatCreateFunction "lowrite" ["bytea", "int4"] False "int4",
->         CatCreateFunction "lpad" ["int4", "text", "text"] False "text",
+>         CatCreateFunction "lowrite" ["int4", "bytea"] False "int4",
+>         CatCreateFunction "lpad" ["text", "int4", "text"] False "text",
 >         CatCreateFunction "lpad" ["text", "int4"] False "text",
 >         CatCreateFunction "lseg" ["point", "point"] False "lseg",
 >         CatCreateFunction "lseg" ["box"] False "lseg",
@@ -3027,8 +2670,6 @@ installed to do this.
 >         CatCreateFunction "lseg_vertical" ["lseg"] False "bool",
 >         CatCreateFunction "ltrim" ["text", "text"] False "text",
 >         CatCreateFunction "ltrim" ["text"] False "text",
->         CatCreateFunction "macaddr_and" ["macaddr", "macaddr"] False
->           "macaddr",
 >         CatCreateFunction "macaddr_cmp" ["macaddr", "macaddr"] False
 >           "int4",
 >         CatCreateFunction "macaddr_eq" ["macaddr", "macaddr"] False "bool",
@@ -3038,32 +2679,9 @@ installed to do this.
 >         CatCreateFunction "macaddr_le" ["macaddr", "macaddr"] False "bool",
 >         CatCreateFunction "macaddr_lt" ["macaddr", "macaddr"] False "bool",
 >         CatCreateFunction "macaddr_ne" ["macaddr", "macaddr"] False "bool",
->         CatCreateFunction "macaddr_not" ["macaddr"] False "macaddr",
->         CatCreateFunction "macaddr_or" ["macaddr", "macaddr"] False
->           "macaddr",
 >         CatCreateFunction "macaddr_out" ["macaddr"] False "cstring",
 >         CatCreateFunction "macaddr_recv" ["internal"] False "macaddr",
 >         CatCreateFunction "macaddr_send" ["macaddr"] False "bytea",
->         CatCreateFunction "make_date" ["int4", "int4", "int4"] False
->           "date",
->         CatCreateFunction "make_interval"
->           ["int4", "int4", "float8", "int4", "int4", "int4", "int4"]
->           False
->           "interval",
->         CatCreateFunction "make_time" ["int4", "float8", "int4"] False
->           "time",
->         CatCreateFunction "make_timestamp"
->           ["float8", "int4", "int4", "int4", "int4", "int4"]
->           False
->           "timestamp",
->         CatCreateFunction "make_timestamptz"
->           ["int4", "int4", "float8", "int4", "int4", "int4"]
->           False
->           "timestamptz",
->         CatCreateFunction "make_timestamptz"
->           ["float8", "int4", "int4", "int4", "int4", "int4", "text"]
->           False
->           "timestamptz",
 >         CatCreateFunction "makeaclitem" ["oid", "oid", "text", "bool"]
 >           False
 >           "aclitem",
@@ -3071,11 +2689,11 @@ installed to do this.
 >         CatCreateFunction "md5" ["text"] False "text",
 >         CatCreateFunction "md5" ["bytea"] False "text",
 >         CatCreateFunction "mic_to_ascii"
->           ["int4", "int4", "internal", "cstring", "int4"]
+>           ["cstring", "int4", "int4", "int4", "internal"]
 >           False
 >           "void",
 >         CatCreateFunction "mic_to_big5"
->           ["int4", "int4", "int4", "cstring", "internal"]
+>           ["internal", "int4", "cstring", "int4", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "mic_to_euc_cn"
@@ -3083,55 +2701,55 @@ installed to do this.
 >           False
 >           "void",
 >         CatCreateFunction "mic_to_euc_jp"
->           ["int4", "int4", "cstring", "int4", "internal"]
+>           ["int4", "int4", "internal", "cstring", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "mic_to_euc_kr"
->           ["cstring", "int4", "int4", "internal", "int4"]
->           False
->           "void",
->         CatCreateFunction "mic_to_euc_tw"
->           ["int4", "internal", "int4", "int4", "cstring"]
->           False
->           "void",
->         CatCreateFunction "mic_to_iso"
->           ["int4", "cstring", "internal", "int4", "int4"]
->           False
->           "void",
->         CatCreateFunction "mic_to_koi8r"
->           ["int4", "cstring", "internal", "int4", "int4"]
->           False
->           "void",
->         CatCreateFunction "mic_to_latin1"
->           ["cstring", "int4", "int4", "int4", "internal"]
->           False
->           "void",
->         CatCreateFunction "mic_to_latin2"
->           ["int4", "internal", "int4", "int4", "cstring"]
->           False
->           "void",
->         CatCreateFunction "mic_to_latin3"
->           ["internal", "int4", "int4", "int4", "cstring"]
->           False
->           "void",
->         CatCreateFunction "mic_to_latin4"
 >           ["int4", "internal", "cstring", "int4", "int4"]
 >           False
 >           "void",
+>         CatCreateFunction "mic_to_euc_tw"
+>           ["int4", "int4", "internal", "cstring", "int4"]
+>           False
+>           "void",
+>         CatCreateFunction "mic_to_iso"
+>           ["int4", "internal", "int4", "int4", "cstring"]
+>           False
+>           "void",
+>         CatCreateFunction "mic_to_koi8r"
+>           ["int4", "int4", "int4", "internal", "cstring"]
+>           False
+>           "void",
+>         CatCreateFunction "mic_to_latin1"
+>           ["int4", "internal", "int4", "int4", "cstring"]
+>           False
+>           "void",
+>         CatCreateFunction "mic_to_latin2"
+>           ["internal", "cstring", "int4", "int4", "int4"]
+>           False
+>           "void",
+>         CatCreateFunction "mic_to_latin3"
+>           ["cstring", "internal", "int4", "int4", "int4"]
+>           False
+>           "void",
+>         CatCreateFunction "mic_to_latin4"
+>           ["int4", "int4", "int4", "cstring", "internal"]
+>           False
+>           "void",
 >         CatCreateFunction "mic_to_sjis"
->           ["cstring", "int4", "int4", "int4", "internal"]
+>           ["internal", "int4", "cstring", "int4", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "mic_to_win1250"
->           ["int4", "int4", "internal", "cstring", "int4"]
+>           ["int4", "int4", "int4", "internal", "cstring"]
 >           False
 >           "void",
 >         CatCreateFunction "mic_to_win1251"
->           ["int4", "int4", "internal", "cstring", "int4"]
+>           ["int4", "int4", "int4", "cstring", "internal"]
 >           False
 >           "void",
 >         CatCreateFunction "mic_to_win866"
->           ["int4", "cstring", "int4", "internal", "int4"]
+>           ["int4", "int4", "cstring", "internal", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "mktinterval" ["abstime", "abstime"] False
@@ -3140,12 +2758,10 @@ installed to do this.
 >         CatCreateFunction "mod" ["int4", "int4"] False "int4",
 >         CatCreateFunction "mod" ["int8", "int8"] False "int8",
 >         CatCreateFunction "mod" ["numeric", "numeric"] False "numeric",
->         CatCreateFunction "mode_final" ["internal", "anyelement"] False
->           "anyelement",
 >         CatCreateFunction "money" ["int4"] False "money",
 >         CatCreateFunction "money" ["int8"] False "money",
 >         CatCreateFunction "money" ["numeric"] False "money",
->         CatCreateFunction "mul_d_interval" ["interval", "float8"] False
+>         CatCreateFunction "mul_d_interval" ["float8", "interval"] False
 >           "interval",
 >         CatCreateFunction "name" ["text"] False "name",
 >         CatCreateFunction "name" ["bpchar"] False "name",
@@ -3153,10 +2769,10 @@ installed to do this.
 >         CatCreateFunction "nameeq" ["name", "name"] False "bool",
 >         CatCreateFunction "namege" ["name", "name"] False "bool",
 >         CatCreateFunction "namegt" ["name", "name"] False "bool",
->         CatCreateFunction "nameiclike" ["text", "name"] False "bool",
+>         CatCreateFunction "nameiclike" ["name", "text"] False "bool",
 >         CatCreateFunction "nameicnlike" ["name", "text"] False "bool",
 >         CatCreateFunction "nameicregexeq" ["name", "text"] False "bool",
->         CatCreateFunction "nameicregexne" ["text", "name"] False "bool",
+>         CatCreateFunction "nameicregexne" ["name", "text"] False "bool",
 >         CatCreateFunction "namein" ["cstring"] False "name",
 >         CatCreateFunction "namele" ["name", "name"] False "bool",
 >         CatCreateFunction "namelike" ["name", "text"] False "bool",
@@ -3165,14 +2781,14 @@ installed to do this.
 >         CatCreateFunction "namenlike" ["name", "text"] False "bool",
 >         CatCreateFunction "nameout" ["name"] False "cstring",
 >         CatCreateFunction "namerecv" ["internal"] False "name",
->         CatCreateFunction "nameregexeq" ["name", "text"] False "bool",
->         CatCreateFunction "nameregexne" ["text", "name"] False "bool",
+>         CatCreateFunction "nameregexeq" ["text", "name"] False "bool",
+>         CatCreateFunction "nameregexne" ["name", "text"] False "bool",
 >         CatCreateFunction "namesend" ["name"] False "bytea",
 >         CatCreateFunction "neqjoinsel"
->           ["internal", "int2", "internal", "oid", "internal"]
+>           ["internal", "int2", "internal", "internal", "oid"]
 >           False
 >           "float8",
->         CatCreateFunction "neqsel" ["int4", "oid", "internal", "internal"]
+>         CatCreateFunction "neqsel" ["internal", "oid", "internal", "int4"]
 >           False
 >           "float8",
 >         CatCreateFunction "netmask" ["inet"] False "inet",
@@ -3184,34 +2800,25 @@ installed to do this.
 >         CatCreateFunction "network_le" ["inet", "inet"] False "bool",
 >         CatCreateFunction "network_lt" ["inet", "inet"] False "bool",
 >         CatCreateFunction "network_ne" ["inet", "inet"] False "bool",
->         CatCreateFunction "network_overlap" ["inet", "inet"] False "bool",
 >         CatCreateFunction "network_sub" ["inet", "inet"] False "bool",
 >         CatCreateFunction "network_subeq" ["inet", "inet"] False "bool",
 >         CatCreateFunction "network_sup" ["inet", "inet"] False "bool",
 >         CatCreateFunction "network_supeq" ["inet", "inet"] False "bool",
->         CatCreateFunction "networkjoinsel"
->           ["int2", "internal", "internal", "oid", "internal"]
->           False
->           "float8",
->         CatCreateFunction "networksel"
->           ["internal", "int4", "internal", "oid"]
->           False
->           "float8",
 >         CatCreateFunction "nextval" ["regclass"] False "int8",
 >         CatCreateFunction "nlikejoinsel"
->           ["int2", "internal", "oid", "internal", "internal"]
+>           ["internal", "int2", "internal", "internal", "oid"]
 >           False
 >           "float8",
 >         CatCreateFunction "nlikesel"
->           ["internal", "internal", "int4", "oid"]
+>           ["internal", "oid", "internal", "int4"]
 >           False
 >           "float8",
 >         CatCreateFunction "notlike" ["text", "text"] False "bool",
->         CatCreateFunction "notlike" ["text", "name"] False "bool",
+>         CatCreateFunction "notlike" ["name", "text"] False "bool",
 >         CatCreateFunction "notlike" ["bytea", "bytea"] False "bool",
 >         CatCreateFunction "npoints" ["path"] False "int4",
 >         CatCreateFunction "npoints" ["polygon"] False "int4",
->         CatCreateFunction "numeric" ["int4", "numeric"] False "numeric",
+>         CatCreateFunction "numeric" ["numeric", "int4"] False "numeric",
 >         CatCreateFunction "numeric" ["int4"] False "numeric",
 >         CatCreateFunction "numeric" ["float4"] False "numeric",
 >         CatCreateFunction "numeric" ["float8"] False "numeric",
@@ -3219,15 +2826,13 @@ installed to do this.
 >         CatCreateFunction "numeric" ["int2"] False "numeric",
 >         CatCreateFunction "numeric" ["money"] False "numeric",
 >         CatCreateFunction "numeric_abs" ["numeric"] False "numeric",
->         CatCreateFunction "numeric_accum" ["internal", "numeric"] False
->           "internal",
->         CatCreateFunction "numeric_accum_inv" ["numeric", "internal"] False
->           "internal",
+>         CatCreateFunction "numeric_accum" ["_numeric", "numeric"] False
+>           "_numeric",
 >         CatCreateFunction "numeric_add" ["numeric", "numeric"] False
 >           "numeric",
->         CatCreateFunction "numeric_avg" ["internal"] False "numeric",
->         CatCreateFunction "numeric_avg_accum" ["internal", "numeric"] False
->           "internal",
+>         CatCreateFunction "numeric_avg" ["_numeric"] False "numeric",
+>         CatCreateFunction "numeric_avg_accum" ["numeric", "_numeric"] False
+>           "_numeric",
 >         CatCreateFunction "numeric_cmp" ["numeric", "numeric"] False
 >           "int4",
 >         CatCreateFunction "numeric_div" ["numeric", "numeric"] False
@@ -3239,7 +2844,7 @@ installed to do this.
 >         CatCreateFunction "numeric_fac" ["int8"] False "numeric",
 >         CatCreateFunction "numeric_ge" ["numeric", "numeric"] False "bool",
 >         CatCreateFunction "numeric_gt" ["numeric", "numeric"] False "bool",
->         CatCreateFunction "numeric_in" ["cstring", "oid", "int4"] False
+>         CatCreateFunction "numeric_in" ["int4", "cstring", "oid"] False
 >           "numeric",
 >         CatCreateFunction "numeric_inc" ["numeric"] False "numeric",
 >         CatCreateFunction "numeric_larger" ["numeric", "numeric"] False
@@ -3263,29 +2868,20 @@ installed to do this.
 >         CatCreateFunction "numeric_smaller" ["numeric", "numeric"] False
 >           "numeric",
 >         CatCreateFunction "numeric_sqrt" ["numeric"] False "numeric",
->         CatCreateFunction "numeric_stddev_pop" ["internal"] False
+>         CatCreateFunction "numeric_stddev_pop" ["_numeric"] False
 >           "numeric",
->         CatCreateFunction "numeric_stddev_samp" ["internal"] False
+>         CatCreateFunction "numeric_stddev_samp" ["_numeric"] False
 >           "numeric",
 >         CatCreateFunction "numeric_sub" ["numeric", "numeric"] False
 >           "numeric",
->         CatCreateFunction "numeric_sum" ["internal"] False "numeric",
->         CatCreateFunction "numeric_transform" ["internal"] False
->           "internal",
 >         CatCreateFunction "numeric_uminus" ["numeric"] False "numeric",
 >         CatCreateFunction "numeric_uplus" ["numeric"] False "numeric",
->         CatCreateFunction "numeric_var_pop" ["internal"] False "numeric",
->         CatCreateFunction "numeric_var_samp" ["internal"] False "numeric",
+>         CatCreateFunction "numeric_var_pop" ["_numeric"] False "numeric",
+>         CatCreateFunction "numeric_var_samp" ["_numeric"] False "numeric",
 >         CatCreateFunction "numerictypmodin" ["_cstring"] False "int4",
 >         CatCreateFunction "numerictypmodout" ["int4"] False "cstring",
 >         CatCreateFunction "numnode" ["tsquery"] False "int4",
->         CatCreateFunction "numrange" ["numeric", "numeric"] False
->           "numrange",
->         CatCreateFunction "numrange" ["text", "numeric", "numeric"] False
->           "numrange",
->         CatCreateFunction "numrange_subdiff" ["numeric", "numeric"] False
->           "float8",
->         CatCreateFunction "obj_description" ["name", "oid"] False "text",
+>         CatCreateFunction "obj_description" ["oid", "name"] False "text",
 >         CatCreateFunction "obj_description" ["oid"] False "text",
 >         CatCreateFunction "octet_length" ["bytea"] False "int4",
 >         CatCreateFunction "octet_length" ["text"] False "int4",
@@ -3321,17 +2917,14 @@ installed to do this.
 >         CatCreateFunction "oidvectorrecv" ["internal"] False "oidvector",
 >         CatCreateFunction "oidvectorsend" ["oidvector"] False "bytea",
 >         CatCreateFunction "oidvectortypes" ["oidvector"] False "text",
->         CatCreateFunction "on_pb" ["box", "point"] False "bool",
->         CatCreateFunction "on_pl" ["point", "line"] False "bool",
->         CatCreateFunction "on_ppath" ["path", "point"] False "bool",
->         CatCreateFunction "on_ps" ["lseg", "point"] False "bool",
+>         CatCreateFunction "on_pb" ["point", "box"] False "bool",
+>         CatCreateFunction "on_pl" ["line", "point"] False "bool",
+>         CatCreateFunction "on_ppath" ["point", "path"] False "bool",
+>         CatCreateFunction "on_ps" ["point", "lseg"] False "bool",
 >         CatCreateFunction "on_sb" ["box", "lseg"] False "bool",
->         CatCreateFunction "on_sl" ["lseg", "line"] False "bool",
+>         CatCreateFunction "on_sl" ["line", "lseg"] False "bool",
 >         CatCreateFunction "opaque_in" ["cstring"] False "opaque",
 >         CatCreateFunction "opaque_out" ["opaque"] False "cstring",
->         CatCreateFunction "ordered_set_transition" ["internal", "any"]
->           False
->           "internal",
 >         CatCreateFunction "overlaps"
 >           ["timetz", "timetz", "timetz", "timetz"]
 >           False
@@ -3341,27 +2934,27 @@ installed to do this.
 >           False
 >           "bool",
 >         CatCreateFunction "overlaps"
->           ["interval", "timestamptz", "interval", "timestamptz"]
+>           ["timestamptz", "interval", "timestamptz", "interval"]
 >           False
 >           "bool",
 >         CatCreateFunction "overlaps"
->           ["interval", "timestamptz", "timestamptz", "timestamptz"]
+>           ["timestamptz", "timestamptz", "timestamptz", "interval"]
 >           False
 >           "bool",
 >         CatCreateFunction "overlaps"
->           ["timestamptz", "timestamptz", "interval", "timestamptz"]
+>           ["timestamptz", "interval", "timestamptz", "timestamptz"]
 >           False
 >           "bool",
 >         CatCreateFunction "overlaps" ["time", "time", "time", "time"] False
 >           "bool",
 >         CatCreateFunction "overlaps"
->           ["time", "interval", "time", "interval"]
+>           ["time", "time", "interval", "interval"]
 >           False
 >           "bool",
->         CatCreateFunction "overlaps" ["interval", "time", "time", "time"]
+>         CatCreateFunction "overlaps" ["time", "time", "time", "interval"]
 >           False
 >           "bool",
->         CatCreateFunction "overlaps" ["time", "time", "interval", "time"]
+>         CatCreateFunction "overlaps" ["time", "time", "time", "interval"]
 >           False
 >           "bool",
 >         CatCreateFunction "overlaps"
@@ -3369,33 +2962,33 @@ installed to do this.
 >           False
 >           "bool",
 >         CatCreateFunction "overlaps"
->           ["timestamp", "interval", "timestamp", "interval"]
+>           ["timestamp", "interval", "interval", "timestamp"]
 >           False
 >           "bool",
 >         CatCreateFunction "overlaps"
->           ["timestamp", "timestamp", "timestamp", "interval"]
+>           ["timestamp", "timestamp", "interval", "timestamp"]
 >           False
 >           "bool",
 >         CatCreateFunction "overlaps"
->           ["timestamp", "interval", "timestamp", "timestamp"]
+>           ["timestamp", "timestamp", "interval", "timestamp"]
 >           False
 >           "bool",
->         CatCreateFunction "overlay" ["bytea", "bytea", "int4", "int4"]
+>         CatCreateFunction "overlay" ["bytea", "int4", "bytea", "int4"]
 >           False
 >           "bytea",
->         CatCreateFunction "overlay" ["int4", "bytea", "bytea"] False
+>         CatCreateFunction "overlay" ["bytea", "bytea", "int4"] False
 >           "bytea",
->         CatCreateFunction "overlay" ["int4", "int4", "text", "text"] False
+>         CatCreateFunction "overlay" ["text", "text", "int4", "int4"] False
 >           "text",
->         CatCreateFunction "overlay" ["text", "text", "int4"] False "text",
->         CatCreateFunction "overlay" ["bit", "int4", "int4", "bit"] False
+>         CatCreateFunction "overlay" ["text", "int4", "text"] False "text",
+>         CatCreateFunction "overlay" ["bit", "bit", "int4", "int4"] False
 >           "bit",
->         CatCreateFunction "overlay" ["int4", "bit", "bit"] False "bit",
+>         CatCreateFunction "overlay" ["bit", "bit", "int4"] False "bit",
 >         CatCreateFunction "path" ["polygon"] False "path",
 >         CatCreateFunction "path_add" ["path", "path"] False "path",
 >         CatCreateFunction "path_add_pt" ["path", "point"] False "path",
 >         CatCreateFunction "path_center" ["path"] False "point",
->         CatCreateFunction "path_contain_pt" ["point", "path"] False "bool",
+>         CatCreateFunction "path_contain_pt" ["path", "point"] False "bool",
 >         CatCreateFunction "path_distance" ["path", "path"] False "float8",
 >         CatCreateFunction "path_div_pt" ["point", "path"] False "path",
 >         CatCreateFunction "path_in" ["cstring"] False "path",
@@ -3413,30 +3006,6 @@ installed to do this.
 >         CatCreateFunction "path_send" ["path"] False "bytea",
 >         CatCreateFunction "path_sub_pt" ["path", "point"] False "path",
 >         CatCreateFunction "pclose" ["path"] False "path",
->         CatCreateFunction "percentile_cont_float8_final"
->           ["internal", "float8"]
->           False
->           "float8",
->         CatCreateFunction "percentile_cont_float8_multi_final"
->           ["_float8", "internal"]
->           False
->           "_float8",
->         CatCreateFunction "percentile_cont_interval_final"
->           ["internal", "float8"]
->           False
->           "interval",
->         CatCreateFunction "percentile_cont_interval_multi_final"
->           ["_float8", "internal"]
->           False
->           "_interval",
->         CatCreateFunction "percentile_disc_final"
->           ["float8", "anyelement", "internal"]
->           False
->           "anyelement",
->         CatCreateFunction "percentile_disc_multi_final"
->           ["internal", "_float8", "anyelement"]
->           False
->           "anyarray",
 >         CatCreateFunction "pg_advisory_lock" ["int8"] False "void",
 >         CatCreateFunction "pg_advisory_lock" ["int4", "int4"] False "void",
 >         CatCreateFunction "pg_advisory_lock_shared" ["int8"] False "void",
@@ -3460,28 +3029,14 @@ installed to do this.
 >           "void",
 >         CatCreateFunction "pg_cancel_backend" ["int4"] False "bool",
 >         CatCreateFunction "pg_char_to_encoding" ["name"] False "int4",
->         CatCreateFunction "pg_collation_for" ["any"] False "text",
 >         CatCreateFunction "pg_collation_is_visible" ["oid"] False "bool",
->         CatCreateFunction "pg_column_is_updatable"
->           ["regclass", "int2", "bool"]
->           False
->           "bool",
 >         CatCreateFunction "pg_column_size" ["any"] False "int4",
 >         CatCreateFunction "pg_conversion_is_visible" ["oid"] False "bool",
->         CatCreateFunction "pg_create_logical_replication_slot"
->           ["name", "name"]
->           False
->           "record",
->         CatCreateFunction "pg_create_physical_replication_slot" ["name"]
->           False
->           "record",
->         CatCreateFunction "pg_create_restore_point" ["text"] False
->           "pg_lsn",
+>         CatCreateFunction "pg_create_restore_point" ["text"] False "text",
 >         CatCreateFunction "pg_database_size" ["name"] False "int8",
 >         CatCreateFunction "pg_database_size" ["oid"] False "int8",
 >         CatCreateFunction "pg_describe_object" ["oid", "oid", "int4"] False
 >           "text",
->         CatCreateFunction "pg_drop_replication_slot" ["name"] False "void",
 >         CatCreateFunction "pg_encoding_max_length" ["int4"] False "int4",
 >         CatCreateFunction "pg_encoding_to_char" ["int4"] False "name",
 >         CatCreateFunction "pg_extension_config_dump" ["regclass", "text"]
@@ -3489,18 +3044,13 @@ installed to do this.
 >           "void",
 >         CatCreateFunction "pg_extension_update_paths" ["name"] True
 >           "record",
->         CatCreateFunction "pg_filenode_relation" ["oid", "oid"] False
->           "regclass",
 >         CatCreateFunction "pg_function_is_visible" ["oid"] False "bool",
 >         CatCreateFunction "pg_get_constraintdef" ["oid"] False "text",
 >         CatCreateFunction "pg_get_constraintdef" ["oid", "bool"] False
 >           "text",
->         CatCreateFunction "pg_get_expr" ["oid", "pg_node_tree"] False
+>         CatCreateFunction "pg_get_expr" ["pg_node_tree", "oid"] False
 >           "text",
->         CatCreateFunction "pg_get_expr" ["oid", "bool", "pg_node_tree"]
->           False
->           "text",
->         CatCreateFunction "pg_get_function_arg_default" ["oid", "int4"]
+>         CatCreateFunction "pg_get_expr" ["pg_node_tree", "oid", "bool"]
 >           False
 >           "text",
 >         CatCreateFunction "pg_get_function_arguments" ["oid"] False "text",
@@ -3510,9 +3060,8 @@ installed to do this.
 >         CatCreateFunction "pg_get_function_result" ["oid"] False "text",
 >         CatCreateFunction "pg_get_functiondef" ["oid"] False "text",
 >         CatCreateFunction "pg_get_indexdef" ["oid"] False "text",
->         CatCreateFunction "pg_get_indexdef" ["oid", "int4", "bool"] False
+>         CatCreateFunction "pg_get_indexdef" ["oid", "bool", "int4"] False
 >           "text",
->         CatCreateFunction "pg_get_multixact_members" ["xid"] True "record",
 >         CatCreateFunction "pg_get_ruledef" ["oid"] False "text",
 >         CatCreateFunction "pg_get_ruledef" ["oid", "bool"] False "text",
 >         CatCreateFunction "pg_get_serial_sequence" ["text", "text"] False
@@ -3522,37 +3071,21 @@ installed to do this.
 >         CatCreateFunction "pg_get_userbyid" ["oid"] False "name",
 >         CatCreateFunction "pg_get_viewdef" ["text"] False "text",
 >         CatCreateFunction "pg_get_viewdef" ["oid"] False "text",
->         CatCreateFunction "pg_get_viewdef" ["bool", "text"] False "text",
->         CatCreateFunction "pg_get_viewdef" ["oid", "bool"] False "text",
->         CatCreateFunction "pg_get_viewdef" ["int4", "oid"] False "text",
->         CatCreateFunction "pg_has_role" ["text", "name", "name"] False
+>         CatCreateFunction "pg_get_viewdef" ["text", "bool"] False "text",
+>         CatCreateFunction "pg_get_viewdef" ["bool", "oid"] False "text",
+>         CatCreateFunction "pg_has_role" ["name", "name", "text"] False
 >           "bool",
->         CatCreateFunction "pg_has_role" ["text", "name", "oid"] False
+>         CatCreateFunction "pg_has_role" ["name", "oid", "text"] False
 >           "bool",
 >         CatCreateFunction "pg_has_role" ["oid", "name", "text"] False
 >           "bool",
 >         CatCreateFunction "pg_has_role" ["oid", "oid", "text"] False
 >           "bool",
->         CatCreateFunction "pg_has_role" ["text", "name"] False "bool",
+>         CatCreateFunction "pg_has_role" ["name", "text"] False "bool",
 >         CatCreateFunction "pg_has_role" ["oid", "text"] False "bool",
->         CatCreateFunction "pg_identify_object" ["oid", "int4", "oid"] False
->           "record",
 >         CatCreateFunction "pg_indexes_size" ["regclass"] False "int8",
 >         CatCreateFunction "pg_is_other_temp_schema" ["oid"] False "bool",
 >         CatCreateFunction "pg_ls_dir" ["text"] True "text",
->         CatCreateFunction "pg_lsn_cmp" ["pg_lsn", "pg_lsn"] False "int4",
->         CatCreateFunction "pg_lsn_eq" ["pg_lsn", "pg_lsn"] False "bool",
->         CatCreateFunction "pg_lsn_ge" ["pg_lsn", "pg_lsn"] False "bool",
->         CatCreateFunction "pg_lsn_gt" ["pg_lsn", "pg_lsn"] False "bool",
->         CatCreateFunction "pg_lsn_hash" ["pg_lsn"] False "int4",
->         CatCreateFunction "pg_lsn_in" ["cstring"] False "pg_lsn",
->         CatCreateFunction "pg_lsn_le" ["pg_lsn", "pg_lsn"] False "bool",
->         CatCreateFunction "pg_lsn_lt" ["pg_lsn", "pg_lsn"] False "bool",
->         CatCreateFunction "pg_lsn_mi" ["pg_lsn", "pg_lsn"] False "numeric",
->         CatCreateFunction "pg_lsn_ne" ["pg_lsn", "pg_lsn"] False "bool",
->         CatCreateFunction "pg_lsn_out" ["pg_lsn"] False "cstring",
->         CatCreateFunction "pg_lsn_recv" ["internal"] False "pg_lsn",
->         CatCreateFunction "pg_lsn_send" ["pg_lsn"] False "bytea",
 >         CatCreateFunction "pg_node_tree_in" ["cstring"] False
 >           "pg_node_tree",
 >         CatCreateFunction "pg_node_tree_out" ["pg_node_tree"] False
@@ -3564,7 +3097,6 @@ installed to do this.
 >         CatCreateFunction "pg_notify" ["text", "text"] False "void",
 >         CatCreateFunction "pg_opclass_is_visible" ["oid"] False "bool",
 >         CatCreateFunction "pg_operator_is_visible" ["oid"] False "bool",
->         CatCreateFunction "pg_opfamily_is_visible" ["oid"] False "bool",
 >         CatCreateFunction "pg_options_to_table" ["_text"] True "record",
 >         CatCreateFunction "pg_read_binary_file" ["int8", "text", "int8"]
 >           False
@@ -3575,20 +3107,13 @@ installed to do this.
 >         CatCreateFunction "pg_read_file" ["text"] False "text",
 >         CatCreateFunction "pg_relation_filenode" ["regclass"] False "oid",
 >         CatCreateFunction "pg_relation_filepath" ["regclass"] False "text",
->         CatCreateFunction "pg_relation_is_updatable" ["bool", "regclass"]
->           False
->           "int4",
 >         CatCreateFunction "pg_relation_size" ["regclass"] False "int8",
 >         CatCreateFunction "pg_relation_size" ["regclass", "text"] False
 >           "int8",
 >         CatCreateFunction "pg_sequence_parameters" ["oid"] False "record",
 >         CatCreateFunction "pg_size_pretty" ["int8"] False "text",
->         CatCreateFunction "pg_size_pretty" ["numeric"] False "text",
 >         CatCreateFunction "pg_sleep" ["float8"] False "void",
->         CatCreateFunction "pg_sleep_for" ["interval"] False "void",
->         CatCreateFunction "pg_sleep_until" ["timestamptz"] False "void",
->         CatCreateFunction "pg_start_backup" ["bool", "text"] False
->           "pg_lsn",
+>         CatCreateFunction "pg_start_backup" ["bool", "text"] False "text",
 >         CatCreateFunction "pg_stat_file" ["text"] False "record",
 >         CatCreateFunction "pg_stat_get_activity" ["int4"] True "record",
 >         CatCreateFunction "pg_stat_get_analyze_count" ["oid"] False "int8",
@@ -3618,10 +3143,6 @@ installed to do this.
 >         CatCreateFunction "pg_stat_get_blocks_fetched" ["oid"] False
 >           "int8",
 >         CatCreateFunction "pg_stat_get_blocks_hit" ["oid"] False "int8",
->         CatCreateFunction "pg_stat_get_db_blk_read_time" ["oid"] False
->           "float8",
->         CatCreateFunction "pg_stat_get_db_blk_write_time" ["oid"] False
->           "float8",
 >         CatCreateFunction "pg_stat_get_db_blocks_fetched" ["oid"] False
 >           "int8",
 >         CatCreateFunction "pg_stat_get_db_blocks_hit" ["oid"] False "int8",
@@ -3640,13 +3161,10 @@ installed to do this.
 >         CatCreateFunction "pg_stat_get_db_conflict_tablespace" ["oid"]
 >           False
 >           "int8",
->         CatCreateFunction "pg_stat_get_db_deadlocks" ["oid"] False "int8",
 >         CatCreateFunction "pg_stat_get_db_numbackends" ["oid"] False
 >           "int4",
 >         CatCreateFunction "pg_stat_get_db_stat_reset_time" ["oid"] False
 >           "timestamptz",
->         CatCreateFunction "pg_stat_get_db_temp_bytes" ["oid"] False "int8",
->         CatCreateFunction "pg_stat_get_db_temp_files" ["oid"] False "int8",
 >         CatCreateFunction "pg_stat_get_db_tuples_deleted" ["oid"] False
 >           "int8",
 >         CatCreateFunction "pg_stat_get_db_tuples_fetched" ["oid"] False
@@ -3665,9 +3183,8 @@ installed to do this.
 >         CatCreateFunction "pg_stat_get_function_calls" ["oid"] False
 >           "int8",
 >         CatCreateFunction "pg_stat_get_function_self_time" ["oid"] False
->           "float8",
->         CatCreateFunction "pg_stat_get_function_total_time" ["oid"] False
->           "float8",
+>           "int8",
+>         CatCreateFunction "pg_stat_get_function_time" ["oid"] False "int8",
 >         CatCreateFunction "pg_stat_get_last_analyze_time" ["oid"] False
 >           "timestamptz",
 >         CatCreateFunction "pg_stat_get_last_autoanalyze_time" ["oid"] False
@@ -3677,8 +3194,6 @@ installed to do this.
 >         CatCreateFunction "pg_stat_get_last_vacuum_time" ["oid"] False
 >           "timestamptz",
 >         CatCreateFunction "pg_stat_get_live_tuples" ["oid"] False "int8",
->         CatCreateFunction "pg_stat_get_mod_since_analyze" ["oid"] False
->           "int8",
 >         CatCreateFunction "pg_stat_get_numscans" ["oid"] False "int8",
 >         CatCreateFunction "pg_stat_get_tuples_deleted" ["oid"] False
 >           "int8",
@@ -3701,10 +3216,9 @@ installed to do this.
 >           "int8",
 >         CatCreateFunction "pg_stat_get_xact_function_self_time" ["oid"]
 >           False
->           "float8",
->         CatCreateFunction "pg_stat_get_xact_function_total_time" ["oid"]
->           False
->           "float8",
+>           "int8",
+>         CatCreateFunction "pg_stat_get_xact_function_time" ["oid"] False
+>           "int8",
 >         CatCreateFunction "pg_stat_get_xact_numscans" ["oid"] False "int8",
 >         CatCreateFunction "pg_stat_get_xact_tuples_deleted" ["oid"] False
 >           "int8",
@@ -3729,7 +3243,6 @@ installed to do this.
 >         CatCreateFunction "pg_table_is_visible" ["oid"] False "bool",
 >         CatCreateFunction "pg_table_size" ["regclass"] False "int8",
 >         CatCreateFunction "pg_tablespace_databases" ["oid"] True "oid",
->         CatCreateFunction "pg_tablespace_location" ["oid"] False "text",
 >         CatCreateFunction "pg_tablespace_size" ["oid"] False "int8",
 >         CatCreateFunction "pg_tablespace_size" ["name"] False "int8",
 >         CatCreateFunction "pg_terminate_backend" ["int4"] False "bool",
@@ -3760,11 +3273,8 @@ installed to do this.
 >         CatCreateFunction "pg_ts_template_is_visible" ["oid"] False "bool",
 >         CatCreateFunction "pg_type_is_visible" ["oid"] False "bool",
 >         CatCreateFunction "pg_typeof" ["any"] False "regtype",
->         CatCreateFunction "pg_xlog_location_diff" ["pg_lsn", "pg_lsn"]
->           False
->           "numeric",
->         CatCreateFunction "pg_xlogfile_name" ["pg_lsn"] False "text",
->         CatCreateFunction "pg_xlogfile_name_offset" ["pg_lsn"] False
+>         CatCreateFunction "pg_xlogfile_name" ["text"] False "text",
+>         CatCreateFunction "pg_xlogfile_name_offset" ["text"] False
 >           "record",
 >         CatCreateFunction "plainto_tsquery" ["regconfig", "text"] False
 >           "tsquery",
@@ -3834,11 +3344,11 @@ installed to do this.
 >         CatCreateFunction "position" ["bit", "bit"] False "int4",
 >         CatCreateFunction "position" ["bytea", "bytea"] False "int4",
 >         CatCreateFunction "positionjoinsel"
->           ["int2", "internal", "internal", "oid", "internal"]
+>           ["internal", "oid", "internal", "int2", "internal"]
 >           False
 >           "float8",
 >         CatCreateFunction "positionsel"
->           ["oid", "internal", "int4", "internal"]
+>           ["internal", "oid", "internal", "int4"]
 >           False
 >           "float8",
 >         CatCreateFunction "postgresql_fdw_validator" ["_text", "oid"] False
@@ -3849,7 +3359,7 @@ installed to do this.
 >         CatCreateFunction "power" ["numeric", "numeric"] False "numeric",
 >         CatCreateFunction "prsd_end" ["internal"] False "void",
 >         CatCreateFunction "prsd_headline"
->           ["internal", "tsquery", "internal"]
+>           ["internal", "internal", "tsquery"]
 >           False
 >           "internal",
 >         CatCreateFunction "prsd_lextype" ["internal"] False "internal",
@@ -3857,21 +3367,21 @@ installed to do this.
 >           ["internal", "internal", "internal"]
 >           False
 >           "internal",
->         CatCreateFunction "prsd_start" ["int4", "internal"] False
+>         CatCreateFunction "prsd_start" ["internal", "int4"] False
 >           "internal",
 >         CatCreateFunction "pt_contained_circle" ["circle", "point"] False
 >           "bool",
->         CatCreateFunction "pt_contained_poly" ["polygon", "point"] False
+>         CatCreateFunction "pt_contained_poly" ["point", "polygon"] False
 >           "bool",
 >         CatCreateFunction "query_to_xml" ["text", "text", "bool", "bool"]
 >           False
 >           "xml",
 >         CatCreateFunction "query_to_xml_and_xmlschema"
->           ["text", "bool", "text", "bool"]
+>           ["text", "bool", "bool", "text"]
 >           False
 >           "xml",
 >         CatCreateFunction "query_to_xmlschema"
->           ["bool", "text", "text", "bool"]
+>           ["text", "text", "bool", "bool"]
 >           False
 >           "xml",
 >         CatCreateFunction "querytree" ["tsquery"] False "text",
@@ -3882,87 +3392,9 @@ installed to do this.
 >         CatCreateFunction "quote_nullable" ["anyelement"] False "text",
 >         CatCreateFunction "radians" ["float8"] False "float8",
 >         CatCreateFunction "radius" ["circle"] False "float8",
->         CatCreateFunction "range_adjacent" ["anyrange", "anyrange"] False
->           "bool",
->         CatCreateFunction "range_after" ["anyrange", "anyrange"] False
->           "bool",
->         CatCreateFunction "range_before" ["anyrange", "anyrange"] False
->           "bool",
->         CatCreateFunction "range_cmp" ["anyrange", "anyrange"] False
->           "int4",
->         CatCreateFunction "range_contained_by" ["anyrange", "anyrange"]
->           False
->           "bool",
->         CatCreateFunction "range_contains" ["anyrange", "anyrange"] False
->           "bool",
->         CatCreateFunction "range_contains_elem" ["anyelement", "anyrange"]
->           False
->           "bool",
->         CatCreateFunction "range_eq" ["anyrange", "anyrange"] False "bool",
->         CatCreateFunction "range_ge" ["anyrange", "anyrange"] False "bool",
->         CatCreateFunction "range_gist_compress" ["internal"] False
->           "internal",
->         CatCreateFunction "range_gist_consistent"
->           ["oid", "internal", "int4", "internal", "anyrange"]
->           False
->           "bool",
->         CatCreateFunction "range_gist_decompress" ["internal"] False
->           "internal",
->         CatCreateFunction "range_gist_penalty"
->           ["internal", "internal", "internal"]
->           False
->           "internal",
->         CatCreateFunction "range_gist_picksplit" ["internal", "internal"]
->           False
->           "internal",
->         CatCreateFunction "range_gist_same"
->           ["internal", "anyrange", "anyrange"]
->           False
->           "internal",
->         CatCreateFunction "range_gist_union" ["internal", "internal"] False
->           "internal",
->         CatCreateFunction "range_gt" ["anyrange", "anyrange"] False "bool",
->         CatCreateFunction "range_in" ["cstring", "oid", "int4"] False
->           "anyrange",
->         CatCreateFunction "range_intersect" ["anyrange", "anyrange"] False
->           "anyrange",
->         CatCreateFunction "range_le" ["anyrange", "anyrange"] False "bool",
->         CatCreateFunction "range_lt" ["anyrange", "anyrange"] False "bool",
->         CatCreateFunction "range_minus" ["anyrange", "anyrange"] False
->           "anyrange",
->         CatCreateFunction "range_ne" ["anyrange", "anyrange"] False "bool",
->         CatCreateFunction "range_out" ["anyrange"] False "cstring",
->         CatCreateFunction "range_overlaps" ["anyrange", "anyrange"] False
->           "bool",
->         CatCreateFunction "range_overleft" ["anyrange", "anyrange"] False
->           "bool",
->         CatCreateFunction "range_overright" ["anyrange", "anyrange"] False
->           "bool",
->         CatCreateFunction "range_recv" ["internal", "oid", "int4"] False
->           "anyrange",
->         CatCreateFunction "range_send" ["anyrange"] False "bytea",
->         CatCreateFunction "range_typanalyze" ["internal"] False "bool",
->         CatCreateFunction "range_union" ["anyrange", "anyrange"] False
->           "anyrange",
->         CatCreateFunction "rangesel"
->           ["internal", "internal", "oid", "int4"]
->           False
->           "float8",
 >         CatCreateFunction "record_eq" ["record", "record"] False "bool",
 >         CatCreateFunction "record_ge" ["record", "record"] False "bool",
 >         CatCreateFunction "record_gt" ["record", "record"] False "bool",
->         CatCreateFunction "record_image_eq" ["record", "record"] False
->           "bool",
->         CatCreateFunction "record_image_ge" ["record", "record"] False
->           "bool",
->         CatCreateFunction "record_image_gt" ["record", "record"] False
->           "bool",
->         CatCreateFunction "record_image_le" ["record", "record"] False
->           "bool",
->         CatCreateFunction "record_image_lt" ["record", "record"] False
->           "bool",
->         CatCreateFunction "record_image_ne" ["record", "record"] False
->           "bool",
 >         CatCreateFunction "record_in" ["int4", "cstring", "oid"] False
 >           "record",
 >         CatCreateFunction "record_le" ["record", "record"] False "bool",
@@ -3990,19 +3422,19 @@ installed to do this.
 >         CatCreateFunction "regdictionarysend" ["regdictionary"] False
 >           "bytea",
 >         CatCreateFunction "regexeqjoinsel"
->           ["internal", "oid", "internal", "internal", "int2"]
+>           ["internal", "oid", "int2", "internal", "internal"]
 >           False
 >           "float8",
 >         CatCreateFunction "regexeqsel"
->           ["internal", "oid", "int4", "internal"]
+>           ["internal", "int4", "oid", "internal"]
 >           False
 >           "float8",
 >         CatCreateFunction "regexnejoinsel"
->           ["int2", "internal", "internal", "oid", "internal"]
+>           ["oid", "int2", "internal", "internal", "internal"]
 >           False
 >           "float8",
 >         CatCreateFunction "regexnesel"
->           ["internal", "oid", "internal", "int4"]
+>           ["internal", "internal", "int4", "oid"]
 >           False
 >           "float8",
 >         CatCreateFunction "regexp_matches" ["text", "text"] True "_text",
@@ -4059,21 +3491,19 @@ installed to do this.
 >         CatCreateFunction "reltimeout" ["reltime"] False "cstring",
 >         CatCreateFunction "reltimerecv" ["internal"] False "reltime",
 >         CatCreateFunction "reltimesend" ["reltime"] False "bytea",
->         CatCreateFunction "repeat" ["int4", "text"] False "text",
+>         CatCreateFunction "repeat" ["text", "int4"] False "text",
 >         CatCreateFunction "replace" ["text", "text", "text"] False "text",
 >         CatCreateFunction "reverse" ["text"] False "text",
 >         CatCreateFunction "right" ["text", "int4"] False "text",
 >         CatCreateFunction "round" ["float8"] False "float8",
->         CatCreateFunction "round" ["int4", "numeric"] False "numeric",
+>         CatCreateFunction "round" ["numeric", "int4"] False "numeric",
 >         CatCreateFunction "round" ["numeric"] False "numeric",
->         CatCreateFunction "row_to_json" ["record"] False "json",
->         CatCreateFunction "row_to_json" ["record", "bool"] False "json",
->         CatCreateFunction "rpad" ["text", "int4", "text"] False "text",
->         CatCreateFunction "rpad" ["int4", "text"] False "text",
+>         CatCreateFunction "rpad" ["int4", "text", "text"] False "text",
+>         CatCreateFunction "rpad" ["text", "int4"] False "text",
 >         CatCreateFunction "rtrim" ["text", "text"] False "text",
 >         CatCreateFunction "rtrim" ["text"] False "text",
 >         CatCreateFunction "scalargtjoinsel"
->           ["internal", "internal", "internal", "int2", "oid"]
+>           ["oid", "internal", "int2", "internal", "internal"]
 >           False
 >           "float8",
 >         CatCreateFunction "scalargtsel"
@@ -4081,47 +3511,47 @@ installed to do this.
 >           False
 >           "float8",
 >         CatCreateFunction "scalarltjoinsel"
->           ["internal", "internal", "internal", "int2", "oid"]
+>           ["internal", "oid", "int2", "internal", "internal"]
 >           False
 >           "float8",
 >         CatCreateFunction "scalarltsel"
->           ["oid", "internal", "int4", "internal"]
+>           ["internal", "oid", "int4", "internal"]
 >           False
 >           "float8",
->         CatCreateFunction "schema_to_xml" ["bool", "text", "bool", "name"]
+>         CatCreateFunction "schema_to_xml" ["text", "bool", "name", "bool"]
 >           False
 >           "xml",
 >         CatCreateFunction "schema_to_xml_and_xmlschema"
->           ["name", "bool", "text", "bool"]
+>           ["bool", "name", "bool", "text"]
 >           False
 >           "xml",
 >         CatCreateFunction "schema_to_xmlschema"
->           ["bool", "bool", "name", "text"]
+>           ["text", "name", "bool", "bool"]
 >           False
 >           "xml",
->         CatCreateFunction "set_bit" ["int4", "bytea", "int4"] False
+>         CatCreateFunction "set_bit" ["bytea", "int4", "int4"] False
 >           "bytea",
->         CatCreateFunction "set_bit" ["int4", "bit", "int4"] False "bit",
->         CatCreateFunction "set_byte" ["int4", "bytea", "int4"] False
+>         CatCreateFunction "set_bit" ["bit", "int4", "int4"] False "bit",
+>         CatCreateFunction "set_byte" ["bytea", "int4", "int4"] False
 >           "bytea",
->         CatCreateFunction "set_config" ["text", "text", "bool"] False
+>         CatCreateFunction "set_config" ["text", "bool", "text"] False
 >           "text",
 >         CatCreateFunction "set_masklen" ["int4", "inet"] False "inet",
 >         CatCreateFunction "set_masklen" ["int4", "cidr"] False "cidr",
 >         CatCreateFunction "setseed" ["float8"] False "void",
 >         CatCreateFunction "setval" ["regclass", "int8"] False "int8",
->         CatCreateFunction "setval" ["regclass", "int8", "bool"] False
+>         CatCreateFunction "setval" ["bool", "regclass", "int8"] False
 >           "int8",
 >         CatCreateFunction "setweight" ["tsvector", "char"] False
 >           "tsvector",
 >         CatCreateFunction "shell_in" ["cstring"] False "opaque",
 >         CatCreateFunction "shell_out" ["opaque"] False "cstring",
 >         CatCreateFunction "shift_jis_2004_to_euc_jis_2004"
->           ["int4", "cstring", "int4", "internal", "int4"]
+>           ["int4", "int4", "internal", "cstring", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "shift_jis_2004_to_utf8"
->           ["int4", "int4", "internal", "cstring", "int4"]
+>           ["int4", "cstring", "int4", "internal", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "shobj_description" ["name", "oid"] False "text",
@@ -4130,15 +3560,15 @@ installed to do this.
 >         CatCreateFunction "similar_escape" ["text", "text"] False "text",
 >         CatCreateFunction "sin" ["float8"] False "float8",
 >         CatCreateFunction "sjis_to_euc_jp"
->           ["int4", "int4", "int4", "internal", "cstring"]
+>           ["cstring", "int4", "internal", "int4", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "sjis_to_mic"
->           ["internal", "int4", "cstring", "int4", "int4"]
+>           ["cstring", "internal", "int4", "int4", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "sjis_to_utf8"
->           ["int4", "int4", "cstring", "internal", "int4"]
+>           ["cstring", "int4", "int4", "int4", "internal"]
 >           False
 >           "void",
 >         CatCreateFunction "slope" ["point", "point"] False "float8",
@@ -4146,102 +3576,7 @@ installed to do this.
 >         CatCreateFunction "smgrin" ["cstring"] False "smgr",
 >         CatCreateFunction "smgrne" ["smgr", "smgr"] False "bool",
 >         CatCreateFunction "smgrout" ["smgr"] False "cstring",
->         CatCreateFunction "spg_kd_choose" ["internal", "internal"] False
->           "void",
->         CatCreateFunction "spg_kd_config" ["internal", "internal"] False
->           "void",
->         CatCreateFunction "spg_kd_inner_consistent"
->           ["internal", "internal"]
->           False
->           "void",
->         CatCreateFunction "spg_kd_picksplit" ["internal", "internal"] False
->           "void",
->         CatCreateFunction "spg_quad_choose" ["internal", "internal"] False
->           "void",
->         CatCreateFunction "spg_quad_config" ["internal", "internal"] False
->           "void",
->         CatCreateFunction "spg_quad_inner_consistent"
->           ["internal", "internal"]
->           False
->           "void",
->         CatCreateFunction "spg_quad_leaf_consistent"
->           ["internal", "internal"]
->           False
->           "bool",
->         CatCreateFunction "spg_quad_picksplit" ["internal", "internal"]
->           False
->           "void",
->         CatCreateFunction "spg_range_quad_choose" ["internal", "internal"]
->           False
->           "void",
->         CatCreateFunction "spg_range_quad_config" ["internal", "internal"]
->           False
->           "void",
->         CatCreateFunction "spg_range_quad_inner_consistent"
->           ["internal", "internal"]
->           False
->           "void",
->         CatCreateFunction "spg_range_quad_leaf_consistent"
->           ["internal", "internal"]
->           False
->           "bool",
->         CatCreateFunction "spg_range_quad_picksplit"
->           ["internal", "internal"]
->           False
->           "void",
->         CatCreateFunction "spg_text_choose" ["internal", "internal"] False
->           "void",
->         CatCreateFunction "spg_text_config" ["internal", "internal"] False
->           "void",
->         CatCreateFunction "spg_text_inner_consistent"
->           ["internal", "internal"]
->           False
->           "void",
->         CatCreateFunction "spg_text_leaf_consistent"
->           ["internal", "internal"]
->           False
->           "bool",
->         CatCreateFunction "spg_text_picksplit" ["internal", "internal"]
->           False
->           "void",
->         CatCreateFunction "spgbeginscan"
->           ["internal", "internal", "internal"]
->           False
->           "internal",
->         CatCreateFunction "spgbuild" ["internal", "internal", "internal"]
->           False
->           "internal",
->         CatCreateFunction "spgbuildempty" ["internal"] False "void",
->         CatCreateFunction "spgbulkdelete"
->           ["internal", "internal", "internal", "internal"]
->           False
->           "internal",
->         CatCreateFunction "spgcanreturn" ["internal"] False "bool",
->         CatCreateFunction "spgcostestimate"
->           ["internal", "internal", "internal", "internal", "internal",
->            "internal", "internal"]
->           False
->           "void",
->         CatCreateFunction "spgendscan" ["internal"] False "void",
->         CatCreateFunction "spggetbitmap" ["internal", "internal"] False
->           "int8",
->         CatCreateFunction "spggettuple" ["internal", "internal"] False
->           "bool",
->         CatCreateFunction "spginsert"
->           ["internal", "internal", "internal", "internal", "internal",
->            "internal"]
->           False
->           "bool",
->         CatCreateFunction "spgmarkpos" ["internal"] False "void",
->         CatCreateFunction "spgoptions" ["bool", "_text"] False "bytea",
->         CatCreateFunction "spgrescan"
->           ["internal", "internal", "internal", "internal", "internal"]
->           False
->           "void",
->         CatCreateFunction "spgrestrpos" ["internal"] False "void",
->         CatCreateFunction "spgvacuumcleanup" ["internal", "internal"] False
->           "internal",
->         CatCreateFunction "split_part" ["text", "int4", "text"] False
+>         CatCreateFunction "split_part" ["text", "text", "int4"] False
 >           "text",
 >         CatCreateFunction "sqrt" ["float8"] False "float8",
 >         CatCreateFunction "sqrt" ["numeric"] False "numeric",
@@ -4256,29 +3591,29 @@ installed to do this.
 >         CatCreateFunction "strpos" ["text", "text"] False "int4",
 >         CatCreateFunction "substr" ["text", "int4", "int4"] False "text",
 >         CatCreateFunction "substr" ["text", "int4"] False "text",
->         CatCreateFunction "substr" ["int4", "bytea", "int4"] False "bytea",
->         CatCreateFunction "substr" ["int4", "bytea"] False "bytea",
->         CatCreateFunction "substring" ["text", "int4", "int4"] False
+>         CatCreateFunction "substr" ["bytea", "int4", "int4"] False "bytea",
+>         CatCreateFunction "substr" ["bytea", "int4"] False "bytea",
+>         CatCreateFunction "substring" ["int4", "text", "int4"] False
 >           "text",
->         CatCreateFunction "substring" ["int4", "text"] False "text",
->         CatCreateFunction "substring" ["bit", "int4", "int4"] False "bit",
->         CatCreateFunction "substring" ["int4", "bit"] False "bit",
->         CatCreateFunction "substring" ["int4", "int4", "bytea"] False
+>         CatCreateFunction "substring" ["text", "int4"] False "text",
+>         CatCreateFunction "substring" ["int4", "bit", "int4"] False "bit",
+>         CatCreateFunction "substring" ["bit", "int4"] False "bit",
+>         CatCreateFunction "substring" ["bytea", "int4", "int4"] False
 >           "bytea",
->         CatCreateFunction "substring" ["bytea", "int4"] False "bytea",
+>         CatCreateFunction "substring" ["int4", "bytea"] False "bytea",
 >         CatCreateFunction "substring" ["text", "text"] False "text",
 >         CatCreateFunction "substring" ["text", "text", "text"] False
 >           "text",
 >         CatCreateFunction "table_to_xml"
->           ["regclass", "bool", "bool", "text"]
+>           ["bool", "bool", "text", "regclass"]
 >           False
 >           "xml",
 >         CatCreateFunction "table_to_xml_and_xmlschema"
->           ["bool", "text", "bool", "regclass"]
+>           ["bool", "bool", "text", "regclass"]
 >           False
 >           "xml",
 >         CatCreateFunction "table_to_xmlschema"
->           ["text", "regclass", "bool", "bool"]
+>           ["regclass", "bool", "text", "bool"]
 >           False
 >           "xml",
 >         CatCreateFunction "tan" ["float8"] False "float8",
@@ -4298,7 +3633,7 @@ installed to do this.
 >         CatCreateFunction "text_pattern_le" ["text", "text"] False "bool",
 >         CatCreateFunction "text_pattern_lt" ["text", "text"] False "bool",
 >         CatCreateFunction "text_smaller" ["text", "text"] False "text",
->         CatCreateFunction "textanycat" ["anynonarray", "text"] False
+>         CatCreateFunction "textanycat" ["text", "anynonarray"] False
 >           "text",
 >         CatCreateFunction "textcat" ["text", "text"] False "text",
 >         CatCreateFunction "texteq" ["text", "text"] False "bool",
@@ -4344,31 +3679,30 @@ installed to do this.
 >         CatCreateFunction "time_ge" ["time", "time"] False "bool",
 >         CatCreateFunction "time_gt" ["time", "time"] False "bool",
 >         CatCreateFunction "time_hash" ["time"] False "int4",
->         CatCreateFunction "time_in" ["int4", "cstring", "oid"] False
+>         CatCreateFunction "time_in" ["cstring", "oid", "int4"] False
 >           "time",
 >         CatCreateFunction "time_larger" ["time", "time"] False "time",
 >         CatCreateFunction "time_le" ["time", "time"] False "bool",
 >         CatCreateFunction "time_lt" ["time", "time"] False "bool",
->         CatCreateFunction "time_mi_interval" ["interval", "time"] False
+>         CatCreateFunction "time_mi_interval" ["time", "interval"] False
 >           "time",
 >         CatCreateFunction "time_mi_time" ["time", "time"] False "interval",
 >         CatCreateFunction "time_ne" ["time", "time"] False "bool",
 >         CatCreateFunction "time_out" ["time"] False "cstring",
 >         CatCreateFunction "time_pl_interval" ["time", "interval"] False
 >           "time",
->         CatCreateFunction "time_recv" ["internal", "oid", "int4"] False
+>         CatCreateFunction "time_recv" ["int4", "internal", "oid"] False
 >           "time",
 >         CatCreateFunction "time_send" ["time"] False "bytea",
 >         CatCreateFunction "time_smaller" ["time", "time"] False "time",
->         CatCreateFunction "time_transform" ["internal"] False "internal",
->         CatCreateFunction "timedate_pl" ["time", "date"] False "timestamp",
+>         CatCreateFunction "timedate_pl" ["date", "time"] False "timestamp",
 >         CatCreateFunction "timemi" ["abstime", "reltime"] False "abstime",
 >         CatCreateFunction "timepl" ["abstime", "reltime"] False "abstime",
 >         CatCreateFunction "timestamp" ["timestamp", "int4"] False
 >           "timestamp",
 >         CatCreateFunction "timestamp" ["abstime"] False "timestamp",
 >         CatCreateFunction "timestamp" ["date"] False "timestamp",
->         CatCreateFunction "timestamp" ["date", "time"] False "timestamp",
+>         CatCreateFunction "timestamp" ["time", "date"] False "timestamp",
 >         CatCreateFunction "timestamp" ["timestamptz"] False "timestamp",
 >         CatCreateFunction "timestamp_cmp" ["timestamp", "timestamp"] False
 >           "int4",
@@ -4380,10 +3714,10 @@ installed to do this.
 >           "int4",
 >         CatCreateFunction "timestamp_eq" ["timestamp", "timestamp"] False
 >           "bool",
->         CatCreateFunction "timestamp_eq_date" ["timestamp", "date"] False
+>         CatCreateFunction "timestamp_eq_date" ["date", "timestamp"] False
 >           "bool",
 >         CatCreateFunction "timestamp_eq_timestamptz"
->           ["timestamptz", "timestamp"]
+>           ["timestamp", "timestamptz"]
 >           False
 >           "bool",
 >         CatCreateFunction "timestamp_ge" ["timestamp", "timestamp"] False
@@ -4391,7 +3725,7 @@ installed to do this.
 >         CatCreateFunction "timestamp_ge_date" ["timestamp", "date"] False
 >           "bool",
 >         CatCreateFunction "timestamp_ge_timestamptz"
->           ["timestamptz", "timestamp"]
+>           ["timestamp", "timestamptz"]
 >           False
 >           "bool",
 >         CatCreateFunction "timestamp_gt" ["timestamp", "timestamp"] False
@@ -4403,14 +3737,14 @@ installed to do this.
 >           False
 >           "bool",
 >         CatCreateFunction "timestamp_hash" ["timestamp"] False "int4",
->         CatCreateFunction "timestamp_in" ["cstring", "oid", "int4"] False
+>         CatCreateFunction "timestamp_in" ["oid", "cstring", "int4"] False
 >           "timestamp",
 >         CatCreateFunction "timestamp_larger" ["timestamp", "timestamp"]
 >           False
 >           "timestamp",
 >         CatCreateFunction "timestamp_le" ["timestamp", "timestamp"] False
 >           "bool",
->         CatCreateFunction "timestamp_le_date" ["timestamp", "date"] False
+>         CatCreateFunction "timestamp_le_date" ["date", "timestamp"] False
 >           "bool",
 >         CatCreateFunction "timestamp_le_timestamptz"
 >           ["timestamp", "timestamptz"]
@@ -4418,15 +3752,15 @@ installed to do this.
 >           "bool",
 >         CatCreateFunction "timestamp_lt" ["timestamp", "timestamp"] False
 >           "bool",
->         CatCreateFunction "timestamp_lt_date" ["date", "timestamp"] False
+>         CatCreateFunction "timestamp_lt_date" ["timestamp", "date"] False
 >           "bool",
 >         CatCreateFunction "timestamp_lt_timestamptz"
->           ["timestamp", "timestamptz"]
+>           ["timestamptz", "timestamp"]
 >           False
 >           "bool",
 >         CatCreateFunction "timestamp_mi" ["timestamp", "timestamp"] False
 >           "interval",
->         CatCreateFunction "timestamp_mi_interval" ["timestamp", "interval"]
+>         CatCreateFunction "timestamp_mi_interval" ["interval", "timestamp"]
 >           False
 >           "timestamp",
 >         CatCreateFunction "timestamp_ne" ["timestamp", "timestamp"] False
@@ -4448,15 +3782,11 @@ installed to do this.
 >         CatCreateFunction "timestamp_smaller" ["timestamp", "timestamp"]
 >           False
 >           "timestamp",
->         CatCreateFunction "timestamp_sortsupport" ["internal"] False
->           "void",
->         CatCreateFunction "timestamp_transform" ["internal"] False
->           "internal",
 >         CatCreateFunction "timestamptypmodin" ["_cstring"] False "int4",
 >         CatCreateFunction "timestamptypmodout" ["int4"] False "cstring",
 >         CatCreateFunction "timestamptz" ["abstime"] False "timestamptz",
 >         CatCreateFunction "timestamptz" ["date"] False "timestamptz",
->         CatCreateFunction "timestamptz" ["time", "date"] False
+>         CatCreateFunction "timestamptz" ["date", "time"] False
 >           "timestamptz",
 >         CatCreateFunction "timestamptz" ["timetz", "date"] False
 >           "timestamptz",
@@ -4466,41 +3796,41 @@ installed to do this.
 >         CatCreateFunction "timestamptz_cmp" ["timestamptz", "timestamptz"]
 >           False
 >           "int4",
->         CatCreateFunction "timestamptz_cmp_date" ["date", "timestamptz"]
+>         CatCreateFunction "timestamptz_cmp_date" ["timestamptz", "date"]
 >           False
 >           "int4",
 >         CatCreateFunction "timestamptz_cmp_timestamp"
->           ["timestamp", "timestamptz"]
+>           ["timestamptz", "timestamp"]
 >           False
 >           "int4",
 >         CatCreateFunction "timestamptz_eq" ["timestamptz", "timestamptz"]
 >           False
 >           "bool",
->         CatCreateFunction "timestamptz_eq_date" ["timestamptz", "date"]
+>         CatCreateFunction "timestamptz_eq_date" ["date", "timestamptz"]
 >           False
 >           "bool",
 >         CatCreateFunction "timestamptz_eq_timestamp"
->           ["timestamp", "timestamptz"]
+>           ["timestamptz", "timestamp"]
 >           False
 >           "bool",
 >         CatCreateFunction "timestamptz_ge" ["timestamptz", "timestamptz"]
 >           False
 >           "bool",
->         CatCreateFunction "timestamptz_ge_date" ["timestamptz", "date"]
+>         CatCreateFunction "timestamptz_ge_date" ["date", "timestamptz"]
 >           False
 >           "bool",
 >         CatCreateFunction "timestamptz_ge_timestamp"
->           ["timestamptz", "timestamp"]
+>           ["timestamp", "timestamptz"]
 >           False
 >           "bool",
 >         CatCreateFunction "timestamptz_gt" ["timestamptz", "timestamptz"]
 >           False
 >           "bool",
->         CatCreateFunction "timestamptz_gt_date" ["timestamptz", "date"]
+>         CatCreateFunction "timestamptz_gt_date" ["date", "timestamptz"]
 >           False
 >           "bool",
 >         CatCreateFunction "timestamptz_gt_timestamp"
->           ["timestamptz", "timestamp"]
+>           ["timestamp", "timestamptz"]
 >           False
 >           "bool",
 >         CatCreateFunction "timestamptz_in" ["oid", "cstring", "int4"] False
@@ -4512,11 +3842,11 @@ installed to do this.
 >         CatCreateFunction "timestamptz_le" ["timestamptz", "timestamptz"]
 >           False
 >           "bool",
->         CatCreateFunction "timestamptz_le_date" ["date", "timestamptz"]
+>         CatCreateFunction "timestamptz_le_date" ["timestamptz", "date"]
 >           False
 >           "bool",
 >         CatCreateFunction "timestamptz_le_timestamp"
->           ["timestamp", "timestamptz"]
+>           ["timestamptz", "timestamp"]
 >           False
 >           "bool",
 >         CatCreateFunction "timestamptz_lt" ["timestamptz", "timestamptz"]
@@ -4526,7 +3856,7 @@ installed to do this.
 >           False
 >           "bool",
 >         CatCreateFunction "timestamptz_lt_timestamp"
->           ["timestamptz", "timestamp"]
+>           ["timestamp", "timestamptz"]
 >           False
 >           "bool",
 >         CatCreateFunction "timestamptz_mi" ["timestamptz", "timestamptz"]
@@ -4539,11 +3869,11 @@ installed to do this.
 >         CatCreateFunction "timestamptz_ne" ["timestamptz", "timestamptz"]
 >           False
 >           "bool",
->         CatCreateFunction "timestamptz_ne_date" ["date", "timestamptz"]
+>         CatCreateFunction "timestamptz_ne_date" ["timestamptz", "date"]
 >           False
 >           "bool",
 >         CatCreateFunction "timestamptz_ne_timestamp"
->           ["timestamptz", "timestamp"]
+>           ["timestamp", "timestamptz"]
 >           False
 >           "bool",
 >         CatCreateFunction "timestamptz_out" ["timestamptz"] False
@@ -4552,7 +3882,7 @@ installed to do this.
 >           ["timestamptz", "interval"]
 >           False
 >           "timestamptz",
->         CatCreateFunction "timestamptz_recv" ["oid", "int4", "internal"]
+>         CatCreateFunction "timestamptz_recv" ["internal", "int4", "oid"]
 >           False
 >           "timestamptz",
 >         CatCreateFunction "timestamptz_send" ["timestamptz"] False "bytea",
@@ -4565,26 +3895,26 @@ installed to do this.
 >         CatCreateFunction "timetypmodin" ["_cstring"] False "int4",
 >         CatCreateFunction "timetypmodout" ["int4"] False "cstring",
 >         CatCreateFunction "timetz" ["timestamptz"] False "timetz",
->         CatCreateFunction "timetz" ["int4", "timetz"] False "timetz",
+>         CatCreateFunction "timetz" ["timetz", "int4"] False "timetz",
 >         CatCreateFunction "timetz" ["time"] False "timetz",
 >         CatCreateFunction "timetz_cmp" ["timetz", "timetz"] False "int4",
 >         CatCreateFunction "timetz_eq" ["timetz", "timetz"] False "bool",
 >         CatCreateFunction "timetz_ge" ["timetz", "timetz"] False "bool",
 >         CatCreateFunction "timetz_gt" ["timetz", "timetz"] False "bool",
 >         CatCreateFunction "timetz_hash" ["timetz"] False "int4",
->         CatCreateFunction "timetz_in" ["int4", "oid", "cstring"] False
+>         CatCreateFunction "timetz_in" ["oid", "cstring", "int4"] False
 >           "timetz",
 >         CatCreateFunction "timetz_larger" ["timetz", "timetz"] False
 >           "timetz",
 >         CatCreateFunction "timetz_le" ["timetz", "timetz"] False "bool",
 >         CatCreateFunction "timetz_lt" ["timetz", "timetz"] False "bool",
->         CatCreateFunction "timetz_mi_interval" ["interval", "timetz"] False
+>         CatCreateFunction "timetz_mi_interval" ["timetz", "interval"] False
 >           "timetz",
 >         CatCreateFunction "timetz_ne" ["timetz", "timetz"] False "bool",
 >         CatCreateFunction "timetz_out" ["timetz"] False "cstring",
->         CatCreateFunction "timetz_pl_interval" ["interval", "timetz"] False
+>         CatCreateFunction "timetz_pl_interval" ["timetz", "interval"] False
 >           "timetz",
->         CatCreateFunction "timetz_recv" ["oid", "internal", "int4"] False
+>         CatCreateFunction "timetz_recv" ["int4", "internal", "oid"] False
 >           "timetz",
 >         CatCreateFunction "timetz_send" ["timetz"] False "bytea",
 >         CatCreateFunction "timetz_smaller" ["timetz", "timetz"] False
@@ -4593,13 +3923,13 @@ installed to do this.
 >           "timestamptz",
 >         CatCreateFunction "timetztypmodin" ["_cstring"] False "int4",
 >         CatCreateFunction "timetztypmodout" ["int4"] False "cstring",
->         CatCreateFunction "timezone" ["interval", "timestamptz"] False
+>         CatCreateFunction "timezone" ["timestamptz", "interval"] False
 >           "timestamp",
 >         CatCreateFunction "timezone" ["text", "timestamptz"] False
 >           "timestamp",
->         CatCreateFunction "timezone" ["text", "timetz"] False "timetz",
+>         CatCreateFunction "timezone" ["timetz", "text"] False "timetz",
 >         CatCreateFunction "timezone" ["interval", "timetz"] False "timetz",
->         CatCreateFunction "timezone" ["text", "timestamp"] False
+>         CatCreateFunction "timezone" ["timestamp", "text"] False
 >           "timestamptz",
 >         CatCreateFunction "timezone" ["timestamp", "interval"] False
 >           "timestamptz",
@@ -4619,7 +3949,7 @@ installed to do this.
 >           "bool",
 >         CatCreateFunction "tintervalleneq" ["reltime", "tinterval"] False
 >           "bool",
->         CatCreateFunction "tintervallenge" ["reltime", "tinterval"] False
+>         CatCreateFunction "tintervallenge" ["tinterval", "reltime"] False
 >           "bool",
 >         CatCreateFunction "tintervallengt" ["reltime", "tinterval"] False
 >           "bool",
@@ -4643,35 +3973,27 @@ installed to do this.
 >         CatCreateFunction "tintervalsend" ["tinterval"] False "bytea",
 >         CatCreateFunction "tintervalstart" ["tinterval"] False "abstime",
 >         CatCreateFunction "to_ascii" ["text"] False "text",
->         CatCreateFunction "to_ascii" ["text", "int4"] False "text",
->         CatCreateFunction "to_ascii" ["text", "name"] False "text",
+>         CatCreateFunction "to_ascii" ["int4", "text"] False "text",
+>         CatCreateFunction "to_ascii" ["name", "text"] False "text",
 >         CatCreateFunction "to_char" ["text", "interval"] False "text",
->         CatCreateFunction "to_char" ["timestamptz", "text"] False "text",
->         CatCreateFunction "to_char" ["text", "numeric"] False "text",
+>         CatCreateFunction "to_char" ["text", "timestamptz"] False "text",
+>         CatCreateFunction "to_char" ["numeric", "text"] False "text",
 >         CatCreateFunction "to_char" ["text", "int4"] False "text",
->         CatCreateFunction "to_char" ["text", "int8"] False "text",
+>         CatCreateFunction "to_char" ["int8", "text"] False "text",
 >         CatCreateFunction "to_char" ["float4", "text"] False "text",
->         CatCreateFunction "to_char" ["text", "float8"] False "text",
+>         CatCreateFunction "to_char" ["float8", "text"] False "text",
 >         CatCreateFunction "to_char" ["timestamp", "text"] False "text",
 >         CatCreateFunction "to_date" ["text", "text"] False "date",
 >         CatCreateFunction "to_hex" ["int4"] False "text",
 >         CatCreateFunction "to_hex" ["int8"] False "text",
->         CatCreateFunction "to_json" ["anyelement"] False "json",
 >         CatCreateFunction "to_number" ["text", "text"] False "numeric",
->         CatCreateFunction "to_regclass" ["cstring"] False "regclass",
->         CatCreateFunction "to_regoper" ["cstring"] False "regoper",
->         CatCreateFunction "to_regoperator" ["cstring"] False "regoperator",
->         CatCreateFunction "to_regproc" ["cstring"] False "regproc",
->         CatCreateFunction "to_regprocedure" ["cstring"] False
->           "regprocedure",
->         CatCreateFunction "to_regtype" ["cstring"] False "regtype",
 >         CatCreateFunction "to_timestamp" ["float8"] False "timestamptz",
 >         CatCreateFunction "to_timestamp" ["text", "text"] False
 >           "timestamptz",
 >         CatCreateFunction "to_tsquery" ["regconfig", "text"] False
 >           "tsquery",
 >         CatCreateFunction "to_tsquery" ["text"] False "tsquery",
->         CatCreateFunction "to_tsvector" ["regconfig", "text"] False
+>         CatCreateFunction "to_tsvector" ["text", "regconfig"] False
 >           "tsvector",
 >         CatCreateFunction "to_tsvector" ["text"] False "tsvector",
 >         CatCreateFunction "translate" ["text", "text", "text"] False
@@ -4680,12 +4002,12 @@ installed to do this.
 >         CatCreateFunction "trigger_out" ["trigger"] False "cstring",
 >         CatCreateFunction "trunc" ["macaddr"] False "macaddr",
 >         CatCreateFunction "trunc" ["float8"] False "float8",
->         CatCreateFunction "trunc" ["int4", "numeric"] False "numeric",
+>         CatCreateFunction "trunc" ["numeric", "int4"] False "numeric",
 >         CatCreateFunction "trunc" ["numeric"] False "numeric",
->         CatCreateFunction "ts_debug" ["text", "regconfig"] True "record",
+>         CatCreateFunction "ts_debug" ["regconfig", "text"] True "record",
 >         CatCreateFunction "ts_debug" ["text"] True "record",
 >         CatCreateFunction "ts_headline"
->           ["text", "tsquery", "text", "regconfig"]
+>           ["regconfig", "text", "text", "tsquery"]
 >           False
 >           "text",
 >         CatCreateFunction "ts_headline" ["text", "regconfig", "tsquery"]
@@ -4694,7 +4016,7 @@ installed to do this.
 >         CatCreateFunction "ts_headline" ["text", "text", "tsquery"] False
 >           "text",
 >         CatCreateFunction "ts_headline" ["text", "tsquery"] False "text",
->         CatCreateFunction "ts_lexize" ["regdictionary", "text"] False
+>         CatCreateFunction "ts_lexize" ["text", "regdictionary"] False
 >           "_text",
 >         CatCreateFunction "ts_match_qv" ["tsquery", "tsvector"] False
 >           "bool",
@@ -4702,23 +4024,23 @@ installed to do this.
 >         CatCreateFunction "ts_match_tt" ["text", "text"] False "bool",
 >         CatCreateFunction "ts_match_vq" ["tsquery", "tsvector"] False
 >           "bool",
->         CatCreateFunction "ts_parse" ["oid", "text"] True "record",
+>         CatCreateFunction "ts_parse" ["text", "oid"] True "record",
 >         CatCreateFunction "ts_parse" ["text", "text"] True "record",
 >         CatCreateFunction "ts_rank"
->           ["int4", "_float4", "tsvector", "tsquery"]
+>           ["tsquery", "int4", "_float4", "tsvector"]
 >           False
 >           "float4",
->         CatCreateFunction "ts_rank" ["tsvector", "tsquery", "_float4"]
+>         CatCreateFunction "ts_rank" ["tsquery", "tsvector", "_float4"]
 >           False
 >           "float4",
->         CatCreateFunction "ts_rank" ["tsquery", "int4", "tsvector"] False
+>         CatCreateFunction "ts_rank" ["tsquery", "tsvector", "int4"] False
 >           "float4",
->         CatCreateFunction "ts_rank" ["tsvector", "tsquery"] False "float4",
+>         CatCreateFunction "ts_rank" ["tsquery", "tsvector"] False "float4",
 >         CatCreateFunction "ts_rank_cd"
->           ["tsvector", "_float4", "tsquery", "int4"]
+>           ["tsquery", "_float4", "tsvector", "int4"]
 >           False
 >           "float4",
->         CatCreateFunction "ts_rank_cd" ["_float4", "tsvector", "tsquery"]
+>         CatCreateFunction "ts_rank_cd" ["_float4", "tsquery", "tsvector"]
 >           False
 >           "float4",
 >         CatCreateFunction "ts_rank_cd" ["tsquery", "tsvector", "int4"]
@@ -4729,18 +4051,18 @@ installed to do this.
 >         CatCreateFunction "ts_rewrite" ["tsquery", "tsquery", "tsquery"]
 >           False
 >           "tsquery",
->         CatCreateFunction "ts_rewrite" ["text", "tsquery"] False "tsquery",
+>         CatCreateFunction "ts_rewrite" ["tsquery", "text"] False "tsquery",
 >         CatCreateFunction "ts_stat" ["text"] True "record",
 >         CatCreateFunction "ts_stat" ["text", "text"] True "record",
 >         CatCreateFunction "ts_token_type" ["oid"] True "record",
 >         CatCreateFunction "ts_token_type" ["text"] True "record",
 >         CatCreateFunction "ts_typanalyze" ["internal"] False "bool",
 >         CatCreateFunction "tsmatchjoinsel"
->           ["oid", "internal", "internal", "int2", "internal"]
+>           ["internal", "internal", "internal", "int2", "oid"]
 >           False
 >           "float8",
 >         CatCreateFunction "tsmatchsel"
->           ["int4", "internal", "oid", "internal"]
+>           ["oid", "internal", "internal", "int4"]
 >           False
 >           "float8",
 >         CatCreateFunction "tsq_mcontained" ["tsquery", "tsquery"] False
@@ -4764,24 +4086,6 @@ installed to do this.
 >         CatCreateFunction "tsqueryout" ["tsquery"] False "cstring",
 >         CatCreateFunction "tsqueryrecv" ["internal"] False "tsquery",
 >         CatCreateFunction "tsquerysend" ["tsquery"] False "bytea",
->         CatCreateFunction "tsrange" ["timestamp", "timestamp"] False
->           "tsrange",
->         CatCreateFunction "tsrange" ["timestamp", "timestamp", "text"]
->           False
->           "tsrange",
->         CatCreateFunction "tsrange_subdiff" ["timestamp", "timestamp"]
->           False
->           "float8",
->         CatCreateFunction "tstzrange" ["timestamptz", "timestamptz"] False
->           "tstzrange",
->         CatCreateFunction "tstzrange"
->           ["timestamptz", "text", "timestamptz"]
->           False
->           "tstzrange",
->         CatCreateFunction "tstzrange_subdiff"
->           ["timestamptz", "timestamptz"]
->           False
->           "float8",
 >         CatCreateFunction "tsvector_cmp" ["tsvector", "tsvector"] False
 >           "int4",
 >         CatCreateFunction "tsvector_concat" ["tsvector", "tsvector"] False
@@ -4817,11 +4121,11 @@ installed to do this.
 >         CatCreateFunction "txid_snapshot_xmin" ["txid_snapshot"] False
 >           "int8",
 >         CatCreateFunction "txid_visible_in_snapshot"
->           ["int8", "txid_snapshot"]
+>           ["txid_snapshot", "int8"]
 >           False
 >           "bool",
 >         CatCreateFunction "uhc_to_utf8"
->           ["internal", "int4", "int4", "cstring", "int4"]
+>           ["int4", "int4", "int4", "cstring", "internal"]
 >           False
 >           "void",
 >         CatCreateFunction "unknownin" ["cstring"] False "unknown",
@@ -4830,15 +4134,12 @@ installed to do this.
 >         CatCreateFunction "unknownsend" ["unknown"] False "bytea",
 >         CatCreateFunction "unnest" ["anyarray"] True "anyelement",
 >         CatCreateFunction "upper" ["text"] False "text",
->         CatCreateFunction "upper" ["anyrange"] False "anyelement",
->         CatCreateFunction "upper_inc" ["anyrange"] False "bool",
->         CatCreateFunction "upper_inf" ["anyrange"] False "bool",
 >         CatCreateFunction "utf8_to_ascii"
->           ["internal", "int4", "cstring", "int4", "int4"]
+>           ["internal", "int4", "int4", "cstring", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "utf8_to_big5"
->           ["int4", "int4", "internal", "int4", "cstring"]
+>           ["int4", "cstring", "int4", "internal", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "utf8_to_euc_cn"
@@ -4846,15 +4147,15 @@ installed to do this.
 >           False
 >           "void",
 >         CatCreateFunction "utf8_to_euc_jis_2004"
->           ["int4", "internal", "int4", "cstring", "int4"]
+>           ["cstring", "int4", "internal", "int4", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "utf8_to_euc_jp"
->           ["cstring", "int4", "int4", "internal", "int4"]
+>           ["int4", "cstring", "int4", "internal", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "utf8_to_euc_kr"
->           ["int4", "int4", "int4", "internal", "cstring"]
+>           ["int4", "int4", "internal", "cstring", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "utf8_to_euc_tw"
@@ -4862,47 +4163,47 @@ installed to do this.
 >           False
 >           "void",
 >         CatCreateFunction "utf8_to_gb18030"
->           ["internal", "int4", "int4", "cstring", "int4"]
+>           ["int4", "int4", "internal", "int4", "cstring"]
 >           False
 >           "void",
 >         CatCreateFunction "utf8_to_gbk"
->           ["int4", "int4", "int4", "cstring", "internal"]
+>           ["cstring", "int4", "int4", "int4", "internal"]
 >           False
 >           "void",
 >         CatCreateFunction "utf8_to_iso8859"
->           ["int4", "int4", "cstring", "internal", "int4"]
+>           ["int4", "int4", "internal", "cstring", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "utf8_to_iso8859_1"
->           ["internal", "int4", "cstring", "int4", "int4"]
+>           ["cstring", "int4", "int4", "internal", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "utf8_to_johab"
->           ["internal", "cstring", "int4", "int4", "int4"]
+>           ["int4", "int4", "internal", "cstring", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "utf8_to_koi8r"
->           ["internal", "int4", "int4", "int4", "cstring"]
+>           ["int4", "int4", "internal", "int4", "cstring"]
 >           False
 >           "void",
 >         CatCreateFunction "utf8_to_koi8u"
->           ["int4", "int4", "cstring", "internal", "int4"]
->           False
->           "void",
->         CatCreateFunction "utf8_to_shift_jis_2004"
->           ["int4", "internal", "cstring", "int4", "int4"]
->           False
->           "void",
->         CatCreateFunction "utf8_to_sjis"
 >           ["cstring", "int4", "internal", "int4", "int4"]
 >           False
 >           "void",
+>         CatCreateFunction "utf8_to_shift_jis_2004"
+>           ["internal", "int4", "int4", "int4", "cstring"]
+>           False
+>           "void",
+>         CatCreateFunction "utf8_to_sjis"
+>           ["int4", "int4", "cstring", "int4", "internal"]
+>           False
+>           "void",
 >         CatCreateFunction "utf8_to_uhc"
->           ["int4", "int4", "int4", "internal", "cstring"]
+>           ["int4", "int4", "cstring", "int4", "internal"]
 >           False
 >           "void",
 >         CatCreateFunction "utf8_to_win"
->           ["internal", "int4", "cstring", "int4", "int4"]
+>           ["int4", "cstring", "int4", "internal", "int4"]
 >           False
 >           "void",
 >         CatCreateFunction "uuid_cmp" ["uuid", "uuid"] False "int4",
@@ -4917,15 +4218,14 @@ installed to do this.
 >         CatCreateFunction "uuid_out" ["uuid"] False "cstring",
 >         CatCreateFunction "uuid_recv" ["internal"] False "uuid",
 >         CatCreateFunction "uuid_send" ["uuid"] False "bytea",
->         CatCreateFunction "varbit" ["bool", "int4", "varbit"] False
+>         CatCreateFunction "varbit" ["bool", "varbit", "int4"] False
 >           "varbit",
->         CatCreateFunction "varbit_in" ["int4", "oid", "cstring"] False
+>         CatCreateFunction "varbit_in" ["oid", "cstring", "int4"] False
 >           "varbit",
 >         CatCreateFunction "varbit_out" ["varbit"] False "cstring",
->         CatCreateFunction "varbit_recv" ["internal", "int4", "oid"] False
+>         CatCreateFunction "varbit_recv" ["internal", "oid", "int4"] False
 >           "varbit",
 >         CatCreateFunction "varbit_send" ["varbit"] False "bytea",
->         CatCreateFunction "varbit_transform" ["internal"] False "internal",
 >         CatCreateFunction "varbitcmp" ["varbit", "varbit"] False "int4",
 >         CatCreateFunction "varbiteq" ["varbit", "varbit"] False "bool",
 >         CatCreateFunction "varbitge" ["varbit", "varbit"] False "bool",
@@ -4935,15 +4235,13 @@ installed to do this.
 >         CatCreateFunction "varbitne" ["varbit", "varbit"] False "bool",
 >         CatCreateFunction "varbittypmodin" ["_cstring"] False "int4",
 >         CatCreateFunction "varbittypmodout" ["int4"] False "cstring",
->         CatCreateFunction "varchar" ["bool", "int4", "varchar"] False
+>         CatCreateFunction "varchar" ["int4", "bool", "varchar"] False
 >           "varchar",
 >         CatCreateFunction "varchar" ["name"] False "varchar",
->         CatCreateFunction "varchar_transform" ["internal"] False
->           "internal",
->         CatCreateFunction "varcharin" ["int4", "oid", "cstring"] False
+>         CatCreateFunction "varcharin" ["cstring", "int4", "oid"] False
 >           "varchar",
 >         CatCreateFunction "varcharout" ["varchar"] False "cstring",
->         CatCreateFunction "varcharrecv" ["internal", "oid", "int4"] False
+>         CatCreateFunction "varcharrecv" ["int4", "oid", "internal"] False
 >           "varchar",
 >         CatCreateFunction "varcharsend" ["varchar"] False "bytea",
 >         CatCreateFunction "varchartypmodin" ["_cstring"] False "int4",
@@ -4954,55 +4252,55 @@ installed to do this.
 >         CatCreateFunction "void_send" ["void"] False "bytea",
 >         CatCreateFunction "width" ["box"] False "float8",
 >         CatCreateFunction "width_bucket"
->           ["int4", "float8", "float8", "float8"]
+>           ["float8", "float8", "float8", "int4"]
 >           False
 >           "int4",
 >         CatCreateFunction "width_bucket"
->           ["numeric", "numeric", "int4", "numeric"]
+>           ["numeric", "int4", "numeric", "numeric"]
 >           False
 >           "int4",
 >         CatCreateFunction "win1250_to_latin2"
->           ["int4", "int4", "internal", "cstring", "int4"]
+>           ["int4", "cstring", "int4", "int4", "internal"]
 >           False
 >           "void",
 >         CatCreateFunction "win1250_to_mic"
->           ["internal", "int4", "int4", "int4", "cstring"]
+>           ["int4", "int4", "cstring", "int4", "internal"]
 >           False
 >           "void",
 >         CatCreateFunction "win1251_to_iso"
->           ["cstring", "int4", "internal", "int4", "int4"]
->           False
->           "void",
->         CatCreateFunction "win1251_to_koi8r"
->           ["int4", "internal", "cstring", "int4", "int4"]
->           False
->           "void",
->         CatCreateFunction "win1251_to_mic"
->           ["int4", "int4", "cstring", "internal", "int4"]
->           False
->           "void",
->         CatCreateFunction "win1251_to_win866"
->           ["int4", "int4", "internal", "cstring", "int4"]
->           False
->           "void",
->         CatCreateFunction "win866_to_iso"
->           ["int4", "int4", "cstring", "internal", "int4"]
->           False
->           "void",
->         CatCreateFunction "win866_to_koi8r"
->           ["cstring", "int4", "int4", "internal", "int4"]
->           False
->           "void",
->         CatCreateFunction "win866_to_mic"
->           ["cstring", "int4", "int4", "int4", "internal"]
->           False
->           "void",
->         CatCreateFunction "win866_to_win1251"
 >           ["internal", "int4", "int4", "int4", "cstring"]
 >           False
 >           "void",
->         CatCreateFunction "win_to_utf8"
+>         CatCreateFunction "win1251_to_koi8r"
 >           ["int4", "int4", "internal", "int4", "cstring"]
+>           False
+>           "void",
+>         CatCreateFunction "win1251_to_mic"
+>           ["int4", "int4", "cstring", "int4", "internal"]
+>           False
+>           "void",
+>         CatCreateFunction "win1251_to_win866"
+>           ["internal", "cstring", "int4", "int4", "int4"]
+>           False
+>           "void",
+>         CatCreateFunction "win866_to_iso"
+>           ["cstring", "internal", "int4", "int4", "int4"]
+>           False
+>           "void",
+>         CatCreateFunction "win866_to_koi8r"
+>           ["int4", "int4", "internal", "int4", "cstring"]
+>           False
+>           "void",
+>         CatCreateFunction "win866_to_mic"
+>           ["internal", "int4", "int4", "cstring", "int4"]
+>           False
+>           "void",
+>         CatCreateFunction "win866_to_win1251"
+>           ["int4", "int4", "internal", "cstring", "int4"]
+>           False
+>           "void",
+>         CatCreateFunction "win_to_utf8"
+>           ["int4", "int4", "int4", "cstring", "internal"]
 >           False
 >           "void",
 >         CatCreateFunction "xideq" ["xid", "xid"] False "bool",
@@ -5025,9 +4323,9 @@ installed to do this.
 >         CatCreateFunction "xmlconcat2" ["xml", "xml"] False "xml",
 >         CatCreateFunction "xmlexists" ["xml", "text"] False "bool",
 >         CatCreateFunction "xmlvalidate" ["xml", "text"] False "bool",
->         CatCreateFunction "xpath" ["xml", "text", "_text"] False "_xml",
->         CatCreateFunction "xpath" ["text", "xml"] False "_xml",
->         CatCreateFunction "xpath_exists" ["text", "_text", "xml"] False
+>         CatCreateFunction "xpath" ["text", "_text", "xml"] False "_xml",
+>         CatCreateFunction "xpath" ["xml", "text"] False "_xml",
+>         CatCreateFunction "xpath_exists" ["xml", "_text", "text"] False
 >           "bool",
 >         CatCreateFunction "xpath_exists" ["text", "xml"] False "bool",
 >         CatCreateAggregate "array_agg" ["anyelement"] "anyarray",
@@ -5053,8 +4351,6 @@ installed to do this.
 >         CatCreateAggregate "covar_pop" ["float8", "float8"] "float8",
 >         CatCreateAggregate "covar_samp" ["float8", "float8"] "float8",
 >         CatCreateAggregate "every" ["bool"] "bool",
->         CatCreateAggregate "json_agg" ["anyelement"] "json",
->         CatCreateAggregate "json_object_agg" ["any", "any"] "json",
 >         CatCreateAggregate "max" ["anyarray"] "anyarray",
 >         CatCreateAggregate "max" ["int8"] "int8",
 >         CatCreateAggregate "max" ["int4"] "int4",
@@ -5095,18 +4391,6 @@ installed to do this.
 >         CatCreateAggregate "min" ["bpchar"] "bpchar",
 >         CatCreateAggregate "min" ["tid"] "tid",
 >         CatCreateAggregate "min" ["anyenum"] "anyenum",
->         CatCreateAggregate "mode" ["anyelement"] "anyelement",
->         CatCreateAggregate "percentile_cont" ["float8", "float8"] "float8",
->         CatCreateAggregate "percentile_cont" ["float8", "interval"]
->           "interval",
->         CatCreateAggregate "percentile_cont" ["float8", "_float8"]
->           "_float8",
->         CatCreateAggregate "percentile_cont" ["interval", "_float8"]
->           "_interval",
->         CatCreateAggregate "percentile_disc" ["float8", "anyelement"]
->           "anyelement",
->         CatCreateAggregate "percentile_disc" ["anyelement", "_float8"]
->           "anyarray",
 >         CatCreateAggregate "regr_avgx" ["float8", "float8"] "float8",
 >         CatCreateAggregate "regr_avgy" ["float8", "float8"] "float8",
 >         CatCreateAggregate "regr_count" ["float8", "float8"] "int8",
@@ -5135,7 +4419,6 @@ installed to do this.
 >         CatCreateAggregate "stddev_samp" ["float8"] "float8",
 >         CatCreateAggregate "stddev_samp" ["numeric"] "numeric",
 >         CatCreateAggregate "string_agg" ["text", "text"] "text",
->         CatCreateAggregate "string_agg" ["bytea", "bytea"] "bytea",
 >         CatCreateAggregate "sum" ["int8"] "numeric",
 >         CatCreateAggregate "sum" ["int4"] "int8",
 >         CatCreateAggregate "sum" ["int2"] "int8",
@@ -5266,8 +4549,6 @@ installed to do this.
 >         CatCreateCast "interval" "interval" ImplicitCastContext,
 >         CatCreateCast "interval" "reltime" AssignmentCastContext,
 >         CatCreateCast "interval" "time" AssignmentCastContext,
->         CatCreateCast "json" "jsonb" ExplicitCastContext,
->         CatCreateCast "jsonb" "json" ExplicitCastContext,
 >         CatCreateCast "lseg" "point" ExplicitCastContext,
 >         CatCreateCast "money" "numeric" AssignmentCastContext,
 >         CatCreateCast "name" "bpchar" AssignmentCastContext,
@@ -5382,8 +4663,6 @@ installed to do this.
 >         CatCreateTypeCategoryEntry "int4" ("N", False),
 >         CatCreateTypeCategoryEntry "int8" ("N", False),
 >         CatCreateTypeCategoryEntry "interval" ("T", True),
->         CatCreateTypeCategoryEntry "json" ("U", False),
->         CatCreateTypeCategoryEntry "jsonb" ("U", False),
 >         CatCreateTypeCategoryEntry "line" ("G", False),
 >         CatCreateTypeCategoryEntry "lseg" ("G", False),
 >         CatCreateTypeCategoryEntry "macaddr" ("U", False),
@@ -5393,7 +4672,6 @@ installed to do this.
 >         CatCreateTypeCategoryEntry "oid" ("N", True),
 >         CatCreateTypeCategoryEntry "oidvector" ("A", False),
 >         CatCreateTypeCategoryEntry "path" ("G", False),
->         CatCreateTypeCategoryEntry "pg_lsn" ("U", False),
 >         CatCreateTypeCategoryEntry "point" ("G", False),
 >         CatCreateTypeCategoryEntry "polygon" ("G", False),
 >         CatCreateTypeCategoryEntry "refcursor" ("U", False),
@@ -5421,4 +4699,5 @@ installed to do this.
 >         CatCreateTypeCategoryEntry "varchar" ("S", False),
 >         CatCreateTypeCategoryEntry "xid" ("U", False),
 >         CatCreateTypeCategoryEntry "xml" ("U", False)]
->         ++ odbcCatalog)
+>
+>        ++ odbcCatalog)
