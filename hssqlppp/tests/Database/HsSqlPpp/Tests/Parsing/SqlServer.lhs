@@ -117,10 +117,12 @@ server...obj
 >   --   $ [Assignment ea (name "@nm") (num "3")]
 >   ,s "select convert (INT,5) from t"
 >      $ [qs $ makeSelect
->            {selSelectList = sl [si $ Cast ea (num "5") (st "INT")]
+>            {selSelectList = sl [si $ App ea (name "convert") [ei "INT",num "5"]]
 >            ,selTref = [tref "t"]}]
 
-needs to be better: the style is lost
+todo: add more complex type name
+
+needs to be better: the style is lost, also a bit inconsistent
 
 >   ,s "select convert (time,something,108) from t"
 >      $ [qs $ makeSelect

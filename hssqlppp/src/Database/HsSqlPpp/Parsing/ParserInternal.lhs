@@ -1443,6 +1443,7 @@ with a function, so you don't try an parse a keyword as a function name
 >       ,try interval
 >       ,try typedStringLit
 >       ,antiScalarExpr
+>       ,sqlServerConvert
 >       ,keywordFunction
 >       ,identifier
 >       ,Identifier <$> pos <*> (AntiName <$> splice 'n')
@@ -1810,27 +1811,44 @@ a special case for them
 >
 > castKeyword :: SParser ScalarExpr
 > castKeyword =
->    choice -- todo: have to parse this better
->           -- make a new ctor for the sql server convert function
->           -- since it can optionally take three args
->           -- and representing it as an ansi sql cast is a bit ghetto also
->    [try $ do
->     -- parse tsql convert function to cast ast
+>     Cast
+>     <$> pos <* keyword "cast" <* symbol "("
+>     <*> expr
+>     <*> (keyword "as" *> typeName <* symbol ")")
+
+parse both odbc style convert:
+      convert(expr, type name) -- type name is an identifier
+      and sql server
+      convert(type name, expr [,style]) -- the type name is a normal sql type name
+
+the style is ignored
+the first form is represented as a function called convert (App ctor)
+the second form is represented as Cast ctor for now
+
+it needs fixing: at least add a specific ctor for the second form
+plus review use of try
+
+> sqlServerConvert :: SParser ScalarExpr
+> sqlServerConvert = try $ do
 >     isSqlServer >>= guard
 >     p <- pos
 >     _ <- keyword "convert" <* symbol "("
->     tn <- typeName
->     _ <- symbol ","
->     e <- expr
->     -- ignores the style
->     _ <- optional $ symbol "," *> integer
->     _ <- symbol ")"
->     return $ Cast p e tn
->    ,Cast
->     <$> pos <* keyword "cast" <* symbol "("
->     <*> expr
->     <*> (keyword "as" *> typeName <* symbol ")")]
->
+>     choice [try $ do
+>             ex <- expr
+>             _ <- symbol ","
+>             ex1 <- expr
+>             _ <- symbol ")"
+>             return $ App p (Name p [Nmc "convert"]) [ex, ex1]
+>            ,do
+>             tn <- typeName
+>             _ <- symbol ","
+>             e <- expr
+>             -- ignores the style
+>             _ <- optional $ symbol "," *> integer
+>             _ <- symbol ")"
+>             return $ Cast p e tn
+>            ]
+
 > castSuffix :: ScalarExpr -> SParser ScalarExpr
 > castSuffix ex = pos >>= \p -> Cast p ex <$> (symbol "::" *> typeName)
 

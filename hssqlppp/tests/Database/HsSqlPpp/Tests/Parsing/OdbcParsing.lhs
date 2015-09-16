@@ -147,7 +147,27 @@ The odbc syntax is currently available in all dialects.
 >              $ makeSelect
 >             {selSelectList = sl [si $ Star ea]
 >             ,selTref = [OdbcTableRef ea (JoinTref ea (tref "t1") Unnatural LeftOuter Nothing
->                                          (tref "t2") (Just $ JoinOn ea (BooleanLit ea True)))]}
+>                                          (tref "t2") (Just $ JoinOn ea (BooleanLit ea True)))]}]
+>        ,Group "check parsing bugs" [
+>              QueryExpr "select {fn CONVERT(cint,SQL_BIGINT)} from t;"
+>              $ makeSelect
+>             {selSelectList = sl [si $ OdbcFunc ea (App ea (name "CONVERT")
+>                                                            [ei "cint"
+>                                                            ,ei "SQL_BIGINT"])]
+>             ,selTref = [tref "t"]}]
+>        ,Group "outer join" [
+>              TSQL "select * from {oj t1 left outer join t2 on true}"
+>              [QueryStatement ea $ makeSelect
+>             {selSelectList = sl [si $ Star ea]
+>             ,selTref = [OdbcTableRef ea (JoinTref ea (tref "t1") Unnatural LeftOuter Nothing
+>                                          (tref "t2") (Just $ JoinOn ea (BooleanLit ea True)))]}]]
+>        ,Group "check parsing bugs" [
+>              TSQL "select {fn CONVERT(cint,SQL_BIGINT)} from t;"
+>              [QueryStatement ea $ makeSelect
+>             {selSelectList = sl [si $ OdbcFunc ea (App ea (name "convert")
+>                                                            [ei "cint"
+>                                                            ,ei "SQL_BIGINT"])]
+>             ,selTref = [tref "t"]}]]
+
 >        ]
->    ]
 
