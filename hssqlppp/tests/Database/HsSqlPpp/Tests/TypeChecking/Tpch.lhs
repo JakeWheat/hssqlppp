@@ -59,14 +59,14 @@ moment.
 >          ,--q7
 >           [("supp_nation", mkTypeExtra typeChar)
 >           ,("cust_nation", mkTypeExtra typeChar)
->           ,("l_year", mkTypeExtra typeFloat8)
+>           ,("l_year", mkTypeExtra typeInt)
 >           ,("revenue", mkTypeExtra typeNumeric)]
 >          ,--q8
->           [("o_year", mkTypeExtra typeFloat8)
+>           [("o_year", mkTypeExtra typeInt)
 >           ,("mkt_share", mkTypeExtra typeNumeric)]
 >          ,--q9
 >           [("nation", mkTypeExtra typeChar)
->           ,("o_year", mkTypeExtra typeFloat8)
+>           ,("o_year", mkTypeExtra typeInt)
 >           ,("sum_profit", mkTypeExtra typeNumeric)]
 >          ,--q10
 >           [("c_custkey", mkTypeExtra typeInt)

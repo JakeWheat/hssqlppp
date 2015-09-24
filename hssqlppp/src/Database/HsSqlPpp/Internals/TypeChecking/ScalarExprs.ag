@@ -257,8 +257,9 @@ simplish ctors
                    if (teType x) `elem` [typeDate,typeTimestamp]
                      then Right $ TypeExtra typeInt Nothing Nothing $ teNullable x
                      else Left [NoMatchingOperator "extract" [teType x]]
-        e.expectedType = do
-                   x <- maybe (Left []) Right @e.upType
+        e.expectedType =
+                   do
+                   x <- @e.upType
                    either (const Nothing)
                           (Just . TypeExtra (teType x) Nothing Nothing . teNullable)
                           @loc.tpe

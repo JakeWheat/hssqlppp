@@ -50,8 +50,8 @@ https://msdn.microsoft.com/en-us/library/ms711813(v=vs.85).aspx
 >       ,ScalExpr "{ts '2000-01-01 12:00:01.1'}" $ Right typeTimestamp
 >       -- scalar functions
 >       ,ScalExpr "{fn ascii('test')}" $ Right typeInt
->       ,ScalExpr "{fn extract(hour from date 'dt')}" $ Right typeFloat8
->       ,ScalExpr "(extract(hour from date 'dt'))" $ Right typeFloat8
+>       ,ScalExpr "{fn extract(hour from date 'dt')}" $ Right typeInt
+>       ,ScalExpr "(extract(hour from date 'dt'))" $ Right typeInt
 >       -- position not supported in the parser
 >       --,ScalExpr "{fn POSITION('aaa' IN 'bbb')}" $ Right typeVarChar
 >       ,ScalExpr "{fn CONVERT(3, SQL_BIGINT)}" $ Right typeBigInt
