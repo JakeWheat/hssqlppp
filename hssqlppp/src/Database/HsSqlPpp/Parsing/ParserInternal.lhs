@@ -1904,7 +1904,7 @@ plus review use of try
 >                ,IntervalMonth <$ keyword "month"
 >                ,IntervalDay <$ keyword "day"
 >                ,IntervalHour <$ keyword "hour"
->                ,IntervalMinute <$ keyword "minut"
+>                ,IntervalMinute <$ keyword "minute"
 >                ,IntervalSecond <$ keyword "second"
 >                {-,IntervalYearToMonth <$ keyword "day"
 >                ,IntervalDayToHour <$ keyword "day"
