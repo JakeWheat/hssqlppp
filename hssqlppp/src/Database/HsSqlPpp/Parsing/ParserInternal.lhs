@@ -1412,13 +1412,14 @@ wasn't a separate lexer), probably want to refactor this to use the
 optionalsuffix parsers to improve speed.
 
 start with the factors which start with parens - eliminate scalar
-subqueries since they're easy to distinguish from the others then do in
-predicate before row constructor, since an in predicate can start with
-a row constructor looking thing, then finally vanilla parens
+subqueries since they're efficient to distinguish from the others
+using try, then parse an expression in parens which can either be the
+start of a row constructor or just a parenthesized expression. This is
+left factored because using try with the rowctor version first leads
+to exponential backtracking for nested parenthesized expressions which
+is very slow.
 
->        scalarSubQuery
->       ,try rowCtor
->       ,Parens <$> pos <*> parens expr
+>        parens (scalarSubQuery <|> exprInParens)
 
 try a few random things which can't start a different expression
 
@@ -1430,6 +1431,7 @@ try a few random things which can't start a different expression
 put the factors which start with keywords before the ones which start
 with a function, so you don't try an parse a keyword as a function name
 
+>       ,rowCtor
 >       ,caseScalarExpr
 >       ,exists
 >       ,booleanLit
@@ -1601,11 +1603,9 @@ factor parsers
 I think the lookahead is used in an attempt to help the error messages.
 
 > scalarSubQuery :: SParser ScalarExpr
-> scalarSubQuery = try (symbol "(" *> lookAhead (keyword "select"
->                                                <|> keyword "with")) >>
->                  ScalarSubQuery
+> scalarSubQuery = ScalarSubQuery
 >                  <$> pos
->                  <*> pQueryExpr <* symbol ")"
+>                  <*> pQueryExpr
 
 in predicate - an identifier or row constructor followed by 'in'
 then a list of expressions or a subselect
@@ -1631,13 +1631,29 @@ row ctor: one of
 (expr) parses to just expr rather than row(expr)
 and () is a syntax error.
 
+the rowCtor parses a ctor with the row keyword exprInParens parses
+either a rowCtor without the row keyword (there must be more than one
+comma separated expression, or it parses a parens expr).
+
 > rowCtor :: SParser ScalarExpr
 > rowCtor = SpecialOp
 >           <$> pos
 >           <*> (nm <$> pos <*> return "rowctor")
->           <*> choice [
->            keyword "row" *> parens (commaSep expr)
->           ,parens $ commaSep2 expr]
+>           <*> (keyword "row" *> parens (commaSep expr))
+
+question: is a parenthesized expression different to a single element
+row?
+
+> exprInParens :: SParser ScalarExpr
+> exprInParens = do
+>     p <- pos
+>     e1 <- expr
+>     choice [do
+>             void $ symbol ","
+>             es <- commaSep1 expr
+>             return $ SpecialOp p (nm p "rowctor") (e1:es)
+>            ,return $ Parens p e1]
+
 >
 > numberLit :: SParser ScalarExpr
 > numberLit = NumberLit <$> pos <*> numString
