@@ -11,7 +11,7 @@ executable MakeDefaultTemplate1Catalog
   build-depends:       base >= 4 && < 5,
                        text >= 0.11.1.13 && < 1.3,
                        pretty-show >= 1.6 && < 1.7,
-                       postgresql-simple >= 0.4 && < 0.5,
+                       postgresql-simple >= 0.4 && < 0.6,
                        bytestring >= 0.10 && < 0.11,
                        template-haskell,
                        hssqlppp-pg
