@@ -78,7 +78,7 @@ https://msdn.microsoft.com/en-us/library/ms711813(v=vs.85).aspx
 
 
 
->       ,TCQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")]]
+>       ,TCQueryExpr [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")]]
 >         "select {fn ascii('test')} as a, a as b, {d '2000-01-01'} as c,\n\
 >         \       {fn CONVERT('text', SQL_VARCHAR)} || {t '12:00:01.1'} as d from t"
 >        $ Right $ CompositeType [("a", (mkTypeExtra typeInt) {teNullable=False})
@@ -87,9 +87,9 @@ https://msdn.microsoft.com/en-us/library/ms711813(v=vs.85).aspx
 >                                ,("d", mkTypeExtra $ ScalarType "text")]
 
 >       -- outer join
->       ,TCQueryExpr [CatCreateTable "t0" [("a", mkCatNameExtra "int4")
+>       ,TCQueryExpr [CatCreateTable ("public","t0") [("a", mkCatNameExtra "int4")
 >                                         ,("b", mkCatNameExtra "text")]
->                    ,CatCreateTable "t1" [("c", mkCatNameExtra "int4")
+>                    ,CatCreateTable ("public","t1") [("c", mkCatNameExtra "int4")
 >                                         ,("d", mkCatNameExtra "text")]]
 >        "select * from {oj t0 left outer join t1 on t0.a=t1.c}"
 >        $ Right $ CompositeType [("a", mkTypeExtra typeInt)

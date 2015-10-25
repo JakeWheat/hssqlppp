@@ -88,7 +88,7 @@ Alex:
 >                    EmptyEnvironment
 >                  -- | represents the bindings introduced by a tableref:
 >                  -- the name, the public fields, the private fields
->                  | SimpleTref Text [(Text,TypeExtra)] [(Text,TypeExtra)]
+>                  | SimpleTref (Text,Text) [(Text,TypeExtra)] [(Text,TypeExtra)]
 >                  -- | environment from joining two tables
 >                  | JoinTref [(Text,TypeExtra)] -- join ids
 >                             JoinType  -- added because outer join makes some things nullabie
@@ -247,7 +247,9 @@ lookup and star expansion
 >     _req = map (\((_,i),t) -> ((ta,i),t))
 
 
-> listBindingsTypes (SimpleTref nm pus pvs) =
+FIXME!!! (_,nm) ?
+
+> listBindingsTypes (SimpleTref (_,nm) pus pvs) =
 >   (\(q,n) -> let m (n',_) = (q `elem` [Nothing,Just nm])
 >                             && n == n'
 >              in addQual nm $ filter m $ pus ++ pvs

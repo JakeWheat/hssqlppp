@@ -836,7 +836,7 @@ CREATE TABLE NATION  ( N_NATIONKEY  INTEGER NOT NULL,
                             N_REGIONKEY  INTEGER NOT NULL,
                             N_COMMENT    VARCHAR(152));
 
->   [CatCreateTable "nation" [("n_nationkey", mkCatNameExtra "integer")
+>   [CatCreateTable ("public","nation") [("n_nationkey", mkCatNameExtra "integer")
 >                            ,("n_name", mkCatNameExtra "char")
 >                            ,("n_regionkey", mkCatNameExtra "integer")
 >                            ,("n_comment", mkCatNameExtra "varchar")]
@@ -845,7 +845,7 @@ CREATE TABLE REGION  ( R_REGIONKEY  INTEGER NOT NULL,
                             R_NAME       CHAR(25) NOT NULL,
                             R_COMMENT    VARCHAR(152));
 
->   ,CatCreateTable "region" [("r_regionkey", mkCatNameExtra "integer")
+>   ,CatCreateTable ("public","region") [("r_regionkey", mkCatNameExtra "integer")
 >                           ,("r_name", mkCatNameExtra "char")
 >                           ,("r_comment", mkCatNameExtra "varchar")]
 
@@ -859,7 +859,7 @@ CREATE TABLE PART  ( P_PARTKEY     INTEGER NOT NULL,
                           P_RETAILPRICE DECIMAL(15,2) NOT NULL,
                           P_COMMENT     VARCHAR(23) NOT NULL );
 
->   ,CatCreateTable "part" [("p_partkey", mkCatNameExtra "integer")
+>   ,CatCreateTable ("public","part") [("p_partkey", mkCatNameExtra "integer")
 >                          ,("p_name", mkCatNameExtra "varchar")
 >                          ,("p_mfgr", mkCatNameExtra "char")
 >                          ,("p_brand", mkCatNameExtra "char")
@@ -877,7 +877,7 @@ CREATE TABLE SUPPLIER ( S_SUPPKEY     INTEGER NOT NULL,
                              S_ACCTBAL     DECIMAL(15,2) NOT NULL,
                              S_COMMENT     VARCHAR(101) NOT NULL);
 
->   ,CatCreateTable "supplier" [("s_suppkey", mkCatNameExtra "integer")
+>   ,CatCreateTable ("public","supplier") [("s_suppkey", mkCatNameExtra "integer")
 >                              ,("s_name", mkCatNameExtra "char")
 >                              ,("s_address", mkCatNameExtra "varchar")
 >                              ,("s_nationkey", mkCatNameExtra "integer")
@@ -892,7 +892,7 @@ CREATE TABLE PARTSUPP ( PS_PARTKEY     INTEGER NOT NULL,
                              PS_SUPPLYCOST  DECIMAL(15,2)  NOT NULL,
                              PS_COMMENT     VARCHAR(199) NOT NULL );
 
->   ,CatCreateTable "partsupp" [("ps_partkey", mkCatNameExtra "integer")
+>   ,CatCreateTable ("public","partsupp") [("ps_partkey", mkCatNameExtra "integer")
 >                              ,("ps_suppkey", mkCatNameExtra "integer")
 >                              ,("ps_availqty", mkCatNameExtra "integer")
 >                              ,("ps_supplycost", mkCatNameExtra "numeric")
@@ -907,7 +907,7 @@ CREATE TABLE CUSTOMER ( C_CUSTKEY     INTEGER NOT NULL,
                              C_MKTSEGMENT  CHAR(10) NOT NULL,
                              C_COMMENT     VARCHAR(117) NOT NULL);
 
->   ,CatCreateTable "customer" [("c_custkey", mkCatNameExtra "integer")
+>   ,CatCreateTable ("public","customer") [("c_custkey", mkCatNameExtra "integer")
 >                              ,("c_name", mkCatNameExtra "char")
 >                              ,("c_address", mkCatNameExtra "varchar")
 >                              ,("c_nationkey", mkCatNameExtra "integer")
@@ -927,7 +927,7 @@ CREATE TABLE ORDERS  ( O_ORDERKEY       INTEGER NOT NULL,
                            O_SHIPPRIORITY   INTEGER NOT NULL,
                            O_COMMENT        VARCHAR(79) NOT NULL);
 
->   ,CatCreateTable "orders" [("o_orderkey", mkCatNameExtra "integer")
+>   ,CatCreateTable ("public","orders") [("o_orderkey", mkCatNameExtra "integer")
 >                            ,("o_custkey", mkCatNameExtra "integer")
 >                            ,("o_orderstatus", mkCatNameExtra "char")
 >                            ,("o_totalprice", mkCatNameExtra "numeric")
@@ -955,7 +955,7 @@ CREATE TABLE LINEITEM ( L_ORDERKEY    INTEGER NOT NULL,
                              L_SHIPMODE     CHAR(10) NOT NULL,
                              L_COMMENT      VARCHAR(44) NOT NULL);
 
->   ,CatCreateTable "lineitem" [("l_orderkey", mkCatNameExtra "integer")
+>   ,CatCreateTable ("public","lineitem") [("l_orderkey", mkCatNameExtra "integer")
 >                              ,("l_partkey", mkCatNameExtra "integer")
 >                              ,("l_suppkey", mkCatNameExtra "integer")
 >                              ,("l_linenumber", mkCatNameExtra "integer")

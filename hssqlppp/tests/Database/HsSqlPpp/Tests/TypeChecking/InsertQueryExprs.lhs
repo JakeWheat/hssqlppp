@@ -16,26 +16,26 @@
 >       [
 >        -- int to bigint
 >        InsertQueryExpr
->         [CatCreateTable "t1" [("a", mkCatNameExtra "int4")]
->         ,CatCreateTable "t2" [("b", mkCatNameExtra "int8")]]
+>         [CatCreateTable ("public","t1") [("a", mkCatNameExtra "int4")]
+>         ,CatCreateTable ("public","t2") [("b", mkCatNameExtra "int8")]]
 >         "insert into t2(b) select a from t1;"
 >         $ Right $ CompositeType [("a", mkTypeExtra typeBigInt)]
 >        -- null to not null 
 >       ,InsertQueryExpr
->         [CatCreateTable "t1" [("a", mkCatNameExtra "int4")]
->         ,CatCreateTable "t2" [("b", mkCatNameExtraNN "int4")]]
+>         [CatCreateTable ("public","t1") [("a", mkCatNameExtra "int4")]
+>         ,CatCreateTable ("public","t2") [("b", mkCatNameExtraNN "int4")]]
 >         "insert into t2(b) select a from t1;"
 >         $ Right $ CompositeType [("a", mkTypeExtraNN typeInt)]
 >        -- not null to null
 >       ,InsertQueryExpr
->         [CatCreateTable "t1" [("a", mkCatNameExtraNN "int4")]
->         ,CatCreateTable "t2" [("b", mkCatNameExtra "int4")]]
+>         [CatCreateTable ("public","t1") [("a", mkCatNameExtraNN "int4")]
+>         ,CatCreateTable ("public","t2") [("b", mkCatNameExtra "int4")]]
 >         "insert into t2(b) select a from t1;"
 >         $ Right $ CompositeType [("a", mkTypeExtra typeInt)]
 >        -- implicit column list
 >       ,InsertQueryExpr
->         [CatCreateTable "t1" [("a", mkCatNameExtraNN "int4")]
->         ,CatCreateTable "t2" [("b", mkCatNameExtra "int4")]]
+>         [CatCreateTable ("public","t1") [("a", mkCatNameExtraNN "int4")]
+>         ,CatCreateTable ("public","t2") [("b", mkCatNameExtra "int4")]]
 >         "insert into t2 select a from t1;"
 >         $ Right $ CompositeType [("a", mkTypeExtra typeInt)]
 
@@ -44,37 +44,37 @@ insert + star - fails, commented out for now
         -- star expansion
         -- one column - todo: why '?column?'?
        ,InsertQueryExpr
-         [CatCreateTable "t1" [("a", mkCatNameExtraNN "int4")]
-         ,CatCreateTable "t2" [("b", mkCatNameExtraNN "int8")]]
+         [CatCreateTable ("public","t1") [("a", mkCatNameExtraNN "int4")]
+         ,CatCreateTable ("public","t2") [("b", mkCatNameExtraNN "int8")]]
          "insert into t2 select * from t1;"
          $ Right $ CompositeType [("a", mkTypeExtraNN typeBigInt)]
         -- two columns (not sure what that correct type is)
        ,InsertQueryExpr
-         [CatCreateTable "t1" [("a", mkCatNameExtraNN "int4"),("b", mkCatNameExtraNN "int4")]
-         ,CatCreateTable "t2" [("c", mkCatNameExtraNN "int8"),("d", mkCatNameExtraNN "int8")]]
+         [CatCreateTable ("public","t1") [("a", mkCatNameExtraNN "int4"),("b", mkCatNameExtraNN "int4")]
+         ,CatCreateTable ("public","t2") [("c", mkCatNameExtraNN "int8"),("d", mkCatNameExtraNN "int8")]]
          "insert into t2 select * from t1;"
          $ Right $ CompositeType [("a", mkTypeExtraNN typeBigInt),("b", mkTypeExtraNN typeBigInt)]
 
 >        -- where (uses outerDownEnv)
 >       ,InsertQueryExpr
->         [CatCreateTable "t1" [("a", mkCatNameExtraNN "int4")]
->         ,CatCreateTable "t2" [("b", mkCatNameExtraNN "int4")]]
+>         [CatCreateTable ("public","t1") [("a", mkCatNameExtraNN "int4")]
+>         ,CatCreateTable ("public","t2") [("b", mkCatNameExtraNN "int4")]]
 >         "insert into t2 select a from t1 where a>0;"
 >         $ Right $ CompositeType [("a", mkTypeExtraNN typeInt)]
 
 >        -- int to bigint - values
 >       ,InsertQueryExpr
->         [CatCreateTable "t2" [("b", mkCatNameExtra "int8")]]
+>         [CatCreateTable ("public","t2") [("b", mkCatNameExtra "int8")]]
 >         "insert into t2(b) values (1);"
 >         $ Right $ CompositeType [("values%0", mkTypeExtra typeBigInt)]
 >        -- not null to null - values
 >       ,InsertQueryExpr
->         [CatCreateTable "t2" [("b", mkCatNameExtra "int4")]]
+>         [CatCreateTable ("public","t2") [("b", mkCatNameExtra "int4")]]
 >         "insert into t2(b) values (1);"
 >         $ Right $ CompositeType [("values%0", mkTypeExtra typeInt)]
 >       ,InsertQueryExpr
->         [CatCreateTable "tt" [("b", mkCatNameExtraNN "int4")]
->         ,CatCreateTable "t" [("d", mkCatNameExtraNN "date")]]
+>         [CatCreateTable ("public","tt") [("b", mkCatNameExtraNN "int4")]
+>         ,CatCreateTable ("public","t") [("d", mkCatNameExtraNN "date")]]
 >         "insert into tt select datepart(day,d) from t;"
 >        $ Right $ CompositeType [("datepart",mkTypeExtraNN typeInt)]
 >       ]

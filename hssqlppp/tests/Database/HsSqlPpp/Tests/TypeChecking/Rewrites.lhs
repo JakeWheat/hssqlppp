@@ -16,38 +16,38 @@ item aliases
 > rewrites =
 >   Group "rewrites"
 >   [RewriteQueryExpr defaultTypeCheckingFlags {tcfAddSelectItemAliases = True}
->          [CatCreateTable "t" [("a", mkCatNameExtra "int4")
+>          [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                              ,("b", mkCatNameExtra "text")]]
 >    "select a,b from t"
 >    "select a as a,b as b from t"
 
 >   ,RewriteQueryExpr defaultTypeCheckingFlags {tcfExpandStars = True}
->          [CatCreateTable "t" [("a", mkCatNameExtra "int4")
+>          [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                              ,("b", mkCatNameExtra "text")]]
 >    "select * from t"
 >    "select t.a,t.b from t"
 
 >   ,RewriteQueryExpr defaultTypeCheckingFlags {tcfAddQualifiers = True}
->          [CatCreateTable "t" [("a", mkCatNameExtra "int4")
+>          [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                              ,("b", mkCatNameExtra "text")]]
 >    "select b,count(a) from t group by b"
 >    "select t.b,count(t.a) from t group by t.b"
 
 >   ,RewriteQueryExpr defaultTypeCheckingFlags {tcfAddQualifiers = True}
->          [CatCreateTable "t" [("a", mkCatNameExtra "int4")
+>          [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                              ,("b", mkCatNameExtra "text")]]
 >    "select * from t where a > 3"
 >    "select * from t where t.a > 3"
 
 >   ,RewriteQueryExpr defaultTypeCheckingFlags {tcfAddQualifiers = True}
->          [CatCreateTable "t" [("a", mkCatNameExtra "int4")
+>          [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                              ,("b", mkCatNameExtra "text")]]
 >    "select * from t u where a > 3"
 >    "select * from t u where u.a > 3"
 
 
 >   ,RewriteQueryExpr defaultTypeCheckingFlags {tcfAddQualifiers = True}
->          [CatCreateTable "t" [("a", mkCatNameExtra "int4")
+>          [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                              ,("b", mkCatNameExtra "text")]]
 >    "select * from t order by a"
 >    "select * from t order by t.a"
@@ -55,22 +55,22 @@ item aliases
 
 
 >   ,RewriteQueryExpr defaultTypeCheckingFlags {tcfAddFullTablerefAliases = True}
->          [CatCreateTable "t" [("a", mkCatNameExtra "int4")
+>          [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                              ,("b", mkCatNameExtra "text")]]
 >    "select * from t"
 >    "select * from t as t(a,b)"
 
 
 >   ,RewriteQueryExpr defaultTypeCheckingFlags {tcfAddFullTablerefAliases = True}
->          [CatCreateTable "t" [("a", mkCatNameExtra "int4")
+>          [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                              ,("b", mkCatNameExtra "text")]]
 >    "select * from (select a,b from t) u"
 >    "select * from (select a,b from t t(a,b)) u(a,b)"
 
 >   ,RewriteQueryExpr defaultTypeCheckingFlags {tcfAddFullTablerefAliases = True}
->          [CatCreateTable "t" [("a", mkCatNameExtra "int4")
+>          [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                              ,("b", mkCatNameExtra "text")]
->          ,CatCreateTable "u" [("c", mkCatNameExtra "int4")
+>          ,CatCreateTable ("public","u") [("c", mkCatNameExtra "int4")
 >                              ,("d", mkCatNameExtra "text")]]
 >    "select * from t cross join u"
 >    -- can't add an alias to the join since the qualifiers
@@ -78,9 +78,9 @@ item aliases
 >    "select * from t t(a,b) cross join u u(c,d)"
 
 >   ,RewriteQueryExpr defaultTypeCheckingFlags {tcfAddFullTablerefAliases = True}
->          [CatCreateTable "t" [("a", mkCatNameExtra "int4")
+>          [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                              ,("b", mkCatNameExtra "text")]
->          ,CatCreateTable "u" [("c", mkCatNameExtra "int4")
+>          ,CatCreateTable ("public","u") [("c", mkCatNameExtra "int4")
 >                              ,("d", mkCatNameExtra "text")]]
 >    "select * from t cross join u t"
 >    "select * from (t t(a,b) cross join u t(c,d)) t(a,b,c,d)"
@@ -89,7 +89,7 @@ item aliases
 
 
 >   ,RewriteQueryExpr defaultTypeCheckingFlags {tcfAddQualifiers = True}
->          [CatCreateTable "t" [("a", mkCatNameExtra "int4")
+>          [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                              ,("b", mkCatNameExtra "text")]]
 >    "select a,b from t"
 >    "select t.a,t.b from t"
@@ -98,7 +98,7 @@ item aliases
 >                                              ,tcfAddSelectItemAliases = True
 >                                              ,tcfExpandStars = True
 >                                              ,tcfAddFullTablerefAliases = True}
->          [CatCreateTable "t" [("a", mkCatNameExtra "int4")
+>          [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                              ,("b", mkCatNameExtra "text")]]
 >    "/*thisit*/select * from t"
 >    "select t.a as a,t.b as b from t as t(a,b)"

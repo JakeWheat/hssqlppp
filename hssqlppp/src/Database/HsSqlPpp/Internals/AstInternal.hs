@@ -182,7 +182,7 @@ columnName (AggregateApp _ _ (App _ (Name _ ncs) _) _) = last ncs
 columnName _ = QNmc "?column?"
 {-# LINE 184 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}
 
-{-# LINE 159 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
+{-# LINE 160 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
 
 convertJoinType:: JoinType -> E.JoinType
 convertJoinType LeftOuter = E.LeftOuter
@@ -24261,7 +24261,7 @@ sem_TableRef_Tref ann_ tbl_ =
                   ({-# LINE 150 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/TableRefs.ag" #-}
                    if tcfAddFullTablerefAliases _lhsIflags
                    then do
-                     (n,cs,_) <- either (const Nothing) Just
+                     ((_,n),cs,_) <- either (const Nothing) Just
                                    $ catLookupTableAndAttrs _lhsIcat
                                    (nameComponents _tblIoriginalTree)
                      return (T.unpack n, (map (T.unpack . fst) cs))
