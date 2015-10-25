@@ -189,7 +189,8 @@ catalog values
 > -- | The main datatype, this holds the catalog and context
 > -- information to type check against.
 > data Catalog = Catalog
->     {catScalarTypeNames :: S.Set CatName -- one name component per type
+>     {catSchemas :: S.Set CatName
+>     ,catScalarTypeNames :: S.Set CatName -- one name component per type
 >     ,catDomainTypes :: M.Map CatName CatName -- stores the base type name
 >                                              -- constraint is stored separately
 >      --,catEnumTypes :: {[(String,[String])]}
@@ -204,8 +205,9 @@ catalog values
 >     ,catFunctions :: M.Map CatName [OperatorPrototype]
 >     ,catAggregateFunctions :: M.Map CatName [OperatorPrototype]
 >     ,catWindowFunctions :: M.Map CatName [OperatorPrototype]
->     ,catTables :: M.Map CatName ([(Text,TypeExtra)] -- public attrs
->                                 ,[(Text,Type)]) -- system columns
+>     ,catTables :: M.Map (CatName,CatName)
+>                   ([(Text,TypeExtra)] -- public attrs
+>                   ,[(Text,Type)]) -- system columns
 >     -- needs more work:
 >     ,catCasts :: S.Set (Type,Type,CastContext)
 >     ,catTypeCategories :: M.Map Type (Text,Bool)
@@ -220,7 +222,8 @@ catalog values
 > -- | Represents an empty catalog. This doesn't contain things
 > -- like the \'and\' operator, 'defaultCatalog' contains these.
 > emptyCatalog :: Catalog
-> emptyCatalog = Catalog S.empty M.empty M.empty M.empty M.empty M.empty
+> emptyCatalog = Catalog S.empty S.empty M.empty M.empty M.empty
+>                        M.empty M.empty
 >                        M.empty M.empty M.empty M.empty M.empty
 >                        S.empty M.empty
 >                        []
@@ -233,7 +236,8 @@ catalog values
 > defaultCatalog :: Catalog
 > defaultCatalog =
 >     -- todo: specify in terms of catalog updates
->   emptyCatalog {catBinaryOps = insertOperators systemBinaryOps M.empty
+>   emptyCatalog {catSchemas = S.fromList ["public"]
+>                ,catBinaryOps = insertOperators systemBinaryOps M.empty
 >                ,catPrefixOps = insertOperators systemPrefixOps M.empty
 >                ,catPostfixOps = insertOperators systemPostfixOps M.empty
 >                ,catFunctions = insertOperators systemFunctions M.empty
@@ -371,8 +375,10 @@ todo: use left or something instead of error
  updates
 
 > data CatalogUpdate =
+>     -- | register a schema with the given name
+>     CatCreateSchema CatName
 >     -- | register a base scalar type with the given name
->     CatCreateScalarType CatName
+>   | CatCreateScalarType CatName
 >     -- | register a domain type with name and base type
 >   | CatCreateDomainType CatName CatName
 >     -- | register an array type with name and base type
@@ -388,7 +394,7 @@ todo: use left or something instead of error
 >     -- | register a aggregate: name, param types, return type
 >   | CatCreateAggregate CatName [CatName] CatName
 >     -- | register a table only: name, (colname,typename) pairs
->   | CatCreateTable CatName [(CatName,CatNameExtra)]
+>   | CatCreateTable (CatName,CatName) [(CatName,CatNameExtra)]
 >     -- | register a cast in the catalog
 >   | CatCreateCast CatName CatName CastContext
 >     -- | register a type category for a type (used in the implicit cast resolution)
@@ -410,6 +416,10 @@ todo: use left or something instead of error
 >   foldM updateCat' (cat' {catUpdates = catUpdates cat' ++ eus}) eus
 >   where
 >     updateCat' cat u = case u of
+>       CatCreateSchema n ->
+>         if S.member n (catSchemas cat)
+>         then Left [SchemaAlreadyExists n]
+>         else Right $ cat {catSchemas = S.insert n (catSchemas cat)}
 >       CatCreateScalarType n ->
 >         if S.member n (catScalarTypeNames cat)
 >         -- todo: need to check all the type lists
@@ -485,10 +495,18 @@ queries
 
 > getCatName :: [NameComponent] -> CatName
 > getCatName [] = error "empty name component in catalog code"
-> getCatName ncs = case last ncs of
->                                Nmc n -> T.pack $ map toLower n
->                                QNmc n -> T.pack n
->                                AntiNameComponent x -> error $ "anti name component in getCatName " ++ x
+> getCatName [x] = ncStrT x
+> getCatName (_:xs) = getCatName xs
+
+gets a schema qualified catname, puts in the default 'public' if there
+is only one name component. This will be altered when schema search
+paths are implemented.
+
+> getCatName2 :: [NameComponent] -> (CatName,CatName)
+> getCatName2 [] = error "empty name component in catalog code"
+> getCatName2 [a] = ("public",ncStrT a)
+> getCatName2 [a,b] = (ncStrT a, ncStrT b)
+> getCatName2 (_:xs) = getCatName2 xs
 
 > -- | takes a [NameComponent] and returns the type for that name
 > -- will return a type not recognised if the type isn't in the catalog
@@ -511,9 +529,9 @@ TODO: add inverse of this operation, give a type, returns a typename
 > -- with quoting), and the public and private attr names
 > catLookupTableAndAttrs :: Catalog
 >                        -> [NameComponent]
->                        -> Either [TypeError] (Text,[(Text,TypeExtra)], [(Text,Type)])
+>                        -> Either [TypeError] ((Text,Text),[(Text,TypeExtra)], [(Text,Type)])
 > catLookupTableAndAttrs cat nmcs = do
->   let n = getCatName nmcs
+>   let n = getCatName2 nmcs
 >   (pu,pv) <- maybe (Left [UnrecognisedRelation n]) Right
 >              $ M.lookup n (catTables cat)
 >   return (n,pu,pv)

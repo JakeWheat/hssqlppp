@@ -89,7 +89,7 @@
 
 >   ]
 >   where
->     qe = TCQueryExpr [CatCreateTable "t0" [("a", mkCatNameExtra "int4")
+>     qe = TCQueryExpr [CatCreateTable ("public","t0") [("a", mkCatNameExtra "int4")
 >                                         ,("b", mkCatNameExtra "text")]
->                    ,CatCreateTable "t1" [("c", mkCatNameExtra "int4")
+>                    ,CatCreateTable ("public","t1") [("c", mkCatNameExtra "int4")
 >                                         ,("d", mkCatNameExtra "text")]]

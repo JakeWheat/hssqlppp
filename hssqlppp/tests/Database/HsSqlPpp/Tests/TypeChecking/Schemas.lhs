@@ -1,0 +1,55 @@
+
+Testing schemas and simple queries
+
+default schema is public - no schema search path
+check explicit schemas match
+check rewrite to add schemas to syntax if missing
+
+schemas affect typechecking of views and tables only currently
+
+> {-# LANGUAGE OverloadedStrings #-}
+> module Database.HsSqlPpp.Tests.TypeChecking.Schemas
+>     (schemas) where
+
+> --import Database.HsSqlPpp.Internals.TypesInternal
+> import Database.HsSqlPpp.Tests.TestTypes
+> --import Database.HsSqlPpp.Types
+> import Database.HsSqlPpp.Catalog
+> --import Database.HsSqlPpp.TypeChecker
+> import Database.HsSqlPpp.Types
+
+> import Database.HsSqlPpp.Tests.TypeChecking.Utils
+
+> schemas :: Item
+> schemas =
+>   Group "schemas"
+>       [TCQueryExpr simpleTEnv
+>         "select a,b from public.t"
+>         $ Right $ CompositeType [("a", mkTypeExtra typeInt)
+>                                 ,("b", mkTypeExtra $ ScalarType "text")]
+>       ,TCQueryExpr simpleTEnv
+>         "select a,b from t"
+>         $ Right $ CompositeType [("a", mkTypeExtra typeInt)
+>                                 ,("b", mkTypeExtra $ ScalarType "text")]
+>       ,TCQueryExpr simpleTEnv
+>         "select a,b from something.t"
+>         $ Left $ [UnrecognisedRelation ("something", "t")]
+
+>       ,TCQueryExpr anotherUEnv
+>         "select a,b from public.u"
+>         $ Left [UnrecognisedRelation ("public", "u")]
+>       ,TCQueryExpr anotherUEnv
+>         "select a,b from u"
+>         $ Left [UnrecognisedRelation ("public", "u")]
+>       ,TCQueryExpr anotherUEnv
+>         "select a,b from something.u"
+>         $ Right $ CompositeType [("a", mkTypeExtra typeInt)
+>                                 ,("b", mkTypeExtra $ ScalarType "text")]
+>       ]
+>   where
+>     simpleTEnv = [CatCreateTable ("public","t")
+>                   [("a", mkCatNameExtra "int4")
+>                   ,("b", mkCatNameExtra "text")]]
+>     anotherUEnv = [CatCreateTable ("something","u")
+>                   [("a", mkCatNameExtra "int4")
+>                   ,("b", mkCatNameExtra "text")]]

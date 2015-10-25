@@ -23,6 +23,10 @@
 > import Database.HsSqlPpp.Tests.TypeChecking.InsertQueryExprs
 > import Database.HsSqlPpp.Tests.TypeChecking.TypeConversion
 > import Database.HsSqlPpp.Tests.TypeChecking.OdbcTypechecking
+> import Database.HsSqlPpp.Tests.TypeChecking.Schemas
+> import Database.HsSqlPpp.Tests.TypeChecking.QueryExprs
+> import Database.HsSqlPpp.Tests.TypeChecking.Updates
+> import Database.HsSqlPpp.Tests.TypeChecking.DDL
 
 > typeCheckTestData :: Item
 > typeCheckTestData =
@@ -42,4 +46,8 @@
 >     ,insertQueryExprs
 >     ,typeConversionTests
 >     ,odbcTypechecking
+>     ,schemas
+>     ,ddl
+>     ,queryExprs
+>     ,updates
 >     ]

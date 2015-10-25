@@ -797,7 +797,7 @@ data Statement
            strict::Bool
            into :: {[Name]}
            stmt :: Statement
-   | Assignment ann::Annotation
+    | Assignment ann::Annotation
                  target :: Name
                  value :: ScalarExpr
     | Return ann::Annotation

@@ -92,13 +92,13 @@
 
 >   ]
 >   where
->     qenc = TCQueryExpr [CatCreateTable "t0" [("a", mkCatNameExtra "int4")
+>     qenc = TCQueryExpr [CatCreateTable ("public","t0") [("a", mkCatNameExtra "int4")
 >                                           ,("b", mkCatNameExtra "text")]
->                      ,CatCreateTable "t1" [("c", mkCatNameExtra "int4")
+>                      ,CatCreateTable ("public","t1") [("c", mkCatNameExtra "int4")
 >                                           ,("d", mkCatNameExtra "text")]]
->     qec = TCQueryExpr [CatCreateTable "t0" [("a", mkCatNameExtra "int4")
+>     qec = TCQueryExpr [CatCreateTable ("public","t0") [("a", mkCatNameExtra "int4")
 >                                          ,("b", mkCatNameExtra "text")]
->                     ,CatCreateTable "t1" [("a", mkCatNameExtra "int4")
+>                     ,CatCreateTable ("public","t1") [("a", mkCatNameExtra "int4")
 >                                          ,("c", mkCatNameExtra "text")]]
 
 

@@ -161,8 +161,9 @@ old catalog type errors: to be replaced when the catalog code is
 gutted and rewritten
 
 >                | TypeAlreadyExists Type
+>                | SchemaAlreadyExists Text
 >                | BadCatalogUpdate Text
->                | UnrecognisedRelation Text
+>                | UnrecognisedRelation (Text,Text)
 >                | DomainDefNotFound Type
 >                | TypeNotKnown Type
 >                | UnknownTypeName Text

@@ -150,7 +150,8 @@ sem TableRef
       loc.newAlias =
         if tcfAddFullTablerefAliases @lhs.flags
         then do
-          (n,cs,_) <- either (const Nothing) Just
+          --FIXME (_,n)
+          ((_,n),cs,_) <- either (const Nothing) Just
                         $ catLookupTableAndAttrs @lhs.cat
                         (nameComponents @tbl.originalTree)
           return (T.unpack n, (map (T.unpack . fst) cs))

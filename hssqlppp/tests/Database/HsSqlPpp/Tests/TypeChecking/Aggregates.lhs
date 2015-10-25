@@ -26,14 +26,14 @@ and flexible combinations
 > aggregates :: Item
 > aggregates =
 >   Group "aggregates"
->   [TCQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")
+>   [TCQueryExpr [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                                  ,("b", mkCatNameExtra "int4")
 >                                  ,("c", mkCatNameExtra "int4")]]
 >    "select a,b,count(c) as c from t group by a,b"
 >    $ Right $ CompositeType [("a", mkTypeExtra typeInt)
 >                            ,("b", mkTypeExtra typeInt)
 >                            ,("c", mkTypeExtraNN typeBigInt)]
->   ,TCQueryExpr [CatCreateTable "t" [("a", mkCatNameExtra "int4")
+>   ,TCQueryExpr [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                                  ,("b", mkCatNameExtra "int4")
 >                                  ,("c", mkCatNameExtra "int4")]]
 >    "select a,b,count(c) as c from t group by cube(a,b)"
