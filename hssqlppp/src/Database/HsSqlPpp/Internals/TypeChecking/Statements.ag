@@ -1,7 +1,13 @@
 
+{-
+
+Some unfinished boilerplate for random statements. The typechecking
+for most non query statements is very limited.
+
+-}
+
 sem Statement
   | QueryStatement DeclareStatement If
-    Insert Update Delete CopyFrom CopyTo Truncate
     Assignment ExecStatement CreateIndexTSQL
     DropSomething DropTrigger Into
     ann.tpe = Left []
@@ -9,19 +15,6 @@ sem Statement
   | QueryStatement
     ex.expectedType = liftM (map snd) @ex.upType
     --ex.expectedCast = True
-  | Insert
-    -- the expected type for the insert data is the target columns' type
-    -- TODO: make sure that the number of target columns match the number of columns in insData
-    insData.expectedType = do
-                           let tnm = nameComponents @table.originalTree
-                           (_,pub,_) <- either (const Nothing) Just $ catLookupTableAndAttrs @lhs.cat tnm
-                           case @targetCols of
-                                []  -> return $ map snd pub  -- if there's no column list, we take the entire table
-                                tcs -> do
-                                       tcs' <- mapM nmcString tcs
-                                       mapM (`lookup` pub) tcs'
-    --insData.expectedCast = True
-    insData.outerDownEnv = Nothing
   | CreateTableAs CreateView
     expr.expectedType = liftM (map snd) @expr.upType
     --expr.expectedCast = True
@@ -32,10 +25,3 @@ sem Statement
   | Assignment
     target.tpe = Left []
     value.downEnv = emptyEnvironment
-
-{
-nmcString :: NameComponent -> Maybe Text
-nmcString (QNmc n) = Just $ T.pack n
-nmcString (Nmc n) = Just $ T.pack $ map toLower n
-nmcString (AntiNameComponent _) = Nothing
-}

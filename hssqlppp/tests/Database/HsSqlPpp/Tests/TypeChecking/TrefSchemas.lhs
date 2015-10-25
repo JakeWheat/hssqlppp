@@ -1,5 +1,5 @@
 
-Testing schemas and simple queries
+Testing schemas in trefs in simple queries
 
 default schema is public - no schema search path
 check explicit schemas match
@@ -8,8 +8,8 @@ check rewrite to add schemas to syntax if missing
 schemas affect typechecking of views and tables only currently
 
 > {-# LANGUAGE OverloadedStrings #-}
-> module Database.HsSqlPpp.Tests.TypeChecking.Schemas
->     (schemas) where
+> module Database.HsSqlPpp.Tests.TypeChecking.TrefSchemas
+>     (trefSchemas) where
 
 > --import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Tests.TestTypes
@@ -20,9 +20,9 @@ schemas affect typechecking of views and tables only currently
 
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
 
-> schemas :: Item
-> schemas =
->   Group "schemas"
+> trefSchemas :: Item
+> trefSchemas =
+>   Group "trefSchemas"
 >       [TCQueryExpr simpleTEnv
 >         "select a,b from public.t"
 >         $ Right $ CompositeType [("a", mkTypeExtra typeInt)
