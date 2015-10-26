@@ -136,6 +136,8 @@ include "TypeChecking/ScalarExprs.ag"
 include "TypeChecking/QueryExprs/QueryExprs.ag"
 include "TypeChecking/Misc.ag"
 include "TypeChecking/Statements.ag"
+include "TypeChecking/Boilerplate.ag"
+
 --include "TypeChecking/AddTrefAliases.ag"
 --{
 --addTrefAliases = id

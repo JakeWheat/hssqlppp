@@ -222,3 +222,11 @@ columnName (WindowApp _ (App _ (Name _ ncs) _) _ _ _) = last ncs
 columnName (AggregateApp _ _ (App _ (Name _ ncs) _) _) = last ncs
 columnName _ = QNmc "?column?"
 }
+
+
+-- todo: not sure if this is right or it should be an error?
+-- maybe antiscalarexpr should be treated like a '?' for typechecking?
+-- which is more pragmatic than just erroring and not completely wrong
+
+sem ScalarExpr
+   | AntiScalarExpr lhs.colExprs = [(Nmc "?anti?",Nothing,@originalTree)]
