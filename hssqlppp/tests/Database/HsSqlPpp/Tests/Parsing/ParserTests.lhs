@@ -29,6 +29,7 @@ There are no tests for invalid syntax at the moment.
 > import Database.HsSqlPpp.Tests.Parsing.SelectLists
 > import Database.HsSqlPpp.Tests.Parsing.TableRefs
 > import Database.HsSqlPpp.Tests.Parsing.Joins
+> import Database.HsSqlPpp.Tests.Parsing.Schemas
 
 > import Database.HsSqlPpp.Tests.Parsing.Dml
 > import Database.HsSqlPpp.Tests.Parsing.Misc
@@ -66,6 +67,7 @@ There are no tests for invalid syntax at the moment.
 >             ,Group "ddl" [createTable
 >                          ,miscDdl
 >                          ,functionsDdl]
+>             ,schemas
 >             ,pgplsql
 >             ,misc
 >             ,sqlServer
