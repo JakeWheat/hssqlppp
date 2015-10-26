@@ -36,6 +36,7 @@ should all be in one place.
 >     ,matchAppExtra
 >     ,resolveResultSetType
 >     ,resolveResultSetTypeExtra
+>     ,checkAssignmentValid
 >     ,MatchAppLiteralList -- (..)
 >     ) where
 >
@@ -57,7 +58,7 @@ should all be in one place.
 > import Data.Text ()
 > import qualified Data.Text as T
 > import Text.Printf
-> import Debug.Trace
+> --import Debug.Trace
 
 ******************************************************************
 

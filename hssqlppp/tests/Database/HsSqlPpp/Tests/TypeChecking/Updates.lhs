@@ -139,14 +139,36 @@ duplicate columns
 make sure to check casts which are assignment and not implicit
 also works with no column names given
 
-1. implicit casts from literals
+1. implicit casts from literals: already tested
+
 2. implicit casts from typed expressions
+
+>   --,TCStatements simpleTEnv
+>   -- "insert into t(a,b) values (1::int8,'2');"
+>   -- $ Nothing
+
 3. casts which are only available explicitly: for now treated no
 different to casts which aren't possible at all, in future could give
 a nicer error message
+
+>   --,TCStatements simpleTEnv
+>   -- "insert into t(a,b) values ('1'::text,'2');"
+>   -- $ Just []
+
 4. casts which aren't possible at all
 
-***todo: more checking with presence of defaults/nulls
+>   ,TCStatements simpleTEnv
+>    "insert into t(a,b) values ('2005-01-01'::interval,'2');"
+>    $ Just []
+
+
+*** todo: repeat tests above with all the other queryexpr ctors:
+select, with, setops
+
+*** todo: check multiple values rows use resolve result set algo
+outside of insert, and use row by row assignment casts in an insert
+
+todo: more checking with presence of defaults/nulls?
 
 todo: returning
 
@@ -208,6 +230,6 @@ check table names + schema options
 >     simpleTEnv = [CatCreateTable ("public","t")
 >                   [("a", mkCatNameExtra "int4")
 >                   ,("b", mkCatNameExtra "text")]]
->     anotherUEnv = [CatCreateTable ("something","u")
+>     _anotherUEnv = [CatCreateTable ("something","u")
 >                   [("a", mkCatNameExtra "int4")
 >                   ,("b", mkCatNameExtra "text")]]

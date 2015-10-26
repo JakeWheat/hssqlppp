@@ -28,7 +28,7 @@ For now, expectedCast is Bool, with the meaning of whether the nullability compo
 imports
 {
 import Text.Read
-import Debug.Trace
+--import Debug.Trace
 import Database.HsSqlPpp.Internals.Catalog.OdbcCatalog
 }
 
@@ -74,6 +74,35 @@ implicitCastType expectedCast upType expType
     scale = teScale precisionSource
 }
 
+{-
+
+Additional error handling for unallowed casts:
+
+The cast context attribute says whether we are in a assignment context
+or implicit context. The assignment context is used for inserts,
+updates and actual assignment in procedural sql. The implicit cast
+context is for all other contexts.
+
+Each scalar expr node will check the expected type against the actual
+type, and if the current cast context doesn't allow that cast, there
+will be an error.
+
+Note that if you are in an operator-like context (e.g. actual
+operators, functions, etc), then the overload resolution will fail to
+match if there are not valid casts and you will get an error that the
+operator doesn't match instead of an invalid cast error on the
+individual argument. This could be done uniformly except that you
+might have multiple ambigious overloads matching, so there isn't an
+error which can be described by a single cast being unavailable.
+
+Almost every node must set the cast context to implicit, then we set
+it to assignment where needed. There is special handling for Values,
+which is treated like Union and uses the resolve result set algorithm
+in most cases, but in the most common case, in an insert, each row is
+resolved as an assignment cast separately.
+
+-}
+
 sem ScalarExpr
     | AntiScalarExpr
         lhs.upType = either (const Nothing) Just @loc.tpe
@@ -86,6 +115,12 @@ attr ScalarExpr MaybeScalarExpr
   syn upType :: {Maybe TypeExtra} -- the type of this node made available to the parent node
   inh expectedType :: {Maybe TypeExtra}
   inh expectedCast :: {Bool}
+
+attr ScalarExpr MaybeScalarExpr QueryExpr
+     SelectList ScalarExprListList ScalarExprList
+     SelectItemList SelectItem
+  inh assignmentCastContext :: Bool -- set to true if assignment cast context
+                                    -- else set to false if implicit cast context
 
 sem MaybeScalarExpr
     | Nothing lhs.upType = Nothing
@@ -243,7 +278,7 @@ simplish ctors
               let nullability = fromMaybe False $ teNullable <$> @expr.upType
                   setNullability te = te{teNullable = nullability}
               in maybe (Left []) (Right . setNullability) @tn.namedType
-         expr.expectedType = Nothing --@tn.namedType
+         expr.expectedType = Nothing -- @tn.namedType
          expr.expectedCast = False
     | ImplicitCast
         loc.tpe = Right @te
@@ -512,6 +547,7 @@ sem CaseScalarExprListScalarExprPairList
          lhs.thenTypes = @hd.thenType : @tl.thenTypes
   | Nil lhs.whenTypes = []
         lhs.thenTypes = []
+        lhs.upTypes = []
 
 attr CaseScalarExprListScalarExprPair
   syn whenTypes :: {[Maybe TypeExtra]}
@@ -764,3 +800,46 @@ classifyInteger s = case (readMaybe s :: Maybe Integer) of
                              | n < (2 ^ (63 :: Integer)) -> typeBigInt
                       _ -> typeNumeric
 }
+
+-- boilerplate for cast contexts
+
+sem AlterColumnAction | SetDefault def.assignmentCastContext = False
+sem AttributeDef | AttributeDef def.assignmentCastContext = False
+sem CaseScalarExprListScalarExprPair | Tuple x1.assignmentCastContext = False
+sem CaseScalarExprListScalarExprPair | Tuple x2.assignmentCastContext = False
+sem Constraint | CheckConstraint expr.assignmentCastContext = False
+sem InList | InList exprs.assignmentCastContext = False
+sem InList | InQueryExpr sel.assignmentCastContext = False
+sem JoinExpr | JoinOn expr.assignmentCastContext = False
+sem MaybeBoolExpr | Just just.assignmentCastContext = False
+sem MaybeSelectList | Just just.assignmentCastContext = False
+sem RowConstraint | RowCheckConstraint expr.assignmentCastContext = False
+sem ScalarExprDirectionPair | Tuple x1.assignmentCastContext = False
+sem ScalarExprListStatementListTriple | Tuple x1.assignmentCastContext = False
+sem ScalarExprRoot | ScalarExprRoot expr.assignmentCastContext = False
+sem ScalarExprStatementListPair | Tuple x1.assignmentCastContext = False
+sem ScalarExprTransposedList | Cons hd.assignmentCastContext = False
+sem SetClause | MultiSetClause ex.assignmentCastContext = False
+sem SetClause | SetClause ex.assignmentCastContext = False
+sem Statement | AlterView expr.assignmentCastContext = False
+sem Statement | Assignment value.assignmentCastContext = False
+sem Statement | CaseStatementSimple val.assignmentCastContext = False
+sem Statement | CreateTableAs expr.assignmentCastContext = False
+sem Statement | CreateTrigger fnArgs.assignmentCastContext = False
+sem Statement | CreateView expr.assignmentCastContext = False
+sem Statement | ExecStatement args.assignmentCastContext = False
+sem Statement | Execute expr.assignmentCastContext = False
+sem Statement | ForIntegerStatement from.assignmentCastContext = False
+sem Statement | ForIntegerStatement to.assignmentCastContext = False
+sem Statement | ForQueryStatement sel.assignmentCastContext = False
+sem Statement | Insert insData.assignmentCastContext = False
+sem Statement | Perform expr.assignmentCastContext = False
+sem Statement | QueryStatement ex.assignmentCastContext = False
+sem Statement | Raise args.assignmentCastContext = False
+sem Statement | Return value.assignmentCastContext = False
+sem Statement | ReturnNext expr.assignmentCastContext = False
+sem Statement | ReturnQuery sel.assignmentCastContext = False
+sem Statement | WhileStatement expr.assignmentCastContext = False
+sem TableRef | FunTref fn.assignmentCastContext = False
+sem TableRef | SubTref sel.assignmentCastContext = False
+sem WithQuery | WithQuery ex.assignmentCastContext = False

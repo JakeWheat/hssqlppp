@@ -10,11 +10,11 @@ typechecks as well as correct queries compared to the old tests.
 > --import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Tests.TestTypes
 > --import Database.HsSqlPpp.Types
-> import Database.HsSqlPpp.Catalog
+> --import Database.HsSqlPpp.Catalog
 > --import Database.HsSqlPpp.TypeChecker
-> import Database.HsSqlPpp.Types
+> --import Database.HsSqlPpp.Types
 
-> import Database.HsSqlPpp.Tests.TypeChecking.Utils
+> --import Database.HsSqlPpp.Tests.TypeChecking.Utils
 
 > queryExprs :: Item
 > queryExprs =
