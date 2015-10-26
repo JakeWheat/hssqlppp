@@ -174,6 +174,7 @@ gutted and rewritten
 >                | AmbiguousIdentifier Text
 >                | OdbcFuncBadContent
 >                | DuplicateColumnName Text
+>                | TooManyColumnsInInsert
 >                  deriving (Eq,Show,Ord,Typeable,Data)
 >
 > --instance ErrorList TypeError where

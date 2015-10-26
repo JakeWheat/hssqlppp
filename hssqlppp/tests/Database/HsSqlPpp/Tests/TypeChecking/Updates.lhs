@@ -36,20 +36,16 @@ simplest insert
 
 too many values
 
-***todo
+>   ,TCStatements simpleTEnv
+>    "insert into t values (1,'2',3);"
+>    $ Just [TooManyColumnsInInsert]
 
->   --,TCStatements simpleTEnv
->   -- "insert into t values (1,'2',3);"
->   -- $ Just []
+too few values: this is ok, not currently statically checked
 
-***todo: too few values with nullable is ok, without is error
+>   ,TCStatements simpleTEnv
+>    "insert into t values (1);"
+>    $ Nothing
 
-wrong types for values
-***todo
-
->   --,TCStatements simpleTEnv
->   -- "insert into t values ('1'::text,2);"
->   -- $ Just []
 
 bad types in one row of multi values
 todo: I'm not sure this is correct.
@@ -109,16 +105,23 @@ name columns in different order
 >    "insert into t(b,a) values ('2'::text,1);"
 >    $ Nothing
 
-***TODO: don't name all columns: depends on default handling which needs
-information which isn't in the catalog at the moment
+too many values for the named columns
 
->   --,TCStatements simpleTEnv
->   -- "insert into t(a) values (1,'2');"
->   -- $ Just []
+>   ,TCStatements simpleTEnv
+>    "insert into t(a) values (1,'2');"
+>    $ Just [TooManyColumnsInInsert]
 
->   --,TCStatements simpleTEnv
->   -- "insert into t(a) values (1);"
->   -- $ Just []
+>   ,TCStatements simpleTEnv
+>    "insert into t(a,b) values (1,'2',3);"
+>    $ Just [TooManyColumnsInInsert]
+
+The typechecker will never catch this issue for now, even if it is
+statically determinable that the insert will fail because of defaults/
+not null.
+
+>   ,TCStatements simpleTEnv
+>    "insert into t(a) values (1);"
+>    $ Nothing
 
 name wrong column
 
@@ -133,8 +136,17 @@ duplicate columns
 >    $ Just [DuplicateColumnName "a"]
 
 ***todo: implicit casts
+make sure to check casts which are assignment and not implicit
+also works with no column names given
 
-***todo: more checking with presence of defaults
+1. implicit casts from literals
+2. implicit casts from typed expressions
+3. casts which are only available explicitly: for now treated no
+different to casts which aren't possible at all, in future could give
+a nicer error message
+4. casts which aren't possible at all
+
+***todo: more checking with presence of defaults/nulls
 
 todo: returning
 

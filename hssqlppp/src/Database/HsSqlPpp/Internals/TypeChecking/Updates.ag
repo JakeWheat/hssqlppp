@@ -41,11 +41,22 @@ sem Statement
     -- or the column names, it gets attached to the table name node
     -- todo: if there is an error with a specific column name, the
     -- error should be attached to that column name node
-    table.tpe = either Left (const $ Left []) @loc.tpe
+    table.tpe = Left (either id (const []) @loc.tpe
+                      ++ maybe [] id @loc.tooManyCols)
     -- the expected type for the insert data is the target columns' type
     insData.expectedType = either (const Nothing) Just @loc.tpe
     --insData.expectedCast = True
     insData.outerDownEnv = Nothing
+    -- check that there aren't too many columns in the select
+    -- TODO: not sure if this should be done here, or in the select
+    -- list via the query expr (or the values, etc)
+    loc.tooManyCols :: {Maybe [TypeError]}
+    loc.tooManyCols = do
+                      x <- @insData.upType
+                      y <- either (const Nothing) Just @loc.tpe
+                      if (length x > length y)
+                          then Just [TooManyColumnsInInsert]
+                          else Nothing
 
 
 {
