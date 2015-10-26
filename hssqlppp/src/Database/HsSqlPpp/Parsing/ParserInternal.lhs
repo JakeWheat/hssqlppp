@@ -213,7 +213,8 @@ Parsing top level statements
 >                ,createTrigger
 >                ,createIndex
 >                ,createLogin
->                ,createUser]
+>                ,createUser
+>                ,createSchema]
 >     ,keyword "alter" *>
 >              choice [
 >                 alterSequence
@@ -221,12 +222,14 @@ Parsing top level statements
 >                ,alterDatabase
 >                ,alterLogin
 >                ,alterUser
->                ,alterView]
+>                ,alterView
+>                ,alterSchema]
 >     ,keyword "drop" *>
 >              choice [
 >                 dropSomething
 >                ,dropFunction
->                ,dropTrigger]]
+>                ,dropTrigger
+>                ,dropSchema]]
 >     <* stmtEnd (not reqSemi))
 >    <|> copyData
 
@@ -920,6 +923,20 @@ variable declarations in a plpgsql function
 >              <*> tryOptionMaybe (parens $ commaSep nameComponent)
 >              <*> (keyword "as" *> pQueryExpr)
 
+> alterSchema :: SParser Statement
+> alterSchema = AlterSchema
+>                <$> pos <* keyword "schema"
+>                <*> nameComponent
+>                <*> operation
+>             where
+>                operation = choice [try changeOwner, renameSchema]
+>                renameSchema = AlterSchemaName
+>                              <$> (pos <* keyword "rename" <* keyword "to")
+>                              <*> nameComponent
+>                changeOwner  = AlterSchemaOwner
+>                              <$> (pos <* keyword "owner" <* keyword "to")
+>                              <*> name
+
 >
 > createDomain :: SParser Statement
 > createDomain = CreateDomain
@@ -934,7 +951,13 @@ variable declarations in a plpgsql function
 >                <$> pos <* keyword "database"
 >                <*> name
 >
->
+
+> createSchema :: SParser Statement
+> createSchema = CreateSchema
+>                <$> pos <* keyword "schema"
+>                <*> nameComponent
+>                <*> tryOptionMaybe (keyword "authorization" *> name)
+
 > dropSomething :: SParser Statement
 > dropSomething = do
 >   p <- pos
@@ -966,7 +989,15 @@ variable declarations in a plpgsql function
 >                where
 >                  pFun = (,) <$> name
 >                             <*> parens (commaSep typeName)
->
+
+> dropSchema :: SParser Statement
+> dropSchema = do
+>   p <- pos
+>   keyword "schema"
+>   sname <- nameComponent
+>   casc <- cascade
+>   return $ DropSchema p sname casc
+
 > parseDrop :: SParser a
 >           -> SParser (IfExists, [a], Cascade)
 > parseDrop p = (,,)
