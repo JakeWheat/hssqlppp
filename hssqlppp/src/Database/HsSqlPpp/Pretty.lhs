@@ -287,12 +287,29 @@ Conversion routines - convert Sql asts into Docs
 >     annot ca ann <+>
 >     text "create database" <+> name nm <> statementEnd se
 
+> statement _flg se ca (CreateSchema ann nm musr) =
+>     annot ca ann <+> text "create schema" <+> nmc nm 
+>     <+> case musr of
+>           Nothing -> empty
+>           Just u -> text "authorization" <+> name u
+>     <> statementEnd se
+
 > statement _flg se ca (AlterDatabase ann nm op) =
 >     annot ca ann <+> text "alter database" <+>
 >           name nm <+> alterDbOperation op <> statementEnd se
 >     where
 >      alterDbOperation (RenameDatabase _ nm') =
 >       text "rename to" <+> name nm'
+
+> statement flg se ca (AlterSchema ann snm op) =
+>     annot ca ann <+>
+>     text "alter schema" <+> nmc snm
+>     <+> alterOperation op <> statementEnd se
+>     where
+>       alterOperation (AlterSchemaName _ nsnm) = 
+>           text "rename to" <+> nmc nsnm
+>       alterOperation (AlterSchemaOwner _ nunm) = 
+>           text "owner to" <+> name nunm
 
 > statement _flg se ca (DropFunction ann ifE fns casc) =
 >   annot ca ann <+>
@@ -331,6 +348,14 @@ Conversion routines - convert Sql asts into Docs
 >     <+> nmc nam
 >     <+> text "on"
 >     <+> name tbn
+>     <+> cascade casc
+>     <> statementEnd se
+>
+> statement _flg se ca (DropSchema ann nm casc) =
+>     annot ca ann <+>
+>     text "drop"
+>     <+> text "schema"
+>     <+> nmc nm
 >     <+> cascade casc
 >     <> statementEnd se
 >
