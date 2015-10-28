@@ -325,7 +325,7 @@ identifiers
 
 -}
     | Identifier
-         loc.elkp = envLookupIdentifier (nameComponents @i.originalTree) @lhs.downEnv
+         loc.elkp = E.envLookupIdentifier (nameComponents @i.originalTree) @lhs.downEnv
          loc.tpe = fmap snd @loc.elkp
          -- weird workaround, see selectlists.ag
          lhs.annotatedTree = @loc.annotatedTree
@@ -413,7 +413,7 @@ helpers inside it can determine the correct return type
              --    | trace (show n) False -> undefined
              (App _ (Name _ [Nmc n]) [_,Identifier _ (Name _ [Nmc tyi])])
                  | @lhs.odbcFunction && map toLower n == "convert" -> do
-                 (ts,r) <- tcAppLike (tcfDialect @lhs.flags)
+                 (ts,_r) <- tcAppLike (tcfDialect @lhs.flags)
                            @lhs.cat @loc.funName @args.originalTree
                            [Just $ mkTypeExtraNN UnknownType, Just $ mkTypeExtraNN typeInt]
                  r' <- maybe (Left [UnrecognisedIdentifier $ T.pack tyi]) (Right . mkTypeExtra)
@@ -501,7 +501,7 @@ tcAppLike d cat anm@(Name _ [Nmc dd]) _ ts
                  (ats,rt) <- matchAppExtra d cat ns [] tys
                  return (ats,rt)
 
-tcAppLike d cat anm@(Name _ [Nmc dd]) types [_,a0,a1]
+tcAppLike d cat anm@(Name _ [Nmc dd]) _types [_,a0,a1]
     | map toLower dd `elem` ["!odbc-timestampadd","!odbc-timestampdiff"] = do
   tys <- mapM (maybe (Left []) Right) [a0,a1]
   let Name _ ns = anm
@@ -716,10 +716,10 @@ sem ScalarExpr
         loc.tpe :: {Either [TypeError] TypeExtra}
         loc.tpe = case @originalTree of
                     Star _ ->
-                      envExpandStar Nothing @lhs.downEnv
+                      E.envExpandStar Nothing @lhs.downEnv
                       >>= @loc.starCS
                     QStar _ q -> do
-                      envExpandStar (Just q) @lhs.downEnv
+                      E.envExpandStar (Just q) @lhs.downEnv
                       >>= @loc.starCS
                     _ -> Left [InternalError "wrong ctor in sem rule for star, qstar in scalarexprs.ag"]
 

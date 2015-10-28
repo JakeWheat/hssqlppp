@@ -24,4 +24,4 @@ sem Statement
 
   | Assignment
     target.tpe = Left []
-    value.downEnv = emptyEnvironment
+    value.downEnv = E.emptyEnvironment

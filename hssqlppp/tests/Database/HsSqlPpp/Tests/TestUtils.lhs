@@ -27,7 +27,7 @@
 > import qualified Data.Text as T
 > import Database.HsSqlPpp.LexicalSyntax (sqlTokens,prettyToken,Token)
 > --import Text.Parsec.Text (runParser)
-> import Control.Applicative
+> --import Control.Applicative
 
 > import Database.HsSqlPpp.Tests.TestTypes
 > import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion2

@@ -11,6 +11,12 @@ grammar code and aren't exposed.
 
 -}
 
+imports {
+import qualified Database.HsSqlPpp.Internals.TypesInternal as T
+import qualified Database.HsSqlPpp.Internals.Catalog.CatalogInternal as C
+
+}
+
 {
 -- | Represents a source file position, usually set by the parser.
 type SourcePosition = (FilePath,Int,Int)
@@ -20,7 +26,7 @@ type SourcePosition = (FilePath,Int,Int)
 -- parameterized statement needs, and the second is the names and types
 -- of the output columns. No way to signal that a statement returns
 -- exactly one row at the moment
-type ParameterizedStatementType = ([Type],[(String,Type)])
+type ParameterizedStatementType = ([T.Type],[(String,T.Type)])
 
 }
 
@@ -31,13 +37,13 @@ data Annotation | Annotation
                              -- | source position for this node
                              anSrc :: {Maybe SourcePosition}
                              -- | type of the node, 'Nothing' if the tree hasn't been typechecked or if a type error elsewhere prevents determining this node's type
-                             anType :: {Maybe TypeExtra}
+                             anType :: {Maybe T.TypeExtra}
                              -- | any type errors
-                             anErrs :: {[TypeError]}
+                             anErrs :: {[T.TypeError]}
                              -- | if an implicit cast is needed between this node an its parent, this the target type of cast. If no implicit cast is needed, this is Nothing
-                             anImplicitCast :: {Maybe TypeExtra}
+                             anImplicitCast :: {Maybe T.TypeExtra}
                              -- | any catalog updates that a statement produces, used only for ddl Statements
-                             anCatUpd :: {[CatalogUpdate]}
+                             anCatUpd :: {[C.CatalogUpdate]}
 deriving Annotation: Eq,Show,Typeable,Data
 
 -- a magic devel routine outputs the annotation as record syntax

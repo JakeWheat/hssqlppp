@@ -15,13 +15,13 @@ attr OnExpr
 -- combine a tref list using cross joins
 
 sem TableRefList
-  | Nil lhs.upEnv = emptyEnvironment
+  | Nil lhs.upEnv = E.emptyEnvironment
   | Cons
-      lhs.upEnv = if isEmptyEnv @tl.upEnv
+      lhs.upEnv = if E.isEmptyEnv @tl.upEnv
                   then @hd.upEnv
                   else --problem: where to put the error?
                          either (error . show) id $
-                         createJoinTrefEnvironment @lhs.cat @hd.upEnv @tl.upEnv E.Inner $ Just []
+                         E.createJoinTrefEnvironment @lhs.cat @hd.upEnv @tl.upEnv E.Inner $ Just []
 
 -- boilerplate: pass any error from the env to the annotation
 -- pass any successful env in the upEnv
@@ -31,19 +31,19 @@ sem TableRef
   | Tref FunTref SubTref JoinTref TableAlias FullAlias TableRefParens OdbcTableRef
       loc.eEnv :: {Either [TypeError] Environment}
       ann.tpe = either Left (Right . mkTypeExtraNN . TrefType)
-                (@loc.eEnv >>= envExpandStar Nothing)
+                (@loc.eEnv >>= E.envExpandStar Nothing)
       -- todo: what to do here?
-      lhs.upEnv = either (const brokeEnvironment) id @loc.eEnv
+      lhs.upEnv = either (const E.brokeEnvironment) id @loc.eEnv
 
   | Tref
       -- if the referenced table doesn't exist, want to attach the error
       -- only to the name node. So this code should be fixed to get a Maybe [NameComponent]
       -- attribute from the @tbl or something
-      loc.eEnv = envCreateTrefEnvironment @lhs.cat (nameComponents @tbl.originalTree)
+      loc.eEnv = E.envCreateTrefEnvironment @lhs.cat (nameComponents @tbl.originalTree)
       tbl.tpe = Left []
 
   | JoinTref
-      loc.eEnv = createJoinTrefEnvironment @lhs.cat
+      loc.eEnv = E.createJoinTrefEnvironment @lhs.cat
                    @tref0.upEnv @tref1.upEnv (convertJoinType @joinType)
                    $ case (@joinType,@onExpr.originalTree) of
                       -- natural join
@@ -53,19 +53,19 @@ sem TableRef
                       -- cross join
                       _ -> Just []
       -- this triggers uuagcs cycle detection, not sure why
-      onExpr.downEnv = either (const brokeEnvironment) id @loc.eEnv
+      onExpr.downEnv = either (const E.brokeEnvironment) id @loc.eEnv
   | SubTref
       loc.eEnv = maybe (Left []) id
-                 $ fmap envSelectListEnvironment @sel.upType
+                 $ fmap E.envSelectListEnvironment @sel.upType
       sel.expectedType = liftM (map snd) @sel.upType
       --sel.expectedCast = True
   | TableRefParens OdbcTableRef
       loc.eEnv = Right $ @tref.upEnv
   | FullAlias
-      loc.eEnv = Right $ createTrefAliasedEnvironment
+      loc.eEnv = Right $ E.createTrefAliasedEnvironment
                          (ncStrT @tb) (Just $ map ncStrT @cols) @tref.upEnv
   | TableAlias
-      loc.eEnv = Right $ createTrefAliasedEnvironment
+      loc.eEnv = Right $ E.createTrefAliasedEnvironment
                          (ncStrT @tb) Nothing @tref.upEnv
   | FunTref
       loc.eEnv = Left []
@@ -136,7 +136,7 @@ sem TableRef
         if tcfAddFullTablerefAliases @lhs.flags
         then do
           env <- either (const Nothing) Just @loc.eEnv
-          cs <- either (const Nothing) Just $ envExpandStar Nothing env
+          cs <- either (const Nothing) Just $ E.envExpandStar Nothing env
           let qs = map (fst . fst) cs
           if all (== head qs) qs
             then return (T.unpack $ head qs, map (T.unpack . snd . fst) cs)

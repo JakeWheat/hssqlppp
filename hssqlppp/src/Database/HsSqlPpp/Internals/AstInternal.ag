@@ -138,13 +138,13 @@ module {Database.HsSqlPpp.Internals.AstInternal}
 }
 
 {
-import Data.Maybe
+--import Data.Maybe
 --import Data.Either
-import Data.List
-import Control.Applicative
+--import Data.List
+--import Control.Applicative
 import Data.Data
-import Data.Char
-import Control.Monad.State
+--import Data.Char
+--import Control.Monad.State
 --import Control.Arrow
 
 import Data.Generics
@@ -153,17 +153,25 @@ import Data.Generics.Uniplate.Data
 --import Text.Show.Pretty
 
 
-import Database.HsSqlPpp.Internals.TypesInternal
+--import Database.HsSqlPpp.Internals.TypesInternal
 
-import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
-import Database.HsSqlPpp.Internals.TypeChecking.Environment hiding (JoinType(..))
-import qualified Database.HsSqlPpp.Internals.TypeChecking.Environment as E
-import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+--import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
+--import Database.HsSqlPpp.Internals.TypeChecking.Environment hiding (JoinType(..))
+
+--import Database.HsSqlPpp.Internals.Catalog.CatalogInternal (NameComponent(..),ncStr)
+
 --import Database.HsSqlPpp.Utils.Utils
 import Database.HsSqlPpp.SqlDialect
-import Data.Text (Text)
+--import Data.Text (Text)
 import qualified Data.Text as T
 --import qualified Data.Text.Lazy as LT
+
+-- very bad, we use types in the syntax outside of the already exception
+-- in the annotation (which can be removed when the annotation type
+-- becomes a type parameters
+-- can replace the use of type extra with (typename,int,int) triple
+-- to fix this
+--import Database.HsSqlPpp.Internals.TypesInternal (TypeExtra)
 
 
 }
@@ -1170,7 +1178,7 @@ attributes which every node has
 set AllNodes = Statement QueryExpr FnBody TableRef
                JoinExpr
                SelectList SelectItem AttributeDef RowConstraint
-               TypeAttributeDef ParamDef VarDef Constraint 
+               TypeAttributeDef ParamDef VarDef Constraint
                MaybeTablePartitionDef TablePartitionDef
                TypeName
                ScalarExpr InList MaybeScalarExpr MaybeBoolExpr
@@ -1192,6 +1200,7 @@ set AllNodes = Statement QueryExpr FnBody TableRef
                WithQueryList WithQuery
                Name
                SetClause SetClauseList
+               MaybeNameComponentList NameComponentList
 
 
 deriving AllNodes: Show,Eq,Typeable,Data

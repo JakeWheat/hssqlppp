@@ -225,7 +225,7 @@ lookup and star expansion
 >                                      $ -}
 >                             -- map to change the qualifier name to match
 >                             -- this alias not the source tref
->                             map (\((_,j),t) -> ((ta,n),t)) $ take 1 $ drop i s
+>                             map (\((_,_j),t) -> ((ta,n),t)) $ take 1 $ drop i s
 >                Nothing -> []
 >      else []
 >   ,\q -> if q `elem` [Nothing, Just ta]

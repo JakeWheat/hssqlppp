@@ -49,7 +49,7 @@ should all be in one place.
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 > import Database.HsSqlPpp.Utils.Utils
 > import Control.Monad
-> import Control.Applicative
+> --import Control.Applicative
 > import Control.Arrow
 
 > import Database.HsSqlPpp.Internals.TypeChecking.OldTypeConversion

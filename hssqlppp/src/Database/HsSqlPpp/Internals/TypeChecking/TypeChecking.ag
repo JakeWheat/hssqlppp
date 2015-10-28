@@ -1,4 +1,18 @@
 
+imports {
+import Data.Text (Text)
+import qualified Database.HsSqlPpp.Internals.TypeChecking.Environment as E
+import Database.HsSqlPpp.Internals.TypeChecking.Environment (Environment)
+import Database.HsSqlPpp.Internals.TypesInternal
+import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
+import Control.Monad
+import Data.List
+import Data.Maybe
+import Data.Char
+
+}
+
 -- public api functions
 {
 
@@ -74,7 +88,7 @@ typeCheckScalarExpr f cat ex =
         rt = (annotatedTree_Syn_ScalarExprRoot
               (wrap_ScalarExprRoot t Inh_ScalarExprRoot {cat_Inh_ScalarExprRoot = cat
                                                         ,flags_Inh_ScalarExprRoot = f
-                                                        ,downEnv_Inh_ScalarExprRoot = emptyEnvironment
+                                                        ,downEnv_Inh_ScalarExprRoot = E.emptyEnvironment
                                                         {-,lib_Inh_ScalarExprRoot = emptyBindings
                                                         ,idenv_Inh_ScalarExprRoot = emptyIDEnv "t
 cse"-}}))

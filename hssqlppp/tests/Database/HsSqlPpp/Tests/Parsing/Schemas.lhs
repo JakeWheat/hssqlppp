@@ -86,5 +86,5 @@
 >           {selSelectList = sl [si $ ei "a"]
 >           ,selTref = []}
 >    q = QueryExpr
->    nameWithSchema s n = Name ea $ [Nmc $ T.unpack s, Nmc $ T.unpack n]
->    trefWithSchema s t = Tref ea (nameWithSchema s t)
+>    nameWithSchema sc n = Name ea $ [Nmc $ T.unpack sc, Nmc $ T.unpack n]
+>    trefWithSchema sc t = Tref ea (nameWithSchema sc t)

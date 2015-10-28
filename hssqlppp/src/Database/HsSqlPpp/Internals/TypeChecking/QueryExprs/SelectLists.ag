@@ -53,9 +53,9 @@ sem ScalarExpr
                                       ++ [Nmc $ T.unpack n])
                   ) is
           in case @originalTree of
-              Star _ | Right is <- envExpandStar Nothing @lhs.downEnv ->
+              Star _ | Right is <- E.envExpandStar Nothing @lhs.downEnv ->
                  doStar is
-              QStar _ q | Right is <- envExpandStar (Just q) @lhs.downEnv ->
+              QStar _ q | Right is <- E.envExpandStar (Just q) @lhs.downEnv ->
                  doStar is
               -- for everything other than star and qstar, just lift
               -- the single expr info into a list
@@ -184,9 +184,9 @@ sem SelectItemList
         tl.expectedCast = @lhs.expectedCast
   | Nil Cons
       lhs.upType = @loc.upType
-      lhs.upEnv = case fmap envSelectListEnvironment @loc.upType of
+      lhs.upEnv = case fmap E.envSelectListEnvironment @loc.upType of
                     (Just (Right e)) -> e
-                    _ -> brokeEnvironment
+                    _ -> E.brokeEnvironment
 
 {
 splitTypeExtraList:: Maybe [TypeExtra] -> Maybe (TypeExtra,[TypeExtra])
