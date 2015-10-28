@@ -289,13 +289,15 @@ simplish ctors
         loc.tpe = -- check the argument is a date
                    do
                    x <- maybe (Left []) Right @e.upType
-                   if teType x == typeDate
-                     then Right $ TypeExtra typeFloat8 Nothing Nothing $ teNullable x
+                   if (teType x) `elem` [typeDate,typeTimestamp]
+                     then Right $ TypeExtra typeInt Nothing Nothing $ teNullable x
                      else Left [NoMatchingOperator "extract" [teType x]]
-        e.expectedType = either
-                            (const Nothing)
-                            (Just . TypeExtra typeDate Nothing Nothing . teNullable)
-                            @loc.tpe
+        e.expectedType =
+                   do
+                   x <- @e.upType
+                   either (const Nothing)
+                          (Just . TypeExtra (teType x) Nothing Nothing . teNullable)
+                          @loc.tpe
         e.expectedCast = False
     | Placeholder
          loc.tpe = Right $ mkTypeExtraNN UnknownType

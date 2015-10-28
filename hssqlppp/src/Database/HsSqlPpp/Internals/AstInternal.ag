@@ -50,6 +50,7 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,AlterTableOperation(..)
    ,AlterTableAction(..)
    ,AlterColumnAction(..)
+   ,AlterSchemaOperation(..)
    ,Constraint (..)
    ,TypeAttributeDef (..)
    ,ParamDef (..)
@@ -741,6 +742,17 @@ data Statement
                  name :: Name
                  password :: String
 
+-- schemas
+    | CreateSchema ann::Annotation
+                   name :: NameComponent
+                   owner :: {Maybe Name}
+    | AlterSchema ann::Annotation
+                  name :: NameComponent
+                  operation :: AlterSchemaOperation
+    | DropSchema ann::Annotation
+                 name :: NameComponent
+                 cascade :: Cascade
+
     -- language name args rettype bodyquoteused body vol
     | CreateFunction ann::Annotation
                      name :: Name
@@ -983,6 +995,12 @@ data AlterDatabaseOperation | RenameDatabase ann :: Annotation
                                              newName :: Name
 
 
+data AlterSchemaOperation | AlterSchemaName  ann::Annotation
+                                       newName :: NameComponent
+                          | AlterSchemaOwner ann::Annotation
+                                       newName :: Name
+
+
 {
 data SetValue
     = SetStr Annotation String
@@ -1168,6 +1186,7 @@ set AllNodes = Statement QueryExpr FnBody TableRef
                TableRefList TableRef OnExpr MaybeSelectList
                AlterTableOperation AlterTableAction AlterColumnAction
                AlterDatabaseOperation
+               AlterSchemaOperation
                ScalarExprDirectionPair
                ScalarExprDirectionPairList AlterTableActionList
                WithQueryList WithQuery

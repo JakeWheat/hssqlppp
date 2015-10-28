@@ -213,7 +213,8 @@ Parsing top level statements
 >                ,createTrigger
 >                ,createIndex
 >                ,createLogin
->                ,createUser]
+>                ,createUser
+>                ,createSchema]
 >     ,keyword "alter" *>
 >              choice [
 >                 alterSequence
@@ -221,12 +222,14 @@ Parsing top level statements
 >                ,alterDatabase
 >                ,alterLogin
 >                ,alterUser
->                ,alterView]
+>                ,alterView
+>                ,alterSchema]
 >     ,keyword "drop" *>
 >              choice [
 >                 dropSomething
 >                ,dropFunction
->                ,dropTrigger]]
+>                ,dropTrigger
+>                ,dropSchema]]
 >     <* stmtEnd (not reqSemi))
 >    <|> copyData
 
@@ -920,6 +923,20 @@ variable declarations in a plpgsql function
 >              <*> tryOptionMaybe (parens $ commaSep nameComponent)
 >              <*> (keyword "as" *> pQueryExpr)
 
+> alterSchema :: SParser Statement
+> alterSchema = AlterSchema
+>                <$> pos <* keyword "schema"
+>                <*> nameComponent
+>                <*> operation
+>             where
+>                operation = choice [try changeOwner, renameSchema]
+>                renameSchema = AlterSchemaName
+>                              <$> (pos <* keyword "rename" <* keyword "to")
+>                              <*> nameComponent
+>                changeOwner  = AlterSchemaOwner
+>                              <$> (pos <* keyword "owner" <* keyword "to")
+>                              <*> name
+
 >
 > createDomain :: SParser Statement
 > createDomain = CreateDomain
@@ -934,7 +951,13 @@ variable declarations in a plpgsql function
 >                <$> pos <* keyword "database"
 >                <*> name
 >
->
+
+> createSchema :: SParser Statement
+> createSchema = CreateSchema
+>                <$> pos <* keyword "schema"
+>                <*> nameComponent
+>                <*> tryOptionMaybe (keyword "authorization" *> name)
+
 > dropSomething :: SParser Statement
 > dropSomething = do
 >   p <- pos
@@ -966,7 +989,15 @@ variable declarations in a plpgsql function
 >                where
 >                  pFun = (,) <$> name
 >                             <*> parens (commaSep typeName)
->
+
+> dropSchema :: SParser Statement
+> dropSchema = do
+>   p <- pos
+>   keyword "schema"
+>   sname <- nameComponent
+>   casc <- cascade
+>   return $ DropSchema p sname casc
+
 > parseDrop :: SParser a
 >           -> SParser (IfExists, [a], Cascade)
 > parseDrop p = (,,)
@@ -1445,6 +1476,7 @@ with a function, so you don't try an parse a keyword as a function name
 >       ,try interval
 >       ,try typedStringLit
 >       ,antiScalarExpr
+>       ,sqlServerConvert
 >       ,keywordFunction
 >       ,identifier
 >       ,Identifier <$> pos <*> (AntiName <$> splice 'n')
@@ -1826,27 +1858,44 @@ a special case for them
 >
 > castKeyword :: SParser ScalarExpr
 > castKeyword =
->    choice -- todo: have to parse this better
->           -- make a new ctor for the sql server convert function
->           -- since it can optionally take three args
->           -- and representing it as an ansi sql cast is a bit ghetto also
->    [try $ do
->     -- parse tsql convert function to cast ast
+>     Cast
+>     <$> pos <* keyword "cast" <* symbol "("
+>     <*> expr
+>     <*> (keyword "as" *> typeName <* symbol ")")
+
+parse both odbc style convert:
+      convert(expr, type name) -- type name is an identifier
+      and sql server
+      convert(type name, expr [,style]) -- the type name is a normal sql type name
+
+the style is ignored
+the first form is represented as a function called convert (App ctor)
+the second form is represented as Cast ctor for now
+
+it needs fixing: at least add a specific ctor for the second form
+plus review use of try
+
+> sqlServerConvert :: SParser ScalarExpr
+> sqlServerConvert = try $ do
 >     isSqlServer >>= guard
 >     p <- pos
 >     _ <- keyword "convert" <* symbol "("
->     tn <- typeName
->     _ <- symbol ","
->     e <- expr
->     -- ignores the style
->     _ <- optional $ symbol "," *> integer
->     _ <- symbol ")"
->     return $ Cast p e tn
->    ,Cast
->     <$> pos <* keyword "cast" <* symbol "("
->     <*> expr
->     <*> (keyword "as" *> typeName <* symbol ")")]
->
+>     choice [try $ do
+>             ex <- expr
+>             _ <- symbol ","
+>             ex1 <- expr
+>             _ <- symbol ")"
+>             return $ App p (Name p [Nmc "convert"]) [ex, ex1]
+>            ,do
+>             tn <- typeName
+>             _ <- symbol ","
+>             e <- expr
+>             -- ignores the style
+>             _ <- optional $ symbol "," *> integer
+>             _ <- symbol ")"
+>             return $ Cast p e tn
+>            ]
+
 > castSuffix :: ScalarExpr -> SParser ScalarExpr
 > castSuffix ex = pos >>= \p -> Cast p ex <$> (symbol "::" *> typeName)
 
@@ -1902,7 +1951,7 @@ a special case for them
 >                ,IntervalMonth <$ keyword "month"
 >                ,IntervalDay <$ keyword "day"
 >                ,IntervalHour <$ keyword "hour"
->                ,IntervalMinute <$ keyword "minut"
+>                ,IntervalMinute <$ keyword "minute"
 >                ,IntervalSecond <$ keyword "second"
 >                {-,IntervalYearToMonth <$ keyword "day"
 >                ,IntervalDayToHour <$ keyword "day"
