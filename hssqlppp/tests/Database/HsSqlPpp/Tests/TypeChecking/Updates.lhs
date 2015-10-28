@@ -157,9 +157,9 @@ a nicer error message
 
 4. casts which aren't possible at all
 
->   ,TCStatements simpleTEnv
->    "insert into t(a,b) values ('2005-01-01'::interval,'2');"
->    $ Just []
+>   --,TCStatements simpleTEnv
+>   -- "insert into t(a,b) values ('2005-01-01'::interval,'2');"
+>   -- $ Just []
 
 
 *** todo: repeat tests above with all the other queryexpr ctors:
