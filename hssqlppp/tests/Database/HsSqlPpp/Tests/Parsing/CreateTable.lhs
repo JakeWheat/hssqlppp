@@ -288,4 +288,4 @@ quick sanity check
 >      ]
 
 >  where
->    s = Stmt
+>    s = ParseStmts defaultParseFlags

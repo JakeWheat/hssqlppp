@@ -120,49 +120,51 @@ The odbc syntax is currently available in all dialects.
 > odbcParsing =
 >    Group "odbcParsing" [
 >        Group "datetime" [
->            Expr "{d '2000-01-01'}" (OdbcLiteral ea OLDate "2000-01-01")
->           ,Expr "{t '12:00:01.1'}" (OdbcLiteral ea OLTime "12:00:01.1")
->           ,Expr "{ts '2000-01-01 12:00:01.1'}"
+>            e "{d '2000-01-01'}" (OdbcLiteral ea OLDate "2000-01-01")
+>           ,e "{t '12:00:01.1'}" (OdbcLiteral ea OLTime "12:00:01.1")
+>           ,e "{ts '2000-01-01 12:00:01.1'}"
 >                (OdbcLiteral ea OLTimestamp "2000-01-01 12:00:01.1")
 >        ]
 >        ,Group "functions" [
->              Expr "{fn CHARACTER_LENGTH(string_exp)}"
+>              e "{fn CHARACTER_LENGTH(string_exp)}"
 >              $ OdbcFunc ea (App ea (name "CHARACTER_LENGTH")
 >                                    [ei "string_exp"])
->             ,Expr "{fn EXTRACT(year from my_date)}"
+>             ,e "{fn EXTRACT(year from my_date)}"
 >              $ OdbcFunc ea (Extract ea ExtractYear $ ei "my_date")
->             ,Expr "{fn now()}"
+>             ,e "{fn now()}"
 >              $ OdbcFunc ea (App ea (name "now") [])
->             ,Expr "{fn CONVERT('2000-01-01', SQL_DATE)}"
+>             ,e "{fn CONVERT('2000-01-01', SQL_DATE)}"
 >              $ OdbcFunc ea (App ea (name "CONVERT")
 >               [StringLit ea "2000-01-01"
 >               ,ei "SQL_DATE"])
->             ,Expr "{fn CONVERT({fn CURDATE()}, SQL_DATE)}"
+>             ,e "{fn CONVERT({fn CURDATE()}, SQL_DATE)}"
 >              $ OdbcFunc ea (App ea (name "CONVERT")
 >               [OdbcFunc ea (App ea (name "CURDATE") [])
 >               ,ei "SQL_DATE"])
 >             ]
 >        ,Group "outer join" [
->              QueryExpr "select * from {oj t1 left outer join t2 on true}"
+>              ParseQueryExpr defaultParseFlags
+>              "select * from {oj t1 left outer join t2 on true}"
 >              $ makeSelect
 >             {selSelectList = sl [si $ Star ea]
 >             ,selTref = [OdbcTableRef ea (JoinTref ea (tref "t1") Unnatural LeftOuter Nothing
 >                                          (tref "t2") (Just $ JoinOn ea (BooleanLit ea True)))]}]
 >        ,Group "check parsing bugs" [
->              QueryExpr "select {fn CONVERT(cint,SQL_BIGINT)} from t;"
+>              ParseQueryExpr defaultParseFlags
+>              "select {fn CONVERT(cint,SQL_BIGINT)} from t;"
 >              $ makeSelect
 >             {selSelectList = sl [si $ OdbcFunc ea (App ea (name "CONVERT")
 >                                                            [ei "cint"
 >                                                            ,ei "SQL_BIGINT"])]
 >             ,selTref = [tref "t"]}]
 >        ,Group "outer join" [
->              TSQL "select * from {oj t1 left outer join t2 on true}"
+>              tsql "select * from {oj t1 left outer join t2 on true}"
 >              [QueryStatement ea $ makeSelect
 >             {selSelectList = sl [si $ Star ea]
 >             ,selTref = [OdbcTableRef ea (JoinTref ea (tref "t1") Unnatural LeftOuter Nothing
 >                                          (tref "t2") (Just $ JoinOn ea (BooleanLit ea True)))]}]]
 >        ,Group "check parsing bugs" [
->              TSQL "select {fn CONVERT(cint,SQL_BIGINT)} from t;"
+>              tsql "select {fn CONVERT(cint,SQL_BIGINT)} from t;"
 >              [QueryStatement ea $ makeSelect
 >             {selSelectList = sl [si $ OdbcFunc ea (App ea (name "convert")
 >                                                            [ei "cint"
@@ -170,4 +172,6 @@ The odbc syntax is currently available in all dialects.
 >             ,selTref = [tref "t"]}]]
 
 >        ]
-
+>  where
+>    e = ParseScalarExpr defaultParseFlags
+>    tsql = ParseProcSql defaultParseFlags {pfDialect=SQLServer}

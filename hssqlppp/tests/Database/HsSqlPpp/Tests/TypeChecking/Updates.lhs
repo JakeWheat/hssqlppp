@@ -30,19 +30,19 @@ truncate
 
 simplest insert
 
->    TCStatements simpleTEnv
+>    tcStatements simpleTEnv
 >    "insert into t values (1,'2');"
 >    $ Nothing
 
 too many values
 
->   ,TCStatements simpleTEnv
+>   ,tcStatements simpleTEnv
 >    "insert into t values (1,'2',3);"
 >    $ Just [TooManyColumnsInInsert]
 
 too few values: this is ok, not currently statically checked
 
->   ,TCStatements simpleTEnv
+>   ,tcStatements simpleTEnv
 >    "insert into t values (1);"
 >    $ Nothing
 
@@ -56,7 +56,7 @@ each value row. For values in every other context, I think you should
 use the resolve result set. This will change the error message when it
 fails, and probably give different results in some unusual scenarios.
 
->   ,TCStatements simpleTEnv
+>   ,tcStatements simpleTEnv
 >    "insert into t values (1,'2'), ('1'::text,2);"
 >    $ Just [IncompatibleUnionTypes
 >           -- todo: how should the column names work?
@@ -67,7 +67,7 @@ fails, and probably give different results in some unusual scenarios.
 >           (CompositeType [("values%0", (mkTypeExtra $ ScalarType "text") {teNullable=False})
 >                          ,("values%1", (mkTypeExtra typeInt) {teNullable=False})])]
 
->   ,TCStatements simpleTEnv
+>   ,tcStatements simpleTEnv
 >    "insert into t values ('1'::text,2), (1,'2');"
 >    $ Just [IncompatibleUnionTypes
 >           (CompositeType [("", (mkTypeExtra $ ScalarType "text") {teNullable=False})
@@ -77,41 +77,41 @@ fails, and probably give different results in some unusual scenarios.
 
 non existent table
 
->   ,TCStatements simpleTEnv
+>   ,tcStatements simpleTEnv
 >    "insert into zt values (1,'2');"
 >    $ Just [UnrecognisedRelation ("public","zt")]
 
 table with explicit schema
 
->   ,TCStatements simpleTEnv
+>   ,tcStatements simpleTEnv
 >    "insert into public.t values (1,'2');"
 >    $ Nothing
 
 table with wrong explicit schema
 
->   ,TCStatements simpleTEnv
+>   ,tcStatements simpleTEnv
 >    "insert into something.t values (1,'2');"
 >    $ Just [UnrecognisedRelation ("something","t")]
 
 name all columns
 
->   ,TCStatements simpleTEnv
+>   ,tcStatements simpleTEnv
 >    "insert into t(a,b) values (1,'2');"
 >    $ Nothing
 
 name columns in different order
 
->   ,TCStatements simpleTEnv
+>   ,tcStatements simpleTEnv
 >    "insert into t(b,a) values ('2'::text,1);"
 >    $ Nothing
 
 too many values for the named columns
 
->   ,TCStatements simpleTEnv
+>   ,tcStatements simpleTEnv
 >    "insert into t(a) values (1,'2');"
 >    $ Just [TooManyColumnsInInsert]
 
->   ,TCStatements simpleTEnv
+>   ,tcStatements simpleTEnv
 >    "insert into t(a,b) values (1,'2',3);"
 >    $ Just [TooManyColumnsInInsert]
 
@@ -119,19 +119,19 @@ The typechecker will never catch this issue for now, even if it is
 statically determinable that the insert will fail because of defaults/
 not null.
 
->   ,TCStatements simpleTEnv
+>   ,tcStatements simpleTEnv
 >    "insert into t(a) values (1);"
 >    $ Nothing
 
 name wrong column
 
->   ,TCStatements simpleTEnv
+>   ,tcStatements simpleTEnv
 >    "insert into t(a,c) values (1,'2');"
 >    $ Just [UnrecognisedIdentifier "c"]
 
 duplicate columns
 
->   ,TCStatements simpleTEnv
+>   ,tcStatements simpleTEnv
 >    "insert into t(a,b,a) values (1,'2',1);"
 >    $ Just [DuplicateColumnName "a"]
 
@@ -143,7 +143,7 @@ also works with no column names given
 
 2. implicit casts from typed expressions
 
->   --,TCStatements simpleTEnv
+>   --,tcStatements simpleTEnv
 >   -- "insert into t(a,b) values (1::int8,'2');"
 >   -- $ Nothing
 
@@ -151,13 +151,13 @@ also works with no column names given
 different to casts which aren't possible at all, in future could give
 a nicer error message
 
->   --,TCStatements simpleTEnv
+>   --,tcStatements simpleTEnv
 >   -- "insert into t(a,b) values ('1'::text,'2');"
 >   -- $ Just []
 
 4. casts which aren't possible at all
 
->   --,TCStatements simpleTEnv
+>   --,tcStatements simpleTEnv
 >   -- "insert into t(a,b) values ('2005-01-01'::interval,'2');"
 >   -- $ Just []
 
@@ -233,3 +233,6 @@ check table names + schema options
 >     _anotherUEnv = [CatCreateTable ("something","u")
 >                   [("a", mkCatNameExtra "int4")
 >                   ,("b", mkCatNameExtra "text")]]
+>     tcStatements cus =
+>         let Right cat = updateCatalog cus defaultTemplate1Catalog
+>         in TCStatements cat defaultTypeCheckFlags

@@ -6,9 +6,9 @@ Forward the public part of ParserInternal
 > module Database.HsSqlPpp.Parse
 >     (-- * Main
 >      parseStatements
+>     ,parseProcSQL
 >     ,parseQueryExpr
 >     ,parseScalarExpr
->     ,parsePlpgsql
 >      -- * Parsing options
 >     ,ParseFlags(..)
 >     ,defaultParseFlags

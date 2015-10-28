@@ -10,7 +10,7 @@ right choice, but it seems to do the job pretty well at the moment.
 >      parseStatements
 >     ,parseQueryExpr
 >     ,parseScalarExpr
->     ,parsePlpgsql
+>     ,parseProcSQL
 >      -- * parsing flags
 >     ,ParseFlags(..)
 >     ,defaultParseFlags
@@ -91,14 +91,13 @@ Top level parsing functions
 >                 -> Either ParseErrorExtra ScalarExpr
 > parseScalarExpr = parseIt' $ expr <* eof
 
-> -- | Parse a list of plpgsql statements (or tsql if you are using
-> -- sql server dialect)
-> parsePlpgsql :: ParseFlags -- ^ parse options
+> -- | Parse a list of procedural sql statements
+> parseProcSQL :: ParseFlags -- ^ parse options
 >              -> FilePath -- ^ filename to use in errors
 >              -> Maybe (Int,Int) -- ^ set the line number and column number
 >              -> L.Text -- ^ a string containing the sql to parse
 >              -> Either ParseErrorExtra [Statement]
-> parsePlpgsql = parseIt' $ many plPgsqlStatement <* eof
+> parseProcSQL = parseIt' $ many plPgsqlStatement <* eof
 
 > parseIt' :: Data a =>
 >             SParser a

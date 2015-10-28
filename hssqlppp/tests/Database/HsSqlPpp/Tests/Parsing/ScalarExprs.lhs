@@ -247,4 +247,4 @@ and dollar quoting, including nesting.
 
 >      ]
 >  where
->    e = Expr
+>    e = ParseScalarExpr defaultParseFlags

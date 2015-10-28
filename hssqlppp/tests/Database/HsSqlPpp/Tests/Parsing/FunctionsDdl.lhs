@@ -146,4 +146,4 @@
 >                                 ,(name "test",[st "text"])] Cascade]
 >     ]]
 >  where
->    s = Stmt
+>    s = ParseStmts defaultParseFlags

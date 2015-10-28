@@ -96,9 +96,9 @@ module Database.HsSqlPpp.Internals.AstInternal(
    ,MaybeNameComponentList
    -- typechecking
    ,typeCheckStatements
-   ,typeCheckParameterizedStatement
+   --,typeCheckParameterizedStatement
    ,typeCheckScalarExpr
-   ,typeCheckScalarExprEnv
+   --,typeCheckScalarExprEnv
    ,typeCheckQueryExpr
    ,TypeCheckFlags(..)
    ,defaultTypeCheckFlags
@@ -379,7 +379,7 @@ typeCheckQueryExpr f cat qe =
 -- stType annotation on the return value can be used to get this info
 -- easily. Returns Left if the statement is not a query,insert,update or delete
 -- statement
-typeCheckParameterizedStatement :: TypeCheckFlags -> Catalog -> Statement -> Either String Statement
+{-typeCheckParameterizedStatement :: TypeCheckFlags -> Catalog -> Statement -> Either String Statement
 typeCheckParameterizedStatement f cat st =
     case st of
       QueryStatement _ _ -> tc
@@ -392,8 +392,8 @@ typeCheckParameterizedStatement f cat st =
            in case tl of
                 (_,[st1]) -> Right st1
                 _ -> error "impossible happened in typeCheckPS!"
-
-
+-}
+{-
 -- | type check a scalar expr
 typeCheckScalarExpr :: TypeCheckFlags -> Catalog -> ScalarExpr -> ScalarExpr
 typeCheckScalarExpr f cat ex =
@@ -406,11 +406,11 @@ typeCheckScalarExpr f cat ex =
                                                         ,_idenv_Inh_ScalarExprRoot = emptyIDEnv "t
 cse"-}}))
     in case rt of
-         ScalarExprRoot e -> fixTree e
+         ScalarExprRoot e -> fixTree e -}
 
-typeCheckScalarExprEnv::  TypeCheckFlags -> Catalog -> Environment
+typeCheckScalarExpr ::  TypeCheckFlags -> Catalog -> Environment
                           -> ScalarExpr -> ScalarExpr
-typeCheckScalarExprEnv f cat env ex =
+typeCheckScalarExpr f cat env ex =
     let t = _sem_ScalarExprRoot (ScalarExprRoot ex)
         rt = _annotatedTree_Syn_ScalarExprRoot
                 $ _wrap_ScalarExprRoot t

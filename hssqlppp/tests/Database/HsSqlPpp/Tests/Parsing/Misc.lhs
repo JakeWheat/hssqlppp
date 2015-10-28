@@ -60,4 +60,4 @@ ddl statements
 >     ]
 >    ]
 >  where
->    s = Stmt
+>    s = ParseStmts defaultParseFlags

@@ -10,27 +10,30 @@
 > scalarExprs =
 >   Group "scalarExprs"
 >   [Group "simple literals"
->    [ScalExpr "true" $ Right typeBool
->    ,ScalExpr "false" $ Right typeBool
->    ,ScalExpr "41" $ Right typeInt
->    ,ScalExpr "2147483648" $ Right typeBigInt
->    ,ScalExpr "9223372036854775808" $ Right typeNumeric
->    ,ScalExpr "1.6" $ Right typeNumeric
->    ,ScalExpr "'test'" $ Right UnknownType
->    ,ScalExpr "null" $ Right UnknownType
+>    [scalExpr "true" $ Right typeBool
+>    ,scalExpr "false" $ Right typeBool
+>    ,scalExpr "41" $ Right typeInt
+>    ,scalExpr "2147483648" $ Right typeBigInt
+>    ,scalExpr "9223372036854775808" $ Right typeNumeric
+>    ,scalExpr "1.6" $ Right typeNumeric
+>    ,scalExpr "'test'" $ Right UnknownType
+>    ,scalExpr "null" $ Right UnknownType
 >    ]
 >   ,Group "other simple scalexprs"
->     [ScalExpr "'1'::int" $ Right typeInt
->     ,ScalExpr "date '2000-01-01'" $ Right $ ScalarType "date"
->     ,ScalExpr "interval '90' day" $ Right $ ScalarType "interval"
->     ,ScalExpr "?" $ Right UnknownType
+>     [scalExpr "'1'::int" $ Right typeInt
+>     ,scalExpr "date '2000-01-01'" $ Right $ ScalarType "date"
+>     ,scalExpr "interval '90' day" $ Right $ ScalarType "interval"
+>     ,scalExpr "?" $ Right UnknownType
 >     ]
 >   ,Group "function application"
->     [ScalExpr "length('test')" $ Right typeInt
->     ,ScalExpr "-5" $ Right typeInt
+>     [scalExpr "length('test')" $ Right typeInt
+>     ,scalExpr "-5" $ Right typeInt
 >     ]
 >   ,Group "function application like"
->     [ScalExpr "extract(year from date '2000-01-01')" $ Right typeInt
->     ,ScalExpr "extract(year from 3)" $ Left [NoMatchingOperator "extract" [typeInt]]
+>     [scalExpr "extract(year from date '2000-01-01')" $ Right typeInt
+>     ,scalExpr "extract(year from 3)" $ Left [NoMatchingOperator "extract" [typeInt]]
 >     ]
 >   ]
+>   where
+>     scalExpr = TCScalExpr defaultTemplate1Catalog emptyEnvironment
+>                           defaultTypeCheckFlags

@@ -14,23 +14,23 @@
 > sqlServer :: Item
 > sqlServer =
 >   Group "parse sql server"
->   [TSQL "select top 3 * from a order by c;"
+>   [s "select top 3 * from a order by c;"
 >       [qs $ makeSelect
 >               {selSelectList = sl [si $ Star ea]
 >               ,selTref = [tref "a"]
 >               ,selOrderBy = [(ei "c", Asc, NullsDefault)]
 >               ,selLimit = Just $ num "3"}]
->   ,TSQL "select top(3) * from a order by c;"
+>   ,s "select top(3) * from a order by c;"
 >       [qs $ makeSelect
 >               {selSelectList = sl [si $ Star ea]
 >               ,selTref = [tref "a"]
 >               ,selOrderBy = [(ei "c", Asc, NullsDefault)]
 >               ,selLimit = Just $ num "3"}]
->   ,TSQL "select r.dn as 'rg' from tbl;"
+>   ,s "select r.dn as 'rg' from tbl;"
 >    [qs $ makeSelect
 >        {selSelectList = sl [sia (eqi "r" "dn") $ QNmc "rg"]
 >        ,selTref = [tref "tbl"]}]
->   ,TSQL "select r.dn as 'check the pretty printing' from tbl;"
+>   ,s "select r.dn as 'check the pretty printing' from tbl;"
 >    [qs $ makeSelect
 >            {selSelectList = sl [sia (eqi "r" "dn") $ QNmc "check the pretty printing"]
 >            ,selTref = [tref "tbl"]}]
@@ -43,34 +43,34 @@ server.db.sc.obj
 server...obj
 => three dots max
 
->   ,TSQL "select a..b() from t;"
+>   ,s "select a..b() from t;"
 >    [qs $ makeSelect
 >            {selSelectList = sl [SelExp ea (App ea (Name ea [Nmc "a",Nmc "", Nmc "b"])
 >                                            [])]
 >            ,selTref = [tref "t"]}]
->   ,TSQL "select a...b() from t;"
+>   ,s "select a...b() from t;"
 >    [qs $ makeSelect
 >            {selSelectList = sl [SelExp ea (App ea (Name ea [Nmc "a",Nmc "", Nmc "", Nmc "b"])
 >                                            [])]
 >            ,selTref = [tref "t"]}]
->   ,TSQL "select * from a join x..b;"
+>   ,s "select * from a join x..b;"
 >    [qs $ makeSelect
 >            {selSelectList = sl [si $ Star ea]
 >            ,selTref = [innerJoin (tref "a")
 >                       (Tref ea (Name ea [Nmc "x",Nmc "",Nmc "b"])) Nothing]}]
 
->   ,TSQL "select * from a join x...b;"
+>   ,s "select * from a join x...b;"
 >    [qs $ makeSelect
 >            {selSelectList = sl [si $ Star ea]
 >            ,selTref = [innerJoin (tref "a")
 >                       (Tref ea (Name ea [Nmc "x",Nmc "",Nmc "",Nmc "b"])) Nothing]}]
->   ,TSQL "select a from t with(nolock);"
+>   ,s "select a from t with(nolock);"
 >     -- with is just (sort of) recognised, and not parsed to abstract
 >     -- syntax
 >    [qs $ makeSelect
 >            {selSelectList = sl [si $ ei "a"]
 >            ,selTref = [tref "t"]}]
->   ,TSQL "select a from #tbl;"
+>   ,s "select a from #tbl;"
 >    [qs $ makeSelect
 >            {selSelectList = sl [si $ ei "a"]
 >            ,selTref = [tref "#tbl"]}]
@@ -186,7 +186,7 @@ in ParserInternal.lhs
 
 >   ]
 >   where
->     s = TSQL
+>     s = ParseProcSql defaultParseFlags {pfDialect=SQLServer}
 >     qs = QueryStatement ea
 
 create index ++

@@ -26,14 +26,14 @@ and flexible combinations
 > aggregates :: Item
 > aggregates =
 >   Group "aggregates"
->   [TCQueryExpr [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
+>   [tcQueryExpr [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                                  ,("b", mkCatNameExtra "int4")
 >                                  ,("c", mkCatNameExtra "int4")]]
 >    "select a,b,count(c) as c from t group by a,b"
 >    $ Right $ CompositeType [("a", mkTypeExtra typeInt)
 >                            ,("b", mkTypeExtra typeInt)
 >                            ,("c", mkTypeExtraNN typeBigInt)]
->   ,TCQueryExpr [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
+>   ,tcQueryExpr [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                                  ,("b", mkCatNameExtra "int4")
 >                                  ,("c", mkCatNameExtra "int4")]]
 >    "select a,b,count(c) as c from t group by cube(a,b)"
@@ -41,3 +41,7 @@ and flexible combinations
 >                            ,("b", mkTypeExtra typeInt)
 >                            ,("c", mkTypeExtraNN typeBigInt)]
 >   ]
+>   where
+>     tcQueryExpr cus =
+>         let Right cat = updateCatalog cus defaultTemplate1Catalog
+>         in TCQueryExpr cat defaultTypeCheckFlags

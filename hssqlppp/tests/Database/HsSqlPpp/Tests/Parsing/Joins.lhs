@@ -105,4 +105,4 @@ this?
 >      stbl = makeSelect
 >             {selSelectList = sl [si $ ei "a"]
 >             ,selTref = [tref "tbl"]}
->      q = QueryExpr
+>      q = ParseQueryExpr defaultParseFlags

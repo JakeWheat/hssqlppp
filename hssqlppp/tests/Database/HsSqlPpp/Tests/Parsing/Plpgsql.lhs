@@ -157,4 +157,4 @@
 >       [NullStatement ea]]
 >     ]]
 >  where
->    f = PgSqlStmt
+>    f = ParseProcSql defaultParseFlags {pfDialect=PostgreSQL}

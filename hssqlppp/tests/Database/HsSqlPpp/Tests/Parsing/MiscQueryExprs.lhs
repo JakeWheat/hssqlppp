@@ -80,7 +80,7 @@
 >                   ,selTref = [tref "pos"]}
 >    ]
 >  where
->    s = QueryExpr
+>    s = ParseQueryExpr defaultParseFlags
 >    tblat = makeSelect
 >            {selSelectList = sl [si $ ei "a"]
 >            ,selTref = [tref "t"]}

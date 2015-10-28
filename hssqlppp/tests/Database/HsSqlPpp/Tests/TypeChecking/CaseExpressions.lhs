@@ -54,5 +54,6 @@
 >                                          ,ScalarType "bool"]]
 >      ]
 >  where
->    e = ScalExpr
+>    e = TCScalExpr defaultTemplate1Catalog emptyEnvironment
+>                           defaultTypeCheckFlags
 

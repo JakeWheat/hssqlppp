@@ -42,8 +42,8 @@
 >    ,ScalarExprExtra cat2 vEnv   "len(v)"   (Right aType)
 >    ]
 >   ]
->   ++ [Group "PrecisionAndNullableTCQueryExpr"
->       [TCQueryExpr
+>   ++ [Group "PrecisionAndNullabletcQueryExpr"
+>       [tcQueryExpr
 >         [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                             ,("b", CatNameExtra "varchar" (Just 7) Nothing False)]]
 >         "select a,b from t"
@@ -51,18 +51,18 @@
 >                                 ,("b", TypeExtra typeVarChar (Just 7) Nothing False)]
 >
 >
->       ,TCQueryExpr [CatCreateTable ("public","t") [("a", CatNameExtra "numeric" (Just 6) (Just 2) False)
+>       ,tcQueryExpr [CatCreateTable ("public","t") [("a", CatNameExtra "numeric" (Just 6) (Just 2) False)
 >                                      ,("b", CatNameExtra "numeric" (Just 10) (Just 3) False)]]
 >        "select nullif(a,b) as ni from t"
 >        $ Right $ CompositeType [("ni", TypeExtra typeNumeric (Just 6) (Just 2) True)]
 >
 >
->       ,TCQueryExpr [CatCreateTable ("public","t") [("a", CatNameExtra "float" (Just 10) (Just 2) False)
+>       ,tcQueryExpr [CatCreateTable ("public","t") [("a", CatNameExtra "float" (Just 10) (Just 2) False)
 >                                      ,("b", CatNameExtra "varchar" (Just 12) Nothing True)]]
 >        "select * from t"
 >        $ Right $ CompositeType [("a", TypeExtra typeFloat8 (Just 10) (Just 2) False)
 >                                ,("b", TypeExtra typeVarChar (Just 12) Nothing True)]
->       ,TSQLQueryExpr
+>       ,tsqlQueryExpr
 >                   [CatCreateTable ("public","t1")  [("a", CatNameExtra "int4" Nothing Nothing True)
 >                                         ,("b", CatNameExtra "char" (Just 5) Nothing False)]
 >                   ,CatCreateTable ("public","t2")  [("c", CatNameExtra "float" (Just 10) (Just 2) False)
@@ -71,17 +71,17 @@
 >        $ Right $ CompositeType [("a", TypeExtra typeFloat8 (Just 10) (Just 2) True)
 >                                ,("b", TypeExtra typeVarChar (Just 6) Nothing False)]
 
->       ,TCQueryExpr [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
+>       ,tcQueryExpr [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                                      ,("b", CatNameExtra "varchar" (Just 13) Nothing False)
 >                                      ,("c", CatNameExtra "varchar" (Just 15) Nothing True)]]
 >        "select case when a is null then b else c end as cs from t u"
 >        $ Right $ CompositeType [("cs", TypeExtra typeVarChar (Just 15) Nothing True)]
->       ,TCQueryExpr [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
+>       ,tcQueryExpr [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                                      ,("b", mkCatNameExtra "text")]]
 >        "select * from t u(c,d)"
 >        $ Right $ CompositeType [("c", mkTypeExtra typeInt)
 >                                ,("d", mkTypeExtra $ ScalarType "text")]
->       ,TCQueryExpr [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
+>       ,tcQueryExpr [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                                      ,("b", mkCatNameExtra "text")]]
 >        "select u.a,u.b from t u"
 >        $ Right $ CompositeType [("a", mkTypeExtra typeInt)
@@ -89,34 +89,34 @@
 
 >
 >
->       ,TCQueryExpr [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
+>       ,tcQueryExpr [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                                      ,("b", mkCatNameExtra "text")]]
 >        "select count(*) from t"
 >        $ Right $ CompositeType [("count", mkTypeExtraNN typeBigInt)]
 
 
->       ,TCQueryExpr [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")]
+>       ,tcQueryExpr [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")]
 >                  ,CatCreateTable ("public","u") [("a", mkCatNameExtra "int4")]]
 >        "select * from t union select * from u"
 >        $ Right $ CompositeType [("a", mkTypeExtra typeInt)]
 
->       ,TCQueryExpr [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")]
+>       ,tcQueryExpr [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")]
 >                  ,CatCreateTable ("public","u") [("b", mkCatNameExtra "int4")]]
 >        "select * from t union select * from u"
 >        $ Right $ CompositeType [("a", mkTypeExtra typeInt)]
->       ,TCQueryExpr [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")]]
+>       ,tcQueryExpr [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")]]
 >        "select a,count(*) over () as r from t"
 >        $ Right $ CompositeType  [("a", mkTypeExtra typeInt),
 >                                 ("r", mkTypeExtraNN typeBigInt)]
 >       -- postponed until we decide about implicit casts from numeric to string types
->       --,TSQLQueryExpr [CatCreateTable ("public","t") [("a", CatNameExtra "int4" Nothing Nothing False)]]
+>       --,tsqlQueryExpr [CatCreateTable ("public","t") [("a", CatNameExtra "int4" Nothing Nothing False)]]
 >       -- "select a, lower(a) as l from t"
 >       -- $ Right $ CompositeType  [("a", TypeExtra (ScalarType "int4") Nothing Nothing False),
 >       --                          ("l", TypeExtra (ScalarType "text") Nothing Nothing False)]
->       ,TSQLQueryExpr [CatCreateTable ("public","t") [("d", CatNameExtra "date" Nothing Nothing False)]]
+>       ,tsqlQueryExpr [CatCreateTable ("public","t") [("d", CatNameExtra "date" Nothing Nothing False)]]
 >        "select d from t where d > dateadd(year,1,'1997-01-01')"
 >        $ Right $ CompositeType  [("d", mkTypeExtraNN typeDate)]
->       ,TSQLQueryExpr [CatCreateTable ("public","t") [("a", CatNameExtra "int4" Nothing Nothing False)],
+>       ,tsqlQueryExpr [CatCreateTable ("public","t") [("a", CatNameExtra "int4" Nothing Nothing False)],
 >                       CatCreateTable ("public","tt") [("v", CatNameExtra "varchar" (Just 6) Nothing False)]]
 >        "select t.a from t inner join tt on t.a=tt.v"
 >        $ Right $ CompositeType  [("a", mkTypeExtraNN typeInt)]
@@ -157,4 +157,9 @@
 >     case2Type = dnType
 >     --
 >     selListEnv env = either (const brokeEnvironment) id $ envSelectListEnvironment env
-
+>     tcQueryExpr cus =
+>         let Right cat = updateCatalog cus defaultTemplate1Catalog
+>         in TCQueryExpr cat defaultTypeCheckFlags
+>     tsqlQueryExpr cus =
+>         let Right cat = updateCatalog cus defaultTSQLCatalog
+>         in TCQueryExpr cat defaultTypeCheckFlags {tcfDialect = SQLServer}

@@ -5,7 +5,7 @@
 >     (issues) where
 >
 > import Database.HsSqlPpp.Tests.TestTypes
-> import Database.HsSqlPpp.TypeCheck
+> --import Database.HsSqlPpp.TypeCheck
 > import Database.HsSqlPpp.Catalog
 
 > --import Database.HsSqlPpp.Types

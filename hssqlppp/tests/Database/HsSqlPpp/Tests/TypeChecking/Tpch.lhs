@@ -20,7 +20,7 @@ moment.
 >         let (s,e) = splitAt 14 t
 >         in s ++ drop 1 e
 >   where
->     t = zipWith (\(_n,s) t' -> TCQueryExpr tpchCatalog (L.pack s)
+>     t = zipWith (\(_n,s) t' -> tcQueryExpr tpchCatalog (L.pack s)
 >                               (Right $ {-Pseudo $ SetOfType $ -}CompositeType t'))
 >          tpchQueries
 >          [-- q1
@@ -122,3 +122,6 @@ moment.
 >           ,("numcust", mkTypeExtraNN typeBigInt)
 >           ,("totacctbal", mkTypeExtra typeNumeric)]
 >          ]
+>     tcQueryExpr cus =
+>         let Right cat = updateCatalog cus defaultTemplate1Catalog
+>         in TCQueryExpr cat defaultTypeCheckFlags

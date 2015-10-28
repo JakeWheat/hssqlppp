@@ -23,25 +23,25 @@ schemas affect typechecking of views and tables only currently
 > trefSchemas :: Item
 > trefSchemas =
 >   Group "trefSchemas"
->       [TCQueryExpr simpleTEnv
+>       [tcQueryExpr simpleTEnv
 >         "select a,b from public.t"
 >         $ Right $ CompositeType [("a", mkTypeExtra typeInt)
 >                                 ,("b", mkTypeExtra $ ScalarType "text")]
->       ,TCQueryExpr simpleTEnv
+>       ,tcQueryExpr simpleTEnv
 >         "select a,b from t"
 >         $ Right $ CompositeType [("a", mkTypeExtra typeInt)
 >                                 ,("b", mkTypeExtra $ ScalarType "text")]
->       ,TCQueryExpr simpleTEnv
+>       ,tcQueryExpr simpleTEnv
 >         "select a,b from something.t"
 >         $ Left $ [UnrecognisedRelation ("something", "t")]
 
->       ,TCQueryExpr anotherUEnv
+>       ,tcQueryExpr anotherUEnv
 >         "select a,b from public.u"
 >         $ Left [UnrecognisedRelation ("public", "u")]
->       ,TCQueryExpr anotherUEnv
+>       ,tcQueryExpr anotherUEnv
 >         "select a,b from u"
 >         $ Left [UnrecognisedRelation ("public", "u")]
->       ,TCQueryExpr anotherUEnv
+>       ,tcQueryExpr anotherUEnv
 >         "select a,b from something.u"
 >         $ Right $ CompositeType [("a", mkTypeExtra typeInt)
 >                                 ,("b", mkTypeExtra $ ScalarType "text")]
@@ -53,3 +53,6 @@ schemas affect typechecking of views and tables only currently
 >     anotherUEnv = [CatCreateTable ("something","u")
 >                   [("a", mkCatNameExtra "int4")
 >                   ,("b", mkCatNameExtra "text")]]
+>     tcQueryExpr cus =
+>         let Right cat = updateCatalog cus defaultTemplate1Catalog
+>         in TCQueryExpr cat defaultTypeCheckFlags

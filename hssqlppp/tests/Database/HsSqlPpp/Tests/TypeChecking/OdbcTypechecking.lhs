@@ -45,40 +45,40 @@ https://msdn.microsoft.com/en-us/library/ms711813(v=vs.85).aspx
 > odbcTypechecking =
 >    Group "odbcTypechecking" [
 >        -- literals
->        ScalExpr "{d '2000-01-01'}" $ Right typeDate
->       ,ScalExpr "{t '12:00:01.1'}" $ Right $ ScalarType "time"
->       ,ScalExpr "{ts '2000-01-01 12:00:01.1'}" $ Right typeTimestamp
+>        scalExpr "{d '2000-01-01'}" $ Right typeDate
+>       ,scalExpr "{t '12:00:01.1'}" $ Right $ ScalarType "time"
+>       ,scalExpr "{ts '2000-01-01 12:00:01.1'}" $ Right typeTimestamp
 >       -- scalar functions
->       ,ScalExpr "{fn ascii('test')}" $ Right typeInt
->       ,ScalExpr "{fn extract(hour from date 'dt')}" $ Right typeInt
->       ,ScalExpr "(extract(hour from date 'dt'))" $ Right typeInt
+>       ,scalExpr "{fn ascii('test')}" $ Right typeInt
+>       ,scalExpr "{fn extract(hour from date 'dt')}" $ Right typeInt
+>       ,scalExpr "(extract(hour from date 'dt'))" $ Right typeInt
 >       -- position not supported in the parser
->       --,ScalExpr "{fn POSITION('aaa' IN 'bbb')}" $ Right typeVarChar
->       ,ScalExpr "{fn CONVERT(3, SQL_BIGINT)}" $ Right typeBigInt
->       ,ScalExpr "{fn CONVERT(3, SQL_FLOAT)}" $ Right typeFloat8
+>       --,scalExpr "{fn POSITION('aaa' IN 'bbb')}" $ Right typeVarChar
+>       ,scalExpr "{fn CONVERT(3, SQL_BIGINT)}" $ Right typeBigInt
+>       ,scalExpr "{fn CONVERT(3, SQL_FLOAT)}" $ Right typeFloat8
 
->       ,ScalExpr "{fn timestampadd(SQL_TSI_SECOND,3, {t '12:00:00'})}" $ Right typeTime
->       ,ScalExpr "{fn timestampadd(SQL_TSI_MINUTE,3, {ts '2001-01-01 12:00:00'})}" $ Right typeTimestamp
->       ,ScalExpr "{fn timestampadd(SQL_TSI_YEAR,3, {d '2001-01-01'})}" $ Right typeDate
+>       ,scalExpr "{fn timestampadd(SQL_TSI_SECOND,3, {t '12:00:00'})}" $ Right typeTime
+>       ,scalExpr "{fn timestampadd(SQL_TSI_MINUTE,3, {ts '2001-01-01 12:00:00'})}" $ Right typeTimestamp
+>       ,scalExpr "{fn timestampadd(SQL_TSI_YEAR,3, {d '2001-01-01'})}" $ Right typeDate
 
->       ,ScalExpr "{fn timestampdiff(SQL_TSI_YEAR,{d '2001-01-01'}, {d '2001-01-01'})}" $ Right typeInt
+>       ,scalExpr "{fn timestampdiff(SQL_TSI_YEAR,{d '2001-01-01'}, {d '2001-01-01'})}" $ Right typeInt
 
 
 
->       ,ScalExpr "{fn left('test',3)}" $ Right $ ScalarType "text"
+>       ,scalExpr "{fn left('test',3)}" $ Right $ ScalarType "text"
 
         -- todo: somehow, the generated catalog ended up wrong here
- >       ,ScalExpr "left(3,'test')" $ Right $ ScalarType "text"
+ >       ,scalExpr "left(3,'test')" $ Right $ ScalarType "text"
 
- >       ,ScalExpr "{fn left(3,'test')}" $ Left [NoMatchingOperator "!odbc-left" [ScalarType "int4",UnknownType]]
- >       ,ScalExpr "left('test',3)" $ Left [NoMatchingOperator "left" [UnknownType,ScalarType "int4"]]
+ >       ,scalExpr "{fn left(3,'test')}" $ Left [NoMatchingOperator "!odbc-left" [ScalarType "int4",UnknownType]]
+ >       ,scalExpr "left('test',3)" $ Left [NoMatchingOperator "left" [UnknownType,ScalarType "int4"]]
 
- >       ,ScalExpr "{fn left(left(3,'test'),3)}" $ Right $ ScalarType "text"
- >       ,ScalExpr "left(3,{fn left('test',3)})" $ Right $ ScalarType "text"
+ >       ,scalExpr "{fn left(left(3,'test'),3)}" $ Right $ ScalarType "text"
+ >       ,scalExpr "left(3,{fn left('test',3)})" $ Right $ ScalarType "text"
 
 
 
->       ,TCQueryExpr [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")]]
+>       ,tcQueryExpr [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")]]
 >         "select {fn ascii('test')} as a, a as b, {d '2000-01-01'} as c,\n\
 >         \       {fn CONVERT('text', SQL_VARCHAR)} || {t '12:00:01.1'} as d from t"
 >        $ Right $ CompositeType [("a", (mkTypeExtra typeInt) {teNullable=False})
@@ -87,7 +87,7 @@ https://msdn.microsoft.com/en-us/library/ms711813(v=vs.85).aspx
 >                                ,("d", mkTypeExtra $ ScalarType "text")]
 
 >       -- outer join
->       ,TCQueryExpr [CatCreateTable ("public","t0") [("a", mkCatNameExtra "int4")
+>       ,tcQueryExpr [CatCreateTable ("public","t0") [("a", mkCatNameExtra "int4")
 >                                         ,("b", mkCatNameExtra "text")]
 >                    ,CatCreateTable ("public","t1") [("c", mkCatNameExtra "int4")
 >                                         ,("d", mkCatNameExtra "text")]]
@@ -99,4 +99,9 @@ https://msdn.microsoft.com/en-us/library/ms711813(v=vs.85).aspx
 
 
 >   ]
-
+>   where
+>     scalExpr = TCScalExpr defaultTemplate1Catalog emptyEnvironment
+>                           defaultTypeCheckFlags
+>     tcQueryExpr cus =
+>         let Right cat = updateCatalog cus defaultTemplate1Catalog
+>         in TCQueryExpr cat defaultTypeCheckFlags

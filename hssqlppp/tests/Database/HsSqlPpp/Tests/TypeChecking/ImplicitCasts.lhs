@@ -6,7 +6,7 @@
 > import Database.HsSqlPpp.Tests.TestTypes
 > --import Database.HsSqlPpp.Types
 > --import Database.HsSqlPpp.Catalog
-> import Database.HsSqlPpp.TypeCheck
+> --import Database.HsSqlPpp.TypeCheck
 > import Data.Text.Lazy ()
 
 

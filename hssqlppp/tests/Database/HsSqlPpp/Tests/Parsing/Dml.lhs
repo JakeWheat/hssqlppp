@@ -151,4 +151,4 @@ copy, bit crap at the moment
 >        "file" [CopyFormat "binary"]]
 >      ]]
 >  where
->    s = Stmt
+>    s = ParseStmts defaultParseFlags

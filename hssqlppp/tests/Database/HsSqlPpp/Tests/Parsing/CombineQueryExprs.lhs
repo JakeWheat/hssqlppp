@@ -61,5 +61,5 @@
 >              ,selTref = [tref "tbl1"]}
 >      sel :: Int -> QueryExpr
 >      sel n = makeSelect {selSelectList = sl [si $ num $ T.pack $ show n]}
->      q = QueryExpr
+>      q = ParseQueryExpr defaultParseFlags
 >      cq = CombineQueryExpr ea

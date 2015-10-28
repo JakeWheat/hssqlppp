@@ -97,4 +97,4 @@
 >       [DropSomething ea Database Require [name "dbname"] Restrict]
 >      ]]
 >  where
->    s = Stmt
+>    s = ParseStmts defaultParseFlags

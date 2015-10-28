@@ -92,14 +92,17 @@
 
 >   ]
 >   where
->     qenc = TCQueryExpr [CatCreateTable ("public","t0") [("a", mkCatNameExtra "int4")
+>     qenc = tcQueryExpr [CatCreateTable ("public","t0") [("a", mkCatNameExtra "int4")
 >                                           ,("b", mkCatNameExtra "text")]
 >                      ,CatCreateTable ("public","t1") [("c", mkCatNameExtra "int4")
 >                                           ,("d", mkCatNameExtra "text")]]
->     qec = TCQueryExpr [CatCreateTable ("public","t0") [("a", mkCatNameExtra "int4")
+>     qec = tcQueryExpr [CatCreateTable ("public","t0") [("a", mkCatNameExtra "int4")
 >                                          ,("b", mkCatNameExtra "text")]
 >                     ,CatCreateTable ("public","t1") [("a", mkCatNameExtra "int4")
 >                                          ,("c", mkCatNameExtra "text")]]
+>     tcQueryExpr cus =
+>         let Right cat = updateCatalog cus defaultTemplate1Catalog
+>         in TCQueryExpr cat defaultTypeCheckFlags
 
 
 

@@ -81,10 +81,10 @@
 >    ]
 >   ]
 >  where
->    s = Stmt
+>    s = ParseStmts defaultParseFlags
 >    stbl = makeSelect
 >           {selSelectList = sl [si $ ei "a"]
 >           ,selTref = []}
->    q = QueryExpr
+>    q = ParseQueryExpr defaultParseFlags
 >    nameWithSchema sc n = Name ea $ [Nmc $ T.unpack sc, Nmc $ T.unpack n]
 >    trefWithSchema sc t = Tref ea (nameWithSchema sc t)

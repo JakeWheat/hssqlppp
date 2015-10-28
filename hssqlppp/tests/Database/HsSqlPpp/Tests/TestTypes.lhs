@@ -1,4 +1,14 @@
-> module Database.HsSqlPpp.Tests.TestTypes where
+> module Database.HsSqlPpp.Tests.TestTypes (
+>     defaultParseFlags
+>    ,defaultTypeCheckFlags
+>    ,Dialect(..)
+>    ,ParseFlags(..)
+>    ,TypeCheckFlags(..)
+>    ,Item(..)
+>    ,defaultTemplate1Catalog
+>    ,emptyEnvironment
+>    ,updateCatalog
+>   ) where
 
 > import Database.HsSqlPpp.Syntax
 > import Database.HsSqlPpp.LexicalSyntax (Token)
@@ -12,7 +22,7 @@
 > --import Test.Framework
 > --import Data.List
 > --import Data.Generics.Uniplate.Data
-> --import Database.HsSqlPpp.Parser
+> import Database.HsSqlPpp.Parse
 > import Database.HsSqlPpp.TypeCheck
 > --import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Catalog
@@ -31,24 +41,22 @@
 > import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.TypeConversion2
 
 > data Item = Group String [Item]
->           | Expr L.Text ScalarExpr
->           | Stmt L.Text [Statement]
->           | QueryExpr L.Text QueryExpr
->           | TSQL L.Text [Statement]
->           | OracleX L.Text [Statement]
->           | PgSqlStmt L.Text [Statement]
+>           | ParseScalarExpr ParseFlags L.Text ScalarExpr
+>           | ParseStmts ParseFlags L.Text [Statement]
+>           | ParseProcSql ParseFlags L.Text [Statement]
+>           | ParseQueryExpr ParseFlags L.Text QueryExpr
 >           | Lex Dialect T.Text [Token]
->           | ScalExpr L.Text (Either [TypeError] Type)
->           | TCQueryExpr [CatalogUpdate] L.Text (Either [TypeError] Type)
->           | TCStatements [CatalogUpdate] L.Text (Maybe [TypeError])
+>           | TCScalExpr Catalog Environment TypeCheckFlags
+>                        L.Text (Either [TypeError] Type)
+>           | TCQueryExpr Catalog TypeCheckFlags
+>                         L.Text (Either [TypeError] Type)
+>           | TCStatements Catalog TypeCheckFlags
+>                          L.Text (Maybe [TypeError])
 >           | InsertQueryExpr [CatalogUpdate] L.Text (Either [TypeError] Type)
->           | TSQLQueryExpr [CatalogUpdate] L.Text (Either [TypeError] Type)
->           | OracleQueryExpr [CatalogUpdate] L.Text (Either [TypeError] Type)
 >           | RewriteQueryExpr TypeCheckFlags [CatalogUpdate] L.Text L.Text
+
 >           | ImpCastsScalar TypeCheckFlags L.Text L.Text
 >           | ScalarExprExtra Catalog Environment L.Text (Either [TypeError] TypeExtra)
 >           | MatchApp Dialect Catalog [NameComponent]
 >                      [(TypeExtra, Maybe LitArg)]
 >                      (Either [TypeError] ([TypeExtra],TypeExtra))
-
-
