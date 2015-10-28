@@ -7,7 +7,7 @@
 > --import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Types
 > --import Database.HsSqlPpp.Ast
-> --import Database.HsSqlPpp.SqlDialect
+> --import Database.HsSqlPpp.Dialect
 > import Database.HsSqlPpp.Tests.TestTypes
 
 

@@ -4,7 +4,7 @@ TODO: most of this code will move to the internals type conversion.
 rewrite the code to be nice and literate explaining everything
 
 > {-# LANGUAGE OverloadedStrings,LambdaCase,MultiWayIf,PatternGuards #-}
-> module Database.HsSqlPpp.Internals.TypeChecking.TypeConversion2
+> module Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.TypeConversion2
 >        (matchApp,LitArg(..)) where
 
 TODO: explicit imports
@@ -30,7 +30,7 @@ TODO: explicit imports
 > --import Database.HsSqlPpp.Utils.Utils
 
 > -- import Database.HsSqlPpp.Internals.TypeChecking.OldTypeConversion
-> import Database.HsSqlPpp.SqlDialect
+> import Database.HsSqlPpp.Internals.Dialect
 > -- import qualified Database.HsSqlPpp.Internals.TypeChecking.SqlTypeConversion as TSQL
 
 
@@ -69,7 +69,7 @@ match app matches a function + argument types, and determines (using a
 bunch of hacks and special cases) the precision, scale and nullability
 of the result type also.
 
-> matchApp :: SQLSyntaxDialect
+> matchApp :: Dialect
 >          -> Catalog
 >          -> [NameComponent]
 >          -> [(TypeExtra, Maybe LitArg)]
@@ -104,11 +104,11 @@ find matching app is the code which matches a function prototype to a
 list of input argument types, dealing with implicit casts and
 overloaded functions. It is based on the algorithm in postgresql.
 
-> findMatchingApp :: SQLSyntaxDialect
->          -> Catalog
->          -> [NameComponent]
->          -> [(Type, Maybe LitArg)]
->          -> Either [TypeError] (CatName,[Type],Type,Bool)
+> findMatchingApp :: Dialect
+>                 -> Catalog
+>                 -> [NameComponent]
+>                 -> [(Type, Maybe LitArg)]
+>                 -> Either [TypeError] (CatName,[Type],Type,Bool)
 > findMatchingApp _d cat appName argTypes =
 >     (\case
 >         -- represents a short cut error

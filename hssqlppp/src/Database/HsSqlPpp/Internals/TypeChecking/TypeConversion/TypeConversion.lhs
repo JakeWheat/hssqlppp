@@ -31,7 +31,7 @@ postgres) all the nullability, precision, dialect and special hacks
 should all be in one place.
 
 > {-# LANGUAGE OverloadedStrings, TupleSections, MultiWayIf,FlexibleInstances #-}
-> module Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
+> module Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.TypeConversion
 >     (matchApp
 >     ,matchAppExtra
 >     ,resolveResultSetType
@@ -47,14 +47,14 @@ should all be in one place.
 >
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
-> import Database.HsSqlPpp.Utils.Utils
+> import Database.HsSqlPpp.Internals.Utils
 > import Control.Monad
 > --import Control.Applicative
 > import Control.Arrow
 
-> import Database.HsSqlPpp.Internals.TypeChecking.OldTypeConversion
-> import Database.HsSqlPpp.SqlDialect
-> import qualified Database.HsSqlPpp.Internals.TypeChecking.SqlTypeConversion as TSQL
+> import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.OldTypeConversion
+> import Database.HsSqlPpp.Internals.Dialect
+> import qualified Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.SqlTypeConversion as TSQL
 > import Data.Text ()
 > import qualified Data.Text as T
 > import Text.Printf
@@ -69,7 +69,7 @@ This needs a lot more tests
 
 > type MatchAppLiteralList = [Maybe Int]
 
-> matchApp :: SQLSyntaxDialect
+> matchApp :: Dialect
 >          -> Catalog
 >          -> [NameComponent]
 >          -> [Type]
@@ -81,34 +81,34 @@ This needs a lot more tests
 >     -- need to think of a better way to handle this when
 >     -- have a better idea of all the weird syntax used in
 >     -- tsql
->     matchApp' SQLServerDialect [Nmc dd] [_
->                                         ,ScalarType "date"
->                                         ,ScalarType "date"]
+>     matchApp' SQLServer [Nmc dd] [_
+>                                  ,ScalarType "date"
+>                                  ,ScalarType "date"]
 >       | map toLower dd == "datediff" =
 >       -- check there are 3 args
 >       -- first is identifier from list
 >       -- other two are date types
 >       Right ([typeInt,typeDate,typeDate], typeInt)
->     matchApp' SQLServerDialect [Nmc dd] [_,ScalarType "date"]
+>     matchApp' SQLServer [Nmc dd] [_,ScalarType "date"]
 >       | map toLower dd == "datepart" =
 >       Right ([typeInt,typeDate], typeInt)
 
->     matchApp' SQLServerDialect [Nmc dd] [_,ScalarType "timestamp"]
+>     matchApp' SQLServer [Nmc dd] [_,ScalarType "timestamp"]
 >       | map toLower dd == "datepart" =
 >       Right ([typeInt,(ScalarType "timestamp")], typeInt)
 
 
->     matchApp' SQLServerDialect [Nmc dd] [_,_,ScalarType "date"]
+>     matchApp' SQLServer [Nmc dd] [_,_,ScalarType "date"]
 >       | map toLower dd == "dateadd" =
 >       Right ([typeInt,typeInt,typeDate], typeDate)
 
->     matchApp' SQLServerDialect [Nmc dd] [_,_,ScalarType "timestamp"]
+>     matchApp' SQLServer [Nmc dd] [_,_,ScalarType "timestamp"]
 >       | map toLower dd == "dateadd" =
 >       Right ([typeInt,typeInt,ScalarType "timestamp"], ScalarType "timestamp")
 
 double hack: support oracle decode when in tsql mode:
 
->     matchApp' SQLServerDialect [Nmc dd] as
+>     matchApp' SQLServer [Nmc dd] as
 >       | map toLower dd == "decode" =
 
 decode is just syntax for simple case statement:
@@ -127,7 +127,7 @@ if there is a single trailing argument this is the else
 >             let checkBranches [] acc = return $ reverse acc
 >                 checkBranches [els] acc = return $ reverse (els:acc)
 >                 checkBranches (w:t:xs) acc = do
->                   _ <- matchApp' SQLServerDialect [Nmc "="] [tt,w]
+>                   _ <- matchApp' SQLServer [Nmc "="] [tt,w]
 >                   checkBranches xs (t:acc)
 >             sndTypes <- checkBranches as' []
 
@@ -144,7 +144,7 @@ todo: add the implicit casting where needed
 
 >     matchApp' d' nmcs' pts = {-trace ("matchapp: " ++ show (d,nmcs,pts)) $ -} do
 >       (_,ps,r,_) <- case d' of
->                       SQLServerDialect -> TSQL.findCallMatch cat nm pts
+>                       SQLServer -> TSQL.findCallMatch cat nm pts
 >                       _ -> findCallMatch cat nm pts
 >       return (ps,r)
 >       where
@@ -182,7 +182,7 @@ for long argument lists with several literals, there can be a lot of variants ge
 
 uses matchApp for inferring basic types
 
-> matchAppExtra :: SQLSyntaxDialect
+> matchAppExtra :: Dialect
 >                 -> Catalog
 >                 -> [NameComponent]
 >                 -> MatchAppLiteralList

@@ -3,7 +3,7 @@ This file contains some generic utility stuff
 
 > {-# LANGUAGE TupleSections #-}
 > {-# LANGUAGE FlexibleContexts #-}
-> module Database.HsSqlPpp.Utils.Utils where
+> module Database.HsSqlPpp.Internals.Utils where
 >
 > import Control.Arrow
 > --import Control.Applicative

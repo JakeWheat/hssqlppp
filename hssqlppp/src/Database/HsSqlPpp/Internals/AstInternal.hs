@@ -100,8 +100,8 @@ module Database.HsSqlPpp.Internals.AstInternal(
    ,typeCheckScalarExpr
    ,typeCheckScalarExprEnv
    ,typeCheckQueryExpr
-   ,TypeCheckingFlags(..)
-   ,defaultTypeCheckingFlags
+   ,TypeCheckFlags(..)
+   ,defaultTypeCheckFlags
    ,addExplicitCasts
    ,addImplicitCasts
    -- annotation
@@ -139,7 +139,7 @@ import Data.Generics.Uniplate.Data
 --import Database.HsSqlPpp.Internals.Catalog.CatalogInternal (NameComponent(..),ncStr)
 
 --import Database.HsSqlPpp.Utils.Utils
-import Database.HsSqlPpp.SqlDialect
+import Database.HsSqlPpp.Internals.Dialect
 --import Data.Text (Text)
 import qualified Data.Text as T
 --import qualified Data.Text.Lazy as LT
@@ -167,7 +167,7 @@ import qualified Database.HsSqlPpp.Internals.TypeChecking.Environment as E
 import Database.HsSqlPpp.Internals.TypeChecking.Environment (Environment)
 import Database.HsSqlPpp.Internals.TypesInternal
 import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
-import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
+import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.TypeConversion
 import Control.Monad
 import Data.List
 import Data.Maybe
@@ -251,7 +251,7 @@ implicitCastType expectedCast upType expType
 
 {-# LINE 466 "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/ScalarExprs.ag" #-}
 
-tcAppLike:: SQLSyntaxDialect -> Catalog -> Name
+tcAppLike:: Dialect -> Catalog -> Name
             -> [ScalarExpr] -> [Maybe TypeExtra]
             -> Either [TypeError] ([TypeExtra],TypeExtra)
 
@@ -330,8 +330,8 @@ classifyInteger s = case (readMaybe s :: Maybe Integer) of
 
 
 -- | some options when typechecking
-data TypeCheckingFlags =
-    TypeCheckingFlags
+data TypeCheckFlags =
+    TypeCheckFlags
     { -- | add qualifiers to unqualified ids where possible
      tcfAddQualifiers :: Bool
      -- | add full aliases to every tableref and subselect
@@ -340,24 +340,24 @@ data TypeCheckingFlags =
     ,tcfAddSelectItemAliases :: Bool
      -- | expand stars in select lists to explicit list columns
     ,tcfExpandStars :: Bool
-    ,tcfDialect :: SQLSyntaxDialect}
+    ,tcfDialect :: Dialect}
     deriving (Show,Eq)
 
 
 -- | reasonable defaults for type checking, doesn't add anything
 -- optional
-defaultTypeCheckingFlags :: TypeCheckingFlags
-defaultTypeCheckingFlags =
-    TypeCheckingFlags
+defaultTypeCheckFlags :: TypeCheckFlags
+defaultTypeCheckFlags =
+    TypeCheckFlags
     {tcfAddQualifiers = False
     ,tcfAddFullTablerefAliases = False
     ,tcfAddSelectItemAliases = False
     ,tcfExpandStars = False
-    ,tcfDialect = PostgreSQLDialect}
+    ,tcfDialect = PostgreSQL}
 
 -- | Typechecks the ast, and returns the updated catalog (which
 -- includes changes from any ddl statements in the ast).
-typeCheckStatements :: TypeCheckingFlags -> Catalog -> [Statement] -> (Catalog,[Statement])
+typeCheckStatements :: TypeCheckFlags -> Catalog -> [Statement] -> (Catalog,[Statement])
 typeCheckStatements f cat sts =
     let t = _sem_Root (Root sts)
         ta = _wrap_Root t Inh_Root {_cat_Inh_Root = cat
@@ -369,7 +369,7 @@ typeCheckStatements f cat sts =
     in case tl of
          Root r -> (cat1,fixTree r)
 -- | Typecheck a query expr
-typeCheckQueryExpr :: TypeCheckingFlags -> Catalog -> QueryExpr -> QueryExpr
+typeCheckQueryExpr :: TypeCheckFlags -> Catalog -> QueryExpr -> QueryExpr
 typeCheckQueryExpr f cat qe =
    let (_,[QueryStatement _ qe']) = typeCheckStatements f cat [QueryStatement emptyAnnotation qe]
    in qe'
@@ -379,7 +379,7 @@ typeCheckQueryExpr f cat qe =
 -- stType annotation on the return value can be used to get this info
 -- easily. Returns Left if the statement is not a query,insert,update or delete
 -- statement
-typeCheckParameterizedStatement :: TypeCheckingFlags -> Catalog -> Statement -> Either String Statement
+typeCheckParameterizedStatement :: TypeCheckFlags -> Catalog -> Statement -> Either String Statement
 typeCheckParameterizedStatement f cat st =
     case st of
       QueryStatement _ _ -> tc
@@ -395,7 +395,7 @@ typeCheckParameterizedStatement f cat st =
 
 
 -- | type check a scalar expr
-typeCheckScalarExpr :: TypeCheckingFlags -> Catalog -> ScalarExpr -> ScalarExpr
+typeCheckScalarExpr :: TypeCheckFlags -> Catalog -> ScalarExpr -> ScalarExpr
 typeCheckScalarExpr f cat ex =
     let t = _sem_ScalarExprRoot (ScalarExprRoot ex)
         rt = (_annotatedTree_Syn_ScalarExprRoot
@@ -408,7 +408,7 @@ cse"-}}))
     in case rt of
          ScalarExprRoot e -> fixTree e
 
-typeCheckScalarExprEnv::  TypeCheckingFlags -> Catalog -> Environment
+typeCheckScalarExprEnv::  TypeCheckFlags -> Catalog -> Environment
                           -> ScalarExpr -> ScalarExpr
 typeCheckScalarExprEnv f cat env ex =
     let t = _sem_ScalarExprRoot (ScalarExprRoot ex)
@@ -867,7 +867,7 @@ canonicalizeTypeNames =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : AlterColumnAction 
@@ -922,10 +922,10 @@ _sem_AlterColumnAction (DropDefault _ann) =
     (_sem_AlterColumnAction_DropDefault (_sem_Annotation _ann))
 -- semantic domain
 type T_AlterColumnAction = Catalog ->
-                           TypeCheckingFlags ->
+                           TypeCheckFlags ->
                            (Maybe TypeExtra) ->
                            ( AlterColumnAction,AlterColumnAction)
-data Inh_AlterColumnAction = Inh_AlterColumnAction {_cat_Inh_AlterColumnAction :: Catalog,_flags_Inh_AlterColumnAction :: TypeCheckingFlags,_imCast_Inh_AlterColumnAction :: (Maybe TypeExtra)}
+data Inh_AlterColumnAction = Inh_AlterColumnAction {_cat_Inh_AlterColumnAction :: Catalog,_flags_Inh_AlterColumnAction :: TypeCheckFlags,_imCast_Inh_AlterColumnAction :: (Maybe TypeExtra)}
 data Syn_AlterColumnAction = Syn_AlterColumnAction {_annotatedTree_Syn_AlterColumnAction :: AlterColumnAction,_originalTree_Syn_AlterColumnAction :: AlterColumnAction}
 _wrap_AlterColumnAction :: T_AlterColumnAction ->
                           Inh_AlterColumnAction ->
@@ -944,10 +944,10 @@ _sem_AlterColumnAction_SetDataType ann_ typ_ =
               _lhsOannotatedTree :: AlterColumnAction
               _lhsOoriginalTree :: AlterColumnAction
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _typOcat :: Catalog
-              _typOflags :: TypeCheckingFlags
+              _typOflags :: TypeCheckFlags
               _typOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -1035,7 +1035,7 @@ _sem_AlterColumnAction_SetNotNull ann_ =
               _lhsOannotatedTree :: AlterColumnAction
               _lhsOoriginalTree :: AlterColumnAction
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -1100,7 +1100,7 @@ _sem_AlterColumnAction_DropNotNull ann_ =
               _lhsOannotatedTree :: AlterColumnAction
               _lhsOoriginalTree :: AlterColumnAction
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -1171,10 +1171,10 @@ _sem_AlterColumnAction_SetDefault ann_ def_ =
               _lhsOannotatedTree :: AlterColumnAction
               _lhsOoriginalTree :: AlterColumnAction
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _defOcat :: Catalog
-              _defOflags :: TypeCheckingFlags
+              _defOflags :: TypeCheckFlags
               _defOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -1293,7 +1293,7 @@ _sem_AlterColumnAction_DropDefault ann_ =
               _lhsOannotatedTree :: AlterColumnAction
               _lhsOoriginalTree :: AlterColumnAction
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -1353,7 +1353,7 @@ _sem_AlterColumnAction_DropDefault ann_ =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : AlterDatabaseOperation 
@@ -1375,10 +1375,10 @@ _sem_AlterDatabaseOperation (RenameDatabase _ann _newName) =
     (_sem_AlterDatabaseOperation_RenameDatabase (_sem_Annotation _ann) (_sem_Name _newName))
 -- semantic domain
 type T_AlterDatabaseOperation = Catalog ->
-                                TypeCheckingFlags ->
+                                TypeCheckFlags ->
                                 (Maybe TypeExtra) ->
                                 ( AlterDatabaseOperation,AlterDatabaseOperation)
-data Inh_AlterDatabaseOperation = Inh_AlterDatabaseOperation {_cat_Inh_AlterDatabaseOperation :: Catalog,_flags_Inh_AlterDatabaseOperation :: TypeCheckingFlags,_imCast_Inh_AlterDatabaseOperation :: (Maybe TypeExtra)}
+data Inh_AlterDatabaseOperation = Inh_AlterDatabaseOperation {_cat_Inh_AlterDatabaseOperation :: Catalog,_flags_Inh_AlterDatabaseOperation :: TypeCheckFlags,_imCast_Inh_AlterDatabaseOperation :: (Maybe TypeExtra)}
 data Syn_AlterDatabaseOperation = Syn_AlterDatabaseOperation {_annotatedTree_Syn_AlterDatabaseOperation :: AlterDatabaseOperation,_originalTree_Syn_AlterDatabaseOperation :: AlterDatabaseOperation}
 _wrap_AlterDatabaseOperation :: T_AlterDatabaseOperation ->
                                Inh_AlterDatabaseOperation ->
@@ -1398,10 +1398,10 @@ _sem_AlterDatabaseOperation_RenameDatabase ann_ newName_ =
               _lhsOannotatedTree :: AlterDatabaseOperation
               _lhsOoriginalTree :: AlterDatabaseOperation
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _newNameOcat :: Catalog
-              _newNameOflags :: TypeCheckingFlags
+              _newNameOflags :: TypeCheckFlags
               _newNameOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -1489,7 +1489,7 @@ _sem_AlterDatabaseOperation_RenameDatabase ann_ newName_ =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : AlterSchemaOperation 
@@ -1520,10 +1520,10 @@ _sem_AlterSchemaOperation (AlterSchemaOwner _ann _newName) =
     (_sem_AlterSchemaOperation_AlterSchemaOwner (_sem_Annotation _ann) (_sem_Name _newName))
 -- semantic domain
 type T_AlterSchemaOperation = Catalog ->
-                              TypeCheckingFlags ->
+                              TypeCheckFlags ->
                               (Maybe TypeExtra) ->
                               ( AlterSchemaOperation,AlterSchemaOperation)
-data Inh_AlterSchemaOperation = Inh_AlterSchemaOperation {_cat_Inh_AlterSchemaOperation :: Catalog,_flags_Inh_AlterSchemaOperation :: TypeCheckingFlags,_imCast_Inh_AlterSchemaOperation :: (Maybe TypeExtra)}
+data Inh_AlterSchemaOperation = Inh_AlterSchemaOperation {_cat_Inh_AlterSchemaOperation :: Catalog,_flags_Inh_AlterSchemaOperation :: TypeCheckFlags,_imCast_Inh_AlterSchemaOperation :: (Maybe TypeExtra)}
 data Syn_AlterSchemaOperation = Syn_AlterSchemaOperation {_annotatedTree_Syn_AlterSchemaOperation :: AlterSchemaOperation,_originalTree_Syn_AlterSchemaOperation :: AlterSchemaOperation}
 _wrap_AlterSchemaOperation :: T_AlterSchemaOperation ->
                              Inh_AlterSchemaOperation ->
@@ -1542,7 +1542,7 @@ _sem_AlterSchemaOperation_AlterSchemaName ann_ newName_ =
               _lhsOannotatedTree :: AlterSchemaOperation
               _lhsOoriginalTree :: AlterSchemaOperation
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -1609,10 +1609,10 @@ _sem_AlterSchemaOperation_AlterSchemaOwner ann_ newName_ =
               _lhsOannotatedTree :: AlterSchemaOperation
               _lhsOoriginalTree :: AlterSchemaOperation
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _newNameOcat :: Catalog
-              _newNameOflags :: TypeCheckingFlags
+              _newNameOflags :: TypeCheckFlags
               _newNameOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -1700,7 +1700,7 @@ _sem_AlterSchemaOperation_AlterSchemaOwner ann_ newName_ =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : AlterTableAction 
@@ -1750,10 +1750,10 @@ _sem_AlterTableAction (AddConstraint _ann _con) =
     (_sem_AlterTableAction_AddConstraint (_sem_Annotation _ann) (_sem_Constraint _con))
 -- semantic domain
 type T_AlterTableAction = Catalog ->
-                          TypeCheckingFlags ->
+                          TypeCheckFlags ->
                           (Maybe TypeExtra) ->
                           ( AlterTableAction,AlterTableAction)
-data Inh_AlterTableAction = Inh_AlterTableAction {_cat_Inh_AlterTableAction :: Catalog,_flags_Inh_AlterTableAction :: TypeCheckingFlags,_imCast_Inh_AlterTableAction :: (Maybe TypeExtra)}
+data Inh_AlterTableAction = Inh_AlterTableAction {_cat_Inh_AlterTableAction :: Catalog,_flags_Inh_AlterTableAction :: TypeCheckFlags,_imCast_Inh_AlterTableAction :: (Maybe TypeExtra)}
 data Syn_AlterTableAction = Syn_AlterTableAction {_annotatedTree_Syn_AlterTableAction :: AlterTableAction,_originalTree_Syn_AlterTableAction :: AlterTableAction}
 _wrap_AlterTableAction :: T_AlterTableAction ->
                          Inh_AlterTableAction ->
@@ -1772,10 +1772,10 @@ _sem_AlterTableAction_AddColumn ann_ att_ =
               _lhsOannotatedTree :: AlterTableAction
               _lhsOoriginalTree :: AlterTableAction
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _attOcat :: Catalog
-              _attOflags :: TypeCheckingFlags
+              _attOflags :: TypeCheckFlags
               _attOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -1863,7 +1863,7 @@ _sem_AlterTableAction_DropColumn ann_ nm_ =
               _lhsOannotatedTree :: AlterTableAction
               _lhsOoriginalTree :: AlterTableAction
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -1930,10 +1930,10 @@ _sem_AlterTableAction_AlterColumn ann_ nm_ act_ =
               _lhsOannotatedTree :: AlterTableAction
               _lhsOoriginalTree :: AlterTableAction
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _actOcat :: Catalog
-              _actOflags :: TypeCheckingFlags
+              _actOflags :: TypeCheckFlags
               _actOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -2021,10 +2021,10 @@ _sem_AlterTableAction_AddConstraint ann_ con_ =
               _lhsOannotatedTree :: AlterTableAction
               _lhsOoriginalTree :: AlterTableAction
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _conOcat :: Catalog
-              _conOflags :: TypeCheckingFlags
+              _conOflags :: TypeCheckFlags
               _conOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -2106,7 +2106,7 @@ _sem_AlterTableAction_AddConstraint ann_ con_ =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : AlterTableActionList 
@@ -2131,10 +2131,10 @@ _sem_AlterTableActionList list =
     (Prelude.foldr _sem_AlterTableActionList_Cons _sem_AlterTableActionList_Nil (Prelude.map _sem_AlterTableAction list))
 -- semantic domain
 type T_AlterTableActionList = Catalog ->
-                              TypeCheckingFlags ->
+                              TypeCheckFlags ->
                               (Maybe TypeExtra) ->
                               ( AlterTableActionList,AlterTableActionList)
-data Inh_AlterTableActionList = Inh_AlterTableActionList {_cat_Inh_AlterTableActionList :: Catalog,_flags_Inh_AlterTableActionList :: TypeCheckingFlags,_imCast_Inh_AlterTableActionList :: (Maybe TypeExtra)}
+data Inh_AlterTableActionList = Inh_AlterTableActionList {_cat_Inh_AlterTableActionList :: Catalog,_flags_Inh_AlterTableActionList :: TypeCheckFlags,_imCast_Inh_AlterTableActionList :: (Maybe TypeExtra)}
 data Syn_AlterTableActionList = Syn_AlterTableActionList {_annotatedTree_Syn_AlterTableActionList :: AlterTableActionList,_originalTree_Syn_AlterTableActionList :: AlterTableActionList}
 _wrap_AlterTableActionList :: T_AlterTableActionList ->
                              Inh_AlterTableActionList ->
@@ -2152,10 +2152,10 @@ _sem_AlterTableActionList_Cons hd_ tl_ =
          (let _lhsOannotatedTree :: AlterTableActionList
               _lhsOoriginalTree :: AlterTableActionList
               _hdOcat :: Catalog
-              _hdOflags :: TypeCheckingFlags
+              _hdOflags :: TypeCheckFlags
               _hdOimCast :: (Maybe TypeExtra)
               _tlOcat :: Catalog
-              _tlOflags :: TypeCheckingFlags
+              _tlOflags :: TypeCheckFlags
               _tlOimCast :: (Maybe TypeExtra)
               _hdIannotatedTree :: AlterTableAction
               _hdIoriginalTree :: AlterTableAction
@@ -2263,7 +2263,7 @@ _sem_AlterTableActionList_Nil =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : AlterTableOperation 
@@ -2304,10 +2304,10 @@ _sem_AlterTableOperation (AlterTableActions _ann _actions) =
     (_sem_AlterTableOperation_AlterTableActions (_sem_Annotation _ann) (_sem_AlterTableActionList _actions))
 -- semantic domain
 type T_AlterTableOperation = Catalog ->
-                             TypeCheckingFlags ->
+                             TypeCheckFlags ->
                              (Maybe TypeExtra) ->
                              ( AlterTableOperation,AlterTableOperation)
-data Inh_AlterTableOperation = Inh_AlterTableOperation {_cat_Inh_AlterTableOperation :: Catalog,_flags_Inh_AlterTableOperation :: TypeCheckingFlags,_imCast_Inh_AlterTableOperation :: (Maybe TypeExtra)}
+data Inh_AlterTableOperation = Inh_AlterTableOperation {_cat_Inh_AlterTableOperation :: Catalog,_flags_Inh_AlterTableOperation :: TypeCheckFlags,_imCast_Inh_AlterTableOperation :: (Maybe TypeExtra)}
 data Syn_AlterTableOperation = Syn_AlterTableOperation {_annotatedTree_Syn_AlterTableOperation :: AlterTableOperation,_originalTree_Syn_AlterTableOperation :: AlterTableOperation}
 _wrap_AlterTableOperation :: T_AlterTableOperation ->
                             Inh_AlterTableOperation ->
@@ -2327,10 +2327,10 @@ _sem_AlterTableOperation_RenameTable ann_ newName_ =
               _lhsOannotatedTree :: AlterTableOperation
               _lhsOoriginalTree :: AlterTableOperation
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _newNameOcat :: Catalog
-              _newNameOflags :: TypeCheckingFlags
+              _newNameOflags :: TypeCheckFlags
               _newNameOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -2425,7 +2425,7 @@ _sem_AlterTableOperation_RenameColumn ann_ oldName_ newName_ =
               _lhsOannotatedTree :: AlterTableOperation
               _lhsOoriginalTree :: AlterTableOperation
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -2491,10 +2491,10 @@ _sem_AlterTableOperation_AlterTableActions ann_ actions_ =
               _lhsOannotatedTree :: AlterTableOperation
               _lhsOoriginalTree :: AlterTableOperation
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _actionsOcat :: Catalog
-              _actionsOflags :: TypeCheckingFlags
+              _actionsOflags :: TypeCheckFlags
               _actionsOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -2576,7 +2576,7 @@ _sem_AlterTableOperation_AlterTableActions ann_ actions_ =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
          tpe                  : Either [TypeError] TypeExtra
       synthesized attributes:
@@ -2618,11 +2618,11 @@ _sem_Annotation (Annotation _anSrc _anType _anErrs _anImplicitCast _anCatUpd) =
     (_sem_Annotation_Annotation _anSrc _anType _anErrs _anImplicitCast _anCatUpd)
 -- semantic domain
 type T_Annotation = Catalog ->
-                    TypeCheckingFlags ->
+                    TypeCheckFlags ->
                     (Maybe TypeExtra) ->
                     (Either [TypeError] TypeExtra) ->
                     ( Annotation,Annotation)
-data Inh_Annotation = Inh_Annotation {_cat_Inh_Annotation :: Catalog,_flags_Inh_Annotation :: TypeCheckingFlags,_imCast_Inh_Annotation :: (Maybe TypeExtra),_tpe_Inh_Annotation :: (Either [TypeError] TypeExtra)}
+data Inh_Annotation = Inh_Annotation {_cat_Inh_Annotation :: Catalog,_flags_Inh_Annotation :: TypeCheckFlags,_imCast_Inh_Annotation :: (Maybe TypeExtra),_tpe_Inh_Annotation :: (Either [TypeError] TypeExtra)}
 data Syn_Annotation = Syn_Annotation {_annotatedTree_Syn_Annotation :: Annotation,_originalTree_Syn_Annotation :: Annotation}
 _wrap_Annotation :: T_Annotation ->
                    Inh_Annotation ->
@@ -2675,7 +2675,7 @@ _sem_Annotation_Annotation anSrc_ anType_ anErrs_ anImplicitCast_ anCatUpd_ =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : AttributeDef 
@@ -2700,10 +2700,10 @@ _sem_AttributeDef (AttributeDef _ann _name _typ _def _cons) =
     (_sem_AttributeDef_AttributeDef (_sem_Annotation _ann) _name (_sem_TypeName _typ) (_sem_MaybeScalarExpr _def) (_sem_RowConstraintList _cons))
 -- semantic domain
 type T_AttributeDef = Catalog ->
-                      TypeCheckingFlags ->
+                      TypeCheckFlags ->
                       (Maybe TypeExtra) ->
                       ( AttributeDef,AttributeDef)
-data Inh_AttributeDef = Inh_AttributeDef {_cat_Inh_AttributeDef :: Catalog,_flags_Inh_AttributeDef :: TypeCheckingFlags,_imCast_Inh_AttributeDef :: (Maybe TypeExtra)}
+data Inh_AttributeDef = Inh_AttributeDef {_cat_Inh_AttributeDef :: Catalog,_flags_Inh_AttributeDef :: TypeCheckFlags,_imCast_Inh_AttributeDef :: (Maybe TypeExtra)}
 data Syn_AttributeDef = Syn_AttributeDef {_annotatedTree_Syn_AttributeDef :: AttributeDef,_originalTree_Syn_AttributeDef :: AttributeDef}
 _wrap_AttributeDef :: T_AttributeDef ->
                      Inh_AttributeDef ->
@@ -2729,16 +2729,16 @@ _sem_AttributeDef_AttributeDef ann_ name_ typ_ def_ cons_ =
               _lhsOannotatedTree :: AttributeDef
               _lhsOoriginalTree :: AttributeDef
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _typOcat :: Catalog
-              _typOflags :: TypeCheckingFlags
+              _typOflags :: TypeCheckFlags
               _typOimCast :: (Maybe TypeExtra)
               _defOcat :: Catalog
-              _defOflags :: TypeCheckingFlags
+              _defOflags :: TypeCheckFlags
               _defOimCast :: (Maybe TypeExtra)
               _consOcat :: Catalog
-              _consOflags :: TypeCheckingFlags
+              _consOflags :: TypeCheckFlags
               _consOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -2890,7 +2890,7 @@ _sem_AttributeDef_AttributeDef ann_ name_ typ_ def_ cons_ =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : AttributeDefList 
@@ -2915,10 +2915,10 @@ _sem_AttributeDefList list =
     (Prelude.foldr _sem_AttributeDefList_Cons _sem_AttributeDefList_Nil (Prelude.map _sem_AttributeDef list))
 -- semantic domain
 type T_AttributeDefList = Catalog ->
-                          TypeCheckingFlags ->
+                          TypeCheckFlags ->
                           (Maybe TypeExtra) ->
                           ( AttributeDefList,AttributeDefList)
-data Inh_AttributeDefList = Inh_AttributeDefList {_cat_Inh_AttributeDefList :: Catalog,_flags_Inh_AttributeDefList :: TypeCheckingFlags,_imCast_Inh_AttributeDefList :: (Maybe TypeExtra)}
+data Inh_AttributeDefList = Inh_AttributeDefList {_cat_Inh_AttributeDefList :: Catalog,_flags_Inh_AttributeDefList :: TypeCheckFlags,_imCast_Inh_AttributeDefList :: (Maybe TypeExtra)}
 data Syn_AttributeDefList = Syn_AttributeDefList {_annotatedTree_Syn_AttributeDefList :: AttributeDefList,_originalTree_Syn_AttributeDefList :: AttributeDefList}
 _wrap_AttributeDefList :: T_AttributeDefList ->
                          Inh_AttributeDefList ->
@@ -2936,10 +2936,10 @@ _sem_AttributeDefList_Cons hd_ tl_ =
          (let _lhsOannotatedTree :: AttributeDefList
               _lhsOoriginalTree :: AttributeDefList
               _hdOcat :: Catalog
-              _hdOflags :: TypeCheckingFlags
+              _hdOflags :: TypeCheckFlags
               _hdOimCast :: (Maybe TypeExtra)
               _tlOcat :: Catalog
-              _tlOflags :: TypeCheckingFlags
+              _tlOflags :: TypeCheckFlags
               _tlOimCast :: (Maybe TypeExtra)
               _hdIannotatedTree :: AttributeDef
               _hdIoriginalTree :: AttributeDef
@@ -3048,7 +3048,7 @@ _sem_AttributeDefList_Nil =
       inherited attributes:
          cat                  : Catalog
          downEnv              : Environment
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
          thenExpectedType     : Maybe TypeExtra
          whenExpectedType     : Maybe TypeExtra
@@ -3075,12 +3075,12 @@ _sem_CaseScalarExprListScalarExprPair ( x1,x2) =
 -- semantic domain
 type T_CaseScalarExprListScalarExprPair = Catalog ->
                                           Environment ->
-                                          TypeCheckingFlags ->
+                                          TypeCheckFlags ->
                                           (Maybe TypeExtra) ->
                                           (Maybe TypeExtra) ->
                                           (Maybe TypeExtra) ->
                                           ( CaseScalarExprListScalarExprPair,CaseScalarExprListScalarExprPair,(Maybe TypeExtra),([Maybe TypeExtra]),([Maybe TypeExtra]))
-data Inh_CaseScalarExprListScalarExprPair = Inh_CaseScalarExprListScalarExprPair {_cat_Inh_CaseScalarExprListScalarExprPair :: Catalog,_downEnv_Inh_CaseScalarExprListScalarExprPair :: Environment,_flags_Inh_CaseScalarExprListScalarExprPair :: TypeCheckingFlags,_imCast_Inh_CaseScalarExprListScalarExprPair :: (Maybe TypeExtra),_thenExpectedType_Inh_CaseScalarExprListScalarExprPair :: (Maybe TypeExtra),_whenExpectedType_Inh_CaseScalarExprListScalarExprPair :: (Maybe TypeExtra)}
+data Inh_CaseScalarExprListScalarExprPair = Inh_CaseScalarExprListScalarExprPair {_cat_Inh_CaseScalarExprListScalarExprPair :: Catalog,_downEnv_Inh_CaseScalarExprListScalarExprPair :: Environment,_flags_Inh_CaseScalarExprListScalarExprPair :: TypeCheckFlags,_imCast_Inh_CaseScalarExprListScalarExprPair :: (Maybe TypeExtra),_thenExpectedType_Inh_CaseScalarExprListScalarExprPair :: (Maybe TypeExtra),_whenExpectedType_Inh_CaseScalarExprListScalarExprPair :: (Maybe TypeExtra)}
 data Syn_CaseScalarExprListScalarExprPair = Syn_CaseScalarExprListScalarExprPair {_annotatedTree_Syn_CaseScalarExprListScalarExprPair :: CaseScalarExprListScalarExprPair,_originalTree_Syn_CaseScalarExprListScalarExprPair :: CaseScalarExprListScalarExprPair,_thenType_Syn_CaseScalarExprListScalarExprPair :: (Maybe TypeExtra),_upTypes_Syn_CaseScalarExprListScalarExprPair :: ([Maybe TypeExtra]),_whenTypes_Syn_CaseScalarExprListScalarExprPair :: ([Maybe TypeExtra])}
 _wrap_CaseScalarExprListScalarExprPair :: T_CaseScalarExprListScalarExprPair ->
                                          Inh_CaseScalarExprListScalarExprPair ->
@@ -3112,11 +3112,11 @@ _sem_CaseScalarExprListScalarExprPair_Tuple x1_ x2_ =
               _lhsOupTypes :: ([Maybe TypeExtra])
               _x1Ocat :: Catalog
               _x1OdownEnv :: Environment
-              _x1Oflags :: TypeCheckingFlags
+              _x1Oflags :: TypeCheckFlags
               _x1OimCast :: (Maybe TypeExtra)
               _x2Ocat :: Catalog
               _x2OdownEnv :: Environment
-              _x2Oflags :: TypeCheckingFlags
+              _x2Oflags :: TypeCheckFlags
               _x2OimCast :: (Maybe TypeExtra)
               _x1IannotatedTree :: ScalarExprList
               _x1IoriginalTree :: ScalarExprList
@@ -3268,7 +3268,7 @@ _sem_CaseScalarExprListScalarExprPair_Tuple x1_ x2_ =
       inherited attributes:
          cat                  : Catalog
          downEnv              : Environment
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
          thenExpectedType     : Maybe TypeExtra
          whenExpectedType     : Maybe TypeExtra
@@ -3299,12 +3299,12 @@ _sem_CaseScalarExprListScalarExprPairList list =
 -- semantic domain
 type T_CaseScalarExprListScalarExprPairList = Catalog ->
                                               Environment ->
-                                              TypeCheckingFlags ->
+                                              TypeCheckFlags ->
                                               (Maybe TypeExtra) ->
                                               (Maybe TypeExtra) ->
                                               (Maybe TypeExtra) ->
                                               ( CaseScalarExprListScalarExprPairList,CaseScalarExprListScalarExprPairList,([Maybe TypeExtra]),([Maybe TypeExtra]),([[Maybe TypeExtra]]))
-data Inh_CaseScalarExprListScalarExprPairList = Inh_CaseScalarExprListScalarExprPairList {_cat_Inh_CaseScalarExprListScalarExprPairList :: Catalog,_downEnv_Inh_CaseScalarExprListScalarExprPairList :: Environment,_flags_Inh_CaseScalarExprListScalarExprPairList :: TypeCheckingFlags,_imCast_Inh_CaseScalarExprListScalarExprPairList :: (Maybe TypeExtra),_thenExpectedType_Inh_CaseScalarExprListScalarExprPairList :: (Maybe TypeExtra),_whenExpectedType_Inh_CaseScalarExprListScalarExprPairList :: (Maybe TypeExtra)}
+data Inh_CaseScalarExprListScalarExprPairList = Inh_CaseScalarExprListScalarExprPairList {_cat_Inh_CaseScalarExprListScalarExprPairList :: Catalog,_downEnv_Inh_CaseScalarExprListScalarExprPairList :: Environment,_flags_Inh_CaseScalarExprListScalarExprPairList :: TypeCheckFlags,_imCast_Inh_CaseScalarExprListScalarExprPairList :: (Maybe TypeExtra),_thenExpectedType_Inh_CaseScalarExprListScalarExprPairList :: (Maybe TypeExtra),_whenExpectedType_Inh_CaseScalarExprListScalarExprPairList :: (Maybe TypeExtra)}
 data Syn_CaseScalarExprListScalarExprPairList = Syn_CaseScalarExprListScalarExprPairList {_annotatedTree_Syn_CaseScalarExprListScalarExprPairList :: CaseScalarExprListScalarExprPairList,_originalTree_Syn_CaseScalarExprListScalarExprPairList :: CaseScalarExprListScalarExprPairList,_thenTypes_Syn_CaseScalarExprListScalarExprPairList :: ([Maybe TypeExtra]),_upTypes_Syn_CaseScalarExprListScalarExprPairList :: ([Maybe TypeExtra]),_whenTypes_Syn_CaseScalarExprListScalarExprPairList :: ([[Maybe TypeExtra]])}
 _wrap_CaseScalarExprListScalarExprPairList :: T_CaseScalarExprListScalarExprPairList ->
                                              Inh_CaseScalarExprListScalarExprPairList ->
@@ -3329,13 +3329,13 @@ _sem_CaseScalarExprListScalarExprPairList_Cons hd_ tl_ =
               _lhsOupTypes :: ([Maybe TypeExtra])
               _hdOcat :: Catalog
               _hdOdownEnv :: Environment
-              _hdOflags :: TypeCheckingFlags
+              _hdOflags :: TypeCheckFlags
               _hdOimCast :: (Maybe TypeExtra)
               _hdOthenExpectedType :: (Maybe TypeExtra)
               _hdOwhenExpectedType :: (Maybe TypeExtra)
               _tlOcat :: Catalog
               _tlOdownEnv :: Environment
-              _tlOflags :: TypeCheckingFlags
+              _tlOflags :: TypeCheckFlags
               _tlOimCast :: (Maybe TypeExtra)
               _tlOthenExpectedType :: (Maybe TypeExtra)
               _tlOwhenExpectedType :: (Maybe TypeExtra)
@@ -3529,7 +3529,7 @@ _sem_CaseScalarExprListScalarExprPairList_Nil =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : Constraint 
@@ -3586,10 +3586,10 @@ _sem_Constraint (ReferenceConstraint _ann _name _atts _table _tableAtts _onUpdat
     (_sem_Constraint_ReferenceConstraint (_sem_Annotation _ann) _name _atts (_sem_Name _table) _tableAtts _onUpdate _onDelete)
 -- semantic domain
 type T_Constraint = Catalog ->
-                    TypeCheckingFlags ->
+                    TypeCheckFlags ->
                     (Maybe TypeExtra) ->
                     ( Constraint,Constraint)
-data Inh_Constraint = Inh_Constraint {_cat_Inh_Constraint :: Catalog,_flags_Inh_Constraint :: TypeCheckingFlags,_imCast_Inh_Constraint :: (Maybe TypeExtra)}
+data Inh_Constraint = Inh_Constraint {_cat_Inh_Constraint :: Catalog,_flags_Inh_Constraint :: TypeCheckFlags,_imCast_Inh_Constraint :: (Maybe TypeExtra)}
 data Syn_Constraint = Syn_Constraint {_annotatedTree_Syn_Constraint :: Constraint,_originalTree_Syn_Constraint :: Constraint}
 _wrap_Constraint :: T_Constraint ->
                    Inh_Constraint ->
@@ -3609,7 +3609,7 @@ _sem_Constraint_UniqueConstraint ann_ name_ x_ =
               _lhsOannotatedTree :: Constraint
               _lhsOoriginalTree :: Constraint
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -3676,7 +3676,7 @@ _sem_Constraint_PrimaryKeyConstraint ann_ name_ x_ =
               _lhsOannotatedTree :: Constraint
               _lhsOoriginalTree :: Constraint
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -3748,10 +3748,10 @@ _sem_Constraint_CheckConstraint ann_ name_ expr_ =
               _lhsOannotatedTree :: Constraint
               _lhsOoriginalTree :: Constraint
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _exprOcat :: Catalog
-              _exprOflags :: TypeCheckingFlags
+              _exprOflags :: TypeCheckFlags
               _exprOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -3877,10 +3877,10 @@ _sem_Constraint_ReferenceConstraint ann_ name_ atts_ table_ tableAtts_ onUpdate_
               _lhsOannotatedTree :: Constraint
               _lhsOoriginalTree :: Constraint
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _tableOcat :: Catalog
-              _tableOflags :: TypeCheckingFlags
+              _tableOflags :: TypeCheckFlags
               _tableOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -3968,7 +3968,7 @@ _sem_Constraint_ReferenceConstraint ann_ name_ atts_ table_ tableAtts_ onUpdate_
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : ConstraintList 
@@ -3993,10 +3993,10 @@ _sem_ConstraintList list =
     (Prelude.foldr _sem_ConstraintList_Cons _sem_ConstraintList_Nil (Prelude.map _sem_Constraint list))
 -- semantic domain
 type T_ConstraintList = Catalog ->
-                        TypeCheckingFlags ->
+                        TypeCheckFlags ->
                         (Maybe TypeExtra) ->
                         ( ConstraintList,ConstraintList)
-data Inh_ConstraintList = Inh_ConstraintList {_cat_Inh_ConstraintList :: Catalog,_flags_Inh_ConstraintList :: TypeCheckingFlags,_imCast_Inh_ConstraintList :: (Maybe TypeExtra)}
+data Inh_ConstraintList = Inh_ConstraintList {_cat_Inh_ConstraintList :: Catalog,_flags_Inh_ConstraintList :: TypeCheckFlags,_imCast_Inh_ConstraintList :: (Maybe TypeExtra)}
 data Syn_ConstraintList = Syn_ConstraintList {_annotatedTree_Syn_ConstraintList :: ConstraintList,_originalTree_Syn_ConstraintList :: ConstraintList}
 _wrap_ConstraintList :: T_ConstraintList ->
                        Inh_ConstraintList ->
@@ -4014,10 +4014,10 @@ _sem_ConstraintList_Cons hd_ tl_ =
          (let _lhsOannotatedTree :: ConstraintList
               _lhsOoriginalTree :: ConstraintList
               _hdOcat :: Catalog
-              _hdOflags :: TypeCheckingFlags
+              _hdOflags :: TypeCheckFlags
               _hdOimCast :: (Maybe TypeExtra)
               _tlOcat :: Catalog
-              _tlOflags :: TypeCheckingFlags
+              _tlOflags :: TypeCheckFlags
               _tlOimCast :: (Maybe TypeExtra)
               _hdIannotatedTree :: Constraint
               _hdIoriginalTree :: Constraint
@@ -4125,7 +4125,7 @@ _sem_ConstraintList_Nil =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : FnBody 
@@ -4156,10 +4156,10 @@ _sem_FnBody (PlpgsqlFnBody _ann _blk) =
     (_sem_FnBody_PlpgsqlFnBody (_sem_Annotation _ann) (_sem_Statement _blk))
 -- semantic domain
 type T_FnBody = Catalog ->
-                TypeCheckingFlags ->
+                TypeCheckFlags ->
                 (Maybe TypeExtra) ->
                 ( FnBody,FnBody)
-data Inh_FnBody = Inh_FnBody {_cat_Inh_FnBody :: Catalog,_flags_Inh_FnBody :: TypeCheckingFlags,_imCast_Inh_FnBody :: (Maybe TypeExtra)}
+data Inh_FnBody = Inh_FnBody {_cat_Inh_FnBody :: Catalog,_flags_Inh_FnBody :: TypeCheckFlags,_imCast_Inh_FnBody :: (Maybe TypeExtra)}
 data Syn_FnBody = Syn_FnBody {_annotatedTree_Syn_FnBody :: FnBody,_originalTree_Syn_FnBody :: FnBody}
 _wrap_FnBody :: T_FnBody ->
                Inh_FnBody ->
@@ -4178,10 +4178,10 @@ _sem_FnBody_SqlFnBody ann_ sts_ =
               _lhsOannotatedTree :: FnBody
               _lhsOoriginalTree :: FnBody
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _stsOcat :: Catalog
-              _stsOflags :: TypeCheckingFlags
+              _stsOflags :: TypeCheckFlags
               _stsOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -4269,10 +4269,10 @@ _sem_FnBody_PlpgsqlFnBody ann_ blk_ =
               _lhsOannotatedTree :: FnBody
               _lhsOoriginalTree :: FnBody
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _blkOcat :: Catalog
-              _blkOflags :: TypeCheckingFlags
+              _blkOflags :: TypeCheckFlags
               _blkOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -4357,7 +4357,7 @@ _sem_FnBody_PlpgsqlFnBody ann_ blk_ =
          downEnv              : Environment
          expectedCast         : Bool
          expectedType         : Maybe TypeExtra
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : InList 
@@ -4394,10 +4394,10 @@ type T_InList = Catalog ->
                 Environment ->
                 Bool ->
                 (Maybe TypeExtra) ->
-                TypeCheckingFlags ->
+                TypeCheckFlags ->
                 (Maybe TypeExtra) ->
                 ( InList,(Either [TypeError] TypeExtra),InList)
-data Inh_InList = Inh_InList {_cat_Inh_InList :: Catalog,_downEnv_Inh_InList :: Environment,_expectedCast_Inh_InList :: Bool,_expectedType_Inh_InList :: (Maybe TypeExtra),_flags_Inh_InList :: TypeCheckingFlags,_imCast_Inh_InList :: (Maybe TypeExtra)}
+data Inh_InList = Inh_InList {_cat_Inh_InList :: Catalog,_downEnv_Inh_InList :: Environment,_expectedCast_Inh_InList :: Bool,_expectedType_Inh_InList :: (Maybe TypeExtra),_flags_Inh_InList :: TypeCheckFlags,_imCast_Inh_InList :: (Maybe TypeExtra)}
 data Syn_InList = Syn_InList {_annotatedTree_Syn_InList :: InList,_listType_Syn_InList :: (Either [TypeError] TypeExtra),_originalTree_Syn_InList :: InList}
 _wrap_InList :: T_InList ->
                Inh_InList ->
@@ -4423,11 +4423,11 @@ _sem_InList_InList ann_ exprs_ =
               _lhsOannotatedTree :: InList
               _lhsOoriginalTree :: InList
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOtpe :: (Either [TypeError] TypeExtra)
               _exprsOcat :: Catalog
               _exprsOdownEnv :: Environment
-              _exprsOflags :: TypeCheckingFlags
+              _exprsOflags :: TypeCheckFlags
               _exprsOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -4560,10 +4560,10 @@ _sem_InList_InQueryExpr ann_ sel_ =
               _lhsOannotatedTree :: InList
               _lhsOoriginalTree :: InList
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOtpe :: (Either [TypeError] TypeExtra)
               _selOcat :: Catalog
-              _selOflags :: TypeCheckingFlags
+              _selOflags :: TypeCheckFlags
               _selOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -4684,7 +4684,7 @@ _sem_InList_InQueryExpr ann_ sel_ =
       inherited attributes:
          cat                  : Catalog
          downEnv              : Environment
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : JoinExpr 
@@ -4718,10 +4718,10 @@ _sem_JoinExpr (JoinUsing _ann _x) =
 -- semantic domain
 type T_JoinExpr = Catalog ->
                   Environment ->
-                  TypeCheckingFlags ->
+                  TypeCheckFlags ->
                   (Maybe TypeExtra) ->
                   ( JoinExpr,JoinExpr)
-data Inh_JoinExpr = Inh_JoinExpr {_cat_Inh_JoinExpr :: Catalog,_downEnv_Inh_JoinExpr :: Environment,_flags_Inh_JoinExpr :: TypeCheckingFlags,_imCast_Inh_JoinExpr :: (Maybe TypeExtra)}
+data Inh_JoinExpr = Inh_JoinExpr {_cat_Inh_JoinExpr :: Catalog,_downEnv_Inh_JoinExpr :: Environment,_flags_Inh_JoinExpr :: TypeCheckFlags,_imCast_Inh_JoinExpr :: (Maybe TypeExtra)}
 data Syn_JoinExpr = Syn_JoinExpr {_annotatedTree_Syn_JoinExpr :: JoinExpr,_originalTree_Syn_JoinExpr :: JoinExpr}
 _wrap_JoinExpr :: T_JoinExpr ->
                  Inh_JoinExpr ->
@@ -4744,12 +4744,12 @@ _sem_JoinExpr_JoinOn ann_ expr_ =
               _lhsOannotatedTree :: JoinExpr
               _lhsOoriginalTree :: JoinExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annOtpe :: (Either [TypeError] TypeExtra)
               _exprOcat :: Catalog
               _exprOdownEnv :: Environment
-              _exprOflags :: TypeCheckingFlags
+              _exprOflags :: TypeCheckFlags
               _exprOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -4876,7 +4876,7 @@ _sem_JoinExpr_JoinUsing ann_ x_ =
          (let _lhsOannotatedTree :: JoinExpr
               _lhsOoriginalTree :: JoinExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annOtpe :: (Either [TypeError] TypeExtra)
               _annIannotatedTree :: Annotation
@@ -4944,7 +4944,7 @@ _sem_JoinExpr_JoinUsing ann_ x_ =
       inherited attributes:
          cat                  : Catalog
          downEnv              : Environment
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : MaybeBoolExpr 
@@ -4971,10 +4971,10 @@ _sem_MaybeBoolExpr Prelude.Nothing =
 -- semantic domain
 type T_MaybeBoolExpr = Catalog ->
                        Environment ->
-                       TypeCheckingFlags ->
+                       TypeCheckFlags ->
                        (Maybe TypeExtra) ->
                        ( MaybeBoolExpr,MaybeBoolExpr)
-data Inh_MaybeBoolExpr = Inh_MaybeBoolExpr {_cat_Inh_MaybeBoolExpr :: Catalog,_downEnv_Inh_MaybeBoolExpr :: Environment,_flags_Inh_MaybeBoolExpr :: TypeCheckingFlags,_imCast_Inh_MaybeBoolExpr :: (Maybe TypeExtra)}
+data Inh_MaybeBoolExpr = Inh_MaybeBoolExpr {_cat_Inh_MaybeBoolExpr :: Catalog,_downEnv_Inh_MaybeBoolExpr :: Environment,_flags_Inh_MaybeBoolExpr :: TypeCheckFlags,_imCast_Inh_MaybeBoolExpr :: (Maybe TypeExtra)}
 data Syn_MaybeBoolExpr = Syn_MaybeBoolExpr {_annotatedTree_Syn_MaybeBoolExpr :: MaybeBoolExpr,_originalTree_Syn_MaybeBoolExpr :: MaybeBoolExpr}
 _wrap_MaybeBoolExpr :: T_MaybeBoolExpr ->
                       Inh_MaybeBoolExpr ->
@@ -4997,7 +4997,7 @@ _sem_MaybeBoolExpr_Just just_ =
               _lhsOoriginalTree :: MaybeBoolExpr
               _justOcat :: Catalog
               _justOdownEnv :: Environment
-              _justOflags :: TypeCheckingFlags
+              _justOflags :: TypeCheckFlags
               _justOimCast :: (Maybe TypeExtra)
               _justIannotatedTree :: ScalarExpr
               _justIcolExprs :: ([(NameComponent,Maybe TypeExtra,ScalarExpr)])
@@ -5116,7 +5116,7 @@ _sem_MaybeBoolExpr_Nothing =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : MaybeNameComponentList 
@@ -5142,10 +5142,10 @@ _sem_MaybeNameComponentList Prelude.Nothing =
     _sem_MaybeNameComponentList_Nothing
 -- semantic domain
 type T_MaybeNameComponentList = Catalog ->
-                                TypeCheckingFlags ->
+                                TypeCheckFlags ->
                                 (Maybe TypeExtra) ->
                                 ( MaybeNameComponentList,MaybeNameComponentList)
-data Inh_MaybeNameComponentList = Inh_MaybeNameComponentList {_cat_Inh_MaybeNameComponentList :: Catalog,_flags_Inh_MaybeNameComponentList :: TypeCheckingFlags,_imCast_Inh_MaybeNameComponentList :: (Maybe TypeExtra)}
+data Inh_MaybeNameComponentList = Inh_MaybeNameComponentList {_cat_Inh_MaybeNameComponentList :: Catalog,_flags_Inh_MaybeNameComponentList :: TypeCheckFlags,_imCast_Inh_MaybeNameComponentList :: (Maybe TypeExtra)}
 data Syn_MaybeNameComponentList = Syn_MaybeNameComponentList {_annotatedTree_Syn_MaybeNameComponentList :: MaybeNameComponentList,_originalTree_Syn_MaybeNameComponentList :: MaybeNameComponentList}
 _wrap_MaybeNameComponentList :: T_MaybeNameComponentList ->
                                Inh_MaybeNameComponentList ->
@@ -5162,7 +5162,7 @@ _sem_MaybeNameComponentList_Just just_ =
          (let _lhsOannotatedTree :: MaybeNameComponentList
               _lhsOoriginalTree :: MaybeNameComponentList
               _justOcat :: Catalog
-              _justOflags :: TypeCheckingFlags
+              _justOflags :: TypeCheckFlags
               _justOimCast :: (Maybe TypeExtra)
               _justIannotatedTree :: NameComponentList
               _justIoriginalTree :: NameComponentList
@@ -5252,7 +5252,7 @@ _sem_MaybeNameComponentList_Nothing =
          downEnv              : Environment
          expectedCast         : Bool
          expectedType         : Maybe TypeExtra
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : MaybeScalarExpr 
@@ -5283,10 +5283,10 @@ type T_MaybeScalarExpr = Bool ->
                          Environment ->
                          Bool ->
                          (Maybe TypeExtra) ->
-                         TypeCheckingFlags ->
+                         TypeCheckFlags ->
                          (Maybe TypeExtra) ->
                          ( MaybeScalarExpr,MaybeScalarExpr,(Maybe TypeExtra))
-data Inh_MaybeScalarExpr = Inh_MaybeScalarExpr {_assignmentCastContext_Inh_MaybeScalarExpr :: Bool,_cat_Inh_MaybeScalarExpr :: Catalog,_downEnv_Inh_MaybeScalarExpr :: Environment,_expectedCast_Inh_MaybeScalarExpr :: Bool,_expectedType_Inh_MaybeScalarExpr :: (Maybe TypeExtra),_flags_Inh_MaybeScalarExpr :: TypeCheckingFlags,_imCast_Inh_MaybeScalarExpr :: (Maybe TypeExtra)}
+data Inh_MaybeScalarExpr = Inh_MaybeScalarExpr {_assignmentCastContext_Inh_MaybeScalarExpr :: Bool,_cat_Inh_MaybeScalarExpr :: Catalog,_downEnv_Inh_MaybeScalarExpr :: Environment,_expectedCast_Inh_MaybeScalarExpr :: Bool,_expectedType_Inh_MaybeScalarExpr :: (Maybe TypeExtra),_flags_Inh_MaybeScalarExpr :: TypeCheckFlags,_imCast_Inh_MaybeScalarExpr :: (Maybe TypeExtra)}
 data Syn_MaybeScalarExpr = Syn_MaybeScalarExpr {_annotatedTree_Syn_MaybeScalarExpr :: MaybeScalarExpr,_originalTree_Syn_MaybeScalarExpr :: MaybeScalarExpr,_upType_Syn_MaybeScalarExpr :: (Maybe TypeExtra)}
 _wrap_MaybeScalarExpr :: T_MaybeScalarExpr ->
                         Inh_MaybeScalarExpr ->
@@ -5313,7 +5313,7 @@ _sem_MaybeScalarExpr_Just just_ =
               _justOdownEnv :: Environment
               _justOexpectedCast :: Bool
               _justOexpectedType :: (Maybe TypeExtra)
-              _justOflags :: TypeCheckingFlags
+              _justOflags :: TypeCheckFlags
               _justOimCast :: (Maybe TypeExtra)
               _justIannotatedTree :: ScalarExpr
               _justIcolExprs :: ([(NameComponent,Maybe TypeExtra,ScalarExpr)])
@@ -5448,7 +5448,7 @@ _sem_MaybeScalarExpr_Nothing =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : MaybeSelectList 
@@ -5474,10 +5474,10 @@ _sem_MaybeSelectList Prelude.Nothing =
     _sem_MaybeSelectList_Nothing
 -- semantic domain
 type T_MaybeSelectList = Catalog ->
-                         TypeCheckingFlags ->
+                         TypeCheckFlags ->
                          (Maybe TypeExtra) ->
                          ( MaybeSelectList,MaybeSelectList)
-data Inh_MaybeSelectList = Inh_MaybeSelectList {_cat_Inh_MaybeSelectList :: Catalog,_flags_Inh_MaybeSelectList :: TypeCheckingFlags,_imCast_Inh_MaybeSelectList :: (Maybe TypeExtra)}
+data Inh_MaybeSelectList = Inh_MaybeSelectList {_cat_Inh_MaybeSelectList :: Catalog,_flags_Inh_MaybeSelectList :: TypeCheckFlags,_imCast_Inh_MaybeSelectList :: (Maybe TypeExtra)}
 data Syn_MaybeSelectList = Syn_MaybeSelectList {_annotatedTree_Syn_MaybeSelectList :: MaybeSelectList,_originalTree_Syn_MaybeSelectList :: MaybeSelectList}
 _wrap_MaybeSelectList :: T_MaybeSelectList ->
                         Inh_MaybeSelectList ->
@@ -5498,7 +5498,7 @@ _sem_MaybeSelectList_Just just_ =
               _lhsOannotatedTree :: MaybeSelectList
               _lhsOoriginalTree :: MaybeSelectList
               _justOcat :: Catalog
-              _justOflags :: TypeCheckingFlags
+              _justOflags :: TypeCheckFlags
               _justOimCast :: (Maybe TypeExtra)
               _justIannotatedTree :: SelectList
               _justIcolExprs :: ([(NameComponent,Maybe TypeExtra,ScalarExpr)])
@@ -5611,7 +5611,7 @@ _sem_MaybeSelectList_Nothing =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : MaybeTablePartitionDef 
@@ -5637,10 +5637,10 @@ _sem_MaybeTablePartitionDef Prelude.Nothing =
     _sem_MaybeTablePartitionDef_Nothing
 -- semantic domain
 type T_MaybeTablePartitionDef = Catalog ->
-                                TypeCheckingFlags ->
+                                TypeCheckFlags ->
                                 (Maybe TypeExtra) ->
                                 ( MaybeTablePartitionDef,MaybeTablePartitionDef)
-data Inh_MaybeTablePartitionDef = Inh_MaybeTablePartitionDef {_cat_Inh_MaybeTablePartitionDef :: Catalog,_flags_Inh_MaybeTablePartitionDef :: TypeCheckingFlags,_imCast_Inh_MaybeTablePartitionDef :: (Maybe TypeExtra)}
+data Inh_MaybeTablePartitionDef = Inh_MaybeTablePartitionDef {_cat_Inh_MaybeTablePartitionDef :: Catalog,_flags_Inh_MaybeTablePartitionDef :: TypeCheckFlags,_imCast_Inh_MaybeTablePartitionDef :: (Maybe TypeExtra)}
 data Syn_MaybeTablePartitionDef = Syn_MaybeTablePartitionDef {_annotatedTree_Syn_MaybeTablePartitionDef :: MaybeTablePartitionDef,_originalTree_Syn_MaybeTablePartitionDef :: MaybeTablePartitionDef}
 _wrap_MaybeTablePartitionDef :: T_MaybeTablePartitionDef ->
                                Inh_MaybeTablePartitionDef ->
@@ -5657,7 +5657,7 @@ _sem_MaybeTablePartitionDef_Just just_ =
          (let _lhsOannotatedTree :: MaybeTablePartitionDef
               _lhsOoriginalTree :: MaybeTablePartitionDef
               _justOcat :: Catalog
-              _justOflags :: TypeCheckingFlags
+              _justOflags :: TypeCheckFlags
               _justOimCast :: (Maybe TypeExtra)
               _justIannotatedTree :: TablePartitionDef
               _justIoriginalTree :: TablePartitionDef
@@ -5743,7 +5743,7 @@ _sem_MaybeTablePartitionDef_Nothing =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
          tpe                  : Either [TypeError] TypeExtra
       synthesized attributes:
@@ -5774,11 +5774,11 @@ _sem_Name (AntiName _string) =
     (_sem_Name_AntiName _string)
 -- semantic domain
 type T_Name = Catalog ->
-              TypeCheckingFlags ->
+              TypeCheckFlags ->
               (Maybe TypeExtra) ->
               (Either [TypeError] TypeExtra) ->
               ( Name,Name)
-data Inh_Name = Inh_Name {_cat_Inh_Name :: Catalog,_flags_Inh_Name :: TypeCheckingFlags,_imCast_Inh_Name :: (Maybe TypeExtra),_tpe_Inh_Name :: (Either [TypeError] TypeExtra)}
+data Inh_Name = Inh_Name {_cat_Inh_Name :: Catalog,_flags_Inh_Name :: TypeCheckFlags,_imCast_Inh_Name :: (Maybe TypeExtra),_tpe_Inh_Name :: (Either [TypeError] TypeExtra)}
 data Syn_Name = Syn_Name {_annotatedTree_Syn_Name :: Name,_originalTree_Syn_Name :: Name}
 _wrap_Name :: T_Name ->
              Inh_Name ->
@@ -5797,7 +5797,7 @@ _sem_Name_Name ann_ is_ =
          (let _lhsOannotatedTree :: Name
               _lhsOoriginalTree :: Name
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annOtpe :: (Either [TypeError] TypeExtra)
               _annIannotatedTree :: Annotation
@@ -5892,7 +5892,7 @@ _sem_Name_AntiName string_ =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : NameComponentList 
@@ -5917,10 +5917,10 @@ _sem_NameComponentList list =
     (Prelude.foldr _sem_NameComponentList_Cons _sem_NameComponentList_Nil list)
 -- semantic domain
 type T_NameComponentList = Catalog ->
-                           TypeCheckingFlags ->
+                           TypeCheckFlags ->
                            (Maybe TypeExtra) ->
                            ( NameComponentList,NameComponentList)
-data Inh_NameComponentList = Inh_NameComponentList {_cat_Inh_NameComponentList :: Catalog,_flags_Inh_NameComponentList :: TypeCheckingFlags,_imCast_Inh_NameComponentList :: (Maybe TypeExtra)}
+data Inh_NameComponentList = Inh_NameComponentList {_cat_Inh_NameComponentList :: Catalog,_flags_Inh_NameComponentList :: TypeCheckFlags,_imCast_Inh_NameComponentList :: (Maybe TypeExtra)}
 data Syn_NameComponentList = Syn_NameComponentList {_annotatedTree_Syn_NameComponentList :: NameComponentList,_originalTree_Syn_NameComponentList :: NameComponentList}
 _wrap_NameComponentList :: T_NameComponentList ->
                           Inh_NameComponentList ->
@@ -5938,7 +5938,7 @@ _sem_NameComponentList_Cons hd_ tl_ =
          (let _lhsOannotatedTree :: NameComponentList
               _lhsOoriginalTree :: NameComponentList
               _tlOcat :: Catalog
-              _tlOflags :: TypeCheckingFlags
+              _tlOflags :: TypeCheckFlags
               _tlOimCast :: (Maybe TypeExtra)
               _tlIannotatedTree :: NameComponentList
               _tlIoriginalTree :: NameComponentList
@@ -6024,7 +6024,7 @@ _sem_NameComponentList_Nil =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : NameTypeNameListPair 
@@ -6045,10 +6045,10 @@ _sem_NameTypeNameListPair ( x1,x2) =
     (_sem_NameTypeNameListPair_Tuple (_sem_Name x1) (_sem_TypeNameList x2))
 -- semantic domain
 type T_NameTypeNameListPair = Catalog ->
-                              TypeCheckingFlags ->
+                              TypeCheckFlags ->
                               (Maybe TypeExtra) ->
                               ( NameTypeNameListPair,NameTypeNameListPair)
-data Inh_NameTypeNameListPair = Inh_NameTypeNameListPair {_cat_Inh_NameTypeNameListPair :: Catalog,_flags_Inh_NameTypeNameListPair :: TypeCheckingFlags,_imCast_Inh_NameTypeNameListPair :: (Maybe TypeExtra)}
+data Inh_NameTypeNameListPair = Inh_NameTypeNameListPair {_cat_Inh_NameTypeNameListPair :: Catalog,_flags_Inh_NameTypeNameListPair :: TypeCheckFlags,_imCast_Inh_NameTypeNameListPair :: (Maybe TypeExtra)}
 data Syn_NameTypeNameListPair = Syn_NameTypeNameListPair {_annotatedTree_Syn_NameTypeNameListPair :: NameTypeNameListPair,_originalTree_Syn_NameTypeNameListPair :: NameTypeNameListPair}
 _wrap_NameTypeNameListPair :: T_NameTypeNameListPair ->
                              Inh_NameTypeNameListPair ->
@@ -6067,10 +6067,10 @@ _sem_NameTypeNameListPair_Tuple x1_ x2_ =
               _lhsOannotatedTree :: NameTypeNameListPair
               _lhsOoriginalTree :: NameTypeNameListPair
               _x1Ocat :: Catalog
-              _x1Oflags :: TypeCheckingFlags
+              _x1Oflags :: TypeCheckFlags
               _x1OimCast :: (Maybe TypeExtra)
               _x2Ocat :: Catalog
-              _x2Oflags :: TypeCheckingFlags
+              _x2Oflags :: TypeCheckFlags
               _x2OimCast :: (Maybe TypeExtra)
               _x1IannotatedTree :: Name
               _x1IoriginalTree :: Name
@@ -6152,7 +6152,7 @@ _sem_NameTypeNameListPair_Tuple x1_ x2_ =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : NameTypeNameListPairList 
@@ -6177,10 +6177,10 @@ _sem_NameTypeNameListPairList list =
     (Prelude.foldr _sem_NameTypeNameListPairList_Cons _sem_NameTypeNameListPairList_Nil (Prelude.map _sem_NameTypeNameListPair list))
 -- semantic domain
 type T_NameTypeNameListPairList = Catalog ->
-                                  TypeCheckingFlags ->
+                                  TypeCheckFlags ->
                                   (Maybe TypeExtra) ->
                                   ( NameTypeNameListPairList,NameTypeNameListPairList)
-data Inh_NameTypeNameListPairList = Inh_NameTypeNameListPairList {_cat_Inh_NameTypeNameListPairList :: Catalog,_flags_Inh_NameTypeNameListPairList :: TypeCheckingFlags,_imCast_Inh_NameTypeNameListPairList :: (Maybe TypeExtra)}
+data Inh_NameTypeNameListPairList = Inh_NameTypeNameListPairList {_cat_Inh_NameTypeNameListPairList :: Catalog,_flags_Inh_NameTypeNameListPairList :: TypeCheckFlags,_imCast_Inh_NameTypeNameListPairList :: (Maybe TypeExtra)}
 data Syn_NameTypeNameListPairList = Syn_NameTypeNameListPairList {_annotatedTree_Syn_NameTypeNameListPairList :: NameTypeNameListPairList,_originalTree_Syn_NameTypeNameListPairList :: NameTypeNameListPairList}
 _wrap_NameTypeNameListPairList :: T_NameTypeNameListPairList ->
                                  Inh_NameTypeNameListPairList ->
@@ -6198,10 +6198,10 @@ _sem_NameTypeNameListPairList_Cons hd_ tl_ =
          (let _lhsOannotatedTree :: NameTypeNameListPairList
               _lhsOoriginalTree :: NameTypeNameListPairList
               _hdOcat :: Catalog
-              _hdOflags :: TypeCheckingFlags
+              _hdOflags :: TypeCheckFlags
               _hdOimCast :: (Maybe TypeExtra)
               _tlOcat :: Catalog
-              _tlOflags :: TypeCheckingFlags
+              _tlOflags :: TypeCheckFlags
               _tlOimCast :: (Maybe TypeExtra)
               _hdIannotatedTree :: NameTypeNameListPair
               _hdIoriginalTree :: NameTypeNameListPair
@@ -6310,7 +6310,7 @@ _sem_NameTypeNameListPairList_Nil =
       inherited attributes:
          cat                  : Catalog
          downEnv              : Environment
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : OnExpr 
@@ -6337,10 +6337,10 @@ _sem_OnExpr Prelude.Nothing =
 -- semantic domain
 type T_OnExpr = Catalog ->
                 Environment ->
-                TypeCheckingFlags ->
+                TypeCheckFlags ->
                 (Maybe TypeExtra) ->
                 ( OnExpr,OnExpr)
-data Inh_OnExpr = Inh_OnExpr {_cat_Inh_OnExpr :: Catalog,_downEnv_Inh_OnExpr :: Environment,_flags_Inh_OnExpr :: TypeCheckingFlags,_imCast_Inh_OnExpr :: (Maybe TypeExtra)}
+data Inh_OnExpr = Inh_OnExpr {_cat_Inh_OnExpr :: Catalog,_downEnv_Inh_OnExpr :: Environment,_flags_Inh_OnExpr :: TypeCheckFlags,_imCast_Inh_OnExpr :: (Maybe TypeExtra)}
 data Syn_OnExpr = Syn_OnExpr {_annotatedTree_Syn_OnExpr :: OnExpr,_originalTree_Syn_OnExpr :: OnExpr}
 _wrap_OnExpr :: T_OnExpr ->
                Inh_OnExpr ->
@@ -6359,7 +6359,7 @@ _sem_OnExpr_Just just_ =
               _lhsOoriginalTree :: OnExpr
               _justOcat :: Catalog
               _justOdownEnv :: Environment
-              _justOflags :: TypeCheckingFlags
+              _justOflags :: TypeCheckFlags
               _justOimCast :: (Maybe TypeExtra)
               _justIannotatedTree :: JoinExpr
               _justIoriginalTree :: JoinExpr
@@ -6452,7 +6452,7 @@ _sem_OnExpr_Nothing =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : ParamDef 
@@ -6484,10 +6484,10 @@ _sem_ParamDef (ParamDefTp _ann _typ) =
     (_sem_ParamDef_ParamDefTp (_sem_Annotation _ann) (_sem_TypeName _typ))
 -- semantic domain
 type T_ParamDef = Catalog ->
-                  TypeCheckingFlags ->
+                  TypeCheckFlags ->
                   (Maybe TypeExtra) ->
                   ( ParamDef,ParamDef)
-data Inh_ParamDef = Inh_ParamDef {_cat_Inh_ParamDef :: Catalog,_flags_Inh_ParamDef :: TypeCheckingFlags,_imCast_Inh_ParamDef :: (Maybe TypeExtra)}
+data Inh_ParamDef = Inh_ParamDef {_cat_Inh_ParamDef :: Catalog,_flags_Inh_ParamDef :: TypeCheckFlags,_imCast_Inh_ParamDef :: (Maybe TypeExtra)}
 data Syn_ParamDef = Syn_ParamDef {_annotatedTree_Syn_ParamDef :: ParamDef,_originalTree_Syn_ParamDef :: ParamDef}
 _wrap_ParamDef :: T_ParamDef ->
                  Inh_ParamDef ->
@@ -6507,10 +6507,10 @@ _sem_ParamDef_ParamDef ann_ name_ typ_ =
               _lhsOannotatedTree :: ParamDef
               _lhsOoriginalTree :: ParamDef
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _typOcat :: Catalog
-              _typOflags :: TypeCheckingFlags
+              _typOflags :: TypeCheckFlags
               _typOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -6599,10 +6599,10 @@ _sem_ParamDef_ParamDefTp ann_ typ_ =
               _lhsOannotatedTree :: ParamDef
               _lhsOoriginalTree :: ParamDef
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _typOcat :: Catalog
-              _typOflags :: TypeCheckingFlags
+              _typOflags :: TypeCheckFlags
               _typOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -6685,7 +6685,7 @@ _sem_ParamDef_ParamDefTp ann_ typ_ =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : ParamDefList 
@@ -6710,10 +6710,10 @@ _sem_ParamDefList list =
     (Prelude.foldr _sem_ParamDefList_Cons _sem_ParamDefList_Nil (Prelude.map _sem_ParamDef list))
 -- semantic domain
 type T_ParamDefList = Catalog ->
-                      TypeCheckingFlags ->
+                      TypeCheckFlags ->
                       (Maybe TypeExtra) ->
                       ( ParamDefList,ParamDefList)
-data Inh_ParamDefList = Inh_ParamDefList {_cat_Inh_ParamDefList :: Catalog,_flags_Inh_ParamDefList :: TypeCheckingFlags,_imCast_Inh_ParamDefList :: (Maybe TypeExtra)}
+data Inh_ParamDefList = Inh_ParamDefList {_cat_Inh_ParamDefList :: Catalog,_flags_Inh_ParamDefList :: TypeCheckFlags,_imCast_Inh_ParamDefList :: (Maybe TypeExtra)}
 data Syn_ParamDefList = Syn_ParamDefList {_annotatedTree_Syn_ParamDefList :: ParamDefList,_originalTree_Syn_ParamDefList :: ParamDefList}
 _wrap_ParamDefList :: T_ParamDefList ->
                      Inh_ParamDefList ->
@@ -6731,10 +6731,10 @@ _sem_ParamDefList_Cons hd_ tl_ =
          (let _lhsOannotatedTree :: ParamDefList
               _lhsOoriginalTree :: ParamDefList
               _hdOcat :: Catalog
-              _hdOflags :: TypeCheckingFlags
+              _hdOflags :: TypeCheckFlags
               _hdOimCast :: (Maybe TypeExtra)
               _tlOcat :: Catalog
-              _tlOflags :: TypeCheckingFlags
+              _tlOflags :: TypeCheckFlags
               _tlOimCast :: (Maybe TypeExtra)
               _hdIannotatedTree :: ParamDef
               _hdIoriginalTree :: ParamDef
@@ -6844,7 +6844,7 @@ _sem_ParamDefList_Nil =
          assignmentCastContext : Bool
          cat                  : Catalog
          expectedType         : Maybe [TypeExtra]
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
          outerDownEnv         : Maybe Environment
       synthesized attributes:
@@ -6945,11 +6945,11 @@ _sem_QueryExpr (WithQueryExpr _ann _withs _withQe) =
 type T_QueryExpr = Bool ->
                    Catalog ->
                    (Maybe [TypeExtra]) ->
-                   TypeCheckingFlags ->
+                   TypeCheckFlags ->
                    (Maybe TypeExtra) ->
                    (Maybe Environment) ->
                    ( QueryExpr,QueryExpr,(Maybe [(Text,TypeExtra)]))
-data Inh_QueryExpr = Inh_QueryExpr {_assignmentCastContext_Inh_QueryExpr :: Bool,_cat_Inh_QueryExpr :: Catalog,_expectedType_Inh_QueryExpr :: (Maybe [TypeExtra]),_flags_Inh_QueryExpr :: TypeCheckingFlags,_imCast_Inh_QueryExpr :: (Maybe TypeExtra),_outerDownEnv_Inh_QueryExpr :: (Maybe Environment)}
+data Inh_QueryExpr = Inh_QueryExpr {_assignmentCastContext_Inh_QueryExpr :: Bool,_cat_Inh_QueryExpr :: Catalog,_expectedType_Inh_QueryExpr :: (Maybe [TypeExtra]),_flags_Inh_QueryExpr :: TypeCheckFlags,_imCast_Inh_QueryExpr :: (Maybe TypeExtra),_outerDownEnv_Inh_QueryExpr :: (Maybe Environment)}
 data Syn_QueryExpr = Syn_QueryExpr {_annotatedTree_Syn_QueryExpr :: QueryExpr,_originalTree_Syn_QueryExpr :: QueryExpr,_upType_Syn_QueryExpr :: (Maybe [(Text,TypeExtra)])}
 _wrap_QueryExpr :: T_QueryExpr ->
                   Inh_QueryExpr ->
@@ -6996,37 +6996,37 @@ _sem_QueryExpr_Select ann_ selDistinct_ selSelectList_ selTref_ selWhere_ selGro
               _selOffsetOexpectedType :: (Maybe TypeExtra)
               _lhsOoriginalTree :: QueryExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annOtpe :: (Either [TypeError] TypeExtra)
               _selSelectListOassignmentCastContext :: Bool
               _selSelectListOcat :: Catalog
               _selSelectListOexpectedType :: (Maybe [TypeExtra])
-              _selSelectListOflags :: TypeCheckingFlags
+              _selSelectListOflags :: TypeCheckFlags
               _selSelectListOimCast :: (Maybe TypeExtra)
               _selTrefOcat :: Catalog
-              _selTrefOflags :: TypeCheckingFlags
+              _selTrefOflags :: TypeCheckFlags
               _selTrefOimCast :: (Maybe TypeExtra)
               _selWhereOcat :: Catalog
-              _selWhereOflags :: TypeCheckingFlags
+              _selWhereOflags :: TypeCheckFlags
               _selWhereOimCast :: (Maybe TypeExtra)
               _selGroupByOassignmentCastContext :: Bool
               _selGroupByOcat :: Catalog
-              _selGroupByOflags :: TypeCheckingFlags
+              _selGroupByOflags :: TypeCheckFlags
               _selGroupByOimCast :: (Maybe TypeExtra)
               _selHavingOcat :: Catalog
-              _selHavingOflags :: TypeCheckingFlags
+              _selHavingOflags :: TypeCheckFlags
               _selHavingOimCast :: (Maybe TypeExtra)
               _selOrderByOcat :: Catalog
-              _selOrderByOflags :: TypeCheckingFlags
+              _selOrderByOflags :: TypeCheckFlags
               _selOrderByOimCast :: (Maybe TypeExtra)
               _selLimitOassignmentCastContext :: Bool
               _selLimitOcat :: Catalog
-              _selLimitOflags :: TypeCheckingFlags
+              _selLimitOflags :: TypeCheckFlags
               _selLimitOimCast :: (Maybe TypeExtra)
               _selOffsetOassignmentCastContext :: Bool
               _selOffsetOcat :: Catalog
-              _selOffsetOflags :: TypeCheckingFlags
+              _selOffsetOflags :: TypeCheckFlags
               _selOffsetOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -7437,19 +7437,19 @@ _sem_QueryExpr_CombineQueryExpr ann_ cqType_ cqQe0_ cqQe1_ =
               _lhsOannotatedTree :: QueryExpr
               _lhsOoriginalTree :: QueryExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annOtpe :: (Either [TypeError] TypeExtra)
               _cqQe0OassignmentCastContext :: Bool
               _cqQe0Ocat :: Catalog
               _cqQe0OexpectedType :: (Maybe [TypeExtra])
-              _cqQe0Oflags :: TypeCheckingFlags
+              _cqQe0Oflags :: TypeCheckFlags
               _cqQe0OimCast :: (Maybe TypeExtra)
               _cqQe0OouterDownEnv :: (Maybe Environment)
               _cqQe1OassignmentCastContext :: Bool
               _cqQe1Ocat :: Catalog
               _cqQe1OexpectedType :: (Maybe [TypeExtra])
-              _cqQe1Oflags :: TypeCheckingFlags
+              _cqQe1Oflags :: TypeCheckFlags
               _cqQe1OimCast :: (Maybe TypeExtra)
               _cqQe1OouterDownEnv :: (Maybe Environment)
               _annIannotatedTree :: Annotation
@@ -7630,13 +7630,13 @@ _sem_QueryExpr_Values ann_ qeValues_ =
               _lhsOannotatedTree :: QueryExpr
               _lhsOoriginalTree :: QueryExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annOtpe :: (Either [TypeError] TypeExtra)
               _qeValuesOassignmentCastContext :: Bool
               _qeValuesOcat :: Catalog
               _qeValuesOexpectedType :: (Maybe [TypeExtra])
-              _qeValuesOflags :: TypeCheckingFlags
+              _qeValuesOflags :: TypeCheckFlags
               _qeValuesOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -7773,16 +7773,16 @@ _sem_QueryExpr_WithQueryExpr ann_ withs_ withQe_ =
               _lhsOannotatedTree :: QueryExpr
               _lhsOoriginalTree :: QueryExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annOtpe :: (Either [TypeError] TypeExtra)
               _withsOcat :: Catalog
-              _withsOflags :: TypeCheckingFlags
+              _withsOflags :: TypeCheckFlags
               _withsOimCast :: (Maybe TypeExtra)
               _withQeOassignmentCastContext :: Bool
               _withQeOcat :: Catalog
               _withQeOexpectedType :: (Maybe [TypeExtra])
-              _withQeOflags :: TypeCheckingFlags
+              _withQeOflags :: TypeCheckFlags
               _withQeOimCast :: (Maybe TypeExtra)
               _withQeOouterDownEnv :: (Maybe Environment)
               _annIannotatedTree :: Annotation
@@ -7924,7 +7924,7 @@ _sem_QueryExpr_WithQueryExpr ann_ withs_ withQe_ =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
       synthesized attributes:
          annotatedTree        : Root 
          originalTree         : Root 
@@ -7944,9 +7944,9 @@ _sem_Root (Root _statements) =
     (_sem_Root_Root (_sem_StatementList _statements))
 -- semantic domain
 type T_Root = Catalog ->
-              TypeCheckingFlags ->
+              TypeCheckFlags ->
               ( Root,Root)
-data Inh_Root = Inh_Root {_cat_Inh_Root :: Catalog,_flags_Inh_Root :: TypeCheckingFlags}
+data Inh_Root = Inh_Root {_cat_Inh_Root :: Catalog,_flags_Inh_Root :: TypeCheckFlags}
 data Syn_Root = Syn_Root {_annotatedTree_Syn_Root :: Root,_originalTree_Syn_Root :: Root}
 _wrap_Root :: T_Root ->
              Inh_Root ->
@@ -7963,7 +7963,7 @@ _sem_Root_Root statements_ =
               _lhsOannotatedTree :: Root
               _lhsOoriginalTree :: Root
               _statementsOcat :: Catalog
-              _statementsOflags :: TypeCheckingFlags
+              _statementsOflags :: TypeCheckFlags
               _statementsIannotatedTree :: StatementList
               _statementsIoriginalTree :: StatementList
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/TypeChecking.ag"(line 136, column 8)
@@ -8016,7 +8016,7 @@ _sem_Root_Root statements_ =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : RowConstraint 
@@ -8098,10 +8098,10 @@ _sem_RowConstraint (RowReferenceConstraint _ann _name _table _att _onUpdate _onD
     (_sem_RowConstraint_RowReferenceConstraint (_sem_Annotation _ann) _name (_sem_Name _table) _att _onUpdate _onDelete)
 -- semantic domain
 type T_RowConstraint = Catalog ->
-                       TypeCheckingFlags ->
+                       TypeCheckFlags ->
                        (Maybe TypeExtra) ->
                        ( RowConstraint,RowConstraint)
-data Inh_RowConstraint = Inh_RowConstraint {_cat_Inh_RowConstraint :: Catalog,_flags_Inh_RowConstraint :: TypeCheckingFlags,_imCast_Inh_RowConstraint :: (Maybe TypeExtra)}
+data Inh_RowConstraint = Inh_RowConstraint {_cat_Inh_RowConstraint :: Catalog,_flags_Inh_RowConstraint :: TypeCheckFlags,_imCast_Inh_RowConstraint :: (Maybe TypeExtra)}
 data Syn_RowConstraint = Syn_RowConstraint {_annotatedTree_Syn_RowConstraint :: RowConstraint,_originalTree_Syn_RowConstraint :: RowConstraint}
 _wrap_RowConstraint :: T_RowConstraint ->
                       Inh_RowConstraint ->
@@ -8120,7 +8120,7 @@ _sem_RowConstraint_NullConstraint ann_ name_ =
               _lhsOannotatedTree :: RowConstraint
               _lhsOoriginalTree :: RowConstraint
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -8186,7 +8186,7 @@ _sem_RowConstraint_NotNullConstraint ann_ name_ =
               _lhsOannotatedTree :: RowConstraint
               _lhsOoriginalTree :: RowConstraint
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -8253,7 +8253,7 @@ _sem_RowConstraint_IdentityConstraint ann_ name_ seedAndInc_ =
               _lhsOannotatedTree :: RowConstraint
               _lhsOoriginalTree :: RowConstraint
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -8325,10 +8325,10 @@ _sem_RowConstraint_RowCheckConstraint ann_ name_ expr_ =
               _lhsOannotatedTree :: RowConstraint
               _lhsOoriginalTree :: RowConstraint
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _exprOcat :: Catalog
-              _exprOflags :: TypeCheckingFlags
+              _exprOflags :: TypeCheckFlags
               _exprOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -8448,7 +8448,7 @@ _sem_RowConstraint_RowUniqueConstraint ann_ name_ =
               _lhsOannotatedTree :: RowConstraint
               _lhsOoriginalTree :: RowConstraint
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -8514,7 +8514,7 @@ _sem_RowConstraint_RowPrimaryKeyConstraint ann_ name_ =
               _lhsOannotatedTree :: RowConstraint
               _lhsOoriginalTree :: RowConstraint
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -8585,10 +8585,10 @@ _sem_RowConstraint_RowReferenceConstraint ann_ name_ table_ att_ onUpdate_ onDel
               _lhsOannotatedTree :: RowConstraint
               _lhsOoriginalTree :: RowConstraint
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _tableOcat :: Catalog
-              _tableOflags :: TypeCheckingFlags
+              _tableOflags :: TypeCheckFlags
               _tableOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -8676,7 +8676,7 @@ _sem_RowConstraint_RowReferenceConstraint ann_ name_ table_ att_ onUpdate_ onDel
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : RowConstraintList 
@@ -8701,10 +8701,10 @@ _sem_RowConstraintList list =
     (Prelude.foldr _sem_RowConstraintList_Cons _sem_RowConstraintList_Nil (Prelude.map _sem_RowConstraint list))
 -- semantic domain
 type T_RowConstraintList = Catalog ->
-                           TypeCheckingFlags ->
+                           TypeCheckFlags ->
                            (Maybe TypeExtra) ->
                            ( RowConstraintList,RowConstraintList)
-data Inh_RowConstraintList = Inh_RowConstraintList {_cat_Inh_RowConstraintList :: Catalog,_flags_Inh_RowConstraintList :: TypeCheckingFlags,_imCast_Inh_RowConstraintList :: (Maybe TypeExtra)}
+data Inh_RowConstraintList = Inh_RowConstraintList {_cat_Inh_RowConstraintList :: Catalog,_flags_Inh_RowConstraintList :: TypeCheckFlags,_imCast_Inh_RowConstraintList :: (Maybe TypeExtra)}
 data Syn_RowConstraintList = Syn_RowConstraintList {_annotatedTree_Syn_RowConstraintList :: RowConstraintList,_originalTree_Syn_RowConstraintList :: RowConstraintList}
 _wrap_RowConstraintList :: T_RowConstraintList ->
                           Inh_RowConstraintList ->
@@ -8722,10 +8722,10 @@ _sem_RowConstraintList_Cons hd_ tl_ =
          (let _lhsOannotatedTree :: RowConstraintList
               _lhsOoriginalTree :: RowConstraintList
               _hdOcat :: Catalog
-              _hdOflags :: TypeCheckingFlags
+              _hdOflags :: TypeCheckFlags
               _hdOimCast :: (Maybe TypeExtra)
               _tlOcat :: Catalog
-              _tlOflags :: TypeCheckingFlags
+              _tlOflags :: TypeCheckFlags
               _tlOimCast :: (Maybe TypeExtra)
               _hdIannotatedTree :: RowConstraint
               _hdIoriginalTree :: RowConstraint
@@ -8837,7 +8837,7 @@ _sem_RowConstraintList_Nil =
          downEnv              : Environment
          expectedCast         : Bool
          expectedType         : Maybe TypeExtra
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
          odbcFunction         : Bool
       synthesized attributes:
@@ -9234,11 +9234,11 @@ type T_ScalarExpr = Bool ->
                     Environment ->
                     Bool ->
                     (Maybe TypeExtra) ->
-                    TypeCheckingFlags ->
+                    TypeCheckFlags ->
                     (Maybe TypeExtra) ->
                     Bool ->
                     ( ScalarExpr,([(NameComponent,Maybe TypeExtra,ScalarExpr)]),ScalarExpr,(Maybe TypeExtra))
-data Inh_ScalarExpr = Inh_ScalarExpr {_assignmentCastContext_Inh_ScalarExpr :: Bool,_cat_Inh_ScalarExpr :: Catalog,_downEnv_Inh_ScalarExpr :: Environment,_expectedCast_Inh_ScalarExpr :: Bool,_expectedType_Inh_ScalarExpr :: (Maybe TypeExtra),_flags_Inh_ScalarExpr :: TypeCheckingFlags,_imCast_Inh_ScalarExpr :: (Maybe TypeExtra),_odbcFunction_Inh_ScalarExpr :: Bool}
+data Inh_ScalarExpr = Inh_ScalarExpr {_assignmentCastContext_Inh_ScalarExpr :: Bool,_cat_Inh_ScalarExpr :: Catalog,_downEnv_Inh_ScalarExpr :: Environment,_expectedCast_Inh_ScalarExpr :: Bool,_expectedType_Inh_ScalarExpr :: (Maybe TypeExtra),_flags_Inh_ScalarExpr :: TypeCheckFlags,_imCast_Inh_ScalarExpr :: (Maybe TypeExtra),_odbcFunction_Inh_ScalarExpr :: Bool}
 data Syn_ScalarExpr = Syn_ScalarExpr {_annotatedTree_Syn_ScalarExpr :: ScalarExpr,_colExprs_Syn_ScalarExpr :: ([(NameComponent,Maybe TypeExtra,ScalarExpr)]),_originalTree_Syn_ScalarExpr :: ScalarExpr,_upType_Syn_ScalarExpr :: (Maybe TypeExtra)}
 _wrap_ScalarExpr :: T_ScalarExpr ->
                    Inh_ScalarExpr ->
@@ -9265,7 +9265,7 @@ _sem_ScalarExpr_NumberLit ann_ d_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag"(line 42, column 7)
@@ -9390,7 +9390,7 @@ _sem_ScalarExpr_StringLit ann_ value_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag"(line 42, column 7)
@@ -9506,7 +9506,7 @@ _sem_ScalarExpr_NullLit ann_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag"(line 42, column 7)
@@ -9623,7 +9623,7 @@ _sem_ScalarExpr_BooleanLit ann_ b_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag"(line 42, column 7)
@@ -9741,9 +9741,9 @@ _sem_ScalarExpr_TypedStringLit ann_ tn_ value_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _tnOcat :: Catalog
-              _tnOflags :: TypeCheckingFlags
+              _tnOflags :: TypeCheckFlags
               _tnOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -9886,7 +9886,7 @@ _sem_ScalarExpr_Interval ann_ value_ field_ prec_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag"(line 42, column 7)
@@ -10007,11 +10007,11 @@ _sem_ScalarExpr_Extract ann_ field_ e_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _eOassignmentCastContext :: Bool
               _eOcat :: Catalog
               _eOdownEnv :: Environment
-              _eOflags :: TypeCheckingFlags
+              _eOflags :: TypeCheckFlags
               _eOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -10191,7 +10191,7 @@ _sem_ScalarExpr_PositionalArg ann_ p_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag"(line 42, column 7)
@@ -10307,7 +10307,7 @@ _sem_ScalarExpr_Placeholder ann_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag"(line 42, column 7)
@@ -10428,14 +10428,14 @@ _sem_ScalarExpr_Cast ann_ expr_ tn_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _exprOassignmentCastContext :: Bool
               _exprOcat :: Catalog
               _exprOdownEnv :: Environment
-              _exprOflags :: TypeCheckingFlags
+              _exprOflags :: TypeCheckFlags
               _exprOimCast :: (Maybe TypeExtra)
               _tnOcat :: Catalog
-              _tnOflags :: TypeCheckingFlags
+              _tnOflags :: TypeCheckFlags
               _tnOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -10635,12 +10635,12 @@ _sem_ScalarExpr_ImplicitCast ann_ expr_ te_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _exprOassignmentCastContext :: Bool
               _exprOcat :: Catalog
               _exprOdownEnv :: Environment
               _exprOexpectedCast :: Bool
-              _exprOflags :: TypeCheckingFlags
+              _exprOflags :: TypeCheckFlags
               _exprOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -10812,7 +10812,7 @@ _sem_ScalarExpr_Star ann_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag"(line 42, column 7)
@@ -10943,7 +10943,7 @@ _sem_ScalarExpr_QStar ann_ q_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag"(line 42, column 7)
@@ -11074,9 +11074,9 @@ _sem_ScalarExpr_Identifier ann_ i_ =
               _iOtpe :: (Either [TypeError] TypeExtra)
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _iOcat :: Catalog
-              _iOflags :: TypeCheckingFlags
+              _iOflags :: TypeCheckFlags
               _iOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -11243,15 +11243,15 @@ _sem_ScalarExpr_Case ann_ cases_ els_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _casesOcat :: Catalog
               _casesOdownEnv :: Environment
-              _casesOflags :: TypeCheckingFlags
+              _casesOflags :: TypeCheckFlags
               _casesOimCast :: (Maybe TypeExtra)
               _elsOassignmentCastContext :: Bool
               _elsOcat :: Catalog
               _elsOdownEnv :: Environment
-              _elsOflags :: TypeCheckingFlags
+              _elsOflags :: TypeCheckFlags
               _elsOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -11488,20 +11488,20 @@ _sem_ScalarExpr_CaseSimple ann_ value_ cases_ els_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _valueOassignmentCastContext :: Bool
               _valueOcat :: Catalog
               _valueOdownEnv :: Environment
-              _valueOflags :: TypeCheckingFlags
+              _valueOflags :: TypeCheckFlags
               _valueOimCast :: (Maybe TypeExtra)
               _casesOcat :: Catalog
               _casesOdownEnv :: Environment
-              _casesOflags :: TypeCheckingFlags
+              _casesOflags :: TypeCheckFlags
               _casesOimCast :: (Maybe TypeExtra)
               _elsOassignmentCastContext :: Bool
               _elsOcat :: Catalog
               _elsOdownEnv :: Environment
-              _elsOflags :: TypeCheckingFlags
+              _elsOflags :: TypeCheckFlags
               _elsOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -11789,10 +11789,10 @@ _sem_ScalarExpr_Exists ann_ sel_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _selOassignmentCastContext :: Bool
               _selOcat :: Catalog
-              _selOflags :: TypeCheckingFlags
+              _selOflags :: TypeCheckFlags
               _selOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -11957,14 +11957,14 @@ _sem_ScalarExpr_App ann_ funName_ args_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _funNameOcat :: Catalog
-              _funNameOflags :: TypeCheckingFlags
+              _funNameOflags :: TypeCheckFlags
               _funNameOimCast :: (Maybe TypeExtra)
               _argsOassignmentCastContext :: Bool
               _argsOcat :: Catalog
               _argsOdownEnv :: Environment
-              _argsOflags :: TypeCheckingFlags
+              _argsOflags :: TypeCheckFlags
               _argsOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -12198,14 +12198,14 @@ _sem_ScalarExpr_PrefixOp ann_ opName_ arg_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _opNameOcat :: Catalog
-              _opNameOflags :: TypeCheckingFlags
+              _opNameOflags :: TypeCheckFlags
               _opNameOimCast :: (Maybe TypeExtra)
               _argOassignmentCastContext :: Bool
               _argOcat :: Catalog
               _argOdownEnv :: Environment
-              _argOflags :: TypeCheckingFlags
+              _argOflags :: TypeCheckFlags
               _argOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -12420,14 +12420,14 @@ _sem_ScalarExpr_PostfixOp ann_ opName_ arg_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _opNameOcat :: Catalog
-              _opNameOflags :: TypeCheckingFlags
+              _opNameOflags :: TypeCheckFlags
               _opNameOimCast :: (Maybe TypeExtra)
               _argOassignmentCastContext :: Bool
               _argOcat :: Catalog
               _argOdownEnv :: Environment
-              _argOflags :: TypeCheckingFlags
+              _argOflags :: TypeCheckFlags
               _argOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -12646,19 +12646,19 @@ _sem_ScalarExpr_BinaryOp ann_ opName_ arg0_ arg1_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _opNameOcat :: Catalog
-              _opNameOflags :: TypeCheckingFlags
+              _opNameOflags :: TypeCheckFlags
               _opNameOimCast :: (Maybe TypeExtra)
               _arg0OassignmentCastContext :: Bool
               _arg0Ocat :: Catalog
               _arg0OdownEnv :: Environment
-              _arg0Oflags :: TypeCheckingFlags
+              _arg0Oflags :: TypeCheckFlags
               _arg0OimCast :: (Maybe TypeExtra)
               _arg1OassignmentCastContext :: Bool
               _arg1Ocat :: Catalog
               _arg1OdownEnv :: Environment
-              _arg1Oflags :: TypeCheckingFlags
+              _arg1Oflags :: TypeCheckFlags
               _arg1OimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -12922,14 +12922,14 @@ _sem_ScalarExpr_SpecialOp ann_ opName_ args_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _opNameOcat :: Catalog
-              _opNameOflags :: TypeCheckingFlags
+              _opNameOflags :: TypeCheckFlags
               _opNameOimCast :: (Maybe TypeExtra)
               _argsOassignmentCastContext :: Bool
               _argsOcat :: Catalog
               _argsOdownEnv :: Environment
-              _argsOflags :: TypeCheckingFlags
+              _argsOflags :: TypeCheckFlags
               _argsOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -13133,15 +13133,15 @@ _sem_ScalarExpr_AggregateApp ann_ aggDistinct_ fn_ orderBy_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _fnOassignmentCastContext :: Bool
               _fnOcat :: Catalog
               _fnOdownEnv :: Environment
-              _fnOflags :: TypeCheckingFlags
+              _fnOflags :: TypeCheckFlags
               _fnOimCast :: (Maybe TypeExtra)
               _orderByOcat :: Catalog
               _orderByOdownEnv :: Environment
-              _orderByOflags :: TypeCheckingFlags
+              _orderByOflags :: TypeCheckFlags
               _orderByOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -13352,20 +13352,20 @@ _sem_ScalarExpr_WindowApp ann_ fn_ partitionBy_ orderBy_ frm_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _fnOassignmentCastContext :: Bool
               _fnOcat :: Catalog
               _fnOdownEnv :: Environment
-              _fnOflags :: TypeCheckingFlags
+              _fnOflags :: TypeCheckFlags
               _fnOimCast :: (Maybe TypeExtra)
               _partitionByOassignmentCastContext :: Bool
               _partitionByOcat :: Catalog
               _partitionByOdownEnv :: Environment
-              _partitionByOflags :: TypeCheckingFlags
+              _partitionByOflags :: TypeCheckFlags
               _partitionByOimCast :: (Maybe TypeExtra)
               _orderByOcat :: Catalog
               _orderByOdownEnv :: Environment
-              _orderByOflags :: TypeCheckingFlags
+              _orderByOflags :: TypeCheckFlags
               _orderByOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -13618,17 +13618,17 @@ _sem_ScalarExpr_InPredicate ann_ expr_ i_ list_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _exprOassignmentCastContext :: Bool
               _exprOcat :: Catalog
               _exprOdownEnv :: Environment
               _exprOexpectedCast :: Bool
-              _exprOflags :: TypeCheckingFlags
+              _exprOflags :: TypeCheckFlags
               _exprOimCast :: (Maybe TypeExtra)
               _listOcat :: Catalog
               _listOdownEnv :: Environment
               _listOexpectedCast :: Bool
-              _listOflags :: TypeCheckingFlags
+              _listOflags :: TypeCheckFlags
               _listOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -13856,15 +13856,15 @@ _sem_ScalarExpr_LiftApp ann_ oper_ flav_ args_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _operOcat :: Catalog
-              _operOflags :: TypeCheckingFlags
+              _operOflags :: TypeCheckFlags
               _operOimCast :: (Maybe TypeExtra)
               _operOtpe :: (Either [TypeError] TypeExtra)
               _argsOassignmentCastContext :: Bool
               _argsOcat :: Catalog
               _argsOdownEnv :: Environment
-              _argsOflags :: TypeCheckingFlags
+              _argsOflags :: TypeCheckFlags
               _argsOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -14059,10 +14059,10 @@ _sem_ScalarExpr_ScalarSubQuery ann_ sel_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _selOassignmentCastContext :: Bool
               _selOcat :: Catalog
-              _selOflags :: TypeCheckingFlags
+              _selOflags :: TypeCheckFlags
               _selOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -14286,13 +14286,13 @@ _sem_ScalarExpr_Parens ann_ ex_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _exOassignmentCastContext :: Bool
               _exOcat :: Catalog
               _exOdownEnv :: Environment
               _exOexpectedCast :: Bool
               _exOexpectedType :: (Maybe TypeExtra)
-              _exOflags :: TypeCheckingFlags
+              _exOflags :: TypeCheckFlags
               _exOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -14465,7 +14465,7 @@ _sem_ScalarExpr_OdbcLiteral ann_ olt_ val_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
               -- "hssqlppp/src/Database/HsSqlPpp/Internals/TypeChecking/QueryExprs/SelectLists.ag"(line 42, column 7)
@@ -14587,12 +14587,12 @@ _sem_ScalarExpr_OdbcFunc ann_ ex_ =
               _lhsOannotatedTree :: ScalarExpr
               _lhsOoriginalTree :: ScalarExpr
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _exOassignmentCastContext :: Bool
               _exOdownEnv :: Environment
               _exOexpectedCast :: Bool
               _exOexpectedType :: (Maybe TypeExtra)
-              _exOflags :: TypeCheckingFlags
+              _exOflags :: TypeCheckFlags
               _exOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -14754,7 +14754,7 @@ _sem_ScalarExpr_OdbcFunc ann_ ex_ =
       inherited attributes:
          cat                  : Catalog
          downEnv              : Environment
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : ScalarExprDirectionPair 
@@ -14777,10 +14777,10 @@ _sem_ScalarExprDirectionPair ( x1,x2,x3) =
 -- semantic domain
 type T_ScalarExprDirectionPair = Catalog ->
                                  Environment ->
-                                 TypeCheckingFlags ->
+                                 TypeCheckFlags ->
                                  (Maybe TypeExtra) ->
                                  ( ScalarExprDirectionPair,ScalarExprDirectionPair)
-data Inh_ScalarExprDirectionPair = Inh_ScalarExprDirectionPair {_cat_Inh_ScalarExprDirectionPair :: Catalog,_downEnv_Inh_ScalarExprDirectionPair :: Environment,_flags_Inh_ScalarExprDirectionPair :: TypeCheckingFlags,_imCast_Inh_ScalarExprDirectionPair :: (Maybe TypeExtra)}
+data Inh_ScalarExprDirectionPair = Inh_ScalarExprDirectionPair {_cat_Inh_ScalarExprDirectionPair :: Catalog,_downEnv_Inh_ScalarExprDirectionPair :: Environment,_flags_Inh_ScalarExprDirectionPair :: TypeCheckFlags,_imCast_Inh_ScalarExprDirectionPair :: (Maybe TypeExtra)}
 data Syn_ScalarExprDirectionPair = Syn_ScalarExprDirectionPair {_annotatedTree_Syn_ScalarExprDirectionPair :: ScalarExprDirectionPair,_originalTree_Syn_ScalarExprDirectionPair :: ScalarExprDirectionPair}
 _wrap_ScalarExprDirectionPair :: T_ScalarExprDirectionPair ->
                                 Inh_ScalarExprDirectionPair ->
@@ -14805,7 +14805,7 @@ _sem_ScalarExprDirectionPair_Tuple x1_ x2_ x3_ =
               _lhsOoriginalTree :: ScalarExprDirectionPair
               _x1Ocat :: Catalog
               _x1OdownEnv :: Environment
-              _x1Oflags :: TypeCheckingFlags
+              _x1Oflags :: TypeCheckFlags
               _x1OimCast :: (Maybe TypeExtra)
               _x1IannotatedTree :: ScalarExpr
               _x1IcolExprs :: ([(NameComponent,Maybe TypeExtra,ScalarExpr)])
@@ -14892,7 +14892,7 @@ _sem_ScalarExprDirectionPair_Tuple x1_ x2_ x3_ =
       inherited attributes:
          cat                  : Catalog
          downEnv              : Environment
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : ScalarExprDirectionPairList 
@@ -14918,10 +14918,10 @@ _sem_ScalarExprDirectionPairList list =
 -- semantic domain
 type T_ScalarExprDirectionPairList = Catalog ->
                                      Environment ->
-                                     TypeCheckingFlags ->
+                                     TypeCheckFlags ->
                                      (Maybe TypeExtra) ->
                                      ( ScalarExprDirectionPairList,ScalarExprDirectionPairList)
-data Inh_ScalarExprDirectionPairList = Inh_ScalarExprDirectionPairList {_cat_Inh_ScalarExprDirectionPairList :: Catalog,_downEnv_Inh_ScalarExprDirectionPairList :: Environment,_flags_Inh_ScalarExprDirectionPairList :: TypeCheckingFlags,_imCast_Inh_ScalarExprDirectionPairList :: (Maybe TypeExtra)}
+data Inh_ScalarExprDirectionPairList = Inh_ScalarExprDirectionPairList {_cat_Inh_ScalarExprDirectionPairList :: Catalog,_downEnv_Inh_ScalarExprDirectionPairList :: Environment,_flags_Inh_ScalarExprDirectionPairList :: TypeCheckFlags,_imCast_Inh_ScalarExprDirectionPairList :: (Maybe TypeExtra)}
 data Syn_ScalarExprDirectionPairList = Syn_ScalarExprDirectionPairList {_annotatedTree_Syn_ScalarExprDirectionPairList :: ScalarExprDirectionPairList,_originalTree_Syn_ScalarExprDirectionPairList :: ScalarExprDirectionPairList}
 _wrap_ScalarExprDirectionPairList :: T_ScalarExprDirectionPairList ->
                                     Inh_ScalarExprDirectionPairList ->
@@ -14941,11 +14941,11 @@ _sem_ScalarExprDirectionPairList_Cons hd_ tl_ =
               _lhsOoriginalTree :: ScalarExprDirectionPairList
               _hdOcat :: Catalog
               _hdOdownEnv :: Environment
-              _hdOflags :: TypeCheckingFlags
+              _hdOflags :: TypeCheckFlags
               _hdOimCast :: (Maybe TypeExtra)
               _tlOcat :: Catalog
               _tlOdownEnv :: Environment
-              _tlOflags :: TypeCheckingFlags
+              _tlOflags :: TypeCheckFlags
               _tlOimCast :: (Maybe TypeExtra)
               _hdIannotatedTree :: ScalarExprDirectionPair
               _hdIoriginalTree :: ScalarExprDirectionPair
@@ -15070,7 +15070,7 @@ _sem_ScalarExprDirectionPairList_Nil =
          downEnv              : Environment
          expectedCast         : Bool
          expectedTypes        : [TypeExtra]
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : ScalarExprList 
@@ -15100,10 +15100,10 @@ type T_ScalarExprList = Bool ->
                         Environment ->
                         Bool ->
                         ([TypeExtra]) ->
-                        TypeCheckingFlags ->
+                        TypeCheckFlags ->
                         (Maybe TypeExtra) ->
                         ( ScalarExprList,ScalarExprList,([Maybe TypeExtra]))
-data Inh_ScalarExprList = Inh_ScalarExprList {_assignmentCastContext_Inh_ScalarExprList :: Bool,_cat_Inh_ScalarExprList :: Catalog,_downEnv_Inh_ScalarExprList :: Environment,_expectedCast_Inh_ScalarExprList :: Bool,_expectedTypes_Inh_ScalarExprList :: ([TypeExtra]),_flags_Inh_ScalarExprList :: TypeCheckingFlags,_imCast_Inh_ScalarExprList :: (Maybe TypeExtra)}
+data Inh_ScalarExprList = Inh_ScalarExprList {_assignmentCastContext_Inh_ScalarExprList :: Bool,_cat_Inh_ScalarExprList :: Catalog,_downEnv_Inh_ScalarExprList :: Environment,_expectedCast_Inh_ScalarExprList :: Bool,_expectedTypes_Inh_ScalarExprList :: ([TypeExtra]),_flags_Inh_ScalarExprList :: TypeCheckFlags,_imCast_Inh_ScalarExprList :: (Maybe TypeExtra)}
 data Syn_ScalarExprList = Syn_ScalarExprList {_annotatedTree_Syn_ScalarExprList :: ScalarExprList,_originalTree_Syn_ScalarExprList :: ScalarExprList,_upTypes_Syn_ScalarExprList :: ([Maybe TypeExtra])}
 _wrap_ScalarExprList :: T_ScalarExprList ->
                        Inh_ScalarExprList ->
@@ -15132,13 +15132,13 @@ _sem_ScalarExprList_Cons hd_ tl_ =
               _hdOassignmentCastContext :: Bool
               _hdOcat :: Catalog
               _hdOdownEnv :: Environment
-              _hdOflags :: TypeCheckingFlags
+              _hdOflags :: TypeCheckFlags
               _hdOimCast :: (Maybe TypeExtra)
               _tlOassignmentCastContext :: Bool
               _tlOcat :: Catalog
               _tlOdownEnv :: Environment
               _tlOexpectedCast :: Bool
-              _tlOflags :: TypeCheckingFlags
+              _tlOflags :: TypeCheckFlags
               _tlOimCast :: (Maybe TypeExtra)
               _hdIannotatedTree :: ScalarExpr
               _hdIcolExprs :: ([(NameComponent,Maybe TypeExtra,ScalarExpr)])
@@ -15320,7 +15320,7 @@ _sem_ScalarExprList_Nil =
          downEnv              : Environment
          expectedCast         : Bool
          expectedType         : Maybe [TypeExtra]
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : ScalarExprListList 
@@ -15350,10 +15350,10 @@ type T_ScalarExprListList = Bool ->
                             Environment ->
                             Bool ->
                             (Maybe [TypeExtra]) ->
-                            TypeCheckingFlags ->
+                            TypeCheckFlags ->
                             (Maybe TypeExtra) ->
                             ( ScalarExprListList,ScalarExprListList,(Either [TypeError] [(Text,TypeExtra)]))
-data Inh_ScalarExprListList = Inh_ScalarExprListList {_assignmentCastContext_Inh_ScalarExprListList :: Bool,_cat_Inh_ScalarExprListList :: Catalog,_downEnv_Inh_ScalarExprListList :: Environment,_expectedCast_Inh_ScalarExprListList :: Bool,_expectedType_Inh_ScalarExprListList :: (Maybe [TypeExtra]),_flags_Inh_ScalarExprListList :: TypeCheckingFlags,_imCast_Inh_ScalarExprListList :: (Maybe TypeExtra)}
+data Inh_ScalarExprListList = Inh_ScalarExprListList {_assignmentCastContext_Inh_ScalarExprListList :: Bool,_cat_Inh_ScalarExprListList :: Catalog,_downEnv_Inh_ScalarExprListList :: Environment,_expectedCast_Inh_ScalarExprListList :: Bool,_expectedType_Inh_ScalarExprListList :: (Maybe [TypeExtra]),_flags_Inh_ScalarExprListList :: TypeCheckFlags,_imCast_Inh_ScalarExprListList :: (Maybe TypeExtra)}
 data Syn_ScalarExprListList = Syn_ScalarExprListList {_annotatedTree_Syn_ScalarExprListList :: ScalarExprListList,_originalTree_Syn_ScalarExprListList :: ScalarExprListList,_upType_Syn_ScalarExprListList :: (Either [TypeError] [(Text,TypeExtra)])}
 _wrap_ScalarExprListList :: T_ScalarExprListList ->
                            Inh_ScalarExprListList ->
@@ -15379,13 +15379,13 @@ _sem_ScalarExprListList_Cons hd_ tl_ =
               _lhsOoriginalTree :: ScalarExprListList
               _hdOcat :: Catalog
               _hdOexpectedType :: (Maybe [TypeExtra])
-              _hdOflags :: TypeCheckingFlags
+              _hdOflags :: TypeCheckFlags
               _hdOimCast :: (Maybe TypeExtra)
               _tlOassignmentCastContext :: Bool
               _tlOcat :: Catalog
               _tlOdownEnv :: Environment
               _tlOexpectedType :: (Maybe [TypeExtra])
-              _tlOflags :: TypeCheckingFlags
+              _tlOflags :: TypeCheckFlags
               _tlOimCast :: (Maybe TypeExtra)
               _hdIannotatedTree :: ScalarExprTransposedList
               _hdIoriginalTree :: ScalarExprTransposedList
@@ -15563,7 +15563,7 @@ _sem_ScalarExprListList_Nil =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : ScalarExprListStatementListTriple 
@@ -15584,10 +15584,10 @@ _sem_ScalarExprListStatementListTriple ( x1,x2) =
     (_sem_ScalarExprListStatementListTriple_Tuple (_sem_ScalarExprList x1) (_sem_StatementList x2))
 -- semantic domain
 type T_ScalarExprListStatementListTriple = Catalog ->
-                                           TypeCheckingFlags ->
+                                           TypeCheckFlags ->
                                            (Maybe TypeExtra) ->
                                            ( ScalarExprListStatementListTriple,ScalarExprListStatementListTriple)
-data Inh_ScalarExprListStatementListTriple = Inh_ScalarExprListStatementListTriple {_cat_Inh_ScalarExprListStatementListTriple :: Catalog,_flags_Inh_ScalarExprListStatementListTriple :: TypeCheckingFlags,_imCast_Inh_ScalarExprListStatementListTriple :: (Maybe TypeExtra)}
+data Inh_ScalarExprListStatementListTriple = Inh_ScalarExprListStatementListTriple {_cat_Inh_ScalarExprListStatementListTriple :: Catalog,_flags_Inh_ScalarExprListStatementListTriple :: TypeCheckFlags,_imCast_Inh_ScalarExprListStatementListTriple :: (Maybe TypeExtra)}
 data Syn_ScalarExprListStatementListTriple = Syn_ScalarExprListStatementListTriple {_annotatedTree_Syn_ScalarExprListStatementListTriple :: ScalarExprListStatementListTriple,_originalTree_Syn_ScalarExprListStatementListTriple :: ScalarExprListStatementListTriple}
 _wrap_ScalarExprListStatementListTriple :: T_ScalarExprListStatementListTriple ->
                                           Inh_ScalarExprListStatementListTriple ->
@@ -15609,10 +15609,10 @@ _sem_ScalarExprListStatementListTriple_Tuple x1_ x2_ =
               _lhsOannotatedTree :: ScalarExprListStatementListTriple
               _lhsOoriginalTree :: ScalarExprListStatementListTriple
               _x1Ocat :: Catalog
-              _x1Oflags :: TypeCheckingFlags
+              _x1Oflags :: TypeCheckFlags
               _x1OimCast :: (Maybe TypeExtra)
               _x2Ocat :: Catalog
-              _x2Oflags :: TypeCheckingFlags
+              _x2Oflags :: TypeCheckFlags
               _x2OimCast :: (Maybe TypeExtra)
               _x1IannotatedTree :: ScalarExprList
               _x1IoriginalTree :: ScalarExprList
@@ -15713,7 +15713,7 @@ _sem_ScalarExprListStatementListTriple_Tuple x1_ x2_ =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : ScalarExprListStatementListTripleList 
@@ -15738,10 +15738,10 @@ _sem_ScalarExprListStatementListTripleList list =
     (Prelude.foldr _sem_ScalarExprListStatementListTripleList_Cons _sem_ScalarExprListStatementListTripleList_Nil (Prelude.map _sem_ScalarExprListStatementListTriple list))
 -- semantic domain
 type T_ScalarExprListStatementListTripleList = Catalog ->
-                                               TypeCheckingFlags ->
+                                               TypeCheckFlags ->
                                                (Maybe TypeExtra) ->
                                                ( ScalarExprListStatementListTripleList,ScalarExprListStatementListTripleList)
-data Inh_ScalarExprListStatementListTripleList = Inh_ScalarExprListStatementListTripleList {_cat_Inh_ScalarExprListStatementListTripleList :: Catalog,_flags_Inh_ScalarExprListStatementListTripleList :: TypeCheckingFlags,_imCast_Inh_ScalarExprListStatementListTripleList :: (Maybe TypeExtra)}
+data Inh_ScalarExprListStatementListTripleList = Inh_ScalarExprListStatementListTripleList {_cat_Inh_ScalarExprListStatementListTripleList :: Catalog,_flags_Inh_ScalarExprListStatementListTripleList :: TypeCheckFlags,_imCast_Inh_ScalarExprListStatementListTripleList :: (Maybe TypeExtra)}
 data Syn_ScalarExprListStatementListTripleList = Syn_ScalarExprListStatementListTripleList {_annotatedTree_Syn_ScalarExprListStatementListTripleList :: ScalarExprListStatementListTripleList,_originalTree_Syn_ScalarExprListStatementListTripleList :: ScalarExprListStatementListTripleList}
 _wrap_ScalarExprListStatementListTripleList :: T_ScalarExprListStatementListTripleList ->
                                               Inh_ScalarExprListStatementListTripleList ->
@@ -15759,10 +15759,10 @@ _sem_ScalarExprListStatementListTripleList_Cons hd_ tl_ =
          (let _lhsOannotatedTree :: ScalarExprListStatementListTripleList
               _lhsOoriginalTree :: ScalarExprListStatementListTripleList
               _hdOcat :: Catalog
-              _hdOflags :: TypeCheckingFlags
+              _hdOflags :: TypeCheckFlags
               _hdOimCast :: (Maybe TypeExtra)
               _tlOcat :: Catalog
-              _tlOflags :: TypeCheckingFlags
+              _tlOflags :: TypeCheckFlags
               _tlOimCast :: (Maybe TypeExtra)
               _hdIannotatedTree :: ScalarExprListStatementListTriple
               _hdIoriginalTree :: ScalarExprListStatementListTriple
@@ -15871,7 +15871,7 @@ _sem_ScalarExprListStatementListTripleList_Nil =
       inherited attributes:
          cat                  : Catalog
          downEnv              : Environment
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
       synthesized attributes:
          annotatedTree        : ScalarExprRoot 
          originalTree         : ScalarExprRoot 
@@ -15892,9 +15892,9 @@ _sem_ScalarExprRoot (ScalarExprRoot _expr) =
 -- semantic domain
 type T_ScalarExprRoot = Catalog ->
                         Environment ->
-                        TypeCheckingFlags ->
+                        TypeCheckFlags ->
                         ( ScalarExprRoot,ScalarExprRoot)
-data Inh_ScalarExprRoot = Inh_ScalarExprRoot {_cat_Inh_ScalarExprRoot :: Catalog,_downEnv_Inh_ScalarExprRoot :: Environment,_flags_Inh_ScalarExprRoot :: TypeCheckingFlags}
+data Inh_ScalarExprRoot = Inh_ScalarExprRoot {_cat_Inh_ScalarExprRoot :: Catalog,_downEnv_Inh_ScalarExprRoot :: Environment,_flags_Inh_ScalarExprRoot :: TypeCheckFlags}
 data Syn_ScalarExprRoot = Syn_ScalarExprRoot {_annotatedTree_Syn_ScalarExprRoot :: ScalarExprRoot,_originalTree_Syn_ScalarExprRoot :: ScalarExprRoot}
 _wrap_ScalarExprRoot :: T_ScalarExprRoot ->
                        Inh_ScalarExprRoot ->
@@ -15917,7 +15917,7 @@ _sem_ScalarExprRoot_ScalarExprRoot expr_ =
               _lhsOannotatedTree :: ScalarExprRoot
               _lhsOoriginalTree :: ScalarExprRoot
               _exprOcat :: Catalog
-              _exprOflags :: TypeCheckingFlags
+              _exprOflags :: TypeCheckFlags
               _exprIannotatedTree :: ScalarExpr
               _exprIcolExprs :: ([(NameComponent,Maybe TypeExtra,ScalarExpr)])
               _exprIoriginalTree :: ScalarExpr
@@ -16002,7 +16002,7 @@ _sem_ScalarExprRoot_ScalarExprRoot expr_ =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : ScalarExprStatementListPair 
@@ -16023,10 +16023,10 @@ _sem_ScalarExprStatementListPair ( x1,x2) =
     (_sem_ScalarExprStatementListPair_Tuple (_sem_ScalarExpr x1) (_sem_StatementList x2))
 -- semantic domain
 type T_ScalarExprStatementListPair = Catalog ->
-                                     TypeCheckingFlags ->
+                                     TypeCheckFlags ->
                                      (Maybe TypeExtra) ->
                                      ( ScalarExprStatementListPair,ScalarExprStatementListPair)
-data Inh_ScalarExprStatementListPair = Inh_ScalarExprStatementListPair {_cat_Inh_ScalarExprStatementListPair :: Catalog,_flags_Inh_ScalarExprStatementListPair :: TypeCheckingFlags,_imCast_Inh_ScalarExprStatementListPair :: (Maybe TypeExtra)}
+data Inh_ScalarExprStatementListPair = Inh_ScalarExprStatementListPair {_cat_Inh_ScalarExprStatementListPair :: Catalog,_flags_Inh_ScalarExprStatementListPair :: TypeCheckFlags,_imCast_Inh_ScalarExprStatementListPair :: (Maybe TypeExtra)}
 data Syn_ScalarExprStatementListPair = Syn_ScalarExprStatementListPair {_annotatedTree_Syn_ScalarExprStatementListPair :: ScalarExprStatementListPair,_originalTree_Syn_ScalarExprStatementListPair :: ScalarExprStatementListPair}
 _wrap_ScalarExprStatementListPair :: T_ScalarExprStatementListPair ->
                                     Inh_ScalarExprStatementListPair ->
@@ -16049,10 +16049,10 @@ _sem_ScalarExprStatementListPair_Tuple x1_ x2_ =
               _lhsOannotatedTree :: ScalarExprStatementListPair
               _lhsOoriginalTree :: ScalarExprStatementListPair
               _x1Ocat :: Catalog
-              _x1Oflags :: TypeCheckingFlags
+              _x1Oflags :: TypeCheckFlags
               _x1OimCast :: (Maybe TypeExtra)
               _x2Ocat :: Catalog
-              _x2Oflags :: TypeCheckingFlags
+              _x2Oflags :: TypeCheckFlags
               _x2OimCast :: (Maybe TypeExtra)
               _x1IannotatedTree :: ScalarExpr
               _x1IcolExprs :: ([(NameComponent,Maybe TypeExtra,ScalarExpr)])
@@ -16160,7 +16160,7 @@ _sem_ScalarExprStatementListPair_Tuple x1_ x2_ =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : ScalarExprStatementListPairList 
@@ -16185,10 +16185,10 @@ _sem_ScalarExprStatementListPairList list =
     (Prelude.foldr _sem_ScalarExprStatementListPairList_Cons _sem_ScalarExprStatementListPairList_Nil (Prelude.map _sem_ScalarExprStatementListPair list))
 -- semantic domain
 type T_ScalarExprStatementListPairList = Catalog ->
-                                         TypeCheckingFlags ->
+                                         TypeCheckFlags ->
                                          (Maybe TypeExtra) ->
                                          ( ScalarExprStatementListPairList,ScalarExprStatementListPairList)
-data Inh_ScalarExprStatementListPairList = Inh_ScalarExprStatementListPairList {_cat_Inh_ScalarExprStatementListPairList :: Catalog,_flags_Inh_ScalarExprStatementListPairList :: TypeCheckingFlags,_imCast_Inh_ScalarExprStatementListPairList :: (Maybe TypeExtra)}
+data Inh_ScalarExprStatementListPairList = Inh_ScalarExprStatementListPairList {_cat_Inh_ScalarExprStatementListPairList :: Catalog,_flags_Inh_ScalarExprStatementListPairList :: TypeCheckFlags,_imCast_Inh_ScalarExprStatementListPairList :: (Maybe TypeExtra)}
 data Syn_ScalarExprStatementListPairList = Syn_ScalarExprStatementListPairList {_annotatedTree_Syn_ScalarExprStatementListPairList :: ScalarExprStatementListPairList,_originalTree_Syn_ScalarExprStatementListPairList :: ScalarExprStatementListPairList}
 _wrap_ScalarExprStatementListPairList :: T_ScalarExprStatementListPairList ->
                                         Inh_ScalarExprStatementListPairList ->
@@ -16206,10 +16206,10 @@ _sem_ScalarExprStatementListPairList_Cons hd_ tl_ =
          (let _lhsOannotatedTree :: ScalarExprStatementListPairList
               _lhsOoriginalTree :: ScalarExprStatementListPairList
               _hdOcat :: Catalog
-              _hdOflags :: TypeCheckingFlags
+              _hdOflags :: TypeCheckFlags
               _hdOimCast :: (Maybe TypeExtra)
               _tlOcat :: Catalog
-              _tlOflags :: TypeCheckingFlags
+              _tlOflags :: TypeCheckFlags
               _tlOimCast :: (Maybe TypeExtra)
               _hdIannotatedTree :: ScalarExprStatementListPair
               _hdIoriginalTree :: ScalarExprStatementListPair
@@ -16319,7 +16319,7 @@ _sem_ScalarExprStatementListPairList_Nil =
          cat                  : Catalog
          expectedCast         : Bool
          expectedType         : Maybe [TypeExtra]
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : ScalarExprTransposedList 
@@ -16347,10 +16347,10 @@ _sem_ScalarExprTransposedList list =
 type T_ScalarExprTransposedList = Catalog ->
                                   Bool ->
                                   (Maybe [TypeExtra]) ->
-                                  TypeCheckingFlags ->
+                                  TypeCheckFlags ->
                                   (Maybe TypeExtra) ->
                                   ( ScalarExprTransposedList,ScalarExprTransposedList,(Maybe [TypeExtra]))
-data Inh_ScalarExprTransposedList = Inh_ScalarExprTransposedList {_cat_Inh_ScalarExprTransposedList :: Catalog,_expectedCast_Inh_ScalarExprTransposedList :: Bool,_expectedType_Inh_ScalarExprTransposedList :: (Maybe [TypeExtra]),_flags_Inh_ScalarExprTransposedList :: TypeCheckingFlags,_imCast_Inh_ScalarExprTransposedList :: (Maybe TypeExtra)}
+data Inh_ScalarExprTransposedList = Inh_ScalarExprTransposedList {_cat_Inh_ScalarExprTransposedList :: Catalog,_expectedCast_Inh_ScalarExprTransposedList :: Bool,_expectedType_Inh_ScalarExprTransposedList :: (Maybe [TypeExtra]),_flags_Inh_ScalarExprTransposedList :: TypeCheckFlags,_imCast_Inh_ScalarExprTransposedList :: (Maybe TypeExtra)}
 data Syn_ScalarExprTransposedList = Syn_ScalarExprTransposedList {_annotatedTree_Syn_ScalarExprTransposedList :: ScalarExprTransposedList,_originalTree_Syn_ScalarExprTransposedList :: ScalarExprTransposedList,_upType_Syn_ScalarExprTransposedList :: (Maybe [TypeExtra])}
 _wrap_ScalarExprTransposedList :: T_ScalarExprTransposedList ->
                                  Inh_ScalarExprTransposedList ->
@@ -16378,10 +16378,10 @@ _sem_ScalarExprTransposedList_Cons hd_ tl_ =
               _lhsOannotatedTree :: ScalarExprTransposedList
               _lhsOoriginalTree :: ScalarExprTransposedList
               _hdOcat :: Catalog
-              _hdOflags :: TypeCheckingFlags
+              _hdOflags :: TypeCheckFlags
               _hdOimCast :: (Maybe TypeExtra)
               _tlOcat :: Catalog
-              _tlOflags :: TypeCheckingFlags
+              _tlOflags :: TypeCheckFlags
               _tlOimCast :: (Maybe TypeExtra)
               _hdIannotatedTree :: ScalarExpr
               _hdIcolExprs :: ([(NameComponent,Maybe TypeExtra,ScalarExpr)])
@@ -16553,7 +16553,7 @@ _sem_ScalarExprTransposedList_Nil =
          downEnv              : Environment
          expectedCast         : Bool
          expectedType         : Maybe TypeExtra
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : SelectItem 
@@ -16590,10 +16590,10 @@ type T_SelectItem = Bool ->
                     Environment ->
                     Bool ->
                     (Maybe TypeExtra) ->
-                    TypeCheckingFlags ->
+                    TypeCheckFlags ->
                     (Maybe TypeExtra) ->
                     ( SelectItem,([(NameComponent,Maybe TypeExtra,ScalarExpr)]),SelectItem)
-data Inh_SelectItem = Inh_SelectItem {_assignmentCastContext_Inh_SelectItem :: Bool,_cat_Inh_SelectItem :: Catalog,_downEnv_Inh_SelectItem :: Environment,_expectedCast_Inh_SelectItem :: Bool,_expectedType_Inh_SelectItem :: (Maybe TypeExtra),_flags_Inh_SelectItem :: TypeCheckingFlags,_imCast_Inh_SelectItem :: (Maybe TypeExtra)}
+data Inh_SelectItem = Inh_SelectItem {_assignmentCastContext_Inh_SelectItem :: Bool,_cat_Inh_SelectItem :: Catalog,_downEnv_Inh_SelectItem :: Environment,_expectedCast_Inh_SelectItem :: Bool,_expectedType_Inh_SelectItem :: (Maybe TypeExtra),_flags_Inh_SelectItem :: TypeCheckFlags,_imCast_Inh_SelectItem :: (Maybe TypeExtra)}
 data Syn_SelectItem = Syn_SelectItem {_annotatedTree_Syn_SelectItem :: SelectItem,_colExprs_Syn_SelectItem :: ([(NameComponent,Maybe TypeExtra,ScalarExpr)]),_originalTree_Syn_SelectItem :: SelectItem}
 _wrap_SelectItem :: T_SelectItem ->
                    Inh_SelectItem ->
@@ -16620,12 +16620,12 @@ _sem_SelectItem_SelExp ann_ ex_ =
               _lhsOoriginalTree :: SelectItem
               _lhsOcolExprs :: ([(NameComponent,Maybe TypeExtra,ScalarExpr)])
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _exOassignmentCastContext :: Bool
               _exOcat :: Catalog
               _exOdownEnv :: Environment
-              _exOflags :: TypeCheckingFlags
+              _exOflags :: TypeCheckFlags
               _exOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -16765,12 +16765,12 @@ _sem_SelectItem_SelectItem ann_ ex_ name_ =
               _lhsOannotatedTree :: SelectItem
               _lhsOoriginalTree :: SelectItem
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _exOassignmentCastContext :: Bool
               _exOcat :: Catalog
               _exOdownEnv :: Environment
-              _exOflags :: TypeCheckingFlags
+              _exOflags :: TypeCheckFlags
               _exOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -16896,7 +16896,7 @@ _sem_SelectItem_SelectItem ann_ ex_ name_ =
          downEnv              : Environment
          expectedCast         : Bool
          expectedType         : Maybe [TypeExtra]
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : SelectItemList 
@@ -16931,10 +16931,10 @@ type T_SelectItemList = Bool ->
                         Environment ->
                         Bool ->
                         (Maybe [TypeExtra]) ->
-                        TypeCheckingFlags ->
+                        TypeCheckFlags ->
                         (Maybe TypeExtra) ->
                         ( SelectItemList,([(NameComponent,Maybe TypeExtra,ScalarExpr)]),SelectItemList,Environment,(Maybe [(Text,TypeExtra)]))
-data Inh_SelectItemList = Inh_SelectItemList {_assignmentCastContext_Inh_SelectItemList :: Bool,_cat_Inh_SelectItemList :: Catalog,_downEnv_Inh_SelectItemList :: Environment,_expectedCast_Inh_SelectItemList :: Bool,_expectedType_Inh_SelectItemList :: (Maybe [TypeExtra]),_flags_Inh_SelectItemList :: TypeCheckingFlags,_imCast_Inh_SelectItemList :: (Maybe TypeExtra)}
+data Inh_SelectItemList = Inh_SelectItemList {_assignmentCastContext_Inh_SelectItemList :: Bool,_cat_Inh_SelectItemList :: Catalog,_downEnv_Inh_SelectItemList :: Environment,_expectedCast_Inh_SelectItemList :: Bool,_expectedType_Inh_SelectItemList :: (Maybe [TypeExtra]),_flags_Inh_SelectItemList :: TypeCheckFlags,_imCast_Inh_SelectItemList :: (Maybe TypeExtra)}
 data Syn_SelectItemList = Syn_SelectItemList {_annotatedTree_Syn_SelectItemList :: SelectItemList,_colExprs_Syn_SelectItemList :: ([(NameComponent,Maybe TypeExtra,ScalarExpr)]),_originalTree_Syn_SelectItemList :: SelectItemList,_upEnv_Syn_SelectItemList :: Environment,_upType_Syn_SelectItemList :: (Maybe [(Text,TypeExtra)])}
 _wrap_SelectItemList :: T_SelectItemList ->
                        Inh_SelectItemList ->
@@ -16965,12 +16965,12 @@ _sem_SelectItemList_Cons hd_ tl_ =
               _hdOassignmentCastContext :: Bool
               _hdOcat :: Catalog
               _hdOdownEnv :: Environment
-              _hdOflags :: TypeCheckingFlags
+              _hdOflags :: TypeCheckFlags
               _hdOimCast :: (Maybe TypeExtra)
               _tlOassignmentCastContext :: Bool
               _tlOcat :: Catalog
               _tlOdownEnv :: Environment
-              _tlOflags :: TypeCheckingFlags
+              _tlOflags :: TypeCheckFlags
               _tlOimCast :: (Maybe TypeExtra)
               _hdIannotatedTree :: SelectItem
               _hdIcolExprs :: ([(NameComponent,Maybe TypeExtra,ScalarExpr)])
@@ -17205,7 +17205,7 @@ _sem_SelectItemList_Nil =
          downEnv              : Environment
          expectedCast         : Bool
          expectedType         : Maybe [TypeExtra]
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : SelectList 
@@ -17234,10 +17234,10 @@ type T_SelectList = Bool ->
                     Environment ->
                     Bool ->
                     (Maybe [TypeExtra]) ->
-                    TypeCheckingFlags ->
+                    TypeCheckFlags ->
                     (Maybe TypeExtra) ->
                     ( SelectList,([(NameComponent,Maybe TypeExtra,ScalarExpr)]),SelectList,Environment,(Maybe [(Text,TypeExtra)]))
-data Inh_SelectList = Inh_SelectList {_assignmentCastContext_Inh_SelectList :: Bool,_cat_Inh_SelectList :: Catalog,_downEnv_Inh_SelectList :: Environment,_expectedCast_Inh_SelectList :: Bool,_expectedType_Inh_SelectList :: (Maybe [TypeExtra]),_flags_Inh_SelectList :: TypeCheckingFlags,_imCast_Inh_SelectList :: (Maybe TypeExtra)}
+data Inh_SelectList = Inh_SelectList {_assignmentCastContext_Inh_SelectList :: Bool,_cat_Inh_SelectList :: Catalog,_downEnv_Inh_SelectList :: Environment,_expectedCast_Inh_SelectList :: Bool,_expectedType_Inh_SelectList :: (Maybe [TypeExtra]),_flags_Inh_SelectList :: TypeCheckFlags,_imCast_Inh_SelectList :: (Maybe TypeExtra)}
 data Syn_SelectList = Syn_SelectList {_annotatedTree_Syn_SelectList :: SelectList,_colExprs_Syn_SelectList :: ([(NameComponent,Maybe TypeExtra,ScalarExpr)]),_originalTree_Syn_SelectList :: SelectList,_upEnv_Syn_SelectList :: Environment,_upType_Syn_SelectList :: (Maybe [(Text,TypeExtra)])}
 _wrap_SelectList :: T_SelectList ->
                    Inh_SelectList ->
@@ -17264,13 +17264,13 @@ _sem_SelectList_SelectList ann_ items_ =
               _lhsOupEnv :: Environment
               _lhsOupType :: (Maybe [(Text,TypeExtra)])
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _itemsOassignmentCastContext :: Bool
               _itemsOcat :: Catalog
               _itemsOdownEnv :: Environment
               _itemsOexpectedType :: (Maybe [TypeExtra])
-              _itemsOflags :: TypeCheckingFlags
+              _itemsOflags :: TypeCheckFlags
               _itemsOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -17397,7 +17397,7 @@ _sem_SelectList_SelectList ann_ items_ =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : SetClause 
@@ -17430,10 +17430,10 @@ _sem_SetClause (MultiSetClause _ann _setTargets _ex) =
     (_sem_SetClause_MultiSetClause (_sem_Annotation _ann) _setTargets (_sem_ScalarExpr _ex))
 -- semantic domain
 type T_SetClause = Catalog ->
-                   TypeCheckingFlags ->
+                   TypeCheckFlags ->
                    (Maybe TypeExtra) ->
                    ( SetClause,SetClause)
-data Inh_SetClause = Inh_SetClause {_cat_Inh_SetClause :: Catalog,_flags_Inh_SetClause :: TypeCheckingFlags,_imCast_Inh_SetClause :: (Maybe TypeExtra)}
+data Inh_SetClause = Inh_SetClause {_cat_Inh_SetClause :: Catalog,_flags_Inh_SetClause :: TypeCheckFlags,_imCast_Inh_SetClause :: (Maybe TypeExtra)}
 data Syn_SetClause = Syn_SetClause {_annotatedTree_Syn_SetClause :: SetClause,_originalTree_Syn_SetClause :: SetClause}
 _wrap_SetClause :: T_SetClause ->
                   Inh_SetClause ->
@@ -17458,10 +17458,10 @@ _sem_SetClause_SetClause ann_ setTarget_ ex_ =
               _lhsOannotatedTree :: SetClause
               _lhsOoriginalTree :: SetClause
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _exOcat :: Catalog
-              _exOflags :: TypeCheckingFlags
+              _exOflags :: TypeCheckFlags
               _exOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -17587,10 +17587,10 @@ _sem_SetClause_MultiSetClause ann_ setTargets_ ex_ =
               _lhsOannotatedTree :: SetClause
               _lhsOoriginalTree :: SetClause
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _exOcat :: Catalog
-              _exOflags :: TypeCheckingFlags
+              _exOflags :: TypeCheckFlags
               _exOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -17704,7 +17704,7 @@ _sem_SetClause_MultiSetClause ann_ setTargets_ ex_ =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : SetClauseList 
@@ -17729,10 +17729,10 @@ _sem_SetClauseList list =
     (Prelude.foldr _sem_SetClauseList_Cons _sem_SetClauseList_Nil (Prelude.map _sem_SetClause list))
 -- semantic domain
 type T_SetClauseList = Catalog ->
-                       TypeCheckingFlags ->
+                       TypeCheckFlags ->
                        (Maybe TypeExtra) ->
                        ( SetClauseList,SetClauseList)
-data Inh_SetClauseList = Inh_SetClauseList {_cat_Inh_SetClauseList :: Catalog,_flags_Inh_SetClauseList :: TypeCheckingFlags,_imCast_Inh_SetClauseList :: (Maybe TypeExtra)}
+data Inh_SetClauseList = Inh_SetClauseList {_cat_Inh_SetClauseList :: Catalog,_flags_Inh_SetClauseList :: TypeCheckFlags,_imCast_Inh_SetClauseList :: (Maybe TypeExtra)}
 data Syn_SetClauseList = Syn_SetClauseList {_annotatedTree_Syn_SetClauseList :: SetClauseList,_originalTree_Syn_SetClauseList :: SetClauseList}
 _wrap_SetClauseList :: T_SetClauseList ->
                       Inh_SetClauseList ->
@@ -17750,10 +17750,10 @@ _sem_SetClauseList_Cons hd_ tl_ =
          (let _lhsOannotatedTree :: SetClauseList
               _lhsOoriginalTree :: SetClauseList
               _hdOcat :: Catalog
-              _hdOflags :: TypeCheckingFlags
+              _hdOflags :: TypeCheckFlags
               _hdOimCast :: (Maybe TypeExtra)
               _tlOcat :: Catalog
-              _tlOflags :: TypeCheckingFlags
+              _tlOflags :: TypeCheckFlags
               _tlOimCast :: (Maybe TypeExtra)
               _hdIannotatedTree :: SetClause
               _hdIoriginalTree :: SetClause
@@ -17861,7 +17861,7 @@ _sem_SetClauseList_Nil =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : Statement 
@@ -18476,10 +18476,10 @@ _sem_Statement (CreateIndexTSQL _ann _nm _obj _cols) =
     (_sem_Statement_CreateIndexTSQL (_sem_Annotation _ann) _nm (_sem_Name _obj) _cols)
 -- semantic domain
 type T_Statement = Catalog ->
-                   TypeCheckingFlags ->
+                   TypeCheckFlags ->
                    (Maybe TypeExtra) ->
                    ( Statement,Statement)
-data Inh_Statement = Inh_Statement {_cat_Inh_Statement :: Catalog,_flags_Inh_Statement :: TypeCheckingFlags,_imCast_Inh_Statement :: (Maybe TypeExtra)}
+data Inh_Statement = Inh_Statement {_cat_Inh_Statement :: Catalog,_flags_Inh_Statement :: TypeCheckFlags,_imCast_Inh_Statement :: (Maybe TypeExtra)}
 data Syn_Statement = Syn_Statement {_annotatedTree_Syn_Statement :: Statement,_originalTree_Syn_Statement :: Statement}
 _wrap_Statement :: T_Statement ->
                   Inh_Statement ->
@@ -18501,10 +18501,10 @@ _sem_Statement_QueryStatement ann_ ex_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _exOcat :: Catalog
-              _exOflags :: TypeCheckingFlags
+              _exOflags :: TypeCheckFlags
               _exOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -18620,16 +18620,16 @@ _sem_Statement_Insert ann_ table_ targetCols_ insData_ returning_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _tableOcat :: Catalog
-              _tableOflags :: TypeCheckingFlags
+              _tableOflags :: TypeCheckFlags
               _tableOimCast :: (Maybe TypeExtra)
               _insDataOcat :: Catalog
-              _insDataOflags :: TypeCheckingFlags
+              _insDataOflags :: TypeCheckFlags
               _insDataOimCast :: (Maybe TypeExtra)
               _returningOcat :: Catalog
-              _returningOflags :: TypeCheckingFlags
+              _returningOflags :: TypeCheckFlags
               _returningOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -18823,22 +18823,22 @@ _sem_Statement_Update ann_ table_ assigns_ fromList_ whr_ returning_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _tableOcat :: Catalog
-              _tableOflags :: TypeCheckingFlags
+              _tableOflags :: TypeCheckFlags
               _tableOimCast :: (Maybe TypeExtra)
               _assignsOcat :: Catalog
-              _assignsOflags :: TypeCheckingFlags
+              _assignsOflags :: TypeCheckFlags
               _assignsOimCast :: (Maybe TypeExtra)
               _fromListOcat :: Catalog
-              _fromListOflags :: TypeCheckingFlags
+              _fromListOflags :: TypeCheckFlags
               _fromListOimCast :: (Maybe TypeExtra)
               _whrOcat :: Catalog
-              _whrOflags :: TypeCheckingFlags
+              _whrOflags :: TypeCheckFlags
               _whrOimCast :: (Maybe TypeExtra)
               _returningOcat :: Catalog
-              _returningOflags :: TypeCheckingFlags
+              _returningOflags :: TypeCheckFlags
               _returningOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -19032,19 +19032,19 @@ _sem_Statement_Delete ann_ table_ using_ whr_ returning_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _tableOcat :: Catalog
-              _tableOflags :: TypeCheckingFlags
+              _tableOflags :: TypeCheckFlags
               _tableOimCast :: (Maybe TypeExtra)
               _usingOcat :: Catalog
-              _usingOflags :: TypeCheckingFlags
+              _usingOflags :: TypeCheckFlags
               _usingOimCast :: (Maybe TypeExtra)
               _whrOcat :: Catalog
-              _whrOflags :: TypeCheckingFlags
+              _whrOflags :: TypeCheckFlags
               _whrOimCast :: (Maybe TypeExtra)
               _returningOcat :: Catalog
-              _returningOflags :: TypeCheckingFlags
+              _returningOflags :: TypeCheckFlags
               _returningOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -19215,10 +19215,10 @@ _sem_Statement_CopyFrom ann_ table_ targetCols_ source_ opts_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _tableOcat :: Catalog
-              _tableOflags :: TypeCheckingFlags
+              _tableOflags :: TypeCheckFlags
               _tableOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -19312,7 +19312,7 @@ _sem_Statement_CopyData ann_ insData_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -19380,7 +19380,7 @@ _sem_Statement_CopyTo ann_ cp_ fn_ opts_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -19448,7 +19448,7 @@ _sem_Statement_Truncate ann_ tables_ restartIdentity_ cascade_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -19518,19 +19518,19 @@ _sem_Statement_CreateTable ann_ name_ atts_ cons_ partition_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _nameOcat :: Catalog
-              _nameOflags :: TypeCheckingFlags
+              _nameOflags :: TypeCheckFlags
               _nameOimCast :: (Maybe TypeExtra)
               _attsOcat :: Catalog
-              _attsOflags :: TypeCheckingFlags
+              _attsOflags :: TypeCheckFlags
               _attsOimCast :: (Maybe TypeExtra)
               _consOcat :: Catalog
-              _consOflags :: TypeCheckingFlags
+              _consOflags :: TypeCheckFlags
               _consOimCast :: (Maybe TypeExtra)
               _partitionOcat :: Catalog
-              _partitionOflags :: TypeCheckingFlags
+              _partitionOflags :: TypeCheckFlags
               _partitionOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -19692,13 +19692,13 @@ _sem_Statement_AlterTable ann_ name_ operation_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _nameOcat :: Catalog
-              _nameOflags :: TypeCheckingFlags
+              _nameOflags :: TypeCheckFlags
               _nameOimCast :: (Maybe TypeExtra)
               _operationOcat :: Catalog
-              _operationOflags :: TypeCheckingFlags
+              _operationOflags :: TypeCheckFlags
               _operationOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -19816,13 +19816,13 @@ _sem_Statement_AlterDatabase ann_ name_ operation_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _nameOcat :: Catalog
-              _nameOflags :: TypeCheckingFlags
+              _nameOflags :: TypeCheckFlags
               _nameOimCast :: (Maybe TypeExtra)
               _operationOcat :: Catalog
-              _operationOflags :: TypeCheckingFlags
+              _operationOflags :: TypeCheckFlags
               _operationOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -19944,10 +19944,10 @@ _sem_Statement_CreateSequence ann_ name_ incr_ min_ max_ start_ cache_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _nameOcat :: Catalog
-              _nameOflags :: TypeCheckingFlags
+              _nameOflags :: TypeCheckFlags
               _nameOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -20044,13 +20044,13 @@ _sem_Statement_AlterSequence ann_ name_ ownedBy_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _nameOcat :: Catalog
-              _nameOflags :: TypeCheckingFlags
+              _nameOflags :: TypeCheckFlags
               _nameOimCast :: (Maybe TypeExtra)
               _ownedByOcat :: Catalog
-              _ownedByOflags :: TypeCheckingFlags
+              _ownedByOflags :: TypeCheckFlags
               _ownedByOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -20177,13 +20177,13 @@ _sem_Statement_CreateTableAs ann_ name_ expr_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _nameOcat :: Catalog
-              _nameOflags :: TypeCheckingFlags
+              _nameOflags :: TypeCheckFlags
               _nameOimCast :: (Maybe TypeExtra)
               _exprOcat :: Catalog
-              _exprOflags :: TypeCheckingFlags
+              _exprOflags :: TypeCheckFlags
               _exprOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -20324,13 +20324,13 @@ _sem_Statement_CreateView ann_ name_ colNames_ expr_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _nameOcat :: Catalog
-              _nameOflags :: TypeCheckingFlags
+              _nameOflags :: TypeCheckFlags
               _nameOimCast :: (Maybe TypeExtra)
               _exprOcat :: Catalog
-              _exprOflags :: TypeCheckingFlags
+              _exprOflags :: TypeCheckFlags
               _exprOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -20471,13 +20471,13 @@ _sem_Statement_AlterView ann_ name_ colNames_ expr_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _nameOcat :: Catalog
-              _nameOflags :: TypeCheckingFlags
+              _nameOflags :: TypeCheckFlags
               _nameOimCast :: (Maybe TypeExtra)
               _exprOcat :: Catalog
-              _exprOflags :: TypeCheckingFlags
+              _exprOflags :: TypeCheckFlags
               _exprOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -20614,13 +20614,13 @@ _sem_Statement_CreateType ann_ name_ atts_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _nameOcat :: Catalog
-              _nameOflags :: TypeCheckingFlags
+              _nameOflags :: TypeCheckFlags
               _nameOimCast :: (Maybe TypeExtra)
               _attsOcat :: Catalog
-              _attsOflags :: TypeCheckingFlags
+              _attsOflags :: TypeCheckFlags
               _attsOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -20738,10 +20738,10 @@ _sem_Statement_CreateUser ann_ name_ password_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _nameOcat :: Catalog
-              _nameOflags :: TypeCheckingFlags
+              _nameOflags :: TypeCheckFlags
               _nameOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -20837,10 +20837,10 @@ _sem_Statement_CreateLogin ann_ name_ password_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _nameOcat :: Catalog
-              _nameOflags :: TypeCheckingFlags
+              _nameOflags :: TypeCheckFlags
               _nameOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -20936,10 +20936,10 @@ _sem_Statement_AlterUser ann_ name_ password_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _nameOcat :: Catalog
-              _nameOflags :: TypeCheckingFlags
+              _nameOflags :: TypeCheckFlags
               _nameOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -21035,10 +21035,10 @@ _sem_Statement_AlterLogin ann_ name_ password_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _nameOcat :: Catalog
-              _nameOflags :: TypeCheckingFlags
+              _nameOflags :: TypeCheckFlags
               _nameOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -21133,7 +21133,7 @@ _sem_Statement_CreateSchema ann_ name_ owner_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -21200,10 +21200,10 @@ _sem_Statement_AlterSchema ann_ name_ operation_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _operationOcat :: Catalog
-              _operationOflags :: TypeCheckingFlags
+              _operationOflags :: TypeCheckFlags
               _operationOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -21292,7 +21292,7 @@ _sem_Statement_DropSchema ann_ name_ cascade_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -21365,19 +21365,19 @@ _sem_Statement_CreateFunction ann_ name_ params_ rettype_ rep_ lang_ body_ vol_ 
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _nameOcat :: Catalog
-              _nameOflags :: TypeCheckingFlags
+              _nameOflags :: TypeCheckFlags
               _nameOimCast :: (Maybe TypeExtra)
               _paramsOcat :: Catalog
-              _paramsOflags :: TypeCheckingFlags
+              _paramsOflags :: TypeCheckFlags
               _paramsOimCast :: (Maybe TypeExtra)
               _rettypeOcat :: Catalog
-              _rettypeOflags :: TypeCheckingFlags
+              _rettypeOflags :: TypeCheckFlags
               _rettypeOimCast :: (Maybe TypeExtra)
               _bodyOcat :: Catalog
-              _bodyOflags :: TypeCheckingFlags
+              _bodyOflags :: TypeCheckFlags
               _bodyOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -21543,16 +21543,16 @@ _sem_Statement_CreateDomain ann_ name_ typ_ constraintName_ check_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _nameOcat :: Catalog
-              _nameOflags :: TypeCheckingFlags
+              _nameOflags :: TypeCheckFlags
               _nameOimCast :: (Maybe TypeExtra)
               _typOcat :: Catalog
-              _typOflags :: TypeCheckingFlags
+              _typOflags :: TypeCheckFlags
               _typOimCast :: (Maybe TypeExtra)
               _checkOcat :: Catalog
-              _checkOflags :: TypeCheckingFlags
+              _checkOflags :: TypeCheckFlags
               _checkOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -21697,7 +21697,7 @@ _sem_Statement_CreateLanguage ann_ name_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -21775,16 +21775,16 @@ _sem_Statement_CreateTrigger ann_ name_ wh_ events_ tbl_ firing_ fnName_ fnArgs_
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _tblOcat :: Catalog
-              _tblOflags :: TypeCheckingFlags
+              _tblOflags :: TypeCheckFlags
               _tblOimCast :: (Maybe TypeExtra)
               _fnNameOcat :: Catalog
-              _fnNameOflags :: TypeCheckingFlags
+              _fnNameOflags :: TypeCheckFlags
               _fnNameOimCast :: (Maybe TypeExtra)
               _fnArgsOcat :: Catalog
-              _fnArgsOflags :: TypeCheckingFlags
+              _fnArgsOflags :: TypeCheckFlags
               _fnArgsOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -21955,10 +21955,10 @@ _sem_Statement_DropFunction ann_ ifE_ sigs_ cascade_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _sigsOcat :: Catalog
-              _sigsOflags :: TypeCheckingFlags
+              _sigsOflags :: TypeCheckFlags
               _sigsOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -22049,7 +22049,7 @@ _sem_Statement_DropSomething ann_ dropType_ ifE_ names_ cascade_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -22119,10 +22119,10 @@ _sem_Statement_DropTrigger ann_ ifE_ name_ tbl_ cascade_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _tblOcat :: Catalog
-              _tblOflags :: TypeCheckingFlags
+              _tblOflags :: TypeCheckFlags
               _tblOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -22217,10 +22217,10 @@ _sem_Statement_CreateDatabase ann_ nm_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _nmOcat :: Catalog
-              _nmOflags :: TypeCheckingFlags
+              _nmOflags :: TypeCheckFlags
               _nmOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -22315,7 +22315,7 @@ _sem_Statement_Set ann_ name_ values_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -22381,7 +22381,7 @@ _sem_Statement_Notify ann_ name_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -22449,10 +22449,10 @@ _sem_Statement_Into ann_ strict_ into_ stmt_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _stmtOcat :: Catalog
-              _stmtOflags :: TypeCheckingFlags
+              _stmtOflags :: TypeCheckFlags
               _stmtOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -22547,13 +22547,13 @@ _sem_Statement_Assignment ann_ target_ value_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _targetOcat :: Catalog
-              _targetOflags :: TypeCheckingFlags
+              _targetOflags :: TypeCheckFlags
               _targetOimCast :: (Maybe TypeExtra)
               _valueOcat :: Catalog
-              _valueOflags :: TypeCheckingFlags
+              _valueOflags :: TypeCheckFlags
               _valueOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -22705,10 +22705,10 @@ _sem_Statement_Return ann_ value_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _valueOcat :: Catalog
-              _valueOflags :: TypeCheckingFlags
+              _valueOflags :: TypeCheckFlags
               _valueOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -22826,10 +22826,10 @@ _sem_Statement_ReturnNext ann_ expr_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _exprOcat :: Catalog
-              _exprOflags :: TypeCheckingFlags
+              _exprOflags :: TypeCheckFlags
               _exprOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -22952,10 +22952,10 @@ _sem_Statement_ReturnQuery ann_ sel_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _selOcat :: Catalog
-              _selOflags :: TypeCheckingFlags
+              _selOflags :: TypeCheckFlags
               _selOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -23068,10 +23068,10 @@ _sem_Statement_Raise ann_ level_ message_ args_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _argsOcat :: Catalog
-              _argsOflags :: TypeCheckingFlags
+              _argsOflags :: TypeCheckFlags
               _argsOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -23183,7 +23183,7 @@ _sem_Statement_NullStatement ann_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -23254,10 +23254,10 @@ _sem_Statement_Perform ann_ expr_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _exprOcat :: Catalog
-              _exprOflags :: TypeCheckingFlags
+              _exprOflags :: TypeCheckFlags
               _exprOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -23382,10 +23382,10 @@ _sem_Statement_Execute ann_ expr_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _exprOcat :: Catalog
-              _exprOflags :: TypeCheckingFlags
+              _exprOflags :: TypeCheckFlags
               _exprOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -23511,13 +23511,13 @@ _sem_Statement_ForQueryStatement ann_ lb_ var_ sel_ sts_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _selOcat :: Catalog
-              _selOflags :: TypeCheckingFlags
+              _selOflags :: TypeCheckFlags
               _selOimCast :: (Maybe TypeExtra)
               _stsOcat :: Catalog
-              _stsOflags :: TypeCheckingFlags
+              _stsOflags :: TypeCheckFlags
               _stsOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -23660,16 +23660,16 @@ _sem_Statement_ForIntegerStatement ann_ lb_ var_ from_ to_ sts_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _fromOcat :: Catalog
-              _fromOflags :: TypeCheckingFlags
+              _fromOflags :: TypeCheckFlags
               _fromOimCast :: (Maybe TypeExtra)
               _toOcat :: Catalog
-              _toOflags :: TypeCheckingFlags
+              _toOflags :: TypeCheckFlags
               _toOimCast :: (Maybe TypeExtra)
               _stsOcat :: Catalog
-              _stsOflags :: TypeCheckingFlags
+              _stsOflags :: TypeCheckFlags
               _stsOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -23866,10 +23866,10 @@ _sem_Statement_LoopStatement ann_ lb_ sts_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _stsOcat :: Catalog
-              _stsOflags :: TypeCheckingFlags
+              _stsOflags :: TypeCheckFlags
               _stsOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -23964,13 +23964,13 @@ _sem_Statement_WhileStatement ann_ lb_ expr_ sts_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _exprOcat :: Catalog
-              _exprOflags :: TypeCheckingFlags
+              _exprOflags :: TypeCheckFlags
               _exprOimCast :: (Maybe TypeExtra)
               _stsOcat :: Catalog
-              _stsOflags :: TypeCheckingFlags
+              _stsOflags :: TypeCheckFlags
               _stsOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -24112,7 +24112,7 @@ _sem_Statement_ContinueStatement ann_ lb_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -24178,7 +24178,7 @@ _sem_Statement_ExitStatement ann_ lb_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -24251,16 +24251,16 @@ _sem_Statement_CaseStatementSimple ann_ val_ cases_ els_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _valOcat :: Catalog
-              _valOflags :: TypeCheckingFlags
+              _valOflags :: TypeCheckFlags
               _valOimCast :: (Maybe TypeExtra)
               _casesOcat :: Catalog
-              _casesOflags :: TypeCheckingFlags
+              _casesOflags :: TypeCheckFlags
               _casesOimCast :: (Maybe TypeExtra)
               _elsOcat :: Catalog
-              _elsOflags :: TypeCheckingFlags
+              _elsOflags :: TypeCheckFlags
               _elsOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -24425,13 +24425,13 @@ _sem_Statement_CaseStatement ann_ cases_ els_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _casesOcat :: Catalog
-              _casesOflags :: TypeCheckingFlags
+              _casesOflags :: TypeCheckFlags
               _casesOimCast :: (Maybe TypeExtra)
               _elsOcat :: Catalog
-              _elsOflags :: TypeCheckingFlags
+              _elsOflags :: TypeCheckFlags
               _elsOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -24542,13 +24542,13 @@ _sem_Statement_If ann_ cases_ els_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _casesOcat :: Catalog
-              _casesOflags :: TypeCheckingFlags
+              _casesOflags :: TypeCheckFlags
               _casesOimCast :: (Maybe TypeExtra)
               _elsOcat :: Catalog
-              _elsOflags :: TypeCheckingFlags
+              _elsOflags :: TypeCheckFlags
               _elsOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -24660,13 +24660,13 @@ _sem_Statement_Block ann_ lb_ vars_ sts_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _varsOcat :: Catalog
-              _varsOflags :: TypeCheckingFlags
+              _varsOflags :: TypeCheckFlags
               _varsOimCast :: (Maybe TypeExtra)
               _stsOcat :: Catalog
-              _stsOflags :: TypeCheckingFlags
+              _stsOflags :: TypeCheckFlags
               _stsOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -24809,7 +24809,7 @@ _sem_Statement_DeclareStatement ann_ ds_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -24881,13 +24881,13 @@ _sem_Statement_ExecStatement ann_ spName_ args_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _spNameOcat :: Catalog
-              _spNameOflags :: TypeCheckingFlags
+              _spNameOflags :: TypeCheckFlags
               _spNameOimCast :: (Maybe TypeExtra)
               _argsOcat :: Catalog
-              _argsOflags :: TypeCheckingFlags
+              _argsOflags :: TypeCheckFlags
               _argsOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -25031,10 +25031,10 @@ _sem_Statement_CreateIndexTSQL ann_ nm_ obj_ cols_ =
               _lhsOannotatedTree :: Statement
               _lhsOoriginalTree :: Statement
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _objOcat :: Catalog
-              _objOflags :: TypeCheckingFlags
+              _objOflags :: TypeCheckFlags
               _objOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -25122,7 +25122,7 @@ _sem_Statement_CreateIndexTSQL ann_ nm_ obj_ cols_ =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : StatementList 
@@ -25147,10 +25147,10 @@ _sem_StatementList list =
     (Prelude.foldr _sem_StatementList_Cons _sem_StatementList_Nil (Prelude.map _sem_Statement list))
 -- semantic domain
 type T_StatementList = Catalog ->
-                       TypeCheckingFlags ->
+                       TypeCheckFlags ->
                        (Maybe TypeExtra) ->
                        ( StatementList,StatementList)
-data Inh_StatementList = Inh_StatementList {_cat_Inh_StatementList :: Catalog,_flags_Inh_StatementList :: TypeCheckingFlags,_imCast_Inh_StatementList :: (Maybe TypeExtra)}
+data Inh_StatementList = Inh_StatementList {_cat_Inh_StatementList :: Catalog,_flags_Inh_StatementList :: TypeCheckFlags,_imCast_Inh_StatementList :: (Maybe TypeExtra)}
 data Syn_StatementList = Syn_StatementList {_annotatedTree_Syn_StatementList :: StatementList,_originalTree_Syn_StatementList :: StatementList}
 _wrap_StatementList :: T_StatementList ->
                       Inh_StatementList ->
@@ -25168,10 +25168,10 @@ _sem_StatementList_Cons hd_ tl_ =
          (let _lhsOannotatedTree :: StatementList
               _lhsOoriginalTree :: StatementList
               _hdOcat :: Catalog
-              _hdOflags :: TypeCheckingFlags
+              _hdOflags :: TypeCheckFlags
               _hdOimCast :: (Maybe TypeExtra)
               _tlOcat :: Catalog
-              _tlOflags :: TypeCheckingFlags
+              _tlOflags :: TypeCheckFlags
               _tlOimCast :: (Maybe TypeExtra)
               _hdIannotatedTree :: Statement
               _hdIoriginalTree :: Statement
@@ -25279,7 +25279,7 @@ _sem_StatementList_Nil =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : TablePartitionDef 
@@ -25303,10 +25303,10 @@ _sem_TablePartitionDef (TablePartitionDef _ann _colname _interval _timeframe) =
     (_sem_TablePartitionDef_TablePartitionDef (_sem_Annotation _ann) _colname _interval _timeframe)
 -- semantic domain
 type T_TablePartitionDef = Catalog ->
-                           TypeCheckingFlags ->
+                           TypeCheckFlags ->
                            (Maybe TypeExtra) ->
                            ( TablePartitionDef,TablePartitionDef)
-data Inh_TablePartitionDef = Inh_TablePartitionDef {_cat_Inh_TablePartitionDef :: Catalog,_flags_Inh_TablePartitionDef :: TypeCheckingFlags,_imCast_Inh_TablePartitionDef :: (Maybe TypeExtra)}
+data Inh_TablePartitionDef = Inh_TablePartitionDef {_cat_Inh_TablePartitionDef :: Catalog,_flags_Inh_TablePartitionDef :: TypeCheckFlags,_imCast_Inh_TablePartitionDef :: (Maybe TypeExtra)}
 data Syn_TablePartitionDef = Syn_TablePartitionDef {_annotatedTree_Syn_TablePartitionDef :: TablePartitionDef,_originalTree_Syn_TablePartitionDef :: TablePartitionDef}
 _wrap_TablePartitionDef :: T_TablePartitionDef ->
                           Inh_TablePartitionDef ->
@@ -25327,7 +25327,7 @@ _sem_TablePartitionDef_TablePartitionDef ann_ colname_ interval_ timeframe_ =
               _lhsOannotatedTree :: TablePartitionDef
               _lhsOoriginalTree :: TablePartitionDef
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -25387,7 +25387,7 @@ _sem_TablePartitionDef_TablePartitionDef ann_ colname_ interval_ timeframe_ =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : TableRef 
@@ -25495,10 +25495,10 @@ _sem_TableRef (OdbcTableRef _ann _tref) =
     (_sem_TableRef_OdbcTableRef (_sem_Annotation _ann) (_sem_TableRef _tref))
 -- semantic domain
 type T_TableRef = Catalog ->
-                  TypeCheckingFlags ->
+                  TypeCheckFlags ->
                   (Maybe TypeExtra) ->
                   ( TableRef,TableRef,Environment)
-data Inh_TableRef = Inh_TableRef {_cat_Inh_TableRef :: Catalog,_flags_Inh_TableRef :: TypeCheckingFlags,_imCast_Inh_TableRef :: (Maybe TypeExtra)}
+data Inh_TableRef = Inh_TableRef {_cat_Inh_TableRef :: Catalog,_flags_Inh_TableRef :: TypeCheckFlags,_imCast_Inh_TableRef :: (Maybe TypeExtra)}
 data Syn_TableRef = Syn_TableRef {_annotatedTree_Syn_TableRef :: TableRef,_originalTree_Syn_TableRef :: TableRef,_upEnv_Syn_TableRef :: Environment}
 _wrap_TableRef :: T_TableRef ->
                  Inh_TableRef ->
@@ -25520,10 +25520,10 @@ _sem_TableRef_Tref ann_ tbl_ =
               _lhsOannotatedTree :: TableRef
               _lhsOoriginalTree :: TableRef
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _tblOcat :: Catalog
-              _tblOflags :: TypeCheckingFlags
+              _tblOflags :: TypeCheckFlags
               _tblOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -25656,10 +25656,10 @@ _sem_TableRef_FunTref ann_ fn_ =
               _fnOassignmentCastContext :: Bool
               _lhsOoriginalTree :: TableRef
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _fnOcat :: Catalog
-              _fnOflags :: TypeCheckingFlags
+              _fnOflags :: TypeCheckFlags
               _fnOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -25819,10 +25819,10 @@ _sem_TableRef_SubTref ann_ sel_ =
               _selOassignmentCastContext :: Bool
               _lhsOoriginalTree :: TableRef
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _selOcat :: Catalog
-              _selOflags :: TypeCheckingFlags
+              _selOflags :: TypeCheckFlags
               _selOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -25973,16 +25973,16 @@ _sem_TableRef_JoinTref ann_ tref0_ nat_ joinType_ joinHint_ tref1_ onExpr_ =
               _lhsOannotatedTree :: TableRef
               _lhsOoriginalTree :: TableRef
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _tref0Ocat :: Catalog
-              _tref0Oflags :: TypeCheckingFlags
+              _tref0Oflags :: TypeCheckFlags
               _tref0OimCast :: (Maybe TypeExtra)
               _tref1Ocat :: Catalog
-              _tref1Oflags :: TypeCheckingFlags
+              _tref1Oflags :: TypeCheckFlags
               _tref1OimCast :: (Maybe TypeExtra)
               _onExprOcat :: Catalog
-              _onExprOflags :: TypeCheckingFlags
+              _onExprOflags :: TypeCheckFlags
               _onExprOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -26165,10 +26165,10 @@ _sem_TableRef_TableAlias ann_ tb_ tref_ =
               _lhsOannotatedTree :: TableRef
               _lhsOoriginalTree :: TableRef
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _trefOcat :: Catalog
-              _trefOflags :: TypeCheckingFlags
+              _trefOflags :: TypeCheckFlags
               _trefOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -26278,10 +26278,10 @@ _sem_TableRef_FullAlias ann_ tb_ cols_ tref_ =
               _lhsOannotatedTree :: TableRef
               _lhsOoriginalTree :: TableRef
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _trefOcat :: Catalog
-              _trefOflags :: TypeCheckingFlags
+              _trefOflags :: TypeCheckFlags
               _trefOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -26390,10 +26390,10 @@ _sem_TableRef_TableRefParens ann_ tref_ =
               _lhsOannotatedTree :: TableRef
               _lhsOoriginalTree :: TableRef
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _trefOcat :: Catalog
-              _trefOflags :: TypeCheckingFlags
+              _trefOflags :: TypeCheckFlags
               _trefOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -26519,10 +26519,10 @@ _sem_TableRef_OdbcTableRef ann_ tref_ =
               _lhsOannotatedTree :: TableRef
               _lhsOoriginalTree :: TableRef
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _trefOcat :: Catalog
-              _trefOflags :: TypeCheckingFlags
+              _trefOflags :: TypeCheckFlags
               _trefOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -26640,7 +26640,7 @@ _sem_TableRef_OdbcTableRef ann_ tref_ =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : TableRefList 
@@ -26666,10 +26666,10 @@ _sem_TableRefList list =
     (Prelude.foldr _sem_TableRefList_Cons _sem_TableRefList_Nil (Prelude.map _sem_TableRef list))
 -- semantic domain
 type T_TableRefList = Catalog ->
-                      TypeCheckingFlags ->
+                      TypeCheckFlags ->
                       (Maybe TypeExtra) ->
                       ( TableRefList,TableRefList,Environment)
-data Inh_TableRefList = Inh_TableRefList {_cat_Inh_TableRefList :: Catalog,_flags_Inh_TableRefList :: TypeCheckingFlags,_imCast_Inh_TableRefList :: (Maybe TypeExtra)}
+data Inh_TableRefList = Inh_TableRefList {_cat_Inh_TableRefList :: Catalog,_flags_Inh_TableRefList :: TypeCheckFlags,_imCast_Inh_TableRefList :: (Maybe TypeExtra)}
 data Syn_TableRefList = Syn_TableRefList {_annotatedTree_Syn_TableRefList :: TableRefList,_originalTree_Syn_TableRefList :: TableRefList,_upEnv_Syn_TableRefList :: Environment}
 _wrap_TableRefList :: T_TableRefList ->
                      Inh_TableRefList ->
@@ -26688,10 +26688,10 @@ _sem_TableRefList_Cons hd_ tl_ =
               _lhsOannotatedTree :: TableRefList
               _lhsOoriginalTree :: TableRefList
               _hdOcat :: Catalog
-              _hdOflags :: TypeCheckingFlags
+              _hdOflags :: TypeCheckFlags
               _hdOimCast :: (Maybe TypeExtra)
               _tlOcat :: Catalog
-              _tlOflags :: TypeCheckingFlags
+              _tlOflags :: TypeCheckFlags
               _tlOimCast :: (Maybe TypeExtra)
               _hdIannotatedTree :: TableRef
               _hdIoriginalTree :: TableRef
@@ -26818,7 +26818,7 @@ _sem_TableRefList_Nil =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : TypeAttributeDef 
@@ -26841,10 +26841,10 @@ _sem_TypeAttributeDef (TypeAttDef _ann _name _typ) =
     (_sem_TypeAttributeDef_TypeAttDef (_sem_Annotation _ann) _name (_sem_TypeName _typ))
 -- semantic domain
 type T_TypeAttributeDef = Catalog ->
-                          TypeCheckingFlags ->
+                          TypeCheckFlags ->
                           (Maybe TypeExtra) ->
                           ( TypeAttributeDef,TypeAttributeDef)
-data Inh_TypeAttributeDef = Inh_TypeAttributeDef {_cat_Inh_TypeAttributeDef :: Catalog,_flags_Inh_TypeAttributeDef :: TypeCheckingFlags,_imCast_Inh_TypeAttributeDef :: (Maybe TypeExtra)}
+data Inh_TypeAttributeDef = Inh_TypeAttributeDef {_cat_Inh_TypeAttributeDef :: Catalog,_flags_Inh_TypeAttributeDef :: TypeCheckFlags,_imCast_Inh_TypeAttributeDef :: (Maybe TypeExtra)}
 data Syn_TypeAttributeDef = Syn_TypeAttributeDef {_annotatedTree_Syn_TypeAttributeDef :: TypeAttributeDef,_originalTree_Syn_TypeAttributeDef :: TypeAttributeDef}
 _wrap_TypeAttributeDef :: T_TypeAttributeDef ->
                          Inh_TypeAttributeDef ->
@@ -26864,10 +26864,10 @@ _sem_TypeAttributeDef_TypeAttDef ann_ name_ typ_ =
               _lhsOannotatedTree :: TypeAttributeDef
               _lhsOoriginalTree :: TypeAttributeDef
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _typOcat :: Catalog
-              _typOflags :: TypeCheckingFlags
+              _typOflags :: TypeCheckFlags
               _typOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -26950,7 +26950,7 @@ _sem_TypeAttributeDef_TypeAttDef ann_ name_ typ_ =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : TypeAttributeDefList 
@@ -26975,10 +26975,10 @@ _sem_TypeAttributeDefList list =
     (Prelude.foldr _sem_TypeAttributeDefList_Cons _sem_TypeAttributeDefList_Nil (Prelude.map _sem_TypeAttributeDef list))
 -- semantic domain
 type T_TypeAttributeDefList = Catalog ->
-                              TypeCheckingFlags ->
+                              TypeCheckFlags ->
                               (Maybe TypeExtra) ->
                               ( TypeAttributeDefList,TypeAttributeDefList)
-data Inh_TypeAttributeDefList = Inh_TypeAttributeDefList {_cat_Inh_TypeAttributeDefList :: Catalog,_flags_Inh_TypeAttributeDefList :: TypeCheckingFlags,_imCast_Inh_TypeAttributeDefList :: (Maybe TypeExtra)}
+data Inh_TypeAttributeDefList = Inh_TypeAttributeDefList {_cat_Inh_TypeAttributeDefList :: Catalog,_flags_Inh_TypeAttributeDefList :: TypeCheckFlags,_imCast_Inh_TypeAttributeDefList :: (Maybe TypeExtra)}
 data Syn_TypeAttributeDefList = Syn_TypeAttributeDefList {_annotatedTree_Syn_TypeAttributeDefList :: TypeAttributeDefList,_originalTree_Syn_TypeAttributeDefList :: TypeAttributeDefList}
 _wrap_TypeAttributeDefList :: T_TypeAttributeDefList ->
                              Inh_TypeAttributeDefList ->
@@ -26996,10 +26996,10 @@ _sem_TypeAttributeDefList_Cons hd_ tl_ =
          (let _lhsOannotatedTree :: TypeAttributeDefList
               _lhsOoriginalTree :: TypeAttributeDefList
               _hdOcat :: Catalog
-              _hdOflags :: TypeCheckingFlags
+              _hdOflags :: TypeCheckFlags
               _hdOimCast :: (Maybe TypeExtra)
               _tlOcat :: Catalog
-              _tlOflags :: TypeCheckingFlags
+              _tlOflags :: TypeCheckFlags
               _tlOimCast :: (Maybe TypeExtra)
               _hdIannotatedTree :: TypeAttributeDef
               _hdIoriginalTree :: TypeAttributeDef
@@ -27107,7 +27107,7 @@ _sem_TypeAttributeDefList_Nil =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : TypeName 
@@ -27174,10 +27174,10 @@ _sem_TypeName (SetOfTypeName _ann _typ) =
     (_sem_TypeName_SetOfTypeName (_sem_Annotation _ann) (_sem_TypeName _typ))
 -- semantic domain
 type T_TypeName = Catalog ->
-                  TypeCheckingFlags ->
+                  TypeCheckFlags ->
                   (Maybe TypeExtra) ->
                   ( TypeName,(Maybe TypeExtra),TypeName)
-data Inh_TypeName = Inh_TypeName {_cat_Inh_TypeName :: Catalog,_flags_Inh_TypeName :: TypeCheckingFlags,_imCast_Inh_TypeName :: (Maybe TypeExtra)}
+data Inh_TypeName = Inh_TypeName {_cat_Inh_TypeName :: Catalog,_flags_Inh_TypeName :: TypeCheckFlags,_imCast_Inh_TypeName :: (Maybe TypeExtra)}
 data Syn_TypeName = Syn_TypeName {_annotatedTree_Syn_TypeName :: TypeName,_namedType_Syn_TypeName :: (Maybe TypeExtra),_originalTree_Syn_TypeName :: TypeName}
 _wrap_TypeName :: T_TypeName ->
                  Inh_TypeName ->
@@ -27199,10 +27199,10 @@ _sem_TypeName_SimpleTypeName ann_ tn_ =
               _lhsOannotatedTree :: TypeName
               _lhsOoriginalTree :: TypeName
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _tnOcat :: Catalog
-              _tnOflags :: TypeCheckingFlags
+              _tnOflags :: TypeCheckFlags
               _tnOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -27312,10 +27312,10 @@ _sem_TypeName_PrecTypeName ann_ tn_ prec_ =
               _lhsOannotatedTree :: TypeName
               _lhsOoriginalTree :: TypeName
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _tnOcat :: Catalog
-              _tnOflags :: TypeCheckingFlags
+              _tnOflags :: TypeCheckFlags
               _tnOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -27427,10 +27427,10 @@ _sem_TypeName_Prec2TypeName ann_ tn_ prec_ prec1_ =
               _lhsOannotatedTree :: TypeName
               _lhsOoriginalTree :: TypeName
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _tnOcat :: Catalog
-              _tnOflags :: TypeCheckingFlags
+              _tnOflags :: TypeCheckFlags
               _tnOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -27541,10 +27541,10 @@ _sem_TypeName_ArrayTypeName ann_ typ_ =
               _lhsOannotatedTree :: TypeName
               _lhsOoriginalTree :: TypeName
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _typOcat :: Catalog
-              _typOflags :: TypeCheckingFlags
+              _typOflags :: TypeCheckFlags
               _typOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -27648,10 +27648,10 @@ _sem_TypeName_SetOfTypeName ann_ typ_ =
               _lhsOannotatedTree :: TypeName
               _lhsOoriginalTree :: TypeName
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _typOcat :: Catalog
-              _typOflags :: TypeCheckingFlags
+              _typOflags :: TypeCheckFlags
               _typOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -27747,7 +27747,7 @@ _sem_TypeName_SetOfTypeName ann_ typ_ =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : TypeNameList 
@@ -27772,10 +27772,10 @@ _sem_TypeNameList list =
     (Prelude.foldr _sem_TypeNameList_Cons _sem_TypeNameList_Nil (Prelude.map _sem_TypeName list))
 -- semantic domain
 type T_TypeNameList = Catalog ->
-                      TypeCheckingFlags ->
+                      TypeCheckFlags ->
                       (Maybe TypeExtra) ->
                       ( TypeNameList,TypeNameList)
-data Inh_TypeNameList = Inh_TypeNameList {_cat_Inh_TypeNameList :: Catalog,_flags_Inh_TypeNameList :: TypeCheckingFlags,_imCast_Inh_TypeNameList :: (Maybe TypeExtra)}
+data Inh_TypeNameList = Inh_TypeNameList {_cat_Inh_TypeNameList :: Catalog,_flags_Inh_TypeNameList :: TypeCheckFlags,_imCast_Inh_TypeNameList :: (Maybe TypeExtra)}
 data Syn_TypeNameList = Syn_TypeNameList {_annotatedTree_Syn_TypeNameList :: TypeNameList,_originalTree_Syn_TypeNameList :: TypeNameList}
 _wrap_TypeNameList :: T_TypeNameList ->
                      Inh_TypeNameList ->
@@ -27793,10 +27793,10 @@ _sem_TypeNameList_Cons hd_ tl_ =
          (let _lhsOannotatedTree :: TypeNameList
               _lhsOoriginalTree :: TypeNameList
               _hdOcat :: Catalog
-              _hdOflags :: TypeCheckingFlags
+              _hdOflags :: TypeCheckFlags
               _hdOimCast :: (Maybe TypeExtra)
               _tlOcat :: Catalog
-              _tlOflags :: TypeCheckingFlags
+              _tlOflags :: TypeCheckFlags
               _tlOimCast :: (Maybe TypeExtra)
               _hdIannotatedTree :: TypeName
               _hdInamedType :: (Maybe TypeExtra)
@@ -27905,7 +27905,7 @@ _sem_TypeNameList_Nil =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : VarDef 
@@ -27949,10 +27949,10 @@ _sem_VarDef (VarAlias _ann _name _aliased) =
     (_sem_VarDef_VarAlias (_sem_Annotation _ann) _name (_sem_Name _aliased))
 -- semantic domain
 type T_VarDef = Catalog ->
-                TypeCheckingFlags ->
+                TypeCheckFlags ->
                 (Maybe TypeExtra) ->
                 ( VarDef,VarDef)
-data Inh_VarDef = Inh_VarDef {_cat_Inh_VarDef :: Catalog,_flags_Inh_VarDef :: TypeCheckingFlags,_imCast_Inh_VarDef :: (Maybe TypeExtra)}
+data Inh_VarDef = Inh_VarDef {_cat_Inh_VarDef :: Catalog,_flags_Inh_VarDef :: TypeCheckFlags,_imCast_Inh_VarDef :: (Maybe TypeExtra)}
 data Syn_VarDef = Syn_VarDef {_annotatedTree_Syn_VarDef :: VarDef,_originalTree_Syn_VarDef :: VarDef}
 _wrap_VarDef :: T_VarDef ->
                Inh_VarDef ->
@@ -27973,10 +27973,10 @@ _sem_VarDef_VarDef ann_ name_ typ_ value_ =
               _lhsOannotatedTree :: VarDef
               _lhsOoriginalTree :: VarDef
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _typOcat :: Catalog
-              _typOflags :: TypeCheckingFlags
+              _typOflags :: TypeCheckFlags
               _typOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -28066,7 +28066,7 @@ _sem_VarDef_ParamAlias ann_ name_ i_ =
               _lhsOannotatedTree :: VarDef
               _lhsOoriginalTree :: VarDef
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -28134,10 +28134,10 @@ _sem_VarDef_VarAlias ann_ name_ aliased_ =
               _lhsOannotatedTree :: VarDef
               _lhsOoriginalTree :: VarDef
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _aliasedOcat :: Catalog
-              _aliasedOflags :: TypeCheckingFlags
+              _aliasedOflags :: TypeCheckFlags
               _aliasedOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -28225,7 +28225,7 @@ _sem_VarDef_VarAlias ann_ name_ aliased_ =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : VarDefList 
@@ -28250,10 +28250,10 @@ _sem_VarDefList list =
     (Prelude.foldr _sem_VarDefList_Cons _sem_VarDefList_Nil (Prelude.map _sem_VarDef list))
 -- semantic domain
 type T_VarDefList = Catalog ->
-                    TypeCheckingFlags ->
+                    TypeCheckFlags ->
                     (Maybe TypeExtra) ->
                     ( VarDefList,VarDefList)
-data Inh_VarDefList = Inh_VarDefList {_cat_Inh_VarDefList :: Catalog,_flags_Inh_VarDefList :: TypeCheckingFlags,_imCast_Inh_VarDefList :: (Maybe TypeExtra)}
+data Inh_VarDefList = Inh_VarDefList {_cat_Inh_VarDefList :: Catalog,_flags_Inh_VarDefList :: TypeCheckFlags,_imCast_Inh_VarDefList :: (Maybe TypeExtra)}
 data Syn_VarDefList = Syn_VarDefList {_annotatedTree_Syn_VarDefList :: VarDefList,_originalTree_Syn_VarDefList :: VarDefList}
 _wrap_VarDefList :: T_VarDefList ->
                    Inh_VarDefList ->
@@ -28271,10 +28271,10 @@ _sem_VarDefList_Cons hd_ tl_ =
          (let _lhsOannotatedTree :: VarDefList
               _lhsOoriginalTree :: VarDefList
               _hdOcat :: Catalog
-              _hdOflags :: TypeCheckingFlags
+              _hdOflags :: TypeCheckFlags
               _hdOimCast :: (Maybe TypeExtra)
               _tlOcat :: Catalog
-              _tlOflags :: TypeCheckingFlags
+              _tlOflags :: TypeCheckFlags
               _tlOimCast :: (Maybe TypeExtra)
               _hdIannotatedTree :: VarDef
               _hdIoriginalTree :: VarDef
@@ -28382,7 +28382,7 @@ _sem_VarDefList_Nil =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : WithQuery 
@@ -28406,10 +28406,10 @@ _sem_WithQuery (WithQuery _ann _name _colAliases _ex) =
     (_sem_WithQuery_WithQuery (_sem_Annotation _ann) _name _colAliases (_sem_QueryExpr _ex))
 -- semantic domain
 type T_WithQuery = Catalog ->
-                   TypeCheckingFlags ->
+                   TypeCheckFlags ->
                    (Maybe TypeExtra) ->
                    ( WithQuery,WithQuery)
-data Inh_WithQuery = Inh_WithQuery {_cat_Inh_WithQuery :: Catalog,_flags_Inh_WithQuery :: TypeCheckingFlags,_imCast_Inh_WithQuery :: (Maybe TypeExtra)}
+data Inh_WithQuery = Inh_WithQuery {_cat_Inh_WithQuery :: Catalog,_flags_Inh_WithQuery :: TypeCheckFlags,_imCast_Inh_WithQuery :: (Maybe TypeExtra)}
 data Syn_WithQuery = Syn_WithQuery {_annotatedTree_Syn_WithQuery :: WithQuery,_originalTree_Syn_WithQuery :: WithQuery}
 _wrap_WithQuery :: T_WithQuery ->
                   Inh_WithQuery ->
@@ -28433,10 +28433,10 @@ _sem_WithQuery_WithQuery ann_ name_ colAliases_ ex_ =
               _lhsOannotatedTree :: WithQuery
               _lhsOoriginalTree :: WithQuery
               _annOcat :: Catalog
-              _annOflags :: TypeCheckingFlags
+              _annOflags :: TypeCheckFlags
               _annOimCast :: (Maybe TypeExtra)
               _exOcat :: Catalog
-              _exOflags :: TypeCheckingFlags
+              _exOflags :: TypeCheckFlags
               _exOimCast :: (Maybe TypeExtra)
               _annIannotatedTree :: Annotation
               _annIoriginalTree :: Annotation
@@ -28537,7 +28537,7 @@ _sem_WithQuery_WithQuery ann_ name_ colAliases_ ex_ =
    visit 0:
       inherited attributes:
          cat                  : Catalog
-         flags                : TypeCheckingFlags
+         flags                : TypeCheckFlags
          imCast               : Maybe TypeExtra
       synthesized attributes:
          annotatedTree        : WithQueryList 
@@ -28562,10 +28562,10 @@ _sem_WithQueryList list =
     (Prelude.foldr _sem_WithQueryList_Cons _sem_WithQueryList_Nil (Prelude.map _sem_WithQuery list))
 -- semantic domain
 type T_WithQueryList = Catalog ->
-                       TypeCheckingFlags ->
+                       TypeCheckFlags ->
                        (Maybe TypeExtra) ->
                        ( WithQueryList,WithQueryList)
-data Inh_WithQueryList = Inh_WithQueryList {_cat_Inh_WithQueryList :: Catalog,_flags_Inh_WithQueryList :: TypeCheckingFlags,_imCast_Inh_WithQueryList :: (Maybe TypeExtra)}
+data Inh_WithQueryList = Inh_WithQueryList {_cat_Inh_WithQueryList :: Catalog,_flags_Inh_WithQueryList :: TypeCheckFlags,_imCast_Inh_WithQueryList :: (Maybe TypeExtra)}
 data Syn_WithQueryList = Syn_WithQueryList {_annotatedTree_Syn_WithQueryList :: WithQueryList,_originalTree_Syn_WithQueryList :: WithQueryList}
 _wrap_WithQueryList :: T_WithQueryList ->
                       Inh_WithQueryList ->
@@ -28583,10 +28583,10 @@ _sem_WithQueryList_Cons hd_ tl_ =
          (let _lhsOannotatedTree :: WithQueryList
               _lhsOoriginalTree :: WithQueryList
               _hdOcat :: Catalog
-              _hdOflags :: TypeCheckingFlags
+              _hdOflags :: TypeCheckFlags
               _hdOimCast :: (Maybe TypeExtra)
               _tlOcat :: Catalog
-              _tlOflags :: TypeCheckingFlags
+              _tlOflags :: TypeCheckFlags
               _tlOimCast :: (Maybe TypeExtra)
               _hdIannotatedTree :: WithQuery
               _hdIoriginalTree :: WithQuery

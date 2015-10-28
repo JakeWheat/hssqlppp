@@ -7,52 +7,52 @@
 > {-# LANGUAGE PatternGuards,OverloadedStrings,TypeSynonymInstances,FlexibleInstances #-}
 > module Database.HsSqlPpp.Pretty
 >     (--convert a sql ast to text
->      printStatements
+>      prettyStatements
 >     --,printStatementsAnn
->     ,printQueryExpr
+>     ,prettyQueryExpr
 >      --convert a single expression parse node to text
->     ,printScalarExpr
->     ,PrettyPrintFlags(..)
->     ,defaultPPFlags
->     ,SQLSyntaxDialect(..)
+>     ,prettyScalarExpr
+>     ,PrettyFlags(..)
+>     ,defaultPrettyFlags
+>     ,Dialect(..)
 >     )
 >     where
 >
 > import Text.PrettyPrint
 > import Data.Maybe
 >
-> import Database.HsSqlPpp.Ast hiding (ann)
+> import Database.HsSqlPpp.Syntax hiding (ann)
 > import Database.HsSqlPpp.Annotation
 > --import Database.HsSqlPpp.Utils.Utils
 
-> import Database.HsSqlPpp.SqlDialect
+> import Database.HsSqlPpp.Internals.Dialect
 
 > import Database.HsSqlPpp.Internals.TypesInternal
 > --import Database.HsSqlPpp.Internals.StringLike
 > import qualified Data.Text as T
 > import qualified Data.Text.Lazy as L
-> import Database.HsSqlPpp.Utils.Utils
+> import Database.HsSqlPpp.Internals.Utils
 
 --------------------------------------------------------------------------------
 
 Public functions
 
-> data PrettyPrintFlags =
->   PrettyPrintFlags
+> data PrettyFlags =
+>   PrettyFlags
 
 todo: actually use the dialect. this will forced when the parser is
 adjusted to reject postgres only syntax when in sql server dialect
 
->   {ppDialect :: SQLSyntaxDialect
+>   {ppDialect :: Dialect
 >   }
 >   deriving (Show,Eq)
 
-> defaultPPFlags :: PrettyPrintFlags
-> defaultPPFlags = PrettyPrintFlags {ppDialect = PostgreSQLDialect}
+> defaultPrettyFlags :: PrettyFlags
+> defaultPrettyFlags = PrettyFlags {ppDialect = PostgreSQL}
 
 > -- | Convert an ast back to valid SQL source.
-> printStatements :: PrettyPrintFlags -> StatementList -> L.Text
-> printStatements f = printStatementsAnn f (const "")
+> prettyStatements :: PrettyFlags -> [Statement] -> L.Text
+> prettyStatements f = prettyStatementsAnn f (const "")
 >
 > -- | Convert the ast back to valid source, and convert any annotations to
 > -- text using the function provided and interpolate the output of
@@ -60,21 +60,21 @@ adjusted to reject postgres only syntax when in sql server dialect
 
 this needs some work
 
-> printStatementsAnn :: PrettyPrintFlags -> (Annotation -> String) -> StatementList -> L.Text
-> printStatementsAnn flg f ast =
+> prettyStatementsAnn :: PrettyFlags -> (Annotation -> String) -> [Statement] -> L.Text
+> prettyStatementsAnn flg f ast =
 >   renderText $ vcat (map (statement flg True f) ast) <> text "\n"
 
-> -- | pretty print a query expression
-> printQueryExpr :: PrettyPrintFlags -> QueryExpr -> L.Text
-> printQueryExpr f ast = renderText (queryExpr f True True Nothing ast <> statementEnd True)
+> -- | pretty pretty a query expression
+> prettyQueryExpr :: PrettyFlags -> QueryExpr -> L.Text
+> prettyQueryExpr f ast = renderText (queryExpr f True True Nothing ast <> statementEnd True)
 
-> -- | pretty print a scalar expression
-> printScalarExpr :: PrettyPrintFlags -> ScalarExpr -> L.Text
-> printScalarExpr f = renderText . scalExpr f
+> -- | pretty pretty a scalar expression
+> prettyScalarExpr :: PrettyFlags -> ScalarExpr -> L.Text
+> prettyScalarExpr f = renderText . scalExpr f
 
-direct = true means attempt to pretty print straight to text
-direct = false means pretty print to string then pack to text
-no idea which is better, since pretty printing to text directly uses a
+direct = true means attempt to pretty pretty straight to text
+direct = false means pretty pretty to string then pack to text
+no idea which is better, since pretty prettying to text directly uses a
  lot of Text.cons which might be pretty slow and bloated
 
 > direct :: Bool
@@ -84,14 +84,14 @@ no idea which is better, since pretty printing to text directly uses a
 > renderText doc =
 >   if direct
 >   then fullRender (mode style) (lineLength style) (ribbonsPerLine style)
->                    dataTextPrinter "" doc
+>                    dataTextPrettyer "" doc
 >   else L.pack $ render doc
 
 
-> dataTextPrinter :: TextDetails -> L.Text -> L.Text
-> dataTextPrinter (Chr c)   s  = L.cons c s
-> dataTextPrinter (Str s1)  s2 = L.pack s1 `L.append` s2
-> dataTextPrinter (PStr s1) s2 = L.pack s1 `L.append` s2
+> dataTextPrettyer :: TextDetails -> L.Text -> L.Text
+> dataTextPrettyer (Chr c)   s  = L.cons c s
+> dataTextPrettyer (Str s1)  s2 = L.pack s1 `L.append` s2
+> dataTextPrettyer (PStr s1) s2 = L.pack s1 `L.append` s2
 
 -------------------------------------------------------------------------------
 
@@ -99,7 +99,7 @@ Conversion routines - convert Sql asts into Docs
 
 > -- Statements
 >
-> statement :: PrettyPrintFlags -> Bool -> (Annotation -> String) -> Statement -> Doc
+> statement :: PrettyFlags -> Bool -> (Annotation -> String) -> Statement -> Doc
 > statement _flg _se _ca (AntiStatement s) = text $ "$(" ++ s ++ ")"
 >
 > -- selects
@@ -139,7 +139,7 @@ Conversion routines - convert Sql asts into Docs
 >     text "truncate"
 >     <+> sepCsvMap name names
 >     <+> case (ppDialect flg) of
->        SQLServerDialect -> empty
+>        SQLServer -> empty
 >        _ -> text (case ri of
 >                       RestartIdentity -> "restart identity"
 >                       ContinueIdentity -> "continue identity")
@@ -155,7 +155,7 @@ Conversion routines - convert Sql asts into Docs
 >     $+$ nest 2 (vcat (csv (map (attrDef flg) atts ++ map (constraint flg) cns)))
 >     $+$ rparen 
 >     $+$ case (ppDialect flg) of
->          SQLServerDialect -> empty
+>          SQLServer -> empty
 >          _ -> (tablePartition partition)
 >     <> statementEnd se
 >
@@ -336,7 +336,7 @@ Conversion routines - convert Sql asts into Docs
 >     <+> ifExists ifE
 >     <+> sepCsvMap name names
 >     <+> case (ppDialect flg) of
->            SQLServerDialect -> empty
+>            SQLServer -> empty
 >            _ -> cascade casc
 >     <> statementEnd se
 >
@@ -532,7 +532,7 @@ Conversion routines - convert Sql asts into Docs
 >    where
 >      constraintd (ex, sts) = scalExpr flg ex <+> text "then"
 >                              $+$ nestedStatements flg ca sts
->      tsql = ppDialect flg == SQLServerDialect
+>      tsql = ppDialect flg == SQLServer
 >      blck sts = sep [text "begin"
 >                     ,nestedStatements flg ca sts
 >                     ,text "end"]
@@ -630,7 +630,7 @@ Statement components
 
 > -- selects
 >
-> queryExpr :: PrettyPrintFlags -> Bool -> Bool -> Maybe (Bool,[Name]) -> QueryExpr -> Doc
+> queryExpr :: PrettyFlags -> Bool -> Bool -> Maybe (Bool,[Name]) -> QueryExpr -> Doc
 > queryExpr flg writeSelect _ intoi (Select _ dis l tb wh grp hav
 >                                     order lim off hs) =
 >   (text (if writeSelect then "select" else "")
@@ -661,7 +661,7 @@ Statement components
 >   ,if null hs then Nothing else Just $ text "option" $+$ parens (sepCsvMap (text . prettyQueryHint) hs)
 >   ])
 >   where
->     useTop = ppDialect flg == SQLServerDialect
+>     useTop = ppDialect flg == SQLServer
 >     prettyQueryHint QueryHintPartitionGroup = "partition group"
 >     prettyQueryHint QueryHintColumnarHostGroup = "columnar host group"
 >
@@ -700,7 +700,7 @@ Statement components
 > nmc (AntiNameComponent n) = text ("$m(" ++ n ++ ")")
 
 >
-> tref :: PrettyPrintFlags -> TableRef -> Doc
+> tref :: PrettyFlags -> TableRef -> Doc
 > tref _ (Tref _ f) = name f
 > tref flg (SubTref _ sub) =
 >   parens (queryExpr flg True True Nothing sub)
@@ -745,7 +745,7 @@ todo: don't want to do this here since it changes pretty . parse = id
 so if you don't add the parens explicitly you get incorrect/ invalid
 syntax maybe should error instead of silently breaking
 
-> maybeParen :: PrettyPrintFlags -> TableRef -> Doc
+> maybeParen :: PrettyFlags -> TableRef -> Doc
 > --maybeParen flg t@(JoinTref {}) = parens $ tref flg t
 > maybeParen = tref
 
@@ -761,11 +761,11 @@ syntax maybe should error instead of silently breaking
 >                     NullsFirst -> text "nulls " <+> text "first"
 >                     NullsLast  -> text "nulls " <+> text "last"
 >
-> whr :: PrettyPrintFlags -> Maybe ScalarExpr -> Doc
+> whr :: PrettyFlags -> Maybe ScalarExpr -> Doc
 > whr flg (Just ex) = text "where" $+$ nest 2 (scalExpr flg ex)
 > whr _ Nothing = empty
 >
-> selectList :: PrettyPrintFlags -> SelectList -> Doc
+> selectList :: PrettyFlags -> SelectList -> Doc
 > selectList flg (SelectList _ ex) =
 >   sepCsvMap selectItem ex
 >   where
@@ -788,7 +788,7 @@ syntax maybe should error instead of silently breaking
 >       po (CopyParsers s) = text "parsers" <+> quotes (text s)
 > -- ddl
 >
-> constraint :: PrettyPrintFlags -> Constraint -> Doc
+> constraint :: PrettyFlags -> Constraint -> Doc
 > constraint _flg (UniqueConstraint _ n c) =
 >         mname n <+> text "unique"
 >         <+> parens (sepCsvMap nmc c)
@@ -811,7 +811,7 @@ syntax maybe should error instead of silently breaking
 >           then empty
 >           else text "constraint" <+> text n
 >
-> returning :: PrettyPrintFlags -> Maybe SelectList -> Doc
+> returning :: PrettyFlags -> Maybe SelectList -> Doc
 > returning flg l = case l of
 >                 Nothing -> empty
 >                 Just ls -> nest 2 (text "returning" <+> selectList flg ls)
@@ -838,7 +838,7 @@ syntax maybe should error instead of silently breaking
 >            Millisecond -> "milliseconds"
 >            -- _ -> "unknown type " ++ (show x)
 
-> attrDef :: PrettyPrintFlags -> AttributeDef -> Doc
+> attrDef :: PrettyFlags -> AttributeDef -> Doc
 > attrDef flg (AttributeDef _ n t def cons) =
 >   nmc n <+> typeName t
 >   <+> maybePrint (\e -> text "default" <+> scalExpr flg e) def
@@ -863,7 +863,7 @@ syntax maybe should error instead of silently breaking
 >       mname cn <+> text "identity" <> text (maybe "" show si)
 > -- plpgsql
 >
-> nestedStatements :: PrettyPrintFlags -> (Annotation -> String) -> StatementList -> Doc
+> nestedStatements :: PrettyFlags -> (Annotation -> String) -> [Statement] -> Doc
 > nestedStatements flg pa = nest 2 . vcat . map (statement flg True pa)
 >
 > typeName :: TypeName -> Doc
@@ -918,7 +918,7 @@ syntax maybe should error instead of silently breaking
 >
 > -- expressions
 >
-> scalExpr :: PrettyPrintFlags -> ScalarExpr -> Doc
+> scalExpr :: PrettyFlags -> ScalarExpr -> Doc
 > scalExpr flg (Parens _ e) = parens (scalExpr flg e)
 > scalExpr _ (AntiScalarExpr s) = text $ "$(" ++ s ++ ")"
 > scalExpr _ (Star _) = text "*"
@@ -1131,14 +1131,14 @@ syntax maybe should error instead of silently breaking
 >     text "{fn" <+> scalExpr flg e <> text "}"
 
 
-> scalExprSl :: PrettyPrintFlags ->  ScalarExpr -> Doc
+> scalExprSl :: PrettyFlags ->  ScalarExpr -> Doc
 > scalExprSl flg (App _ f es) | Just "." <- getTName f
 >                                 , [a@(Identifier _ _), b] <- es =
 >   scalExprSl flg a <> text "." <> scalExprSl flg b
 > scalExprSl flg x = scalExpr flg x
 
 >
-> set :: PrettyPrintFlags -> SetClause -> Doc
+> set :: PrettyFlags -> SetClause -> Doc
 > set flg (SetClause _ a e) =
 >   nmc a <+> text "=" <+> scalExpr flg e
 > set flg (MultiSetClause _ is (SpecialOp _ f es)) | Just "rowctor" <- getTName f =
@@ -1150,7 +1150,7 @@ syntax maybe should error instead of silently breaking
 >
 > -- convert a list of expressions to horizontal csv
 >
-> csvExp :: PrettyPrintFlags -> [ScalarExpr] -> Doc
+> csvExp :: PrettyFlags -> [ScalarExpr] -> Doc
 > csvExp flg = hcatCsvMap (scalExpr flg)
 >
 > maybePrint :: (t -> Doc) -> Maybe t -> Doc
@@ -1177,7 +1177,7 @@ syntax maybe should error instead of silently breaking
 > sepCsvMap :: (a -> Doc) -> [a] -> Doc
 > sepCsvMap ex = sepCsv . map ex
 
-> orderBy :: PrettyPrintFlags -> [(ScalarExpr,Direction,NullsOrder)] -> Doc
+> orderBy :: PrettyFlags -> [(ScalarExpr,Direction,NullsOrder)] -> Doc
 > orderBy _ [] = empty
 > orderBy flg os =
 >   text "order by"

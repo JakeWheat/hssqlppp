@@ -74,10 +74,10 @@ use haskell syntax inside antiquotes
 > import Data.Generics
 > import Data.List
 >
-> import qualified Database.HsSqlPpp.Parser as P
+> import qualified Database.HsSqlPpp.Parse as P
 > import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.Ast hiding (Name)
-> import qualified  Database.HsSqlPpp.Ast as A
+> import Database.HsSqlPpp.Syntax hiding (Name)
+> import qualified  Database.HsSqlPpp.Syntax as A
 > --import qualified Data.Text as T
 > import qualified Data.Text.Lazy as L
 > --import Data.Data

@@ -1,5 +1,5 @@
 Name:                hssqlppp-pg
-Version:             0.5.21
+Version:             0.5.22
 Synopsis:            Extra libraries for hssqlppp which depend on PostgreSQL
 License:             BSD3
 License-file:        LICENSE
@@ -29,7 +29,7 @@ source-repository head
 
 Library
   Build-Depends:     base >= 4 && < 5,
-                     hssqlppp == 0.5.21,
+                     hssqlppp == 0.5.22,
                      split,
                      postgresql-simple >= 0.4 && < 0.6,
                      template-haskell,

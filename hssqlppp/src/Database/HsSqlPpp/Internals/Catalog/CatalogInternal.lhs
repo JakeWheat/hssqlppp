@@ -230,9 +230,8 @@ catalog values
 >
 > -- | Represents what you probably want to use as a starting point if
 > -- you are building an catalog from scratch. It contains
-> -- information on built in function like things that aren't in the
-> -- Postgres catalog, such as greatest, coalesce, keyword operators
-> -- like \'and\', etc..
+> -- information on built in function like things such as keyword
+> -- operators like \'and\', etc..
 > defaultCatalog :: Catalog
 > defaultCatalog =
 >     -- todo: specify in terms of catalog updates

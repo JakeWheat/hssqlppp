@@ -6,14 +6,14 @@ shortcuts for constructing test data and asts
 > {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Tests.Parsing.Utils where
 
-> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Syntax
 > --import Database.HsSqlPpp.LexicalSyntax (Token)
 > import Database.HsSqlPpp.Annotation
 > import qualified Data.Text as T
 > import Data.Text (Text)
 > --import qualified Data.Text.Lazy as L
 > import Control.Arrow
-> --import Database.HsSqlPpp.SqlDialect
+> --import Database.HsSqlPpp.Internals.Dialect
 > --import Database.HsSqlPpp.Tests.TestTypes
 
 > stringQ :: Text -> ScalarExpr
@@ -28,7 +28,7 @@ shortcuts for constructing test data and asts
 > qn :: Text -> Text -> Name
 > qn c n = Name ea [Nmc $ T.unpack c, Nmc $ T.unpack n]
 >
-> sl :: SelectItemList -> SelectList
+> sl :: [SelectItem] -> SelectList
 > sl = SelectList ea
 >
 >

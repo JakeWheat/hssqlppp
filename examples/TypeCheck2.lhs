@@ -4,12 +4,12 @@
 > import System.Environment
 > import Data.List
 
-> import Database.HsSqlPpp.Parser
-> import Database.HsSqlPpp.TypeChecker
+> import Database.HsSqlPpp.Parse
+> import Database.HsSqlPpp.TypeCheck
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Syntax
 > import Database.HsSqlPpp.Utility
 > --import Text.Show.Pretty
 > import qualified Data.Text.Lazy.IO as LT
@@ -23,7 +23,7 @@
 >             $ parsePlpgsql defaultParseFlags "" Nothing query
 >       -- type check the ast
 >       aast :: [Statement]
->       aast = snd $ typeCheckStatements defaultTypeCheckingFlags cat ast
+>       aast = snd $ typeCheckStatements defaultTypeCheckFlags cat ast
 >       -- get a list of scalarexpr and queryexpr nodes with
 >       -- no type: indicates an error has occured
 >       -- and get the list of type errors with source positions

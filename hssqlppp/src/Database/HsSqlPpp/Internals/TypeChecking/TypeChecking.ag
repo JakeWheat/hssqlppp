@@ -5,7 +5,7 @@ import qualified Database.HsSqlPpp.Internals.TypeChecking.Environment as E
 import Database.HsSqlPpp.Internals.TypeChecking.Environment (Environment)
 import Database.HsSqlPpp.Internals.TypesInternal
 import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
-import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
+import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.TypeConversion
 import Control.Monad
 import Data.List
 import Data.Maybe
@@ -17,8 +17,8 @@ import Data.Char
 {
 
 -- | some options when typechecking
-data TypeCheckingFlags =
-    TypeCheckingFlags
+data TypeCheckFlags =
+    TypeCheckFlags
     { -- | add qualifiers to unqualified ids where possible
      tcfAddQualifiers :: Bool
      -- | add full aliases to every tableref and subselect
@@ -27,24 +27,24 @@ data TypeCheckingFlags =
     ,tcfAddSelectItemAliases :: Bool
      -- | expand stars in select lists to explicit list columns
     ,tcfExpandStars :: Bool
-    ,tcfDialect :: SQLSyntaxDialect}
+    ,tcfDialect :: Dialect}
     deriving (Show,Eq)
 
 
 -- | reasonable defaults for type checking, doesn't add anything
 -- optional
-defaultTypeCheckingFlags :: TypeCheckingFlags
-defaultTypeCheckingFlags =
-    TypeCheckingFlags
+defaultTypeCheckFlags :: TypeCheckFlags
+defaultTypeCheckFlags =
+    TypeCheckFlags
     {tcfAddQualifiers = False
     ,tcfAddFullTablerefAliases = False
     ,tcfAddSelectItemAliases = False
     ,tcfExpandStars = False
-    ,tcfDialect = PostgreSQLDialect}
+    ,tcfDialect = PostgreSQL}
 
 -- | Typechecks the ast, and returns the updated catalog (which
 -- includes changes from any ddl statements in the ast).
-typeCheckStatements :: TypeCheckingFlags -> Catalog -> [Statement] -> (Catalog,[Statement])
+typeCheckStatements :: TypeCheckFlags -> Catalog -> [Statement] -> (Catalog,[Statement])
 typeCheckStatements f cat sts =
     let t = sem_Root (Root sts)
         ta = wrap_Root t Inh_Root {cat_Inh_Root = cat
@@ -56,7 +56,7 @@ typeCheckStatements f cat sts =
     in case tl of
          Root r -> (cat1,fixTree r)
 -- | Typecheck a query expr
-typeCheckQueryExpr :: TypeCheckingFlags -> Catalog -> QueryExpr -> QueryExpr
+typeCheckQueryExpr :: TypeCheckFlags -> Catalog -> QueryExpr -> QueryExpr
 typeCheckQueryExpr f cat qe =
    let (_,[QueryStatement _ qe']) = typeCheckStatements f cat [QueryStatement emptyAnnotation qe]
    in qe'
@@ -66,7 +66,7 @@ typeCheckQueryExpr f cat qe =
 -- stType annotation on the return value can be used to get this info
 -- easily. Returns Left if the statement is not a query,insert,update or delete
 -- statement
-typeCheckParameterizedStatement :: TypeCheckingFlags -> Catalog -> Statement -> Either String Statement
+typeCheckParameterizedStatement :: TypeCheckFlags -> Catalog -> Statement -> Either String Statement
 typeCheckParameterizedStatement f cat st =
     case st of
       QueryStatement _ _ -> tc
@@ -82,7 +82,7 @@ typeCheckParameterizedStatement f cat st =
 
 
 -- | type check a scalar expr
-typeCheckScalarExpr :: TypeCheckingFlags -> Catalog -> ScalarExpr -> ScalarExpr
+typeCheckScalarExpr :: TypeCheckFlags -> Catalog -> ScalarExpr -> ScalarExpr
 typeCheckScalarExpr f cat ex =
     let t = sem_ScalarExprRoot (ScalarExprRoot ex)
         rt = (annotatedTree_Syn_ScalarExprRoot
@@ -95,7 +95,7 @@ cse"-}}))
     in case rt of
          ScalarExprRoot e -> fixTree e
 
-typeCheckScalarExprEnv::  TypeCheckingFlags -> Catalog -> Environment
+typeCheckScalarExprEnv::  TypeCheckFlags -> Catalog -> Environment
                           -> ScalarExpr -> ScalarExpr
 typeCheckScalarExprEnv f cat env ex =
     let t = sem_ScalarExprRoot (ScalarExprRoot ex)
@@ -117,7 +117,7 @@ main global attributes
 
 attr AllNodes Root ScalarExprRoot Annotation
   inh cat :: Catalog
-     ,flags :: TypeCheckingFlags
+     ,flags :: TypeCheckFlags
   syn annotatedTree :: self -- annotated tree is the output tree with the types added
      ,originalTree :: self -- this is the original tree, should not be changed
 

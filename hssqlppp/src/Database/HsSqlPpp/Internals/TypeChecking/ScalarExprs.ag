@@ -464,7 +464,7 @@ sem ScalarExpr
         partitionBy.expectedCast = False
 
 {
-tcAppLike:: SQLSyntaxDialect -> Catalog -> Name
+tcAppLike:: Dialect -> Catalog -> Name
             -> [ScalarExpr] -> [Maybe TypeExtra]
             -> Either [TypeError] ([TypeExtra],TypeExtra)
 

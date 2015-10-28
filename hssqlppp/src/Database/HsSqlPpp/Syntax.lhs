@@ -9,7 +9,7 @@
 >      <https://github.com/JakeWheat/hssqlppp/blob/master/src/Database/HsSqlPpp/Internals/AstInternal.ag>
 >      -}
 >
-> module Database.HsSqlPpp.Ast
+> module Database.HsSqlPpp.Syntax
 >     (
 >      -- * Name and TypeName
 >      Name(..)
@@ -80,7 +80,7 @@
 >      -- * utility
 >     ,SetValue(..)
 >      -- * misc
->     ,WithQueryList
+>     {-,WithQueryList
 >     ,MaybeSelectList
 >     ,TableRefList
 >     ,MaybeScalarExpr
@@ -109,7 +109,7 @@
 >     ,AlterTableActionList
 >     ,MaybeNameComponentList
 >     ,NameComponentList
->     ,MaybeBoolExpr
+>     ,MaybeBoolExpr-}
 >     ) where
 >
 > import Database.HsSqlPpp.Internals.AstInternal

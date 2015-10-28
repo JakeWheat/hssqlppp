@@ -26,7 +26,7 @@ off.
 
 
 > {-# LANGUAGE PatternGuards,OverloadedStrings,NondecreasingIndentation #-}
-> module Database.HsSqlPpp.Internals.TypeChecking.OldTypeConversion (
+> module Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.OldTypeConversion (
 >                        findCallMatch
 >                       ,resolveResultSetType
 >                       ,resolveResultSetTypeExtra

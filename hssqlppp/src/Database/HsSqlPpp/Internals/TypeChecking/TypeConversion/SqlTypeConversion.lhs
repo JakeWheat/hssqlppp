@@ -18,7 +18,7 @@ just hack for operators for now: if one argument is a number type, and
 the other is a text type, then cast the text to number.
 
 > {-# LANGUAGE PatternGuards,OverloadedStrings #-}
-> module Database.HsSqlPpp.Internals.TypeChecking.SqlTypeConversion (
+> module Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.SqlTypeConversion (
 >                        findCallMatch
 >                       ) where
 >
@@ -33,7 +33,7 @@ the other is a text type, then cast the text to number.
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 > --import Database.HsSqlPpp.Utils.Utils
 > --import Database.HsSqlPpp.Internals.TypeChecking.OldTediousTypeUtils
-> import qualified Database.HsSqlPpp.Internals.TypeChecking.OldTypeConversion as T
+> import qualified Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.OldTypeConversion as T
 > import Data.Text (Text)
 
 > findCallMatch :: Catalog -> Text -> [Type] ->  Either [TypeError] OperatorPrototype

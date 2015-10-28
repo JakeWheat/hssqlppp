@@ -2,7 +2,7 @@
 > {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Tests.Parsing.Dml (dml) where
 >
-> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Syntax
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
 > import Database.HsSqlPpp.Tests.TestTypes

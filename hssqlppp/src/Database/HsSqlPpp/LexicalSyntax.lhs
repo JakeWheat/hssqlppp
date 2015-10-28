@@ -3,9 +3,9 @@
 > module Database.HsSqlPpp.LexicalSyntax
 >     (Token(..)
 >     ,prettyToken
->     ,sqlToken
->     ,sqlTokens
->     ,module Database.HsSqlPpp.SqlDialect
+>     ,lexToken
+>     ,lexTokens
+>     ,module Database.HsSqlPpp.Internals.Dialect
 >     ) where
 
 > import qualified Data.Text as T
@@ -15,7 +15,7 @@
 > import Text.Parsec.Text
 > import Control.Applicative hiding ((<|>), many)
 > import Data.Char
-> import Database.HsSqlPpp.SqlDialect
+> import Database.HsSqlPpp.Internals.Dialect
 > import Control.Monad
 > import Prelude hiding (takeWhile)
 > import Data.Maybe
@@ -95,7 +95,7 @@
 > -- | Accurate pretty printing, if you lex a bunch of tokens,
 > -- then pretty print them, should should get back exactly the
 > -- same string
-> prettyToken :: SQLSyntaxDialect -> Token -> LT.Text
+> prettyToken :: Dialect -> Token -> LT.Text
 > prettyToken _ (Symbol s) = LT.fromChunks [s]
 > prettyToken _ (Identifier Nothing t) = LT.fromChunks [t]
 > prettyToken _ (Identifier (Just (a,b)) t) =
@@ -123,8 +123,8 @@ investigate what is missing for postgresql
 investigate differences for sql server, oracle, maybe db2 and mysql
   also
 
-> sqlTokens :: SQLSyntaxDialect -> FilePath -> Maybe (Int,Int) -> T.Text -> Either ParseError [((FilePath,Int,Int),Token)]
-> sqlTokens dialect fn' mp txt =
+> lexTokens :: Dialect -> FilePath -> Maybe (Int,Int) -> T.Text -> Either ParseError [((FilePath,Int,Int),Token)]
+> lexTokens dialect fn' mp txt =
 >     let (l',c') = fromMaybe (1,1) mp
 >     in runParser (setPos (fn',l',c') *> many_p <* eof) () "" txt
 >   where
@@ -136,18 +136,18 @@ if we see 'from stdin;' then try to lex a copy payload
 
 >      many_p = some_p `mplus` return []
 >      some_p = do
->        tok <- sqlToken dialect
+>        tok <- lexToken dialect
 >        case tok of
 >          (_, Identifier Nothing t) | T.map toLower t == "from" -> (tok:) <$> seeStdin
 >          _ -> (tok:) <$> many_p
 >      seeStdin = do
->        tok <- sqlToken dialect
+>        tok <- lexToken dialect
 >        case tok of
 >          (_,Identifier Nothing t) | T.map toLower t == "stdin" -> (tok:) <$> seeColon
 >          (_,x) | isWs x -> (tok:) <$> seeStdin
 >          _ -> (tok:) <$> many_p
 >      seeColon = do
->        tok <- sqlToken dialect
+>        tok <- lexToken dialect
 >        case tok of
 >          (_,Symbol ";") -> (tok:) <$> copyPayload
 >          _ -> (tok:) <$> many_p
@@ -172,8 +172,8 @@ if we see 'from stdin;' then try to lex a copy payload
 >      isWs _ = False
 
 > -- | parser for a sql token
-> sqlToken :: SQLSyntaxDialect -> Parser ((FilePath,Int,Int),Token)
-> sqlToken d = do
+> lexToken :: Dialect -> Parser ((FilePath,Int,Int),Token)
+> lexToken d = do
 >     p' <- getPosition
 >     let p = (sourceName p',sourceLine p', sourceColumn p')
 >     (p,) <$> choice [sqlString d
@@ -186,14 +186,14 @@ if we see 'from stdin;' then try to lex a copy payload
 >                     ,positionalArg d
 >                     ,splice d]
 
-> identifier :: SQLSyntaxDialect -> Parser Token
+> identifier :: Dialect -> Parser Token
 
 sql server: identifiers can start with @ or #
 quoting uses [] or ""
 
 TODO: fix all the "qiden" parsers to allow "qid""en"
 
-> identifier SQLServerDialect =
+> identifier SQLServer =
 >     choice
 >     [Identifier (Just ('[',']'))
 >      <$> (char '[' *> takeWhile1 (/=']') <* char ']')
@@ -208,7 +208,7 @@ oracle: identifiers can start with :
 quoting uses ""
 (todo: check other possibilities)
 
-> identifier OracleDialect =
+> identifier Oracle =
 >     choice
 >     [Identifier (Just ('"','"'))
 >      <$> (char '"' *> takeWhile1 (/='"') <* char '"')
@@ -216,7 +216,7 @@ quoting uses ""
 >     ,Identifier Nothing <$> identifierString
 >     ]
 
-> identifier PostgreSQLDialect =
+> identifier PostgreSQL =
 >     choice
 >     [Identifier (Just ('"','"'))
 >      <$> (char '"' *> takeWhile1 (/='"') <* char '"')
@@ -255,7 +255,7 @@ Not sure what behaviour in sql server and oracle, pretty sure they
 don't have dollar quoting, but I think they have the other two
 variants.
 
-> sqlString :: SQLSyntaxDialect -> Parser Token
+> sqlString :: Dialect -> Parser Token
 > sqlString _ =
 >     choice [normalString
 >            ,eString
@@ -305,7 +305,7 @@ digits.[digits][e[+-]digits]
 digitse[+-]digits
 where digits is one or more decimal digits (0 through 9). At least one digit must be before or after the decimal point, if one is used. At least one digit must follow the exponent marker (e), if one is present. There cannot be any spaces or other characters embedded in the constant. Note that any leading plus or minus sign is not actually considered part of the constant; it is an operator applied to the constant.
 
-> sqlNumber :: SQLSyntaxDialect -> Parser Token
+> sqlNumber :: Dialect -> Parser Token
 > sqlNumber _ = (SqlNumber . T.pack) <$>
 >     (int <??> (pp dot <??.> pp int)
 >      -- try is used in case we read a dot
@@ -361,7 +361,7 @@ TODO: try to match this behaviour
 
 inClass :: String -> Char -> Bool
 
-> symbol :: SQLSyntaxDialect -> Parser Token
+> symbol :: Dialect -> Parser Token
 > symbol dialect = Symbol <$> T.pack <$>
 >     choice
 >     [(:[]) <$> satisfy (`elem` simpleSymbols)
@@ -397,27 +397,27 @@ inClass :: String -> Char -> Bool
 >         startsWith (inClass compoundFirst)
 >                    (inClass compoundTail) -}
 >     simpleSymbols :: String
->     simpleSymbols | dialect == PostgreSQLDialect = "(),;[]{}"
+>     simpleSymbols | dialect == PostgreSQL = "(),;[]{}"
 >                   | otherwise = "(),;{}"
 >     compoundFirst :: String
->     compoundFirst | dialect == PostgreSQLDialect = "*/<>=~!@#%^&|`?+-"
+>     compoundFirst | dialect == PostgreSQL = "*/<>=~!@#%^&|`?+-"
 >                   | otherwise = "*/<>=~!%^&|`?+-"
 >     compoundTail :: String
->     compoundTail | dialect == PostgreSQLDialect = "*/<>=~!@#%^&|`?"
+>     compoundTail | dialect == PostgreSQL = "*/<>=~!@#%^&|`?"
 >                  | otherwise = "*/<>=~!%^&|`?"
 
 
-> sqlWhitespace :: SQLSyntaxDialect -> Parser Token
+> sqlWhitespace :: Dialect -> Parser Token
 > sqlWhitespace _ = (Whitespace . T.pack) <$> many1 (satisfy isSpace)
 
-> positionalArg :: SQLSyntaxDialect -> Parser Token
+> positionalArg :: Dialect -> Parser Token
 > -- uses try so we don't get confused with $splices
-> positionalArg PostgreSQLDialect = try (
+> positionalArg PostgreSQL = try (
 >   PositionalArg <$> (char '$' *> (read <$> many1 digit)))
 
 > positionalArg _ = satisfy (const False) >> fail "positional arg unsupported"
 
-> lineComment :: SQLSyntaxDialect -> Parser Token
+> lineComment :: Dialect -> Parser Token
 > lineComment _ =
 >     (\s -> (LineComment . T.pack) $ concat ["--",s]) <$>
 >     -- try is used here in case we see a - symbol
@@ -429,7 +429,7 @@ inClass :: String -> Char -> Bool
 >     conc a (Just b) = a ++ b
 >     lineCommentEnd = Just "\n" <$ char '\n' <|> Nothing <$ eof
 
-> blockComment :: SQLSyntaxDialect -> Parser Token
+> blockComment :: Dialect -> Parser Token
 > blockComment _ =
 >     (\s -> BlockComment $ T.concat ["/*",s]) <$>
 >     (try (string "/*") *> commentSuffix 0)
@@ -449,7 +449,7 @@ inClass :: String -> Char -> Bool
 >               -- not an end comment or nested comment, continue
 >              ,(\c s -> T.concat [x,T.pack [c], s]) <$> anyChar <*> commentSuffix n]
 
-> splice :: SQLSyntaxDialect -> Parser Token
+> splice :: Dialect -> Parser Token
 > splice _ = do
 >   Splice
 >   <$> (char '$' *> letter)

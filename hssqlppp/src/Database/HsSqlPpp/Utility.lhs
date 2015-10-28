@@ -23,7 +23,7 @@
 > import Database.HsSqlPpp.Internals.AstInternal
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Catalog
-> import Database.HsSqlPpp.Parser
+> import Database.HsSqlPpp.Parse
 > --import Text.Parsec.Prim
 > --import Control.Monad.Identity
 > import qualified Data.Text.Lazy as L
@@ -37,7 +37,7 @@
 > queryType :: Catalog -> L.Text -> Maybe Type
 > queryType cat src = do
 >   ast <- either (const Nothing) Just $ parseQueryExpr defaultParseFlags "" Nothing src
->   fmap teType $ anType $ getAnnotation $ typeCheckQueryExpr defaultTypeCheckingFlags cat ast
+>   fmap teType $ anType $ getAnnotation $ typeCheckQueryExpr defaultTypeCheckFlags cat ast
 
 > -- | Gets some information useful for checking a typechecked tree
 > -- returns the type of the top level node, a list of type errors from

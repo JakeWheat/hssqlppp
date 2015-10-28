@@ -12,10 +12,10 @@
 > import Control.Monad
 
 > --import Database.HsSqlPpp.Utils.Here
-> import Database.HsSqlPpp.Parser
-> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Parse
+> import Database.HsSqlPpp.Syntax
 > import Database.HsSqlPpp.Pretty
-> import Database.HsSqlPpp.TypeChecker
+> import Database.HsSqlPpp.TypeCheck
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Utils.GroomUtils
@@ -25,12 +25,12 @@
 > import Data.Text.Lazy (Text)
 > import qualified Data.Text.Lazy as L
 > import qualified Data.Text as T
-> import Database.HsSqlPpp.LexicalSyntax (sqlTokens,prettyToken,Token)
+> import Database.HsSqlPpp.LexicalSyntax (lexTokens,prettyToken,Token)
 > --import Text.Parsec.Text (runParser)
 > --import Control.Applicative
 
 > import Database.HsSqlPpp.Tests.TestTypes
-> import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion2
+> import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.TypeConversion2
 
 > --import Test.HUnit
 > --import Test.Framework.Providers.HUnit
@@ -62,24 +62,24 @@
 > itemToTft :: Item -> T.TestTree
 > itemToTft (Expr a b) = testParseScalarExpr a b
 > itemToTft (QueryExpr a b) = testParseQueryExpr a b
-> itemToTft (PgSqlStmt a b) = testParsePlpgsqlStatements PostgreSQLDialect a b
-> itemToTft (Stmt a b) = testParseStatements PostgreSQLDialect a b
+> itemToTft (PgSqlStmt a b) = testParsePlpgsqlStatements PostgreSQL a b
+> itemToTft (Stmt a b) = testParseStatements PostgreSQL a b
 > itemToTft (TSQL a b) =
 >   testParsePlpgsqlStatements (if True
->                        then SQLServerDialect
->                        else PostgreSQLDialect) a b
-> itemToTft (Oracle a b) =
->   testParsePlpgsqlStatements OracleDialect a b
+>                        then SQLServer
+>                        else PostgreSQL) a b
+> itemToTft (OracleX a b) =
+>   testParsePlpgsqlStatements Oracle a b
 > --itemToTft (MSStmt a b) = testParseStatements a b
 > itemToTft (Group s is) = T.testGroup s $ map itemToTft is
 > itemToTft (Lex d a b) = testLex d a b
 
 > itemToTft (ScalExpr s r) = testScalarExprType s r
-> itemToTft (TCQueryExpr cus s r) = testQueryExprType PostgreSQLDialect cus s r
-> itemToTft (TCStatements cus s r) = testStatementsTypecheck PostgreSQLDialect cus s r
-> itemToTft (InsertQueryExpr cus s r) = testInsertQueryExprType SQLServerDialect {-PostgreSQLDialect-} cus s r
-> itemToTft (TSQLQueryExpr cus s r) = testQueryExprType SQLServerDialect cus s r
-> itemToTft (OracleQueryExpr cus s r) = testQueryExprType OracleDialect cus s r
+> itemToTft (TCQueryExpr cus s r) = testQueryExprType PostgreSQL cus s r
+> itemToTft (TCStatements cus s r) = testStatementsTypecheck PostgreSQL cus s r
+> itemToTft (InsertQueryExpr cus s r) = testInsertQueryExprType SQLServer {-PostgreSQL-} cus s r
+> itemToTft (TSQLQueryExpr cus s r) = testQueryExprType SQLServer cus s r
+> itemToTft (OracleQueryExpr cus s r) = testQueryExprType Oracle cus s r
 > itemToTft (RewriteQueryExpr f cus s s') = testRewrite f cus s s'
 > itemToTft (ImpCastsScalar f s s') = testImpCastsScalar f s s'
 > itemToTft (ScalarExprExtra cat env s r) = testScalarExprTypeExtra cat env s r
@@ -89,25 +89,25 @@
 > testParseScalarExpr src ast =
 >   parseUtil src ast (parseScalarExpr defaultParseFlags "" Nothing)
 >                     (parseScalarExpr defaultParseFlags "" Nothing)
->                     (printScalarExpr defaultPPFlags)
+>                     (prettyScalarExpr defaultPrettyFlags)
 > testParseQueryExpr :: Text -> QueryExpr -> T.TestTree
 > testParseQueryExpr src ast =
 >   parseUtil src ast (parseQueryExpr defaultParseFlags "" Nothing)
 >                     (parseQueryExpr defaultParseFlags "" Nothing)
->                     (printQueryExpr defaultPPFlags)
+>                     (prettyQueryExpr defaultPrettyFlags)
 
 >
-> testParseStatements :: SQLSyntaxDialect -> Text -> [Statement] -> T.TestTree
+> testParseStatements :: Dialect -> Text -> [Statement] -> T.TestTree
 > testParseStatements flg src ast =
 >   let parse = parseStatements defaultParseFlags {pfDialect=flg} "" Nothing
->       pp = printStatements defaultPPFlags {ppDialect=flg}
+>       pp = prettyStatements defaultPrettyFlags {ppDialect=flg}
 >   in parseUtil src ast parse parse pp
 >
-> testParsePlpgsqlStatements :: SQLSyntaxDialect -> Text -> [Statement] -> T.TestTree
+> testParsePlpgsqlStatements :: Dialect -> Text -> [Statement] -> T.TestTree
 > testParsePlpgsqlStatements flg src ast =
 >   parseUtil src ast (parsePlpgsql defaultParseFlags {pfDialect=flg} "" Nothing)
 >                     (parsePlpgsql defaultParseFlags {pfDialect=flg} "" Nothing)
->                     (printStatements defaultPPFlags {ppDialect=flg})
+>                     (prettyStatements defaultPrettyFlags {ppDialect=flg})
 >
 > parseUtil :: (Show t, Eq b, Show b, Data b) =>
 >              Text
@@ -128,9 +128,9 @@
 >         Left er -> H.assertFailure $ "reparse\n" ++ (L.unpack $ printer ast) ++ "\n" ++ show er ++ "\n" -- ++ pp ++ "\n"
 >         Right ast'' -> H.assertEqual ("reparse: " ++ L.unpack (printer ast)) ast $ resetAnnotations ast''
 
-> testLex :: SQLSyntaxDialect -> T.Text -> [Token] -> T.TestTree
+> testLex :: Dialect -> T.Text -> [Token] -> T.TestTree
 > testLex d t r = H.testCase ("lex "++ T.unpack t) $ do
->     let x = sqlTokens d "" Nothing t
+>     let x = lexTokens d "" Nothing t
 >         y = either (error . show) id x
 >     H.assertEqual "lex" r (map snd y)
 >     let t' = L.concat $ map (prettyToken d) r
@@ -143,7 +143,7 @@
 >   let ast = case parseScalarExpr defaultParseFlags "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
->       aast = typeCheckScalarExpr defaultTypeCheckingFlags defaultTemplate1Catalog ast
+>       aast = typeCheckScalarExpr defaultTypeCheckFlags defaultTemplate1Catalog ast
 >       (ty,errs,noTypeQEs,noTypeSEs) = tcTreeInfo aast
 >       er = concatMap fst errs
 >       got = case () of
@@ -166,7 +166,7 @@
 >   let ast = case parseScalarExpr defaultParseFlags "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
->       aast = typeCheckScalarExprEnv defaultTypeCheckingFlags cat env ast
+>       aast = typeCheckScalarExprEnv defaultTypeCheckFlags cat env ast
 >       (ty,errs,noTypeQEs,noTypeSEs) = tcTreeInfo aast
 >       er = concatMap fst errs
 >       got = case () of
@@ -182,7 +182,7 @@
 >   unless (ete == got) $ trace (groomTypes aast) $ return ()
 >   H.assertEqual "" ete got
 
-> testImpCastsScalar :: TypeCheckingFlags -> L.Text -> L.Text -> T.TestTree
+> testImpCastsScalar :: TypeCheckFlags -> L.Text -> L.Text -> T.TestTree
 > testImpCastsScalar f src wsrc = H.testCase ("typecheck " ++ L.unpack src) $
 >   let ast = case parseScalarExpr defaultParseFlags "" Nothing src of
 >               Left e -> error $ show e
@@ -194,8 +194,8 @@
 >                Right l -> l
 >   in (if (resetAnnotations aast') /= (resetAnnotations wast)
 >       then trace ("\n***************** got: \n"
->                   ++ L.unpack (printScalarExpr defaultPPFlags aast')
->                   ++ "\nwanted:\n" ++ L.unpack (printScalarExpr defaultPPFlags wast)
+>                   ++ L.unpack (prettyScalarExpr defaultPrettyFlags aast')
+>                   ++ "\nwanted:\n" ++ L.unpack (prettyScalarExpr defaultPrettyFlags wast)
 >                   ++ "\n*****************\n"
 >                   ++ "\n***************** got: \n"
 >                   ++ groomNoAnns aast'
@@ -205,19 +205,19 @@
 >       else id) $ H.assertEqual "" (resetAnnotations aast') (resetAnnotations wast)
 
 
-> testQueryExprType :: SQLSyntaxDialect -> [CatalogUpdate] -> L.Text -> Either [TypeError] Type -> T.TestTree
+> testQueryExprType :: Dialect -> [CatalogUpdate] -> L.Text -> Either [TypeError] Type -> T.TestTree
 > testQueryExprType dl cus src et = H.testCase ("typecheck " ++ L.unpack src) $ do
 >   let ast = case parseQueryExpr defaultParseFlags "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
 >       Right cat = updateCatalog cus $ case dl of
->           PostgreSQLDialect -> defaultTemplate1Catalog
->           SQLServerDialect -> defaultTSQLCatalog
->           OracleDialect -> defaultTSQLCatalog
+>           PostgreSQL -> defaultTemplate1Catalog
+>           SQLServer -> defaultTSQLCatalog
+>           Oracle -> defaultTSQLCatalog
 >       flg = case dl of
->           PostgreSQLDialect -> defaultTypeCheckingFlags
->           SQLServerDialect -> defaultTypeCheckingFlags {tcfDialect = SQLServerDialect}
->           OracleDialect -> defaultTypeCheckingFlags {tcfDialect = OracleDialect}
+>           PostgreSQL -> defaultTypeCheckFlags
+>           SQLServer -> defaultTypeCheckFlags {tcfDialect = SQLServer}
+>           Oracle -> defaultTypeCheckFlags {tcfDialect = Oracle}
 >       aast = typeCheckQueryExpr flg cat ast
 >       (ty,errs,noTypeQEs,noTypeSEs) = tcTreeInfo aast
 >       er = concatMap fst errs
@@ -236,19 +236,19 @@
 >   H.assertEqual "" et got
 >   --queryExprRewrites cus src et
 
-> testStatementsTypecheck :: SQLSyntaxDialect -> [CatalogUpdate] -> L.Text -> Maybe [TypeError] -> T.TestTree
+> testStatementsTypecheck :: Dialect -> [CatalogUpdate] -> L.Text -> Maybe [TypeError] -> T.TestTree
 > testStatementsTypecheck dl cus src et = H.testCase ("typecheck " ++ L.unpack src) $ do
 >   let ast = case parseStatements defaultParseFlags "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
 >       Right cat = updateCatalog cus $ case dl of
->           PostgreSQLDialect -> defaultTemplate1Catalog
->           SQLServerDialect -> defaultTSQLCatalog
->           OracleDialect -> defaultTSQLCatalog
+>           PostgreSQL -> defaultTemplate1Catalog
+>           SQLServer -> defaultTSQLCatalog
+>           Oracle -> defaultTSQLCatalog
 >       flg = case dl of
->           PostgreSQLDialect -> defaultTypeCheckingFlags
->           SQLServerDialect -> defaultTypeCheckingFlags {tcfDialect = SQLServerDialect}
->           OracleDialect -> defaultTypeCheckingFlags {tcfDialect = OracleDialect}
+>           PostgreSQL -> defaultTypeCheckFlags
+>           SQLServer -> defaultTypeCheckFlags {tcfDialect = SQLServer}
+>           Oracle -> defaultTypeCheckFlags {tcfDialect = Oracle}
 >       (_,aast) = typeCheckStatements flg cat ast
 >       (_,errs,noTypeQEs,noTypeSEs) = tcTreeInfo aast
 >       er = concatMap fst errs
@@ -268,16 +268,16 @@
 >   --queryExprRewrites cus src et
 
 
-> testInsertQueryExprType :: SQLSyntaxDialect -> [CatalogUpdate] -> L.Text -> Either [TypeError] Type -> T.TestTree
+> testInsertQueryExprType :: Dialect -> [CatalogUpdate] -> L.Text -> Either [TypeError] Type -> T.TestTree
 > testInsertQueryExprType dl cus src et = H.testCase ("typecheck " ++ L.unpack src) $ do
 >   let Right cat = updateCatalog cus $ case dl of
->           PostgreSQLDialect -> defaultTemplate1Catalog
->           SQLServerDialect -> defaultTSQLCatalog
->           OracleDialect -> defaultTSQLCatalog
+>           PostgreSQL -> defaultTemplate1Catalog
+>           SQLServer -> defaultTSQLCatalog
+>           Oracle -> defaultTSQLCatalog
 >       flg = case dl of
->           PostgreSQLDialect -> defaultTypeCheckingFlags
->           SQLServerDialect -> defaultTypeCheckingFlags {tcfDialect = SQLServerDialect}
->           OracleDialect -> defaultTypeCheckingFlags {tcfDialect = OracleDialect}
+>           PostgreSQL -> defaultTypeCheckFlags
+>           SQLServer -> defaultTypeCheckFlags {tcfDialect = SQLServer}
+>           Oracle -> defaultTypeCheckFlags {tcfDialect = Oracle}
 >       asts = either (error . show) id $ parseStatements defaultParseFlags "" Nothing src
 >       Insert _ _ _ q _ = extractInsert $ snd $ typeCheckStatements flg cat asts
 >       q' = addImplicitCasts cat q
@@ -313,19 +313,19 @@ type checks properly and produces the same type
 >               Right l -> l
 >   let Right cat = updateCatalog cus defaultTemplate1Catalog
 >       aast = typeCheckQueryExpr
->                defaultTypeCheckingFlags {tcfAddQualifiers = True
+>                defaultTypeCheckFlags {tcfAddQualifiers = True
 >                                         ,tcfAddSelectItemAliases = True
 >                                         ,tcfExpandStars = True
 >                                         ,tcfAddFullTablerefAliases = True}
 >                cat ast
 >       ty = anType $ getAnnotation aast
 >       -- print with rewritten tree
->       pp = printQueryExpr defaultPPFlags aast
+>       pp = prettyQueryExpr defaultPrettyFlags aast
 >       astrw = case parseQueryExpr defaultParseFlags "" Nothing pp of
 >                 Left e -> error $ "parse: " ++ L.unpack pp ++ "\n" ++ show e
 >                 Right l -> l
 >       aastrw = typeCheckQueryExpr
->                  defaultTypeCheckingFlags
+>                  defaultTypeCheckFlags
 >                  cat astrw
 >       tyrw = anType $ getAnnotation aast
 >   H.assertEqual "rewrite pp . parse" (resetAnnotations aast) (resetAnnotations aastrw)
@@ -346,7 +346,7 @@ type checks properly and produces the same type
 
 
 
-> testRewrite :: TypeCheckingFlags -> [CatalogUpdate] -> L.Text -> L.Text
+> testRewrite :: TypeCheckFlags -> [CatalogUpdate] -> L.Text -> L.Text
 >             -> T.TestTree
 > testRewrite f cus src src' = H.testCase ("rewrite " ++ L.unpack src) $ do
 >   let ast = case parseQueryExpr defaultParseFlags "" Nothing src of
@@ -360,8 +360,8 @@ type checks properly and produces the same type
 >               Right l -> resetAnnotations l
 >   (if astrw /= ast'
 >       then trace ("\n***************** expected\n" ++
->                   L.unpack (printQueryExpr defaultPPFlags ast')
->                   ++ "\n" ++ L.unpack (printQueryExpr defaultPPFlags astrw)
+>                   L.unpack (prettyQueryExpr defaultPrettyFlags ast')
+>                   ++ "\n" ++ L.unpack (prettyQueryExpr defaultPrettyFlags astrw)
 >                   ++ "\n\n" ++ groomTypes ast'
 >                   ++ "\n\n" ++ groomTypes astrw
 >                   ++ "\n***************** got\n")
@@ -370,15 +370,15 @@ type checks properly and produces the same type
 >   {-let astrw2 = resetAnnotations $ typeCheckQueryExpr f cat astrw
 >   (if astrw /= astrw2
 >       then trace ("\nSECOND REWRITE\n***************** expected\n" ++
->                   printQueryExpr defaultPPFlags astrw
->                   ++ "\n" ++ printQueryExpr defaultPPFlags astrw2
+>                   prettyQueryExpr defaultPrettyFlags astrw
+>                   ++ "\n" ++ prettyQueryExpr defaultPrettyFlags astrw2
 >                   ++ "\n\n" ++ groomTypes astrw
 >                   ++ "\n\n" ++ groomTypes astrw2
 >                   ++ "\n***************** got\n")
 >       else id) $ assertEqual "second rewrite" astrw astrw2-}
 
 
-> testMatchApp :: SQLSyntaxDialect -> Catalog -> [NameComponent]
+> testMatchApp :: Dialect -> Catalog -> [NameComponent]
 >              -> [(TypeExtra, Maybe LitArg)]
 >              -> (Either [TypeError] ([TypeExtra],TypeExtra))
 >              -> T.TestTree

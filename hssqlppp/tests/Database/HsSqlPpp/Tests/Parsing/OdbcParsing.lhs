@@ -111,7 +111,7 @@ The odbc syntax is currently available in all dialects.
 > {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Tests.Parsing.OdbcParsing (odbcParsing) where
 >
-> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Syntax
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
 > import Database.HsSqlPpp.Tests.TestTypes

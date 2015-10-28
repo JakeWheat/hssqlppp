@@ -3,7 +3,7 @@ convert error messages to show source text fragment with little hat,
 plus output error location in emacs friendly format.
 
 > {-# LANGUAGE OverloadedStrings #-}
-> module Database.HsSqlPpp.Parsing.ParseErrors
+> module Database.HsSqlPpp.Internals.ParseErrors
 >     (toParseErrorExtra
 >     ,ParseErrorExtra(..)) where
 >

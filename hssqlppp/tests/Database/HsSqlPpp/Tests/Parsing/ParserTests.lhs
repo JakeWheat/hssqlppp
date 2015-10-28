@@ -15,9 +15,9 @@ There are no tests for invalid syntax at the moment.
 >
 > --import Data.Generics
 > --import Control.Monad
-> --import Database.HsSqlPpp.Ast
+> --import Database.HsSqlPpp.Syntax
 > --import Database.HsSqlPpp.Annotation
-> --import Database.HsSqlPpp.Parser
+> --import Database.HsSqlPpp.Parse
 > --import Database.HsSqlPpp.Pretty
 > --import Database.HsSqlPpp.Utility
 >

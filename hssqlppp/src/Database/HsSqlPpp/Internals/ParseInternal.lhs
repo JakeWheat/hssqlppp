@@ -5,7 +5,7 @@ right choice, but it seems to do the job pretty well at the moment.
 > {-# LANGUAGE FlexibleContexts,ExplicitForAll,TupleSections,
 >              NoMonomorphismRestriction,OverloadedStrings #-}
 > -- | Functions to parse SQL.
-> module Database.HsSqlPpp.Parsing.ParserInternal
+> module Database.HsSqlPpp.Internals.ParseInternal
 >     (-- * Main
 >      parseStatements
 >     ,parseQueryExpr
@@ -14,7 +14,7 @@ right choice, but it seems to do the job pretty well at the moment.
 >      -- * parsing flags
 >     ,ParseFlags(..)
 >     ,defaultParseFlags
->     ,SQLSyntaxDialect(..)
+>     ,Dialect(..)
 >      -- * errors
 >     ,ParseErrorExtra(..)
 >      -- other helpers for internal use
@@ -46,11 +46,11 @@ right choice, but it seems to do the job pretty well at the moment.
 > import Data.Data hiding (Prefix,Infix)
 >
 > import qualified Database.HsSqlPpp.LexicalSyntax as Lex
-> import Database.HsSqlPpp.Parsing.ParseErrors
-> import Database.HsSqlPpp.Ast
+> import Database.HsSqlPpp.Internals.ParseErrors
+> import Database.HsSqlPpp.Syntax
 > import Database.HsSqlPpp.Annotation as A
-> import Database.HsSqlPpp.Utils.Utils
-> import Database.HsSqlPpp.SqlDialect
+> import Database.HsSqlPpp.Internals.Utils
+> import Database.HsSqlPpp.Internals.Dialect
 > import Data.Text (Text)
 > import qualified Data.Text as T
 > --import qualified Data.Text.Lazy as LT
@@ -113,7 +113,7 @@ Top level parsing functions
 >          $ runParser ps flg fn lxd
 >   return $ fixupTree psd
 
-> lexem :: SQLSyntaxDialect
+> lexem :: Dialect
 >        -> FilePath
 >        -> Maybe (Int,Int)
 >        -> L.Text
@@ -121,7 +121,7 @@ Top level parsing functions
 > lexem d fn sp src =
 >   let ts :: Either ParseErrorExtra [Token]
 >       ts = either (error . show) Right
->             $ Lex.sqlTokens d fn sp $ T.concat $ L.toChunks src
+>             $ Lex.lexTokens d fn sp $ T.concat $ L.toChunks src
 >   in --trace ((\(Right r) -> intercalate "\n" $ map show r) ts) $
 >      filter keep `fmap` ts
 >   where
@@ -136,12 +136,12 @@ state is never updated during parsing
 
 > -- | Settings to influence the parsing
 > data ParseFlags = ParseFlags
->     {pfDialect :: SQLSyntaxDialect
+>     {pfDialect :: Dialect
 >     }
 >     deriving (Show,Eq)
 
 > defaultParseFlags :: ParseFlags
-> defaultParseFlags = ParseFlags {pfDialect = PostgreSQLDialect}
+> defaultParseFlags = ParseFlags {pfDialect = PostgreSQL}
 
 
 > type ParseState = ParseFlags
@@ -149,12 +149,12 @@ state is never updated during parsing
 > isSqlServer :: SParser Bool
 > isSqlServer = do
 >   ParseFlags {pfDialect = d} <- getState
->   return $ d == SQLServerDialect
+>   return $ d == SQLServer
 
 > isOracle :: SParser Bool
 > isOracle = do
 >   ParseFlags {pfDialect = d} <- getState
->   return $ d == OracleDialect
+>   return $ d == Oracle
 
 couple of wrapper functions for the quoting
 
@@ -1510,7 +1510,7 @@ TODO: this follows the old, incorrect postgresql precedence, update to
 the 9.5 behaviour which is much more in line with ansi sql and other
 sql dbmss.
 
-> tableAB :: SQLSyntaxDialect
+> tableAB :: Dialect
 >         -> Bool
 >         -> [[Operator [Token] ParseState Identity ScalarExpr]]
 > tableAB d isB = [[{-binary "." AssocLeft-}]
@@ -1536,7 +1536,7 @@ sql dbmss.
 >          ,binary "&" AssocLeft
 >          ,binary "<->" AssocNone
 >          ,binary "||" AssocLeft]
->          ++ [prefix "@" "@" | d == PostgreSQLDialect]
+>          ++ [prefix "@" "@" | d == PostgreSQL]
 >          -- Stop custom operators.
 >          --in should be here, but is treated as a factor instead
 >          --between
@@ -1613,10 +1613,10 @@ From postgresql src/backend/parser/gram.y
 
 ~~~~~
 
-> table :: SQLSyntaxDialect -> [[Operator [Token] ParseState Identity ScalarExpr]]
+> table :: Dialect -> [[Operator [Token] ParseState Identity ScalarExpr]]
 > table d = tableAB d False
 
-> tableB :: SQLSyntaxDialect -> [[Operator [Token] ParseState Identity ScalarExpr]]
+> tableB :: Dialect -> [[Operator [Token] ParseState Identity ScalarExpr]]
 > tableB d = tableAB d True
 
 use the same factors

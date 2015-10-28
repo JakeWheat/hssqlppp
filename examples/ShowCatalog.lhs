@@ -4,8 +4,8 @@
 
 > import Text.Show.Pretty
 
-> import Database.HsSqlPpp.Parser
-> import Database.HsSqlPpp.TypeChecker
+> import Database.HsSqlPpp.Parse
+> import Database.HsSqlPpp.TypeCheck
 > import Database.HsSqlPpp.Catalog
 > import qualified Data.Text.Lazy.IO as LT
 
@@ -14,6 +14,6 @@
 >   [f] <- getArgs
 >   src <- LT.readFile f
 >   let Right ast = parseStatements defaultParseFlags f Nothing src
->   let (cat,_) = typeCheckStatements defaultTypeCheckingFlags defaultTemplate1Catalog ast
+>   let (cat,_) = typeCheckStatements defaultTypeCheckFlags defaultTemplate1Catalog ast
 >       cc = deconstructCatalog cat \\ deconstructCatalog defaultTemplate1Catalog
 >   putStrLn $ ppShow cc

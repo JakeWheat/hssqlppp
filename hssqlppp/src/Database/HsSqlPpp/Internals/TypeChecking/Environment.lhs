@@ -36,7 +36,7 @@ and variables, etc.
 > --import Text.Show.Pretty
 
 > import Database.HsSqlPpp.Internals.TypesInternal
-> import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
+> import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.TypeConversion
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal hiding (ncStr)
 > import Data.Generics.Uniplate.Data
 > import Data.Text (Text)

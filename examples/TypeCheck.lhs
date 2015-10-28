@@ -1,11 +1,11 @@
 
 > {-# LANGUAGE OverloadedStrings #-}
-> import Database.HsSqlPpp.Parser
-> import Database.HsSqlPpp.TypeChecker
+> import Database.HsSqlPpp.Parse
+> import Database.HsSqlPpp.TypeCheck
 > import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Annotation
-> import Database.HsSqlPpp.Ast hiding (ann)
+> import Database.HsSqlPpp.Syntax hiding (ann)
 > import Data.Text.Lazy ()
 
 > main :: IO ()
@@ -14,7 +14,7 @@
 >       ast :: QueryExpr
 >       Right ast = parseQueryExpr defaultParseFlags "" Nothing query
 >       aast :: QueryExpr
->       aast = typeCheckQueryExpr defaultTypeCheckingFlags cat ast
+>       aast = typeCheckQueryExpr defaultTypeCheckFlags cat ast
 >       ann :: Annotation
 >       ann = getAnnotation aast
 >       ty :: Maybe Type

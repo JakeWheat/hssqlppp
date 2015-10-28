@@ -8,7 +8,7 @@ that pretty print . parse == id
 > --import Language.Haskell.Exts
 > --import Data.Generics.Uniplate.Data
 
-> import Database.HsSqlPpp.Parser
+> import Database.HsSqlPpp.Parse
 > import Database.HsSqlPpp.Pretty
 > import Database.HsSqlPpp.Utility
 > import Control.Monad
@@ -26,7 +26,7 @@ that pretty print . parse == id
 >   let ast = resetAnnotations
 >             $ either (error . show) id
 >             $ parseStatements defaultParseFlags f Nothing src
->       pp = printStatements defaultPPFlags ast
+>       pp = prettyStatements defaultPrettyFlags ast
 >       ast2 = resetAnnotations
 >              $ either (error . show) id
 >              $ parseStatements defaultParseFlags f Nothing pp

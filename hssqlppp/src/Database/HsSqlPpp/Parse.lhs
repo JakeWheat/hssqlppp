@@ -3,7 +3,7 @@ Forward the public part of ParserInternal
 
 > -- | Functions to parse SQL.
 
-> module Database.HsSqlPpp.Parser
+> module Database.HsSqlPpp.Parse
 >     (-- * Main
 >      parseStatements
 >     ,parseQueryExpr
@@ -12,7 +12,7 @@ Forward the public part of ParserInternal
 >      -- * Parsing options
 >     ,ParseFlags(..)
 >     ,defaultParseFlags
->     ,SQLSyntaxDialect(..)
+>     ,Dialect(..)
 >      -- * errors
 >     ,ParseErrorExtra(..)
 >      -- * internals
@@ -25,4 +25,4 @@ will need lots more to support the extensions/chaos stuff
 
 >     ) where
 >
-> import Database.HsSqlPpp.Parsing.ParserInternal
+> import Database.HsSqlPpp.Internals.ParseInternal

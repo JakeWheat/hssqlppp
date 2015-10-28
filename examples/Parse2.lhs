@@ -4,7 +4,7 @@
 > --import Language.Haskell.Exts
 > --import Data.Generics.Uniplate.Data
 
-> import Database.HsSqlPpp.Parser
+> import Database.HsSqlPpp.Parse
 > import GroomUtils
 > import Text.Show.Pretty
 > import qualified Data.Text.Lazy.IO as LT
@@ -14,5 +14,5 @@
 >   [f] <- getArgs
 >   src <- LT.readFile f
 >   let ast = parseStatements defaultParseFlags
->                {pfDialect = SQLServerDialect} f Nothing src
+>                {pfDialect = SQLServer} f Nothing src
 >   putStrLn $ either ppShow groomNoAnns ast

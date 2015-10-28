@@ -1,5 +1,5 @@
 Name:                hssqlppp
-Version:             0.5.21
+Version:             0.5.22
 Synopsis:            SQL parser and type checker
 License:             BSD3
 License-file:        LICENSE
@@ -43,34 +43,33 @@ Library
                      pretty-show >= 1.6 && < 1.7
 
   hs-source-dirs:    src
-  Exposed-modules:   Database.HsSqlPpp.Ast
-                     Database.HsSqlPpp.Annotation
+  Exposed-modules:   Database.HsSqlPpp.Annotation
                      Database.HsSqlPpp.Catalog
                      Database.HsSqlPpp.LexicalSyntax
-                     Database.HsSqlPpp.Parser
+                     Database.HsSqlPpp.Parse
                      Database.HsSqlPpp.Pretty
+                     Database.HsSqlPpp.Syntax
                      Database.HsSqlPpp.Types
-                     Database.HsSqlPpp.TypeChecker
+                     Database.HsSqlPpp.TypeCheck
                      Database.HsSqlPpp.Utility
 
                      -- find src -iname '*hs' | sed -e "s@src/@@" | sed -e "s@/@.@g" |sed -e "s/.lhs//" |sed -e "s/.hs//"
-  Other-Modules:     Database.HsSqlPpp.Utils.Utils
-                     Database.HsSqlPpp.Parsing.ParseErrors
-                     Database.HsSqlPpp.Parsing.ParserInternal
-                     Database.HsSqlPpp.Internals.Catalog.CatalogInternal
-                     Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
-                     Database.HsSqlPpp.Internals.Catalog.DefaultTSQLCatalog
-                     Database.HsSqlPpp.Internals.Catalog.OdbcCatalog
-                     Database.HsSqlPpp.Internals.TypesInternal
-                     Database.HsSqlPpp.Internals.TypeChecking.Environment
-                     Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
-                     Database.HsSqlPpp.Internals.TypeChecking.TypeConversion2
-                     Database.HsSqlPpp.Internals.TypeChecking.SqlTypeConversion
-                     Database.HsSqlPpp.Internals.TypeChecking.OldTypeConversion
-                     Database.HsSqlPpp.Internals.TypeChecking.OldTediousTypeUtils
-                     Database.HsSqlPpp.Internals.TypeChecking.Environment
-                     Database.HsSqlPpp.Internals.AstInternal
-                     Database.HsSqlPpp.SqlDialect
+  Other-Modules:    Database.HsSqlPpp.Internals.Utils
+                    Database.HsSqlPpp.Internals.TypeChecking.OldTediousTypeUtils
+                    Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.TypeConversion2
+                    Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.OldTypeConversion
+                    Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.TypeConversion
+                    Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.SqlTypeConversion
+                    Database.HsSqlPpp.Internals.TypeChecking.Environment
+                    Database.HsSqlPpp.Internals.ParseInternal
+                    Database.HsSqlPpp.Internals.Catalog.DefaultTSQLCatalog
+                    Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
+                    Database.HsSqlPpp.Internals.Catalog.OdbcCatalog
+                    Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+                    Database.HsSqlPpp.Internals.AstInternal
+                    Database.HsSqlPpp.Internals.TypesInternal
+                    Database.HsSqlPpp.Internals.ParseErrors
+                    Database.HsSqlPpp.Internals.Dialect
 
   default-extensions:  TupleSections
                       DeriveDataTypeable,
@@ -101,64 +100,52 @@ Test-Suite Tests
 
                      -- rough start:
                      -- find src-extra/tests -iname '*hs' | sed -e "s@src-extra/tests/@@" | sed -e "s@/@.@g" |sed -e "s/.lhs//" |sed -e "s/.hs//"
-  Other-Modules:     Database.HsSqlPpp.Annotation
-                     Database.HsSqlPpp.Ast
-                     Database.HsSqlPpp.Catalog
-                     Database.HsSqlPpp.Internals.AstInternal
-                     Database.HsSqlPpp.Internals.Catalog.CatalogInternal
-                     Database.HsSqlPpp.Internals.Catalog.DefaultTSQLCatalog
-                     Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
-                     Database.HsSqlPpp.Internals.TypeChecking.Environment
-                     Database.HsSqlPpp.Internals.TypeChecking.OldTediousTypeUtils
-                     Database.HsSqlPpp.Internals.TypeChecking.OldTypeConversion
-                     Database.HsSqlPpp.Internals.TypeChecking.SqlTypeConversion
-                     Database.HsSqlPpp.Internals.TypeChecking.TypeConversion
-                     Database.HsSqlPpp.Internals.TypeChecking.TypeConversion2
-                     Database.HsSqlPpp.Internals.TypesInternal
-                     Database.HsSqlPpp.LexicalSyntax
-                     Database.HsSqlPpp.Parser
-                     Database.HsSqlPpp.Parsing.ParseErrors
-                     Database.HsSqlPpp.Parsing.ParserInternal
-                     Database.HsSqlPpp.Pretty
-                     Database.HsSqlPpp.SqlDialect
-                     Database.HsSqlPpp.TypeChecker
-                     Database.HsSqlPpp.Types
-                     Database.HsSqlPpp.Utility
-                     Database.HsSqlPpp.Utils.Utils
-                     Database.HsSqlPpp.Utils.GroomUtils
-                     Database.HsSqlPpp.Tests.Tests
-                     Database.HsSqlPpp.Tests.TypeChecking.CaseExpressions
-                     Database.HsSqlPpp.Tests.TypeChecking.TrefIdentifiers
-                     Database.HsSqlPpp.Tests.TypeChecking.ScalarExprs
-                     Database.HsSqlPpp.Tests.TypeChecking.Tpch
-                     Database.HsSqlPpp.Tests.TypeChecking.Joins
-                     Database.HsSqlPpp.Tests.TypeChecking.TSQL
-                     Database.HsSqlPpp.Tests.TypeChecking.Rewrites
-                     Database.HsSqlPpp.Tests.TypeChecking.SimpleQueryExprs
-                     Database.HsSqlPpp.Tests.TypeChecking.ImplicitCasts
-                     Database.HsSqlPpp.Tests.TypeChecking.TypeCheckTests
-                     Database.HsSqlPpp.Tests.TypeChecking.Issues
-                     Database.HsSqlPpp.Tests.TypeChecking.OdbcTypechecking
-                     Database.HsSqlPpp.Tests.Parsing.SqlServer
-                     Database.HsSqlPpp.Tests.Parsing.CreateTable
-                     Database.HsSqlPpp.Tests.Parsing.Dml
-                     Database.HsSqlPpp.Tests.Parsing.FunctionsDdl
-                     Database.HsSqlPpp.Tests.Parsing.ScalarExprs
-                     Database.HsSqlPpp.Tests.Parsing.SelectLists
-                     Database.HsSqlPpp.Tests.Parsing.CombineQueryExprs
-                     Database.HsSqlPpp.Tests.Parsing.Misc
-                     Database.HsSqlPpp.Tests.Parsing.Joins
-                     Database.HsSqlPpp.Tests.Parsing.MiscQueryExprs
-                     Database.HsSqlPpp.Tests.Parsing.TableRefs
-                     Database.HsSqlPpp.Tests.Parsing.Utils
-                     Database.HsSqlPpp.Tests.Parsing.Plpgsql
-                     Database.HsSqlPpp.Tests.Parsing.MiscDdl
-                     Database.HsSqlPpp.Tests.Parsing.ParserTests
-                     Database.HsSqlPpp.Tests.Parsing.LexerTests
-                     Database.HsSqlPpp.Tests.Parsing.OdbcParsing
-                     Database.HsSqlPpp.Tests.TpchData
-                     Database.HsSqlPpp.Tests.TestTypes
-                     Database.HsSqlPpp.Utils.Here
+  Other-Modules:    Database.HsSqlPpp.Tests.TypeChecking.OdbcTypechecking
+                    Database.HsSqlPpp.Tests.TypeChecking.Aggregates
+                    Database.HsSqlPpp.Tests.TypeChecking.DDL
+                    Database.HsSqlPpp.Tests.TypeChecking.Rewrites
+                    Database.HsSqlPpp.Tests.TypeChecking.TrefIdentifiers
+                    Database.HsSqlPpp.Tests.TypeChecking.ScalarExprs
+                    Database.HsSqlPpp.Tests.TypeChecking.PrecisionAndNullable
+                    Database.HsSqlPpp.Tests.TypeChecking.ImplicitCasts
+                    Database.HsSqlPpp.Tests.TypeChecking.TypeConversion
+                    Database.HsSqlPpp.Tests.TypeChecking.Joins
+                    Database.HsSqlPpp.Tests.TypeChecking.InsertQueryExprs
+                    Database.HsSqlPpp.Tests.TypeChecking.TSQL
+                    Database.HsSqlPpp.Tests.TypeChecking.Tpch
+                    Database.HsSqlPpp.Tests.TypeChecking.CaseExpressions
+                    Database.HsSqlPpp.Tests.TypeChecking.QueryExprs
+                    Database.HsSqlPpp.Tests.TypeChecking.TypeCheckTests
+                    Database.HsSqlPpp.Tests.TypeChecking.SimpleQueryExprs
+                    Database.HsSqlPpp.Tests.TypeChecking.Utils
+                    Database.HsSqlPpp.Tests.TypeChecking.TrefSchemas
+                    Database.HsSqlPpp.Tests.TypeChecking.Issues
+                    Database.HsSqlPpp.Tests.TypeChecking.Updates
+                    Database.HsSqlPpp.Tests.Tests
+                    Database.HsSqlPpp.Tests.TestUtils
+                    Database.HsSqlPpp.Tests.Parsing.Dml
+                    Database.HsSqlPpp.Tests.Parsing.SqlServer
+                    Database.HsSqlPpp.Tests.Parsing.Misc
+                    Database.HsSqlPpp.Tests.Parsing.ScalarExprs
+                    Database.HsSqlPpp.Tests.Parsing.Plpgsql
+                    Database.HsSqlPpp.Tests.Parsing.LexerTests
+                    Database.HsSqlPpp.Tests.Parsing.CreateTable
+                    Database.HsSqlPpp.Tests.Parsing.SelectLists
+                    Database.HsSqlPpp.Tests.Parsing.OdbcParsing
+                    Database.HsSqlPpp.Tests.Parsing.FunctionsDdl
+                    Database.HsSqlPpp.Tests.Parsing.Joins
+                    Database.HsSqlPpp.Tests.Parsing.ParserTests
+                    Database.HsSqlPpp.Tests.Parsing.Oracle
+                    Database.HsSqlPpp.Tests.Parsing.Schemas
+                    Database.HsSqlPpp.Tests.Parsing.MiscQueryExprs
+                    Database.HsSqlPpp.Tests.Parsing.TableRefs
+                    Database.HsSqlPpp.Tests.Parsing.MiscDdl
+                    Database.HsSqlPpp.Tests.Parsing.Utils
+                    Database.HsSqlPpp.Tests.Parsing.CombineQueryExprs
+                    Database.HsSqlPpp.Tests.TestTypes
+                    Database.HsSqlPpp.Tests.TpchData
+                    Database.HsSqlPpp.Utils.Here
+                    Database.HsSqlPpp.Utils.GroomUtils
 
   default-extensions:  TupleSections
                        DeriveDataTypeable,
