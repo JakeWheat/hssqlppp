@@ -258,8 +258,8 @@ then: zip with the unknown positions
 >              (UnknownType,Nothing) ->Left [AmbiguousOperator appName' rawArgTypes]
 >              (UnknownType,Just y) -> Right (Just y)
 >              (_,_) -> Right Nothing
->     let argumentCategoriesNeeded :: Either [TypeError] [Maybe T.Text]
->         argumentCategoriesNeeded =
+>     let _argumentCategoriesNeeded :: Either [TypeError] [Maybe T.Text]
+>         _argumentCategoriesNeeded =
 >             zipWithM chooseCat rawArgTypes argumentCategories
 
 TODO: filter the cands by argument categories needed

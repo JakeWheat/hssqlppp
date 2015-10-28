@@ -40,6 +40,7 @@
 >           | Lex SQLSyntaxDialect T.Text [Token]
 >           | ScalExpr L.Text (Either [TypeError] Type)
 >           | TCQueryExpr [CatalogUpdate] L.Text (Either [TypeError] Type)
+>           | TCStatements [CatalogUpdate] L.Text (Maybe [TypeError])
 >           | InsertQueryExpr [CatalogUpdate] L.Text (Either [TypeError] Type)
 >           | TSQLQueryExpr [CatalogUpdate] L.Text (Either [TypeError] Type)
 >           | OracleQueryExpr [CatalogUpdate] L.Text (Either [TypeError] Type)

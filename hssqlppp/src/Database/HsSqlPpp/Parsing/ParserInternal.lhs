@@ -35,7 +35,7 @@ right choice, but it seems to do the job pretty well at the moment.
 > import Text.Parsec.Perm
 > import Text.Parsec.Pos
 >
-> import Control.Applicative hiding (many,optional,(<|>))
+> --import Control.Applicative hiding (many,optional,(<|>))
 > import Control.Monad.Identity
 > --import Control.Monad
 >
@@ -2515,13 +2515,13 @@ Utility parsers
 >              ParsecT s u m a -> ParsecT s u m (Maybe a)
 > tryOptionMaybe p = try (optionMaybe p) <|> return Nothing
 >
-> commaSep2 :: SParser a
+> {-commaSep2 :: SParser a
 >           -> SParser [a]
 > commaSep2 p = sepBy2 p (symbol ",")
 >
 > sepBy2 :: (Stream s m t) =>
 >           ParsecT s u m a -> ParsecT s u m b -> ParsecT s u m [a]
-> sepBy2 p sep = (p <* sep) <:> sepBy1 p sep
+> sepBy2 p sep = (p <* sep) <:> sepBy1 p sep-}
 >
 > commaSep :: SParser a
 >          -> SParser [a]

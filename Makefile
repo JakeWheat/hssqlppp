@@ -222,11 +222,15 @@ AG_FILES = $(shell find hssqlppp/src -iname '*ag')
 
 hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs : $(AG_FILES) \
   sandbox/bin/PostprocessUuagc
-	sandbox/bin/uuagc -dcfspwm -P \
-		hssqlppp/src/Database/HsSqlPpp/Internals/ \
+	sandbox/bin/uuagc -dcfspwm \
+	        -P hssqlppp/src/Database/HsSqlPpp/Internals/ \
 		--lckeywords --doublecolons --genlinepragmas \
 		hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.ag
 	sandbox/bin/PostprocessUuagc
+	# prefix all the generated stuff with _
+	# so we don't get loads of unused function warnings
+	sed -r -i -e "s/([a-zA-Z0-9_]*_(Inh|Syn)_[a-zA-Z0-9_]*)/_\1/g" -e "s/((sem|wrap)_[a-zA-Z0-9_]*)/_\1/g" hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs
+#	sed -r -i -e "s/\b([^ ]*_(Inh|Syn)_[^ ]*)\b/_\1/" -e "s/\b((Inh|Syn|sem|wrap)_[^ ]*)/_\1/" hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs
 
 
 #-dcfspwm --cycle -O

@@ -27,7 +27,7 @@
 > import qualified Data.Text as T
 > import Database.HsSqlPpp.LexicalSyntax (sqlTokens,prettyToken,Token)
 > --import Text.Parsec.Text (runParser)
-> import Control.Applicative
+> --import Control.Applicative
 
 > import Database.HsSqlPpp.Tests.TestTypes
 > import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion2
@@ -76,6 +76,7 @@
 
 > itemToTft (ScalExpr s r) = testScalarExprType s r
 > itemToTft (TCQueryExpr cus s r) = testQueryExprType PostgreSQLDialect cus s r
+> itemToTft (TCStatements cus s r) = testStatementsTypecheck PostgreSQLDialect cus s r
 > itemToTft (InsertQueryExpr cus s r) = testInsertQueryExprType SQLServerDialect {-PostgreSQLDialect-} cus s r
 > itemToTft (TSQLQueryExpr cus s r) = testQueryExprType SQLServerDialect cus s r
 > itemToTft (OracleQueryExpr cus s r) = testQueryExprType OracleDialect cus s r
@@ -234,6 +235,38 @@
 >   unless (et == got) $ trace (groomTypes aast) $ return ()
 >   H.assertEqual "" et got
 >   --queryExprRewrites cus src et
+
+> testStatementsTypecheck :: SQLSyntaxDialect -> [CatalogUpdate] -> L.Text -> Maybe [TypeError] -> T.TestTree
+> testStatementsTypecheck dl cus src et = H.testCase ("typecheck " ++ L.unpack src) $ do
+>   let ast = case parseStatements defaultParseFlags "" Nothing src of
+>               Left e -> error $ show e
+>               Right l -> l
+>       Right cat = updateCatalog cus $ case dl of
+>           PostgreSQLDialect -> defaultTemplate1Catalog
+>           SQLServerDialect -> defaultTSQLCatalog
+>           OracleDialect -> defaultTSQLCatalog
+>       flg = case dl of
+>           PostgreSQLDialect -> defaultTypeCheckingFlags
+>           SQLServerDialect -> defaultTypeCheckingFlags {tcfDialect = SQLServerDialect}
+>           OracleDialect -> defaultTypeCheckingFlags {tcfDialect = OracleDialect}
+>       (_,aast) = typeCheckStatements flg cat ast
+>       (_,errs,noTypeQEs,noTypeSEs) = tcTreeInfo aast
+>       er = concatMap fst errs
+>       got :: Maybe [TypeError]
+>       got = case () of
+>               _ | null er -> Nothing
+>                 | otherwise -> Just er
+>       allTyped = case et of
+>                    Just _ -> True -- don't check if everything is typed
+>                                   -- if expecting a type error
+>                    Nothing -> null noTypeSEs && null noTypeQEs
+>   unless allTyped $
+>        trace ("MISSING TYPES: " ++ groomTypes aast)
+>        $ H.assertBool "" allTyped
+>   unless (et == got) $ trace (groomTypes aast) $ return ()
+>   H.assertEqual "" et got
+>   --queryExprRewrites cus src et
+
 
 > testInsertQueryExprType :: SQLSyntaxDialect -> [CatalogUpdate] -> L.Text -> Either [TypeError] Type -> T.TestTree
 > testInsertQueryExprType dl cus src et = H.testCase ("typecheck " ++ L.unpack src) $ do

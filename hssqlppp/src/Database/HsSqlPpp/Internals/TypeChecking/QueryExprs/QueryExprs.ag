@@ -59,12 +59,12 @@ the environment is the same in both cases.
 Going to punt on trying to typecheck that.
 
 -}
-        selOrderBy.downEnv = orderByEnvironment @selSelectList.upEnv @selTref.upEnv
+        selOrderBy.downEnv = E.orderByEnvironment @selSelectList.upEnv @selTref.upEnv
         loc.tpee = maybe (Left []) Right @selSelectList.upType
         -- correlated subquery support - combine the identifiers
         -- coming from outside the query expr
         selWhere.downEnv = maybe @selTref.upEnv
-                            (\e -> createCorrelatedSubqueryEnvironment e @selTref.upEnv)
+                            (\e -> E.createCorrelatedSubqueryEnvironment e @selTref.upEnv)
                             @lhs.outerDownEnv
 
 sem QueryExpr

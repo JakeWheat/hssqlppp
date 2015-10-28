@@ -1,0 +1,69 @@
+
+{-
+The typechecking code for:
+
+insert
+update
+delete
+truncate
+
+also:
+copyto (slighly wrong since it is aquery not an update)
+copyfrom
+
+-}
+
+
+sem Statement
+  | Insert Update Delete CopyFrom CopyTo Truncate
+    ann.tpe = Left []
+
+  | Insert
+    -- find the table and column names
+    -- and produce the expected type for the insdata
+    loc.tpe :: {Either [TypeError] [TypeExtra]}
+    loc.tpe = do
+              let tnm = nameComponents @table.originalTree
+              (_,pub,_) <- catLookupTableAndAttrs @lhs.cat tnm
+              case @targetCols of
+                   []  -> return $ map snd pub  -- if there's no column list, we take the entire table
+                   tcs -> do
+                          tcs' <- mapM xnmcString tcs
+                          -- check for duplicates
+                          let utcs' = nub tcs'
+                          when (length utcs' /= length tcs') $
+                              Left $ map DuplicateColumnName
+                                   $ nub (tcs' \\ utcs')
+                          forM tcs' $ \x ->
+                              maybe (Left [UnrecognisedIdentifier x])
+                                    Right $ lookup x pub
+    -- not quite right - if there is an error with the table name
+    -- or the column names, it gets attached to the table name node
+    -- todo: if there is an error with a specific column name, the
+    -- error should be attached to that column name node
+    table.tpe = Left (either id (const []) @loc.tpe
+                      ++ maybe [] id @loc.tooManyCols)
+    -- the expected type for the insert data is the target columns' type
+    insData.expectedType = either (const Nothing) Just @loc.tpe
+    --insData.expectedCast = True
+    insData.outerDownEnv = Nothing
+    -- check that there aren't too many columns in the select
+    -- TODO: not sure if this should be done here, or in the select
+    -- list via the query expr (or the values, etc)
+    loc.tooManyCols :: {Maybe [TypeError]}
+    loc.tooManyCols = do
+                      x <- @insData.upType
+                      y <- either (const Nothing) Just @loc.tpe
+                      if (length x > length y)
+                          then Just [TooManyColumnsInInsert]
+                          else Nothing
+
+
+{
+-- todo: replace the other nmcString function with this one
+-- which uses either instead of error
+xnmcString :: NameComponent -> Either [TypeError] Text
+xnmcString (QNmc n) = Right $ T.pack n
+xnmcString (Nmc n) = Right $ T.pack $ map toLower n
+xnmcString (AntiNameComponent _) = Left [InternalError "tried to get nmc string from antinamecomponent"]
+}

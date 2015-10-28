@@ -301,7 +301,7 @@ Conversion routines - convert Sql asts into Docs
 >      alterDbOperation (RenameDatabase _ nm') =
 >       text "rename to" <+> name nm'
 
-> statement flg se ca (AlterSchema ann snm op) =
+> statement _flg se ca (AlterSchema ann snm op) =
 >     annot ca ann <+>
 >     text "alter schema" <+> nmc snm
 >     <+> alterOperation op <> statementEnd se
@@ -595,6 +595,23 @@ Conversion routines - convert Sql asts into Docs
 >   text "create" <+> text "index"
 >   <+> nmc nm <+> text "on"
 >   <+> name obj <+> parens (sepCsvMap nmc cols)
+
+> statement _flg _se _ (CreateUser _ nm pw) =
+>   text "create user" <+> name nm
+>   <+> text "with password=" <> quotes (text pw)
+
+> statement _flg _se _ (CreateLogin _ nm pw) =
+>   text "create login" <+> name nm
+>   <+> text "with password=" <> quotes (text pw)
+
+> statement _flg _se _ (AlterUser _ nm pw) =
+>   text "alter user" <+> name nm
+>   <+> text "with password=" <> quotes (text pw)
+
+> statement _flg _se _ (AlterLogin _ nm pw) =
+>   text "alter login" <+> name nm
+>   <+> text "with password=" <> quotes (text pw)
+
 
 > statementEnd :: Bool -> Doc
 > statementEnd b = if b

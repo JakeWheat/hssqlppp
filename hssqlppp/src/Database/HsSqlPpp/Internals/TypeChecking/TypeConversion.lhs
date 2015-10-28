@@ -36,6 +36,7 @@ should all be in one place.
 >     ,matchAppExtra
 >     ,resolveResultSetType
 >     ,resolveResultSetTypeExtra
+>     ,checkAssignmentValid
 >     ,MatchAppLiteralList -- (..)
 >     ) where
 >
@@ -48,7 +49,7 @@ should all be in one place.
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 > import Database.HsSqlPpp.Utils.Utils
 > import Control.Monad
-> import Control.Applicative
+> --import Control.Applicative
 > import Control.Arrow
 
 > import Database.HsSqlPpp.Internals.TypeChecking.OldTypeConversion
@@ -57,7 +58,7 @@ should all be in one place.
 > import Data.Text ()
 > import qualified Data.Text as T
 > import Text.Printf
-> import Debug.Trace
+> --import Debug.Trace
 
 ******************************************************************
 

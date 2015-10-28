@@ -138,7 +138,9 @@ boilerplate utils to hook everything together
 > makeQQ :: (Show e, Data a) =>
 >           Parser e a -> QuasiQuoter
 > makeQQ p = QuasiQuoter {quoteExp = parseExprExp p
->                        ,quotePat = parseExprPat p}
+>                        ,quotePat = parseExprPat p
+>                        ,quoteType = error "quasi-quoter doesn't work for types"
+>                        ,quoteDec = error "quasi-quoter doesn't work for declarations"}
 
 hack for the text issue:
 

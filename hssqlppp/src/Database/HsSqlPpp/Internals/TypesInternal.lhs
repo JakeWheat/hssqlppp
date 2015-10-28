@@ -173,6 +173,8 @@ gutted and rewritten
 >                | InternalError String
 >                | AmbiguousIdentifier Text
 >                | OdbcFuncBadContent
+>                | DuplicateColumnName Text
+>                | TooManyColumnsInInsert
 >                  deriving (Eq,Show,Ord,Typeable,Data)
 >
 > --instance ErrorList TypeError where

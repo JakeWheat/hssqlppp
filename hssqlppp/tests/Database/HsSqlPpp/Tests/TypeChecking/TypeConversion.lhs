@@ -4,10 +4,10 @@
 >        (typeConversionTests) where
 
 > import Data.Text ()
-> import Database.HsSqlPpp.Catalog
+> --import Database.HsSqlPpp.Catalog
 > import Database.HsSqlPpp.Types
-> import Database.HsSqlPpp.Ast
-> import Database.HsSqlPpp.SqlDialect
+> --import Database.HsSqlPpp.Ast
+> --import Database.HsSqlPpp.SqlDialect
 > import Database.HsSqlPpp.Tests.TestTypes
 
 
@@ -59,11 +59,11 @@ not quite right
 
 >     ]
 >   where
->     intNotNull = TypeExtra typeInt Nothing Nothing False
->     intNull = TypeExtra typeInt Nothing Nothing True
->     unk = TypeExtra UnknownType Nothing Nothing False
->     te s = TypeExtra s Nothing Nothing False
->     numeric = TypeExtra typeNumeric (Just 15) (Just 2) False
+>     _intNotNull = TypeExtra typeInt Nothing Nothing False
+>     _intNull = TypeExtra typeInt Nothing Nothing True
+>     _unk = TypeExtra UnknownType Nothing Nothing False
+>     _te s = TypeExtra s Nothing Nothing False
+>     _numeric = TypeExtra typeNumeric (Just 15) (Just 2) False
 
 text conversions
   do something similar to numeric with pairs of string types
