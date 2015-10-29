@@ -34,6 +34,7 @@ should all be in one place.
 > module Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.TypeConversion
 >     (matchApp
 >     ,matchAppExtra
+>     ,tcAppLike
 >     ,resolveResultSetType
 >     ,resolveResultSetTypeExtra
 >     ,checkAssignmentValid
@@ -455,6 +456,58 @@ check whether precision/scale is relevant for a type (consider "round").
 >   where
 >     t = teType te
 >     pc = precisionClass t
+
+
+The purpose of the tcapplike wrapper is to partially fix up the
+keyword 'enums' in some of the ms style functions (like
+datepart). This is a horrible hack and will be fixed.
+
+> tcAppLike :: Dialect -> Catalog -> [NameComponent]
+>            -> [Maybe Int] -> [Maybe TypeExtra]
+>            -> Either [TypeError] ([TypeExtra],TypeExtra)
+
+> tcAppLike d cat anm@[Nmc dd] lits [_,a0,a1]
+>     | map toLower dd == "datediff" = do
+>   -- dodgy hack for datediff
+>   tys <- mapM (maybe (Left []) Right) [a0,a1]
+>   let --Name _ ns = anm
+>   (ats,rt) <- matchAppExtra d cat anm lits (mkTypeExtraNN typeInt : tys)
+>   return (ats,rt)
+> tcAppLike d cat anm@[Nmc dd] lits [_,a0]
+>     | map toLower dd == "datepart" = do
+>   tys <- mapM (maybe (Left []) Right) [a0]
+>   (ats,rt) <- matchAppExtra d cat anm lits (mkTypeExtraNN typeInt : tys)
+>   return (ats,rt)
+> tcAppLike d cat anm@[Nmc dd] lits [_,a0,a1]
+>     | map toLower dd == "dateadd" = do
+>   tys <- mapM (maybe (Left []) Right) [a0,a1]
+>   (ats,rt) <- matchAppExtra d cat anm lits (mkTypeExtraNN typeInt : tys)
+>   return (ats,rt)
+
+> --tcAppLike d cat anm@(Name _ [Nmc dd]) a b
+> --    |  trace ("xz: " ++ show (a,b)) False = undefined
+
+> tcAppLike d cat anm@[Nmc dd] _ ts
+>     | map toLower dd == "!odbc-convert" = do
+>                  (tys :: [TypeExtra]) <- mapM (maybe (Left []) Right) ts
+>                  --let Name _ ns = anm
+>                  (ats,rt) <- matchAppExtra d cat anm [] tys
+>                  return (ats,rt)
+
+> tcAppLike d cat anm@[Nmc dd] _ [_,a0,a1]
+>     | map toLower dd `elem` ["!odbc-timestampadd","!odbc-timestampdiff"] = do
+>   tys <- mapM (maybe (Left []) Right) [a0,a1]
+>   --let Name _ ns = anm
+>   (ats,rt) <- matchAppExtra d cat anm [] (mkTypeExtraNN typeInt : tys)
+>   return (ats,rt)
+
+> tcAppLike d cat anm lits teArgs = do
+>   -- get the types of the arguments
+>   -- then lookup in TypeConversion.matchAppExtra
+>   tys <- mapM (maybe (Left []) Right) teArgs
+>   (ats,rt) <- matchAppExtra d cat anm lits tys
+>   return (ats,rt)
+
 
 ******************************************************************
 

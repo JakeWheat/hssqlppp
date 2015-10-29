@@ -407,42 +407,43 @@ helpers inside it can determine the correct return type
            case @originalTree of
              (App _ (Name _ [Nmc "count"]) [Star _]) ->
                  tcAppLike (tcfDialect @lhs.flags)
-                           @lhs.cat @loc.funName @args.originalTree
+                           @lhs.cat (nameComponents @loc.funName)
+                           (getMaybeIntsFromLiterals @args.originalTree)
                            [Just $ mkTypeExtraNN UnknownType]
              --(App _ (Name _ [Nmc n]) [_,Identifier _ (Name _ [Nmc tyi])])
              --    | trace (show n) False -> undefined
              (App _ (Name _ [Nmc n]) [_,Identifier _ (Name _ [Nmc tyi])])
                  | @lhs.odbcFunction && map toLower n == "convert" -> do
                  (ts,_r) <- tcAppLike (tcfDialect @lhs.flags)
-                           @lhs.cat @loc.funName @args.originalTree
+                           @lhs.cat (nameComponents @loc.funName) (getMaybeIntsFromLiterals @args.originalTree)
                            [Just $ mkTypeExtraNN UnknownType, Just $ mkTypeExtraNN typeInt]
                  r' <- maybe (Left [UnrecognisedIdentifier $ T.pack tyi]) (Right . mkTypeExtra)
                           $ lookup (map toLower tyi) odbcConvertTypes
                  Right (ts, r')
              _ -> tcAppLike (tcfDialect @lhs.flags)
-                            @lhs.cat @loc.funName @args.originalTree @args.upTypes
+                            @lhs.cat (nameComponents @loc.funName) (getMaybeIntsFromLiterals @args.originalTree) @args.upTypes
     | BinaryOp
          loc.ttpe = tcAppLike (tcfDialect @lhs.flags)
-                              @lhs.cat @opName.originalTree [@arg0.originalTree,@arg1.originalTree]
+                              @lhs.cat (nameComponents @opName.originalTree) (getMaybeIntsFromLiterals [@arg0.originalTree,@arg1.originalTree])
                               [@arg0.upType,@arg1.upType]
          (arg0.expectedType,arg1.expectedType) =
             case @loc.ttpe of
               Right ([t0,t1],_) -> (Just t0,Just t1)
               _ -> (Nothing,Nothing)
     | PrefixOp PostfixOp
-         loc.ttpe = tcAppLike (tcfDialect @lhs.flags) @lhs.cat @opName.originalTree [@arg.originalTree] [@arg.upType]
+         loc.ttpe = tcAppLike (tcfDialect @lhs.flags) @lhs.cat (nameComponents @opName.originalTree) (getMaybeIntsFromLiterals [@arg.originalTree]) [@arg.upType]
          arg.expectedType =
             case @loc.ttpe of
               Right ([t],_) -> Just t
               _ -> Nothing
     | SpecialOp
-         loc.ttpe = tcAppLike (tcfDialect @lhs.flags) @lhs.cat @opName.originalTree @args.originalTree @args.upTypes
+         loc.ttpe = tcAppLike (tcfDialect @lhs.flags) @lhs.cat (nameComponents @opName.originalTree) (getMaybeIntsFromLiterals @args.originalTree) @args.upTypes
          args.expectedTypes = either (const []) id $ fmap fst @loc.ttpe
     | AggregateApp
          loc.tpe =
            case @fn.originalTree of
              (App _ fnm@(Name _ [Nmc "count"]) [Star _]) ->
-                  fmap snd $ tcAppLike (tcfDialect @lhs.flags) @lhs.cat fnm [] [Just $ mkTypeExtraNN UnknownType]
+                  fmap snd $ tcAppLike (tcfDialect @lhs.flags) @lhs.cat (nameComponents fnm) [] [Just $ mkTypeExtraNN UnknownType]
              _ -> maybe (Left []) Right @fn.upType
     | WindowApp
          loc.tpe = maybe (Left []) Right @fn.upType
@@ -463,61 +464,51 @@ sem ScalarExpr
     | WindowApp
         partitionBy.expectedCast = False
 
-{
-tcAppLike:: Dialect -> Catalog -> Name
-            -> [ScalarExpr] -> [Maybe TypeExtra]
+{-
+tcAppLike:: Dialect -> Catalog -> [NameComponent]
+            -> [Maybe Int] -> [Maybe TypeExtra]
             -> Either [TypeError] ([TypeExtra],TypeExtra)
 
-tcAppLike d cat anm@(Name _ [Nmc dd]) types [_,a0,a1]
+tcAppLike d cat anm@[Nmc dd] lits [_,a0,a1]
     | map toLower dd == "datediff" = do
   -- dodgy hack for datediff
   tys <- mapM (maybe (Left []) Right) [a0,a1]
-  let Name _ ns = anm
-      lits = getMaybeIntsFromLiterals types
-  (ats,rt) <- matchAppExtra d cat ns lits (mkTypeExtraNN typeInt : tys)
+  (ats,rt) <- matchAppExtra d cat anm lits (mkTypeExtraNN typeInt : tys)
   return (ats,rt)
-tcAppLike d cat anm@(Name _ [Nmc dd]) types [_,a0]
+tcAppLike d cat anm@[Nmc dd] lits [_,a0]
     | map toLower dd == "datepart" = do
   tys <- mapM (maybe (Left []) Right) [a0]
-  let Name _ ns = anm
-      lits = getMaybeIntsFromLiterals types
-  (ats,rt) <- matchAppExtra d cat ns lits (mkTypeExtraNN typeInt : tys)
+  (ats,rt) <- matchAppExtra d cat anm lits (mkTypeExtraNN typeInt : tys)
   return (ats,rt)
-tcAppLike d cat anm@(Name _ [Nmc dd]) types [_,a0,a1]
+tcAppLike d cat anm@[Nmc dd] lits [_,a0,a1]
     | map toLower dd == "dateadd" = do
   tys <- mapM (maybe (Left []) Right) [a0,a1]
-  let Name _ ns = anm
-      lits = getMaybeIntsFromLiterals types
-  (ats,rt) <- matchAppExtra d cat ns lits (mkTypeExtraNN typeInt : tys)
+  (ats,rt) <- matchAppExtra d cat anm lits (mkTypeExtraNN typeInt : tys)
   return (ats,rt)
 
 --tcAppLike d cat anm@(Name _ [Nmc dd]) a b
 --    |  trace ("xz: " ++ show (a,b)) False = undefined
 
-tcAppLike d cat anm@(Name _ [Nmc dd]) _ ts
+tcAppLike d cat anm@[Nmc dd] _ ts
     | map toLower dd == "!odbc-convert" = do
                  (tys :: [TypeExtra]) <- mapM (maybe (Left []) Right) ts
-                 let Name _ ns = anm
-                 (ats,rt) <- matchAppExtra d cat ns [] tys
+                 (ats,rt) <- matchAppExtra d cat anm [] tys
                  return (ats,rt)
 
-tcAppLike d cat anm@(Name _ [Nmc dd]) _types [_,a0,a1]
+tcAppLike d cat anm@[Nmc dd] _ [_,a0,a1]
     | map toLower dd `elem` ["!odbc-timestampadd","!odbc-timestampdiff"] = do
   tys <- mapM (maybe (Left []) Right) [a0,a1]
-  let Name _ ns = anm
-  (ats,rt) <- matchAppExtra d cat ns [] (mkTypeExtraNN typeInt : tys)
+  (ats,rt) <- matchAppExtra d cat anm [] (mkTypeExtraNN typeInt : tys)
   return (ats,rt)
 
 
-tcAppLike d cat anm types teArgs = do
+tcAppLike d cat anm lits teArgs = do
   -- get the types of the arguments
   -- then lookup in TypeConversion.matchAppExtra
   tys <- mapM (maybe (Left []) Right) teArgs
-  let Name _ ns = anm
-      lits = getMaybeIntsFromLiterals types
-  (ats,rt) <- matchAppExtra d cat ns lits tys
+  (ats,rt) <- matchAppExtra d cat anm lits tys
   return (ats,rt)
-}
+-}
 
 {
 getMaybeIntsFromLiterals :: [ScalarExpr] -> MatchAppLiteralList

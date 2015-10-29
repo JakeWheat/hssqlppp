@@ -1,3 +1,0 @@
-the src/ folder contains exactly the source code for the hackage
-library and nothing else, this is also exactly the source code which
-goes in the cabal package
