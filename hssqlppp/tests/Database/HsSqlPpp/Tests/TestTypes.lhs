@@ -6,8 +6,10 @@
 >    ,TypeCheckFlags(..)
 >    ,Item(..)
 >    ,defaultTemplate1Catalog
+>    ,ansiCatalog
 >    ,emptyEnvironment
->    ,updateCatalog
+>    ,makeCatalog
+>    ,hackCanonicalizeEnvTypeNames
 >   ) where
 
 > import Database.HsSqlPpp.Syntax
@@ -21,7 +23,7 @@
 > --import Test.Framework.Providers.HUnit
 > --import Test.Framework
 > --import Data.List
-> --import Data.Generics.Uniplate.Data
+> import Data.Generics.Uniplate.Data
 > import Database.HsSqlPpp.Parse
 > import Database.HsSqlPpp.TypeCheck
 > --import Database.HsSqlPpp.Annotation
@@ -29,7 +31,7 @@
 > --import Database.HsSqlPpp.Ast hiding (App)
 > import Database.HsSqlPpp.Types
 > --import Database.HsSqlPpp.Pretty
-> --import Database.HsSqlPpp.Utility
+> import Database.HsSqlPpp.Utility
 > --import Database.HsSqlPpp.Internals.TypeChecking.Environment
 > --import Text.Show.Pretty
 > --import Debug.Trace
@@ -39,6 +41,8 @@
 > --import Database.HsSqlPpp.Utils.GroomUtils
 > --import qualified Data.Text.Lazy as L
 > import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.TypeConversion2
+> import Data.Data
+
 
 > data Item = Group String [Item]
 >           | ParseScalarExpr ParseFlags L.Text ScalarExpr
@@ -56,7 +60,17 @@
 >           | RewriteQueryExpr TypeCheckFlags [CatalogUpdate] L.Text L.Text
 
 >           | ImpCastsScalar TypeCheckFlags L.Text L.Text
+>             -- todo: combine this with tcscalexpr
 >           | ScalarExprExtra Catalog Environment L.Text (Either [TypeError] TypeExtra)
 >           | MatchApp Dialect Catalog [NameComponent]
 >                      [(TypeExtra, Maybe LitArg)]
 >                      (Either [TypeError] ([TypeExtra],TypeExtra))
+
+> makeCatalog :: Dialect -> [CatalogUpdate] -> Catalog -> Catalog
+> makeCatalog d cus cat =
+>     either (error . show) id
+>     $ updateCatalog (hackCanonicalizeEnvTypeNames d cus) cat
+
+> hackCanonicalizeEnvTypeNames :: Data a => Dialect -> a -> a
+> hackCanonicalizeEnvTypeNames _d = transformBi $ \a -> case a of
+>     s -> canonicalizeTypeName s

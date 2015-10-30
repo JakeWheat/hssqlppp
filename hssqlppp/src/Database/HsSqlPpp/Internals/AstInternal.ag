@@ -256,14 +256,26 @@ Lots of invalid expressions can be expressed using this type.
 
 -}
 
+{-
+TODO:
+
+run through each ctor in ssp
+change the syntax if different
+port over the parsing
+
+get typechecking working for each in ansi mode
+
+when get to escape,uescape: fix these in ssp
+
+
+
+-}
 
 data ScalarExpr | NumberLit ann::Annotation d::String
                 | StringLit ann::Annotation
                             value :: String
                 | NullLit ann::Annotation
                 | BooleanLit ann::Annotation b::Bool
-                -- could probably represent typed string lit
-                -- as a string lit and a cast?
                 | TypedStringLit ann::Annotation
                                  tn :: TypeName
                                  value :: String
@@ -271,19 +283,17 @@ data ScalarExpr | NumberLit ann::Annotation d::String
                            value :: String
                            field :: IntervalField
                            prec :: {Maybe Int}
-                | Extract ann::Annotation
-                          field :: ExtractField
-                          e :: ScalarExpr
-                | PositionalArg ann::Annotation p::Integer
-                | Placeholder ann::Annotation -- represents a '?'
-                | Cast ann::Annotation
-                       expr::ScalarExpr
-                       tn::TypeName
-                | ImplicitCast  ann::Annotation
-                                expr::ScalarExpr
-                                te::TypeExtra
-                | Star ann::Annotation
-                | QStar ann::Annotation q::NameComponent -- e.g. a.*
+
+{-
+>     | IntervalLit
+>       {ilSign :: Maybe Bool -- ^ true if + used, false if - used
+>       ,ilLiteral :: String -- ^ literal text
+>       ,ilFrom :: IntervalTypeField
+>       ,ilTo :: Maybe IntervalTypeField
+>       }
+-}
+
+
                   -- the parser produces an identifier when all the
                   -- components are quoted or unquoted name components
                   -- when there are parens or other expressions in the
@@ -292,23 +302,23 @@ data ScalarExpr | NumberLit ann::Annotation d::String
                   -- and for typechecking
                 | Identifier ann::Annotation -- e.g. tbl
                              i::Name
-                  -- case: the 'then' parts are boolean valued checks
-                | Case ann::Annotation
-                       cases :: CaseScalarExprListScalarExprPairList
-                       els :: MaybeScalarExpr
-                  -- case simple: supply a comparison value,
-                  -- the 'then' parts are the same type as this value
-                | CaseSimple ann::Annotation
-                             value :: ScalarExpr
-                             cases :: CaseScalarExprListScalarExprPairList
-                             els :: MaybeScalarExpr
-                | Exists ann::Annotation
-                         sel :: QueryExpr
-                  -- App variations
-                  -- app is used for regular function calls
-                | App ann::Annotation
-                          funName::Name
-                          args::ScalarExprList
+
+                | Star ann::Annotation
+
+-- todo: remove this, represent using binary op .
+                | QStar ann::Annotation q::NameComponent -- e.g. a.*
+
+                | PositionalArg ann::Annotation p::Integer
+                | Placeholder ann::Annotation -- represents a '?'
+
+{-
+>     | HostParameter String (Maybe String) -- ^ represents a host
+>                                           -- parameter, e.g. :a. The
+>                                           -- Maybe String is for the
+>                                           -- indicator, e.g. :var
+>                                           -- indicator :nl
+-}
+
                   -- operator variants are used for regular looking
                   -- prefix, postfix and binary operators,
                   -- and for keyword operators which fit regular pattern
@@ -328,6 +338,23 @@ data ScalarExpr | NumberLit ann::Annotation d::String
                 | SpecialOp ann :: Annotation
                             opName :: Name -- change this to a sum type?
                             args::ScalarExprList
+{-
+>       -- | Used for the operators which look like functions
+>       -- except the arguments are separated by keywords instead
+>       -- of commas. The maybe is for the first unnamed argument
+>       -- if it is present, and the list is for the keyword argument
+>       -- pairs.
+>     | SpecialOpK [Name] (Maybe ValueExpr) [(String,ValueExpr)]
+-}
+                | Extract ann::Annotation
+                          field :: ExtractField
+                          e :: ScalarExpr
+
+                  -- App variations
+                  -- app is used for regular function calls
+                | App ann::Annotation
+                          funName::Name
+                          args::ScalarExprList
                   -- aggregate calls can also have a distinct
                   -- and an order by list as well as a regular function
                   -- call looking part. The fn :: ScalarExpr
@@ -343,23 +370,121 @@ data ScalarExpr | NumberLit ann::Annotation d::String
                            partitionBy :: ScalarExprList
                            orderBy :: ScalarExprDirectionPairList
                            frm :: {Maybe FrameClause}
+{-
+>       -- | aggregate application, which adds distinct or all, and
+>       -- order by, to regular function application
+>     | AggregateApp
+>       {aggName :: [Name] -- ^ aggregate function name
+>       ,aggDistinct :: SetQuantifier -- ^ distinct
+>       ,aggArgs :: [ValueExpr]-- ^ args
+>       ,aggOrderBy :: [SortSpec] -- ^ order by
+>       ,aggFilter :: Maybe ValueExpr -- ^ filter
+>       }
+>       -- | aggregates with within group
+>     | AggregateAppGroup
+>       {aggName :: [Name] -- ^ aggregate function name
+>       ,aggArgs :: [ValueExpr] -- ^ args
+>       ,aggGroup :: [SortSpec] -- ^ within group
+>       }
+>       -- | window application, which adds over (partition by a order
+>       -- by b) to regular function application. Explicit frames are
+>       -- not currently supported
+>     | WindowApp
+>       {wnName :: [Name] -- ^ window function name
+>       ,wnArgs :: [ValueExpr] -- ^ args
+>       ,wnPartition :: [ValueExpr] -- ^ partition by
+>       ,wnOrderBy :: [SortSpec] -- ^ order by
+>       ,wnFrame :: Maybe Frame -- ^ frame clause
+>       }
+-}
+
+
+                | Cast ann::Annotation
+                       expr::ScalarExpr
+                       tn::TypeName
+                  -- todo: replace implicit cast with something in annotation
+                  -- the idea is to represent casts which were added by desugaring
+                  -- differently to normal casts
+                  -- and to use this to track changes to the
+                  -- nullability, precision or scale
+                | ImplicitCast  ann::Annotation
+                                expr::ScalarExpr
+                                te::TypeExtra
+
+                  -- case: the 'then' parts are boolean valued checks
+                | Case ann::Annotation
+                       cases :: CaseScalarExprListScalarExprPairList
+                       els :: MaybeScalarExpr
+                  -- case simple: supply a comparison value,
+                  -- the 'then' parts are the same type as this value
+                | CaseSimple ann::Annotation
+                             value :: ScalarExpr
+                             cases :: CaseScalarExprListScalarExprPairList
+                             els :: MaybeScalarExpr
+{-
+>       -- | case expression. both flavours supported
+>     | Case
+>       {caseTest :: Maybe ValueExpr -- ^ test value
+>       ,caseWhens :: [([ValueExpr],ValueExpr)] -- ^ when branches
+>       ,caseElse :: Maybe ValueExpr -- ^ else value
+>       }
+-}
+
+                | Parens ann::Annotation
+                         ex :: ScalarExpr
+
+{-
+>       -- | in list literal and in subquery, if the bool is false it
+>       -- means not in was used ('a not in (1,2)')
+>     | In Bool ValueExpr InPredValue
+-}
                   -- represents in query or in list
                 | InPredicate ann::Annotation
                               expr::ScalarExpr
                               i::Bool
                               list::InList
+{-
+>       -- | exists, all, any, some subqueries
+>     | SubQueryExpr SubQueryExprType QueryExpr
+
+>     | QuantifiedComparison
+>             ValueExpr
+>             [Name] -- operator
+>             CompPredQuantifier
+>             QueryExpr
+
+>     | Match ValueExpr Bool -- true if unique
+>           QueryExpr
+-}
+                | Exists ann::Annotation
+                         sel :: QueryExpr
+                -- scalar meaning appearing in a scalar context not
+                -- scalar valued query expr
+                | ScalarSubQuery ann::Annotation
+                                 sel :: QueryExpr
+
                   -- lift app: e.g. x = any (a,2,4)
                 | LiftApp ann::Annotation
                                oper::Name
                                flav::LiftFlavour
                                args::ScalarExprList
-                -- scalar meaning appearing in a scalar context not
-                -- scalar valued query expr
-                | ScalarSubQuery ann::Annotation
-                                 sel :: QueryExpr
-                | AntiScalarExpr String
-                | Parens ann::Annotation
-                         ex :: ScalarExpr
+
+{-
+>     | Array ValueExpr [ValueExpr] -- ^ represents an array
+>                                   -- access expression, or an array ctor
+>                                   -- e.g. a[3]. The first
+>                                   -- valueExpr is the array, the
+>                                   -- second is the subscripts/ctor args
+>     | ArrayCtor QueryExpr -- ^ this is used for the query expression version of array constructors, e.g. array(select * from t)
+
+>     | Collate ValueExpr [Name]
+>     | MultisetBinOp ValueExpr CombineOp SetQuantifier ValueExpr
+>     | MultisetCtor [ValueExpr]
+>     | MultisetQueryCtor QueryExpr
+>     | NextValueFor [Name]
+
+-}
+
                   -- an odbc date/time literal
                   -- e.g. {d '2005-01-01}
                   -- see the odbc tests
@@ -374,6 +499,8 @@ data ScalarExpr | NumberLit ann::Annotation d::String
                   -- only one?
                 | OdbcFunc ann :: Annotation
                            ex :: ScalarExpr
+
+                | AntiScalarExpr String
 
 {-
 

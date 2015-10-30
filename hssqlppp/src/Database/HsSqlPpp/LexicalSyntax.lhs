@@ -216,7 +216,11 @@ quoting uses ""
 >     ,Identifier Nothing <$> identifierString
 >     ]
 
-> identifier PostgreSQL =
+> identifier PostgreSQL = regularIdentifier
+> identifier ANSI = regularIdentifier
+
+> regularIdentifier :: Parser Token
+> regularIdentifier =
 >     choice
 >     [Identifier (Just ('"','"'))
 >      <$> (char '"' *> takeWhile1 (/='"') <* char '"')

@@ -127,5 +127,5 @@ todo: add new dialect and stuff for oracle
 >   ]
 >   where
 >     tsqlQueryExpr cus =
->         let Right cat = updateCatalog cus defaultTSQLCatalog
+>         let cat = makeCatalog PostgreSQL cus defaultTSQLCatalog
 >         in TCQueryExpr cat defaultTypeCheckFlags {tcfDialect = SQLServer}

@@ -123,5 +123,5 @@ moment.
 >           ,("totacctbal", mkTypeExtra typeNumeric)]
 >          ]
 >     tcQueryExpr cus =
->         let Right cat = updateCatalog cus defaultTemplate1Catalog
+>         let cat = makeCatalog PostgreSQL cus defaultTemplate1Catalog
 >         in TCQueryExpr cat defaultTypeCheckFlags

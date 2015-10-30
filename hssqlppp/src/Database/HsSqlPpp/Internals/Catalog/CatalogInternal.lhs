@@ -511,7 +511,7 @@ paths are implemented.
 > -- will return a type not recognised if the type isn't in the catalog
 > catLookupType :: Catalog -> [NameComponent] -> Either [TypeError] Type
 > catLookupType cat ncs =
->   case canonicalizeTypeName $ getCatName ncs of
+>   case getCatName ncs of
 >     -- check if is a pseudo type
 >     cn | Just p <- M.lookup cn pseudoTypes -> Right p
 >     -- check for base, domain, enum or composite, and array

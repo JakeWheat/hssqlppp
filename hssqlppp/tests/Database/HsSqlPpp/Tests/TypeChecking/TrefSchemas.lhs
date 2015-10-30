@@ -54,5 +54,5 @@ schemas affect typechecking of views and tables only currently
 >                   [("a", mkCatNameExtra "int4")
 >                   ,("b", mkCatNameExtra "text")]]
 >     tcQueryExpr cus =
->         let Right cat = updateCatalog cus defaultTemplate1Catalog
+>         let cat = makeCatalog PostgreSQL cus defaultTemplate1Catalog
 >         in TCQueryExpr cat defaultTypeCheckFlags

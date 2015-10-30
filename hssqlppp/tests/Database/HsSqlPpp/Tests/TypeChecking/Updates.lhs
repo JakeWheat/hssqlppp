@@ -234,5 +234,5 @@ check table names + schema options
 >                   [("a", mkCatNameExtra "int4")
 >                   ,("b", mkCatNameExtra "text")]]
 >     tcStatements cus =
->         let Right cat = updateCatalog cus defaultTemplate1Catalog
+>         let cat = makeCatalog PostgreSQL cus defaultTemplate1Catalog
 >         in TCStatements cat defaultTypeCheckFlags

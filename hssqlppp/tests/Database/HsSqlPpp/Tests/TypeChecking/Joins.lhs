@@ -94,5 +94,5 @@
 >                    ,CatCreateTable ("public","t1") [("c", mkCatNameExtra "int4")
 >                                         ,("d", mkCatNameExtra "text")]]
 >     tcQueryExpr cus =
->         let Right cat = updateCatalog cus defaultTemplate1Catalog
+>         let cat = makeCatalog PostgreSQL cus defaultTemplate1Catalog
 >         in TCQueryExpr cat defaultTypeCheckFlags

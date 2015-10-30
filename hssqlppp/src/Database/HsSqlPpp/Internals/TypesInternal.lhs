@@ -11,12 +11,29 @@ notes on what the types are for and how they are used in postgres.
 > import Data.Char
 > import Data.Text (Text)
 > import qualified Data.Text as T
->
+> import Database.HsSqlPpp.Internals.Dialect
+> import Data.List
+
 > --import Control.Monad.Error
 > --import Control.Monad.Except
 > --import Control.Monad.Trans.Except
 
 where should precision and nullability go?
+
+
+TODO:
+rename UnknownType to ScalarType "!unknown" ? or something else?
+do we need separate entries for domain and enums?
+think of a better way to implement array types - get rid of the
+  special casing which is based on a postgresql implementation detail
+get rid of pseudo types, maybe use ScalarType or SpecialType String
+  which is dialect specific?
+
+Maybe there should be a concept of a typeid, and a typedescription?
+So the typeid is used everywhere and is just a string or something,
+and the typedescription is got from the catalog/environment when
+needed in the typechecking?
+
 
 > -- | Standard types of things. This covers all the usual postgres types
 > -- plus some extra ones added for use by the hssqlppp typechecker
@@ -180,6 +197,8 @@ gutted and rewritten
 > --instance ErrorList TypeError where
 > --  listMsg s = [InternalError s]
 
+TODO: remove these aliases
+
 > -- | Using these gives the hssqlppp canonical names of these
 > -- types, which have multiple names in postgres and SQL. The names which
 > -- hssqlppp uses as canonical are the names that postgres uses in a pg_dump.
@@ -200,10 +219,26 @@ gutted and rewritten
 > typeTimestamp = ScalarType "timestamp"
 > typeInterval = ScalarType "interval"
 
+> {-traceit :: Show a => String -> a -> a
+> traceit m a = trace (m ++ ": " ++ show a) a-}
+
 > -- | convert the name of a type to its canonical name. For types
 > -- without multiple names, it returns the name unchanged
 > canonicalizeTypeName :: Text -> Text
-> canonicalizeTypeName s' =
+> canonicalizeTypeName = ct (tm PostgreSQL)
+> --canonicalizeTypeName :: Dialect -> Text -> Text
+> --canonicalizeTypeName d = ct (tm d)
+>   where
+>     tm ANSI = ansiTypeNames
+>     tm SQLServer = postgresqlTypeNames
+>     tm Oracle = postgresqlTypeNames
+>     tm PostgreSQL = postgresqlTypeNames
+>     hasType t p = let t' = T.map toLower t
+>                   in t' `elem` snd p
+>     ct m tn = maybe tn fst
+>               $ find (hasType tn) m
+
+>   {-s' =
 >   case () of
 >                   _ | s `elem` smallIntNames -> "int2"
 >                     | s `elem` intNames -> "int4"
@@ -237,9 +272,67 @@ added for mssql
 >       varcharNames = ["character varying", "varchar"]
 >       charNames = ["character", "char"]
 >       boolNames = ["boolean", "bool"]
->       s = T.map toLower s'
+>       s = T.map toLower s'-}
 
+Canonicalize type names
 
+When you typecheck a tree or use the catalog internal functions or
+many other things, you must use the canonical type names and you have
+to convert them yourself. It would be nice if all the functions did
+this automatically, but I am concerned about the performance of doing
+many redundant passes over a tree when the library is being used, and
+I think the overhead of verifying this in the type system is really
+big (maybe it would not be too bad?).
+
+only canonicalizes the built in types (type synonyms or whatever for
+user types will be handled in the catalog not here).
+
+maybe canonicalize should do case folding for unquoted identifiers
+also (which is dependent on the dialect).
+
+ansi:
+
+no concept of canonical names in ansi? so just choose the
+shortest version of each
+
+> ansiTypeNames :: [(Text,[Text])]
+> ansiTypeNames =
+>     [("char",["character"])
+>     ,("varchar",["char varying","character varying"])
+>     ,("clob",["character large object","char large object"])
+>     ,("nchar",["national character","national char"])
+>     ,("nvarchar",["national character varying"
+>                  ,"national char varying"
+>                  ,"nchar varying"])
+>     ,("nclob",["national character large object"
+>               ,"nchar large object"])
+>     ,("varbinary",["binary varying"])
+>     ,("blob",["binary large object"])
+>     ,("int",["integer"])
+>     ,("float",["double precision"])]
+
+postgresql:
+
+the canonical names are what pg_dump uses and appear in the
+catalog. Some of the canonical names for ansi types don't use the ansi
+names.
+
+> postgresqlTypeNames :: [(Text,[Text])]
+> postgresqlTypeNames =
+>     [("timestamp", ["datetime"])
+>      -- todo: temp before sqlserver dialect is done properly
+>      -- this hack should probably move to the ansi dialect first
+>     ,("int1", ["tinyint"])
+>     ,("int2", ["smallint"])
+>     ,("int4", ["integer","int"])
+>     ,("int8", ["bigint"])
+>     ,("numeric", ["decimal"])
+>     ,("float4", ["real"])
+>     ,("float8", ["double precision","float","double"])
+>      -- probably some missing here
+>     ,("varchar", ["character varying"])
+>     ,("char", ["character"])
+>     ,("bool", ["boolean"])]
 
 TODO:
 
@@ -251,3 +344,5 @@ array types have to match an exact array type in the catalog, so we
 can't create an arbitrary array of any type. Not sure if this is
 handled quite correctly in this code. Not sure if you would ever
 create or drop an array type manually.
+
+

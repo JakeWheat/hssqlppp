@@ -8,6 +8,7 @@
 
 
 > import Database.HsSqlPpp.Tests.TestTypes
+> import Database.HsSqlPpp.Tests.TypeChecking.AnsiScalarExprs
 > import Database.HsSqlPpp.Tests.TypeChecking.ScalarExprs
 > import Database.HsSqlPpp.Tests.TypeChecking.SimpleQueryExprs
 > import Database.HsSqlPpp.Tests.TypeChecking.Rewrites
@@ -31,7 +32,8 @@
 > typeCheckTestData :: Item
 > typeCheckTestData =
 >   Group "typeCheckTests"
->     [scalarExprs
+>     [ansiScalarExprs
+>     ,scalarExprs
 >     ,simpleQueryExprs
 >     ,joins
 >     ,trefIdentifiers

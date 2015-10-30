@@ -37,6 +37,7 @@ Forward the public part of CatalogInternal.
 >      -- * Catalog values
 >     ,emptyCatalog
 >     ,defaultCatalog
+>     ,ansiCatalog
 >     ,defaultTemplate1Catalog
 >     ,defaultTSQLCatalog
 >     ,odbcCatalog
@@ -57,4 +58,5 @@ Forward the public part of CatalogInternal.
 > import Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
 > import Database.HsSqlPpp.Internals.Catalog.DefaultTSQLCatalog
 > import Database.HsSqlPpp.Internals.Catalog.OdbcCatalog
+> import Database.HsSqlPpp.Internals.Catalog.AnsiCatalog
 > import Database.HsSqlPpp.Internals.TypeChecking.Environment

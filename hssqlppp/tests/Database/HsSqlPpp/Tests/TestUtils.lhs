@@ -28,7 +28,7 @@
 > import Database.HsSqlPpp.LexicalSyntax (lexTokens,prettyToken,Token)
 > --import Text.Parsec.Text (runParser)
 > --import Control.Applicative
-
+> --import Data.Generics.Uniplate.Data
 > import Database.HsSqlPpp.Tests.TestTypes
 > import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.TypeConversion2
 
@@ -141,8 +141,6 @@
 >     let t' = L.concat $ map (prettyToken d) r
 >     H.assertEqual "lex . pretty" (L.fromChunks [t]) t'
 
-
-
 > testTCScalarExpr :: Catalog -> Environment -> TypeCheckFlags
 >                    -> L.Text -> Either [TypeError] Type -> T.TestTree
 > testTCScalarExpr cat env f src et =
@@ -150,7 +148,9 @@
 >   let ast = case parseScalarExpr defaultParseFlags {pfDialect = tcfDialect f} "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
->       aast = typeCheckScalarExpr f cat env ast
+>       aast = typeCheckScalarExpr f cat
+>              (hackCanonicalizeEnvTypeNames (tcfDialect f) env)
+>              $ canonicalizeTypeNames ast
 >       (ty,errs,noTypeQEs,noTypeSEs) = tcTreeInfo aast
 >       er = concatMap fst errs
 >       got = case () of
@@ -173,7 +173,9 @@
 >   let ast = case parseScalarExpr defaultParseFlags "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
->       aast = typeCheckScalarExpr defaultTypeCheckFlags cat env ast
+>       aast = typeCheckScalarExpr defaultTypeCheckFlags cat
+>              (hackCanonicalizeEnvTypeNames (tcfDialect defaultTypeCheckFlags) env)
+>              $ canonicalizeTypeNames ast
 >       (ty,errs,noTypeQEs,noTypeSEs) = tcTreeInfo aast
 >       er = concatMap fst errs
 >       got = case () of
@@ -194,7 +196,8 @@
 >   let ast = case parseScalarExpr defaultParseFlags "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
->       aast = typeCheckScalarExpr f defaultTemplate1Catalog emptyEnvironment ast
+>       aast = typeCheckScalarExpr f defaultTemplate1Catalog emptyEnvironment
+>              $ canonicalizeTypeNames ast
 >       aast' = addExplicitCasts aast
 >       wast = case parseScalarExpr defaultParseFlags "" Nothing wsrc of
 >                Left e -> error $ show e
@@ -229,7 +232,7 @@
 >           PostgreSQL -> defaultTypeCheckFlags
 >           SQLServer -> defaultTypeCheckFlags {tcfDialect = SQLServer}
 >           Oracle -> defaultTypeCheckFlags {tcfDialect = Oracle}-}
->       aast = typeCheckQueryExpr f cat ast
+>       aast = typeCheckQueryExpr f cat $ canonicalizeTypeNames ast
 >       (ty,errs,noTypeQEs,noTypeSEs) = tcTreeInfo aast
 >       er = concatMap fst errs
 >       got :: Either [TypeError] Type
@@ -261,7 +264,7 @@
 >           PostgreSQL -> defaultTypeCheckFlags
 >           SQLServer -> defaultTypeCheckFlags {tcfDialect = SQLServer}
 >           Oracle -> defaultTypeCheckFlags {tcfDialect = Oracle}-}
->       (_,aast) = typeCheckStatements f cat ast
+>       (_,aast) = typeCheckStatements f cat $ canonicalizeTypeNames ast
 >       (_,errs,noTypeQEs,noTypeSEs) = tcTreeInfo aast
 >       er = concatMap fst errs
 >       got :: Maybe [TypeError]
@@ -282,16 +285,18 @@
 
 > testInsertQueryExprType :: Dialect -> [CatalogUpdate] -> L.Text -> Either [TypeError] Type -> T.TestTree
 > testInsertQueryExprType dl cus src et = H.testCase ("typecheck " ++ L.unpack src) $ do
->   let Right cat = updateCatalog cus $ case dl of
+>   let cat = makeCatalog dl cus $ case dl of
+>           ANSI -> ansiCatalog
 >           PostgreSQL -> defaultTemplate1Catalog
 >           SQLServer -> defaultTSQLCatalog
 >           Oracle -> defaultTSQLCatalog
 >       flg = case dl of
+>           ANSI -> defaultTypeCheckFlags {tcfDialect = ANSI}
 >           PostgreSQL -> defaultTypeCheckFlags
 >           SQLServer -> defaultTypeCheckFlags {tcfDialect = SQLServer}
 >           Oracle -> defaultTypeCheckFlags {tcfDialect = Oracle}
 >       asts = either (error . show) id $ parseStatements defaultParseFlags "" Nothing src
->       Insert _ _ _ q _ = extractInsert $ snd $ typeCheckStatements flg cat asts
+>       Insert _ _ _ q _ = extractInsert $ snd $ typeCheckStatements flg cat $ canonicalizeTypeNames asts
 >       q' = addImplicitCasts cat q
 >       q'' = typeCheckQueryExpr flg cat q'
 >       (ty,errs,noTypeQEs,noTypeSEs) = tcTreeInfo q''
@@ -323,13 +328,13 @@ type checks properly and produces the same type
 >   let ast = case parseQueryExpr defaultParseFlags "" Nothing src of
 >               Left e -> error $ "parse: " ++ L.unpack src ++ "\n" ++ show e
 >               Right l -> l
->   let Right cat = updateCatalog cus defaultTemplate1Catalog
+>   let cat = makeCatalog PostgreSQL cus defaultTemplate1Catalog
 >       aast = typeCheckQueryExpr
 >                defaultTypeCheckFlags {tcfAddQualifiers = True
 >                                         ,tcfAddSelectItemAliases = True
 >                                         ,tcfExpandStars = True
 >                                         ,tcfAddFullTablerefAliases = True}
->                cat ast
+>                cat $ canonicalizeTypeNames ast
 >       ty = anType $ getAnnotation aast
 >       -- print with rewritten tree
 >       pp = prettyQueryExpr defaultPrettyFlags aast
@@ -338,7 +343,7 @@ type checks properly and produces the same type
 >                 Right l -> l
 >       aastrw = typeCheckQueryExpr
 >                  defaultTypeCheckFlags
->                  cat astrw
+>                  cat $ canonicalizeTypeNames astrw
 >       tyrw = anType $ getAnnotation aast
 >   H.assertEqual "rewrite pp . parse" (resetAnnotations aast) (resetAnnotations aastrw)
 >   H.assertEqual "rewrite ty" ty tyrw
@@ -361,10 +366,11 @@ type checks properly and produces the same type
 > testRewrite :: TypeCheckFlags -> [CatalogUpdate] -> L.Text -> L.Text
 >             -> T.TestTree
 > testRewrite f cus src src' = H.testCase ("rewrite " ++ L.unpack src) $ do
->   let ast = case parseQueryExpr defaultParseFlags "" Nothing src of
+>   let ast = case parseQueryExpr defaultParseFlags {pfDialect = tcfDialect f}
+>                  "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
->       Right cat = updateCatalog cus defaultTemplate1Catalog
+>       cat = makeCatalog (tcfDialect f) cus defaultTemplate1Catalog
 >       aast = typeCheckQueryExpr f cat ast
 >       astrw = resetAnnotations aast
 >       ast' = case parseQueryExpr defaultParseFlags "" Nothing src' of

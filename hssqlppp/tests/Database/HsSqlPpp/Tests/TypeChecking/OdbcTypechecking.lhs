@@ -103,5 +103,5 @@ https://msdn.microsoft.com/en-us/library/ms711813(v=vs.85).aspx
 >     scalExpr = TCScalExpr defaultTemplate1Catalog emptyEnvironment
 >                           defaultTypeCheckFlags
 >     tcQueryExpr cus =
->         let Right cat = updateCatalog cus defaultTemplate1Catalog
+>         let cat = makeCatalog PostgreSQL cus defaultTemplate1Catalog
 >         in TCQueryExpr cat defaultTypeCheckFlags

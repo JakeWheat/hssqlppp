@@ -11,35 +11,36 @@
 > --import Database.HsSqlPpp.Internals.TypeChecking.Environment
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
+> --import qualified Data.Text.Lazy as L
 
 > precisionAndNullable :: Item
 > precisionAndNullable =
 >   Group "PrecisionAndNullable" $
 >   [Group "ScalarExprs"
->    [ScalarExprExtra cat1 anEnv  "an"  (Right anType)
->    ,ScalarExprExtra cat1 aEnv   "a"   (Right aType)
->    ,ScalarExprExtra cat1 cnEnv  "cn"  (Right cnType)
->    ,ScalarExprExtra cat1 cEnv   "c"   (Right cType)
->    ,ScalarExprExtra cat1 vnEnv  "vn"  (Right vnType)
->    ,ScalarExprExtra cat1 vEnv   "v"   (Right vType)
->    ,ScalarExprExtra cat1 dnEnv  "dn"  (Right dnType)
->    ,ScalarExprExtra cat1 dEnv   "d"   (Right dType)
->    ,ScalarExprExtra cat1 vConcatEnv vConcatExpr (Right vConcatType)
->    ,ScalarExprExtra cat1 vConcatEnv "v||'test12'" (Right $ TypeExtra (ScalarType "text") (Just 12) Nothing False)
->    ,ScalarExprExtra cat1 vEqEnv vEqExpr (Right vEqType)
->    ,ScalarExprExtra cat2 a2Env "isnull(an,a)" (Right aType)
->    ,ScalarExprExtra cat2 anEnv "isnull(an,an)" (Right anType)
->    ,ScalarExprExtra cat1 aEnv "a is null" (Right isNType)
->    ,ScalarExprExtra cat1 aEnv "a is not null" (Right isNType)
->    ,ScalarExprExtra cat1 anEnv "an is null" (Right isNType)
->    ,ScalarExprExtra cat1 anEnv "an is not null" (Right isNType)
->    ,ScalarExprExtra cat1 coalEnv "coalesce(an,dn,a)" (Right coalType)
+>    [see cat1 anEnv  "an"  (Right anType)
+>    ,see cat1 aEnv   "a"   (Right aType)
+>    ,see cat1 cnEnv  "cn"  (Right cnType)
+>    ,see cat1 cEnv   "c"   (Right cType)
+>    ,see cat1 vnEnv  "vn"  (Right vnType)
+>    ,see cat1 vEnv   "v"   (Right vType)
+>    ,see cat1 dnEnv  "dn"  (Right dnType)
+>    ,see cat1 dEnv   "d"   (Right dType)
+>    ,see cat1 vConcatEnv vConcatExpr (Right vConcatType)
+>    ,see cat1 vConcatEnv "v||'test12'" (Right $ TypeExtra (ScalarType "text") (Just 12) Nothing False)
+>    ,see cat1 vEqEnv vEqExpr (Right vEqType)
+>    ,see cat2 a2Env "isnull(an,a)" (Right aType)
+>    ,see cat2 anEnv "isnull(an,an)" (Right anType)
+>    ,see cat1 aEnv "a is null" (Right isNType)
+>    ,see cat1 aEnv "a is not null" (Right isNType)
+>    ,see cat1 anEnv "an is null" (Right isNType)
+>    ,see cat1 anEnv "an is not null" (Right isNType)
+>    ,see cat1 coalEnv "coalesce(an,dn,a)" (Right coalType)
 >    -- gives incompatible types
->    --,ScalarExprExtra cat1 case1Env "case an when v then a when c then an end" (Right case1Type)
->    ,ScalarExprExtra cat2 case1Env "case vn when v then a when c then an end" (Right case1Type)
->    ,ScalarExprExtra cat1 case2Env "case when an is null then a when v is null then an else dn end" (Right case2Type)
->    ,ScalarExprExtra cat2 (selListEnv []) "dateadd(year,1,'1997/01/01')" (Right $ mkTypeExtraNN $ ScalarType "timestamp")
->    ,ScalarExprExtra cat2 vEnv   "len(v)"   (Right aType)
+>    --,see cat1 case1Env "case an when v then a when c then an end" (Right case1Type)
+>    ,see cat2 case1Env "case vn when v then a when c then an end" (Right case1Type)
+>    ,see cat1 case2Env "case when an is null then a when v is null then an else dn end" (Right case2Type)
+>    ,see cat2 (selListEnv []) "dateadd(year,1,'1997/01/01')" (Right $ mkTypeExtraNN $ ScalarType "timestamp")
+>    ,see cat2 vEnv   "len(v)"   (Right aType)
 >    ]
 >   ]
 >   ++ [Group "PrecisionAndNullabletcQueryExpr"
@@ -158,8 +159,9 @@
 >     --
 >     selListEnv env = either (const brokeEnvironment) id $ envSelectListEnvironment env
 >     tcQueryExpr cus =
->         let Right cat = updateCatalog cus defaultTemplate1Catalog
+>         let cat = makeCatalog PostgreSQL cus defaultTemplate1Catalog
 >         in TCQueryExpr cat defaultTypeCheckFlags
 >     tsqlQueryExpr cus =
->         let Right cat = updateCatalog cus defaultTSQLCatalog
+>         let cat = makeCatalog SQLServer cus defaultTSQLCatalog
 >         in TCQueryExpr cat defaultTypeCheckFlags {tcfDialect = SQLServer}
+>     see = ScalarExprExtra
