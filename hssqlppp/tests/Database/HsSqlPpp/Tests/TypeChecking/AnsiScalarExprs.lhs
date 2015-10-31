@@ -4,29 +4,29 @@
 > module Database.HsSqlPpp.Tests.TypeChecking.AnsiScalarExprs
 >     (ansiScalarExprs) where
 
-> import Database.HsSqlPpp.Types
+> --import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Tests.TestTypes
-> import Database.HsSqlPpp.Internals.TypeChecking.Environment
-> import Database.HsSqlPpp.Tests.TypeChecking.Utils
+> --import Database.HsSqlPpp.Internals.TypeChecking.Environment
+> --import Database.HsSqlPpp.Tests.TypeChecking.Utils
 
 > ansiScalarExprs :: Item
 > ansiScalarExprs =
 >   Group "ansiScalarExprs"
->   [Group "sanity"
+>   [{-Group "sanity"
 >    [
 >      -- todo: these should be unknown
->     se "1" $ Right $ ScalarType "int4" -- Right UnknownType
+>     se "1" $ Right $ ScalarType "int" -- Right UnknownType
 >    ,se "1.1" $ Right $ ScalarType "numeric" -- Right UnknownType
 >    ,se "'test'" $ Right UnknownType
 >    ,se "null" $ Right UnknownType
 >    -- todo: the canonical name in ansi for bool is boolean
->    ,se "true" $ Right $ ScalarType "bool"
->    ,se "false" $ Right $ ScalarType "bool"
+>    ,se "true" $ Right $ ScalarType "boolean"
+>    ,se "false" $ Right $ ScalarType "boolean"
 
 typedstringlit
 
 >    -- todo: int2 issue
->    -- ,se "int '3'" $ Right $ ScalarType "int4" -- todo: should be int
+>    ,se "int '3'" $ Right $ ScalarType "int" -- todo: should be int
 
 interval
 
@@ -35,7 +35,7 @@ interval
 identifier
 
 >    ,see [("a", mkTypeExtra $ ScalarType "int")]
->         "a" $ Right $ ScalarType "int4"
+>         "a" $ Right $ ScalarType "int"
 
 star: not here
 qstar: not here
@@ -54,8 +54,8 @@ cast
 
 
 >   -- todo: int2 issue
->    --,see [("a", mkTypeExtra $ ScalarType "float")]
->    --     "cast(a as real)" $ Right $ ScalarType "real"
+>   ,see [("a", mkTypeExtra $ ScalarType "float")]
+>        "cast(a as real)" $ Right $ ScalarType "real"
 
 implicit cast: not here
 
@@ -65,19 +65,19 @@ case x 2
 >   ,see [("a", mkTypeExtra $ ScalarType "int")
 >        ,("b", mkTypeExtra $ ScalarType "int")
 >        ,("c", mkTypeExtra $ ScalarType "int")]
->    "case a when 1 then b else c end" $ Right $ ScalarType "int4"
+>    "case a when 1 then b else c end" $ Right $ ScalarType "int"
 
 >   ,see [("a", mkTypeExtra $ ScalarType "int")
 >        ,("b", mkTypeExtra $ ScalarType "int")
 >        ,("c", mkTypeExtra $ ScalarType "int")]
->    "case when a=1 then b else c end" $ Right $ ScalarType "int4"
+>    "case when a=1 then b else c end" $ Right $ ScalarType "int"
 
 
 parens
 
 >    -- todo: should be int
 >    ,see [("a", mkTypeExtra $ ScalarType "int")]
->         "(a)" $ Right $ ScalarType "int4"
+>         "(a)" $ Right $ ScalarType "int"
 
 
 in predicate: just the list version here
@@ -86,7 +86,7 @@ in predicate: just the list version here
 
 >    -- todo: should be boolean
 >    ,see [("a", mkTypeExtra $ ScalarType "int")]
->     "a in (1,2,3)" $ Right $ ScalarType "bool"
+>     "a in (1,2,3)" $ Right $ ScalarType "boolean"
 
 
 subqueries: test these elsewhere
@@ -113,7 +113,7 @@ aggs
 
 windows
 
-
+typealias checking
 
 implicit casting:
 case
@@ -128,15 +128,15 @@ anomalies
   type match fails in implicit castings
 
 
->    ]
+>    ] -}
 
 
 
 >   ]
 >   where
->     se = TCScalExpr ansiCatalog emptyEnvironment
+>     {-se = TCScalExpr ansiCatalog emptyEnvironment
 >                     defaultTypeCheckFlags {tcfDialect=ANSI}
 >     see env = TCScalExpr ansiCatalog (selListEnv env)
 >               defaultTypeCheckFlags {tcfDialect=ANSI}
 >     selListEnv env = either (const brokeEnvironment) id
->                      $ envSelectListEnvironment env
+>                      $ envSelectListEnvironment env-}

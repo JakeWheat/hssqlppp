@@ -13,6 +13,7 @@ notes on what the types are for and how they are used in postgres.
 > import qualified Data.Text as T
 > import Database.HsSqlPpp.Internals.Dialect
 > import Data.List
+> --import Debug.Trace
 
 > --import Control.Monad.Error
 > --import Control.Monad.Except
@@ -222,57 +223,6 @@ TODO: remove these aliases
 > {-traceit :: Show a => String -> a -> a
 > traceit m a = trace (m ++ ": " ++ show a) a-}
 
-> -- | convert the name of a type to its canonical name. For types
-> -- without multiple names, it returns the name unchanged
-> canonicalizeTypeName :: Text -> Text
-> canonicalizeTypeName = ct (tm PostgreSQL)
-> --canonicalizeTypeName :: Dialect -> Text -> Text
-> --canonicalizeTypeName d = ct (tm d)
->   where
->     tm ANSI = ansiTypeNames
->     tm SQLServer = postgresqlTypeNames
->     tm Oracle = postgresqlTypeNames
->     tm PostgreSQL = postgresqlTypeNames
->     hasType t p = let t' = T.map toLower t
->                   in t' `elem` snd p
->     ct m tn = maybe tn fst
->               $ find (hasType tn) m
-
->   {-s' =
->   case () of
->                   _ | s `elem` smallIntNames -> "int2"
->                     | s `elem` intNames -> "int4"
->                     | s `elem` bigIntNames -> "int8"
->                     | s `elem` numericNames -> "numeric"
->                     | s `elem` float4Names -> "float4"
->                     | s `elem` float8Names -> "float8"
->                     | s `elem` varcharNames -> "varchar"
->                     | s `elem` charNames -> "char"
->                     | s `elem` boolNames -> "bool"
-
-this needs rethinking for mssql types: it must have a different set of
-canonical type names
-TODO: add database type to canonicalize type name call:
-postgresql, mssql, db2, standard sql
-
->                     | s `elem` tinyIntNames -> "int1"
-
-added for mssql
-
->                     | s == "datetime" -> "timestamp"
->                     | otherwise -> s
->   where
->       tinyIntNames = ["int1", "tinyint"]
->       smallIntNames = ["int2", "smallint"]
->       intNames = ["int4", "integer", "int", "serial"]
->       bigIntNames = ["int8", "bigint"]
->       numericNames = ["numeric", "decimal"]
->       float4Names = ["real", "float4"]
->       float8Names = ["double precision", "float", "double"]
->       varcharNames = ["character varying", "varchar"]
->       charNames = ["character", "char"]
->       boolNames = ["boolean", "bool"]
->       s = T.map toLower s'-}
 
 Canonicalize type names
 
@@ -289,6 +239,20 @@ user types will be handled in the catalog not here).
 
 maybe canonicalize should do case folding for unquoted identifiers
 also (which is dependent on the dialect).
+
+> -- | convert the name of a type to its canonical name. For types
+> -- without multiple names, it returns the name unchanged
+> canonicalizeTypeName :: Dialect -> Text -> Text
+> canonicalizeTypeName d = ct (tm d)
+>   where
+>     tm ANSI = ansiTypeNames
+>     tm SQLServer = postgresqlTypeNames
+>     tm Oracle = postgresqlTypeNames
+>     tm PostgreSQL = postgresqlTypeNames
+>     hasType t p = let t' = T.map toLower t
+>                   in t' `elem` snd p
+>     ct m tn = maybe tn fst
+>               $ find (hasType tn) m
 
 ansi:
 

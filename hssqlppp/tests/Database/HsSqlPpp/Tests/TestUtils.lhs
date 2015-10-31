@@ -150,7 +150,7 @@
 >               Right l -> l
 >       aast = typeCheckScalarExpr f cat
 >              (hackCanonicalizeEnvTypeNames (tcfDialect f) env)
->              $ canonicalizeTypeNames ast
+>              $ canonicalizeTypeNames (tcfDialect f) ast
 >       (ty,errs,noTypeQEs,noTypeSEs) = tcTreeInfo aast
 >       er = concatMap fst errs
 >       got = case () of
@@ -175,7 +175,7 @@
 >               Right l -> l
 >       aast = typeCheckScalarExpr defaultTypeCheckFlags cat
 >              (hackCanonicalizeEnvTypeNames (tcfDialect defaultTypeCheckFlags) env)
->              $ canonicalizeTypeNames ast
+>              $ canonicalizeTypeNames (tcfDialect defaultTypeCheckFlags) ast
 >       (ty,errs,noTypeQEs,noTypeSEs) = tcTreeInfo aast
 >       er = concatMap fst errs
 >       got = case () of
@@ -197,7 +197,7 @@
 >               Left e -> error $ show e
 >               Right l -> l
 >       aast = typeCheckScalarExpr f defaultTemplate1Catalog emptyEnvironment
->              $ canonicalizeTypeNames ast
+>              $ canonicalizeTypeNames (tcfDialect f) ast
 >       aast' = addExplicitCasts aast
 >       wast = case parseScalarExpr defaultParseFlags "" Nothing wsrc of
 >                Left e -> error $ show e
@@ -232,7 +232,8 @@
 >           PostgreSQL -> defaultTypeCheckFlags
 >           SQLServer -> defaultTypeCheckFlags {tcfDialect = SQLServer}
 >           Oracle -> defaultTypeCheckFlags {tcfDialect = Oracle}-}
->       aast = typeCheckQueryExpr f cat $ canonicalizeTypeNames ast
+>       aast = typeCheckQueryExpr f cat
+>              $ canonicalizeTypeNames (tcfDialect f) ast
 >       (ty,errs,noTypeQEs,noTypeSEs) = tcTreeInfo aast
 >       er = concatMap fst errs
 >       got :: Either [TypeError] Type
@@ -264,7 +265,8 @@
 >           PostgreSQL -> defaultTypeCheckFlags
 >           SQLServer -> defaultTypeCheckFlags {tcfDialect = SQLServer}
 >           Oracle -> defaultTypeCheckFlags {tcfDialect = Oracle}-}
->       (_,aast) = typeCheckStatements f cat $ canonicalizeTypeNames ast
+>       (_,aast) = typeCheckStatements f cat
+>                  $ canonicalizeTypeNames (tcfDialect f) ast
 >       (_,errs,noTypeQEs,noTypeSEs) = tcTreeInfo aast
 >       er = concatMap fst errs
 >       got :: Maybe [TypeError]
@@ -296,7 +298,8 @@
 >           SQLServer -> defaultTypeCheckFlags {tcfDialect = SQLServer}
 >           Oracle -> defaultTypeCheckFlags {tcfDialect = Oracle}
 >       asts = either (error . show) id $ parseStatements defaultParseFlags "" Nothing src
->       Insert _ _ _ q _ = extractInsert $ snd $ typeCheckStatements flg cat $ canonicalizeTypeNames asts
+>       Insert _ _ _ q _ = extractInsert $ snd $ typeCheckStatements flg cat
+>                          $ canonicalizeTypeNames (tcfDialect flg) asts
 >       q' = addImplicitCasts cat q
 >       q'' = typeCheckQueryExpr flg cat q'
 >       (ty,errs,noTypeQEs,noTypeSEs) = tcTreeInfo q''
@@ -334,7 +337,8 @@ type checks properly and produces the same type
 >                                         ,tcfAddSelectItemAliases = True
 >                                         ,tcfExpandStars = True
 >                                         ,tcfAddFullTablerefAliases = True}
->                cat $ canonicalizeTypeNames ast
+>                cat $ canonicalizeTypeNames
+>                      (tcfDialect defaultTypeCheckFlags) ast
 >       ty = anType $ getAnnotation aast
 >       -- print with rewritten tree
 >       pp = prettyQueryExpr defaultPrettyFlags aast
@@ -343,7 +347,8 @@ type checks properly and produces the same type
 >                 Right l -> l
 >       aastrw = typeCheckQueryExpr
 >                  defaultTypeCheckFlags
->                  cat $ canonicalizeTypeNames astrw
+>                  cat $ canonicalizeTypeNames
+>                        (tcfDialect defaultTypeCheckFlags) astrw
 >       tyrw = anType $ getAnnotation aast
 >   H.assertEqual "rewrite pp . parse" (resetAnnotations aast) (resetAnnotations aastrw)
 >   H.assertEqual "rewrite ty" ty tyrw

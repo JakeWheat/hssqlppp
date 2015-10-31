@@ -787,11 +787,11 @@ data QueryHint = QueryHintPartitionGroup | QueryHintColumnarHostGroup
 
 -- TODO: move this somewhere better
 -- | run canonicalizeTypeName on all the TypeName nodes in an ast
-canonicalizeTypeNames :: Data a => a -> a
-canonicalizeTypeNames =
+canonicalizeTypeNames :: Data a => Dialect -> a -> a
+canonicalizeTypeNames d =
    (transformBi $ \x ->
        case x of
-         ScalarType s -> ScalarType $ canonicalizeTypeName s
+         ScalarType s -> ScalarType $ canonicalizeTypeName d s
          x' -> x')
    . (transformBi $ \x ->
        case x of
@@ -800,7 +800,7 @@ canonicalizeTypeNames =
          Prec2TypeName a tn i i1 -> Prec2TypeName a (c tn) i i1
          x' -> x')
    where
-     c (Name a [Nmc nc]) = Name a [Nmc $ T.unpack $ canonicalizeTypeName $ T.pack nc]
+     c (Name a [Nmc nc]) = Name a [Nmc $ T.unpack $ canonicalizeTypeName d $ T.pack nc]
      c z = z
 
 {-# LINE 807 "hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs" #-}

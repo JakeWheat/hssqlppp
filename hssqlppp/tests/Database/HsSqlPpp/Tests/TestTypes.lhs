@@ -72,5 +72,5 @@
 >     $ updateCatalog (hackCanonicalizeEnvTypeNames d cus) cat
 
 > hackCanonicalizeEnvTypeNames :: Data a => Dialect -> a -> a
-> hackCanonicalizeEnvTypeNames _d = transformBi $ \a -> case a of
->     s -> canonicalizeTypeName s
+> hackCanonicalizeEnvTypeNames d = transformBi $ \a -> case a of
+>     s -> canonicalizeTypeName d s
