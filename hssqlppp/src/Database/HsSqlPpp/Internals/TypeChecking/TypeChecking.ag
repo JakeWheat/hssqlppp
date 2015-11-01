@@ -10,7 +10,7 @@ import Control.Monad
 import Data.List
 import Data.Maybe
 import Data.Char
-
+import Control.Applicative
 }
 
 -- public api functions
