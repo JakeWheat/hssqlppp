@@ -357,4 +357,4 @@ also, how to use haskell syntax in splices
 >              -> Maybe (Int,Int) -- ^ set the line number and column number
 >              -> String
 >              -> Either P.ParseErrorExtra [Statement]
-> parsePlpgsql p f s src = P.parsePlpgsql p f s (L.pack src)
+> parsePlpgsql p f s src = P.parseProcSQL p f s (L.pack src)

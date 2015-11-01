@@ -35,7 +35,7 @@ right choice, but it seems to do the job pretty well at the moment.
 > import Text.Parsec.Perm
 > import Text.Parsec.Pos
 >
-> --import Control.Applicative hiding (many,optional,(<|>))
+> import Control.Applicative hiding (many,optional,(<|>))
 > import Control.Monad.Identity
 > --import Control.Monad
 >
