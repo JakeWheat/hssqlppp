@@ -85,8 +85,8 @@ sequences
 >
 > import Control.Monad
 > --import Data.List
-> import Data.Data
-> import Data.Char
+> --import Data.Data
+> --import Data.Char
 > import Data.Maybe
 
 > import qualified Data.Map as M
@@ -96,6 +96,9 @@ sequences
 > import Data.Text (Text)
 > import qualified Data.Text as T
 > --import qualified Data.Text.Lazy as LT
+
+> import Database.HsSqlPpp.Internals.Catalog.CatalogTypes
+> import Database.HsSqlPpp.Internals.Catalog.BaseCatalog
 
 -----------------------------------
 
@@ -160,245 +163,9 @@ window functions
 The information currently stored is:
 name, parameter types, return type and variadic flag
 
----------------------------------------
-
-catalog values
-
-
-> -- | represents the name of something in the catalog, when schema
-> -- support is added then this will change to (String,String)
-> type CatName = Text
-> -- | type name and precision and nullability
-> data CatNameExtra = CatNameExtra {
->   catName:: CatName,
->   catPrecision:: Maybe Int,
->   catScale:: Maybe Int,
->   catNullable:: Bool
-> } deriving (Eq,Ord,Show,Typeable,Data)
-> mkCatNameExtra:: CatName -> CatNameExtra
-> mkCatNameExtra cn = CatNameExtra cn Nothing Nothing True
-> mkCatNameExtraNN:: CatName -> CatNameExtra
-> mkCatNameExtraNN cn = CatNameExtra cn Nothing Nothing False
-
-> data CompositeFlavour = Composite | TableComposite | ViewComposite
->                         deriving (Eq,Ord,Show)
-
-> -- | name, inparams, outtype, is variadic?
-> type OperatorPrototype = (CatName, [Type], Type, Bool)
-
-> -- | The main datatype, this holds the catalog and context
-> -- information to type check against.
-> data Catalog = Catalog
->     {catSchemas :: S.Set CatName
->     ,catScalarTypeNames :: S.Set CatName -- one name component per type
->     ,catDomainTypes :: M.Map CatName CatName -- stores the base type name
->                                              -- constraint is stored separately
->      --,catEnumTypes :: {[(String,[String])]}
->     ,catCompositeTypes :: M.Map CatName
->                                 (CompositeFlavour
->                                 ,[(Text,CatNameExtra)] -- public attrs
->                                 ,[(Text,CatName)])-- system columns
->     ,catArrayTypes :: M.Map CatName CatName --pg array type name, base type name
->     ,catPrefixOps :: M.Map CatName [OperatorPrototype]
->     ,catPostfixOps :: M.Map CatName [OperatorPrototype]
->     ,catBinaryOps :: M.Map CatName [OperatorPrototype]
->     ,catFunctions :: M.Map CatName [OperatorPrototype]
->     ,catAggregateFunctions :: M.Map CatName [OperatorPrototype]
->     ,catWindowFunctions :: M.Map CatName [OperatorPrototype]
->     ,catTables :: M.Map (CatName,CatName)
->                   ([(Text,TypeExtra)] -- public attrs
->                   ,[(Text,Type)]) -- system columns
->     -- needs more work:
->     ,catCasts :: S.Set (Type,Type,CastContext)
->     ,catTypeCategories :: M.Map Type (Text,Bool)
->      -- save the updates
->     ,catUpdates :: [CatalogUpdate]
->     }
->                deriving Show
-
-
-
-
-> -- | Represents an empty catalog. This doesn't contain things
-> -- like the \'and\' operator, 'defaultCatalog' contains these.
-> emptyCatalog :: Catalog
-> emptyCatalog = Catalog S.empty S.empty M.empty M.empty M.empty
->                        M.empty M.empty
->                        M.empty M.empty M.empty M.empty M.empty
->                        S.empty M.empty
->                        []
->
-> -- | Represents what you probably want to use as a starting point if
-> -- you are building an catalog from scratch. It contains
-> -- information on built in function like things such as keyword
-> -- operators like \'and\', etc..
-> defaultCatalog :: Catalog
-> defaultCatalog =
->     -- todo: specify in terms of catalog updates
->   emptyCatalog {catSchemas = S.fromList ["public"]
->                ,catBinaryOps = insertOperators systemBinaryOps M.empty
->                ,catPrefixOps = insertOperators systemPrefixOps M.empty
->                ,catPostfixOps = insertOperators systemPostfixOps M.empty
->                ,catFunctions = insertOperators systemFunctions M.empty
->                ,catScalarTypeNames = rangeTypes}
-
-> insertOperators :: [(CatName,OperatorPrototype)]
->                 -> M.Map CatName [OperatorPrototype]
->                 -> M.Map CatName [OperatorPrototype]
-> insertOperators vs m =
->   foldr i m vs
->   where
->     i (k,v) = M.insertWith (++) k [v]
-
--------------------------------------------------------------
-
-'system' stuff
-
-bunch of operators which you can use but don't appear in the
-postgresql catalog
-
-> systemBinaryOps :: [(CatName,OperatorPrototype)]
-> systemBinaryOps =
->    [("=", ("=",[Pseudo AnyElement, Pseudo AnyElement], typeBool, False))
->    ,("and",("and", [typeBool, typeBool], typeBool, False))
->    ,("or",("or", [typeBool, typeBool], typeBool, False))
->    ,("like",("like", [ScalarType "text", ScalarType "text"], typeBool, False))
->    ,("like",("like", [ScalarType "char", ScalarType "char"], typeBool, False))
->    ,("like",("like", [ScalarType "varchar", ScalarType "varchar"], typeBool, False))
->    ,("notlike",("notlike", [ScalarType "text", ScalarType "text"], typeBool, False))
->    ,("notlike",("notlike", [ScalarType "char", ScalarType "char"], typeBool, False))
->    ,("notlike",("notlike", [ScalarType "varchar", ScalarType "varchar"], typeBool, False))
->    ,("rlike",("rlike", [ScalarType "text", ScalarType "text"], typeBool, False))
->    ,("rlike",("rlike", [ScalarType "char", ScalarType "char"], typeBool, False))
->    ,("rlike",("rlike", [ScalarType "varchar", ScalarType "varchar"], typeBool, False))
->    ,("arrayctor",("arrayctor", [ArrayType $ Pseudo AnyElement], Pseudo AnyArray, True))
->    ,("between",("between", [Pseudo AnyElement
->                            ,Pseudo AnyElement
->                            ,Pseudo AnyElement], typeBool, False))
->    ,("notbetween",("mptbetween", [Pseudo AnyElement
->                                  ,Pseudo AnyElement
->                                  ,Pseudo AnyElement], typeBool, False))
->    ,("substring",("substring",[ScalarType "text",typeInt,typeInt],ScalarType "text",False))
->    ,("substring",("substring",[ScalarType "varchar",typeInt,typeInt],ScalarType "varchar",False))
->    ,("substring",("substring",[ScalarType "char",typeInt,typeInt],ScalarType "char",False))
->    ,("arraysub",("arraysub", [Pseudo AnyArray,typeInt], Pseudo AnyElement, False))
->    ]
-
-> systemPrefixOps :: [(CatName,OperatorPrototype)]
-> systemPrefixOps =
->    [("not",("not", [typeBool], typeBool, False))]
-
-> systemPostfixOps :: [(CatName,OperatorPrototype)]
-> systemPostfixOps =
->    [("isnull",("isnull", [Pseudo AnyElement], typeBool, False))
->    ,("isnotnull",("isnotnull", [Pseudo AnyElement], typeBool, False))]
-
-> systemFunctions :: [(CatName, OperatorPrototype)]
-> systemFunctions =
->  [("coalesce",("coalesce", [ArrayType $ Pseudo AnyElement], Pseudo AnyElement, True))
->  ,("nullif", ("nullif",[Pseudo AnyElement, Pseudo AnyElement], Pseudo AnyElement,False))
->  ,("greatest",("greatest", [ArrayType $ Pseudo AnyElement], Pseudo AnyElement,True))
->  ,("least",("least", [ArrayType $ Pseudo AnyElement], Pseudo AnyElement,True))
->  ]
-
-names to refer to the pseudo types
-
-> pseudoTypes :: M.Map CatName Type
-> pseudoTypes = M.fromList
->     [("any",Pseudo Any)
->     ,("anyarray",Pseudo AnyArray)
->     ,("anyelement",Pseudo AnyElement)
->     ,("anyenum",Pseudo AnyEnum)
->     ,("anyrange",Pseudo AnyRange)
->     ,("anynonarray",Pseudo AnyNonArray)
->     ,("cstring",Pseudo Cstring)
->     ,("record",Pseudo (Record Nothing))
->     ,("trigger",Pseudo Trigger)
->      -- todo: fix this?
->     ,("event_trigger",Pseudo Trigger)
->     ,("void",Pseudo Void)
->     ,("_cstring",ArrayType $ Pseudo Cstring)
->     ,("_record",ArrayType $ Pseudo (Record Nothing))
->     ,("internal",Pseudo Internal)
->     ,("language_handler", Pseudo LanguageHandler)
->     ,("opaque", Pseudo Opaque)
->     ,("fdw_handler", Pseudo FdwHandler)
->     ]
-
-built in range types in postgresql
-
-todo: maybe these are in the catalog somewhere and should come from
-postgres?
-
-> rangeTypes :: S.Set CatName
-> rangeTypes = S.fromList ["int4range", "int8range"
->                         ,"numrange","daterange"
->                         ,"tsrange","tstzrange"]
 
 ---------------------------------------------------------
 
-name component - this represents quoted and unquoted
-possibly-qualified names (so names of things are lists of
-namecomponents). Perhaps should be a syntactic namecomponent which is
-in AstInternal, and a semantic namecomponent which is used here, but I
-am lazy so the same type is shared.
-
-The name components are only used here so that the logic for ignoring
-or respecting case is in one place, these are only used in the query
-functions and not in catalog values themselves.
-
-> data NameComponent = Nmc String
->                    | QNmc String -- quoted
->                    | AntiNameComponent String
->                      deriving (Data,Eq,Show,Typeable,Ord)
-> -- this is a transition function
-> -- it should be removed when ready, since all the code
-> -- should be working with NameComponents directly
-> ncStr :: NameComponent -> String
-> ncStr (Nmc n) = map toLower n
-> ncStr (QNmc n) = n
-> ncStr (AntiNameComponent _n) =
->   error "tried to get the name component string of an anti name component"
-
-> ncStrT :: NameComponent -> Text
-> ncStrT (Nmc n) = T.pack $ map toLower n
-> ncStrT (QNmc n) = T.pack n
-> ncStrT (AntiNameComponent _n) =
->   error "tried to get the name component string of an anti name component"
-
-
-todo: use left or something instead of error
-
-------------------------------------------------------
-
- updates
-
-> data CatalogUpdate =
->     -- | register a schema with the given name
->     CatCreateSchema CatName
->     -- | register a base scalar type with the given name
->   | CatCreateScalarType CatName
->     -- | register a domain type with name and base type
->   | CatCreateDomainType CatName CatName
->     -- | register an array type with name and base type
->   | CatCreateArrayType CatName CatName
->     -- | register a prefix op, opname, param type, return type
->   | CatCreatePrefixOp CatName CatName CatName
->     -- | register a postfix op, opname, param type, return type
->   | CatCreatePostfixOp CatName CatName CatName
->     -- | register a binary op, opname, the two param types, return type
->   | CatCreateBinaryOp CatName CatName CatName CatName
->     -- | register a function: name, param types, retsetof, return type
->   | CatCreateFunction CatName [CatName] Bool CatName
->     -- | register a aggregate: name, param types, return type
->   | CatCreateAggregate CatName [CatName] CatName
->     -- | register a table only: name, (colname,typename) pairs
->   | CatCreateTable (CatName,CatName) [(CatName,CatNameExtra)]
->     -- | register a cast in the catalog
->   | CatCreateCast CatName CatName CastContext
->     -- | register a type category for a type (used in the implicit cast resolution)
->   | CatCreateTypeCategoryEntry CatName (Text,Bool)
->     deriving (Eq,Ord,Typeable,Data,Show)
 
 > -- | Applies a list of 'CatalogUpdate's to an 'Catalog' value
 > -- to produce a new Catalog value. TODO: there will be a split
@@ -560,12 +327,6 @@ old stuff chucked in to support the old typeconversion, to be promoted
 to new code or deleted as typeconversion is rewritten
 
 
-> -- | Use to note what the flavour of a cast is, i.e. if/when it can
-> -- be used implicitly.
-> data CastContext = ImplicitCastContext
->                  | AssignmentCastContext
->                  | ExplicitCastContext
->                    deriving (Eq,Show,Ord,Typeable,Data)
 
 > catCompositePublicAttrs :: Catalog -> [CompositeFlavour] -> Text
 >                   -> Either [TypeError] [(Text,TypeExtra)]

@@ -19,6 +19,7 @@ schemas affect typechecking of views and tables only currently
 > import Database.HsSqlPpp.Types
 
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
+> import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
 
 > trefSchemas :: Item
 > trefSchemas =

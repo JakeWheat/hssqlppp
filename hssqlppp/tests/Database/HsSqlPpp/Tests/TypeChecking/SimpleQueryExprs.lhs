@@ -9,6 +9,7 @@
 > import Database.HsSqlPpp.Catalog
 > --import Database.HsSqlPpp.TypeChecker
 > import Database.HsSqlPpp.Types
+> import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
 
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
 

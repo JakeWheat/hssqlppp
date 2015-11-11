@@ -20,7 +20,11 @@ installed to do this.
 >     (\l -> case l of
 >              Left x -> error $ show x
 >              Right e -> e) $
->      flip updateCatalog defaultCatalog (
+>      flip updateCatalog (defaultCatalog "bool"
+>                                         "int4"
+>                                         ["char"
+>                                         ,"varchar"
+>                                         ,"text"]) (
 
     
 >        [CatCreateScalarType "abstime", CatCreateScalarType "aclitem",

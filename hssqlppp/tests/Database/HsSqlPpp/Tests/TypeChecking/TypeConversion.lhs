@@ -9,6 +9,7 @@
 > --import Database.HsSqlPpp.Ast
 > --import Database.HsSqlPpp.Dialect
 > import Database.HsSqlPpp.Tests.TestTypes
+> import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
 
 
 tests:

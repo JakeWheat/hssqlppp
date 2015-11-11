@@ -12,6 +12,7 @@
 > import Data.Text.Lazy (pack)
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
+> import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
 
 > tsqlQueryExprs :: Item
 > tsqlQueryExprs =

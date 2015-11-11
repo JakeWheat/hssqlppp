@@ -47,6 +47,7 @@ off.
 > import Control.Arrow
 >
 > import Database.HsSqlPpp.Internals.TypesInternal
+> import Database.HsSqlPpp.Internals.Dialect
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 > --import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Internals.TypeChecking.OldTediousTypeUtils
@@ -156,8 +157,8 @@ against.
 >         the row comparison should be more general than this, since it supports
 >         any operator satisfying some properties
 > -}
-> findCallMatch :: Catalog -> Text -> [Type] ->  Either [TypeError] OperatorPrototype
-> findCallMatch cat fnName' argsType =
+> findCallMatch :: Dialect -> Catalog -> Text -> [Type] ->  Either [TypeError] OperatorPrototype
+> findCallMatch d cat fnName' argsType =
 >     --trace (if fnName=="=" then "typecheckfncall " ++ fnName' ++ show argsType else "") $
 >     --dependsOnRTpe argsType $
 >       case fnName of
@@ -170,7 +171,7 @@ against.
 >                     f1 <- lookupReturnType ">=" [t,t]
 >                     f2 <- lookupReturnType "<=" [t,t]
 >                     _ <- lookupFn "and" [f1,f2]
->                     return ("between", [t,t,t], typeBool, False)
+>                     return ("between", [t,t,t], canType typeBool, False)
 >               "notbetween" | as@[_,_,_] <- argsType -> do
 >                     -- not sure if this is correct - use the result set resolution
 >                     -- to make the argument types compatible
@@ -180,7 +181,7 @@ against.
 >                     f1 <- lookupReturnType "<" [t,t]
 >                     f2 <- lookupReturnType ">" [t,t]
 >                     _ <- lookupFn "or" [f1,f2]
->                     return ("notbetween", [t,t,t], typeBool, False)
+>                     return ("notbetween", [t,t,t], canType typeBool, False)
 >               "greatest" -> do
 >                     (_,a,t,x) <- lookupFn fnName argsType
 >                     _ <- lookupFn ">=" [t,t]
@@ -201,7 +202,7 @@ against.
 >                          && all isCompositeOrSetOfCompositeType argsType,
 >                          Just a1 <- matchCompTypes argsType ->
 >                          -- && compositesCompatible cat (head argsType) (head $ tail argsType) ->
->                              return (fnName, a1, typeBool, False)
+>                              return (fnName, a1, canType typeBool, False)
 >               --checked for all special cases, so run general case now
 >               s -> lookupFn s argsType
 >     where
@@ -227,6 +228,8 @@ against.
 >         then Nothing
 >         else Just [a,b]
 >       matchCompTypes _ = Nothing
+>       canType (ScalarType t) = ScalarType $ canonicalizeTypeName d t
+>       canType t = t
 
 >
 > findCallMatch1 :: Catalog -> Text -> [Type] ->  Either [TypeError] OperatorPrototype

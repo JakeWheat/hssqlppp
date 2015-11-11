@@ -4,6 +4,8 @@
 >     (scalarExprs) where
 
 > import Database.HsSqlPpp.Types
+> import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
+
 > import Database.HsSqlPpp.Tests.TestTypes
 
 > scalarExprs :: Item

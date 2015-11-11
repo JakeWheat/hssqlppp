@@ -21,6 +21,7 @@ truncate
 > import Database.HsSqlPpp.Types
 
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
+> import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
 
 > updates :: Item
 > updates =

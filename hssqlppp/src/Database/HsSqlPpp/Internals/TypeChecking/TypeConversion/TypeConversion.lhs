@@ -145,8 +145,8 @@ todo: add the implicit casting where needed
 
 >     matchApp' d' nmcs' pts = {-trace ("matchapp: " ++ show (d,nmcs,pts)) $ -} do
 >       (_,ps,r,_) <- case d' of
->                       SQLServer -> TSQL.findCallMatch cat nm pts
->                       _ -> findCallMatch cat nm pts
+>                       SQLServer -> TSQL.findCallMatch d' cat nm pts
+>                       _ -> findCallMatch d' cat nm pts
 >       return (ps,r)
 >       where
 >         nm = case last nmcs' of

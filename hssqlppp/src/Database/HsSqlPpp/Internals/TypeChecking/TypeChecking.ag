@@ -304,9 +304,16 @@ fixMssqlDates = transformBi $ \x -> case x of
                   ,"weekday","dw","week","ww","wk","hour","hh"
                   ,"minute","mi","n","second","ss","s","millisecond","ms"
                   ,"microsecond","mcs","nanosecond","ns"]
-
+      -- todo: use canonical tsql name for typeInt
       nai ai = ai {anType = Just $ mkTypeExtraNN typeInt
                   ,anErrs = []}
+
+
+-- temp utility function
+
+canonicalizeType :: Dialect -> Type -> Type
+canonicalizeType d (ScalarType t) = ScalarType $ canonicalizeTypeName d t
+canonicalizeType _ t = t
 
 }
 

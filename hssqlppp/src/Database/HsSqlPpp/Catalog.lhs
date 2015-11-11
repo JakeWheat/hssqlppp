@@ -36,7 +36,7 @@ Forward the public part of CatalogInternal.
 >     --,FunFlav(..)
 >      -- * Catalog values
 >     ,emptyCatalog
->     ,defaultCatalog
+>     --,defaultCatalog
 >     ,ansiCatalog
 >     ,defaultTemplate1Catalog
 >     ,defaultTSQLCatalog

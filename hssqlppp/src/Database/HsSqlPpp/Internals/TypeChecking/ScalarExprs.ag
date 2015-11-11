@@ -49,6 +49,7 @@ sem ScalarExpr
                             expType <- @lhs.expectedType
                             guard $ needsImplicitCast @lhs.expectedCast upType expType
                             return $ implicitCastType @lhs.expectedCast upType expType
+        loc.canType = canonicalizeType (tcfDialect @lhs.flags)
 
 {
 needsImplicitCast:: Bool -> TypeExtra -> TypeExtra -> Bool
@@ -243,7 +244,7 @@ sem ScalarExprRoot
 
 sem ScalarExpr
     | BooleanLit
-        loc.tpe = Right $ mkTypeExtraNN typeBool
+        loc.tpe = Right $ mkTypeExtraNN $ @loc.canType typeBool
 
     | NumberLit
         -- numbers - a bit hacky, maybe should follow haskell
@@ -253,7 +254,7 @@ sem ScalarExpr
         -- needs to improve a lot then this won't be possible any
         -- more (e.g. 10e-5)
         loc.tpe = Right $ if all (`elem` @loc.digChars) @d
-                          then mkTypeExtraNN $ classifyInteger @d
+                          then mkTypeExtraNN $ classifyInteger (tcfDialect @lhs.flags) @d
                           else mkTypeExtraNN typeNumeric
         loc.digChars = concatMap show [(0::Int)..9]
 
@@ -290,7 +291,7 @@ simplish ctors
                    do
                    x <- maybe (Left []) Right @e.upType
                    if (teType x) `elem` [typeDate,typeTimestamp]
-                     then Right $ TypeExtra typeInt Nothing Nothing $ teNullable x
+                     then Right $ TypeExtra (@loc.canType typeInt) Nothing Nothing $ teNullable x
                      else Left [NoMatchingOperator "extract" [teType x]]
         e.expectedType =
                    do
@@ -416,7 +417,7 @@ helpers inside it can determine the correct return type
                  | @lhs.odbcFunction && map toLower n == "convert" -> do
                  (ts,_r) <- tcAppLike (tcfDialect @lhs.flags)
                            @lhs.cat (nameComponents @loc.funName) (getMaybeIntsFromLiterals @args.originalTree)
-                           [Just $ mkTypeExtraNN UnknownType, Just $ mkTypeExtraNN typeInt]
+                           [Just $ mkTypeExtraNN UnknownType, Just $ mkTypeExtraNN $ @loc.canType typeInt]
                  r' <- maybe (Left [UnrecognisedIdentifier $ T.pack tyi]) (Right . mkTypeExtra)
                           $ lookup (map toLower tyi) odbcConvertTypes
                  Right (ts, r')
@@ -563,15 +564,15 @@ sem ScalarExpr
                   wt <- mapM (maybe (Left []) Right) $ concat @loc.whenTypes
                   -- probably the when types should be checked inside each when node
                   -- and type errors attach there, and ignored here
-                  when (any ((/= typeBool) . teType) wt)
-                      $ Left [WrongTypes typeBool $ map teType wt]
+                  when (any ((/= @loc.canType typeBool) . teType) wt)
+                      $ Left [WrongTypes (@loc.canType typeBool) $ map teType wt]
                   tt <- mapM (maybe (Left []) Right) @loc.thenTypes
                   resolveResultSetTypeExtra @lhs.cat tt
         cases.whenExpectedType =
             do
             ws <- sequence $ concat @loc.whenTypes
             w <- either (const Nothing) Just $ resolveResultSetTypeExtra @lhs.cat ws
-            Just $ TypeExtra typeBool Nothing Nothing $ teNullable w
+            Just $ TypeExtra (@loc.canType typeBool) Nothing Nothing $ teNullable w
         cases.thenExpectedType = either (const Nothing) Just @loc.tpe
         els.expectedType = either (const Nothing) Just @loc.tpe
         els.expectedCast = True
@@ -620,7 +621,7 @@ subqueries
 -- exists: will work on any subselect so no checking needed
 sem ScalarExpr
     | Exists
-        loc.tpe = Right $ mkTypeExtraNN typeBool
+        loc.tpe = Right $ mkTypeExtraNN $ @loc.canType typeBool
 
 {-
 == scalarsubquery
@@ -667,7 +668,7 @@ sem ScalarExpr
                  resolveResultSetTypeExtra @lhs.cat [expt, lt]
         loc.tpe = do
                   r <- @loc.rt
-                  return $ TypeExtra typeBool Nothing Nothing $ teNullable r
+                  return $ TypeExtra (@loc.canType typeBool) Nothing Nothing $ teNullable r
         list.expectedType = either (const Nothing) Just @loc.rt
         expr.expectedType = either (const Nothing) Just @loc.rt
 
@@ -737,7 +738,7 @@ sem ScalarExprRoot
 -- ImplicitCastToDo: which handling is proper: this or that of MaybeBoolExpr?
 sem JoinExpr
   | JoinOn
-      expr.expectedType = Just $ TypeExtra typeBool Nothing Nothing
+      expr.expectedType = Just $ TypeExtra (canonicalizeType (tcfDialect @lhs.flags) typeBool) Nothing Nothing
                                         $ maybe False teNullable @expr.upType
       expr.expectedCast = False
 
@@ -786,11 +787,11 @@ sem QueryExpr
 -}
 
 {
-classifyInteger :: String -> Type
-classifyInteger s = case (readMaybe s :: Maybe Integer) of
+classifyInteger :: Dialect -> String -> Type
+classifyInteger d s = case (readMaybe s :: Maybe Integer) of
                       -- assuming number literals are always positive
-                      Just n | n < (2 ^ (31 :: Integer)) -> typeInt
-                             | n < (2 ^ (63 :: Integer)) -> typeBigInt
+                      Just n | n < (2 ^ (31 :: Integer)) -> canonicalizeType d $ typeInt
+                             | n < (2 ^ (63 :: Integer)) -> canonicalizeType d $ typeBigInt
                       _ -> typeNumeric
 }
 

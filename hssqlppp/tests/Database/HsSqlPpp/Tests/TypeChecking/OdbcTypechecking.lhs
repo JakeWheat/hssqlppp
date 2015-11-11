@@ -40,6 +40,7 @@ https://msdn.microsoft.com/en-us/library/ms711813(v=vs.85).aspx
 > --import Database.HsSqlPpp.Tests.Parsing.Utils
 > import Database.HsSqlPpp.Tests.TestTypes
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
+> import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
 
 > odbcTypechecking:: Item
 > odbcTypechecking =

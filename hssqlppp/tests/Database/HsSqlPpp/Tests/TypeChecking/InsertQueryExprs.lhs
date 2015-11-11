@@ -8,6 +8,7 @@
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Catalog
 > --import Database.HsSqlPpp.TypeChecker
+> import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
 
 
 > insertQueryExprs :: Item

@@ -9,7 +9,9 @@
 >     (\l -> case l of
 >              Left x -> error $ show x
 >              Right e -> e) $
->      flip updateCatalog defaultCatalog (
+>      flip updateCatalog (defaultCatalog "boolean" "int"
+>                                          ["char" -- todo, add the rest?
+>                                          ,"varchar"]) (
 
 >        [CatCreateScalarType "char"
 >        ,CatCreateScalarType "varchar"
@@ -57,6 +59,11 @@ like
 collate
 
 >         ]
+
+>         ++ [CatCreateFunction charLen [t] False "int"
+>            | t <- ["char","varchar","clob"
+>                   ,"nchar","nvarchar","nclob"]
+>            , charLen <- ["char_length", "character_length"] ]
 >         ++ concat
 >         -- unary +- all numeric types plus interval
 >         [ [CatCreatePrefixOp "+" n n

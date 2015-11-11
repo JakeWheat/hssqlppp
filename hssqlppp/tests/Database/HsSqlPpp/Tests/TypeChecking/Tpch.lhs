@@ -12,6 +12,7 @@ moment.
 > import qualified Data.Text.Lazy as L
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
+> import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
 
 > tpch :: Item
 > tpch =

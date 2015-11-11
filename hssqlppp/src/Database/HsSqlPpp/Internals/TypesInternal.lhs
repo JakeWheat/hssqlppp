@@ -272,8 +272,14 @@ shortest version of each
 >               ,"nchar large object"])
 >     ,("varbinary",["binary varying"])
 >     ,("blob",["binary large object"])
->     ,("int",["integer"])
->     ,("float",["double precision"])]
+>      -- todo: pg types: find a better solution
+>     ,("int",["integer", "int4"])
+>     ,("smallint",["int2"])
+>     ,("bigint",["int8"])
+>     ,("boolean", ["bool"])
+>     ,("float",["double precision"])
+>     ]
+
 
 postgresql:
 

@@ -18,7 +18,11 @@
 >     catr = updateCatalog
 >               (alterUpdates (deconstructCatalog defaultTemplate1Catalog
 >                              ++ additionalEntries))
->               defaultCatalog
+>               (defaultCatalog "bool" -- todo: fix these
+>                                         "int4"
+>                                         ["char"
+>                                         ,"varchar"
+>                                         ,"text"])
 >     -- change the counts to return int instead of long
 >     alterUpdates = map $ \u -> case u of
 >         CatCreateAggregate "count" ["any"] "int8" ->

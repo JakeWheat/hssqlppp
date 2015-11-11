@@ -4,6 +4,7 @@
 >     (caseExpressions) where
 >
 > import Database.HsSqlPpp.Tests.TestTypes
+> import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
 
 
 > import Database.HsSqlPpp.Types

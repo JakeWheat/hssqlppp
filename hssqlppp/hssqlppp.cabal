@@ -66,6 +66,8 @@ Library
                     Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
                     Database.HsSqlPpp.Internals.Catalog.OdbcCatalog
                     Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+                    Database.HsSqlPpp.Internals.Catalog.CatalogTypes
+                    Database.HsSqlPpp.Internals.Catalog.BaseCatalog
                     Database.HsSqlPpp.Internals.AstInternal
                     Database.HsSqlPpp.Internals.TypesInternal
                     Database.HsSqlPpp.Internals.ParseErrors

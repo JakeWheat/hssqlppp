@@ -8,6 +8,7 @@
 > --import Database.HsSqlPpp.Internals.TypesInternal
 > --import Database.HsSqlPpp.TypeChecker
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
+> import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
 
 dodgy hack to support cube:
 special case the cube

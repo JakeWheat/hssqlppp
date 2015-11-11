@@ -30,17 +30,18 @@ the other is a text type, then cast the text to number.
 > --import Control.Monad
 >
 > import Database.HsSqlPpp.Internals.TypesInternal
+> import Database.HsSqlPpp.Internals.Dialect
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 > --import Database.HsSqlPpp.Utils.Utils
 > --import Database.HsSqlPpp.Internals.TypeChecking.OldTediousTypeUtils
 > import qualified Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.OldTypeConversion as T
 > import Data.Text (Text)
 
-> findCallMatch :: Catalog -> Text -> [Type] ->  Either [TypeError] OperatorPrototype
-> findCallMatch cat fnName argsType =
+> findCallMatch :: Dialect -> Catalog -> Text -> [Type] ->  Either [TypeError] OperatorPrototype
+> findCallMatch d cat fnName argsType =
 >   case argsType of
 >      [_a,_b] | Just x <- checkOperator cat fnName argsType -> Right x
->      _ -> T.findCallMatch cat fnName argsType
+>      _ -> T.findCallMatch d cat fnName argsType
 
 hack to allow implicit casting one of the args to a numeric operator
 from a text type to the correct numeric type:
