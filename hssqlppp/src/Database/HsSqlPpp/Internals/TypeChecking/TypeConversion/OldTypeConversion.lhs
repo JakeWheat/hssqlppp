@@ -171,7 +171,8 @@ against.
 >                     f1 <- lookupReturnType ">=" [t,t]
 >                     f2 <- lookupReturnType "<=" [t,t]
 >                     _ <- lookupFn "and" [f1,f2]
->                     return ("between", [t,t,t], canType typeBool, False)
+>                     bt <- maybe (Left []) Right $ ansiTypeNameToDialect d "boolean"
+>                     return ("between", [t,t,t], ScalarType bt, False)
 >               "notbetween" | as@[_,_,_] <- argsType -> do
 >                     -- not sure if this is correct - use the result set resolution
 >                     -- to make the argument types compatible
@@ -181,7 +182,8 @@ against.
 >                     f1 <- lookupReturnType "<" [t,t]
 >                     f2 <- lookupReturnType ">" [t,t]
 >                     _ <- lookupFn "or" [f1,f2]
->                     return ("notbetween", [t,t,t], canType typeBool, False)
+>                     bt <- maybe (Left []) Right $ ansiTypeNameToDialect d "boolean"
+>                     return ("notbetween", [t,t,t], ScalarType bt, False)
 >               "greatest" -> do
 >                     (_,a,t,x) <- lookupFn fnName argsType
 >                     _ <- lookupFn ">=" [t,t]
@@ -200,9 +202,10 @@ against.
 >               _ | fnName `elem` ["=", "<>", "<=", ">=", "<", ">"]
 >                          && length argsType == 2
 >                          && all isCompositeOrSetOfCompositeType argsType,
+>                          Just bt <- ansiTypeNameToDialect d "boolean",
 >                          Just a1 <- matchCompTypes argsType ->
 >                          -- && compositesCompatible cat (head argsType) (head $ tail argsType) ->
->                              return (fnName, a1, canType typeBool, False)
+>                              return (fnName, a1, ScalarType bt, False)
 >               --checked for all special cases, so run general case now
 >               s -> lookupFn s argsType
 >     where
@@ -228,8 +231,6 @@ against.
 >         then Nothing
 >         else Just [a,b]
 >       matchCompTypes _ = Nothing
->       canType (ScalarType t) = ScalarType $ canonicalizeTypeName d t
->       canType t = t
 
 >
 > findCallMatch1 :: Catalog -> Text -> [Type] ->  Either [TypeError] OperatorPrototype

@@ -17,11 +17,12 @@ truncate
 > import Database.HsSqlPpp.Tests.TestTypes
 > --import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.Dialect
 > --import Database.HsSqlPpp.TypeChecker
 > import Database.HsSqlPpp.Types
 
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
-> import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
+> --import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
 
 > updates :: Item
 > updates =
@@ -235,5 +236,6 @@ check table names + schema options
 >                   [("a", mkCatNameExtra "int4")
 >                   ,("b", mkCatNameExtra "text")]]
 >     tcStatements cus =
->         let cat = makeCatalog PostgreSQL cus defaultTemplate1Catalog
->         in TCStatements cat defaultTypeCheckFlags
+>         let cat = makeCatalog postgresDialect cus
+>         in TCStatements cat defaultTypeCheckFlags {tcfDialect=postgresDialect}
+>     typeInt = ScalarType "int4"

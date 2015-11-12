@@ -46,8 +46,21 @@ attr Name
   inh tpe :: {Either [TypeError] TypeExtra}
 
 sem TypeName
+     | SimpleTypeName ArrayTypeName SetOfTypeName PrecTypeName Prec2TypeName
+         loc.canType :: {[NameComponent] -> [NameComponent]}
+         loc.canType = \x -> case x of
+                          -- todo: built in types might also exist in a schema
+                          -- maybe this should be in the catalog lookup code, which will match a typename
+                          -- and return the canonical name. Have to
+                          -- refactor the code because the dialect
+                          -- contains the catalog at the moment and
+                          -- this change would need the catalog to
+                          -- access the dialect
+                          [t] -> [transformBi (\y -> case
+                                     y of y' -> canonicalizeTypeName (tcfDialect @lhs.flags) y') t]
+                          _ -> x
      | SimpleTypeName
-         loc.tpe = mkTypeExtraNN `liftM` catLookupType @lhs.cat (nameComponents @tn.originalTree)
+         loc.tpe = mkTypeExtraNN `liftM` catLookupType @lhs.cat (@loc.canType $ nameComponents @tn.originalTree)
 {-
 todos: check the array type exists
 check that this type can be used as a setof
@@ -56,10 +69,10 @@ check that the type can accept one or two modifiers
 
      | ArrayTypeName
         loc.tpe = maybe (Left []) Right @typ.namedType
-                  >>=  Right . (\t -> t{teType = ArrayType $ teType t})
+                  >>= Right . (\t -> t{teType = ArrayType $ teType t})
      | SetOfTypeName
         loc.tpe = maybe (Left []) Right @typ.namedType
-                  >>=  Right . (\t -> t{teType = Pseudo $ SetOfType $ teType t})
+                  >>= Right . (\t -> t{teType = Pseudo $ SetOfType $ teType t})
      | PrecTypeName
         loc.tpe = ((\t -> t{tePrecision = Just $ fromIntegral @prec}) . mkTypeExtraNN)
                   `liftM` catLookupType @lhs.cat (nameComponents @tn.originalTree)

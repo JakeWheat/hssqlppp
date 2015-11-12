@@ -11,6 +11,7 @@ Tests for oracle syntax variations
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
 > import Database.HsSqlPpp.Tests.TestTypes
+> import Database.HsSqlPpp.Dialect
 
 > oracle :: Item
 > oracle =
@@ -41,4 +42,4 @@ expression syntax which represents a (+) suffix.
 >   ]
 >   where
 >     qs = QueryStatement ea
->     ora = ParseStmts defaultParseFlags {pfDialect=Oracle}
+>     ora = ParseStmts defaultParseFlags {pfDialect=oracleDialect}

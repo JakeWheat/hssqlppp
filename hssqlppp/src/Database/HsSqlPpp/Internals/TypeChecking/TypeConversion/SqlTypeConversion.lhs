@@ -40,7 +40,7 @@ the other is a text type, then cast the text to number.
 > findCallMatch :: Dialect -> Catalog -> Text -> [Type] ->  Either [TypeError] OperatorPrototype
 > findCallMatch d cat fnName argsType =
 >   case argsType of
->      [_a,_b] | Just x <- checkOperator cat fnName argsType -> Right x
+>      [_a,_b] | Just x <- checkOperator d cat fnName argsType -> Right x
 >      _ -> T.findCallMatch d cat fnName argsType
 
 hack to allow implicit casting one of the args to a numeric operator
@@ -52,8 +52,8 @@ match an exact operator itself with two args the same numeric type
 - in this case, cast the text arg to the numeric type and return a match
 
 
-> checkOperator :: Catalog -> Text -> [Type] -> Maybe OperatorPrototype
-> checkOperator cat fnName [a,b] | Just t <- ty a b =
+> checkOperator :: Dialect -> Catalog -> Text -> [Type] -> Maybe OperatorPrototype
+> checkOperator d cat fnName [a,b] | Just t <- ty a b =
 >   -- have the argument type in t
 >   -- find all the matching fns by name
 >   let nm = catLookupFns cat fnName
@@ -68,10 +68,9 @@ match an exact operator itself with two args the same numeric type
 >     ty a' b' | isText a' && isNumber b' = Just b'
 >     ty _ _ = Nothing
 >     isNumber x =
->       x `elem` [typeSmallInt,typeBigInt,typeInt
->                ,typeNumeric,typeFloat4,typeFloat8]
+>       x `elem` (map ScalarType $ diNumberTypes d)
 >     --isNumber _ = False
 >     isText x =
->       x `elem` [typeVarChar,typeChar, ScalarType "text"]
+>       x `elem` (map ScalarType $ diTextTypes d)
 >     --isText _ = False
-> checkOperator _ _ _ = Nothing
+> checkOperator _ _ _ _ = Nothing

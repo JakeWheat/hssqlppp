@@ -51,6 +51,7 @@ right choice, but it seems to do the job pretty well at the moment.
 > import Database.HsSqlPpp.Annotation as A
 > import Database.HsSqlPpp.Internals.Utils
 > import Database.HsSqlPpp.Internals.Dialect
+> import Database.HsSqlPpp.Dialect
 > import Data.Text (Text)
 > import qualified Data.Text as T
 > --import qualified Data.Text.Lazy as LT
@@ -119,7 +120,7 @@ Top level parsing functions
 >        -> Either ParseErrorExtra [Token]
 > lexem d fn sp src =
 >   let ts :: Either ParseErrorExtra [Token]
->       ts = either (error . show) Right
+>       ts = either (\e -> Left $ ParseErrorExtra e sp src) Right
 >             $ Lex.lexTokens d fn sp $ T.concat $ L.toChunks src
 >   in --trace ((\(Right r) -> intercalate "\n" $ map show r) ts) $
 >      filter keep `fmap` ts
@@ -140,7 +141,7 @@ state is never updated during parsing
 >     deriving (Show,Eq)
 
 > defaultParseFlags :: ParseFlags
-> defaultParseFlags = ParseFlags {pfDialect = PostgreSQL}
+> defaultParseFlags = ParseFlags {pfDialect = postgresDialect}
 
 
 > type ParseState = ParseFlags
@@ -148,12 +149,12 @@ state is never updated during parsing
 > isSqlServer :: SParser Bool
 > isSqlServer = do
 >   ParseFlags {pfDialect = d} <- getState
->   return $ d == SQLServer
+>   return $ diSyntaxFlavour d == SqlServer
 
 > isOracle :: SParser Bool
 > isOracle = do
 >   ParseFlags {pfDialect = d} <- getState
->   return $ d == Oracle
+>   return $ diSyntaxFlavour d == Oracle
 
 couple of wrapper functions for the quoting
 
@@ -1535,7 +1536,7 @@ sql dbmss.
 >          ,binary "&" AssocLeft
 >          ,binary "<->" AssocNone
 >          ,binary "||" AssocLeft]
->          ++ [prefix "@" "@" | d == PostgreSQL]
+>          ++ [prefix "@" "@" | diSyntaxFlavour d == Postgres]
 >          -- Stop custom operators.
 >          --in should be here, but is treated as a factor instead
 >          --between

@@ -11,8 +11,9 @@
 > --import Database.HsSqlPpp.TypeChecker
 > import Data.Text.Lazy (pack)
 > import Database.HsSqlPpp.Types
+> import Database.HsSqlPpp.Dialect
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
-> import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
+> --import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
 
 > tsqlQueryExprs :: Item
 > tsqlQueryExprs =
@@ -128,5 +129,10 @@ todo: add new dialect and stuff for oracle
 >   ]
 >   where
 >     tsqlQueryExpr cus =
->         let cat = makeCatalog PostgreSQL cus defaultTSQLCatalog
->         in TCQueryExpr cat defaultTypeCheckFlags {tcfDialect = SQLServer}
+>         let cat = makeCatalog sqlServerDialect cus
+>         in TCQueryExpr cat defaultTypeCheckFlags {tcfDialect = sqlServerDialect}
+>     typeInt = ScalarType "int4"
+>     typeSmallInt = ScalarType "int2"
+>     typeDate = ScalarType "date"
+>     typeBigInt = ScalarType "int8"
+>     typeFloat8 = ScalarType "float8"

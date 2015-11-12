@@ -36,11 +36,12 @@ https://msdn.microsoft.com/en-us/library/ms711813(v=vs.85).aspx
 > --import Database.HsSqlPpp.Ast
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.Dialect
 
 > --import Database.HsSqlPpp.Tests.Parsing.Utils
 > import Database.HsSqlPpp.Tests.TestTypes
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
-> import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
+> --import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
 
 > odbcTypechecking:: Item
 > odbcTypechecking =
@@ -101,8 +102,15 @@ https://msdn.microsoft.com/en-us/library/ms711813(v=vs.85).aspx
 
 >   ]
 >   where
->     scalExpr = TCScalExpr defaultTemplate1Catalog emptyEnvironment
->                           defaultTypeCheckFlags
+>     scalExpr = TCScalExpr (diDefaultCatalog postgresDialect) emptyEnvironment
+>                           defaultTypeCheckFlags {tcfDialect = postgresDialect}
 >     tcQueryExpr cus =
->         let cat = makeCatalog PostgreSQL cus defaultTemplate1Catalog
->         in TCQueryExpr cat defaultTypeCheckFlags
+>         let cat = makeCatalog postgresDialect cus
+>         in TCQueryExpr cat defaultTypeCheckFlags {tcfDialect = postgresDialect}
+>     typeDate = ScalarType "date"
+>     typeTimestamp = ScalarType "timestamp"
+>     typeInt = ScalarType "int4"
+>     typeBigInt = ScalarType "int8"
+>     typeTime = ScalarType "time"
+>     typeFloat8 = ScalarType "float8"
+

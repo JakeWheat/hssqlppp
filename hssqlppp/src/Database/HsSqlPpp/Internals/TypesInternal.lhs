@@ -8,11 +8,11 @@ notes on what the types are for and how they are used in postgres.
 >
 > import Data.Data
 > --import Data.Generics.Uniplate.Data
-> import Data.Char
+> --import Data.Char
 > import Data.Text (Text)
-> import qualified Data.Text as T
-> import Database.HsSqlPpp.Internals.Dialect
-> import Data.List
+> --import qualified Data.Text as T
+> --import Database.HsSqlPpp.Internals.Dialect
+> --import Data.List
 > --import Debug.Trace
 
 > --import Control.Monad.Error
@@ -203,7 +203,7 @@ TODO: remove these aliases
 > -- | Using these gives the hssqlppp canonical names of these
 > -- types, which have multiple names in postgres and SQL. The names which
 > -- hssqlppp uses as canonical are the names that postgres uses in a pg_dump.
-> typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4,
+> {-typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4,
 >   typeFloat8,typeVarChar,typeChar,typeBool,typeDate,
 >   typeTime,typeTimestamp, typeInterval :: Type
 > typeSmallInt = ScalarType "int2"
@@ -218,7 +218,7 @@ TODO: remove these aliases
 > typeDate = ScalarType "date"
 > typeTime = ScalarType "time"
 > typeTimestamp = ScalarType "timestamp"
-> typeInterval = ScalarType "interval"
+> typeInterval = ScalarType "interval"-}
 
 > {-traceit :: Show a => String -> a -> a
 > traceit m a = trace (m ++ ": " ++ show a) a-}
@@ -242,7 +242,7 @@ also (which is dependent on the dialect).
 
 > -- | convert the name of a type to its canonical name. For types
 > -- without multiple names, it returns the name unchanged
-> canonicalizeTypeName :: Dialect -> Text -> Text
+> {-canonicalizeTypeName :: Dialect -> Text -> Text
 > canonicalizeTypeName d = ct (tm d)
 >   where
 >     tm ANSI = ansiTypeNames
@@ -302,7 +302,7 @@ names.
 >      -- probably some missing here
 >     ,("varchar", ["character varying"])
 >     ,("char", ["character"])
->     ,("bool", ["boolean"])]
+>     ,("bool", ["boolean"])]-}
 
 TODO:
 

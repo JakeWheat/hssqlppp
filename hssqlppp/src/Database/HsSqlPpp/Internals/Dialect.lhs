@@ -1,43 +1,169 @@
 
-> module Database.HsSqlPpp.Internals.Dialect where
 
-> -- | The dialect of SQL to use for parsing, pretting printing or
-> -- typechecking.
-> data Dialect = ANSI
->              | PostgreSQL
->              | SQLServer
->              | Oracle
->              deriving (Show,Eq)
+New approach to dialacts, more rule driven so all the options for a
+dialect can appear here.
 
-dialects to consider adding:
-db2, teradata, mysql, ...
+It would be nice to make the dialects completely rule driven, but I
+think this is much less maintainable than making them mainly rule
+driven (primarily via the catalogs), but with some special cases
+scattered in the source code.
 
-Dialect todo:
+The dialect contains:
+the name of the dialect
+some parsing options about what syntax is supported
+some options about typechecking support
 
-have to figure out what goes in the dialect and what goes in the
-catalog. Maybe the catalog should be part of the dialect?
+flags to control the details of the dialect (for instance, some
+dialects have additional options to specify which kinds of string
+literal escapes are valid, so this is like subdialect
+
+stuff about types:
+
+canonical names of types with multiple names (these are only the
+built in types, user/catalog driven type aliases are not covered here)
+the built in text types
+the built in datetime types
+
+default catalog for this dialect
 
 
-Choices:
+then supplied with hssqlppp are:
+base dialect with minimal stuff in it
+ansi2011 dialect
+recent-ish postgresql dialect
+recent-ish sql server dialect
+recent-ish oracle dialect
 
-type aliases
-schema search path behaviour
-schema for internal stuff
-which builtins/special syntax supported
+the idea is that if you have one of these dialects, you can start here
+then add your own catalog entries and use it as is. If your dialect is
+not here, and is it similar enough to an existing dialect, you can
+take that dialect and
+    a) modify some of the dialect options
+    b) modify the default catalog
+    and you will get something useful
 
-types for literals: can use the unknown style, or type them as strings
-or numbers
+if the dialect is too different, then you will have to edit the
+hssqlppp source.
 
-what kind of cases to support (e.g. don't allow multi test when
-branches)
+> {-# LANGUAGE DeriveDataTypeable #-}
+> module Database.HsSqlPpp.Internals.Dialect
+>     (Dialect(..)
+>     ,SyntaxFlavour(..)
+>     ,canonicalizeTypeName
+>     ,ansiTypeNameToDialect) where
 
-positionalarg,placeholder,host parameter
-extended aggregates
-window support
-subquery variations
-odbc
-arrays, multisets
-collations
-next value for
+> import Database.HsSqlPpp.Internals.Catalog.CatalogTypes
+> import Data.Data
+> import Data.Text (Text)
+> import qualified Data.Text as T
+> import Data.List (find)
+> import Data.Char (toLower)
 
-what kind of things are in ansi but not all products support?
+> data Dialect = Dialect
+>      {diName :: String
+
+represent the syntax variations with a crude enum. Later, can make
+this more rule driven.
+
+>      ,diSyntaxFlavour :: SyntaxFlavour
+
+map from alternative names to the canonical name of built in
+types. This is used e.g. because in ansi the canonical name of boolean
+type is 'boolean', and in postgresql the canonical name of this type
+is 'bool'.
+These should all be in lower case
+
+>      ,diCanonicalTypeNames :: [(Text,[Text])]
+
+the names of the built in text types. This is used to help type check
+built in functions like substring?
+
+>      ,diTextTypes :: [Text] -- names of the text types (canonical names must be used)
+
+used to typecheck things like extract
+
+todo: create a single function which takes the ansi name of a type and
+returns the dialect specific name (as a maybe) - then don't have to
+have a huge number of functions here.
+
+Also, these functions should be -TypeName not -Type.
+
+>      ,diDatetimeTypes :: [Text]
+>      ,diNumberTypes :: [Text] -- names of the number types (canonical names must be used)
+>      -- this is a map from the canonical ansi name (in hssqlppp)
+>      -- to the canonical name in the dialect
+>      -- if there is no entry, then it means that type isn't
+>      -- supported in this dialect
+>      ,namesForAnsiTypes :: [(Text,Text)]
+>      --,diBooleanType :: Text -- canonical name of the boolean type
+
+>      {-,diNumericType :: Text -- TODO: canonical name of numeric type
+>                             -- sometimes given to literals numbers
+>                             -- with decimal point
+>      ,diIntType :: Text -- TODO: canonical name of numeric type
+>                         -- sometimes given to literals numbers
+>                         -- without decimal point
+>      ,diDateType :: Text
+>      ,diTimeType :: Text
+>      ,diTimestampType :: Text-}
+
+A small issue with having the default catalog like this is that we can
+make a programming error where we have a function which takes the
+dialect and a catalog, and we use this default catalog instead of the
+supplied updated catalog.
+
+>      ,diDefaultCatalog :: Catalog
+>      } deriving (Eq,Show,Data,Typeable)
+
+> data SyntaxFlavour = Ansi | Postgres | SqlServer | Oracle
+>                      deriving (Eq,Show,Data,Typeable)
+
+> ansiTypeNameToDialect :: Dialect -> Text -> Maybe Text
+> ansiTypeNameToDialect d n = lookup n (namesForAnsiTypes d)
+
+> canonicalizeTypeName :: Dialect -> Text -> Text
+> canonicalizeTypeName d s =
+>     let m = diCanonicalTypeNames d
+>     in ct m s
+>   where
+>     hasType t p = let t' = T.map toLower t
+>                   in t' `elem` snd p
+>     ct m tn = maybe tn fst
+>               $ find (hasType tn) m
+
+todo
+
+replaces: canonicalize type name
+  type name aliases
+  catalog values
+
+move the catalogs to the dialects directory
+
+
+1. flags for parser, lexer:
+just use a dialect enum for now for these parts
+
+create ansi dialect
+postgresql
+sqlserver
+oracle
+
+
+consider how the catalog in the dialect can help with parsing
+operators
+
+minimal dialects:
+mainly missing types then following through on implications:
+no text types
+only one text type covering char,varchar,nclob, etc.
+no numeric or decimal
+on decimal for all integers and precise decimals
+no date or time types
+
+
+Types:
+typeextra: needs fixing
+how to represent e.g. 'varchar' without precision
+
+invent some sort of concrete syntax (which is parseable) to
+represent implicit casts (cast implicit x as varchar)?

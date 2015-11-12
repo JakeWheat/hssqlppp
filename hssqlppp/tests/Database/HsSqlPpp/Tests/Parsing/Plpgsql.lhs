@@ -7,6 +7,7 @@
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
 > import Database.HsSqlPpp.Tests.TestTypes
+> import Database.HsSqlPpp.Dialect
 
 > pgplsql :: Item
 > pgplsql =
@@ -157,4 +158,4 @@
 >       [NullStatement ea]]
 >     ]]
 >  where
->    f = ParseProcSql defaultParseFlags {pfDialect=PostgreSQL}
+>    f = ParseProcSql defaultParseFlags {pfDialect=postgresDialect}

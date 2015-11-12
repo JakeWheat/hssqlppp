@@ -5,6 +5,7 @@ import qualified Database.HsSqlPpp.Internals.TypeChecking.Environment as E
 import Database.HsSqlPpp.Internals.TypeChecking.Environment (Environment)
 import Database.HsSqlPpp.Internals.TypesInternal
 import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+import Database.HsSqlPpp.Internals.Dialects.Postgres
 import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.TypeConversion
 import Control.Monad
 import Data.List
@@ -40,7 +41,7 @@ defaultTypeCheckFlags =
     ,tcfAddFullTablerefAliases = False
     ,tcfAddSelectItemAliases = False
     ,tcfExpandStars = False
-    ,tcfDialect = PostgreSQL}
+    ,tcfDialect = postgresDialect}
 
 -- | Typechecks the ast, and returns the updated catalog (which
 -- includes changes from any ddl statements in the ast).
@@ -54,7 +55,7 @@ typeCheckStatements f cat sts =
         tl = annotatedTree_Syn_Root ta
         cat1 = cat --producedCat_Syn_Root ta
     in case tl of
-         Root r -> (cat1,fixTree r)
+         Root r -> (cat1,fixTree (tcfDialect f) r)
 -- | Typecheck a query expr
 typeCheckQueryExpr :: TypeCheckFlags -> Catalog -> QueryExpr -> QueryExpr
 typeCheckQueryExpr f cat qe =
@@ -105,7 +106,7 @@ typeCheckScalarExpr f cat env ex =
                                       ,flags_Inh_ScalarExprRoot = f
                                       ,downEnv_Inh_ScalarExprRoot = env}
     in case rt of
-         ScalarExprRoot e -> fixTree e
+         ScalarExprRoot e -> fixTree (tcfDialect f) e
 
 }
 
@@ -238,7 +239,7 @@ nameOfType (NamedCompositeType t) = Just $ SimpleTypeName emptyAnnotation (Name 
 nameOfType _ = Nothing
 
 -- hack for various fixups
-fixTree :: Data a => a -> a
+fixTree :: Data a => Dialect -> a -> a
 fixTree = fixMssqlDates
 
 {-
@@ -274,8 +275,8 @@ million different fns for precision and nullability/tcApplike mess.
 
 -}
 
-fixMssqlDates :: Data a => a -> a
-fixMssqlDates = transformBi $ \x -> case x of
+fixMssqlDates :: Data a => Dialect -> a -> a
+fixMssqlDates d = transformBi $ \x -> case x of
   App aa nm@(Name _ [Nmc fn]) [Identifier ai tn@(Name _ [Nmc tnn]),a,b]
     | map toLower fn == "datediff"
     , map toLower tnn `elem` ["hour"] ->
@@ -305,15 +306,15 @@ fixMssqlDates = transformBi $ \x -> case x of
                   ,"minute","mi","n","second","ss","s","millisecond","ms"
                   ,"microsecond","mcs","nanosecond","ns"]
       -- todo: use canonical tsql name for typeInt
-      nai ai = ai {anType = Just $ mkTypeExtraNN typeInt
+      nai ai = ai {anType = (mkTypeExtraNN . ScalarType) <$> ansiTypeNameToDialect d "int"
                   ,anErrs = []}
 
 
 -- temp utility function
 
-canonicalizeType :: Dialect -> Type -> Type
+{-canonicalizeType :: Dialect -> Type -> Type
 canonicalizeType d (ScalarType t) = ScalarType $ canonicalizeTypeName d t
-canonicalizeType _ t = t
+canonicalizeType _ t = t-}
 
 }
 

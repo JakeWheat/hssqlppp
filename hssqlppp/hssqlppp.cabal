@@ -45,6 +45,7 @@ Library
   hs-source-dirs:    src
   Exposed-modules:   Database.HsSqlPpp.Annotation
                      Database.HsSqlPpp.Catalog
+                     Database.HsSqlPpp.Dialect
                      Database.HsSqlPpp.LexicalSyntax
                      Database.HsSqlPpp.Parse
                      Database.HsSqlPpp.Pretty

@@ -13,6 +13,23 @@ TODO: this needs finishing
 > import Database.HsSqlPpp.Internals.TypesInternal
 > --import Database.HsSqlPpp.Internals.TypesInternal
 
+todo: we have to add odbc on top of different dialects, do some tests
+then figure out how to handle e.g. the canonical type names being
+different in different dialects.
+
+> typeBigInt,typeFloat8,typeChar,typeNumeric,typeFloat4,
+>   typeSmallInt,typeInt,typeDate,typeTimestamp,typeVarChar :: Type
+> typeBigInt = ScalarType "bigint"
+> typeFloat8 = ScalarType "float8"
+> typeChar = ScalarType "char"
+> typeNumeric = ScalarType "numeric"
+> typeFloat4 = ScalarType "float4"
+> typeSmallInt = ScalarType "int2"
+> typeInt = ScalarType "int4"
+> typeDate = ScalarType "date"
+> typeTimestamp = ScalarType "timestamp"
+> typeVarChar = ScalarType "varchar"
+
 > -- | The odbc catalog contains the odbc specific functions
 > -- if you want to type check sql with odbc specific functions, you
 > -- can add these catalog updates to your catalog and then it should

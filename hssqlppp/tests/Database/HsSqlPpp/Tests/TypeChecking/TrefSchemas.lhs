@@ -15,11 +15,12 @@ schemas affect typechecking of views and tables only currently
 > import Database.HsSqlPpp.Tests.TestTypes
 > --import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.Dialect
 > --import Database.HsSqlPpp.TypeChecker
 > import Database.HsSqlPpp.Types
 
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
-> import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
+> --import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
 
 > trefSchemas :: Item
 > trefSchemas =
@@ -55,5 +56,6 @@ schemas affect typechecking of views and tables only currently
 >                   [("a", mkCatNameExtra "int4")
 >                   ,("b", mkCatNameExtra "text")]]
 >     tcQueryExpr cus =
->         let cat = makeCatalog PostgreSQL cus defaultTemplate1Catalog
->         in TCQueryExpr cat defaultTypeCheckFlags
+>         let cat = makeCatalog postgresDialect cus
+>         in TCQueryExpr cat defaultTypeCheckFlags {tcfDialect=postgresDialect}
+>     typeInt = ScalarType "int4"

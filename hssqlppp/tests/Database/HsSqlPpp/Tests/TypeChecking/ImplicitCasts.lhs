@@ -5,7 +5,7 @@
 
 > import Database.HsSqlPpp.Tests.TestTypes
 > --import Database.HsSqlPpp.Types
-> --import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.Dialect
 > --import Database.HsSqlPpp.TypeCheck
 > import Data.Text.Lazy ()
 
@@ -24,4 +24,4 @@
 >   where
 >     e = ImpCastsScalar
 >     p = defaultTypeCheckFlags
->     s = defaultTypeCheckFlags {tcfDialect=SQLServer}
+>     s = defaultTypeCheckFlags {tcfDialect=sqlServerDialect}

@@ -5,7 +5,7 @@
 > import qualified Test.Tasty as T
 > import qualified Test.Tasty.HUnit as H
 > --import Data.List
-> --import Data.Generics.Uniplate.Data
+> import Data.Generics.Uniplate.Data
 > import Data.Data
 
 > import Debug.Trace
@@ -52,7 +52,9 @@
 > --import Control.Monad
 
 > --import Database.HsSqlPpp.Utils.GroomUtils
+
 > --import qualified Data.Text.Lazy as L
+> import Database.HsSqlPpp.Dialect
 
 > assertTrace :: (Show a,Eq a) => String -> String -> a -> a -> IO ()
 > assertTrace nem s a1 a2 = do
@@ -78,7 +80,7 @@
 > itemToTft (TCScalExpr c e f s r) = testTCScalarExpr c e f s r
 > itemToTft (TCQueryExpr cat f s r) = testQueryExprType cat f s r
 > itemToTft (TCStatements cat f s r) = testStatementsTypecheck cat f s r
-> itemToTft (InsertQueryExpr cus s r) = testInsertQueryExprType SQLServer {-PostgreSQL-} cus s r
+> itemToTft (InsertQueryExpr cus s r) = testInsertQueryExprType sqlServerDialect {-PostgreSQL-} cus s r
 > --itemToTft (TSQLQueryExpr cus s r) = undefined --testQueryExprType SQLServer cus s r
 > --itemToTft (OracleQueryExpr cus s r) = undefined --testQueryExprType Oracle cus s r
 > itemToTft (RewriteQueryExpr f cus s s') = testRewrite f cus s s'
@@ -196,7 +198,7 @@
 >   let ast = case parseScalarExpr defaultParseFlags "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
->       aast = typeCheckScalarExpr f defaultTemplate1Catalog emptyEnvironment
+>       aast = typeCheckScalarExpr f (diDefaultCatalog postgresDialect) emptyEnvironment
 >              $ canonicalizeTypeNames (tcfDialect f) ast
 >       aast' = addExplicitCasts aast
 >       wast = case parseScalarExpr defaultParseFlags "" Nothing wsrc of
@@ -287,16 +289,8 @@
 
 > testInsertQueryExprType :: Dialect -> [CatalogUpdate] -> L.Text -> Either [TypeError] Type -> T.TestTree
 > testInsertQueryExprType dl cus src et = H.testCase ("typecheck " ++ L.unpack src) $ do
->   let cat = makeCatalog dl cus $ case dl of
->           ANSI -> ansiCatalog
->           PostgreSQL -> defaultTemplate1Catalog
->           SQLServer -> defaultTSQLCatalog
->           Oracle -> defaultTSQLCatalog
->       flg = case dl of
->           ANSI -> defaultTypeCheckFlags {tcfDialect = ANSI}
->           PostgreSQL -> defaultTypeCheckFlags
->           SQLServer -> defaultTypeCheckFlags {tcfDialect = SQLServer}
->           Oracle -> defaultTypeCheckFlags {tcfDialect = Oracle}
+>   let cat = makeCatalog dl cus
+>       flg = defaultTypeCheckFlags {tcfDialect = dl}
 >       asts = either (error . show) id $ parseStatements defaultParseFlags "" Nothing src
 >       Insert _ _ _ q _ = extractInsert $ snd $ typeCheckStatements flg cat
 >                          $ canonicalizeTypeNames (tcfDialect flg) asts
@@ -331,7 +325,7 @@ type checks properly and produces the same type
 >   let ast = case parseQueryExpr defaultParseFlags "" Nothing src of
 >               Left e -> error $ "parse: " ++ L.unpack src ++ "\n" ++ show e
 >               Right l -> l
->   let cat = makeCatalog PostgreSQL cus defaultTemplate1Catalog
+>   let cat = makeCatalog postgresDialect cus
 >       aast = typeCheckQueryExpr
 >                defaultTypeCheckFlags {tcfAddQualifiers = True
 >                                         ,tcfAddSelectItemAliases = True
@@ -375,7 +369,7 @@ type checks properly and produces the same type
 >                  "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
->       cat = makeCatalog (tcfDialect f) cus defaultTemplate1Catalog
+>       cat = makeCatalog (tcfDialect f) cus
 >       aast = typeCheckQueryExpr f cat ast
 >       astrw = resetAnnotations aast
 >       ast' = case parseQueryExpr defaultParseFlags "" Nothing src' of
@@ -408,6 +402,11 @@ type checks properly and produces the same type
 > testMatchApp d cat f as r = H.testCase (show f ++ show as) $
 >     H.assertEqual "" r $ matchApp d cat f as
 
+
+> canonicalizeTypeNames :: Data a => Dialect -> a -> a
+> canonicalizeTypeNames d = transformBi $ \x -> case x of
+>     ScalarType t -> ScalarType $ canonicalizeTypeName d t
+>     _ -> x
 
 ~~~~
 TODO

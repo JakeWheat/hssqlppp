@@ -8,6 +8,7 @@
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Tests.TestTypes
 > import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.Dialect
 > --import Database.HsSqlPpp.Internals.TypeChecking.Environment
 > --import Database.HsSqlPpp.Tests.TypeChecking.Utils
 > import qualified Data.Text.Lazy as T
@@ -165,12 +166,12 @@ todo: normal cases
 
 todo: position
 
->    ,Group "numeric value function simple" $
+>    {-,Group "numeric value function simple" $
 >    [see [("a", mkTypeExtra $ ScalarType t)]
 >      e $ Right $ ScalarType "int"
 >      | e <- ["char_length(a)", "character_length(a)"
->             {-,"octet_length(a)"-} ]
->      , t <- textTypes ]
+>             ,"octet_length(a)"]
+>      , t <- textTypes ] -}
 
 todo: char_length with using
 
@@ -217,10 +218,10 @@ anomalies
 
 >   ]
 >   where
->     se = TCScalExpr ansiCatalog emptyEnvironment
->                     defaultTypeCheckFlags {tcfDialect=ANSI}
->     see env = TCScalExpr ansiCatalog (selListEnv env)
->               defaultTypeCheckFlags {tcfDialect=ANSI}
+>     se = TCScalExpr (diDefaultCatalog ansiDialect) emptyEnvironment
+>                     defaultTypeCheckFlags {tcfDialect=ansiDialect}
+>     see env = TCScalExpr (diDefaultCatalog ansiDialect) (selListEnv env)
+>               defaultTypeCheckFlags {tcfDialect=ansiDialect}
 >     selListEnv env = either (const brokeEnvironment) id
 >                      $ envSelectListEnvironment env
 >     numericTypes = ["numeric", "decimal", "smallint", "int", "bigint", "float", "real"]

@@ -7,7 +7,8 @@
 > import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
 
 
-> import Database.HsSqlPpp.Types
+> --import Database.HsSqlPpp.Types
+> import Database.HsSqlPpp.Dialect
 >
 >
 > caseExpressions :: Item
@@ -55,6 +56,7 @@
 >                                          ,ScalarType "bool"]]
 >      ]
 >  where
->    e = TCScalExpr defaultTemplate1Catalog emptyEnvironment
->                           defaultTypeCheckFlags
-
+>    e = TCScalExpr (diDefaultCatalog postgresDialect) emptyEnvironment
+>            defaultTypeCheckFlags
+>    typeInt = ScalarType "int4"
+>    typeBool = ScalarType "bool"

@@ -4,7 +4,8 @@
 >     (scalarExprs) where
 
 > import Database.HsSqlPpp.Types
-> import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
+> --import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
+> import Database.HsSqlPpp.Dialect
 
 > import Database.HsSqlPpp.Tests.TestTypes
 
@@ -37,5 +38,9 @@
 >     ]
 >   ]
 >   where
->     scalExpr = TCScalExpr defaultTemplate1Catalog emptyEnvironment
+>     scalExpr = TCScalExpr (diDefaultCatalog postgresDialect) emptyEnvironment
 >                           defaultTypeCheckFlags
+>     typeBool = ScalarType "bool"
+>     typeInt = ScalarType "int4"
+>     typeBigInt = ScalarType "int8"
+>     typeNumeric = ScalarType "numeric"

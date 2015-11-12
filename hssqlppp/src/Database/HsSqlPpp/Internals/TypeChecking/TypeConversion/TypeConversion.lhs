@@ -82,7 +82,12 @@ This needs a lot more tests
 >     -- need to think of a better way to handle this when
 >     -- have a better idea of all the weird syntax used in
 >     -- tsql
->     matchApp' SQLServer [Nmc dd] [_
+>     -- this is a todo since currently the sql server dialect uses
+>     -- postgresql type names, and this is about to be fixed
+>     typeInt = error "sql server date functions todo"
+>     typeDate = error "sql server date functions todo"
+>     matchApp' (Dialect {diSyntaxFlavour = SqlServer})
+>                   [Nmc dd] [_
 >                                  ,ScalarType "date"
 >                                  ,ScalarType "date"]
 >       | map toLower dd == "datediff" =
@@ -90,26 +95,26 @@ This needs a lot more tests
 >       -- first is identifier from list
 >       -- other two are date types
 >       Right ([typeInt,typeDate,typeDate], typeInt)
->     matchApp' SQLServer [Nmc dd] [_,ScalarType "date"]
+>     matchApp' (Dialect {diSyntaxFlavour = SqlServer}) [Nmc dd] [_,ScalarType "date"]
 >       | map toLower dd == "datepart" =
 >       Right ([typeInt,typeDate], typeInt)
 
->     matchApp' SQLServer [Nmc dd] [_,ScalarType "timestamp"]
+>     matchApp' (Dialect {diSyntaxFlavour = SqlServer}) [Nmc dd] [_,ScalarType "timestamp"]
 >       | map toLower dd == "datepart" =
 >       Right ([typeInt,(ScalarType "timestamp")], typeInt)
 
 
->     matchApp' SQLServer [Nmc dd] [_,_,ScalarType "date"]
+>     matchApp' (Dialect {diSyntaxFlavour = SqlServer}) [Nmc dd] [_,_,ScalarType "date"]
 >       | map toLower dd == "dateadd" =
 >       Right ([typeInt,typeInt,typeDate], typeDate)
 
->     matchApp' SQLServer [Nmc dd] [_,_,ScalarType "timestamp"]
+>     matchApp' (Dialect {diSyntaxFlavour = SqlServer}) [Nmc dd] [_,_,ScalarType "timestamp"]
 >       | map toLower dd == "dateadd" =
 >       Right ([typeInt,typeInt,ScalarType "timestamp"], ScalarType "timestamp")
 
 double hack: support oracle decode when in tsql mode:
 
->     matchApp' SQLServer [Nmc dd] as
+>     matchApp' (Dialect {diSyntaxFlavour = SqlServer}) [Nmc dd] as
 >       | map toLower dd == "decode" =
 
 decode is just syntax for simple case statement:
@@ -128,7 +133,7 @@ if there is a single trailing argument this is the else
 >             let checkBranches [] acc = return $ reverse acc
 >                 checkBranches [els] acc = return $ reverse (els:acc)
 >                 checkBranches (w:t:xs) acc = do
->                   _ <- matchApp' SQLServer [Nmc "="] [tt,w]
+>                   _ <- matchApp' d [Nmc "="] [tt,w]
 >                   checkBranches xs (t:acc)
 >             sndTypes <- checkBranches as' []
 
@@ -145,7 +150,7 @@ todo: add the implicit casting where needed
 
 >     matchApp' d' nmcs' pts = {-trace ("matchapp: " ++ show (d,nmcs,pts)) $ -} do
 >       (_,ps,r,_) <- case d' of
->                       SQLServer -> TSQL.findCallMatch d' cat nm pts
+>                       (Dialect {diSyntaxFlavour = SqlServer}) -> TSQL.findCallMatch d' cat nm pts
 >                       _ -> findCallMatch d' cat nm pts
 >       return (ps,r)
 >       where
@@ -470,17 +475,20 @@ datepart). This is a horrible hack and will be fixed.
 >     | map toLower dd == "datediff" = do
 >   -- dodgy hack for datediff
 >   tys <- mapM (maybe (Left []) Right) [a0,a1]
+>   let typeInt = error "tcAppLike sql server date functions todo"
 >   let --Name _ ns = anm
 >   (ats,rt) <- matchAppExtra d cat anm lits (mkTypeExtraNN typeInt : tys)
 >   return (ats,rt)
 > tcAppLike d cat anm@[Nmc dd] lits [_,a0]
 >     | map toLower dd == "datepart" = do
 >   tys <- mapM (maybe (Left []) Right) [a0]
+>   let typeInt = error "tcAppLike sql server date functions todo"
 >   (ats,rt) <- matchAppExtra d cat anm lits (mkTypeExtraNN typeInt : tys)
 >   return (ats,rt)
 > tcAppLike d cat anm@[Nmc dd] lits [_,a0,a1]
 >     | map toLower dd == "dateadd" = do
 >   tys <- mapM (maybe (Left []) Right) [a0,a1]
+>   let typeInt = error "tcAppLike sql server date functions todo"
 >   (ats,rt) <- matchAppExtra d cat anm lits (mkTypeExtraNN typeInt : tys)
 >   return (ats,rt)
 
@@ -498,6 +506,7 @@ datepart). This is a horrible hack and will be fixed.
 >     | map toLower dd `elem` ["!odbc-timestampadd","!odbc-timestampdiff"] = do
 >   tys <- mapM (maybe (Left []) Right) [a0,a1]
 >   --let Name _ ns = anm
+>   let typeInt = error "tcAppLike sql server date functions todo"
 >   (ats,rt) <- matchAppExtra d cat anm [] (mkTypeExtraNN typeInt : tys)
 >   return (ats,rt)
 

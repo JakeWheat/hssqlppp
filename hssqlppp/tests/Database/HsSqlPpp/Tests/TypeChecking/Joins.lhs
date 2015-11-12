@@ -8,7 +8,8 @@
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
 > import Database.HsSqlPpp.Catalog
-> import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
+> import Database.HsSqlPpp.Dialect
+> --import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
 
 
 > joins :: Item
@@ -95,5 +96,8 @@
 >                    ,CatCreateTable ("public","t1") [("c", mkCatNameExtra "int4")
 >                                         ,("d", mkCatNameExtra "text")]]
 >     tcQueryExpr cus =
->         let cat = makeCatalog PostgreSQL cus defaultTemplate1Catalog
+>         let cat = makeCatalog postgresDialect cus
 >         in TCQueryExpr cat defaultTypeCheckFlags
+>     typeInt = ScalarType "int4"
+>     typeNumeric = ScalarType "numeric"
+>     typeBool = ScalarType "bool"

@@ -65,6 +65,8 @@ not quite right
 >     _unk = TypeExtra UnknownType Nothing Nothing False
 >     _te s = TypeExtra s Nothing Nothing False
 >     _numeric = TypeExtra typeNumeric (Just 15) (Just 2) False
+>     typeInt = ScalarType "int4"
+>     typeNumeric = ScalarType "numeric"
 
 text conversions
   do something similar to numeric with pairs of string types

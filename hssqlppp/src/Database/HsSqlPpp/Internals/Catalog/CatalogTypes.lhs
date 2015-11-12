@@ -52,7 +52,7 @@
 > mkCatNameExtraNN cn = CatNameExtra cn Nothing Nothing False
 
 > data CompositeFlavour = Composite | TableComposite | ViewComposite
->                         deriving (Eq,Ord,Show)
+>                         deriving (Eq,Show,Ord,Data,Typeable)
 
 > -- | name, inparams, outtype, is variadic?
 > type OperatorPrototype = (CatName, [Type], Type, Bool)
@@ -85,7 +85,7 @@
 >      -- save the updates
 >     ,catUpdates :: [CatalogUpdate]
 >     }
->                deriving Show
+>                deriving (Eq,Show,Data,Typeable)
 
 
 > -- | Use to note what the flavour of a cast is, i.e. if/when it can

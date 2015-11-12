@@ -5,8 +5,8 @@
 >    ,ParseFlags(..)
 >    ,TypeCheckFlags(..)
 >    ,Item(..)
->    ,defaultTemplate1Catalog
->    ,ansiCatalog
+>    --,defaultTemplate1Catalog
+>    --,ansiCatalog
 >    ,emptyEnvironment
 >    ,makeCatalog
 >    ,hackCanonicalizeEnvTypeNames
@@ -28,10 +28,11 @@
 > import Database.HsSqlPpp.TypeCheck
 > --import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.Dialect
 > --import Database.HsSqlPpp.Ast hiding (App)
 > import Database.HsSqlPpp.Types
 > --import Database.HsSqlPpp.Pretty
-> import Database.HsSqlPpp.Utility
+> -- import Database.HsSqlPpp.Utility
 > --import Database.HsSqlPpp.Internals.TypeChecking.Environment
 > --import Text.Show.Pretty
 > --import Debug.Trace
@@ -66,11 +67,16 @@
 >                      [(TypeExtra, Maybe LitArg)]
 >                      (Either [TypeError] ([TypeExtra],TypeExtra))
 
-> makeCatalog :: Dialect -> [CatalogUpdate] -> Catalog -> Catalog
-> makeCatalog d cus cat =
+> makeCatalog :: Dialect -> [CatalogUpdate] -> Catalog
+> makeCatalog d cus =
 >     either (error . show) id
->     $ updateCatalog (hackCanonicalizeEnvTypeNames d cus) cat
+>     $ updateCatalog (hackCanonicalizeEnvTypeNames d cus) $ diDefaultCatalog d
+
+This takes a type name and canonicalizes it, first by trying to see if
+it is the ansi type name and the dialect uses a different name for
+that type, and then checks to see if this is a built in alias of a
+type for that dialect and gets the canonical name instead.
 
 > hackCanonicalizeEnvTypeNames :: Data a => Dialect -> a -> a
 > hackCanonicalizeEnvTypeNames d = transformBi $ \a -> case a of
->     s -> canonicalizeTypeName d s
+>     s -> maybe (canonicalizeTypeName d s) id $ ansiTypeNameToDialect d s

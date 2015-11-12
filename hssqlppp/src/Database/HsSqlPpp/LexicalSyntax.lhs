@@ -193,7 +193,7 @@ quoting uses [] or ""
 
 TODO: fix all the "qiden" parsers to allow "qid""en"
 
-> identifier SQLServer =
+> identifier (Dialect {diSyntaxFlavour = SqlServer}) =
 >     choice
 >     [Identifier (Just ('[',']'))
 >      <$> (char '[' *> takeWhile1 (/=']') <* char ']')
@@ -208,7 +208,7 @@ oracle: identifiers can start with :
 quoting uses ""
 (todo: check other possibilities)
 
-> identifier Oracle =
+> identifier (Dialect {diSyntaxFlavour = Oracle}) =
 >     choice
 >     [Identifier (Just ('"','"'))
 >      <$> (char '"' *> takeWhile1 (/='"') <* char '"')
@@ -216,8 +216,8 @@ quoting uses ""
 >     ,Identifier Nothing <$> identifierString
 >     ]
 
-> identifier PostgreSQL = regularIdentifier
-> identifier ANSI = regularIdentifier
+> identifier (Dialect {diSyntaxFlavour = Postgres}) = regularIdentifier
+> identifier (Dialect {diSyntaxFlavour = Ansi}) = regularIdentifier
 
 > regularIdentifier :: Parser Token
 > regularIdentifier =
@@ -400,14 +400,15 @@ inClass :: String -> Char -> Bool
 >     {-biggerSymbol =
 >         startsWith (inClass compoundFirst)
 >                    (inClass compoundTail) -}
+>     isPostgres = diSyntaxFlavour dialect == Postgres
 >     simpleSymbols :: String
->     simpleSymbols | dialect == PostgreSQL = "(),;[]{}"
+>     simpleSymbols | isPostgres = "(),;[]{}"
 >                   | otherwise = "(),;{}"
 >     compoundFirst :: String
->     compoundFirst | dialect == PostgreSQL = "*/<>=~!@#%^&|`?+-"
+>     compoundFirst | isPostgres = "*/<>=~!@#%^&|`?+-"
 >                   | otherwise = "*/<>=~!%^&|`?+-"
 >     compoundTail :: String
->     compoundTail | dialect == PostgreSQL = "*/<>=~!@#%^&|`?"
+>     compoundTail | isPostgres = "*/<>=~!@#%^&|`?"
 >                  | otherwise = "*/<>=~!%^&|`?"
 
 
@@ -416,7 +417,7 @@ inClass :: String -> Char -> Bool
 
 > positionalArg :: Dialect -> Parser Token
 > -- uses try so we don't get confused with $splices
-> positionalArg PostgreSQL = try (
+> positionalArg (Dialect {diSyntaxFlavour = Postgres}) = try (
 >   PositionalArg <$> (char '$' *> (read <$> many1 digit)))
 
 > positionalArg _ = satisfy (const False) >> fail "positional arg unsupported"

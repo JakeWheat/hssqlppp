@@ -115,6 +115,7 @@ The odbc syntax is currently available in all dialects.
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
 > import Database.HsSqlPpp.Tests.TestTypes
+> import Database.HsSqlPpp.Dialect
 
 > odbcParsing:: Item
 > odbcParsing =
@@ -174,4 +175,4 @@ The odbc syntax is currently available in all dialects.
 >        ]
 >  where
 >    e = ParseScalarExpr defaultParseFlags
->    tsql = ParseProcSql defaultParseFlags {pfDialect=SQLServer}
+>    tsql = ParseProcSql defaultParseFlags {pfDialect=sqlServerDialect}

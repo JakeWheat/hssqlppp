@@ -79,3 +79,6 @@ insert + star - fails, commented out for now
 >         "insert into tt select datepart(day,d) from t;"
 >        $ Right $ CompositeType [("datepart",mkTypeExtraNN typeInt)]
 >       ]
+>   where
+>     typeInt = ScalarType "int4"
+>     typeBigInt = ScalarType "int8"

@@ -6,8 +6,8 @@
 >     (-- * ast utils
 >      resetAnnotations
 >     ,queryType
->     ,canonicalizeTypeName
->     ,canonicalizeTypeNames
+>     --,canonicalizeTypeName
+>     --,canonicalizeTypeNames
 >      -- * typechecked ast utils
 >     ,addExplicitCasts
 >     ,addImplicitCasts

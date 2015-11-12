@@ -6,13 +6,13 @@
 > --import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Tests.TestTypes
 > import Database.HsSqlPpp.Catalog
-> --import Database.HsSqlPpp.Types
+> import Database.HsSqlPpp.Dialect
 > --import Database.HsSqlPpp.Internals.AstInternal
 > --import Database.HsSqlPpp.Internals.TypeChecking.Environment
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Tests.TypeChecking.Utils
 > --import qualified Data.Text.Lazy as L
-> import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
+> --import Database.HsSqlPpp.Internals.TypesInternal hiding (mkTypeExtra,mkTypeExtraNN)
 
 > precisionAndNullable :: Item
 > precisionAndNullable =
@@ -125,8 +125,8 @@
 >       ]
 >     ]
 >   where
->     cat1 = defaultTemplate1Catalog
->     cat2 = defaultTSQLCatalog
+>     cat1 = diDefaultCatalog postgresDialect
+>     cat2 = diDefaultCatalog sqlServerDialect
 >     anType = TypeExtra typeInt Nothing Nothing True
 >     anEnv = selListEnv [("an", anType)]
 >     aType = mkTypeExtraNN typeInt
@@ -160,9 +160,17 @@
 >     --
 >     selListEnv env = either (const brokeEnvironment) id $ envSelectListEnvironment env
 >     tcQueryExpr cus =
->         let cat = makeCatalog PostgreSQL cus defaultTemplate1Catalog
->         in TCQueryExpr cat defaultTypeCheckFlags
+>         let cat = makeCatalog postgresDialect cus
+>         in TCQueryExpr cat defaultTypeCheckFlags {tcfDialect = postgresDialect}
 >     tsqlQueryExpr cus =
->         let cat = makeCatalog SQLServer cus defaultTSQLCatalog
->         in TCQueryExpr cat defaultTypeCheckFlags {tcfDialect = SQLServer}
+>         let cat = makeCatalog sqlServerDialect cus
+>         in TCQueryExpr cat defaultTypeCheckFlags {tcfDialect = sqlServerDialect}
 >     see = ScalarExprExtra
+>     typeInt = ScalarType "int4"
+>     typeBigInt = ScalarType "int8"
+>     typeVarChar = ScalarType "varchar"
+>     typeNumeric = ScalarType "numeric"
+>     typeFloat8 = ScalarType "float8"
+>     typeDate = ScalarType "date"
+>     typeChar = ScalarType "char"
+>     typeBool = ScalarType "bool"

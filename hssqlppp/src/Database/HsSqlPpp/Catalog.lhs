@@ -34,13 +34,13 @@ Forward the public part of CatalogInternal.
 >     --,FunctionPrototype
 >     --,DomainDefinition
 >     --,FunFlav(..)
->      -- * Catalog values
->     ,emptyCatalog
+>     --  --  * Catalog values
+>     --,emptyCatalog
 >     --,defaultCatalog
->     ,ansiCatalog
->     ,defaultTemplate1Catalog
->     ,defaultTSQLCatalog
->     ,odbcCatalog
+>     --,ansiCatalog
+>     --,defaultTemplate1Catalog
+>     --,defaultTSQLCatalog
+>     --,odbcCatalog
 >      -- * Catalog comparison
 >     --,CatalogDiff(..)
 >     --,compareCatalogs

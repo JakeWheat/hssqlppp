@@ -10,6 +10,7 @@
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
 > import Database.HsSqlPpp.Tests.TestTypes
+> import Database.HsSqlPpp.Dialect
 
 > sqlServer :: Item
 > sqlServer =
@@ -186,7 +187,7 @@ in ParserInternal.lhs
 
 >   ]
 >   where
->     s = ParseProcSql defaultParseFlags {pfDialect=SQLServer}
+>     s = ParseProcSql defaultParseFlags {pfDialect=sqlServerDialect}
 >     qs = QueryStatement ea
 
 create index ++
