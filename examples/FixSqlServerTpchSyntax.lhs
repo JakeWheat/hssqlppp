@@ -12,6 +12,7 @@ Convert qgen output into sql server format
 > import Database.HsSqlPpp.Pretty
 > import Database.HsSqlPpp.Quote
 > import Database.HsSqlPpp.Annotation
+> import Database.HsSqlPpp.Dialect
 > import qualified Data.Text.Lazy as LT
 > import qualified Data.Text.Lazy.IO as LT
 
@@ -29,7 +30,7 @@ Convert qgen output into sql server format
 >            -- hssqlppp better that the sql server dialect
 >            $ parseStatements defaultParseFlags "" Nothing sql
 >       qe' = fixSqlAst qe
->   in prettyStatements defaultPrettyFlags {ppDialect = SQLServer} qe'
+>   in prettyStatements defaultPrettyFlags {ppDialect = sqlServerDialect} qe'
 
 > fixSqlAst :: Data a => a -> a
 > fixSqlAst = fixDate . fixSubstring . fixExtract . fixIntervals

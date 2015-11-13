@@ -3,6 +3,7 @@
 > import Database.HsSqlPpp.Parse
 > import Database.HsSqlPpp.TypeCheck
 > import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.Dialect
 > import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Annotation
 > import Database.HsSqlPpp.Syntax hiding (ann)
@@ -25,4 +26,4 @@
 >                   [CatCreateTable ("public","t") [("a", mkCatNameExtra "int")
 >                                                  ,("b", mkCatNameExtra "int")
 >                                                  ]]
->                   defaultTemplate1Catalog
+>                   (diDefaultCatalog ansiDialect)

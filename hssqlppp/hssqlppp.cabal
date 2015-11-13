@@ -55,24 +55,29 @@ Library
                      Database.HsSqlPpp.Utility
 
                      -- find src -iname '*hs' | sed -e "s@src/@@" | sed -e "s@/@.@g" |sed -e "s/.lhs//" |sed -e "s/.hs//"
-  Other-Modules:    Database.HsSqlPpp.Internals.Utils
-                    Database.HsSqlPpp.Internals.TypeChecking.OldTediousTypeUtils
+  Other-Modules:    Database.HsSqlPpp.Internals.TypeChecking.OldTediousTypeUtils
                     Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.TypeConversion2
                     Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.OldTypeConversion
                     Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.TypeConversion
                     Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.SqlTypeConversion
                     Database.HsSqlPpp.Internals.TypeChecking.Environment
+                    Database.HsSqlPpp.Internals.Dialect
                     Database.HsSqlPpp.Internals.ParseInternal
                     Database.HsSqlPpp.Internals.Catalog.DefaultTSQLCatalog
+                    Database.HsSqlPpp.Internals.Catalog.CatalogTypes
                     Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
                     Database.HsSqlPpp.Internals.Catalog.OdbcCatalog
-                    Database.HsSqlPpp.Internals.Catalog.CatalogInternal
-                    Database.HsSqlPpp.Internals.Catalog.CatalogTypes
                     Database.HsSqlPpp.Internals.Catalog.BaseCatalog
+                    Database.HsSqlPpp.Internals.Catalog.AnsiCatalog
+                    Database.HsSqlPpp.Internals.Catalog.CatalogInternal
                     Database.HsSqlPpp.Internals.AstInternal
                     Database.HsSqlPpp.Internals.TypesInternal
                     Database.HsSqlPpp.Internals.ParseErrors
-                    Database.HsSqlPpp.Internals.Dialect
+                    Database.HsSqlPpp.Internals.Dialects.SqlServer
+                    Database.HsSqlPpp.Internals.Dialects.Postgres
+                    Database.HsSqlPpp.Internals.Dialects.Oracle
+                    Database.HsSqlPpp.Internals.Dialects.Ansi
+                    Database.HsSqlPpp.Internals.Utils
 
   default-extensions:  TupleSections
                       DeriveDataTypeable,

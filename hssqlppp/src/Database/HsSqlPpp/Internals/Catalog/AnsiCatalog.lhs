@@ -78,7 +78,7 @@ collate
 >            ,CatCreateBinaryOp "/" n n n]
 >           | n <- ["numeric","decimal","smallint","int","bigint"
 >                  ,"float","real"] ]
->         -- || concatenation on strings, binaries and arrays
+>         --  || concatenation on strings, binaries and arrays
 >         -- not sure how arrays will work right now
 >         ++ [CatCreateBinaryOp "||" s s s
 >            | s <- ["char","varchar","clob"

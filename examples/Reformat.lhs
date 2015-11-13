@@ -5,6 +5,7 @@
 > --import Data.Generics.Uniplate.Data
 
 > import Database.HsSqlPpp.Parse
+> import Database.HsSqlPpp.Dialect
 > import Database.HsSqlPpp.Pretty
 
 > import qualified Data.Text.Lazy.IO as LT
@@ -15,5 +16,5 @@
 >   src <- LT.readFile f
 >   let ast = either (error . show) id $
 >             parseStatements defaultParseFlags
->                {pfDialect = SQLServer} f Nothing src
+>                {pfDialect = sqlServerDialect} f Nothing src
 >   LT.putStrLn $ prettyStatements defaultPrettyFlags ast
