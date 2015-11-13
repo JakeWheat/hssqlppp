@@ -56,8 +56,8 @@ sem TypeName
                           -- contains the catalog at the moment and
                           -- this change would need the catalog to
                           -- access the dialect
-                          [t] -> [transformBi (\y -> case
-                                     y of y' -> canonicalizeTypeName (tcfDialect @lhs.flags) y') t]
+                          -- also, this doesn't do quoted built in names
+                          [Nmc nc] -> [Nmc $ T.unpack $ canonicalizeTypeName (tcfDialect @lhs.flags) $ T.pack nc]
                           _ -> x
      | SimpleTypeName
          loc.tpe = mkTypeExtraNN `liftM` catLookupType @lhs.cat (@loc.canType $ nameComponents @tn.originalTree)

@@ -39,7 +39,7 @@
 >   ]
 >   where
 >     scalExpr = TCScalExpr (diDefaultCatalog postgresDialect) emptyEnvironment
->                           defaultTypeCheckFlags
+>                           defaultTypeCheckFlags {tcfDialect = postgresDialect}
 >     typeBool = ScalarType "bool"
 >     typeInt = ScalarType "int4"
 >     typeBigInt = ScalarType "int8"

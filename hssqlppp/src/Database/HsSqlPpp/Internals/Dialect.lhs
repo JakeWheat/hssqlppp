@@ -94,18 +94,13 @@ Also, these functions should be -TypeName not -Type.
 >      -- to the canonical name in the dialect
 >      -- if there is no entry, then it means that type isn't
 >      -- supported in this dialect
->      ,namesForAnsiTypes :: [(Text,Text)]
->      --,diBooleanType :: Text -- canonical name of the boolean type
 
->      {-,diNumericType :: Text -- TODO: canonical name of numeric type
->                             -- sometimes given to literals numbers
->                             -- with decimal point
->      ,diIntType :: Text -- TODO: canonical name of numeric type
->                         -- sometimes given to literals numbers
->                         -- without decimal point
->      ,diDateType :: Text
->      ,diTimeType :: Text
->      ,diTimestampType :: Text-}
+todo: make a list of exactly what type names are needed in the type
+checker and why. This should only be used for the type checker
+internally, and not anywhere else. Should do the same for the
+other fields above
+
+>      ,namesForAnsiTypes :: [(Text,Text)]
 
 A small issue with having the default catalog like this is that we can
 make a programming error where we have a function which takes the

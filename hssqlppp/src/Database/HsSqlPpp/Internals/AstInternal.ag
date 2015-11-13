@@ -134,7 +134,7 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,updateAnnotation
    ,emptyAnnotation
    ,makeSelect
-   ,canonicalizeTypeNames
+   --,canonicalizeTypeNames
 }
 
 {
@@ -1338,7 +1338,7 @@ include "TypeChecking/TypeChecking.ag"
 {
 -- TODO: move this somewhere better
 -- | run canonicalizeTypeName on all the TypeName nodes in an ast
-canonicalizeTypeNames :: Data a => Dialect -> a -> a
+{-canonicalizeTypeNames :: Data a => Dialect -> a -> a
 canonicalizeTypeNames d =
    (transformBi $ \x ->
        case x of
@@ -1352,6 +1352,6 @@ canonicalizeTypeNames d =
          x' -> x')
    where
      c (Name a [Nmc nc]) = Name a [Nmc $ T.unpack $ canonicalizeTypeName d $ T.pack nc]
-     c z = z
+     c z = z-}
 
 }
