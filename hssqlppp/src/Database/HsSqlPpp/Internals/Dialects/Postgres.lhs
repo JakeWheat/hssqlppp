@@ -32,7 +32,11 @@
 >                          ,("bigint","int8")
 >                          ,("boolean","bool")
 >                          ,("numeric","numeric")
->                          ,("int","int4")] -- todo: finish this
+>                          ,("int","int4")
+>                          ,("date","date")
+>                          ,("time","time")
+>                          ,("timestamp","timestamp")
+>                          ] -- todo: finish this
 >     ,diDefaultCatalog = defaultTemplate1Catalog
 >     }
 

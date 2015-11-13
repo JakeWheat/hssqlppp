@@ -37,7 +37,11 @@ is probably the biggest issue at the moment.
 >                          ,("bigint","int8")
 >                          ,("boolean","bool")
 >                          ,("numeric","numeric")
->                          ,("int","int4")] -- todo: these are postgres names
+>                          ,("int","int4")
+>                          ,("date","date")
+>                          ,("time","time")
+>                          ,("timestamp","timestamp")
+>                          ] -- todo: these are postgres names
 >     ,diDefaultCatalog = defaultTemplate1Catalog
 >     }
 

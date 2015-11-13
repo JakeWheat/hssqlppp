@@ -20,8 +20,8 @@ should be reimplemented separately from scratch
 >                              ,("int2", ["smallint"])
 >                              ,("int4", ["integer","int"])
 >                              ,("int8", ["bigint"])
->                              ,("real", ["real"])
->                              ,("float", ["double precision","float","double"])
+>                              ,("float4", ["real"])
+>                              ,("float8", ["double precision","float","double"])
 >                              -- probably some missing here
 >                              ,("varchar", ["character varying"])
 >                              ,("char", ["character"])
@@ -34,6 +34,10 @@ should be reimplemented separately from scratch
 >                          ,("bigint","int8")
 >                          ,("boolean","bool")
 >                          ,("numeric","numeric")
->                          ,("int","int4")] -- todo: these are postgres names
+>                          ,("int","int4")
+>                          ,("date","date")
+>                          ,("time","time")
+>                          ,("timestamp","timestamp")
+>                          ] -- todo: these are postgres names
 >     ,diDefaultCatalog = defaultTSQLCatalog
 >     }

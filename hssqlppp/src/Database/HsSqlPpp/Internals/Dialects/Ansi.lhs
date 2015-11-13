@@ -31,7 +31,11 @@
 >                          ,("bigint","bigint")
 >                          ,("boolean","boolean")
 >                          ,("numeric","numeric")
->                          ,("int","int")] -- todo: finish this
+>                          ,("int","int")
+>                          ,("date","date")
+>                          ,("time","time")
+>                          ,("timestamp","timestamp")
+>                          ] -- todo: finish this
 >     ,diDefaultCatalog = ansiCatalog
 >     }
 

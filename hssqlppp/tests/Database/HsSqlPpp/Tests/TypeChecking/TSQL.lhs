@@ -78,7 +78,7 @@ float and real category -> float
 >        [(mkCatNameExtra "tinyint", mkTypeExtra typeInt)
 >        ,(mkCatNameExtra "smallint", mkTypeExtra typeInt)
 >        ,(mkCatNameExtra "int", mkTypeExtra typeInt)
->        ,(mkCatNameExtra "int", mkTypeExtra typeInt)
+>        --,(mkCatNameExtra "int", mkTypeExtra typeInt)
 >        ,(mkCatNameExtra "bigint", mkTypeExtra typeBigInt)
 >        ,(mkCatNameExtra "float", mkTypeExtra typeFloat8)
 >        ,(mkCatNameExtra "real", mkTypeExtra typeFloat8)

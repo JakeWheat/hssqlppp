@@ -19,7 +19,7 @@ different in different dialects.
 
 > typeBigInt,typeFloat8,typeChar,typeNumeric,typeFloat4,
 >   typeSmallInt,typeInt,typeDate,typeTimestamp,typeVarChar :: Type
-> typeBigInt = ScalarType "bigint"
+> typeBigInt = ScalarType "int8"
 > typeFloat8 = ScalarType "float8"
 > typeChar = ScalarType "char"
 > typeNumeric = ScalarType "numeric"
