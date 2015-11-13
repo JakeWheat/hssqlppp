@@ -64,17 +64,17 @@ this needs some work
 > prettyStatementsAnn flg f ast =
 >   renderText $ vcat (map (statement flg True f) ast) <> text "\n"
 
-> -- | pretty pretty a query expression
+> -- | pretty print a query expression
 > prettyQueryExpr :: PrettyFlags -> QueryExpr -> L.Text
 > prettyQueryExpr f ast = renderText (queryExpr f True True Nothing ast <> statementEnd True)
 
-> -- | pretty pretty a scalar expression
+> -- | pretty print a scalar expression
 > prettyScalarExpr :: PrettyFlags -> ScalarExpr -> L.Text
 > prettyScalarExpr f = renderText . scalExpr f
 
-direct = true means attempt to pretty pretty straight to text
-direct = false means pretty pretty to string then pack to text
-no idea which is better, since pretty prettying to text directly uses a
+direct = true means attempt to pretty print straight to text
+direct = false means pretty print to string then pack to text
+no idea which is better, since pretty printing to text directly uses a
  lot of Text.cons which might be pretty slow and bloated
 
 > direct :: Bool
