@@ -63,7 +63,7 @@ collate
 >         ++ [CatCreateFunction charLen [t] False "int"
 >            | t <- ["char","varchar","clob"
 >                   ,"nchar","nvarchar","nclob"]
->            , charLen <- ["char_length", "character_length"] ]
+>            , charLen <- ["char_length", "character_length", "octet_length"] ]
 >         ++ concat
 >         -- unary +- all numeric types plus interval
 >         [ [CatCreatePrefixOp "+" n n
@@ -127,4 +127,44 @@ collate
 >         -- ++ [ CatCreateBinaryOp op "!any" "!any" "boolean"
 >         --   | op <- ["!is distinct from","!is not distinct from"]
 >         --   ]
+
+>         ++ [CatCreateFunction "abs" [t] False t
+>            | t <- ["numeric", "decimal", "smallint", "int", "bigint", "float","real"]]
+
+>         ++ [CatCreateFunction "mod" [t,t] False t
+>            | t <- ["numeric", "smallint", "int", "bigint"]]
+
+>         ++ [CatCreateFunction fn [t] False t
+>            | t <- ["float","real"]
+>            , fn <- ["ln","exp","pow","sqrt"] ]
+>         ++ [CatCreateFunction fn [t] False t
+>            | t <- ["float","real","numeric"]
+>            , fn <- ["floor","ceil","ceiling"] ]
+
+>         ++ [CatCreateFunction "width_bucket" [t,t,t,"numeric"] False "numeric"
+>            | t <- ["char","varchar","clob"
+>                   ,"nchar","nvarchar","nclob"
+>                   ,"binary","varbinary","blob"
+>                   ,"numeric","decimal"
+>                   ,"smallint","int","bigint"
+>                   ,"float","real"
+>                   ,"boolean"
+>                   ,"date","time","timestamp","interval"
+>                   ] ]
+
+>         ++ [CatCreateFunction fn [t] False t
+>            | t <- ["char","varchar","clob"
+>                   ,"nchar","nvarchar","nclob"]
+>            , fn <- ["lower","upper"] ]
+
+>         ++ concat
+>         [ [ CatCreateBinaryOp "+" dt "interval" dt
+>            ,CatCreateBinaryOp "+" "interval" dt dt
+>            ,CatCreateBinaryOp "-" dt "interval" dt]
+>           | dt <- ["date","time","timestamp"]]
+>         ++ [CatCreateBinaryOp "+" "interval" "interval" "interval"
+>            ,CatCreateBinaryOp "-" "interval" "interval" "interval"]
+
+
+
 >         )

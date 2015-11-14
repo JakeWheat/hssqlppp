@@ -126,23 +126,33 @@ supplied updated catalog.
 >     ct m tn = maybe tn fst
 >               $ find (hasType tn) m
 
-todo
+TODO:
+modify the catalog:
+  when adding a type flags to say:
+    if this type is a text or datetime or number type
+    if it is built in
+    if it is undroppable
+    if it has a list of builtin aliases
+    what the ansi equivalent type name is
 
-replaces: canonicalize type name
-  type name aliases
-  catalog values
+this will get rid of most of the fields in the dialect and make it
+much easier to keep everything consistent and maintainable
 
-move the catalogs to the dialects directory
+start adding flags for which bits of syntax to support instead of
+using the syntax flavour thing
+there will be flags like this for typechecking also
 
+support functions to help create minimal dialects
+  e.g. take ansi, and safely remove a bunch of types and functions
 
-1. flags for parser, lexer:
-just use a dialect enum for now for these parts
+write the default catalogs and dialects all in one file
+  (they are split into two at the moment)
 
-create ansi dialect
-postgresql
-sqlserver
-oracle
+export the ansidialect every module that exposes something with a
+dialect (function or data type) - parse, pretty, lex, typecheck, etc.
 
+then you only need to import the dialects module to get the other
+dialects
 
 consider how the catalog in the dialect can help with parsing
 operators
