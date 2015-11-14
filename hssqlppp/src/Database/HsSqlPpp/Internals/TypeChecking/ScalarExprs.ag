@@ -25,14 +25,6 @@ For now, expectedCast is Bool, with the meaning of whether the nullability compo
   In the future, this can change, and the type of expectedCast will reflect the change.
 -}
 
-imports
-{
-import Text.Read
---import Debug.Trace
-import Database.HsSqlPpp.Internals.Catalog.OdbcCatalog
-}
-
-
 sem ScalarExpr
     | NumberLit StringLit NullLit BooleanLit TypedStringLit Interval
       Extract PositionalArg Placeholder Cast ImplicitCast Star QStar Identifier

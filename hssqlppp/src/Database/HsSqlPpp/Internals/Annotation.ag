@@ -13,7 +13,7 @@ grammar code and aren't exposed.
 
 imports {
 import qualified Database.HsSqlPpp.Internals.TypesInternal as T
-import qualified Database.HsSqlPpp.Internals.Catalog.CatalogInternal as C
+import qualified Database.HsSqlPpp.Internals.Catalog.CatalogTypes as C
 
 }
 

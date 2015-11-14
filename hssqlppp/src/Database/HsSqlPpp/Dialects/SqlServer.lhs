@@ -1,24 +1,61 @@
 
-> -- | Hacky start on a separate catalog for tsql. At the moment, reuses the
-> -- postgresql default template1 catalog and adds a few things.
-> {-# LANGUAGE OverloadedStrings,ScopedTypeVariables #-}
-> module Database.HsSqlPpp.Internals.Catalog.DefaultTSQLCatalog
->      (defaultTSQLCatalog) where
->
-> import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
-> import Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
+> {-# LANGUAGE OverloadedStrings #-}
+> module Database.HsSqlPpp.Dialects.SqlServer (sqlServerDialect) where
+
+> import Database.HsSqlPpp.Internals.Dialect
+> import Database.HsSqlPpp.Internals.Catalog.CatalogBuilder
+> import Database.HsSqlPpp.Internals.Catalog.CatalogTypes
+> import Database.HsSqlPpp.Dialects.BaseCatalog
+> import Database.HsSqlPpp.Dialects.Postgres
+> --import Database.HsSqlPpp.Internals.Dialect
 > --import Data.List
 > import Data.Generics.Uniplate.Data
-> --import Debug.Trace
-> --import Text.Show.Pretty
 
-> defaultTSQLCatalog :: Catalog
-> defaultTSQLCatalog = either (error . show) id catr
+The sql server dialect is a crap modification to the postgresql
+dialect at the moment.  After a bunch more tests are written, it
+should be reimplemented separately from scratch
+
+> sqlServerDialect :: Dialect
+> sqlServerDialect = Dialect
+>     {diName = "sqlServer"
+>     ,diSyntaxFlavour = SqlServer
+>     ,diCanonicalTypeNames =  [("timestamp", ["datetime"])
+>                              -- todo: temp before sqlserver dialect is done properly
+>                              -- this hack should probably move to the ansi dialect first
+>                              ,("int1", ["tinyint"])
+>                              ,("int2", ["smallint"])
+>                              ,("int4", ["integer","int"])
+>                              ,("int8", ["bigint"])
+>                              ,("float4", ["real"])
+>                              ,("float8", ["double precision","float","double"])
+>                              -- probably some missing here
+>                              ,("varchar", ["character varying"])
+>                              ,("char", ["character"])
+>                              ,("boolean", ["boolean"])]
+>     ,diTextTypes = ["char","varchar"]
+>     ,diDatetimeTypes = ["date","time","timestamp","interval"]
+>     ,diNumberTypes = ["int2","int4","int8","numeric","float4","float8"]
+>     ,namesForAnsiTypes = [("char","char")
+>                          ,("varchar","varchar")
+>                          ,("bigint","int8")
+>                          ,("boolean","bool")
+>                          ,("numeric","numeric")
+>                          ,("int","int4")
+>                          ,("date","date")
+>                          ,("time","time")
+>                          ,("timestamp","timestamp")
+>                          ] -- todo: these are postgres names
+>     ,diDefaultCatalog = tsqlCatalog
+>     }
+
+> tsqlCatalog :: Catalog
+> tsqlCatalog = either (error . show) id catr
 >   where
 >     catr = updateCatalog
->               (alterUpdates (deconstructCatalog defaultTemplate1Catalog
+>               (alterUpdates (deconstructCatalog
+>                              (diDefaultCatalog postgresDialect)
 >                              ++ additionalEntries))
->               (defaultCatalog "bool" -- todo: fix these
+>               (baseCatalog "bool" -- todo: fix these
 >                                         "int4"
 >                                         ["char"
 >                                         ,"varchar"
@@ -92,12 +129,12 @@ postponed until we have better design
 >     -- replace int2 with int1 and int4 with int2
 >     -- really hacky
 >     int1fns = let s = filter (\x -> replaceItp x && hasInt2 x)
->                              (deconstructCatalog defaultTemplate1Catalog)
+>                              (deconstructCatalog (diDefaultCatalog postgresDialect))
 >               in flip transformBi s $ \x -> case (x :: CatName) of
 >                                        "int2" -> "int1"
 >                                        _ -> x
 >     int12fns = let s = filter (\x -> replaceItp x && hasInt2Int4 x)
->                               (deconstructCatalog defaultTemplate1Catalog)
+>                               (deconstructCatalog (diDefaultCatalog postgresDialect))
 >                in flip transformBi s $ \x -> case (x :: CatName) of
 >                                        "int2" -> "int1"
 >                                        "int4" -> "int2"

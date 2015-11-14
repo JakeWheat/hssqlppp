@@ -54,7 +54,8 @@ Forward the public part of CatalogInternal.
 >     ,envSelectListEnvironment
 >     ) where
 >
-> import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+> import Database.HsSqlPpp.Internals.Catalog.CatalogBuilder
+> import Database.HsSqlPpp.Internals.Catalog.CatalogTypes
 > --import Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
 > --import Database.HsSqlPpp.Internals.Catalog.DefaultTSQLCatalog
 > --import Database.HsSqlPpp.Internals.Catalog.OdbcCatalog

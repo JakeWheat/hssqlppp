@@ -50,29 +50,29 @@ sequences
 > module Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 >     (
 >      -- catalog type plus values
->      Catalog
->     ,emptyCatalog
->     ,defaultCatalog
->     ,NameComponent(..)
+>      {-Catalog
+>     ,emptyCatalog-}
+>     --,defaultCatalog
+>     {-,NameComponent(..)
 >     ,ncStr
 >     ,ncStrT
 >     ,CompositeFlavour(..)
 >     ,CatName
 >     ,CatNameExtra(..)
 >     ,mkCatNameExtra
->     ,mkCatNameExtraNN
+>     ,mkCatNameExtraNN-}
 >      -- catalog updates
->     ,CatalogUpdate(..)
->     ,updateCatalog
->     ,deconstructCatalog
+>     --,CatalogUpdate(..)
+>      --updateCatalog
+>     --,deconstructCatalog
 >      -- catalog queries
->     ,catLookupType
+>      catLookupType
 >     ,catLookupTableAndAttrs
 >     ,catGetOpsMatchingName
 >      -- temp stuff for old typeconversion
->     ,OperatorPrototype
+>     --,OperatorPrototype
 
->     ,CastContext(..)
+>     --CastContext(..)
 >     ,catLookupFns
 >     ,catPreferredType
 >     ,isOperatorName
@@ -83,7 +83,7 @@ sequences
 >     ) where
 
 >
-> import Control.Monad
+> --import Control.Monad
 > --import Data.List
 > --import Data.Data
 > --import Data.Char
@@ -98,7 +98,8 @@ sequences
 > --import qualified Data.Text.Lazy as LT
 
 > import Database.HsSqlPpp.Internals.Catalog.CatalogTypes
-> import Database.HsSqlPpp.Internals.Catalog.BaseCatalog
+> --import Database.HsSqlPpp.Internals.Catalog.BaseCatalog
+> import Database.HsSqlPpp.Internals.Catalog.CatalogUtils
 
 -----------------------------------
 
@@ -175,7 +176,7 @@ name, parameter types, return type and variadic flag
 > -- array type, create table will add a table, supply the
 > -- private columns automatically, and add the composite type)
 > -- highlevel not implemented yet
-> updateCatalog :: [CatalogUpdate]
+> {-updateCatalog :: [CatalogUpdate]
 >               -> Catalog
 >               -> Either [TypeError] Catalog
 > updateCatalog eus cat' =
@@ -253,16 +254,12 @@ name, parameter types, return type and variadic flag
 >         Right $ cat {catTypeCategories = M.insert t (c,p) $ catTypeCategories cat}
 
 > deconstructCatalog :: Catalog -> [CatalogUpdate]
-> deconstructCatalog = catUpdates
+> deconstructCatalog = catUpdates -}
 
 -----------------------------------------------------------
 
 queries
 
-> getCatName :: [NameComponent] -> CatName
-> getCatName [] = error "empty name component in catalog code"
-> getCatName [x] = ncStrT x
-> getCatName (_:xs) = getCatName xs
 
 gets a schema qualified catname, puts in the default 'public' if there
 is only one name component. This will be altered when schema search
@@ -274,19 +271,6 @@ paths are implemented.
 > getCatName2 [a,b] = (ncStrT a, ncStrT b)
 > getCatName2 (_:xs) = getCatName2 xs
 
-> -- | takes a [NameComponent] and returns the type for that name
-> -- will return a type not recognised if the type isn't in the catalog
-> catLookupType :: Catalog -> [NameComponent] -> Either [TypeError] Type
-> catLookupType cat ncs =
->   case getCatName ncs of
->     -- check if is a pseudo type
->     cn | Just p <- M.lookup cn pseudoTypes -> Right p
->     -- check for base, domain, enum or composite, and array
->        | S.member cn (catScalarTypeNames cat) -> Right $ ScalarType cn
->        | M.member cn (catDomainTypes cat) -> Right $ DomainType cn
->        | M.member cn (catCompositeTypes cat) -> Right $ NamedCompositeType cn
->        | Just t <- M.lookup cn (catArrayTypes cat) -> Right $ ArrayType $ ScalarType t
->        | otherwise -> Left [UnknownTypeName cn]
 
 TODO: add inverse of this operation, give a type, returns a typename
 

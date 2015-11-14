@@ -26,6 +26,7 @@ TODO: explicit imports
 
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+> import Database.HsSqlPpp.Internals.Catalog.CatalogTypes
 > --import Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
 > --import Database.HsSqlPpp.Utils.Utils
 

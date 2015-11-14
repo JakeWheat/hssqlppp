@@ -47,7 +47,8 @@ should all be in one place.
 > import Data.Char
 >
 > import Database.HsSqlPpp.Internals.TypesInternal
-> import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+> --import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+> import Database.HsSqlPpp.Internals.Catalog.CatalogTypes
 > import Database.HsSqlPpp.Internals.Utils
 > import Control.Monad
 > import Control.Applicative

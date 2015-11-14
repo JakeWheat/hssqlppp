@@ -49,6 +49,7 @@ off.
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Internals.Dialect
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+> import Database.HsSqlPpp.Internals.Catalog.CatalogTypes
 > --import Database.HsSqlPpp.Utils.Utils
 > import Database.HsSqlPpp.Internals.TypeChecking.OldTediousTypeUtils
 > import Data.Text (Text)

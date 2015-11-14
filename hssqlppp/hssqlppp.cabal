@@ -61,23 +61,26 @@ Library
                     Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.TypeConversion
                     Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.SqlTypeConversion
                     Database.HsSqlPpp.Internals.TypeChecking.Environment
+                    Database.HsSqlPpp.Internals.LexicalSyntaxInternal
                     Database.HsSqlPpp.Internals.Dialect
                     Database.HsSqlPpp.Internals.ParseInternal
-                    Database.HsSqlPpp.Internals.Catalog.DefaultTSQLCatalog
+                    Database.HsSqlPpp.Internals.PrettyInternal
+                    Database.HsSqlPpp.Internals.Catalog.CatalogUtils
                     Database.HsSqlPpp.Internals.Catalog.CatalogTypes
-                    Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
-                    Database.HsSqlPpp.Internals.Catalog.OdbcCatalog
-                    Database.HsSqlPpp.Internals.Catalog.BaseCatalog
-                    Database.HsSqlPpp.Internals.Catalog.AnsiCatalog
+                    Database.HsSqlPpp.Internals.Catalog.CatalogBuilder
                     Database.HsSqlPpp.Internals.Catalog.CatalogInternal
                     Database.HsSqlPpp.Internals.AstInternal
                     Database.HsSqlPpp.Internals.TypesInternal
                     Database.HsSqlPpp.Internals.ParseErrors
-                    Database.HsSqlPpp.Internals.Dialects.SqlServer
-                    Database.HsSqlPpp.Internals.Dialects.Postgres
-                    Database.HsSqlPpp.Internals.Dialects.Oracle
-                    Database.HsSqlPpp.Internals.Dialects.Ansi
                     Database.HsSqlPpp.Internals.Utils
+                    Database.HsSqlPpp.Dialects.SqlServer
+                    Database.HsSqlPpp.Dialects.GeneratedPostgres
+                    Database.HsSqlPpp.Dialects.Postgres
+                    Database.HsSqlPpp.Dialects.Oracle
+                    Database.HsSqlPpp.Dialects.OdbcCatalog
+                    Database.HsSqlPpp.Dialects.BaseCatalog
+                    Database.HsSqlPpp.Dialects.Ansi
+
 
   default-extensions:  TupleSections
                       DeriveDataTypeable,

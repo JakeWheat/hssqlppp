@@ -253,9 +253,9 @@ hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs : $(AG_FILES) \
 .PHONY : regenDefaultTemplate1Catalog
 regenDefaultTemplate1Catalog : sandbox/bin/MakeDefaultTemplate1Catalog
 	sandbox/bin/MakeDefaultTemplate1Catalog > \
-		hssqlppp/src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs_new
-	mv hssqlppp/src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs_new \
-		hssqlppp/src/Database/HsSqlPpp/Internals/Catalog/DefaultTemplate1Catalog.lhs
+		hssqlppp/src/Database/HsSqlPpp/Dialects/GeneratedPostgres.lhs_new
+	mv hssqlppp/src/Database/HsSqlPpp/Dialects/GeneratedPostgres.lhs_new \
+		hssqlppp/src/Database/HsSqlPpp/Dialects/GeneratedPostgres.lhs
 
 ##############################################################################
 

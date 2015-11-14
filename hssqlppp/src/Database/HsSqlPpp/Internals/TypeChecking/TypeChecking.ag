@@ -4,13 +4,20 @@ import Data.Text (Text)
 import qualified Database.HsSqlPpp.Internals.TypeChecking.Environment as E
 import Database.HsSqlPpp.Internals.TypeChecking.Environment (Environment)
 import Database.HsSqlPpp.Internals.TypesInternal
+import Database.HsSqlPpp.Internals.Dialect
 import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
-import Database.HsSqlPpp.Internals.Dialects.Ansi
+import Database.HsSqlPpp.Internals.Catalog.CatalogTypes
 import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.TypeConversion
+
+-- todo: find a better way to do this, this information should come
+-- via the dialect or catalog in the attributes
+import Database.HsSqlPpp.Dialects.OdbcCatalog
+
 import Control.Monad
 import Data.List
 import Data.Maybe
 import Data.Char
+import Text.Read
 import Control.Applicative
 }
 
@@ -30,18 +37,6 @@ data TypeCheckFlags =
     ,tcfExpandStars :: Bool
     ,tcfDialect :: Dialect}
     deriving (Show,Eq)
-
-
--- | reasonable defaults for type checking, doesn't add anything
--- optional
-defaultTypeCheckFlags :: TypeCheckFlags
-defaultTypeCheckFlags =
-    TypeCheckFlags
-    {tcfAddQualifiers = False
-    ,tcfAddFullTablerefAliases = False
-    ,tcfAddSelectItemAliases = False
-    ,tcfExpandStars = False
-    ,tcfDialect = ansiDialect}
 
 -- | Typechecks the ast, and returns the updated catalog (which
 -- includes changes from any ddl statements in the ast).

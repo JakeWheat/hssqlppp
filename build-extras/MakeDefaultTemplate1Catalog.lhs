@@ -16,7 +16,7 @@
 
 > main :: IO ()
 > main = do
->   let cs = "dbname=template1"
+>   let cs = "dbname=template1 port=5433"
 >   cus <- readCatalogFromDatabase cs
 >   let s = ppShow cus
 >   v <- withConn cs $ \conn -> do
@@ -35,23 +35,17 @@ make regenDefaultTemplate1Catalog. You will need postgresql
 installed to do this.
 
 > {-# LANGUAGE OverloadedStrings #-}
-> module Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
->      (defaultTemplate1Catalog) where
->
-> import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
-> import Database.HsSqlPpp.Internals.Catalog.OdbcCatalog
-> --import Database.HsSqlPpp.Internals.TypesInternal
+> module Database.HsSqlPpp.Dialects.GeneratedPostgres
+>      (generatedPostgresCatalogEntries) where
+> import Database.HsSqlPpp.Internals.Catalog.CatalogTypes
+
 > -- | The catalog from a default template1 database in roughly the
 > -- latest postgres. 'select version()' from the dbms this catalog
 > -- was generated from: '|] ++  v  ++ [here|'.
-> defaultTemplate1Catalog :: Catalog
-> defaultTemplate1Catalog =
->     (\l -> case l of
->              Left x -> error $ show x
->              Right e -> e) $
->      flip updateCatalog defaultCatalog (
+> generatedPostgresCatalogEntries :: [CatalogUpdate]
+> generatedPostgresCatalogEntries =
 \end{code}
 >   |]
 
 > post :: String -> String
-> post v = v ++ "\n>         ++ odbcCatalog)\n"
+> post v = v ++ "\n"

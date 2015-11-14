@@ -122,12 +122,11 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    --,typeCheckScalarExprEnv
    ,typeCheckQueryExpr
    ,TypeCheckFlags(..)
-   ,defaultTypeCheckFlags
    ,addExplicitCasts
    ,addImplicitCasts
    -- annotation
    ,Annotation(..)
-   ,TypeExtra(..)
+   --,TypeExtra(..)
    ,SourcePosition
    ,ParameterizedStatementType
    ,getAnnotation
@@ -161,7 +160,7 @@ import Data.Generics.Uniplate.Data
 --import Database.HsSqlPpp.Internals.Catalog.CatalogInternal (NameComponent(..),ncStr)
 
 --import Database.HsSqlPpp.Utils.Utils
-import Database.HsSqlPpp.Internals.Dialect
+--import Database.HsSqlPpp.Internals.Dialect
 --import Data.Text (Text)
 import qualified Data.Text as T
 --import qualified Data.Text.Lazy as LT

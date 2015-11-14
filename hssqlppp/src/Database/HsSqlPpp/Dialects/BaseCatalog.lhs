@@ -9,10 +9,9 @@ have to pass the names of these types in for your specific dialect.
 
 > {-# LANGUAGE DeriveDataTypeable,OverloadedStrings #-}
 >
-> module Database.HsSqlPpp.Internals.Catalog.BaseCatalog
->     (defaultCatalog
+> module Database.HsSqlPpp.Dialects.BaseCatalog
+>     (baseCatalog
 >     ,insertOperators
->     ,pseudoTypes
 >      ) where
 >
 
@@ -32,6 +31,11 @@ have to pass the names of these types in for your specific dialect.
 
 > import Database.HsSqlPpp.Internals.Catalog.CatalogTypes
 
+todo: get rid of this import by having the base catalog use the
+regular catalogupdates instead of accessing the catalog internals
+
+> import Database.HsSqlPpp.Internals.Catalog.CatalogBuilder (insertOperators)
+
 
 
 
@@ -41,8 +45,8 @@ have to pass the names of these types in for your specific dialect.
 > -- you are building an catalog from scratch. It contains
 > -- information on built in function like things such as keyword
 > -- operators like \'and\', etc..
-> defaultCatalog :: Text -> Text -> [Text] -> Catalog
-> defaultCatalog boolTypeName intTypeName textTypeNames =
+> baseCatalog :: Text -> Text -> [Text] -> Catalog
+> baseCatalog boolTypeName intTypeName textTypeNames =
 >     -- todo: specify in terms of catalog updates
 >   emptyCatalog {catSchemas = S.fromList ["public"]
 >                ,catBinaryOps = insertOperators
@@ -52,14 +56,6 @@ have to pass the names of these types in for your specific dialect.
 >                ,catPostfixOps = insertOperators (systemPostfixOps boolTypeName) M.empty
 >                ,catFunctions = insertOperators systemFunctions M.empty
 >                ,catScalarTypeNames = rangeTypes}
-
-> insertOperators :: [(CatName,OperatorPrototype)]
->                 -> M.Map CatName [OperatorPrototype]
->                 -> M.Map CatName [OperatorPrototype]
-> insertOperators vs m =
->   foldr i m vs
->   where
->     i (k,v) = M.insertWith (++) k [v]
 
 -------------------------------------------------------------
 
@@ -111,33 +107,6 @@ intTypeName
 >  ,("least",("least", [ArrayType $ Pseudo AnyElement], Pseudo AnyElement,True))
 >  ]
 
-names to refer to the pseudo types. This is very postgresql
-specific. Some of these should be deleted since hssqlppp has nothing
-to do with them. Some of them will become postgresql dialect specific
-and not appear here, and some we will repurpose to implement features
-for non-postgresql dialects as well.
-
-> pseudoTypes :: M.Map CatName Type
-> pseudoTypes = M.fromList
->     [("any",Pseudo Any)
->     ,("anyarray",Pseudo AnyArray)
->     ,("anyelement",Pseudo AnyElement)
->     ,("anyenum",Pseudo AnyEnum)
->     ,("anyrange",Pseudo AnyRange)
->     ,("anynonarray",Pseudo AnyNonArray)
->     ,("cstring",Pseudo Cstring)
->     ,("record",Pseudo (Record Nothing))
->     ,("trigger",Pseudo Trigger)
->      -- todo: fix this?
->     ,("event_trigger",Pseudo Trigger)
->     ,("void",Pseudo Void)
->     ,("_cstring",ArrayType $ Pseudo Cstring)
->     ,("_record",ArrayType $ Pseudo (Record Nothing))
->     ,("internal",Pseudo Internal)
->     ,("language_handler", Pseudo LanguageHandler)
->     ,("opaque", Pseudo Opaque)
->     ,("fdw_handler", Pseudo FdwHandler)
->     ]
 
 built in range types in postgresql
 

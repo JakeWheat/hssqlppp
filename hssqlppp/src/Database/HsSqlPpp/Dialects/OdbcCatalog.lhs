@@ -6,10 +6,15 @@ https://msdn.microsoft.com/en-us/library/ms711813(v=vs.85).aspx
 TODO: this needs finishing
 
 > {-# LANGUAGE OverloadedStrings #-}
-> module Database.HsSqlPpp.Internals.Catalog.OdbcCatalog
+> module Database.HsSqlPpp.Dialects.OdbcCatalog
 >      (odbcCatalog,odbcConvertTypes,odbcIntervalTypes) where
 >
-> import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+> --import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+> import Database.HsSqlPpp.Internals.Catalog.CatalogTypes
+
+todo: refactor this so we only have the names in this file and get rid
+of the leakage of Type into here.
+
 > import Database.HsSqlPpp.Internals.TypesInternal
 > --import Database.HsSqlPpp.Internals.TypesInternal
 

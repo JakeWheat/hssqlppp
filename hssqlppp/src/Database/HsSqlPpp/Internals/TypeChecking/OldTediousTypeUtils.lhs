@@ -1,4 +1,7 @@
 
+The reason this file exists is because the representation of types in
+hssqlppp (in the module ...Internals.TypesInternal) is not good. I'm
+not sure it can be improved that much though.
 
 > {-# LANGUAGE FlexibleInstances,DeriveDataTypeable #-}
 >

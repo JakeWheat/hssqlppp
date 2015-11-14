@@ -1,20 +1,19 @@
 
+
 > {-# LANGUAGE OverloadedStrings #-}
-> module Database.HsSqlPpp.Internals.Dialects.Oracle (oracleDialect) where
+> module Database.HsSqlPpp.Dialects.Postgres (postgresDialect) where
 
 > import Database.HsSqlPpp.Internals.Dialect
-> import Database.HsSqlPpp.Internals.Catalog.DefaultTemplate1Catalog
+> import Database.HsSqlPpp.Dialects.GeneratedPostgres
+> import Database.HsSqlPpp.Internals.Catalog.CatalogTypes
+> import Database.HsSqlPpp.Internals.Catalog.CatalogBuilder
+> import Database.HsSqlPpp.Dialects.OdbcCatalog
+> import Database.HsSqlPpp.Dialects.BaseCatalog
 
-Oracle is a very small hack based on postgres. This should be fixed
-after adding some more tests. It is particularly bad since we don't
-use oracle style 'numeric' for ints, so it is not very compatible with
-oracle (there are lots of other standard oracle types missing, which
-is probably the biggest issue at the moment.
-
-> oracleDialect :: Dialect
-> oracleDialect = Dialect
->     {diName = "oracle"
->     ,diSyntaxFlavour = Oracle
+> postgresDialect :: Dialect
+> postgresDialect = Dialect
+>     {diName = "postgres"
+>     ,diSyntaxFlavour = Postgres
 >     ,diCanonicalTypeNames =  [("timestamp", ["datetime"])
 >                              -- todo: temp before sqlserver dialect is done properly
 >                              -- this hack should probably move to the ansi dialect first
@@ -41,7 +40,18 @@ is probably the biggest issue at the moment.
 >                          ,("date","date")
 >                          ,("time","time")
 >                          ,("timestamp","timestamp")
->                          ] -- todo: these are postgres names
->     ,diDefaultCatalog = defaultTemplate1Catalog
+>                          ] -- todo: finish this
+>     ,diDefaultCatalog = postgresCatalog
 >     }
 
+> postgresCatalog :: Catalog
+> postgresCatalog =
+>     (\l -> case l of
+>              Left x -> error $ show x
+>              Right e -> e) $
+>      flip updateCatalog (baseCatalog "bool"
+>                                         "int4"
+>                                         ["char"
+>                                         ,"varchar"
+>                                         ,"text"])
+>           (generatedPostgresCatalogEntries ++ odbcCatalog)

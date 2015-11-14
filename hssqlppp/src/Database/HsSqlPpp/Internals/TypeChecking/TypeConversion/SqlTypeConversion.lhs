@@ -32,6 +32,7 @@ the other is a text type, then cast the text to number.
 > import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Internals.Dialect
 > import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+> import Database.HsSqlPpp.Internals.Catalog.CatalogTypes
 > --import Database.HsSqlPpp.Utils.Utils
 > --import Database.HsSqlPpp.Internals.TypeChecking.OldTediousTypeUtils
 > import qualified Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.OldTypeConversion as T

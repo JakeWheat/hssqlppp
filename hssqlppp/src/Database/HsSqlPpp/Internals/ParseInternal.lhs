@@ -13,11 +13,10 @@ right choice, but it seems to do the job pretty well at the moment.
 >     ,parseProcSQL
 >      -- * parsing flags
 >     ,ParseFlags(..)
->     ,defaultParseFlags
->     ,Dialect(..)
->     ,ansiDialect
+>     --,Dialect(..)
+>     --,ansiDialect
 >      -- * errors
->     ,ParseErrorExtra(..)
+>     --,ParseErrorExtra(..)
 >      -- other helpers for internal use
 >     ,tableAttribute
 >     ,keyword
@@ -46,13 +45,12 @@ right choice, but it seems to do the job pretty well at the moment.
 > import Data.Generics.Uniplate.Data
 > import Data.Data hiding (Prefix,Infix)
 >
-> import qualified Database.HsSqlPpp.LexicalSyntax as Lex
+> import qualified Database.HsSqlPpp.Internals.LexicalSyntaxInternal as Lex
 > import Database.HsSqlPpp.Internals.ParseErrors
-> import Database.HsSqlPpp.Syntax
-> import Database.HsSqlPpp.Annotation as A
+> import Database.HsSqlPpp.Internals.AstInternal
+> --import Database.HsSqlPpp.Annotation as A
 > import Database.HsSqlPpp.Internals.Utils
 > import Database.HsSqlPpp.Internals.Dialect
-> import Database.HsSqlPpp.Internals.Dialects.Ansi
 > import Data.Text (Text)
 > import qualified Data.Text as T
 > --import qualified Data.Text.Lazy as LT
@@ -140,10 +138,6 @@ state is never updated during parsing
 >     {pfDialect :: Dialect
 >     }
 >     deriving (Show,Eq)
-
-> defaultParseFlags :: ParseFlags
-> defaultParseFlags = ParseFlags {pfDialect = ansiDialect}
-
 
 > type ParseState = ParseFlags
 

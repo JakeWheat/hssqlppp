@@ -14,7 +14,7 @@
 
 > import Database.HsSqlPpp.Syntax
 > import Database.HsSqlPpp.LexicalSyntax (Token)
-> import Database.HsSqlPpp.Annotation
+> --import Database.HsSqlPpp.Annotation
 > import qualified Data.Text as T
 > --import Data.Text (Text)
 > import qualified Data.Text.Lazy as L

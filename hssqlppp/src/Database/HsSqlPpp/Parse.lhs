@@ -17,13 +17,15 @@ Forward the public part of ParserInternal
 >      -- * errors
 >     ,ParseErrorExtra(..)
 >      -- * internals
-
-TODO - export these from another module
-will need lots more to support the extensions/chaos stuff
-
 >     ,parseName
 >     ,parseNameComponent
 
 >     ) where
 >
 > import Database.HsSqlPpp.Internals.ParseInternal
+> import Database.HsSqlPpp.Internals.ParseErrors
+> import Database.HsSqlPpp.Dialects.Ansi
+> import Database.HsSqlPpp.Internals.Dialect
+
+> defaultParseFlags :: ParseFlags
+> defaultParseFlags = ParseFlags {pfDialect = ansiDialect}
