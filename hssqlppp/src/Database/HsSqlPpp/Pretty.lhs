@@ -15,6 +15,7 @@
 >     ,PrettyFlags(..)
 >     ,defaultPrettyFlags
 >     ,Dialect(..)
+>     ,ansiDialect
 >     )
 >     where
 >
@@ -25,7 +26,8 @@
 > import Database.HsSqlPpp.Annotation
 > --import Database.HsSqlPpp.Utils.Utils
 
-> import Database.HsSqlPpp.Dialect
+> import Database.HsSqlPpp.Internals.Dialect
+> import Database.HsSqlPpp.Internals.Dialects.Ansi
 
 > import Database.HsSqlPpp.Internals.TypesInternal
 > --import Database.HsSqlPpp.Internals.StringLike
@@ -48,7 +50,7 @@ adjusted to reject postgres only syntax when in sql server dialect
 >   deriving (Show,Eq)
 
 > defaultPrettyFlags :: PrettyFlags
-> defaultPrettyFlags = PrettyFlags {ppDialect = postgresDialect}
+> defaultPrettyFlags = PrettyFlags {ppDialect = ansiDialect}
 
 > -- | Convert an ast back to valid SQL source.
 > prettyStatements :: PrettyFlags -> [Statement] -> L.Text

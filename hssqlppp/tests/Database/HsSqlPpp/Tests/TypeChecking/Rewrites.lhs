@@ -8,6 +8,7 @@ item aliases
 > import Database.HsSqlPpp.Tests.TestTypes
 > --import Database.HsSqlPpp.Types
 > import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.Dialect
 > --import Database.HsSqlPpp.TypeCheck
 
 
@@ -15,38 +16,44 @@ item aliases
 > rewrites :: Item
 > rewrites =
 >   Group "rewrites"
->   [RewriteQueryExpr defaultTypeCheckFlags {tcfAddSelectItemAliases = True}
+>   [RewriteQueryExpr defaultTypeCheckFlags {tcfAddSelectItemAliases = True
+>                                              ,tcfDialect = postgresDialect}
 >          [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                              ,("b", mkCatNameExtra "text")]]
 >    "select a,b from t"
 >    "select a as a,b as b from t"
 
->   ,RewriteQueryExpr defaultTypeCheckFlags {tcfExpandStars = True}
+>   ,RewriteQueryExpr defaultTypeCheckFlags {tcfExpandStars = True
+>                                              ,tcfDialect = postgresDialect}
 >          [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                              ,("b", mkCatNameExtra "text")]]
 >    "select * from t"
 >    "select t.a,t.b from t"
 
->   ,RewriteQueryExpr defaultTypeCheckFlags {tcfAddQualifiers = True}
+>   ,RewriteQueryExpr defaultTypeCheckFlags {tcfAddQualifiers = True
+>                                              ,tcfDialect = postgresDialect}
 >          [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                              ,("b", mkCatNameExtra "text")]]
 >    "select b,count(a) from t group by b"
 >    "select t.b,count(t.a) from t group by t.b"
 
->   ,RewriteQueryExpr defaultTypeCheckFlags {tcfAddQualifiers = True}
+>   ,RewriteQueryExpr defaultTypeCheckFlags {tcfAddQualifiers = True
+>                                              ,tcfDialect = postgresDialect}
 >          [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                              ,("b", mkCatNameExtra "text")]]
 >    "select * from t where a > 3"
 >    "select * from t where t.a > 3"
 
->   ,RewriteQueryExpr defaultTypeCheckFlags {tcfAddQualifiers = True}
+>   ,RewriteQueryExpr defaultTypeCheckFlags {tcfAddQualifiers = True
+>                                              ,tcfDialect = postgresDialect}
 >          [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                              ,("b", mkCatNameExtra "text")]]
 >    "select * from t u where a > 3"
 >    "select * from t u where u.a > 3"
 
 
->   ,RewriteQueryExpr defaultTypeCheckFlags {tcfAddQualifiers = True}
+>   ,RewriteQueryExpr defaultTypeCheckFlags {tcfAddQualifiers = True
+>                                              ,tcfDialect = postgresDialect}
 >          [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                              ,("b", mkCatNameExtra "text")]]
 >    "select * from t order by a"
@@ -54,20 +61,23 @@ item aliases
 
 
 
->   ,RewriteQueryExpr defaultTypeCheckFlags {tcfAddFullTablerefAliases = True}
+>   ,RewriteQueryExpr defaultTypeCheckFlags {tcfAddFullTablerefAliases = True
+>                                              ,tcfDialect = postgresDialect}
 >          [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                              ,("b", mkCatNameExtra "text")]]
 >    "select * from t"
 >    "select * from t as t(a,b)"
 
 
->   ,RewriteQueryExpr defaultTypeCheckFlags {tcfAddFullTablerefAliases = True}
+>   ,RewriteQueryExpr defaultTypeCheckFlags {tcfAddFullTablerefAliases = True
+>                                              ,tcfDialect = postgresDialect}
 >          [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                              ,("b", mkCatNameExtra "text")]]
 >    "select * from (select a,b from t) u"
 >    "select * from (select a,b from t t(a,b)) u(a,b)"
 
->   ,RewriteQueryExpr defaultTypeCheckFlags {tcfAddFullTablerefAliases = True}
+>   ,RewriteQueryExpr defaultTypeCheckFlags {tcfAddFullTablerefAliases = True
+>                                              ,tcfDialect = postgresDialect}
 >          [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                              ,("b", mkCatNameExtra "text")]
 >          ,CatCreateTable ("public","u") [("c", mkCatNameExtra "int4")
@@ -77,7 +87,8 @@ item aliases
 >    -- aren't all the same
 >    "select * from t t(a,b) cross join u u(c,d)"
 
->   ,RewriteQueryExpr defaultTypeCheckFlags {tcfAddFullTablerefAliases = True}
+>   ,RewriteQueryExpr defaultTypeCheckFlags {tcfAddFullTablerefAliases = True
+>                                              ,tcfDialect = postgresDialect}
 >          [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                              ,("b", mkCatNameExtra "text")]
 >          ,CatCreateTable ("public","u") [("c", mkCatNameExtra "int4")
@@ -88,7 +99,8 @@ item aliases
 
 
 
->   ,RewriteQueryExpr defaultTypeCheckFlags {tcfAddQualifiers = True}
+>   ,RewriteQueryExpr defaultTypeCheckFlags {tcfAddQualifiers = True
+>                                              ,tcfDialect = postgresDialect}
 >          [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                              ,("b", mkCatNameExtra "text")]]
 >    "select a,b from t"
@@ -97,7 +109,8 @@ item aliases
 >   ,RewriteQueryExpr defaultTypeCheckFlags {tcfAddQualifiers = True
 >                                              ,tcfAddSelectItemAliases = True
 >                                              ,tcfExpandStars = True
->                                              ,tcfAddFullTablerefAliases = True}
+>                                              ,tcfAddFullTablerefAliases = True
+>                                              ,tcfDialect = postgresDialect}
 >          [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4")
 >                              ,("b", mkCatNameExtra "text")]]
 >    "/*thisit*/select * from t"

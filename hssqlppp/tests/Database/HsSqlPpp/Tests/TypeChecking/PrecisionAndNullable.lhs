@@ -18,30 +18,30 @@
 > precisionAndNullable =
 >   Group "PrecisionAndNullable" $
 >   [Group "ScalarExprs"
->    [see cat1 anEnv  "an"  (Right anType)
->    ,see cat1 aEnv   "a"   (Right aType)
->    ,see cat1 cnEnv  "cn"  (Right cnType)
->    ,see cat1 cEnv   "c"   (Right cType)
->    ,see cat1 vnEnv  "vn"  (Right vnType)
->    ,see cat1 vEnv   "v"   (Right vType)
->    ,see cat1 dnEnv  "dn"  (Right dnType)
->    ,see cat1 dEnv   "d"   (Right dType)
->    ,see cat1 vConcatEnv vConcatExpr (Right vConcatType)
->    ,see cat1 vConcatEnv "v||'test12'" (Right $ TypeExtra (ScalarType "text") (Just 12) Nothing False)
->    ,see cat1 vEqEnv vEqExpr (Right vEqType)
->    ,see cat2 a2Env "isnull(an,a)" (Right aType)
->    ,see cat2 anEnv "isnull(an,an)" (Right anType)
->    ,see cat1 aEnv "a is null" (Right isNType)
->    ,see cat1 aEnv "a is not null" (Right isNType)
->    ,see cat1 anEnv "an is null" (Right isNType)
->    ,see cat1 anEnv "an is not null" (Right isNType)
->    ,see cat1 coalEnv "coalesce(an,dn,a)" (Right coalType)
+>    [seePg anEnv  "an"  (Right anType)
+>    ,seePg aEnv   "a"   (Right aType)
+>    ,seePg cnEnv  "cn"  (Right cnType)
+>    ,seePg cEnv   "c"   (Right cType)
+>    ,seePg vnEnv  "vn"  (Right vnType)
+>    ,seePg vEnv   "v"   (Right vType)
+>    ,seePg dnEnv  "dn"  (Right dnType)
+>    ,seePg dEnv   "d"   (Right dType)
+>    ,seePg vConcatEnv vConcatExpr (Right vConcatType)
+>    ,seePg vConcatEnv "v||'test12'" (Right $ TypeExtra (ScalarType "text") (Just 12) Nothing False)
+>    ,seePg vEqEnv vEqExpr (Right vEqType)
+>    ,seeTs a2Env "isnull(an,a)" (Right aType)
+>    ,seeTs anEnv "isnull(an,an)" (Right anType)
+>    ,seePg aEnv "a is null" (Right isNType)
+>    ,seePg aEnv "a is not null" (Right isNType)
+>    ,seePg anEnv "an is null" (Right isNType)
+>    ,seePg anEnv "an is not null" (Right isNType)
+>    ,seePg coalEnv "coalesce(an,dn,a)" (Right coalType)
 >    -- gives incompatible types
->    --,see cat1 case1Env "case an when v then a when c then an end" (Right case1Type)
->    ,see cat2 case1Env "case vn when v then a when c then an end" (Right case1Type)
->    ,see cat1 case2Env "case when an is null then a when v is null then an else dn end" (Right case2Type)
->    ,see cat2 (selListEnv []) "dateadd(year,1,'1997/01/01')" (Right $ mkTypeExtraNN $ ScalarType "timestamp")
->    ,see cat2 vEnv   "len(v)"   (Right aType)
+>    --,seePg case1Env "case an when v then a when c then an end" (Right case1Type)
+>    ,seeTs case1Env "case vn when v then a when c then an end" (Right case1Type)
+>    ,seePg case2Env "case when an is null then a when v is null then an else dn end" (Right case2Type)
+>    ,seeTs (selListEnv []) "dateadd(year,1,'1997/01/01')" (Right $ mkTypeExtraNN $ ScalarType "timestamp")
+>    ,seeTs vEnv   "len(v)"   (Right aType)
 >    ]
 >   ]
 >   ++ [Group "PrecisionAndNullabletcQueryExpr"
@@ -125,8 +125,8 @@
 >       ]
 >     ]
 >   where
->     cat1 = diDefaultCatalog postgresDialect
->     cat2 = diDefaultCatalog sqlServerDialect
+>     --cat1 = diDefaultCatalog postgresDialect
+>     --cat2 = diDefaultCatalog sqlServerDialect
 >     anType = TypeExtra typeInt Nothing Nothing True
 >     anEnv = selListEnv [("an", anType)]
 >     aType = mkTypeExtraNN typeInt
@@ -165,7 +165,8 @@
 >     tsqlQueryExpr cus =
 >         let cat = makeCatalog sqlServerDialect cus
 >         in TCQueryExpr cat defaultTypeCheckFlags {tcfDialect = sqlServerDialect}
->     see = ScalarExprExtra
+>     seePg = ScalarExprExtra postgresDialect (diDefaultCatalog postgresDialect)
+>     seeTs = ScalarExprExtra sqlServerDialect (diDefaultCatalog sqlServerDialect)
 >     typeInt = ScalarType "int4"
 >     typeBigInt = ScalarType "int8"
 >     typeVarChar = ScalarType "varchar"

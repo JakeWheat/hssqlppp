@@ -126,7 +126,7 @@ moment.
 >          ]
 >     tcQueryExpr cus =
 >         let cat = makeCatalog postgresDialect cus
->         in TCQueryExpr cat defaultTypeCheckFlags
+>         in TCQueryExpr cat defaultTypeCheckFlags {tcfDialect = postgresDialect}
 >     typeChar = ScalarType "char"
 >     typeNumeric = ScalarType "numeric"
 >     typeBigInt = ScalarType "int8"

@@ -4,6 +4,7 @@
 > module Database.HsSqlPpp.Tests.Parsing.FunctionsDdl (functionsDdl) where
 >
 > import Database.HsSqlPpp.Syntax
+> import Database.HsSqlPpp.Dialect
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
 > import Database.HsSqlPpp.Tests.TestTypes
@@ -146,4 +147,4 @@
 >                                 ,(name "test",[st "text"])] Cascade]
 >     ]]
 >  where
->    s = ParseStmts defaultParseFlags
+>    s = ParseStmts defaultParseFlags {pfDialect = postgresDialect}

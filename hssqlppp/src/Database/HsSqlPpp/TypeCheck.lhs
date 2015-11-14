@@ -11,12 +11,14 @@ This is the public module for the type checking functionality.
 >     ,typeCheckScalarExpr
 >     ,TypeCheckFlags(..)
 >     ,Dialect(..)
+>     ,ansiDialect
 >     ,defaultTypeCheckFlags
 >     ,emptyEnvironment
 >     ) where
 >
 > import Database.HsSqlPpp.Internals.AstInternal
 > import Database.HsSqlPpp.Internals.Dialect
+> import Database.HsSqlPpp.Internals.Dialects.Ansi
 > import Database.HsSqlPpp.Internals.TypeChecking.Environment (emptyEnvironment)
 > --import Database.HsSqlPpp.Internals.TypeChecking.Utils
 > --import Database.HsSqlPpp.Internals.AstAnnotation

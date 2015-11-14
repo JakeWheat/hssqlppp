@@ -13,6 +13,7 @@ Forward the public part of ParserInternal
 >     ,ParseFlags(..)
 >     ,defaultParseFlags
 >     ,Dialect(..)
+>     ,ansiDialect
 >      -- * errors
 >     ,ParseErrorExtra(..)
 >      -- * internals

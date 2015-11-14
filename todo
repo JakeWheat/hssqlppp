@@ -1,3 +1,66 @@
+
+refactoring updates:
+add more tests
+get the dialect stuff sorted, particularly for typechecking
+focus on these areas to fix for now:
+  1. catalog code
+  2. dialects
+  3. module dependency spaghetti
+  4. tests and preparation to fix the typeconversion and nullabability
+     and precision determination
+
+1. do new catalog
+2. write plan for testing
+
+phase 1:
+reasonably complete ansi dialect/catalog with tests
+same for sql server
+--
+rearrange the source code to reduce the spaghetti
+--
+implement new catalog:
+  make it less low level and postgres specific
+  proper schema support, including saving the schema in the annotation
+    and schema search paths. make sure it also supports the
+   schema=user style
+  comprehensive error checking
+  ownership, dependencies, cascade, restrict, permissions?
+put the dialects and default catalogs in the same files
+--
+add good tests for typing literals in different contexts
+add good tests for implicit casts in general
+add good tests for nullability and precision
+update some of the syntax and parsing from simple sql parser
+move over some of the dialect handling in sqream
+fix the base catalog stuff
+change the postgres catalog generation slightly
+
+phase 2:
+completely rewrite the ag attr and sem stuff
+  main thing to add is the source for identifiers to make it a better
+   compiler front end
+  apart from that almost all the existing code is a mess and poorly
+   documented
+much more comprehensive typechecking and tests for query exprs
+typechecking good for other dml and ddl
+complete the syntax and parsing ports from simple sql parser
+
+phase 3:
+rewrite the typeconversion (spaghetti at the moment, and particularly
+   there are lots of places where nullability and precision are
+   handled and it is completely unmaintainable)
+dialect anomaly tests
+other anomaly tests
+improve error messages
+improve project documentation
+
+
+
+----
+
+
+see if can use stack to build more easily
+
 fix website
 refactor tests
 

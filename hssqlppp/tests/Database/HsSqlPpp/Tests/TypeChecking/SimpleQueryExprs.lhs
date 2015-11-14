@@ -106,7 +106,7 @@ values
 >   where
 >     tcQueryExpr cus =
 >         let cat = makeCatalog postgresDialect cus
->         in TCQueryExpr cat defaultTypeCheckFlags
+>         in TCQueryExpr cat defaultTypeCheckFlags {tcfDialect = postgresDialect}
 >     --typeBool = ScalarType "bool"
 >     typeInt = ScalarType "int4"
 >     typeBigInt = ScalarType "int8"

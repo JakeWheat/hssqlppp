@@ -5,7 +5,7 @@ import qualified Database.HsSqlPpp.Internals.TypeChecking.Environment as E
 import Database.HsSqlPpp.Internals.TypeChecking.Environment (Environment)
 import Database.HsSqlPpp.Internals.TypesInternal
 import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
-import Database.HsSqlPpp.Internals.Dialects.Postgres
+import Database.HsSqlPpp.Internals.Dialects.Ansi
 import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.TypeConversion
 import Control.Monad
 import Data.List
@@ -41,7 +41,7 @@ defaultTypeCheckFlags =
     ,tcfAddFullTablerefAliases = False
     ,tcfAddSelectItemAliases = False
     ,tcfExpandStars = False
-    ,tcfDialect = postgresDialect}
+    ,tcfDialect = ansiDialect}
 
 -- | Typechecks the ast, and returns the updated catalog (which
 -- includes changes from any ddl statements in the ast).

@@ -15,6 +15,7 @@ right choice, but it seems to do the job pretty well at the moment.
 >     ,ParseFlags(..)
 >     ,defaultParseFlags
 >     ,Dialect(..)
+>     ,ansiDialect
 >      -- * errors
 >     ,ParseErrorExtra(..)
 >      -- other helpers for internal use
@@ -51,7 +52,7 @@ right choice, but it seems to do the job pretty well at the moment.
 > import Database.HsSqlPpp.Annotation as A
 > import Database.HsSqlPpp.Internals.Utils
 > import Database.HsSqlPpp.Internals.Dialect
-> import Database.HsSqlPpp.Dialect
+> import Database.HsSqlPpp.Internals.Dialects.Ansi
 > import Data.Text (Text)
 > import qualified Data.Text as T
 > --import qualified Data.Text.Lazy as LT
@@ -141,7 +142,7 @@ state is never updated during parsing
 >     deriving (Show,Eq)
 
 > defaultParseFlags :: ParseFlags
-> defaultParseFlags = ParseFlags {pfDialect = postgresDialect}
+> defaultParseFlags = ParseFlags {pfDialect = ansiDialect}
 
 
 > type ParseState = ParseFlags

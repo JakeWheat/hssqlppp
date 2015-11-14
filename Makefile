@@ -163,6 +163,15 @@ website : #make-website/dist/build/MakeWebsite/MakeWebsite \
 
 	#mv build/website/index.txt.html build/website/index.html
 
+DIAGRAM_SRC_FILES=$(shell ls hssqlppp/src/Database/HsSqlPpp/*.lhs)
+
+build/website/hssqlppp-src.svg : $(DIAGRAM_SRC_FILES)
+	mkdir -p build/website
+	graphmod -i ~/wd/hssqlppp/master/hssqlppp/src $(DIAGRAM_SRC_FILES) \
+	    -a -R Text -R Control -R Data -r Prelude \
+	    > build/website/hssqlppp-src.dot
+	dot -Tsvg build/website/hssqlppp-src.dot -o build/website/hssqlppp-src.svg
+
 # build/website/main.css : website-source/main.css
 # 	-mkdir -p build/website/
 # 	cp website-source/main.css build/website/main.css

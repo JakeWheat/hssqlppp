@@ -62,7 +62,7 @@
 
 >           | ImpCastsScalar TypeCheckFlags L.Text L.Text
 >             -- todo: combine this with tcscalexpr
->           | ScalarExprExtra Catalog Environment L.Text (Either [TypeError] TypeExtra)
+>           | ScalarExprExtra Dialect Catalog Environment L.Text (Either [TypeError] TypeExtra)
 >           | MatchApp Dialect Catalog [NameComponent]
 >                      [(TypeExtra, Maybe LitArg)]
 >                      (Either [TypeError] ([TypeExtra],TypeExtra))

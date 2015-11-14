@@ -23,5 +23,5 @@
 >   ]
 >   where
 >     e = ImpCastsScalar
->     p = defaultTypeCheckFlags
+>     p = defaultTypeCheckFlags {tcfDialect=postgresDialect}
 >     s = defaultTypeCheckFlags {tcfDialect=sqlServerDialect}

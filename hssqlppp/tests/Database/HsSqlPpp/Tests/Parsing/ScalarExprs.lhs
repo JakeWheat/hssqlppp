@@ -6,6 +6,7 @@
 > import Database.HsSqlPpp.Utils.Here
 >
 > import Database.HsSqlPpp.Syntax
+> import Database.HsSqlPpp.Dialect
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
 > import Database.HsSqlPpp.Tests.TestTypes
@@ -247,4 +248,4 @@ and dollar quoting, including nesting.
 
 >      ]
 >  where
->    e = ParseScalarExpr defaultParseFlags
+>    e = ParseScalarExpr defaultParseFlags {pfDialect=postgresDialect}

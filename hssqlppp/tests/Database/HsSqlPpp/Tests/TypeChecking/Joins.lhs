@@ -97,7 +97,7 @@
 >                                         ,("d", mkCatNameExtra "text")]]
 >     tcQueryExpr cus =
 >         let cat = makeCatalog postgresDialect cus
->         in TCQueryExpr cat defaultTypeCheckFlags
+>         in TCQueryExpr cat defaultTypeCheckFlags {tcfDialect = postgresDialect}
 >     typeInt = ScalarType "int4"
 >     typeNumeric = ScalarType "numeric"
 >     typeBool = ScalarType "bool"

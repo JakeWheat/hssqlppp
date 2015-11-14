@@ -86,7 +86,7 @@
 > itemToTft (RewriteQueryExpr f cus s s') = testRewrite f cus s s'
 
 > itemToTft (ImpCastsScalar f s s') = testImpCastsScalar f s s'
-> itemToTft (ScalarExprExtra cat env s r) = testScalarExprTypeExtra cat env s r
+> itemToTft (ScalarExprExtra d cat env s r) = testScalarExprTypeExtra d cat env s r
 > itemToTft (MatchApp d cat f as r) = testMatchApp d cat f as r
 
 > testParseScalarExpr :: ParseFlags -> Text -> ScalarExpr -> T.TestTree
@@ -151,7 +151,7 @@
 >               Left e -> error $ show e
 >               Right l -> l
 >       aast = typeCheckScalarExpr f cat
->              (hackCanonicalizeEnvTypeNames (tcfDialect f) env)
+>              (canonicalizeEnvTypes (tcfDialect f) env)
 >              $ canonicalizeTypes (tcfDialect f) ast
 >       (ty,errs,noTypeQEs,noTypeSEs) = tcTreeInfo aast
 >       er = concatMap fst errs
@@ -168,16 +168,16 @@
 >   unless (et == got) $ trace (groomTypes aast) $ return ()
 >   H.assertEqual "" et got
 
-> testScalarExprTypeExtra:: Catalog -> Environment -> L.Text
+> testScalarExprTypeExtra:: Dialect -> Catalog -> Environment -> L.Text
 >                           -> Either [TypeError] TypeExtra
 >                           -> T.TestTree
-> testScalarExprTypeExtra cat env src ete = H.testCase ("typecheck " ++ L.unpack src) $ do
->   let ast = case parseScalarExpr defaultParseFlags "" Nothing src of
+> testScalarExprTypeExtra d cat env src ete = H.testCase ("typecheck " ++ L.unpack src) $ do
+>   let ast = case parseScalarExpr defaultParseFlags {pfDialect = d} "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
->       aast = typeCheckScalarExpr defaultTypeCheckFlags cat
->              (hackCanonicalizeEnvTypeNames (tcfDialect defaultTypeCheckFlags) env)
->              $ canonicalizeTypes (tcfDialect defaultTypeCheckFlags) ast
+>       aast = typeCheckScalarExpr defaultTypeCheckFlags {tcfDialect = d} cat
+>              (canonicalizeEnvTypes d env)
+>              $ canonicalizeTypes d ast
 >       (ty,errs,noTypeQEs,noTypeSEs) = tcTreeInfo aast
 >       er = concatMap fst errs
 >       got = case () of
@@ -406,6 +406,12 @@ type checks properly and produces the same type
 > canonicalizeTypes :: Data a => Dialect -> a -> a
 > canonicalizeTypes d = transformBi $ \x -> case x of
 >     ScalarType t -> ScalarType $ canonicalizeTypeName d t
+>     _ -> x
+
+> canonicalizeEnvTypes :: Data a => Dialect -> a -> a
+> canonicalizeEnvTypes d = transformBi $ \x -> case x of
+>     TypeExtra (ScalarType t) p s n ->
+>       TypeExtra (ScalarType $ canonicalizeTypeName d t) p s n
 >     _ -> x
 
 ~~~~

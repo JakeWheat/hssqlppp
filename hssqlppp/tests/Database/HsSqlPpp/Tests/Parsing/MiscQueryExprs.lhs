@@ -7,6 +7,7 @@
 > --import Database.HsSqlPpp.Utils.Here
 >
 > import Database.HsSqlPpp.Syntax
+> import Database.HsSqlPpp.Dialect
 
 > import Database.HsSqlPpp.Tests.Parsing.Utils
 > import Database.HsSqlPpp.Tests.TestTypes
@@ -80,7 +81,7 @@
 >                   ,selTref = [tref "pos"]}
 >    ]
 >  where
->    s = ParseQueryExpr defaultParseFlags
+>    s = ParseQueryExpr defaultParseFlags {pfDialect = postgresDialect}
 >    tblat = makeSelect
 >            {selSelectList = sl [si $ ei "a"]
 >            ,selTref = [tref "t"]}

@@ -7,6 +7,7 @@
 > import Database.HsSqlPpp.Tests.TestTypes
 > --import Database.HsSqlPpp.TypeCheck
 > import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.Dialect
 
 > --import Database.HsSqlPpp.Types
 
@@ -24,7 +25,7 @@ select tbl.x from tbl t.
 >   [
 >   -- check that quoted select list aliases don't lose their quotes
 >    let s = "select t.a as \"Quoted\" from t as t(a,b);"
->    in RewriteQueryExpr defaultTypeCheckFlags
+>    in RewriteQueryExpr defaultTypeCheckFlags {tcfDialect = postgresDialect}
 >         {tcfAddQualifiers = True
 >         ,tcfAddSelectItemAliases = True
 >         ,tcfExpandStars = True
@@ -47,7 +48,7 @@ select tbl.x from tbl t.
 >   --   "select * from t u inner join t1 u1 on u.a=u1.c;"
 >   ]
 >   where
->     r = RewriteQueryExpr defaultTypeCheckFlags
+>     r = RewriteQueryExpr defaultTypeCheckFlags {tcfDialect = postgresDialect}
 >         {tcfAddQualifiers = True
 >         ,tcfAddSelectItemAliases = True
 >         ,tcfExpandStars = True
