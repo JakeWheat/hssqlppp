@@ -125,12 +125,12 @@ moment.
 >           ,("totacctbal", mkTypeExtra typeNumeric)]
 >          ]
 >     tcQueryExpr cus =
->         let cat = makeCatalog postgresDialect cus
->         in TCQueryExpr cat defaultTypeCheckFlags {tcfDialect = postgresDialect}
+>         let cat = makeCatalog ansiDialect cus
+>         in TCQueryExpr cat defaultTypeCheckFlags
 >     typeChar = ScalarType "char"
 >     typeNumeric = ScalarType "numeric"
->     typeBigInt = ScalarType "int8"
+>     typeBigInt = ScalarType "bigint"
 >     typeVarChar = ScalarType "varchar"
->     typeInt = ScalarType "int4"
+>     typeInt = ScalarType "int"
 >     typeDate = ScalarType "date"
 

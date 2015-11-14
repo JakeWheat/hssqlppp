@@ -27,6 +27,10 @@
 
 > import Database.HsSqlPpp.Internals.Dialect
 
+todo: get rid of the types internal
+the ImplicitCast ctor uses Type instead of syntax only, this should be
+changed and then this import can be removed
+
 > import Database.HsSqlPpp.Internals.TypesInternal
 > --import Database.HsSqlPpp.Internals.StringLike
 > import qualified Data.Text as T

@@ -205,6 +205,18 @@ collate
 >         ++ [CatCreateBinaryOp "+" "interval" "interval" "interval"
 >            ,CatCreateBinaryOp "-" "interval" "interval" "interval"]
 
+quick and dirty to get tpch working
+
+>        ++
+>        [ CatCreateAggregate "sum" [ "numeric" ] "numeric"
+>        , CatCreateAggregate "sum" [ "smallint" ] "smallint"
+>          --todo: figure out what the options for the types are here
+>        , CatCreateAggregate "sum" [ "int" ] "bigint"
+>        , CatCreateAggregate "sum" [ "bigint" ] "bigint"
+>        , CatCreateAggregate "avg" [ "numeric" ] "numeric"
+>        , CatCreateAggregate "max" [ "numeric" ] "numeric"
+>        , CatCreateAggregate "min" [ "numeric" ] "numeric"
+>        , CatCreateAggregate "count" [ "any" ] "bigint"]
 
 
 >         ++ [

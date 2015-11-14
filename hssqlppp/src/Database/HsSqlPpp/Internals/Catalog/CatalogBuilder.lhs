@@ -35,7 +35,9 @@
 > -- which correspond to ddl (e.g. create type will also add the
 > -- array type, create table will add a table, supply the
 > -- private columns automatically, and add the composite type)
-> -- highlevel not implemented yet
+> -- highlevel not implemented yet. You must use the correct case and
+> -- the canonical names for identifiers/types
+
 > updateCatalog :: [CatalogUpdate]
 >               -> Catalog
 >               -> Either [TypeError] Catalog
