@@ -1,6 +1,57 @@
 
-Datatypes to represent postgres types and type errors. Below are some
-notes on what the types are for and how they are used in postgres.
+
+Type identifiers and anonymous types
+
+Basic type identified by name
+These can be quoted or unquoted, and with or without schema
+
+unknown type: this is used for the types of literals in a kind of poor
+mans type inference, modelled on postgresql's behaviour. Dialects can
+choose not to use this approach and give a literal a type based only
+on its syntax (and thus the dialect would never use the unknown
+type. (The direct unknown typing isn't quite implemented yet).
+
+any types
+
+these are used to implement a kind of poor man's polymorphism. based
+on the any types in postgresql. These are used for polymorphic
+udfs. This is separate to overloading functions.
+
+anonymous composite type
+
+this represents a tuple of types, all, some or none of which can have
+field names. This is used for composite types which are created on the
+fly and don't have a name in the catalog or environment. Maybe this
+should be changed so they are given a temporary name to reduce the
+special cases
+
+tref type
+
+this is an internal type used by the typechecker (todo: can this be
+hidden?) Maybe could add optional correlation names to the field names
+in anonymous composite type and reuse that?
+
+setof?
+record?
+void?
+
+typeextra
+
+ugly way to add nullability and precision to a type. This should get a
+big rethink
+
+step 1 todo:
+combine composite and anonymous composite types
+combine scalartype, domaintype, enum, named composite type
+
+get rid of explicit array types and figure out a better way to handle
+them
+
+Split the errors into another module, and in the public api
+The errors should contain not contain 'Type's.
+
+figure out a better way of handling nullability, precision, scale than
+the typeextra
 
 > {-# LANGUAGE FlexibleInstances,DeriveDataTypeable,OverloadedStrings #-}
 >
@@ -120,17 +171,17 @@ needed in the typechecking?
 >                 -- | presumably used for the types of OLD and NEW in a trigger
 >                 -- function. Hssqlppp will probably use the Record type above
 >                 -- for these.
->                 | TriggerRecord
->                 | Trigger
+>                 --  | TriggerRecord
+>                 --  | Trigger
 >                 -- | cstring - a C string
->                 | Cstring
+>                 --  | Cstring
 >                 -- | represents the return type of a function which doesn't return
 >                 -- anything. Not sure if it is used anywhere else
 >                 | Void
->                 | Internal
->                 | LanguageHandler
->                 | Opaque
->                 | FdwHandler
+>                 --  | Internal
+>                 --  | LanguageHandler
+>                 --  | Opaque
+>                 --  | FdwHandler
 >                   deriving (Eq,Show,Ord,Typeable,Data)
 
 
@@ -195,124 +246,3 @@ gutted and rewritten
 >                | TooManyColumnsInInsert
 >                  deriving (Eq,Show,Ord,Typeable,Data)
 >
-> --instance ErrorList TypeError where
-> --  listMsg s = [InternalError s]
-
-TODO: remove these aliases
-
-> -- | Using these gives the hssqlppp canonical names of these
-> -- types, which have multiple names in postgres and SQL. The names which
-> -- hssqlppp uses as canonical are the names that postgres uses in a pg_dump.
-> {-typeSmallInt,typeBigInt,typeInt,typeNumeric,typeFloat4,
->   typeFloat8,typeVarChar,typeChar,typeBool,typeDate,
->   typeTime,typeTimestamp, typeInterval :: Type
-> typeSmallInt = ScalarType "int2"
-> typeBigInt = ScalarType "int8"
-> typeInt = ScalarType "int4"
-> typeNumeric = ScalarType "numeric"
-> typeFloat4 = ScalarType "float4"
-> typeFloat8 = ScalarType "float8"
-> typeVarChar = ScalarType "varchar"
-> typeChar = ScalarType "char"
-> typeBool = ScalarType "bool"
-> typeDate = ScalarType "date"
-> typeTime = ScalarType "time"
-> typeTimestamp = ScalarType "timestamp"
-> typeInterval = ScalarType "interval"-}
-
-> {-traceit :: Show a => String -> a -> a
-> traceit m a = trace (m ++ ": " ++ show a) a-}
-
-
-Canonicalize type names
-
-When you typecheck a tree or use the catalog internal functions or
-many other things, you must use the canonical type names and you have
-to convert them yourself. It would be nice if all the functions did
-this automatically, but I am concerned about the performance of doing
-many redundant passes over a tree when the library is being used, and
-I think the overhead of verifying this in the type system is really
-big (maybe it would not be too bad?).
-
-only canonicalizes the built in types (type synonyms or whatever for
-user types will be handled in the catalog not here).
-
-maybe canonicalize should do case folding for unquoted identifiers
-also (which is dependent on the dialect).
-
-> -- | convert the name of a type to its canonical name. For types
-> -- without multiple names, it returns the name unchanged
-> {-canonicalizeTypeName :: Dialect -> Text -> Text
-> canonicalizeTypeName d = ct (tm d)
->   where
->     tm ANSI = ansiTypeNames
->     tm SQLServer = postgresqlTypeNames
->     tm Oracle = postgresqlTypeNames
->     tm PostgreSQL = postgresqlTypeNames
->     hasType t p = let t' = T.map toLower t
->                   in t' `elem` snd p
->     ct m tn = maybe tn fst
->               $ find (hasType tn) m
-
-ansi:
-
-no concept of canonical names in ansi? so just choose the
-shortest version of each
-
-> ansiTypeNames :: [(Text,[Text])]
-> ansiTypeNames =
->     [("char",["character"])
->     ,("varchar",["char varying","character varying"])
->     ,("clob",["character large object","char large object"])
->     ,("nchar",["national character","national char"])
->     ,("nvarchar",["national character varying"
->                  ,"national char varying"
->                  ,"nchar varying"])
->     ,("nclob",["national character large object"
->               ,"nchar large object"])
->     ,("varbinary",["binary varying"])
->     ,("blob",["binary large object"])
->      -- todo: pg types: find a better solution
->     ,("int",["integer", "int4"])
->     ,("smallint",["int2"])
->     ,("bigint",["int8"])
->     ,("boolean", ["bool"])
->     ,("float",["double precision"])
->     ]
-
-
-postgresql:
-
-the canonical names are what pg_dump uses and appear in the
-catalog. Some of the canonical names for ansi types don't use the ansi
-names.
-
-> postgresqlTypeNames :: [(Text,[Text])]
-> postgresqlTypeNames =
->     [("timestamp", ["datetime"])
->      -- todo: temp before sqlserver dialect is done properly
->      -- this hack should probably move to the ansi dialect first
->     ,("int1", ["tinyint"])
->     ,("int2", ["smallint"])
->     ,("int4", ["integer","int"])
->     ,("int8", ["bigint"])
->     ,("numeric", ["decimal"])
->     ,("float4", ["real"])
->     ,("float8", ["double precision","float","double"])
->      -- probably some missing here
->     ,("varchar", ["character varying"])
->     ,("char", ["character"])
->     ,("bool", ["boolean"])]-}
-
-TODO:
-
-what about PrecTypeName - called modifiers in pg. No idea how these
-should work in the typechecker. I think the modifier values might be
-completely dynamic in postgres.
-
-array types have to match an exact array type in the catalog, so we
-can't create an arbitrary array of any type. Not sure if this is
-handled quite correctly in this code. Not sure if you would ever
-create or drop an array type manually.
-
-

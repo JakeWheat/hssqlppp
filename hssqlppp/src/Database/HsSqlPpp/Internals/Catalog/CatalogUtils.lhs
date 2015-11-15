@@ -37,18 +37,18 @@ for non-postgresql dialects as well.
 >     ,("anyenum",Pseudo AnyEnum)
 >     ,("anyrange",Pseudo AnyRange)
 >     ,("anynonarray",Pseudo AnyNonArray)
->     ,("cstring",Pseudo Cstring)
+>     --,("cstring",Pseudo Cstring)
 >     ,("record",Pseudo (Record Nothing))
->     ,("trigger",Pseudo Trigger)
+>     --,("trigger",Pseudo Trigger)
 >      -- todo: fix this?
->     ,("event_trigger",Pseudo Trigger)
+>     --,("event_trigger",Pseudo Trigger)
 >     ,("void",Pseudo Void)
->     ,("_cstring",ArrayType $ Pseudo Cstring)
+>     --("_cstring",ArrayType $ Pseudo Cstring)
 >     ,("_record",ArrayType $ Pseudo (Record Nothing))
->     ,("internal",Pseudo Internal)
->     ,("language_handler", Pseudo LanguageHandler)
->     ,("opaque", Pseudo Opaque)
->     ,("fdw_handler", Pseudo FdwHandler)
+>     --,("internal",Pseudo Internal)
+>     --,("language_handler", Pseudo LanguageHandler)
+>     --,("opaque", Pseudo Opaque)
+>     --,("fdw_handler", Pseudo FdwHandler)
 >     ]
 
 > -- | takes a [NameComponent] and returns the type for that name

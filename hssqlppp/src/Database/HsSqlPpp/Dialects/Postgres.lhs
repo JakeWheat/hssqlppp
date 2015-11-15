@@ -54,4 +54,14 @@
 >                                         ["char"
 >                                         ,"varchar"
 >                                         ,"text"])
->           (generatedPostgresCatalogEntries ++ odbcCatalog)
+>           (nonSpecialPseudoTypes ++ generatedPostgresCatalogEntries ++ odbcCatalog)
+>   where
+>      nonSpecialPseudoTypes =
+>         [CatCreateScalarType "cstring"
+>         ,CatCreateScalarType "trigger"
+>         ,CatCreateScalarType "event_trigger"
+>         ,CatCreateScalarType "_cstring"
+>         ,CatCreateScalarType "internal"
+>         ,CatCreateScalarType "language_handler"
+>         ,CatCreateScalarType "opaque"
+>         ,CatCreateScalarType "fdw_handler"]
