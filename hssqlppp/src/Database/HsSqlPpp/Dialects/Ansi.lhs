@@ -123,23 +123,6 @@ collate
 >            | s <- ["char","varchar","clob"
 >                   ,"nchar","nvarchar", "nclob"
 >                   ,"binary","varbinary","blob" ] ]
->         -- logical operators. the convention is to represent
->         -- non standard syntax using a prefix !
->         -- this will cause a problem if the user can create functions
->         -- or operators which overlap with these names, so a better
->         -- solution should be found (this hack is implemented in the
->         -- parser also
->         ++ [CatCreateBinaryOp "!and" "boolean" "boolean" "boolean"
->            ,CatCreateBinaryOp "!or" "boolean" "boolean" "boolean"
->            ,CatCreatePrefixOp "!not" "boolean" "boolean"]
->         -- truth value tests
->         --   ,CatCreateBinaryOp "!is true" "boolean" "boolean" "boolean" --truth value version
->         --   ,CatCreateBinaryOp "!is not true" "boolean" "boolean" "boolean"
->         --   ]
->         -- is/ is not null
->         {- ++ [CatCreatePostfixOp "!is null" "!any" "boolean"
->            ,CatCreatePostfixOp "!is not null" "!any" "boolean"]-}
-
 >         -- comparisons, should some of these be generic?
 >         -- maybe want the option of user defined types
 >         -- not having comparisons? not sure about types without
@@ -155,18 +138,7 @@ collate
 >                   ,"boolean"
 >                   ,"date","time","timestamp","interval"
 >                   ] ]
->         -- TODO: overlaps, need to try to understand how this works better
->         -- so can add the right types
->         -- I think the args have to be some variation on a row value with
->         -- two components
 >
->         -- is distinct from, supports any type
->         -- so I suppose this means every type must support
->         -- equals (or the error just isn't caught in this typechecker)
->         -- ++ [ CatCreateBinaryOp op "!any" "!any" "boolean"
->         --   | op <- ["!is distinct from","!is not distinct from"]
->         --   ]
-
 >         ++ [CatCreateFunction "abs" [t] False t
 >            | t <- ["numeric", "decimal", "smallint", "int", "bigint", "float","real"]]
 
