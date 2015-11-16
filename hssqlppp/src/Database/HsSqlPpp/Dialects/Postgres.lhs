@@ -44,6 +44,11 @@
 >     ,diDefaultCatalog = postgresCatalog
 >     }
 
+built in range types in postgresql
+
+todo: maybe these are in the catalog somewhere and should come from
+postgres?
+
 > postgresCatalog :: Catalog
 > postgresCatalog =
 >     (\l -> case l of
@@ -54,14 +59,18 @@
 >                                         ["char"
 >                                         ,"varchar"
 >                                         ,"text"])
->           (nonSpecialPseudoTypes ++ generatedPostgresCatalogEntries ++ odbcCatalog)
+>           (nonSpecialPseudoTypes ++ rangeTypes ++ generatedPostgresCatalogEntries ++ odbcCatalog)
 >   where
->      nonSpecialPseudoTypes =
->         [CatCreateScalarType "cstring"
->         ,CatCreateScalarType "trigger"
->         ,CatCreateScalarType "event_trigger"
->         ,CatCreateScalarType "_cstring"
->         ,CatCreateScalarType "internal"
->         ,CatCreateScalarType "language_handler"
->         ,CatCreateScalarType "opaque"
->         ,CatCreateScalarType "fdw_handler"]
+>      rangeTypes = map CatCreateScalarType
+>                   ["int4range", "int8range"
+>                   ,"numrange","daterange"
+>                   ,"tsrange","tstzrange"]
+>      nonSpecialPseudoTypes = map CatCreateScalarType
+>                              ["cstring"
+>                              ,"trigger"
+>                              ,"event_trigger"
+>                              ,"_cstring"
+>                              ,"internal"
+>                              ,"language_handler"
+>                              ,"opaque"
+>                              ,"fdw_handler"]

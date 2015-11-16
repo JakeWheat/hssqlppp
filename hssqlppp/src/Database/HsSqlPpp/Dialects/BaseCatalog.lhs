@@ -7,6 +7,79 @@ Because this is currently used for postgresql and ansi, and these
 dialects have different canonical names for some of the types, you
 have to pass the names of these types in for your specific dialect.
 
+TODO:
+I think = should not be here, it should be in the dialects
+arrayctor and arraysub should be implemented differently, they
+  shouldn't appear in the catalog
+
+think about where coalesce, nullif, greatest and least should
+appear. Maybe they should be in the regular dialects since they work
+and look just like normal functions.
+
+each one of the non standard syntaxes (including keyword operators)
+should be enabled/disabled in the dialect, which will handle adding
+the appropriate stuff to the catalog, and enable the parse to reject
+unsupported syntax at the same time
+
+todo:
+
+create a dialect description datatype which has entries for
+each of the special syntaxes
+
+then create a helper function which adds the enabled syntax to a
+catalog. This helper function will replace the BaseCatalog.
+
+then use these flags in the parser also
+at the same time can replace the syntaxflavour with syntax flags
+for each thing which is currently different
+
+
+
+notes:
+
+= built in keyword binary operators (regular)
+
+and
+or
+not
+(not) like
+(not) rlike
+is (not) null
+overlaps
+is (not) similar to
+is (not) { true | false | unknown }
+is (not) distinct from
+
+= special operators
+
+array subscript
+(not) in
+(not) between
+substring
+cast
+
+
+greatest and least??
+coalesce?
+nullif?
+
+extract
+position
+substring
+convert
+translate
+overlay
+trim
+
+quantified comparisons
+
+exists
+unique
+array
+multiset
+
+    
+  
 > {-# LANGUAGE DeriveDataTypeable,OverloadedStrings #-}
 >
 > module Database.HsSqlPpp.Dialects.BaseCatalog
@@ -55,7 +128,7 @@ regular catalogupdates instead of accessing the catalog internals
 >                ,catPrefixOps = insertOperators (systemPrefixOps boolTypeName) M.empty
 >                ,catPostfixOps = insertOperators (systemPostfixOps boolTypeName) M.empty
 >                ,catFunctions = insertOperators systemFunctions M.empty
->                ,catScalarTypeNames = rangeTypes}
+>                ,catScalarTypeNames = S.empty}
 
 -------------------------------------------------------------
 
@@ -107,14 +180,4 @@ intTypeName
 >  ,("least",("least", [ArrayType $ Pseudo AnyElement], Pseudo AnyElement,True))
 >  ]
 
-
-built in range types in postgresql
-
-todo: maybe these are in the catalog somewhere and should come from
-postgres?
-
-> rangeTypes :: S.Set CatName
-> rangeTypes = S.fromList ["int4range", "int8range"
->                         ,"numrange","daterange"
->                         ,"tsrange","tstzrange"]
 
