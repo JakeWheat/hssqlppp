@@ -1,6 +1,6 @@
 
 > {-# LANGUAGE TupleSections,OverloadedStrings #-}
-> module Database.HsSqlPpp.LexicalSyntax
+> module Database.HsSqlPpp.Lex
 >     (Token(..)
 >     ,prettyToken
 >     ,lexToken
@@ -9,7 +9,7 @@
 >     ,ansiDialect
 >     ) where
 
-> import Database.HsSqlPpp.Internals.LexicalSyntaxInternal
+> import Database.HsSqlPpp.Internals.LexInternal
 > import Database.HsSqlPpp.Internals.Dialect
 > import Database.HsSqlPpp.Dialects.Ansi
 

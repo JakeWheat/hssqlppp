@@ -1,6 +1,6 @@
 
 > {-# LANGUAGE TupleSections,OverloadedStrings #-}
-> module Database.HsSqlPpp.Internals.LexicalSyntaxInternal
+> module Database.HsSqlPpp.Internals.LexInternal
 >     (Token(..)
 >     ,prettyToken
 >     ,lexToken

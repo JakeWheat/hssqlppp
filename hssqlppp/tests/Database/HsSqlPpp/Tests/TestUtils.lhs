@@ -25,7 +25,7 @@
 > import Data.Text.Lazy (Text)
 > import qualified Data.Text.Lazy as L
 > import qualified Data.Text as T
-> import Database.HsSqlPpp.LexicalSyntax (lexTokens,prettyToken,Token)
+> import Database.HsSqlPpp.Lex (lexTokens,prettyToken,Token)
 > --import Text.Parsec.Text (runParser)
 > --import Control.Applicative
 > --import Data.Generics.Uniplate.Data

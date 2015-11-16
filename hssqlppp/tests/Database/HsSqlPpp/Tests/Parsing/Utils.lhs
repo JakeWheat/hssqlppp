@@ -7,7 +7,7 @@ shortcuts for constructing test data and asts
 > module Database.HsSqlPpp.Tests.Parsing.Utils where
 
 > import Database.HsSqlPpp.Syntax
-> --import Database.HsSqlPpp.LexicalSyntax (Token)
+> --import Database.HsSqlPpp.Lex (Token)
 > import Database.HsSqlPpp.Annotation
 > import qualified Data.Text as T
 > import Data.Text (Text)

@@ -10,7 +10,7 @@ try to parse, if parses, print and check equal to original string
 > {-# LANGUAGE OverloadedStrings #-}
 > module Database.HsSqlPpp.Tests.Parsing.LexerTests where
 
-> import Database.HsSqlPpp.LexicalSyntax
+> import Database.HsSqlPpp.Lex
 > --import Database.HsSqlPpp.Internals.Dialect
 > import Database.HsSqlPpp.Tests.TestTypes
 > import Database.HsSqlPpp.Dialect

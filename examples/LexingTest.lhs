@@ -37,7 +37,7 @@ myssql are ``, etc.).
 > --import Test.Framework
 > --import Test.HUnit
 > --import Test.Framework.Providers.HUnit
-> --import Database.HsSqlPpp.LexicalSyntax
+> --import Database.HsSqlPpp.Lex
 > import Control.Monad
 > --import Debug.Trace
 

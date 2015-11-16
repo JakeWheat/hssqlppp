@@ -46,7 +46,7 @@ Library
   Exposed-modules:   Database.HsSqlPpp.Annotation
                      Database.HsSqlPpp.Catalog
                      Database.HsSqlPpp.Dialect
-                     Database.HsSqlPpp.LexicalSyntax
+                     Database.HsSqlPpp.Lex
                      Database.HsSqlPpp.Parse
                      Database.HsSqlPpp.Pretty
                      Database.HsSqlPpp.Syntax
@@ -61,7 +61,7 @@ Library
                     Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.TypeConversion
                     Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.SqlTypeConversion
                     Database.HsSqlPpp.Internals.TypeChecking.Environment
-                    Database.HsSqlPpp.Internals.LexicalSyntaxInternal
+                    Database.HsSqlPpp.Internals.LexInternal
                     Database.HsSqlPpp.Internals.Dialect
                     Database.HsSqlPpp.Internals.ParseInternal
                     Database.HsSqlPpp.Internals.PrettyInternal

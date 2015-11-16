@@ -1,5 +1,5 @@
 
-> import Database.HsSqlPpp.LexicalSyntax
+> import Database.HsSqlPpp.Lex
 > import Text.Show.Pretty
 > import System.Environment
 > import qualified Data.Text.IO as T

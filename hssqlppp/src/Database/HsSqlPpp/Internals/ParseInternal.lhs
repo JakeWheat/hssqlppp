@@ -45,7 +45,7 @@ right choice, but it seems to do the job pretty well at the moment.
 > import Data.Generics.Uniplate.Data
 > import Data.Data hiding (Prefix,Infix)
 >
-> import qualified Database.HsSqlPpp.Internals.LexicalSyntaxInternal as Lex
+> import qualified Database.HsSqlPpp.Internals.LexInternal as Lex
 > import Database.HsSqlPpp.Internals.ParseErrors
 > import Database.HsSqlPpp.Internals.AstInternal
 > --import Database.HsSqlPpp.Annotation as A
