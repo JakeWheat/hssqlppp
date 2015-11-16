@@ -1,204 +1,230 @@
 
-refactoring updates:
-add more tests
-get the dialect stuff sorted, particularly for typechecking
-focus on these areas to fix for now:
-  1. catalog code
-  2. dialects
-  3. module dependency spaghetti
-  4. tests and preparation to fix the typeconversion and nullabability
-     and precision determination
+State of the code:
 
-1. do new catalog
-2. write plan for testing
+There are some big issues
 
-phase 1:
-reasonably complete ansi dialect/catalog with tests
-same for sql server
---
-rearrange the source code to reduce the spaghetti
---
-implement new catalog:
-  make it less low level and postgres specific
-  proper schema support, including saving the schema in the annotation
-    and schema search paths. make sure it also supports the
-   schema=user style
-  comprehensive error checking
-  ownership, dependencies, cascade, restrict, permissions?
-put the dialects and default catalogs in the same files
---
-add good tests for typing literals in different contexts
-add good tests for implicit casts in general
-add good tests for nullability and precision
-update some of the syntax and parsing from simple sql parser
-move over some of the dialect handling in sqream
-fix the base catalog stuff
-change the postgres catalog generation slightly
+1. the dialect handling for parsing is very limited
+2. schema support and general catalog operations are limited
+3. typechecking of query exprs is limited, and other dml and ddl is
+   non-existent
+4. there are lots of postgres specific things baked into the system
+5. the typeconversion code, which handles overloaded function
+   resolution, implicit casting, most of the typing of literals, and
+   most of determining the precision, scale and nuillability of
+   expressions is a complete nightmare
+6. typechecking for ansi, sql server and oracle dialects are very
+   limited and sql server and oracle are very incorrect
+7. the tests are very limited
+8. a lot of the parsing code is very crufty and/or suspect
+9. the syntax design is a bit poor
+10. some of the code is too coupled (especially between modules)
 
-phase 2:
-completely rewrite the ag attr and sem stuff
-  main thing to add is the source for identifiers to make it a better
-   compiler front end
-  apart from that almost all the existing code is a mess and poorly
-   documented
-much more comprehensive typechecking and tests for query exprs
-typechecking good for other dml and ddl
-complete the syntax and parsing ports from simple sql parser
+Tasks
 
-phase 3:
-rewrite the typeconversion (spaghetti at the moment, and particularly
-   there are lots of places where nullability and precision are
-   handled and it is completely unmaintainable)
-dialect anomaly tests
-other anomaly tests
-improve error messages
-improve project documentation
+0. minor issues
 
+implicit case uses type. The syntax should not depend on this, maybe
+replace with something just specific to implicit cast
 
+full dialect type is used all the way through the internals. it is
+nice to have a single dialect type for the user, but to reduce couple
+internally, there should be minimal dialect types for each of
+lexing,parsing,pretty printing and typechecking. Maybe the
+lexing,parsing and pretty printing will be the same type, but don't
+want the parser to depend on all the code that the typechecking part
+of the dialect depends on
 
-----
+the annotation type pulls in a bunch of stuff into the syntax. can the
+tree be parameterized on the annotation type? can the annotation type
+be implemented in a separate module at least? it uses some ag stuff at
+the moment
 
+rename some of the internal modules, types, ctors and functions,
+etc. to be more clear and consistent.
 
-see if can use stack to build more easily
+fix the catalogs and tests for oracle and sql server so they are not
+based on postresql, which makes them very wrong
 
-fix website
-refactor tests
+the dialects used in the tests are a bit confused because of legacy
+issues. The tests need to be more methodical anyway.
 
-get website/ tool working again with new build instructions
-  for 0.4.x as well
-review docs, note about Cabal and the sandbox
-add generated tests
+the base catalog is a little mixed up. Is there a cleaner way to do
+this, it is basically special support for stuff in the catalog which
+may or may not be common across dialects. At the very least, it should
+use the public api for updating catalogs instead of the internals.
 
-speed up rebuilds in makefile
+the odbc catalog does not attach onto the current dialect
+properly. the typechecker should access the odbc via the dialect and
+not directly. Odbc support both for parsing and typechecking should be
+a flag on the dialects or something (and disabled by default). The
+odbc typechecking should work in different dialects.
 
+literals don't directly type as unknown. This should be fixed at least
+for postgres, and probably is a good idea for at least some of the
+other dialects.
 
-get h7c compiling + chaos sql working again, quick hack
-review how to get the rendered version of this working again
+the current make/cabal system is crap. The problem is rebuilds are
+really slow . See if can use stack/if it helps. Rebuilds and
+subprojects which depend on other projects (such as hssqlppp-th) are
+particularly slow to work with in the current build
 
-fix compile warnings: ask the perpetrators to do this
-upgrade to new uuagc
+try to do code coverage
+try to set up continuous integration somewhere - mainly want to catch
+build failures with older ghcs
 
+also: much better testing.  big weak points:
+we don't test nullability, precision and scale much, or the typing of literals
+want some more tests on unusual dialects (e.g use numeric and have no
+int types, dialect only has one text type and it isn't char or
+varchar, dialect doesn't have a decimal type (affects number literals
+for instance)
+the parser tests are much less comprehensive that in the
+simple-sql-parser project
+there aren't many anomaly tests
+  for instance, bad typing
+  using sql which doesn't work in the current dialect/catalog
+  there are also a bunch of places where the error messages can be made much nicer
+    for instance:
+      when you don't match a function it can provide similarly named
+      functions, and if you got the name right, it can explain exactly
+      what the overloads are, what your types are, and why it didn't
+      match any of them (e.g. non are valid for the types, or it is
+      ambiguous)
+  can also consider the similar names for identifiers too
 
-get regen catalog working with pg 9.4: just fixing the new anyrange
-   stuff?
-
-review all the code for old bits and stuff which needs reorganising
-
-
---------------------------------------------------------
-
-
-
-
-
-
-review source documentation
-qualify imports
-better framework for supporting pg, mssql, oracle (+db2) syntax?
-  conversion between different syntax helpers
-syntax review + syntax fixes + compare with official sql grammar?
-add string fx to qq + review qq error messages
-put the generic bits from chaos into hsssqlppp somewhere
-?better catalog: better checking, more info, schemas
-   (+typechecking), tests
-use shake
-maybe start again with ast types and ag code, get it working with
-   latest uuagc and understand it a bit better
-
-3
-typechecking for ddl and functions
-get chaos working as separate project
+can the overload matching/implicit casting be tested by generating
+lots of test cases using another dbms like postgres and sql server?
 
 
-alpha:
-target parsing and typechecking a big chunk of postgresql, mssql and
-   oracle (and maybe db2) sql
-sql syntax extension framework
-quasi quotation for syntax work in haskell
-typesafe access from haskell
-basic documentation and code analysis tools
-function as a sql front end for shark
+add more qualified imports and explicit import lists
 
-= features
+get rid of the remaining calls to error
 
-parameterized statements + typesafe access
+expose internals only via modules called ...Internal. There are a few
+internal functions expose for utils or testing. These should be kept
+more separate
 
-group by type checking:
-check group by and aggregate expressions in select list, having, order
-   by:
-  get the group by columns
-  allow these to appear anywhere
-  all the other columns can appear only inside an aggregate
-  no nested aggregate calls
+1. rewrite the catalog code
+support schemas and schema search path properly
+support some more object types
+help fix the confusion with the type Type
+support dependencies and cascade/restrict
+make sure the canonicalization of names, and case handling is done
+properly
+correctness handling of ddl operations
+support drop and alter directly
+good test coverage directly on the catalog api
+understand some of the dialect issues wrt catalog stuff better
+handle the odbc option better - this needs some interaction with the
+general catalog stuff
+later want to handle permissions to some extent. not sure exactly what
+to do here or if the code will be in hssqlppp or sqream. We need at
+least parsing and catalog support for registering permissions here,
+even if the authorization code itself might not be here
 
-start working on nullability: what should be changed/ tested:
-resolveResultSetType
-some of the other type compatibility tests
-scalar functions:
-  default is any function call result can be null
-  other cases:
-    manually create whitelist of functions which return non null if
-      none of the args are null -> this is like the opposite of strict
-    manually special cases for functions which return non null even if
-      one or more of the arguments are null
-  don't think the information needed for this is available from
-    postgresql. Can calculate accurately the nullability of functions
-    with plpgsql source, but not ones which are built in or written in
-    other languages.
+2. rewrite the typechecking code from scratch
+it is a real mess
+lots of things missing
 
-identifier work: add unique ids to every node in tree, then put the
-   source ids in the env, then when the type of an identifier is put
-   in the annotation, put the source id in the annotation as well
+it needs to be much more literate because it is weird, so that
+programmers who don't know uuagc stand a chance of working with this
+code
 
-complete type checking for crud
-get the typechecking for functions and ddl working again
+there should be much clearer way of dealing with nullability,
+precision and scale
+more complete typechecking for query exprs
+complete typechecking for other dml and for ddl added
 
-= maintenance
+there are some tree rewrites which can be done during
+typechecking. These should be refactored as separate passes instead of
+it being tied together
 
-work on tests plus error checking improvements
+the typechecking should be better as a compiler front end. The key
+addition is tracking where identifiers are defined, so e.g. we can
+easily tell which schema a table has matched to, or if a subquery is
+correlated.
 
-work on documentation and examples, experimentation file
+3. rewrite the typeconversion code and the general nullability,
+precision and scale stuff
+this is even worse mess
+get rid of the hacks and special cases for e.g. datepart
 
-switch to pgsimple?
+I think the current code tries to be too rule based. For simple
+reoccuring patterns, we can use some simple rules. Other than that, I
+think passing in functions to e.g. determine the output precision is
+better. The default rules and the special case functions should be
+connected to the catalog functions in the dialect files right next to
+the catalog definitions, instead of being embedded in the type
+conversion code itself.
 
-organize the remaining files in src-extra - should there be any?
+4. not neccessarily here
 
-move the chaos stuff to chaos project (extensions, h7c, chaos)
-get it all working: lots to do, get it all typechecking
--> just get it out of the hssqlppp project for next release first
+there is a bunch of improved syntax and parsing code (and pretty
+printing) in the simple-sql-parser project. there can be some copy
+pasting into hssqlppp for now, and eventually they should be
+synchronized and kept the same (somehow - we can't use
+simple-sql-parser directly or use the source code since we must use
+.ag in hssqlppp and I definitely don't want to use this in
+simple-sql-parser).
 
-move examples to correct subpackages
+5. improve the project documentation and examples
 
-review todos and plan for 0.5.0 release
 
-proper review of tableref syntax and fixes to ast and parsing
+= later tasks
 
-look at the pretty print, maybe add some benchmarking to see what is
-   the best way, maybe pretty print to string then convert to lazy
-   text at the end?
+think about demo code to convert between dialects (especially things
+like types and functions which need to be desugared)
 
-== syntax
+try to get the old chaos sql preprocessor working again
 
-get the new tref adding stuff working
-rename SubTref to QueryTref or something
-rename ScalarSubQuery to something better
-review other names in syntax
-tpch tests: add tests which parse, add all the extras, then
-   reparse,pretty,parse, and typecheck again
-find some other sets of sql to use for testing
-separate out the type error tests to different files and get them
-   working again
+improve the quasiquotation system: maybe also switch from text back to
+strings (apart from the input to parsing, and the output from pretty
+printing)
 
-add parens to queryexprs, work out better grammar and parsing precedence?
-change the special op name to be an enum?
-change parsing of typed string literal since this can be just a cast,
-   get rid of seperate ctor
-review unionall and others
+typesafe access and composing sql expressions from haskell
 
-think of a better names for plpgsql* since will also support tsql and
-   maybe others going forward
+work on ansi procedural sql + get the typechecking for procedural sql
+working again. Probably the most important dialect here is TSQL, but
+maybe plsql is also important (the plpgsql work should be revived also
+since the syntax is already there).
 
-better way to do accessor and setter for annotations (use typeclass?)
+synchronization with simple-sql-parser
+
+the syntaxes should be the same. Maybe there can be a mechanical
+conversion from the simple-sql-parser haskell syntax to the uuagc in
+hssqlppp
+
+simple-sql-parser should have dialect support and annotations for this
+to happen.
+
+can't share the code or use simple-sql-parser from hssqlppp because
+the syntax in hssqlppp must be written in ag, and simple-sql-parser it
+should not use this so that it is much more accessible.
+
+maybe replace parsec with megaparsec
+
+maybe replace it with uu-parsinglib (has incremental parsing which is
+really nice, and also maybe better error messages, and also a better
+way to handle left factoring - I think it just does it automatically
+more or less)
+
+use wl-pprint-text or something - maybe this will be better for the
+complex and identation heavy syntax?
+
+do proper solution to operator precedence parsing. would like to do an
+ast pass approach if possible. This is also needed at least for from
+clauses and set operators too, both of which almost certainly get the
+fixity wrong at the moment.
+
+syntax extensibility?
+
+lint for sql with plugins
+
+parameterized annotation
+
+------------------------
+
+old notes
 
 == typechecking
 
@@ -236,10 +262,6 @@ alter the postprocess for astinternal.hs: want to add haddock line for
    the data type and each ctor for all the data defs in the file, but
    not recordize them
 
-get ghc 6.12.x working again: think it is just adding the
-   control.monad.error stuff back it(?) -> or maybe skip, if 7.0, 7.4,
-   7.6 are supported
-
 review examples: add new examples, clean up code, and example page on
    website. Add simple parsing and typechecking example to index page
 rename examples
@@ -261,17 +283,6 @@ same with typechecking: show writing a cat by hand, and examples to
    generate from postgresql database and from ddl sql
 
 
-= 'arcs'
-
-== data.text
-
-figure out how to use text in the ast and still use qq
-outstanding issue is text in pattern quotes
-
-== continue with rewrite of catalog and typeconversion
-
-typeconversion code is a complete mess
-
 == misc small bits
 
 idea for :: cast
@@ -287,222 +298,12 @@ could do something similar for other operators: '.', [], in?
 
 add support for enum types
 
-== alpha version
-
-high quality postgresql dialect parsing for most sql and plpgsql
-good enough typechecking for select,insert,update,delete:
-  the goal is high quality result types for correct sql, but not
-  neccessarily catching all errors for incorrect sql
-definitely include typesafe embedded sql lib
-
-possibly good enough typechecking for ddl and plpgsql to handle chaos?
-
-then for version 2 can target high quality with errors, plus good
-support for ddl, and reasonable support for plpgsql (will always
-reject some correct plpgsql)
-
-todo: make detailed todo list for this
-
-== out of tree builds
-
-make file build out of source tree
-
-== names
-
-support schema qualification, and check the existing use of names
-carefully
-
-== ddl and plpgsql
-
-typechecking has regressed to zero for these, bring them back up
-
-== typesafe wrapper
-
-write typesafe wrapper for haskell accessing database
-want to use extensible records, not sure what the options are:
-could use haskell records or fc-labels and not use extensible records?
-other possible options are hlist, haskelldb records
-can fc-labels or a competitor be used with extensible records?
-
-nullability inference would be useful here, also possibly single
-column in result specialisation, and static check of single tuple in
-result (e.g. where on key, or non grouped aggregates).
-
-
-== api
-
-review api names, docs and other aspects, lots of suspect/bizarrely
-named types and ctors
-
 == website nav
-
-especially useful when source, chaos example working again
 
 == examples
 
 add compilation of examples to automated tests, also add tests in the
 documentation
-
-=== adding syntax example
-
-provide some more hacking examples and support in the code:
-add a new ctor to existing node
-add a new kind of node
-include simple instructions to fail gracefully at typechecking, so new
-  syntax plus parsing and pretty printing can be easily added
-review parsing code and try to make it clearer for the confusing bits,
-  also the lexer
-
-== uuagc ?postprocessor
-
-docs: write a preprocessor for the .hs produced from the .ag
-want to add the LANGUAGE directives
-and also add the haddock docs which get stripped out
-and also convert some of the data type definitions to use record syntax
-want to do this automatically, not sure how can parse the original ag
-  though?
-
-have explicit list of data types in astinternal that want to do this for
-start with annotation as example:
-find the complete definition of annotation in astinternal.hs
-want to replace part of this, would like to avoid killing other
-comments in astinternal.hs
-find the original definition of annotation in the ag files
-a) parse out the haddock string for each field
-b) parse out the field name and type for each field
-replace the def in astinternal with the replacement:
-include haddock strings
-use record syntax for data def
-
-what to do this for:
-ctor with lots of components in the ast -> particularly queryexpr
-annotation is really poor without docs
-
-
-== nullablity inference in type checker
-
-== syntax refactoring
-
-lots of messy bits in the syntax:
-
-some renames - try to follow the sql standard reference better
-
-split out the plpgsql statements to separate ast node
-
-more faithful representation of source code? This is mainly for
-defaults, e.g. can't tell after parsing if an order by element was
-explicitly asc, or implicitly asc. This might be useful for lint
-checking e.g.. Also might make it easier to handle different sql
-dialects with different defaults.
-
-== ag - review code add fixmes
-
-review ag code (and other code?) add fixme notes
-
-== ag - preprocessing?
-
-want to add the language pragma in the make file to simplify the ghc
-calls and manual compilation
-also would like to use record syntax for a lot of the data types in
-the ag, and not lose the haddock documentation.
-
-not sure if uuagc supports this, it would be easy to add to uuagc, or
-if a separate preprocessor which runs on the ag and the hs after uuagc
-is the easiest way
-
-== typechecking regressions fix
-lots of disabled tests, get them all passing again
-
-== chaos
-
-work on the chaos example
-* get it typechecking OK again - lots of work on typechecker needed
-* get the unit tests running again: maybe quickest is to port to new haskelldb
-* get the ui running again so you can actually see it running
-* maybe port these over to hssqlppp typesafe access for dogfooding
-* fix the documentation generator which shows the translated sql -
-  fair few prerequisites to this
-* use new custom syntax stuff
-* use the sql documentation generator (from the catalog)
-
-add parsing and typechecking chaos (+ others?) to automated tests
-
-== doctool
-
-get the standalone doctool working. Get the website documentation
-generator working again
-
-== h7c
-
-work on the functionality. want to get it working as a library to
-compile chaos without needing to look at the hssqlppp lib
-internals. The main blocker is fixing the syntax and then exposing the
-parser internals for extension use.
-
-== catalog work
-
-the catalog holds pretty limited information at the moment, and
-doesn't use that information to type check ddl very well (e.g. reject
-drop on non existent objects, don't allow two tables with same name,
-etc.)
-so
-* add much better error checking
-* add much more information to support error checking
-* track more types of objects, e.g. triggers, indexes
-* add more information to support documentation generator, e.g. view
-  source, function source, cross-linked hypertext sources
-
-== quasiquote work
-
-want to add a lot more quasiquotes. Good start would be to review all
-the extensions, and translation examples, codegen, etc.. and make sure
-you never need to write asts out explicitly, and can always use
-quasiquotes.
-
-Another thing to add is full haskell syntax inside quasiquotes. No
-idea how to do this but the language-c-quote package does this so can
-look at the source there.
-
-== refactoring
-
-review the code and refactor the crufty bits. Also want much better
-documentation in the .lhs. Main code to completely rewrite is
-TypeConversion.lhs which was written when I didn't know haskell (or
-postgresql typechecking) very well.
-
-== error handling
-
-review to eliminate any errors being hidden, or calls to 'error'
-
-== custom syntax plugins
-
-want to be able to plugin new syntax into parser - so alter syntax
-tree as well. maybe start with the ability to add new statement types,
-and new expressions types only.
-
-== work through pg manual to get more complete coverage of sql syntax
-
-== roundtrip testing
-
-use postgresql to help with testing:
-
-parse ddl, get catalog
-load sql into postgresql, read catalog from pg
-compare
-dump database, parse dump and check catalog from hssqlppp is the same
-
-parse sql
-load into postgresql
-dump
-parse again
-check is equivalent (might be very hard in general case)
-
-some quickcheck style testing:
-generate random ast
-(maybe stick to scalar expression to start with?)
-typecheck with hssqlppp
-load into postgresql and get type out
-check types are the same
 
 == report generator
 
@@ -522,28 +323,3 @@ load into postgresql and double check catalog from typechecker
 load and dump postgresql, reparse and typecheck for changes
 
 == documentation generator for sql codebases
-
-== fix operator parsing
-fix expression parsing and custom operators: stage one is to do a hack
-which supplies the parser with the operator details at run time so
-there is some flexibility
-
-full dynamic support: e.g. create operators in sql then able to parse
-use of them ... standard way of dealing with operator precedence is to
-parse them all as left associative then adjust the tree after, not
-sure this will be enough -> perhaps can reuse the haskell-src-exts
-fixity thing for rewriting trees - will have to add parens explicitly
-to the ast and parser, which might be tricky for sql?
-
-== write extensions?
-
-materialized view, temporal data, generalized inclusions, order
-independent ddl source, show used catalog, modules for sql source
-
-== lint
-
-lint tool framework - so want to make it easy to add new rules
-
-== better annotation approach?
-
-maybe try to parameterize on annotation type? lots of other techniques

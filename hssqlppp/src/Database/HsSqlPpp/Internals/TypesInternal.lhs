@@ -184,6 +184,29 @@ needed in the typechecking?
 >                 --  | FdwHandler
 >                   deriving (Eq,Show,Ord,Typeable,Data)
 
+TODO idea
+
+> {-data Type = -- | A normal type identified by name. Includes scalar
+>             -- types, domain types, enums, (non-anonymous)
+>             -- structured types
+>             Type (Maybe Text,Text)
+>              -- | represents a unknown type like in postgres. Used
+>              -- for literals in some dialects and a few other places
+>           | UnknownType
+>           | ArrayType Type
+>           | CompositeType [(Text,TypeExtra)]
+>           -- | hack to support the environment for a tref
+>           | TrefType [((Text,Text),TypeExtra)]
+>           -- | the fields are anonymous as well as the type itself
+>           | AnonymousCompositeType [Type]
+>           | SetOfType Type
+>             -- | record types are used in plpgsql for a sort of dynamic
+>             -- typing or rough polymorphism substitute. They can refer to
+>             -- values of named composite type, composite type or
+>             -- anonymous composite type, not sure if non composite types as well.
+>           | Record (Maybe Type)
+>             deriving (Eq,Show,Ord,Typeable,Data)-}
+
 
 The possible type errors. This is a bit unorganised, at some point if
 better error messages are wanted, then a lot more information could be
