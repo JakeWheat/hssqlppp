@@ -1,67 +1,20 @@
 
-Currently this is the base catalog which contains the things which are
-needed for typechecking but don't appear in the postgresql
-catalog. This needs a rethink once there are a lot more tests.
+This file contains special definitions which are used by pretty much
+every dialect.
 
-Because this is currently used for postgresql and ansi, and these
-dialects have different canonical names for some of the types, you
-have to pass the names of these types in for your specific dialect.
+This includes the catalog entries to support:
+mixfix:
+between and not between
 
-TODO:
-I think = should not be here, it should be in the dialects
-arrayctor and arraysub should be implemented differently, they
-  shouldn't appear in the catalog
-
-think about where coalesce, nullif, greatest and least should
-appear. Maybe they should be in the regular dialects since they work
-and look just like normal functions.
-
-each one of the non standard syntaxes (including keyword operators)
-should be enabled/disabled in the dialect, which will handle adding
-the appropriate stuff to the catalog, and enable the parse to reject
-unsupported syntax at the same time
-
-todo:
-
-create a dialect description datatype which has entries for
-each of the special syntaxes
-
-then create a helper function which adds the enabled syntax to a
-catalog. This helper function will replace the BaseCatalog.
-
-then use these flags in the parser also
-at the same time can replace the syntaxflavour with syntax flags
-for each thing which is currently different
-
-
-
-notes:
-
-= built in keyword binary operators (regular)
-
-and
-or
-not
-(not) like
-(not) rlike
-is (not) null
-overlaps
+keyword operators:
+and, or, not, (not) like, is (not) null, overlaps
 is (not) similar to
 is (not) { true | false | unknown }
 is (not) distinct from
 
-= special operators
+in (list version)
 
-array subscript
-(not) in
-(not) between
-substring
-cast
-
-coalesce?
-nullif?
-
-extract
+almost-function like operators
 position
 substring
 convert
@@ -69,12 +22,19 @@ translate
 overlay
 trim
 
-quantified comparisons
+coalesce and nullif also appear here
 
-exists
-unique
-array
-multiset
+TODO: this isn't complete yet (we cannot even parse some of the above
+currently)
+
+todo: not sure how to handle:
+array subscript and ctor
+cast - very special case
+extract - special case because one of the args is a typename not
+  a scalar expr
+quantified comparisons?
+array and multiset ops
+other subqueries
 
 > {-# LANGUAGE DeriveDataTypeable,OverloadedStrings #-}
 >
@@ -102,21 +62,34 @@ multiset
 >    ,CatCreateBinaryOp "or" bool bool bool
 >    ] ++
 >    concat [ [CatCreateBinaryOp "like" t t bool
->             ,CatCreateBinaryOp "notlike" t t bool]
+>              -- todo: rename this to "not like"
+>              -- and other operators the same
+>             ,CatCreateBinaryOp "notlike" t t bool
+>              -- todo: overlaps needs a tuple?
+>             --,CatCreateBinaryOp "overlaps" t t bool
+>             --is (not) similar to
+>              -- is (not) distinct from
+>             ]
 >           | t <- texts]
->    ++
+>    ++ -- these should go in a separate namespace, not functions
 >    [CatCreateFunction "between" ["anyelement","anyelement","anyelement"] False bool
 >    ,CatCreateFunction "notbetween" ["anyelement","anyelement","anyelement"] False bool
 >    ]
 
-todo: put these in a separate namespace in catalog
-
-make sure all the special ops appear in this namespace and not
-somewhere else (like binary ops or functions)
+todo: do some writeup on namespaces in the hssqlppp catalog code
 
 > specialOps :: Text -> Text -> [Text] -> [CatalogUpdate]
 > specialOps _bool int texts =
+>        -- these should go in a separate namespace along with between
 >        [CatCreateSpecialOp "substring" [t,int,int] False t
+>         -- in (list version) can be treated as a variadic special function
+>         -- extract ... takes a typename as one of the args
+>         -- position
+>         -- convert
+>         -- translate
+>         -- overlay
+>         -- trim
+
 >        | t <- texts]
 
 
@@ -127,7 +100,9 @@ somewhere else (like binary ops or functions)
 > postfixOps :: Text -> [CatalogUpdate]
 > postfixOps bool =
 >    [CatCreatePostfixOp "isnull" "anyelement" bool
->    ,CatCreatePostfixOp "isnotnull" "anyelement" bool]
+>    ,CatCreatePostfixOp "isnotnull" "anyelement" bool
+>     -- is (not) { true | false | unknown }
+>    ]
 
 These appear here since basically every dialect has them the same. Not
 sure if this is a good enough reason.
@@ -137,5 +112,3 @@ sure if this is a good enough reason.
 >     [CatCreateVariadicFunction "coalesce" ["anyelement"] False "anyelement"
 >     ,CatCreateFunction "nullif" ["anyelement","anyelement"] False "anyelement"
 >     ]
-
-
