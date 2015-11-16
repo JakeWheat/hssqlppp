@@ -5,7 +5,7 @@
 > import Database.HsSqlPpp.Internals.Dialect
 > import Database.HsSqlPpp.Internals.Catalog.CatalogBuilder
 > import Database.HsSqlPpp.Internals.Catalog.CatalogTypes
-> import Database.HsSqlPpp.Dialects.BaseCatalog
+> --import Database.HsSqlPpp.Dialects.BaseCatalog
 > import Database.HsSqlPpp.Dialects.Postgres
 > --import Database.HsSqlPpp.Internals.Dialect
 > --import Data.List
@@ -31,7 +31,7 @@ should be reimplemented separately from scratch
 >                              -- probably some missing here
 >                              ,("varchar", ["character varying"])
 >                              ,("char", ["character"])
->                              ,("boolean", ["boolean"])]
+>                              ,("bool", ["boolean"])]
 >     ,diTextTypes = ["char","varchar"]
 >     ,diDatetimeTypes = ["date","time","timestamp","interval"]
 >     ,diNumberTypes = ["int2","int4","int8","numeric","float4","float8"]
@@ -55,11 +55,7 @@ should be reimplemented separately from scratch
 >               (alterUpdates (deconstructCatalog
 >                              (diDefaultCatalog postgresDialect)
 >                              ++ additionalEntries))
->               (baseCatalog "bool" -- todo: fix these
->                                         "int4"
->                                         ["char"
->                                         ,"varchar"
->                                         ,"text"])
+>               emptyCatalog
 >     -- change the counts to return int instead of long
 >     alterUpdates = map $ \u -> case u of
 >         CatCreateAggregate "count" ["any"] "int8" ->

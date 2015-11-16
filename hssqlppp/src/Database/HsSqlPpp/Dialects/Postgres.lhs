@@ -54,12 +54,10 @@ postgres?
 >     (\l -> case l of
 >              Left x -> error $ show x
 >              Right e -> e) $
->      flip updateCatalog (baseCatalog "bool"
->                                         "int4"
->                                         ["char"
->                                         ,"varchar"
->                                         ,"text"])
->           (nonSpecialPseudoTypes ++ rangeTypes ++ generatedPostgresCatalogEntries ++ odbcCatalog)
+>      flip updateCatalog emptyCatalog (
+>           nonSpecialPseudoTypes ++ rangeTypes ++ generatedPostgresCatalogEntries
+>           ++ baseCatalog "bool" "int4" ["char", "varchar", "text"]
+>           ++ odbcCatalog)
 >   where
 >      rangeTypes = map CatCreateScalarType
 >                   ["int4range", "int8range"

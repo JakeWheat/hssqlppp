@@ -264,14 +264,19 @@ todo: collate
 
 6.30 string value function
 
->    ,Group "string value expression simple" $
-
-todo: substring
-
->     [see [("a", mkTypeExtra $ ScalarType t)]
+>    ,Group "string value expression simple" (
+>    [see [("a", mkTypeExtra $ ScalarType t)
+>         ,("b", mkTypeExtra $ ScalarType "int")
+>         ,("c", mkTypeExtra $ ScalarType "int")]
+>      fn $ Right $ ScalarType t
+>      | fn <- ["substring(a from b for c)"
+>               -- todo: support other substring variations
+>              {-,"substring(a from b)"-}]
+>      , t <- textTypes ] ++
+>    [see [("a", mkTypeExtra $ ScalarType t)]
 >      (T.pack (fn ++ "(a)")) $ Right $ ScalarType t
 >      | fn <- ["upper","lower"]
->      , t <- textTypes ]
+>      , t <- textTypes ])
 
 todo: convert
 todo: translate

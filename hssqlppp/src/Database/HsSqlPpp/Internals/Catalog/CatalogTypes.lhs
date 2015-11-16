@@ -54,6 +54,18 @@
 > data CompositeFlavour = Composite | TableComposite | ViewComposite
 >                         deriving (Eq,Show,Ord,Data,Typeable)
 
+
+---------------------------------------------------------------
+
+operators
+
+operators is used as the generic term for all sorts of function things:
+prefix, postfix, binary operators, functions, aggregate functions and
+window functions
+
+The information currently stored is:
+name, parameter types, return type and variadic flag
+
 > -- | name, inparams, outtype, is variadic?
 > type OperatorPrototype = (CatName, [Type], Type, Bool)
 
@@ -161,6 +173,14 @@ todo: use left or something instead of error
 >   | CatCreateBinaryOp CatName CatName CatName CatName
 >     -- | register a function: name, param types, retsetof, return type
 >   | CatCreateFunction CatName [CatName] Bool CatName
+>     -- | register a variadic function: name, param types, retsetof, return type
+>     -- the last parameter will be wrapped in an array type
+>   | CatCreateVariadicFunction CatName [CatName] Bool CatName
+>     -- | special ops include between, substring, position, basically
+>     -- all operators/functions which use mixfix or extra syntax
+>     -- (not including non scalar functions like aggregates)
+>   | CatCreateSpecialOp CatName [CatName] Bool CatName
+
 >     -- | register a aggregate: name, param types, return type
 >   | CatCreateAggregate CatName [CatName] CatName
 >     -- | register a table only: name, (colname,typename) pairs

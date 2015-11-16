@@ -84,6 +84,17 @@
 >         Right $ cat {catBinaryOps = insertOperators
 >                                     [(n,(n,[ltt,rtt],rett,False))]
 >                                     (catBinaryOps cat)}
+
+>       CatCreateSpecialOp n ps rs ret -> do
+>         pst <- mapM (\nc -> catLookupType cat [QNmc $ T.unpack nc]) ps
+>         rett <- catLookupType cat [QNmc $ T.unpack ret]
+>         let rett' = if rs
+>                     then Pseudo $ SetOfType rett
+>                     else rett
+>         -- thrown into the binary ops atm, todo: add a new namespace
+>         Right $ cat {catBinaryOps = insertOperators
+>                                     [(n,(n,pst,rett',False))]
+>                                     (catBinaryOps cat)}
 >       CatCreateFunction n ps rs ret -> do
 >         pst <- mapM (\nc -> catLookupType cat [QNmc $ T.unpack nc]) ps
 >         rett <- catLookupType cat [QNmc $ T.unpack ret]
@@ -92,6 +103,19 @@
 >                     else rett
 >         Right $ cat {catFunctions = insertOperators
 >                                     [(n,(n,pst,rett',False))]
+>                                     (catFunctions cat)}
+>       -- this wraps the last parameter in the array type for now
+>       CatCreateVariadicFunction n ps rs ret -> do
+>         let promoteLastType [] = []
+>             promoteLastType [a] = [ArrayType a]
+>             promoteLastType (a:as) = a : promoteLastType as
+>         pst <- promoteLastType `fmap` mapM (\nc -> catLookupType cat [QNmc $ T.unpack nc]) ps
+>         rett <- catLookupType cat [QNmc $ T.unpack ret]
+>         let rett' = if rs
+>                     then Pseudo $ SetOfType rett
+>                     else rett
+>         Right $ cat {catFunctions = insertOperators
+>                                     [(n,(n,pst,rett',True))]
 >                                     (catFunctions cat)}
 >       CatCreateAggregate n ps ret -> do
 >         pst <- mapM (\nc -> catLookupType cat [QNmc $ T.unpack nc]) ps

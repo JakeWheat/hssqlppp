@@ -23,6 +23,10 @@ Tasks
 
 0. minor issues
 
+put the special operators like between and substring in a separate
+   namespace in the catalog and typechecking so they can co-exist with
+   functions of the same name
+
 implicit case uses type. The syntax should not depend on this, maybe
 replace with something just specific to implicit cast
 

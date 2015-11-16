@@ -49,10 +49,8 @@
 >     (\l -> case l of
 >              Left x -> error $ show x
 >              Right e -> e) $
->      flip updateCatalog (baseCatalog "boolean" "int"
->                                          ["char" -- todo, add the rest?
->                                          ,"varchar"]) (
-
+>      flip updateCatalog emptyCatalog (
+>                                        -- todo: duplicated list of text types
 >        [CatCreateScalarType "char"
 >        ,CatCreateScalarType "varchar"
 >        ,CatCreateScalarType "clob"
@@ -81,6 +79,7 @@
 >        ,CatCreateScalarType "time"
 >        ,CatCreateScalarType "timestamp"
 >        ,CatCreateScalarType "interval"
+>        ]
 
 what to do about these?
 
@@ -98,7 +97,6 @@ in
 like
 collate
 
->         ]
 
 >         ++ [CatCreateFunction charLen [t] False "int"
 >            | t <- ["char","varchar","clob"
@@ -283,5 +281,6 @@ quick and dirty to get tpch working
 >         CatCreateTypeCategoryEntry "time" ("D", False),
 >         CatCreateTypeCategoryEntry "timestamp" ("D", False),
 >         CatCreateTypeCategoryEntry "varchar" ("S", False)]
+>         ++ baseCatalog "boolean" "int" ["char","varchar","clob","nchar","nvarchar","nclob"]
 
 >         )
