@@ -56,9 +56,18 @@ postgres?
 >              Right e -> e) $
 >      flip updateCatalog emptyCatalog (
 >           nonSpecialPseudoTypes ++ rangeTypes ++ generatedPostgresCatalogEntries
+>           ++ extraDefs
 >           ++ baseCatalog "bool" "int4" ["char", "varchar", "text"]
 >           ++ odbcCatalog)
 >   where
+>      extraDefs = [CatCreateBinaryOp "=" "anyelement" "anyelement" "bool"
+>                  ,CatCreateVariadicFunction "arrayctor" ["anyelement"] False "anyarray"
+>                  ,CatCreateFunction "arraysub" ["anyarray","int4"] False "anyelement"
+>                  ,CatCreateVariadicFunction "greatest" ["anyelement"] False "anyelement"
+>                  ,CatCreateVariadicFunction "least" ["anyelement"] False "anyelement"
+>                  ] ++ concat [ [CatCreateBinaryOp "rlike" t t "bool"
+>                                ,CatCreateBinaryOp "notrlike" t t "bool"]
+>                                | t <- ["char", "varchar", "text"] ]
 >      rangeTypes = map CatCreateScalarType
 >                   ["int4range", "int8range"
 >                   ,"numrange","daterange"

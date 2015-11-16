@@ -58,8 +58,6 @@ array subscript
 substring
 cast
 
-
-greatest and least??
 coalesce?
 nullif?
 
@@ -99,21 +97,16 @@ multiset
 
 
 > binaryOps :: Text -> Text -> [Text] -> [CatalogUpdate]
-> binaryOps bool int texts =
->    [CatCreateBinaryOp "=" "anyelement" "anyelement" bool
->    ,CatCreateBinaryOp "and" bool bool bool
+> binaryOps bool _int texts =
+>    [CatCreateBinaryOp "and" bool bool bool
 >    ,CatCreateBinaryOp "or" bool bool bool
 >    ] ++
 >    concat [ [CatCreateBinaryOp "like" t t bool
->             ,CatCreateBinaryOp "notlike" t t bool
->             ,CatCreateBinaryOp "rlike" t t bool
->             ,CatCreateBinaryOp "notrlike" t t bool]
+>             ,CatCreateBinaryOp "notlike" t t bool]
 >           | t <- texts]
 >    ++
->    [CatCreateVariadicFunction "arrayctor" ["anyelement"] False "anyarray"
->    ,CatCreateFunction "between" ["anyelement","anyelement","anyelement"] False bool
+>    [CatCreateFunction "between" ["anyelement","anyelement","anyelement"] False bool
 >    ,CatCreateFunction "notbetween" ["anyelement","anyelement","anyelement"] False bool
->    ,CatCreateFunction "arraysub" ["anyarray",int] False "anyelement"
 >    ]
 
 todo: put these in a separate namespace in catalog
@@ -136,12 +129,13 @@ somewhere else (like binary ops or functions)
 >    [CatCreatePostfixOp "isnull" "anyelement" bool
 >    ,CatCreatePostfixOp "isnotnull" "anyelement" bool]
 
+These appear here since basically every dialect has them the same. Not
+sure if this is a good enough reason.
+
 > functions :: [CatalogUpdate]
 > functions =
 >     [CatCreateVariadicFunction "coalesce" ["anyelement"] False "anyelement"
 >     ,CatCreateFunction "nullif" ["anyelement","anyelement"] False "anyelement"
->     ,CatCreateVariadicFunction "greatest" ["anyelement"] False "anyelement"
->     ,CatCreateVariadicFunction "least" ["anyelement"] False "anyelement"
 >     ]
 
 

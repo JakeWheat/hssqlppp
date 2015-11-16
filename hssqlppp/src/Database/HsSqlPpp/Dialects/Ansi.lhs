@@ -98,6 +98,7 @@ like
 collate
 
 
+
 >         ++ [CatCreateFunction charLen [t] False "int"
 >            | t <- ["char","varchar","clob"
 >                   ,"nchar","nvarchar","nclob"]
