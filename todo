@@ -108,6 +108,45 @@ expose internals only via modules called ...Internal. There are a few
 internal functions expose for utils or testing. These should be kept
 more separate
 
+more work with strings
+1. data types
+   (ansi has clear restrictions/differences between char/varchar/clob
+   and nchar/nvarchar/nclob), postgres more or less just has text only
+   (I think char and varchar in postgres are now more or less sugar
+   around text).
+2. character sets (we will treat a character set as an encoding)
+3. collations
+every string will carry a character set and optional collation with it
+   (collations have the default/implicit/explicit tag)
+a dialect can specify that the character set of char,varchar,clob must
+   be from a subset of the character sets available, and nchar,
+   nvarchar is another subset, or it can allow any character set for
+   any string data type.
+you set the default character set, plus you can set the character set
+   for a table, plus you can set the character set per column, and you
+   can convert text from one character set to another. We will
+   consider character sets as encodings, character repertoires will
+   not have explicit representation in hssqlppp (you can either
+   convert between two character sets or you can't, and the
+   availability of a conversion is always explicit and direct).
+use the ansi rules for collations: each character set has a default
+   collation. Not sure if this can be changed, or changed per schema
+   for instance. Use the default/implicit/explicit collation rules for
+   expressions. table columns can have an explicit collation, and you
+   can use the collate operator in expressions (including group by and
+   order by).
+information about:
+  character sets
+  datatype/character set compatibility
+  collations + which character set a collation is for
+  default collation for a character set
+  character sets and collations for table columns and for view
+    expression types
+  anything else (like domains, ...)
+will go in the catalog
+
+
+
 1. rewrite the catalog code
 support schemas and schema search path properly
 support some more object types
@@ -148,6 +187,9 @@ addition is tracking where identifiers are defined, so e.g. we can
 easily tell which schema a table has matched to, or if a subquery is
 correlated.
 
+the typechecker could also check that asts don't contain syntax which
+   isn't supported in the current dialect
+
 3. rewrite the typeconversion code and the general nullability,
 precision and scale stuff
 this is even worse mess
@@ -161,7 +203,7 @@ connected to the catalog functions in the dialect files right next to
 the catalog definitions, instead of being embedded in the type
 conversion code itself.
 
-4. not neccessarily here
+4. simple-sql-parser
 
 there is a bunch of improved syntax and parsing code (and pretty
 printing) in the simple-sql-parser project. there can be some copy
