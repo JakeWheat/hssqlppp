@@ -96,7 +96,9 @@ To install use
 cabal install hssqlppp
 ----
 
-To work with the development version:
+To work with the development version, install stack
+link:https://github.com/commercialhaskell/stack/blob/master/doc/install_and_upgrade.md[].
+Then:
 
 ----
 
@@ -104,26 +106,18 @@ git clone https://github.com/JakeWheat/hssqlppp.git
 
 cd hssqlppp
 
-make sandbox
-
-make all
+# this will build the hssqlppp and hssqlppp-th packages and run their
+# tests:
 
 make test
 
-# this will set up a sandbox and build and test the
-# main packages, hssqlppp, hssqlppp-th and hssqlppp-pg
+----
 
-# or
+Or you can do something like this without stack:
 
-make sandbox-devel
+----
 
-make really-all
-
-# this builds a lot more and takes ages
-
-# or you can:
-
-cd hssqlppp
+cd hssqlppp/hssqlppp
 
 # wd is now .../hssqlppp/hssqlppp/
 

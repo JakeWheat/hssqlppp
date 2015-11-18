@@ -44,7 +44,7 @@ test : hssqlppp
 
 # this does everything, make sure you've done all the sandbox targets
 .PHONY : really-all
-really-all : test #website
+really-all : test website
 	stack build
 
 ##############################################################################
@@ -145,58 +145,62 @@ clean :
 
 # rebuilding the website. You probably won't need to use this
 
-#.PHONY : website-all
-#website-all : website-static website-generated website-haddock
+.PHONY : website
+website : website-static website-generated website-haddock
 
-#.PHONY : website-static
+# website static is all the files which are either just copied to the
+# build dir or exist as asciidoc files and are converted to html only
 
-#.PHONY : make-website/dist/build/MakeWebsite/MakeWebsite
-#make-website/dist/build/MakeWebsite/MakeWebsite :
-#	cd make-website && cabal build -j
+.PHONY : website-static
+website-static : build/website/index.html build/website/examples.html
 
-# make the website
+# todo: automatically pick up all asciidoc files?
 
-# .PHONY : website
-# website : #make-website/dist/build/MakeWebsite/MakeWebsite \
-#   #build/website/main.css
-# 	mkdir -p build/website
-# 	asciidoctor website-source/index.asciidoc -o - | runhaskell website-source/AddLinks.lhs > build/website/index.html
-# 	asciidoctor website-source/examples.asciidoc -o - | runhaskell website-source/AddLinks.lhs > build/website/examples.html
-# 	#make-website/dist/build/MakeWebsite/MakeWebsite
+build/website/index.html : website-source/index.asciidoc website-source/AddLinks.lhs
+	asciidoctor website-source/index.asciidoc -o - | \
+	  runhaskell website-source/AddLinks.lhs > build/website/index.html
+
+build/website/examples.html : website-source/examples.asciidoc website-source/AddLinks.lhs
+	asciidoctor website-source/examples.asciidoc -o - | \
+	  runhaskell website-source/AddLinks.lhs > build/website/examples.html
+
+
+# website-generated are the files which are generated from running a
+# haskell program then operated on by asciidoctor
+
+.PHONY : website-generated
+website-generated : # todo
+	-mkdir -p build/website
+#	stack build something
+#	stack exec MakeWebsite
 # 	#asciidoctor build/website/ParserTests.asciidoc -o build/website/ParserTests.html
 # 	#asciidoctor build/website/TypeCheckTests.asciidoc -o build/website/TypeCheckTests.html
 # 	#asciidoctor build/website/QuasiQuoteTests.asciidoc -o build/website/QuasiQuoteTests.html
 
-# 	#mv build/website/index.txt.html build/website/index.html
+# TODO: this is very slow because stack is compiling hssqlppp instead
+# of just doing the haddock. I don't know if there is a way round this
 
-# DIAGRAM_SRC_FILES=$(shell ls hssqlppp/src/Database/HsSqlPpp/*.lhs)
+.PHONY : website-haddock
+website-haddock : $(shell find hssqlppp hssqlppp-th -iname '*hs')
+	-mkdir -p build/website/haddock
+	stack install hscolour
+	stack haddock hssqlppp hssqlppp-th
+	cp -R .stack-work/install/x86_64-linux/lts-3.14/7.10.2/doc/* build/website/haddock/
 
-# build/website/hssqlppp-src.svg : $(DIAGRAM_SRC_FILES)
-# 	mkdir -p build/website
-# 	graphmod -i ~/wd/hssqlppp/master/hssqlppp/src $(DIAGRAM_SRC_FILES) \
-# 	    -a -R Text -R Control -R Data -r Prelude \
-# 	    > build/website/hssqlppp-src.dot
-# 	dot -Tsvg build/website/hssqlppp-src.dot -o build/website/hssqlppp-src.svg
 
-# build/website/main.css : website-source/main.css
-# 	-mkdir -p build/website/
-# 	cp website-source/main.css build/website/main.css
+# generate a diagram of the hssqlppp package internal module dependencies
 
-# make the haddock and put in the correct place in the generated
-# website
+DIAGRAM_SRC_FILES=$(shell ls hssqlppp/src/Database/HsSqlPpp/*.lhs)
 
-# to build the full website you need the 'website' and the
-# 'website-haddock' targets. These are kept separate so that when
-# editing the website and rebuilding to check, you don't need to keep
-# redoing the haddock as well which slows down the cycle.
+build/website/hssqlppp-modules.svg : $(DIAGRAM_SRC_FILES)
+	stack install graphmod
+	mkdir -p build/website
+	stack exec graphmod -- -i ~/wd/hssqlppp/master/hssqlppp/src $(DIAGRAM_SRC_FILES) \
+	    -a -R Text -R Control -R Data -r Prelude \
+	    | dot -Tsvg -o build/website/hssqlppp-modules.svg
 
-# todo: fix the website targets (website, website-haddock, other
-# smaller targets to do partial rebuilds when developing)
-
-# .PHONY : website-haddock
-# website-haddock :
-# 	cd hssqlppp && cabal haddock
-# 	-mkdir -p build/website
-# 	-rm -Rf build/website/haddock
-# 	cp -R hssqlppp/dist/doc/html/hssqlppp build/website/haddock
-
+.PHONY : build/website/hssqlppp-packages.svg
+build/website/hssqlppp-packages.svg :
+	mkdir -p build/website
+	stack dot --prune hssqlppp-pg,hssqlppp-examples,hssqlppp-build-extras,hssqlppp-postprocess-uuagc \
+	  --no-include-base --external --depth 1 | dot -Tsvg -o build/website/hssqlppp-packages.svg
