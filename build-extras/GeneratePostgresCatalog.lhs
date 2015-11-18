@@ -16,7 +16,7 @@
 
 > main :: IO ()
 > main = do
->   let cs = "dbname=template1 port=5433"
+>   let cs = "dbname=template1 port=5432"
 >   cus <- readCatalogFromDatabase cs
 >   let s = ppShow cus
 >   v <- withConn cs $ \conn -> do
