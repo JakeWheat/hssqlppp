@@ -158,6 +158,43 @@ Test-Suite Tests
                     Database.HsSqlPpp.Utils.Here
                     Database.HsSqlPpp.Utils.GroomUtils
 
+    Database.HsSqlPpp.Annotation
+    Database.HsSqlPpp.Catalog
+    Database.HsSqlPpp.Dialect
+    Database.HsSqlPpp.Dialects.Ansi
+    Database.HsSqlPpp.Dialects.BaseCatalog
+    Database.HsSqlPpp.Dialects.GeneratedPostgres
+    Database.HsSqlPpp.Dialects.OdbcCatalog
+    Database.HsSqlPpp.Dialects.Oracle
+    Database.HsSqlPpp.Dialects.Postgres
+    Database.HsSqlPpp.Dialects.SqlServer
+    Database.HsSqlPpp.Internals.AstInternal
+    Database.HsSqlPpp.Internals.Catalog.CatalogBuilder
+    Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+    Database.HsSqlPpp.Internals.Catalog.CatalogTypes
+    Database.HsSqlPpp.Internals.Catalog.CatalogUtils
+    Database.HsSqlPpp.Internals.Dialect
+    Database.HsSqlPpp.Internals.LexInternal
+    Database.HsSqlPpp.Internals.ParseErrors
+    Database.HsSqlPpp.Internals.ParseInternal
+    Database.HsSqlPpp.Internals.PrettyInternal
+    Database.HsSqlPpp.Internals.TypeChecking.Environment
+    Database.HsSqlPpp.Internals.TypeChecking.OldTediousTypeUtils
+    Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.OldTypeConversion
+    Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.SqlTypeConversion
+    Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.TypeConversion
+    Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.TypeConversion2
+    Database.HsSqlPpp.Internals.TypesInternal
+    Database.HsSqlPpp.Internals.Utils
+    Database.HsSqlPpp.Lex
+    Database.HsSqlPpp.Parse
+    Database.HsSqlPpp.Pretty
+    Database.HsSqlPpp.Syntax
+    Database.HsSqlPpp.Tests.TypeChecking.AnsiScalarExprs
+    Database.HsSqlPpp.TypeCheck
+    Database.HsSqlPpp.Types
+    Database.HsSqlPpp.Utility
+
   default-extensions:  TupleSections
                        DeriveDataTypeable,
                        ScopedTypeVariables,

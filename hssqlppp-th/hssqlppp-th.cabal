@@ -58,6 +58,7 @@ Test-Suite TestsTh
                        hssqlppp == 0.5.23
 
   Other-Modules:       Database.HsSqlPpp.Tests.QuasiQuoteTests
+                       Database.HsSqlPpp.Quote
   default-extensions:  TupleSections
                        DeriveDataTypeable,
                        ScopedTypeVariables,

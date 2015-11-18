@@ -13,5 +13,6 @@ executable PostprocessUuagc
                        directory >= 1.2 && < 1.3,
                        -- put this here to help the makefile
                        uuagc
+  other-modules:       UUAGCHaddocks
   default-language:    Haskell2010
   ghc-options:         -Wall

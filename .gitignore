@@ -18,3 +18,4 @@
 /build-extras/cabal.sandbox.config
 /make-website/cabal.sandbox.config
 /make-website/dist/
+.stack-work/
