@@ -27,7 +27,7 @@ Library
                      pretty >= 1.1 && < 1.2,
                      syb >= 0.1.0.2 && < 0.6,
                      uniplate >= 1.6 && < 1.7,
-                     transformers >= 0.4 && < 0.5,
+                     transformers >= 0.3 && < 0.5,
                      template-haskell,
                      test-framework >= 0.4.1.1 && < 0.5,
                      pretty-show >= 1.6 && < 1.7,

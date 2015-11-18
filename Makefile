@@ -141,6 +141,28 @@ clean :
 	rm -Rf build
 
 
+################################################################
+
+# utils
+
+# run packdeps on all the cabal files in the project
+# you should run cabal update
+.PHONY : check-packdeps
+check-packdeps :
+	stack install packdeps
+	-echo please make sure you have run 'cabal update' recently
+	stack exec packdeps -- `find . -name '*.cabal'`
+
+# check the basic libraries with ghc-7.8.4
+# Maybe this needs improving since it will only check with
+# the curated stack packages. On the other hand, most of the issues
+# this finds are when we use 7.10 only features in the source, and
+# aren't related to the package versions
+.PHONY : ghc-78
+ghc-78 :
+	stack --resolver lts-2 test
+
+
 ##############################################################################
 
 # rebuilding the website. You probably won't need to use this
@@ -204,3 +226,4 @@ build/website/hssqlppp-packages.svg :
 	mkdir -p build/website
 	stack dot --prune hssqlppp-pg,hssqlppp-examples,hssqlppp-build-extras,hssqlppp-postprocess-uuagc \
 	  --no-include-base --external --depth 1 | dot -Tsvg -o build/website/hssqlppp-packages.svg
+
