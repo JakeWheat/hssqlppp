@@ -40,13 +40,5 @@ Library
   Exposed-modules:   Database.HsSqlPpp.Utils.CatalogReader
   Other-Modules:     Database.HsSqlPpp.Utils.PgUtils
                      Database.HsSqlPpp.Utils.Here
-  default-extensions:  TupleSections
-                     DeriveDataTypeable,
-                     ScopedTypeVariables,
-                     PatternGuards,
-                     FlexibleContexts
-                     ScopedTypeVariables,
-                     PatternGuards,
-                     FlexibleContexts
   default-language:    Haskell2010
   ghc-options:         -Wall

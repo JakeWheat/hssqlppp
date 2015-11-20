@@ -81,12 +81,6 @@ Library
                     Database.HsSqlPpp.Dialects.BaseCatalog
                     Database.HsSqlPpp.Dialects.Ansi
 
-
-  default-extensions:  TupleSections
-                      DeriveDataTypeable,
-                      ScopedTypeVariables,
-                      PatternGuards,
-                      FlexibleContexts
   default-language:    Haskell2010
   ghc-options:         -Wall
 
@@ -195,10 +189,5 @@ Test-Suite Tests
     Database.HsSqlPpp.Types
     Database.HsSqlPpp.Utility
 
-  default-extensions:  TupleSections
-                       DeriveDataTypeable,
-                       ScopedTypeVariables,
-                       PatternGuards,
-                       FlexibleContexts
   default-language:    Haskell2010
   ghc-options:         -Wall

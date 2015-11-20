@@ -52,11 +52,6 @@ based on postresql, which makes them very wrong
 the dialects used in the tests are a bit confused because of legacy
 issues. The tests need to be more methodical anyway.
 
-the base catalog is a little mixed up. Is there a cleaner way to do
-this, it is basically special support for stuff in the catalog which
-may or may not be common across dialects. At the very least, it should
-use the public api for updating catalogs instead of the internals.
-
 the odbc catalog does not attach onto the current dialect
 properly. the typechecker should access the odbc via the dialect and
 not directly. Odbc support both for parsing and typechecking should be
@@ -67,14 +62,11 @@ literals don't directly type as unknown. This should be fixed at least
 for postgres, and probably is a good idea for at least some of the
 other dialects.
 
-the current make/cabal system is crap. The problem is rebuilds are
-really slow . See if can use stack/if it helps. Rebuilds and
-subprojects which depend on other projects (such as hssqlppp-th) are
-particularly slow to work with in the current build
-
 try to do code coverage
 try to set up continuous integration somewhere - mainly want to catch
 build failures with older ghcs
+can also do packdeps
+
 
 also: much better testing.  big weak points:
 we don't test nullability, precision and scale much, or the typing of literals
@@ -138,6 +130,8 @@ use the ansi rules for collations: each character set has a default
 information about:
   character sets
   datatype/character set compatibility
+    maybe each datatype can have All | Whitelist [characterset] |
+       Blacklist [characterset]
   collations + which character set a collation is for
   default collation for a character set
   character sets and collations for table columns and for view

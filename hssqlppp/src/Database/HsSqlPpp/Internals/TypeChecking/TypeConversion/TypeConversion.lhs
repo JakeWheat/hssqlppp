@@ -30,7 +30,7 @@ We should have one function for each of the resolvers (3 just like
 postgres) all the nullability, precision, dialect and special hacks
 should all be in one place.
 
-> {-# LANGUAGE OverloadedStrings, TupleSections, MultiWayIf,FlexibleInstances #-}
+> {-# LANGUAGE OverloadedStrings, TupleSections, MultiWayIf,FlexibleInstances,ScopedTypeVariables #-}
 > module Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.TypeConversion
 >     (matchApp
 >     ,matchAppExtra

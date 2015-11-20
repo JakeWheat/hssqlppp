@@ -106,9 +106,6 @@ git clone https://github.com/JakeWheat/hssqlppp.git
 
 cd hssqlppp
 
-# this will build the hssqlppp and hssqlppp-th packages and run their
-# tests:
-
 make test
 
 ----
@@ -117,9 +114,9 @@ Or you can do something like this without stack:
 
 ----
 
-cd hssqlppp/hssqlppp
+git clone https://github.com/JakeWheat/hssqlppp.git
 
-# wd is now .../hssqlppp/hssqlppp/
+cd hssqlppp/hssqlppp
 
 cabal install --only-dependencies --enable-tests
 cabal build

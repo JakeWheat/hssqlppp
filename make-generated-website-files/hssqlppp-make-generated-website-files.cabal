@@ -1,0 +1,129 @@
+Name:                hssqlppp-make-generated-website-files
+Version:             0.5.23
+Build-Type:          Simple
+Cabal-Version:       >=1.10
+
+Description:         the exe to generate some of the files for the website
+
+executable MakeGeneratedWebsiteFiles
+  main-is:             MakeGeneratedWebsiteFiles.lhs
+  hs-source-dirs:      .,src,tests
+  other-modules:
+    Database.HsSqlPpp.Annotation
+    Database.HsSqlPpp.Catalog
+    Database.HsSqlPpp.Dialect
+    Database.HsSqlPpp.Dialects.Ansi
+    Database.HsSqlPpp.Dialects.BaseCatalog
+    Database.HsSqlPpp.Dialects.GeneratedPostgres
+    Database.HsSqlPpp.Dialects.OdbcCatalog
+    Database.HsSqlPpp.Dialects.Oracle
+    Database.HsSqlPpp.Dialects.Postgres
+    Database.HsSqlPpp.Dialects.SqlServer
+    Database.HsSqlPpp.Internals.AstInternal
+    Database.HsSqlPpp.Internals.Catalog.CatalogBuilder
+    Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+    Database.HsSqlPpp.Internals.Catalog.CatalogTypes
+    Database.HsSqlPpp.Internals.Catalog.CatalogUtils
+    Database.HsSqlPpp.Internals.Dialect
+    Database.HsSqlPpp.Internals.LexInternal
+    Database.HsSqlPpp.Internals.ParseErrors
+    Database.HsSqlPpp.Internals.ParseInternal
+    Database.HsSqlPpp.Internals.TypeChecking.Environment
+    Database.HsSqlPpp.Internals.TypeChecking.OldTediousTypeUtils
+    Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.OldTypeConversion
+    Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.SqlTypeConversion
+    Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.TypeConversion
+    Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.TypeConversion2
+    Database.HsSqlPpp.Internals.TypesInternal
+    Database.HsSqlPpp.Internals.Utils
+    Database.HsSqlPpp.Lex
+    Database.HsSqlPpp.Parse
+    Database.HsSqlPpp.Syntax
+    Database.HsSqlPpp.Tests.Parsing.CombineQueryExprs
+    Database.HsSqlPpp.Tests.Parsing.CreateTable
+    Database.HsSqlPpp.Tests.Parsing.Dml
+    Database.HsSqlPpp.Tests.Parsing.FunctionsDdl
+    Database.HsSqlPpp.Tests.Parsing.Joins
+    Database.HsSqlPpp.Tests.Parsing.LexerTests
+    Database.HsSqlPpp.Tests.Parsing.Misc
+    Database.HsSqlPpp.Tests.Parsing.MiscDdl
+    Database.HsSqlPpp.Tests.Parsing.MiscQueryExprs
+    Database.HsSqlPpp.Tests.Parsing.OdbcParsing
+    Database.HsSqlPpp.Tests.Parsing.Oracle
+    Database.HsSqlPpp.Tests.Parsing.ParserTests
+    Database.HsSqlPpp.Tests.Parsing.Plpgsql
+    Database.HsSqlPpp.Tests.Parsing.ScalarExprs
+    Database.HsSqlPpp.Tests.Parsing.Schemas
+    Database.HsSqlPpp.Tests.Parsing.SelectLists
+    Database.HsSqlPpp.Tests.Parsing.SqlServer
+    Database.HsSqlPpp.Tests.Parsing.TableRefs
+    Database.HsSqlPpp.Tests.Parsing.Utils
+    Database.HsSqlPpp.Tests.TestTypes
+    Database.HsSqlPpp.Tests.TpchData
+    Database.HsSqlPpp.Tests.TypeChecking.Aggregates
+    Database.HsSqlPpp.Tests.TypeChecking.AnsiScalarExprs
+    Database.HsSqlPpp.Tests.TypeChecking.CaseExpressions
+    Database.HsSqlPpp.Tests.TypeChecking.DDL
+    Database.HsSqlPpp.Tests.TypeChecking.ImplicitCasts
+    Database.HsSqlPpp.Tests.TypeChecking.InsertQueryExprs
+    Database.HsSqlPpp.Tests.TypeChecking.Issues
+    Database.HsSqlPpp.Tests.TypeChecking.Joins
+    Database.HsSqlPpp.Tests.TypeChecking.OdbcTypechecking
+    Database.HsSqlPpp.Tests.TypeChecking.PrecisionAndNullable
+    Database.HsSqlPpp.Tests.TypeChecking.QueryExprs
+    Database.HsSqlPpp.Tests.TypeChecking.Rewrites
+    Database.HsSqlPpp.Tests.TypeChecking.ScalarExprs
+    Database.HsSqlPpp.Tests.TypeChecking.SimpleQueryExprs
+    Database.HsSqlPpp.Tests.TypeChecking.TSQL
+    Database.HsSqlPpp.Tests.TypeChecking.Tpch
+    Database.HsSqlPpp.Tests.TypeChecking.TrefIdentifiers
+    Database.HsSqlPpp.Tests.TypeChecking.TrefSchemas
+    Database.HsSqlPpp.Tests.TypeChecking.TypeCheckTests
+    Database.HsSqlPpp.Tests.TypeChecking.TypeConversion
+    Database.HsSqlPpp.Tests.TypeChecking.Updates
+    Database.HsSqlPpp.Tests.TypeChecking.Utils
+    Database.HsSqlPpp.TypeCheck
+    Database.HsSqlPpp.Types
+    Database.HsSqlPpp.Utils.GroomUtils
+    Database.HsSqlPpp.Utils.Here
+
+
+  build-depends:       base >= 4 && < 5,
+                       template-haskell,
+                       uniplate >= 1.6 && < 1.7,
+                       syb >= 0.1.0.2 && < 0.7,
+                       containers >= 0.3.0.0 && < 0.6,
+                       text >= 0.11.1.13 && < 1.3,
+                       parsec >= 3.1.2 && < 3.2,
+                       mtl >= 2.0.1.0 && < 2.3,
+                       pretty-show >= 1.6 && < 1.7,
+                       haskell-src-exts >= 1.13 && < 1.18
+
+
+
+--pandoc >= 1.15 && < 1.16
+  -- ,
+                       -- filepath >= 1.3 && < 1.5,
+                       -- haskell-src-exts >= 1.13 && < 1.18,
+                       -- uniplate >= 1.6 && < 1.7,
+                       -- parsec >= 3.1.2 && < 3.2,
+                       -- -- pandoc-types >= 1.12 && < 1.13,
+                       -- -- blaze-html >= 0.7 && < 0.8,
+                       -- directory >= 1.2 && < 1.3,
+                       -- --datetime >= 0.2 && < 0.3,
+                       -- time >=1.5 && < 1.6,
+                       -- mtl >= 2.0.1.0 && < 2.3,
+                       -- syb >= 0.1.0.2 && < 0.7,
+                       -- -- attoparsec >= 0.10 && < 0.13,
+                       -- text >= 0.11.1.13 && < 1.3,
+                       -- filemanip >= 0.3 && < 0.4,
+                       -- old-locale >= 1.0 && < 1.1,
+                       -- containers >= 0.3.0.0 && < 0.6,
+                       --template-haskell
+                       --pretty-show >= 1.6 && < 1.7,
+                       --blaze-markup >= 0.6 && < 0.8,
+                       --highlighting-kate >= 0.5.9 && < 0.7
+                       --hssqlppp,
+                       --hssqlppp-th
+  default-language:    Haskell2010
+  ghc-options:         -Wall

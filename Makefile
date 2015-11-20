@@ -150,7 +150,7 @@ clean :
 .PHONY : check-packdeps
 check-packdeps :
 	stack install packdeps
-	-echo please make sure you have run 'cabal update' recently
+	@echo please make sure you have run 'cabal update' recently
 	stack exec packdeps -- `find . -name '*.cabal'`
 
 # check the basic libraries with ghc-7.8.4
@@ -179,25 +179,30 @@ website-static : build/website/index.html build/website/examples.html
 # todo: automatically pick up all asciidoc files?
 
 build/website/index.html : website-source/index.asciidoc website-source/AddLinks.lhs
+	-mkdir -p build/website
 	asciidoctor website-source/index.asciidoc -o - | \
 	  runhaskell website-source/AddLinks.lhs > build/website/index.html
 
 build/website/examples.html : website-source/examples.asciidoc website-source/AddLinks.lhs
+	-mkdir -p build/website
 	asciidoctor website-source/examples.asciidoc -o - | \
 	  runhaskell website-source/AddLinks.lhs > build/website/examples.html
 
 
 # website-generated are the files which are generated from running a
 # haskell program then operated on by asciidoctor
+# TODO: make the MakeGeneratedWebsiteFiles accept the id of the file
+# to generate and the place to write it to, then can make a separate
+# rule for each html file
 
 .PHONY : website-generated
 website-generated : # todo
 	-mkdir -p build/website
-#	stack build something
-#	stack exec MakeWebsite
-# 	#asciidoctor build/website/ParserTests.asciidoc -o build/website/ParserTests.html
-# 	#asciidoctor build/website/TypeCheckTests.asciidoc -o build/website/TypeCheckTests.html
-# 	#asciidoctor build/website/QuasiQuoteTests.asciidoc -o build/website/QuasiQuoteTests.html
+	stack build hssqlppp-make-generated-website-files
+	stack exec MakeGeneratedWebsiteFiles
+	asciidoctor build/website/ParserTests.asciidoc -o build/website/ParserTests.html
+	asciidoctor build/website/TypeCheckTests.asciidoc -o build/website/TypeCheckTests.html
+	asciidoctor build/website/QuasiQuoteTests.asciidoc -o build/website/QuasiQuoteTests.html
 
 # TODO: this is very slow because stack is compiling hssqlppp instead
 # of just doing the haddock. I don't know if there is a way round this

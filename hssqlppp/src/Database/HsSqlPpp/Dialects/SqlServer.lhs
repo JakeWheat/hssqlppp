@@ -1,5 +1,5 @@
 
-> {-# LANGUAGE OverloadedStrings #-}
+> {-# LANGUAGE OverloadedStrings,ScopedTypeVariables #-}
 > module Database.HsSqlPpp.Dialects.SqlServer (sqlServerDialect) where
 
 > import Database.HsSqlPpp.Internals.Dialect
