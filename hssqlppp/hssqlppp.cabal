@@ -69,6 +69,7 @@ Library
                     Database.HsSqlPpp.Internals.Catalog.CatalogTypes
                     Database.HsSqlPpp.Internals.Catalog.CatalogBuilder
                     Database.HsSqlPpp.Internals.Catalog.CatalogInternal
+                    Database.HsSqlPpp.Internals.Catalog.CatalogNew
                     Database.HsSqlPpp.Internals.AstInternal
                     Database.HsSqlPpp.Internals.TypesInternal
                     Database.HsSqlPpp.Internals.ParseErrors
@@ -151,6 +152,7 @@ Test-Suite Tests
                     Database.HsSqlPpp.Tests.TpchData
                     Database.HsSqlPpp.Utils.Here
                     Database.HsSqlPpp.Utils.GroomUtils
+                    Database.HsSqlPpp.Tests.TypeChecking.Catalog
 
     Database.HsSqlPpp.Annotation
     Database.HsSqlPpp.Catalog
@@ -167,6 +169,7 @@ Test-Suite Tests
     Database.HsSqlPpp.Internals.Catalog.CatalogInternal
     Database.HsSqlPpp.Internals.Catalog.CatalogTypes
     Database.HsSqlPpp.Internals.Catalog.CatalogUtils
+    Database.HsSqlPpp.Internals.Catalog.CatalogNew
     Database.HsSqlPpp.Internals.Dialect
     Database.HsSqlPpp.Internals.LexInternal
     Database.HsSqlPpp.Internals.ParseErrors

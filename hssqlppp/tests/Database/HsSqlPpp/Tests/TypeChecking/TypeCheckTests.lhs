@@ -28,11 +28,12 @@
 > import Database.HsSqlPpp.Tests.TypeChecking.QueryExprs
 > import Database.HsSqlPpp.Tests.TypeChecking.Updates
 > import Database.HsSqlPpp.Tests.TypeChecking.DDL
+> import Database.HsSqlPpp.Tests.TypeChecking.Catalog
 
 > typeCheckTestData :: Item
 > typeCheckTestData =
 >   Group "typeCheckTests"
->     [ansiScalarExprs
+>     [catalog
 >     ,scalarExprs
 >     ,simpleQueryExprs
 >     ,joins

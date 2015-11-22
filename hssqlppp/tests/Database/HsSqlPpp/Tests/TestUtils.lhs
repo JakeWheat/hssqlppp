@@ -88,6 +88,7 @@
 > itemToTft (ImpCastsScalar f s s') = testImpCastsScalar f s s'
 > itemToTft (ScalarExprExtra d cat env s r) = testScalarExprTypeExtra d cat env s r
 > itemToTft (MatchApp d cat f as r) = testMatchApp d cat f as r
+> itemToTft (Custom nm f) = H.testCase nm f
 
 > testParseScalarExpr :: ParseFlags -> Text -> ScalarExpr -> T.TestTree
 > testParseScalarExpr f src ast =
