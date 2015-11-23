@@ -19,7 +19,28 @@ There are some big issues
 9. the syntax design is a bit poor
 10. some of the code is too coupled (especially between modules)
 
-Tasks
+
+
+
+Immediate in progress/provisional soon to be started tasks
+new catalog/ new typeid
+  includes a bunch of feature updates:
+    proper schemas
+    proper unquoted id handling
+    character sets and collations
+    more checking on catalog updates/ddl + nice error messages
+      (will be linked with ddl syntax eventually)
+    restrict and cascade behaviour
+    roles and ownership (will be extended to permissions eventually)
+integrate new catalog
+better tests, complete catalogs for ansi and sql server
+better tests for matching, nullability, precision, literals
+copy syntax and parsing from simple-sql-parser
+
+
+
+
+Long term tasks
 
 0. minor issues
 
