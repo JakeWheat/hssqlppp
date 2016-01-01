@@ -1527,8 +1527,12 @@ sql dbmss.
 
 >          ------- All custom operators must go here:
 >          --other operators all added in this list according to the pg docs:
->         ,[binary "|" AssocLeft
+>         ,[prefix "~" "~"
+>          ,binary "|" AssocLeft
 >          ,binary "&" AssocLeft
+>          ,binary "#" AssocLeft
+>          ,binary "<<" AssocLeft
+>          ,binary ">>" AssocLeft
 >          ,binary "<->" AssocNone
 >          ,binary "||" AssocLeft]
 >          ++ [prefix "@" "@" | diSyntaxFlavour d == Postgres]
