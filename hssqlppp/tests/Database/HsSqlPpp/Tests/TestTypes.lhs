@@ -66,6 +66,7 @@
 >           | MatchApp Dialect Catalog [NameComponent]
 >                      [(TypeExtra, Maybe LitArg)]
 >                      (Either [TypeError] ([TypeExtra],TypeExtra))
+>           | Custom String (IO ())
 
 > makeCatalog :: Dialect -> [CatalogUpdate] -> Catalog
 > makeCatalog d cus =

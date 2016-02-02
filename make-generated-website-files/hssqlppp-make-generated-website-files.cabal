@@ -86,6 +86,8 @@ executable MakeGeneratedWebsiteFiles
     Database.HsSqlPpp.Types
     Database.HsSqlPpp.Utils.GroomUtils
     Database.HsSqlPpp.Utils.Here
+    Database.HsSqlPpp.Internals.Catalog.CatalogNew
+    Database.HsSqlPpp.Tests.TypeChecking.Catalog
 
 
   build-depends:       base >= 4 && < 5,
@@ -97,7 +99,8 @@ executable MakeGeneratedWebsiteFiles
                        parsec >= 3.1.2 && < 3.2,
                        mtl >= 2.0.1.0 && < 2.3,
                        pretty-show >= 1.6 && < 1.7,
-                       haskell-src-exts >= 1.13 && < 1.18
+                       haskell-src-exts >= 1.13 && < 1.18,
+                       tasty-hunit >= 0.9 && < 0.10
 
 
 
