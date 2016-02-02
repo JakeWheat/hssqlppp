@@ -83,11 +83,13 @@ examples : hssqlppp
 AG_FILES = $(shell find hssqlppp/src -iname '*ag')
 
 hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.hs : $(AG_FILES)
+	# reorder slightly as workaround - don't want to put
+	# uuagc as a dependency of hssqlppp
+	stack build hssqlppp-postprocess-uuagc:PostprocessUuagc
 	stack exec uuagc -- -dcfspwm \
 	        -P hssqlppp/src/Database/HsSqlPpp/Internals/ \
 		--lckeywords --doublecolons --genlinepragmas \
 		hssqlppp/src/Database/HsSqlPpp/Internals/AstInternal.ag
-	stack build hssqlppp-postprocess-uuagc:PostprocessUuagc
 	stack exec PostprocessUuagc
 	# prefix all the generated stuff with _
 	# so we don't get loads of unused function warnings
@@ -212,7 +214,8 @@ website-haddock : $(shell find hssqlppp hssqlppp-th -iname '*hs')
 	-mkdir -p build/website/haddock
 	stack install hscolour
 	stack haddock hssqlppp hssqlppp-th
-	cp -R .stack-work/install/x86_64-linux/lts-3.14/7.10.2/doc/* build/website/haddock/
+	# todo: how to find the right dir automatically
+	cp -R .stack-work/install/x86_64-linux/lts-5.1/7.10.3/doc/* build/website/haddock/
 
 
 # generate a diagram of the hssqlppp package internal module dependencies

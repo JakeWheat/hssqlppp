@@ -60,6 +60,7 @@ add some of the missing information to the output
 > doc _ (ScalarExprExtra _ _ _ sql e) =
 >   [Row [Cell [Sql $ L.unpack sql], Cell [Haskell (groomNoAnns e)]]]
 > doc _ (MatchApp {}) = []
+> doc _ (Custom {}) = []
 
 
 > parserTestsTable :: String
