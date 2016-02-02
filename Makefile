@@ -151,7 +151,7 @@ clean :
 check-packdeps :
 	stack install packdeps
 	@echo please make sure you have run 'cabal update' recently
-	stack exec packdeps -- `find . -name '*.cabal'`
+	stack exec packdeps -- `find . -name '*.cabal' -a ! -name 'h7c*'`
 
 # check the basic libraries with ghc-7.8.4
 # Maybe this needs improving since it will only check with

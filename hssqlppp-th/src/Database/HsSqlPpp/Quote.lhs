@@ -1,7 +1,3 @@
-
-Quasi quoting isn't currently working, it errors when using it during
-compile
-
 > {- | A quasiquoter for SQL. Antiquoting is a bit inconsistent.
 >
 > Example:
