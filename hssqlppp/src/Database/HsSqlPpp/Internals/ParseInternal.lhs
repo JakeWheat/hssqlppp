@@ -2434,6 +2434,7 @@ Utility parsers
 > idString :: SParser String
 > idString = mytoken (\tok -> case tok of
 >                                      Lex.Identifier Nothing i -> Just $ T.unpack i
+>                                      Lex.PrefixedVariable c s -> Just (c : T.unpack s)
 >                                      _ -> Nothing)
 > qidString :: SParser String
 > qidString = mytoken (\tok -> case tok of
@@ -2475,7 +2476,7 @@ Utility parsers
 > liftStringTok :: SParser String
 > liftStringTok = mytoken (\tok ->
 >                   case tok of
->                            Lex.SqlString _ s ->
+>                            Lex.SqlString _ _ s ->
 >                               -- bit hacky, the lexer doesn't process quotes
 >                               -- but the parser expects them to have been replaced
 >                               Just $ T.unpack $ T.replace "''" "'" $ T.replace "\'" "'" s
@@ -2492,7 +2493,7 @@ Utility parsers
 > stringN :: SParser String
 > stringN = mytoken (\tok ->
 >                   case tok of
->                            Lex.SqlString _ s -> Just $ T.unpack s
+>                            Lex.SqlString _ _ s -> Just $ T.unpack s
 >                            _ -> Nothing)
 
 > extrStr :: ScalarExpr -> String

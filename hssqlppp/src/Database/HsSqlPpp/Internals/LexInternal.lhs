@@ -51,6 +51,13 @@
 >     -- (e.g. :identifier)
 >     | Identifier (Maybe (Char,Char)) T.Text
 >
+>     --  | This is a prefixed variable symbol, such as :var, @var or #var
+>     -- (only :var is used in ansi dialect)
+>     | PrefixedVariable Char T.Text
+>
+>     -- | a postgresql positional arg, e.g. $1
+>     | PositionalArg Int
+>
 >     -- | This is a string literal.
 >     --
 >     -- The first field is the quotes used: single quote (\')
@@ -61,7 +68,7 @@
 >     -- on the literal source e.g. E\'\\n\' parses to SqlString \"E\'\" \"\\n\"
 >     -- with the literal characters \'\\\' and \'n\' in the string, not a newline character.
 >     -- quotes within a string (\'\') or escaped string (\'\' or \\\') are passed through unchanged
->     | SqlString T.Text T.Text
+>     | SqlString T.Text T.Text T.Text
 >
 >     -- | a number literal (integral or otherwise), stored in original format
 >     -- unchanged
@@ -72,8 +79,6 @@
 >     -- or not)
 >     | Whitespace T.Text
 >
->     -- | a postgresql positional arg, e.g. $1
->     | PositionalArg Int
 >
 >     -- | a commented line using --, contains every character starting with the
 >     -- \'--\' and including the terminating newline character if there is one
@@ -99,8 +104,8 @@
 > prettyToken _ (Identifier Nothing t) = LT.fromChunks [t]
 > prettyToken _ (Identifier (Just (a,b)) t) =
 >     LT.fromChunks [T.singleton a, t, T.singleton b]
-> prettyToken _ (SqlString "E'" t) = LT.fromChunks ["E'",t,"'"]
-> prettyToken _ (SqlString q t) = LT.fromChunks [q,t,q]
+> prettyToken _ (PrefixedVariable c s) = LT.cons c (LT.fromChunks [s])
+> prettyToken _ (SqlString q r t) = LT.fromChunks [q,t,r]
 > prettyToken _ (SqlNumber r) = LT.fromChunks [r]
 > prettyToken _ (Whitespace t) = LT.fromChunks [t]
 > prettyToken _ (PositionalArg n) = LT.fromChunks [T.singleton '$', T.pack $ show n]
@@ -264,7 +269,7 @@ variants.
 >            ,eString
 >            ,dollarString]
 >   where
->     normalString = SqlString "'" <$> (char '\'' *> normalStringSuffix "")
+>     normalString = SqlString "'" "'" <$> (char '\'' *> normalStringSuffix "")
 >     normalStringSuffix t = do
 >         s <- takeTill (=='\'')
 >         void $ char '\''
@@ -273,7 +278,7 @@ variants.
 >                 void $ char '\''
 >                 normalStringSuffix $ T.concat [t,s,"''"]
 >                ,return $ T.concat [t,s]]
->     eString = SqlString "E'" <$> (try (string "E'") *> eStringSuffix "")
+>     eString = SqlString "E'" "'" <$> (try (string "E'") *> eStringSuffix "")
 >     eStringSuffix :: T.Text -> Parser T.Text
 >     eStringSuffix t = do
 >         s <- takeTill (`elem` ("\\'"::String))
@@ -292,7 +297,7 @@ variants.
 >     dollarString = do
 >         delim <- dollarDelim
 >         y <- manyTill anyChar (try $ string $ T.unpack delim)
->         return $ SqlString delim $ T.pack y
+>         return $ SqlString delim delim $ T.pack y
 >     dollarDelim :: Parser T.Text
 >     dollarDelim = try $ do
 >       void $ char '$'
