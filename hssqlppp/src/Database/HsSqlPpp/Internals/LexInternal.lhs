@@ -178,69 +178,75 @@ if we see 'from stdin;' then try to lex a copy payload
 >                     ,lineComment d
 >                     ,blockComment d
 >                     ,sqlNumber d
+>                     ,positionalArg d
+>                     ,dontParseEndBlockComment d
+>                     ,prefixedVariable d
 >                     ,symbol d
 >                     ,sqlWhitespace d
->                     ,positionalArg d
 >                     ,splice d]
 
+Parses identifiers:
+
+simple_identifier_23
+u&"unicode quoted identifier"
+"quoted identifier"
+"quoted identifier "" with double quote char"
+`mysql quoted identifier`
+
 > identifier :: Dialect -> Parser Token
-
-sql server: identifiers can start with @ or #
-quoting uses [] or ""
-
-TODO: fix all the "qiden" parsers to allow "qid""en"
-
-> identifier (Dialect {diSyntaxFlavour = SqlServer}) =
+> identifier d =
 >     choice
->     [Identifier (Just ("[","]"))
->      <$> (char '[' *> takeWhile1 (/=']') <* char ']')
->     ,Identifier (Just ("\"","\""))
->      <$> (char '"' *> takeWhile1 (/='"') <* char '"')
->     ,Identifier Nothing <$> identifierStringPrefix '@'
->     ,Identifier Nothing <$> identifierStringPrefix '#'
+>     [Identifier (Just ("\"","\"")) <$> qiden
+>      -- try is used here to avoid a conflict with identifiers
+>      -- and quoted strings which also start with a 'u'
+>     ,Identifier (Just ("u&\"","\"")) <$> (try (string "u&") *> qiden)
+>     ,Identifier (Just ("U&\"","\"")) <$> (try (string "U&") *> qiden)
 >     ,Identifier Nothing <$> identifierString
+>      -- todo: dialect protection
+>     -- Identifier (Just ("`","`"))
+>     -- <$> (char '`' *> takeWhile1 (/='`') <* char '`')
+>     ,guard (diSyntaxFlavour d == SqlServer) >>
+>      Identifier (Just ("[","]"))
+>      <$> (char '[' *> takeWhile1 (`notElem` ("[]"::String)) <* char ']')
 >     ]
-
-oracle: identifiers can start with :
-quoting uses ""
-(todo: check other possibilities)
-
-> identifier (Dialect {diSyntaxFlavour = Oracle}) =
->     choice
->     [Identifier (Just ("\"","\""))
->      <$> (char '"' *> takeWhile1 (/='"') <* char '"')
->     ,Identifier Nothing <$> identifierStringPrefix ':'
->     ,Identifier Nothing <$> identifierString
->     ]
-
-> identifier (Dialect {diSyntaxFlavour = Postgres}) = regularIdentifier
-> identifier (Dialect {diSyntaxFlavour = Ansi}) = regularIdentifier
-
-> regularIdentifier :: Parser Token
-> regularIdentifier =
->     choice
->     [Identifier (Just ("\"","\""))
->      <$> (char '"' *> takeWhile1 (/='"') <* char '"')
->     ,Identifier Nothing <$> identifierString
->     ]
+>   where
+>     qiden = char '"' *> qidenSuffix ""
+>     qidenSuffix t = do
+>         s <- takeTill (=='"')
+>         void $ char '"'
+>         -- deal with "" as literal double quote character
+>         choice [do
+>                 void $ char '"'
+>                 qidenSuffix $ concat [t,s,"\"\""]
+>                ,return $ concat [t,s]]
 
 
-> identifierStringPrefix :: Char  -> Parser String
-> identifierStringPrefix p = do
->     void $ char p
->     i <- identifierString
->     return (p : i)
+This parses a valid identifier without quotes.
 
 > identifierString :: Parser String
 > identifierString =
->     startsWith (\c -> c == '_' || isAlpha c)
->                (\c -> c == '_' || isAlphaNum c)
+>     startsWith (\c -> c == '_' || isAlpha c) isIdentifierChar
+
+this can be moved to the dialect at some point
+
+> isIdentifierChar :: Char -> Bool
+> isIdentifierChar c = c == '_' || isAlphaNum c
+
+> prefixedVariable :: Dialect -> Parser Token
+> prefixedVariable  d = try $ choice
+>     [PrefixedVariable <$> char ':' <*> identifierString
+>     ,guard (diSyntaxFlavour d == SqlServer) >>
+>      PrefixedVariable <$> char '@' <*> identifierString
+>     ,guard (diSyntaxFlavour d `elem` [Oracle,SqlServer]) >>
+>      PrefixedVariable <$> char '#' <*> identifierString
+>     ]
+
 
 > positionalArg :: Dialect -> Parser Token
 > -- uses try so we don't get confused with $splices
 > positionalArg d =
 >     guard (diSyntaxFlavour d == Postgres) >>
->     try (PositionalArg <$> (char '$' *> (read <$> many1 digit)))
+>     PositionalArg <$> try (char '$' *> (read <$> many1 digit))
 
 
 Strings in sql:
@@ -264,46 +270,48 @@ don't have dollar quoting, but I think they have the other two
 variants.
 
 > sqlString :: Dialect -> Parser Token
-> sqlString _ =
->     choice [normalString
->            ,eString
->            ,dollarString]
+> sqlString d = dollarString <|> csString <|> normalString
 >   where
->     normalString = SqlString "'" "'" <$> (char '\'' *> normalStringSuffix "")
->     normalStringSuffix t = do
->         s <- takeTill (=='\'')
->         void $ char '\''
->         -- deal with '' as literal quote character
->         choice [do
->                 void $ char '\''
->                 normalStringSuffix $ concat [t,s,"''"]
->                ,return $ concat [t,s]]
->     eString = SqlString "E'" "'" <$> (try (string "E'") *> eStringSuffix "")
->     eStringSuffix :: String -> Parser String
->     eStringSuffix t = do
->         s <- takeTill (`elem` ("\\'"::String))
->         choice [do
->                 try $ void $ string "\\'"
->                 eStringSuffix $ concat [t,s,"\\'"]
->                ,do
->                 void $ try $ string "''"
->                 eStringSuffix $ concat [t,s,"''"]
->                ,do
->                 void $ char '\''
->                 return $ concat [t,s]
->                ,do
->                 c <- anyChar
->                 eStringSuffix $ concat [t,s,[c]]]
 >     dollarString = do
->         delim <- dollarDelim
->         y <- manyTill anyChar (try $ string delim)
->         return $ SqlString delim delim y
->     dollarDelim :: Parser String
->     dollarDelim = try $ do
->       void $ char '$'
->       tag <- option "" identifierString
->       void $ char '$'
->       return $ concat ["$", tag, "$"]
+>         -- need a solution for the dialect for quasi quotes
+>         --guard $ diSyntaxFlavour d == Postgres
+>         delim <- (\x -> concat ["$",x,"$"])
+>                  <$> try (char '$' *> option "" identifierString <* char '$')
+>         SqlString delim delim  <$> manyTill anyChar (try $ string delim)
+>     normalString = SqlString "'" "'" <$> (char '\'' *> normalStringSuffix False "")
+>     normalStringSuffix allowBackslash t = do
+>         s <- takeTill $ if allowBackslash
+>                         then (`elem` ("'\\"::String))
+>                         else (== '\'')
+>         -- deal with '' or \' as literal quote character
+>         choice [do
+>                 ctu <- choice ["''" <$ try (string "''")
+>                               ,"\\'" <$ try (string "\\'")
+>                               ,"\\" <$ char '\\']
+>                 normalStringSuffix allowBackslash $ concat [t,s,ctu]
+>                ,concat [t,s] <$ char '\'']
+>     -- try is used to to avoid conflicts with
+>     -- identifiers which can start with n,b,x,u
+>     -- once we read the quote type and the starting '
+>     -- then we commit to a string
+>     -- it's possible that this will reject some valid syntax
+>     -- but only pathalogical stuff, and I think the improved
+>     -- error messages and user predictability make it a good
+>     -- pragmatic choice
+>     csString
+>       | diSyntaxFlavour d == Postgres =
+>         choice [SqlString <$> try (string "e'" <|> string "E'")
+>                           <*> return "'" <*> normalStringSuffix True ""
+>                ,csString']
+>       | otherwise = csString'
+>     csString' = SqlString
+>                 <$> try cs
+>                 <*> return "'"
+>                 <*> normalStringSuffix False ""
+>     csPrefixes = "nNbBxX"
+>     cs = choice $ (map (\x -> string ([x] ++ "'")) csPrefixes)
+>                   ++ [string "u&'"
+>                      ,string "U&'"]
 
 postgresql number parsing
 
@@ -455,6 +463,11 @@ inClass :: String -> Char -> Bool
 >              ,try (string "/*") *> ((\s -> concat [x,"/*",s]) <$> commentSuffix (n + 1))
 >               -- not an end comment or nested comment, continue
 >              ,(\c s -> concat [x, [c], s]) <$> anyChar <*> commentSuffix n]
+
+> dontParseEndBlockComment :: Dialect -> Parser Token
+> dontParseEndBlockComment _ =
+>     -- don't use try, then it should commit to the error
+>     try (string "*/") *> fail "comment end without comment start"
 
 > splice :: Dialect -> Parser Token
 > splice _ = do

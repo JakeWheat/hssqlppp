@@ -36,9 +36,9 @@ identifiers
 >     ,Lex postgresDialect "\"test test\"" [Identifier (Just ("\"","\"")) "test test"]
 >     ,Lex postgresDialect "test123" [Identifier Nothing "test123"]
 >     ,Lex sqlServerDialect "[test \"]" [Identifier (Just ("[","]")) "test \""]
->     ,Lex sqlServerDialect "@test" [Identifier Nothing "@test"]
->     ,Lex sqlServerDialect "#test" [Identifier Nothing "#test"]
->     ,Lex oracleDialect ":test" [Identifier Nothing ":test"]
+>     ,Lex sqlServerDialect "@test" [PrefixedVariable '@' "test"]
+>     ,Lex sqlServerDialect "#test" [PrefixedVariable '#' "test"]
+>     ,Lex oracleDialect ":test" [PrefixedVariable ':' "test"]
 
 symbols
 
