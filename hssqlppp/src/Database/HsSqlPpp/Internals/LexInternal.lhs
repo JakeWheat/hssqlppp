@@ -243,6 +243,13 @@ quoting uses ""
 >     startsWith (\c -> c == '_' || isAlpha c)
 >                (\c -> c == '_' || isAlphaNum c)
 
+> positionalArg :: Dialect -> Parser Token
+> -- uses try so we don't get confused with $splices
+> positionalArg d =
+>     guard (diSyntaxFlavour d == Postgres) >>
+>     try (PositionalArg <$> (char '$' *> (read <$> many1 digit)))
+
+
 Strings in sql:
 postgresql dialect:
 strings delimited with single quotes
@@ -314,23 +321,28 @@ digitse[+-]digits
 where digits is one or more decimal digits (0 through 9). At least one digit must be before or after the decimal point, if one is used. At least one digit must follow the exponent marker (e), if one is present. There cannot be any spaces or other characters embedded in the constant. Note that any leading plus or minus sign is not actually considered part of the constant; it is an operator applied to the constant.
 
 > sqlNumber :: Dialect -> Parser Token
-> sqlNumber _ = (SqlNumber . T.pack) <$>
->     (int <??> (pp dot <??.> pp int)
->      -- try is used in case we read a dot
->      -- and it isn't part of a number
->      -- if there are any following digits, then we commit
->      -- to it being a number and not something else
->      <|> try ((++) <$> dot <*> int))
->     <??> pp expon
+> sqlNumber _ =
+>     (SqlNumber . T.pack) <$> completeNumber
+>     -- this is for definitely avoiding possibly ambiguous source
+>     -- with a special exception for a .. operator
+>     <* choice
+>        [void $ lookAhead (string "..")
+>        ,void $ notFollowedBy (oneOf "eE.")
+>        ]
 >   where
+>     completeNumber =
+>       (int <??> (pp dot <??.> pp int)
+>       -- try is used in case we read a dot
+>       -- and it isn't part of a number
+>       -- if there are any following digits, then we commit
+>       -- to it being a number and not something else
+>       <|> try ((++) <$> dot <*> int))
+>       <??> pp expon
+
 >     int = many1 digit
->     dot = do
->           -- make sure we don't parse '..' as part of a number
->           -- this is so we can parser e.g. 1..2 correctly
->           -- as '1', '..', '2', and not as '1.' '.2' or
->           -- '1.' '.' '2'
->           notFollowedBy (string "..")
->           string "."
+>     -- if we see two dots together, leave them
+>     -- so we can parse things like 1..2 (used in postgres)
+>     dot = try (string "." <* notFollowedBy (char '.'))
 >     expon = (:) <$> oneOf "eE" <*> sInt
 >     sInt = (++) <$> option "" (string "+" <|> string "-") <*> int
 >     pp = (<$$> (++))
@@ -418,13 +430,6 @@ inClass :: String -> Char -> Bool
 
 > sqlWhitespace :: Dialect -> Parser Token
 > sqlWhitespace _ = (Whitespace . T.pack) <$> many1 (satisfy isSpace)
-
-> positionalArg :: Dialect -> Parser Token
-> -- uses try so we don't get confused with $splices
-> positionalArg (Dialect {diSyntaxFlavour = Postgres}) = try (
->   PositionalArg <$> (char '$' *> (read <$> many1 digit)))
-
-> positionalArg _ = satisfy (const False) >> fail "positional arg unsupported"
 
 > lineComment :: Dialect -> Parser Token
 > lineComment _ =
