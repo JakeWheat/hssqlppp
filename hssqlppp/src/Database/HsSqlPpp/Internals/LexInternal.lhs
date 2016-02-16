@@ -7,11 +7,11 @@
 >     ,lexTokens
 >     ) where
 
-> import qualified Data.Text as T
+> --import qualified Data.Text as T
 > import qualified Data.Text.Lazy as LT
 > import Text.Parsec
 > --Cimport Text.Parsec.String hdi
-> import Text.Parsec.Text
+> import Text.Parsec.Text.Lazy
 > import Control.Applicative hiding ((<|>), many)
 > import Data.Char
 > import Database.HsSqlPpp.Internals.Dialect
@@ -35,7 +35,7 @@
 >     --
 >     -- * $n positional arg
 >     --
->     = Symbol T.Text
+>     = Symbol String
 >
 >     -- | This is an identifier or keyword.
 >     --
@@ -49,11 +49,11 @@
 >     -- The identifier also includes the \'variable marker prefix\'
 >     -- used in sql server (e.g. \@identifier, #identifier), and oracle
 >     -- (e.g. :identifier)
->     | Identifier (Maybe (Char,Char)) T.Text
+>     | Identifier (Maybe (Char,Char)) String
 >
 >     --  | This is a prefixed variable symbol, such as :var, @var or #var
 >     -- (only :var is used in ansi dialect)
->     | PrefixedVariable Char T.Text
+>     | PrefixedVariable Char String
 >
 >     -- | a postgresql positional arg, e.g. $1
 >     | PositionalArg Int
@@ -68,56 +68,49 @@
 >     -- on the literal source e.g. E\'\\n\' parses to SqlString \"E\'\" \"\\n\"
 >     -- with the literal characters \'\\\' and \'n\' in the string, not a newline character.
 >     -- quotes within a string (\'\') or escaped string (\'\' or \\\') are passed through unchanged
->     | SqlString T.Text T.Text T.Text
+>     | SqlString String String String
 >
 >     -- | a number literal (integral or otherwise), stored in original format
 >     -- unchanged
->     | SqlNumber T.Text
+>     | SqlNumber String
 >
 >     -- | non-significant whitespace (space, tab, newline) (strictly speaking,
 >     -- it is up to the client to decide whether the whitespace is significant
 >     -- or not)
->     | Whitespace T.Text
->
+>     | Whitespace String
 >
 >     -- | a commented line using --, contains every character starting with the
 >     -- \'--\' and including the terminating newline character if there is one
 >     -- - this will be missing if the last line in the source is a line comment
 >     -- with no trailing newline
->     | LineComment T.Text
+>     | LineComment String
 >
 >     -- | a block comment, \/* stuff *\/, includes the comment delimiters
->     | BlockComment T.Text
+>     | BlockComment String
 >
 >     -- | an antiquotation splice, e.g. $x(stuff)
->     | Splice Char T.Text
+>     | Splice Char String
 >
 >     -- | the copy data in a copy from stdin
->     | CopyPayload T.Text
+>     | CopyPayload String
 >       deriving (Eq,Show)
 
 > -- | Accurate pretty printing, if you lex a bunch of tokens,
 > -- then pretty print them, should should get back exactly the
 > -- same string
-> prettyToken :: Dialect -> Token -> LT.Text
-> prettyToken _ (Symbol s) = LT.fromChunks [s]
-> prettyToken _ (Identifier Nothing t) = LT.fromChunks [t]
-> prettyToken _ (Identifier (Just (a,b)) t) =
->     LT.fromChunks [T.singleton a, t, T.singleton b]
-> prettyToken _ (PrefixedVariable c s) = LT.cons c (LT.fromChunks [s])
-> prettyToken _ (SqlString q r t) = LT.fromChunks [q,t,r]
-> prettyToken _ (SqlNumber r) = LT.fromChunks [r]
-> prettyToken _ (Whitespace t) = LT.fromChunks [t]
-> prettyToken _ (PositionalArg n) = LT.fromChunks [T.singleton '$', T.pack $ show n]
-> prettyToken _ (LineComment l) = LT.fromChunks [l]
-> prettyToken _ (BlockComment c) = LT.fromChunks [c]
-> prettyToken _ (Splice c t) =
->     LT.fromChunks [T.singleton '$'
->                   ,T.singleton c
->                   ,T.singleton '('
->                   ,t
->                   ,T.singleton ')']
-> prettyToken _ (CopyPayload s) = LT.fromChunks [s,"\\.\n"]
+> prettyToken :: Dialect -> Token -> String
+> prettyToken _ (Symbol s) = s
+> prettyToken _ (Identifier Nothing t) = t
+> prettyToken _ (Identifier (Just (a,b)) t) = [a] ++ t ++ [b]
+> prettyToken _ (PrefixedVariable c s) = c:s
+> prettyToken _ (SqlString q r t) = q ++ t ++ r
+> prettyToken _ (SqlNumber r) = r
+> prettyToken _ (Whitespace t) = t
+> prettyToken _ (PositionalArg n) = '$':show n
+> prettyToken _ (LineComment l) = l
+> prettyToken _ (BlockComment c) = c
+> prettyToken _ (Splice c t) = '$':c:'(':t ++ ")"
+> prettyToken _ (CopyPayload s) = s ++ "\\.\n"
 
 
 not sure how to get the position information in the parse errors
@@ -127,7 +120,7 @@ investigate what is missing for postgresql
 investigate differences for sql server, oracle, maybe db2 and mysql
   also
 
-> lexTokens :: Dialect -> FilePath -> Maybe (Int,Int) -> T.Text -> Either ParseError [((FilePath,Int,Int),Token)]
+> lexTokens :: Dialect -> FilePath -> Maybe (Int,Int) -> LT.Text -> Either ParseError [((FilePath,Int,Int),Token)]
 > lexTokens dialect fn' mp txt =
 >     let (l',c') = fromMaybe (1,1) mp
 >     in runParser (setPos (fn',l',c') *> many_p <* eof) () "" txt
@@ -142,12 +135,12 @@ if we see 'from stdin;' then try to lex a copy payload
 >      some_p = do
 >        tok <- lexToken dialect
 >        case tok of
->          (_, Identifier Nothing t) | T.map toLower t == "from" -> (tok:) <$> seeStdin
+>          (_, Identifier Nothing t) | map toLower t == "from" -> (tok:) <$> seeStdin
 >          _ -> (tok:) <$> many_p
 >      seeStdin = do
 >        tok <- lexToken dialect
 >        case tok of
->          (_,Identifier Nothing t) | T.map toLower t == "stdin" -> (tok:) <$> seeColon
+>          (_,Identifier Nothing t) | map toLower t == "stdin" -> (tok:) <$> seeColon
 >          (_,x) | isWs x -> (tok:) <$> seeStdin
 >          _ -> (tok:) <$> many_p
 >      seeColon = do
@@ -159,7 +152,7 @@ if we see 'from stdin;' then try to lex a copy payload
 >        p' <- getPosition
 >        let pos = (sourceName p',sourceLine p', sourceColumn p')
 >        tok <- char '\n' *>
->             ((\x -> (pos, CopyPayload $ T.pack $ x ++ "\n"))
+>             ((\x -> (pos, CopyPayload $ x ++ "\n"))
 >              <$> manyTill anyChar (try $ string "\n\\.\n"))
 >        --let (_,CopyPayload t) = tok
 >        --trace ("payload is '" ++ T.unpack t ++ "'") $ return ()
@@ -232,13 +225,13 @@ quoting uses ""
 >     ]
 
 
-> identifierStringPrefix :: Char  -> Parser T.Text
+> identifierStringPrefix :: Char  -> Parser String
 > identifierStringPrefix p = do
 >     void $ char p
 >     i <- identifierString
->     return $ T.cons p i
+>     return (p : i)
 
-> identifierString :: Parser T.Text
+> identifierString :: Parser String
 > identifierString =
 >     startsWith (\c -> c == '_' || isAlpha c)
 >                (\c -> c == '_' || isAlphaNum c)
@@ -283,34 +276,34 @@ variants.
 >         -- deal with '' as literal quote character
 >         choice [do
 >                 void $ char '\''
->                 normalStringSuffix $ T.concat [t,s,"''"]
->                ,return $ T.concat [t,s]]
+>                 normalStringSuffix $ concat [t,s,"''"]
+>                ,return $ concat [t,s]]
 >     eString = SqlString "E'" "'" <$> (try (string "E'") *> eStringSuffix "")
->     eStringSuffix :: T.Text -> Parser T.Text
+>     eStringSuffix :: String -> Parser String
 >     eStringSuffix t = do
 >         s <- takeTill (`elem` ("\\'"::String))
 >         choice [do
 >                 try $ void $ string "\\'"
->                 eStringSuffix $ T.concat [t,s,"\\'"]
+>                 eStringSuffix $ concat [t,s,"\\'"]
 >                ,do
 >                 void $ try $ string "''"
->                 eStringSuffix $ T.concat [t,s,"''"]
+>                 eStringSuffix $ concat [t,s,"''"]
 >                ,do
 >                 void $ char '\''
->                 return $ T.concat [t,s]
+>                 return $ concat [t,s]
 >                ,do
 >                 c <- anyChar
->                 eStringSuffix $ T.concat [t,s,T.singleton c]]
+>                 eStringSuffix $ concat [t,s,[c]]]
 >     dollarString = do
 >         delim <- dollarDelim
->         y <- manyTill anyChar (try $ string $ T.unpack delim)
->         return $ SqlString delim delim $ T.pack y
->     dollarDelim :: Parser T.Text
+>         y <- manyTill anyChar (try $ string delim)
+>         return $ SqlString delim delim y
+>     dollarDelim :: Parser String
 >     dollarDelim = try $ do
 >       void $ char '$'
 >       tag <- option "" identifierString
 >       void $ char '$'
->       return $ T.concat ["$", tag, "$"]
+>       return $ concat ["$", tag, "$"]
 
 postgresql number parsing
 
@@ -322,7 +315,7 @@ where digits is one or more decimal digits (0 through 9). At least one digit mus
 
 > sqlNumber :: Dialect -> Parser Token
 > sqlNumber _ =
->     (SqlNumber . T.pack) <$> completeNumber
+>     SqlNumber <$> completeNumber
 >     -- this is for definitely avoiding possibly ambiguous source
 >     -- with a special exception for a .. operator
 >     <* choice
@@ -382,7 +375,7 @@ TODO: try to match this behaviour
 inClass :: String -> Char -> Bool
 
 > symbol :: Dialect -> Parser Token
-> symbol dialect = Symbol <$> T.pack <$>
+> symbol dialect = Symbol <$>
 >     choice
 >     [(:[]) <$> satisfy (`elem` simpleSymbols)
 >     ,try $ string ".."
@@ -429,11 +422,11 @@ inClass :: String -> Char -> Bool
 
 
 > sqlWhitespace :: Dialect -> Parser Token
-> sqlWhitespace _ = (Whitespace . T.pack) <$> many1 (satisfy isSpace)
+> sqlWhitespace _ = Whitespace <$> many1 (satisfy isSpace)
 
 > lineComment :: Dialect -> Parser Token
 > lineComment _ =
->     (\s -> (LineComment . T.pack) $ concat ["--",s]) <$>
+>     (\s -> LineComment $ concat ["--",s]) <$>
 >     -- try is used here in case we see a - symbol
 >     -- once we read two -- then we commit to the comment token
 >     (try (string "--") *> (
@@ -445,23 +438,23 @@ inClass :: String -> Char -> Bool
 
 > blockComment :: Dialect -> Parser Token
 > blockComment _ =
->     (\s -> BlockComment $ T.concat ["/*",s]) <$>
+>     (\s -> BlockComment $ concat ["/*",s]) <$>
 >     (try (string "/*") *> commentSuffix 0)
 >   where
->     commentSuffix :: Int -> Parser T.Text
+>     commentSuffix :: Int -> Parser String
 >     commentSuffix n = do
 >       -- read until a possible end comment or nested comment
 >       x <- takeWhile (\e -> e /= '/' && e /= '*')
 >       choice [-- close comment: if the nesting is 0, done
 >               -- otherwise recurse on commentSuffix
->               try (string "*/") *> let t = T.concat [x,"*/"]
+>               try (string "*/") *> let t = concat [x,"*/"]
 >                                    in if n == 0
 >                                       then return t
->                                       else (\s -> T.concat [t,s]) <$> commentSuffix (n - 1)
+>                                       else (\s -> concat [t,s]) <$> commentSuffix (n - 1)
 >               -- nested comment, recurse
->              ,try (string "/*") *> ((\s -> T.concat [x,"/*",s]) <$> commentSuffix (n + 1))
+>              ,try (string "/*") *> ((\s -> concat [x,"/*",s]) <$> commentSuffix (n + 1))
 >               -- not an end comment or nested comment, continue
->              ,(\c s -> T.concat [x,T.pack [c], s]) <$> anyChar <*> commentSuffix n]
+>              ,(\c s -> concat [x, [c], s]) <$> anyChar <*> commentSuffix n]
 
 > splice :: Dialect -> Parser Token
 > splice _ = do
@@ -469,21 +462,21 @@ inClass :: String -> Char -> Bool
 >   <$> (char '$' *> letter)
 >   <*> (char '(' *> identifierString <* char ')')
 
-> startsWith :: (Char -> Bool) -> (Char -> Bool) -> Parser T.Text
+> startsWith :: (Char -> Bool) -> (Char -> Bool) -> Parser String
 > startsWith p ps = do
 >   c <- satisfy p
->   choice [T.cons c <$> (takeWhile1 ps)
->          ,return $ T.singleton c]
+>   choice [(c:) <$> (takeWhile1 ps)
+>          ,return [c]]
 
-> takeWhile1 :: (Char -> Bool) -> Parser T.Text
-> takeWhile1 p = T.pack <$> many1 (satisfy p)
+> takeWhile1 :: (Char -> Bool) -> Parser String
+> takeWhile1 p = many1 (satisfy p)
 
-> takeWhile :: (Char -> Bool) -> Parser T.Text
-> takeWhile p = T.pack <$> many (satisfy p)
+> takeWhile :: (Char -> Bool) -> Parser String
+> takeWhile p = many (satisfy p)
 
-> takeTill :: (Char -> Bool) -> Parser T.Text
+> takeTill :: (Char -> Bool) -> Parser String
 > takeTill p =
->     T.pack <$> manyTill anyChar (peekSatisfy p)
+>     manyTill anyChar (peekSatisfy p)
 
 > peekSatisfy :: (Char -> Bool) -> Parser ()
 > peekSatisfy p = do

@@ -120,7 +120,7 @@ Top level parsing functions
 > lexem d fn sp src =
 >   let ts :: Either ParseErrorExtra [Token]
 >       ts = either (\e -> Left $ ParseErrorExtra e sp src) Right
->             $ Lex.lexTokens d fn sp $ T.concat $ L.toChunks src
+>             $ Lex.lexTokens d fn sp src
 >   in --trace ((\(Right r) -> intercalate "\n" $ map show r) ts) $
 >      filter keep `fmap` ts
 >   where
@@ -571,7 +571,7 @@ other dml-type stuff
 > copyData :: SParser Statement
 > copyData = CopyData <$> pos <*> mytoken (\tok ->
 >                                         case tok of
->                                                  Lex.CopyPayload n -> Just $ T.unpack n
+>                                                  Lex.CopyPayload n -> Just n
 >                                                  _ -> Nothing)
 >
 
@@ -2425,31 +2425,31 @@ Utility parsers
 
 > keyword :: Text -> SParser ()
 > keyword k = mytoken (\tok -> case tok of
->                                Lex.Identifier Nothing i | lcase k == lcase i -> Just ()
+>                                Lex.Identifier Nothing i | lcase (T.unpack k) == lcase i -> Just ()
 >                                _ -> Nothing)
 >                       where
->                         lcase = T.map toLower
+>                         lcase = map toLower
 
 >
 > idString :: SParser String
 > idString = mytoken (\tok -> case tok of
->                                      Lex.Identifier Nothing i -> Just $ T.unpack i
->                                      Lex.PrefixedVariable c s -> Just (c : T.unpack s)
+>                                      Lex.Identifier Nothing i -> Just  i
+>                                      Lex.PrefixedVariable c s -> Just (c : s)
 >                                      _ -> Nothing)
 > qidString :: SParser String
 > qidString = mytoken (\tok -> case tok of
->                                      Lex.Identifier _ i -> Just $ T.unpack i
+>                                      Lex.Identifier _ i -> Just i
 >                                      _ -> Nothing)
 
 > splice :: Char -> SParser String
 > splice c = mytoken (\tok -> case tok of
->                                Lex.Splice c' i | c == c' -> Just $ T.unpack i
+>                                Lex.Splice c' i | c == c' -> Just i
 >                                _ -> Nothing)
 
 >
 > symbol :: Text -> SParser ()
 > symbol c = mytoken (\tok -> case tok of
->                                    Lex.Symbol s | c==s -> Just ()
+>                                    Lex.Symbol s | T.unpack c==s -> Just ()
 >                                    _           -> Nothing)
 >
 > liftPositionalArgTok :: SParser Integer
@@ -2469,7 +2469,7 @@ Utility parsers
 >
 > numString :: SParser String
 > numString = mytoken (\tok -> case tok of
->                                     Lex.SqlNumber n -> Just $ T.unpack n
+>                                     Lex.SqlNumber n -> Just n
 >                                     _ -> Nothing)
 
 >
@@ -2479,7 +2479,7 @@ Utility parsers
 >                            Lex.SqlString _ _ s ->
 >                               -- bit hacky, the lexer doesn't process quotes
 >                               -- but the parser expects them to have been replaced
->                               Just $ T.unpack $ T.replace "''" "'" $ T.replace "\'" "'" s
+>                               Just $ T.unpack $ T.replace "''" "'" $ T.replace "\'" "'" $ T.pack s
 >                            _ -> Nothing)
 
 > stringLit :: SParser ScalarExpr
@@ -2493,7 +2493,7 @@ Utility parsers
 > stringN :: SParser String
 > stringN = mytoken (\tok ->
 >                   case tok of
->                            Lex.SqlString _ _ s -> Just $ T.unpack s
+>                            Lex.SqlString _ _ s -> Just s
 >                            _ -> Nothing)
 
 > extrStr :: ScalarExpr -> String

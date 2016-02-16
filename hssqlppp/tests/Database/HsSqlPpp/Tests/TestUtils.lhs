@@ -22,9 +22,9 @@
 > import Database.HsSqlPpp.Utility
 > --import Database.HsSqlPpp.SqlTypes
 > --import Database.HsSqlPpp.Utils.PPExpr
-> import Data.Text.Lazy (Text)
+> --import Data.Text.Lazy (Text)
 > import qualified Data.Text.Lazy as L
-> import qualified Data.Text as T
+> --import qualified Data.Text as T
 > import Database.HsSqlPpp.Lex (lexTokens,prettyToken,Token)
 > --import Text.Parsec.Text (runParser)
 > --import Control.Applicative
@@ -90,26 +90,26 @@
 > itemToTft (MatchApp d cat f as r) = testMatchApp d cat f as r
 > itemToTft (Custom nm f) = H.testCase nm f
 
-> testParseScalarExpr :: ParseFlags -> Text -> ScalarExpr -> T.TestTree
+> testParseScalarExpr :: ParseFlags -> L.Text -> ScalarExpr -> T.TestTree
 > testParseScalarExpr f src ast =
 >   parseUtil src ast (parseScalarExpr f "" Nothing)
 >                     (parseScalarExpr f "" Nothing)
 >                     (prettyScalarExpr
 >                      defaultPrettyFlags {ppDialect = pfDialect f} )
-> testParseQueryExpr :: ParseFlags -> Text -> QueryExpr -> T.TestTree
+> testParseQueryExpr :: ParseFlags -> L.Text -> QueryExpr -> T.TestTree
 > testParseQueryExpr f src ast =
 >   parseUtil src ast (parseQueryExpr f "" Nothing)
 >                     (parseQueryExpr f "" Nothing)
 >                     (prettyQueryExpr defaultPrettyFlags {ppDialect = pfDialect f})
 
 >
-> testParseStatements :: ParseFlags -> Text -> [Statement] -> T.TestTree
+> testParseStatements :: ParseFlags -> L.Text -> [Statement] -> T.TestTree
 > testParseStatements flg src ast =
 >   let parse = parseStatements flg "" Nothing
 >       pp = prettyStatements defaultPrettyFlags {ppDialect=pfDialect flg}
 >   in parseUtil src ast parse parse pp
 
-> testParseProcSql :: ParseFlags -> Text -> [Statement] -> T.TestTree
+> testParseProcSql :: ParseFlags -> L.Text -> [Statement] -> T.TestTree
 > testParseProcSql flg src ast =
 >   let parse = parseProcSQL flg "" Nothing
 >       pp = prettyStatements defaultPrettyFlags {ppDialect=pfDialect flg}
@@ -118,11 +118,11 @@
 >
 >
 > parseUtil :: (Show t, Eq b, Show b, Data b) =>
->              Text
+>              L.Text
 >           -> b
->           -> (Text -> Either t b)
->           -> (Text -> Either t b)
->           -> (b -> Text)
+>           -> (L.Text -> Either t b)
+>           -> (L.Text -> Either t b)
+>           -> (b -> L.Text)
 >           -> T.TestTree
 > parseUtil src ast parser reparser printer = H.testCase ("parse " ++ L.unpack src) $
 >   case parser src of
@@ -136,13 +136,13 @@
 >         Left er -> H.assertFailure $ "reparse\n" ++ (L.unpack $ printer ast) ++ "\n" ++ show er ++ "\n" -- ++ pp ++ "\n"
 >         Right ast'' -> H.assertEqual ("reparse: " ++ L.unpack (printer ast)) ast $ resetAnnotations ast''
 
-> testLex :: Dialect -> T.Text -> [Token] -> T.TestTree
-> testLex d t r = H.testCase ("lex "++ T.unpack t) $ do
+> testLex :: Dialect -> L.Text -> [Token] -> T.TestTree
+> testLex d t r = H.testCase ("lex "++ L.unpack t) $ do
 >     let x = lexTokens d "" Nothing t
 >         y = either (error . show) id x
 >     H.assertEqual "lex" r (map snd y)
->     let t' = L.concat $ map (prettyToken d) r
->     H.assertEqual "lex . pretty" (L.fromChunks [t]) t'
+>     let t' = L.concat $ map (L.pack . prettyToken d) r
+>     H.assertEqual "lex . pretty" t t'
 
 > testTCScalarExpr :: Catalog -> Environment -> TypeCheckFlags
 >                    -> L.Text -> Either [TypeError] Type -> T.TestTree

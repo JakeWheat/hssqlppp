@@ -15,7 +15,7 @@
 > import Database.HsSqlPpp.Syntax
 > import Database.HsSqlPpp.Lex (Token)
 > --import Database.HsSqlPpp.Annotation
-> import qualified Data.Text as T
+> --import qualified Data.Text as T
 > --import Data.Text (Text)
 > import qualified Data.Text.Lazy as L
 > --import Control.Arrow
@@ -50,7 +50,7 @@
 >           | ParseStmts ParseFlags L.Text [Statement]
 >           | ParseProcSql ParseFlags L.Text [Statement]
 >           | ParseQueryExpr ParseFlags L.Text QueryExpr
->           | Lex Dialect T.Text [Token]
+>           | Lex Dialect L.Text [Token]
 >           | TCScalExpr Catalog Environment TypeCheckFlags
 >                        L.Text (Either [TypeError] Type)
 >           | TCQueryExpr Catalog TypeCheckFlags
