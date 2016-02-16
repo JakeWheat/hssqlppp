@@ -33,9 +33,9 @@ identifiers
 
 >     ,Lex postgresDialect "test" [Identifier Nothing "test"]
 >     ,Lex postgresDialect "_test" [Identifier Nothing "_test"]
->     ,Lex postgresDialect "\"test test\"" [Identifier (Just ('"','"')) "test test"]
+>     ,Lex postgresDialect "\"test test\"" [Identifier (Just ("\"","\"")) "test test"]
 >     ,Lex postgresDialect "test123" [Identifier Nothing "test123"]
->     ,Lex sqlServerDialect "[test \"]" [Identifier (Just ('[',']')) "test \""]
+>     ,Lex sqlServerDialect "[test \"]" [Identifier (Just ("[","]")) "test \""]
 >     ,Lex sqlServerDialect "@test" [Identifier Nothing "@test"]
 >     ,Lex sqlServerDialect "#test" [Identifier Nothing "#test"]
 >     ,Lex oracleDialect ":test" [Identifier Nothing ":test"]

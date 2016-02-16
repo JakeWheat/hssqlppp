@@ -49,7 +49,7 @@
 >     -- The identifier also includes the \'variable marker prefix\'
 >     -- used in sql server (e.g. \@identifier, #identifier), and oracle
 >     -- (e.g. :identifier)
->     | Identifier (Maybe (Char,Char)) String
+>     | Identifier (Maybe (String,String)) String
 >
 >     --  | This is a prefixed variable symbol, such as :var, @var or #var
 >     -- (only :var is used in ansi dialect)
@@ -101,7 +101,7 @@
 > prettyToken :: Dialect -> Token -> String
 > prettyToken _ (Symbol s) = s
 > prettyToken _ (Identifier Nothing t) = t
-> prettyToken _ (Identifier (Just (a,b)) t) = [a] ++ t ++ [b]
+> prettyToken _ (Identifier (Just (a,b)) t) = a ++ t ++ b
 > prettyToken _ (PrefixedVariable c s) = c:s
 > prettyToken _ (SqlString q r t) = q ++ t ++ r
 > prettyToken _ (SqlNumber r) = r
@@ -192,9 +192,9 @@ TODO: fix all the "qiden" parsers to allow "qid""en"
 
 > identifier (Dialect {diSyntaxFlavour = SqlServer}) =
 >     choice
->     [Identifier (Just ('[',']'))
+>     [Identifier (Just ("[","]"))
 >      <$> (char '[' *> takeWhile1 (/=']') <* char ']')
->     ,Identifier (Just ('"','"'))
+>     ,Identifier (Just ("\"","\""))
 >      <$> (char '"' *> takeWhile1 (/='"') <* char '"')
 >     ,Identifier Nothing <$> identifierStringPrefix '@'
 >     ,Identifier Nothing <$> identifierStringPrefix '#'
@@ -207,7 +207,7 @@ quoting uses ""
 
 > identifier (Dialect {diSyntaxFlavour = Oracle}) =
 >     choice
->     [Identifier (Just ('"','"'))
+>     [Identifier (Just ("\"","\""))
 >      <$> (char '"' *> takeWhile1 (/='"') <* char '"')
 >     ,Identifier Nothing <$> identifierStringPrefix ':'
 >     ,Identifier Nothing <$> identifierString
@@ -219,7 +219,7 @@ quoting uses ""
 > regularIdentifier :: Parser Token
 > regularIdentifier =
 >     choice
->     [Identifier (Just ('"','"'))
+>     [Identifier (Just ("\"","\""))
 >      <$> (char '"' *> takeWhile1 (/='"') <* char '"')
 >     ,Identifier Nothing <$> identifierString
 >     ]
