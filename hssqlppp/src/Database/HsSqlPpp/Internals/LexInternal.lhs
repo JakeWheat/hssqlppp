@@ -360,9 +360,14 @@ where digits is one or more decimal digits (0 through 9). At least one digit mus
 >       f b -> (a -> b -> c) -> f (a -> c)
 > (<$$>) pa c = pa <**> pure (flip c)
 
-Symbols:
+A symbol is one of the two character symbols, or one of the single
+character symbols in the two lists below.
 
-Copied from the postgresql manual:
+> symbol :: Dialect -> Parser Token
+> symbol d | diSyntaxFlavour d == Postgres =
+>     Symbol <$> choice (otherSymbol ++ [singlePlusMinus,opMoreChars])
+
+rules
 
 An operator name is a sequence of up to NAMEDATALEN-1 (63 by default) characters from the following list:
 
@@ -375,58 +380,109 @@ A multiple-character operator name cannot end in + or -, unless the name also co
 
 ~ ! @ # % ^ & | ` ?
 
-For example, @- is an allowed operator name, but *- is not. This restriction allows PostgreSQL to parse SQL-compliant queries without requiring spaces between tokens.
-When working with non-SQL-standard operator names, you will usually need to separate adjacent operators with spaces to avoid ambiguity. For example, if you have defined a left unary operator named @, you cannot write X*@Y; you must write X* @Y to ensure that PostgreSQL reads it as two operator names not one.
-
-TODO: try to match this behaviour
-
-inClass :: String -> Char -> Bool
-
-> symbol :: Dialect -> Parser Token
-> symbol dialect = Symbol <$>
->     choice
->     [(:[]) <$> satisfy (`elem` simpleSymbols)
->     ,try $ string ".."
->     ,string "."
->     ,try $ string "::"
->     ,try $ string ":="
->     ,string ":"
->     ,anotherOp
->     ]
 >   where
->     anotherOp :: Parser String
->     anotherOp = do
->       -- first char can be any, this is always a valid operator name
->       c0 <- satisfy (`elem` compoundFirst)
->       --recurse:
->       let r = choice
->               [do
->                c1 <- satisfy (`elem` compoundTail)
->                choice [do
->                        x <- r
->                        return $ c1 : x
->                       ,return [c1]]
->               ,try $ do
->                a <- satisfy (`elem` ("+-"::String))
->                b <- r
->                return $ a : b]
->       choice [do
->               tl <- r
->               return $ c0 : tl
->              ,return [c0]]
->     {-biggerSymbol =
->         startsWith (inClass compoundFirst)
->                    (inClass compoundTail) -}
->     isPostgres = diSyntaxFlavour dialect == Postgres
->     simpleSymbols :: String
->     simpleSymbols | isPostgres = "(),;[]{}"
->                   | otherwise = "(),;{}"
->     compoundFirst :: String
->     compoundFirst | isPostgres = "*/<>=~!@#%^&|`?+-"
->                   | otherwise = "*/<>=~!%^&|`?+-"
->     compoundTail :: String
->     compoundTail | isPostgres = "*/<>=~!@#%^&|`?"
->                  | otherwise = "*/<>=~!%^&|`?"
+>     -- other symbols are all the tokens which parse as symbols in
+>     -- this lexer which aren't considered operators in postgresql
+>     -- a single ? is parsed as a operator here instead of an other
+>     -- symbol because this is the least complex way to do it
+>     otherSymbol = many1 (char '.') :
+>                   try (string ":=") :
+>                   -- parse :: and : and avoid allowing ::: or more
+>                   try (string "::" <* notFollowedBy (char ':')) :
+>                   try (string ":" <* notFollowedBy (char ':')) :
+>                   (map (string . (:[])) "[],;()"
+>                    ++ if True -- allowOdbc d
+>                       then [string "{", string "}"]
+>                       else []
+>                   )
+
+exception char is one of:
+~ ! @ # % ^ & | ` ?
+which allows the last character of a multi character symbol to be + or
+-
+
+>     allOpSymbols = "+-*/<>=~!@#%^&|`?"
+>     -- these are the symbols when if part of a multi character
+>     -- operator permit the operator to end with a + or - symbol
+>     exceptionOpSymbols = "~!@#%^&|`?"
+
+>     -- special case for parsing a single + or - symbol
+>     singlePlusMinus = try $ do
+>       c <- oneOf "+-"
+>       notFollowedBy $ oneOf allOpSymbols
+>       return [c]
+
+>     -- this is used when we are parsing a potentially multi symbol
+>     -- operator and we have alread seen one of the 'exception chars'
+>     -- and so we can end with a + or -
+>     moreOpCharsException = do
+>        c <- oneOf (filter (`notElem` ("-/*"::String)) allOpSymbols)
+>             -- make sure we don't parse a comment starting token
+>             -- as part of an operator
+>             <|> try (char '/' <* notFollowedBy (char '*'))
+>             <|> try (char '-' <* notFollowedBy (char '-'))
+>             -- and make sure we don't parse a block comment end
+>             -- as part of another symbol
+>             <|> try (char '*' <* notFollowedBy (char '/'))
+>        (c:) <$> option [] moreOpCharsException
+
+>     opMoreChars = choice
+>        [-- parse an exception char, now we can finish with a + -
+>         (:)
+>         <$> oneOf exceptionOpSymbols
+>         <*> option [] moreOpCharsException
+>        ,(:)
+>         <$> (-- parse +, make sure it isn't the last symbol
+>              try (char '+' <* lookAhead (oneOf allOpSymbols))
+>              <|> -- parse -, make sure it isn't the last symbol
+>                  -- or the start of a -- comment
+>              try (char '-'
+>                   <* notFollowedBy (char '-')
+>                   <* lookAhead (oneOf allOpSymbols))
+>              <|> -- parse / check it isn't the start of a /* comment
+>              try (char '/' <* notFollowedBy (char '*'))
+>              <|> -- make sure we don't parse */ as part of a symbol
+>              try (char '*' <* notFollowedBy (char '/'))
+>              <|> -- any other ansi operator symbol
+>              oneOf "<>=")
+>         <*> option [] opMoreChars
+>        ]
+
+> symbol d | diSyntaxFlavour d == SqlServer =
+>    Symbol <$> choice (otherSymbol ++ regularOp)
+>  where
+>    otherSymbol = string "." :
+>                  (map (string . (:[])) ",;():?"
+>                   ++ if True -- allowOdbc d
+>                      then [string "{", string "}"]
+>                      else [])
+
+try is used because most of the first characters of the two character
+symbols can also be part of a single character symbol
+
+>    regularOp = map (try . string) [">=","<=","!=","<>"]
+>                ++ map (string . (:[])) "+-^*/%~&<>="
+>                ++ [char '|' *>
+>                    choice ["||" <$ char '|' <* notFollowedBy (char '|')
+>                           ,return "|"]]
+
+> symbol _d =
+>    Symbol <$> choice (otherSymbol ++ regularOp)
+>  where
+>    otherSymbol = many1 (char '.') :
+>                  (map (string . (:[])) "[],;():?"
+>                   ++ if True -- allowOdbc d
+>                      then [string "{", string "}"]
+>                      else [])
+
+try is used because most of the first characters of the two character
+symbols can also be part of a single character symbol
+
+>    regularOp = map (try . string) [">=","<=","!=","<>"]
+>                ++ map (string . (:[])) "+-^*/%~&<>=[]"
+>                ++ [char '|' *>
+>                    choice ["||" <$ char '|' <* notFollowedBy (char '|')
+>                           ,return "|"]]
 
 
 > sqlWhitespace :: Dialect -> Parser Token

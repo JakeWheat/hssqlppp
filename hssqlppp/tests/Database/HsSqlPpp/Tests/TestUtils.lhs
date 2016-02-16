@@ -196,13 +196,13 @@
 
 > testImpCastsScalar :: TypeCheckFlags -> L.Text -> L.Text -> T.TestTree
 > testImpCastsScalar f src wsrc = H.testCase ("typecheck " ++ L.unpack src) $
->   let ast = case parseScalarExpr defaultParseFlags "" Nothing src of
+>   let ast = case parseScalarExpr defaultParseFlags {pfDialect = tcfDialect f} "" Nothing src of
 >               Left e -> error $ show e
 >               Right l -> l
 >       aast = typeCheckScalarExpr f (diDefaultCatalog postgresDialect) emptyEnvironment
 >              $ canonicalizeTypes (tcfDialect f) ast
 >       aast' = addExplicitCasts aast
->       wast = case parseScalarExpr defaultParseFlags "" Nothing wsrc of
+>       wast = case parseScalarExpr defaultParseFlags {pfDialect = tcfDialect f} "" Nothing wsrc of
 >                Left e -> error $ show e
 >                Right l -> l
 >   in (if (resetAnnotations aast') /= (resetAnnotations wast)
