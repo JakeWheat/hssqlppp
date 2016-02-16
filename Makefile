@@ -37,7 +37,7 @@ all : examples test
 
 .PHONY : test
 test : hssqlppp
-	stack test hssqlppp hssqlppp-th
+	stack test hssqlppp hssqlppp-th --test-arguments --hide-successes
 
 # if you need some other combination of targets please add them to the
 # makefile
