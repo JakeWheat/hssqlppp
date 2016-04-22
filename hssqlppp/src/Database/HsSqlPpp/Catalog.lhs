@@ -41,7 +41,7 @@ Forward the public part of CatalogInternal.
 >     --,defaultTemplate1Catalog
 >     --,defaultTSQLCatalog
 >     --,odbcCatalog
->      -- * Catalog comparison
+>      -- -- * Catalog comparison
 >     --,CatalogDiff(..)
 >     --,compareCatalogs
 >     --,ppCatDiff

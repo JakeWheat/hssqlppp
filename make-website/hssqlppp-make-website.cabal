@@ -1,5 +1,5 @@
 Name:                hssqlppp-make-website
-Version:             0.5.22
+Version:             0.6.0
 Build-Type:          Simple
 Cabal-Version:       >=1.10
 
@@ -47,7 +47,7 @@ executable MakeWebsite
                        haskell-src-exts >= 1.13 && < 1.18,
                        uniplate >= 1.6 && < 1.7,
                        -- parsec >= 3.1.2 && < 3.2,
-                       pandoc >= 1.15 && < 1.17,
+                       pandoc >= 1.15 && < 1.18,
                        -- pandoc-types >= 1.12 && < 1.13,
                        -- blaze-html >= 0.7 && < 0.8,
                        directory >= 1.2 && < 1.3,

@@ -16,7 +16,7 @@ add some of the missing information to the output
 > import Database.HsSqlPpp.Tests.TypeChecking.TypeCheckTests as TT
 > --import Text.Show.Pretty
 > import qualified Data.Text.Lazy as L
-> import qualified Data.Text as T
+> --import qualified Data.Text as T
 > import Database.HsSqlPpp.Utils.GroomUtils
 > --import Control.Monad
 > import Language.Haskell.Exts hiding (String)

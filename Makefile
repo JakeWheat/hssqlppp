@@ -215,7 +215,7 @@ website-haddock : $(shell find hssqlppp hssqlppp-th -iname '*hs')
 	stack install hscolour
 	stack haddock hssqlppp hssqlppp-th
 	# todo: how to find the right dir automatically
-	cp -R .stack-work/install/x86_64-linux/lts-5.1/7.10.3/doc/* build/website/haddock/
+	cp -R .stack-work/install/x86_64-linux/lts-5.13/7.10.3/doc/* build/website/haddock/
 
 
 # generate a diagram of the hssqlppp package internal module dependencies

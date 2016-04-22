@@ -8,10 +8,10 @@
 
 == Overview
 
-A parser and type checker for SQL written in Haskell. Targets the
-PostgreSQL dialect of SQL and PL/pgSQL syntax only. BSD licensed.
+A parser and type checker for SQL written in Haskell. Mainly targets
+the PostgreSQL dialect of SQL and PL/pgSQL syntax only. BSD licensed.
 
-This is the documentation for version 0.5.x. Documentation for other
+This is the documentation for version 0.6.x. Documentation for other
 versions is available here: http://jakewheat.github.io/hssqlppp/.
 
 If you just need a SQL parser, this is an updated project focused on
@@ -87,7 +87,7 @@ casts, tables, views and functions.
 
 == Installation
 
-This project is currently developed on GHC 7.10.2. It has also been
+This project is currently developed on GHC 7.10.3. It has also been
 tested recently with 7.8.4.
 
 To install use

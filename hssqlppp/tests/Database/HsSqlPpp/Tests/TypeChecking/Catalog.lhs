@@ -7,9 +7,9 @@
 > import Database.HsSqlPpp.Tests.TestTypes
 > --import Database.HsSqlPpp.Internals.TypeChecking.Environment
 > --import Database.HsSqlPpp.Tests.TypeChecking.Utils
-> import qualified Data.Text.Lazy as T
+> --import qualified Data.Text.Lazy as T
 > import qualified Test.Tasty.HUnit as H
-> import qualified Data.Map as M
+> --import qualified Data.Map as M
 > import qualified Data.Set as S
 > import Control.Monad
 
