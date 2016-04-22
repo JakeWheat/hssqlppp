@@ -47,7 +47,8 @@
 >      -- ** dml components
 >     ,CopyToSource(..)
 >     ,CopyFromSource(..)
->     ,CopyOption(..)
+>     ,CopyToOption(..)
+>     ,CopyFromOption(..)
 >     ,SetClause(..)
 >      -- ** ddl components
 >     ,AttributeDef(..)
@@ -60,6 +61,8 @@
 >     ,AlterSchemaOperation(..)
 >     ,AlterTableOperation(..)
 >     ,AlterTableAction(..)
+>     ,AlterSequenceOperation(..)
+>     ,AlterSequenceAction(..)
 >     ,AlterColumnAction(..)
 >     ,TriggerWhen(..)
 >     ,TriggerEvent(..)

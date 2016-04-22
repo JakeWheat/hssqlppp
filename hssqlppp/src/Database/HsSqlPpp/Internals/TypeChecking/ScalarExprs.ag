@@ -52,7 +52,7 @@ needsImplicitCast expectedCast upType expType
       || teNullable upType /= teNullable expType
           && nullabilityCast
       ||  teType upType /= teType expType
-          && (not . null) (nub [teType upType, teType expType] \\ [ScalarType "varchar", ScalarType "text"])
+          && (not . null) (nub [teType upType, teType expType] \\ [ScalarType "varchar", ScalarType "text",ScalarType "nvarchar"])
   where
     nullabilityCast = expectedCast
 -- this function appeared because nullability does not always influence the type to cast to
@@ -566,7 +566,10 @@ sem ScalarExpr
                   when (any ((/= bt) . teType) wt)
                       $ Left [WrongTypes bt $ map teType wt]
                   tt <- mapM (maybe (Left []) Right) @loc.thenTypes
-                  resolveResultSetTypeExtra @lhs.cat tt
+                  tse <- resolveResultSetTypeExtra @lhs.cat tt
+                  return $ if isNothing @els.originalTree
+                           then tse{teNullable=True}
+                           else tse
         cases.whenExpectedType =
             do
             ws <- sequence $ concat @loc.whenTypes

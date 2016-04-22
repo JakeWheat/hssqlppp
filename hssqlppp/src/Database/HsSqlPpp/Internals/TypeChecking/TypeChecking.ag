@@ -7,6 +7,7 @@ import Database.HsSqlPpp.Internals.TypesInternal
 import Database.HsSqlPpp.Internals.Dialect
 import Database.HsSqlPpp.Internals.Catalog.CatalogInternal
 import Database.HsSqlPpp.Internals.Catalog.CatalogTypes
+import Database.HsSqlPpp.Internals.Catalog.CatalogBuilder
 import Database.HsSqlPpp.Internals.TypeChecking.TypeConversion.TypeConversion
 
 -- todo: find a better way to do this, this information should come
@@ -273,17 +274,13 @@ million different fns for precision and nullability/tcApplike mess.
 fixMssqlDates :: Data a => Dialect -> a -> a
 fixMssqlDates d = transformBi $ \x -> case x of
   App aa nm@(Name _ [Nmc fn]) [Identifier ai tn@(Name _ [Nmc tnn]),a,b]
-    | map toLower fn == "datediff"
-    , map toLower tnn `elem` ["hour"] ->
+    | map toLower fn `elem` ["datediff","dateadd"]
+    , map toLower tnn `elem` dateparts ->
       App aa nm [Identifier (nai ai) tn,a,b]
   App aa nm@(Name _ [Nmc fn]) [Identifier ai tn@(Name _ [Nmc tnn]),a]
     | map toLower fn == "datepart"
     , map toLower tnn `elem` dateparts ->
       App aa nm [Identifier (nai ai) tn,a]
-  App aa nm@(Name _ [Nmc fn]) [Identifier ai tn@(Name _ [Nmc tnn]),a,b]
-    | map toLower fn == "dateadd"
-    , map toLower tnn `elem` dateparts ->
-      App aa nm [Identifier (nai ai) tn,a,b]
   App aa nm@(Name _ [Nmc fn]) [a,Identifier ai tn@(Name _ [Nmc tnn])]
     | map toLower fn == "convert"
     , map toLower tnn `elem` map fst odbcConvertTypes ->

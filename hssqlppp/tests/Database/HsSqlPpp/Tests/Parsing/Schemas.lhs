@@ -23,11 +23,11 @@
 >      ]
 >     ,Group "drop schema" [ 
 >       s "drop schema test;"
->       [DropSchema ea (Nmc "test") Restrict] 
->      ,s "drop schema test restrict;"
->       [DropSchema ea (Nmc "test") Restrict]
+>       [DropSomething ea Schema Require [name "test"] Restrict]
+>      ,s "drop schema if exists test restrict;"
+>       [DropSomething ea Schema IfExists [name "test"] Restrict]
 >      ,s "drop schema test cascade;"
->       [DropSchema ea (Nmc "test") Cascade]
+>       [DropSomething ea Schema Require [name "test"] Cascade]
 >      ]
 
 >     ,Group "alter schema" [ 
@@ -48,7 +48,8 @@
 >        ,att "fieldb" "int"
 >        ]
 >        []
->        Nothing]
+>        Nothing
+>        NoReplace]
 >      ,s "alter table s.a rename to b;"
 >       [AlterTable ea (nameWithSchema "s" "a") $ RenameTable ea (name "b")]
 >      ,s "drop table s.t;"

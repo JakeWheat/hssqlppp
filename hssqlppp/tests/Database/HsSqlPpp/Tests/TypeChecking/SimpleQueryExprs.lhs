@@ -77,6 +77,12 @@
 >        "select * from t union select * from u"
 >        $ Right $ CompositeType [("a", mkTypeExtra typeInt)]
 
+>       ,tcQueryExpr [CatCreateTable ("public","t") [("a", mkCatNameExtra "int4"),("b", mkCatNameExtra "int4")]
+>                    ,CatCreateTable ("public","u") [("a", mkCatNameExtra "int4")]]
+>        "select a,b from t union select a from u"
+>        $ Left [IncompatibleUnionTypes (CompositeType [("a", mkTypeExtra typeInt),("b", mkTypeExtra typeInt)])
+>                                       (CompositeType [("a", mkTypeExtra typeInt)])]
+
 todo: implicit casts in union
 
 simple window function type

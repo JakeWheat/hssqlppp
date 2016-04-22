@@ -42,7 +42,7 @@ test : hssqlppp
 # if you need some other combination of targets please add them to the
 # makefile
 
-# this does everything, make sure you've done all the sandbox targets
+# this does everything
 .PHONY : really-all
 really-all : test website
 	stack build

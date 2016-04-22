@@ -44,7 +44,7 @@ add some of the missing information to the output
 > doc _ (ParseQueryExpr _ sql e) =
 >   [Row [Cell [Sql $ L.unpack sql], Cell [Haskell (groomNoAnns e)]]]
 > doc _ (Lex _ sql e) =
->   [Row [Cell [Sql $ T.unpack sql], Cell [Haskell (groomNoAnns e)]]]
+>   [Row [Cell [Sql $ L.unpack sql], Cell [Haskell (groomNoAnns e)]]]
 > doc _ (TCScalExpr _ _ _ sql e) =
 >   [Row [Cell [Sql $ L.unpack sql], Cell [Haskell (groomNoAnns e)]]]
 > doc _ (TCQueryExpr _ _ sql e) =

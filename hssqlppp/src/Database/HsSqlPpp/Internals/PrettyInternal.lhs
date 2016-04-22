@@ -149,9 +149,11 @@ Conversion routines - convert Sql asts into Docs
 >
 > -- ddl
 >
-> statement flg se ca (CreateTable ann tbl atts cns partition) =
+> statement flg se ca (CreateTable ann tbl atts cns partition rep) =
 >     annot ca ann <+>
->     text "create table"
+>     text ("create " ++ (case rep of
+>                          Replace -> "or replace "
+>                          _ -> "") ++ "table")
 >     <+> name tbl <+> lparen
 >     $+$ nest 2 (vcat (csv (map (attrDef flg) atts ++ map (constraint flg) cns)))
 >     $+$ rparen
@@ -189,23 +191,44 @@ Conversion routines - convert Sql asts into Docs
 >       alterColumnAction (DropDefault _) =
 >           text "drop default"
 >
-> statement _flg se ca (CreateSequence ann nm incr _ _ start cache) =
+> statement _flg se ca (CreateSequence ann nm incr minv maxv start cache) =
 >     annot ca ann <+>
 >     text "create sequence" <+> name nm <+>
 >     text "increment" <+> text (show incr) <+>
->     text "no minvalue" <+>
->     text "no maxvalue" <+>
->     text "start" <+> text (show start) <+>
+>     maybe (text "no minvalue") ((text "minvalue" <+>) . (text . show)) minv <+>
+>     maybe (text "no maxvalue") ((text "maxvalue" <+>) . (text . show)) maxv <+>
+>     text "start with" <+> text (show start) <+>
 >     text "cache" <+> text (show cache) <> statementEnd se
 >
-> statement _flg se ca (AlterSequence ann nm o) =
+> statement _flg se ca (AlterSequence ann nm op) =
 >     annot ca ann <+>
 >     text "alter sequence" <+> name nm
->     <+> text "owned by" <+> name o <> statementEnd se
+>     <+> alterOperation op <> statementEnd se
+>     where
+>       alterOperation (AlterSequenceOwned _ o) = 
+>           text "owned by" <+> name o
+>       alterOperation (AlterSequenceRename _ rnm) = 
+>           text "rename to" <+> name rnm
+>       alterOperation (AlterSequenceActions _ actions) = hsep $ map alterAction actions
+>       alterAction (AlterSequenceIncrement _ incr) = 
+>           text "increment by" <+> text (show incr)
+>       alterAction (AlterSequenceMin _ minv) =
+>           maybe (text "no minvalue") ((text "minvalue" <+>) . (text . show)) minv
+>       alterAction (AlterSequenceMax _ maxv) =
+>           maybe (text "no maxvalue") ((text "maxvalue" <+>) . (text . show)) maxv
+>       alterAction (AlterSequenceStart _ start) = 
+>           text "start with" <+> text (show start)
+>       alterAction (AlterSequenceRestart _ restart) = 
+>           text "restart" <+> text (maybe "" (("with " ++) . show) restart)
+>       alterAction (AlterSequenceCache _ cache) = 
+>           text "cache" <+> text (show cache)
+
 >
-> statement flg se ca (CreateTableAs ann t sel) =
+> statement flg se ca (CreateTableAs ann t rep sel) =
 >     annot ca ann <+>
->     text "create table"
+>     text ("create " ++ (case rep of
+>                          Replace -> "or replace "
+>                          _ -> "") ++ "table")
 >     <+> name t <+> text "as"
 >     $+$ queryExpr flg True True Nothing sel
 >     <> statementEnd se
@@ -333,7 +356,8 @@ Conversion routines - convert Sql asts into Docs
 >                 Type -> "type"
 >                 Database -> "database"
 >                 User -> "user"
->                 Login -> "login")
+>                 Login -> "login"
+>                 Schema -> "schema")
 >     <+> ifExists ifE
 >     <+> sepCsvMap name names
 >     <+> case (diSyntaxFlavour $ ppDialect flg) of
@@ -349,14 +373,6 @@ Conversion routines - convert Sql asts into Docs
 >     <+> nmc nam
 >     <+> text "on"
 >     <+> name tbn
->     <+> cascade casc
->     <> statementEnd se
->
-> statement _flg se ca (DropSchema ann nm casc) =
->     annot ca ann <+>
->     text "drop"
->     <+> text "schema"
->     <+> nmc nm
 >     <+> cascade casc
 >     <> statementEnd se
 >
@@ -490,11 +506,11 @@ Conversion routines - convert Sql asts into Docs
 >     <+> text "from"
 >     <+> case src of
 >                  CopyFilename s -> (quotes $ ttext s)
->                                    <+> copyOpts opts
+>                                    <+> copyFromOpts opts
 >                                    <> statementEnd se
 
 >                  Stdin -> text "stdin"
->                           <+> copyOpts opts
+>                           <+> copyFromOpts opts
 >                           -- put statement end without new line
 >                           -- so that the copydata follows immediately after
 >                           -- without an extra blank line inbetween
@@ -505,7 +521,7 @@ Conversion routines - convert Sql asts into Docs
 >     text "copy" <+> s src
 >     <+> text "to"
 >     <+> quotes (ttext fn)
->     <+> copyOpts opts
+>     <+> copyToOpts opts
 >     <> statementEnd se
 >     where
 >       s (CopyTable tb cols) = name tb
@@ -778,15 +794,29 @@ syntax maybe should error instead of silently breaking
 >                                  Cascade -> "cascade"
 >                                  Restrict -> "restrict"
 
-> copyOpts :: [CopyOption] -> Doc
-> copyOpts opts =
+> copyToOpts :: [CopyToOption] -> Doc
+> copyToOpts opts =
 >   ifNotEmpty (const $ "with" <+> sep (map po opts)) opts
 >   where
->       po (CopyFormat s) = text "format" <+> text s
->       po (CopyDelimiter s) = text "delimiter" <+> quotes (text s)
->       po (CopyErrorLog s) = text "error_log" <+> quotes (text s)
->       po (CopyErrorVerbosity s) = text "error_verbosity" <+> int s
->       po (CopyParsers s) = text "parsers" <+> quotes (text s)
+>       po (CopyToFormat s) = text "format" <+> text s
+>       po (CopyToDelimiter s) = text "delimiter" <+> quotes (text s)
+>       po (CopyToErrorLog s) = text "error_log" <+> quotes (text s)
+>       po (CopyToErrorVerbosity s) = text "error_verbosity" <+> int s
+
+> copyFromOpts :: [CopyFromOption] -> Doc
+> copyFromOpts opts =
+>   ifNotEmpty (const $ "with" <+> sep (map po opts)) opts
+>   where
+>       po (CopyFromFormat s) = text "format" <+> text s
+>       po (CopyFromDelimiter s) = text "delimiter" <+> quotes (text s)
+>       po (CopyFromErrorLog s) = text "error_log" <+> quotes (text s)
+>       po (CopyFromErrorVerbosity s) = text "error_verbosity" <+> int s
+>       po (CopyFromParsers s) = text "parsers" <+> quotes (text s)
+>       po (CopyFromDirectory) = text "directory"
+>       po (CopyFromOffset i) = text "offset" <+> integer i
+>       po (CopyFromLimit i) = text "limit" <+> integer i
+>       po (CopyFromErrorThreshold i) = text "stop after" <+> int i <+> text "errors"
+>       po (CopyFromNewlineFormat n) = text "record delimiter" <+> text n
 > -- ddl
 >
 > constraint :: PrettyFlags -> Constraint -> Doc

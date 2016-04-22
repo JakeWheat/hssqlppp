@@ -32,11 +32,12 @@ should be reimplemented separately from scratch
 >                              ,("varchar", ["character varying"])
 >                              ,("char", ["character"])
 >                              ,("bool", ["boolean"])]
->     ,diTextTypes = ["char","varchar"]
+>     ,diTextTypes = ["char","varchar", "nvarchar"]
 >     ,diDatetimeTypes = ["date","time","timestamp","interval"]
 >     ,diNumberTypes = ["int2","int4","int8","numeric","float4","float8"]
 >     ,namesForAnsiTypes = [("char","char")
 >                          ,("varchar","varchar")
+>                          ,("nvarchar","nvarchar")
 >                          ,("bigint","int8")
 >                          ,("boolean","bool")
 >                          ,("numeric","numeric")
@@ -77,7 +78,7 @@ should be reimplemented separately from scratch
 >         [CatCreateScalarType "nvarchar"
 >         ,CatCreateTypeCategoryEntry "nvarchar" ("S", False)
 >         ,CatCreateBinaryOp "+" "varchar" "varchar" "varchar"
->         ,CatCreateFunction "getdate" [] False "date"
+>         ,CatCreateFunction "getdate" [] False "timestamp"
 >         ,CatCreateFunction "isnumeric" ["anyelement"] False "int4"
 >         ,CatCreateFunction "grt_lengthconv" ["int4"] False "int4"
 >         ,CatCreateFunction "isnull" ["anyelement","anyelement"] False "anyelement"
@@ -102,6 +103,9 @@ should be reimplemented separately from scratch
 >         ,CatCreateFunction "datepart" ["int4","timestamp"] False "int4"
 >         ,CatCreateFunction "trunc" ["timestamp"] False "timestamp"
 >         ,CatCreateCast "char" "varchar" ImplicitCastContext
+
+>         ,CatCreateFunction "substring" ["nvarchar","int4","int4"] False "nvarchar"
+>         ,CatCreateFunction "like" [ "nvarchar" , "nvarchar" ] False "bool"
 
 postponed until we have better design
   example of a problem: in "float4 < int4", both arguments are cast to text,

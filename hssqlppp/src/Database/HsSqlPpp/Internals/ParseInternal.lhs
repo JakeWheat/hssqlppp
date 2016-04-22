@@ -56,9 +56,11 @@ right choice, but it seems to do the job pretty well at the moment.
 > --import qualified Data.Text.Lazy as LT
 > import Text.Parsec.Text ()
 > --import Database.HsSqlPpp.Catalog
-> --import Debug.Trace
+
 > import qualified Data.Text.Lazy as L
 > --import Database.HsSqlPpp.Internals.StringLike
+
+  import Debug.Trace
 
 --------------------------------------------------------------------------------
 
@@ -197,7 +199,12 @@ Parsing top level statements
 >     ,notify
 >     ,keyword "create" *>
 >              choice [
->                 createTable
+>                -- todo: this is bad
+>                -- why do we have create outside
+>                -- but then have 'or replace' inside the
+>                -- invididual parsers, making it impossible
+>                -- to get rid of the try here?
+>                 try createTable
 >                ,createSequence
 >                ,createType
 >                ,createFunction
@@ -223,8 +230,7 @@ Parsing top level statements
 >              choice [
 >                 dropSomething
 >                ,dropFunction
->                ,dropTrigger
->                ,dropSchema]]
+>                ,dropTrigger]]
 >     <* stmtEnd (not reqSemi))
 >    <|> copyData
 
@@ -531,43 +537,69 @@ other dml-type stuff
 >        p <- pos
 >        keyword "copy"
 >        -- todo: factor this a bit better
->        choice [try $ from p, to p]
+
+>        choice -- left factoring to preserve error messages
+>          [ parens pQueryExpr >>= to p . CopyQuery
+>          , do (tblName, cols) <- liftA2 (,) name (option [] (parens $ commaSep1 nameComponent))
+>               choice
+>                 [ from p tblName cols
+>                 , to p (CopyTable tblName cols)
+>                 ]
+>          ]
+
 >   where
->     from p = do
->        tableName <- name
->        cols <- option [] (parens $ commaSep1 nameComponent)
+>     from p tableName cols = do
 >        keyword "from"
 >        src <- choice [
 >                CopyFilename <$> extrStr <$> stringLit
 >               ,Stdin <$ keyword "stdin"]
->        opts <- copts False
+>        opts <- option [] $ do
+>                  keyword "with" *> copyFromOptions
 >        return $ CopyFrom p tableName cols src opts
->     to p = do
->        src <- choice
->               [CopyQuery <$> try pQueryExpr
->               ,CopyTable
->                <$> name
->                <*> option [] (parens $ commaSep1 nameComponent)]
+>     to p src = do
 >        keyword "to"
 >        fn <- extrStr <$> stringLit
->        opts <- copts True
+>        opts <- option [] $ do
+>                  keyword "with" *> copyToOptions
 >        return $ CopyTo p src fn opts
->     -- isTo differentiates between COPY .. TO and COPY .. FROM
->     copts isTo = option [] $ do
->                  keyword "with"
->                  many1 $ if isTo then coptTo
->                                  else coptFrom
->     -- Base copy options
->     baseCopt = [CopyFormat <$> (keyword "format" *> idString)
->                ,CopyDelimiter <$> (keyword "delimiter" *> stringN)
->                ,try $ CopyErrorLog <$> (keyword "error_log" *> stringN)
->                ,CopyErrorVerbosity <$> (keyword "error_verbosity" *> (fromIntegral <$> integer))
->                ]
->     -- In COPY .. FROM we also have a "parsers" clause
->     coptFrom = choice $ baseCopt ++ [CopyParsers <$> (keyword "parsers" *> stringN)]
->     -- That we don't have in COPY .. TO
->     coptTo = choice baseCopt
->
+
+>     copyToOptions = do
+>       (a,b,c,d) <- permute ((,,,)
+>                             <$?> (Nothing,Just <$> CopyToFormat <$>
+>                                              (keyword "format" *> idString))
+>                             <|?> (Nothing,Just <$> CopyToDelimiter <$>
+>                                              (keyword "delimiter" *> stringN))
+>                             <|?> (Nothing,Just <$> CopyToErrorLog <$>
+>                                              (keyword "error_log" *> stringN))
+>                             <|?> (Nothing,Just <$> CopyToErrorVerbosity <$>
+>                                              (keyword "error_verbosity" *> (fromIntegral <$> integer)))
+>                            )
+>       return $ catMaybes [a,b,c,d]
+
+>     copyFromOptions = do
+>       (a,b,c,d,e,f,g,h,i,j) <- permute ((,,,,,,,,,)
+>                          <$?> (Nothing,Just <$> CopyFromFormat <$>
+>                                           (keyword "format" *> idString))
+>                          <|?> (Nothing,Just <$> CopyFromDelimiter <$>
+>                                           (keyword "delimiter" *> stringN))
+>                          <|?> (Nothing,Just <$> CopyFromErrorLog <$>
+>                                           (keyword "error_log" *> (stringN <?> "path wrapped in apostrophes. for example: 'file.csv'.")))
+>                          <|?> (Nothing,Just <$> CopyFromErrorVerbosity <$>
+>                                           (keyword "error_verbosity" *> (fromIntegral <$> integer)))
+>                          <|?> (Nothing,Just <$> CopyFromParsers <$>
+>                                           (keyword "parsers" *> stringN) <?> "list of parsers")
+>                          <|?> (Nothing,Just <$> (CopyFromDirectory <$ keyword "directory"))
+>                          <|?> (Nothing,Just <$> CopyFromOffset <$>
+>                                           (keyword "offset" *> (integer <?> "positive integer")) <?> "offset with integer")
+>                          <|?> (Nothing,Just <$> CopyFromLimit <$>
+>                                           (keyword "limit" *> (integer <?> "positive integer")) <?> "limit with integer")
+>                          <|?> (Nothing,Just <$> CopyFromErrorThreshold <$>
+>                                           (keyword "stop" *> keyword "after" *> (fromIntegral <$> (integer <?> "positive integer")) <* keyword "errors"))
+>                          <|?> (Nothing,Just <$> CopyFromNewlineFormat <$>
+>                                           (keyword "record" *> keyword "delimiter" *> stringN))
+>                          )
+>       return $ catMaybes [a,b,c,d,e,f,g,h,i,j]
+
 > copyData :: SParser Statement
 > copyData = CopyData <$> pos <*> mytoken (\tok ->
 >                                         case tok of
@@ -597,21 +629,24 @@ misc
 >                 <*> (keyword "notify" *> idString)
 
 --------------------------------------------------------------------------------
-
+ 
 ddl
 ===
 
 > createTable :: SParser Statement
 > createTable = do
 >   p <- pos
->   keyword "table"
+>   rep <- choice [NoReplace <$ keyword "table"
+>                 ,Replace <$ mapM_ keyword ["or", "replace", "table"]
+>                 ] 
 >   tname <- name
 >   choice [
->      CreateTableAs p tname <$> (keyword "as" *> pQueryExpr)
+>      CreateTableAs p tname rep <$> (keyword "as" *> pQueryExpr)
+>                            
 >     ,do
 >      (atts,cons) <- readAttsAndCons
 >      pdata <- readPartition
->      return $ CreateTable p tname atts cons pdata
+>      return $ CreateTable p tname atts cons pdata rep
 >     ]
 >   where
 >     --parse the unordered list of attribute defs or constraints, for
@@ -794,27 +829,51 @@ ddl
 >   p <- pos
 >   keyword "sequence"
 >   snm <- name
->   (stw, incr, mx, mn, c) <-
+>   (stw, incr, mn, mx, c) <-
 >      permute ((,,,,) <$?> (1,startWith)
 >                      <|?> (1,increment)
->                      <|?> ((2::Integer) ^ (63::Integer) - 1, maxi)
->                      <|?> (1, mini)
+>                      <|?> (Nothing, sequenceMinValue)
+>                      <|?> (Nothing, sequenceMaxValue)
 >                      <|?> (1, cache))
 >   return $ CreateSequence p snm incr mn mx stw c
 >   where
 >     startWith = keyword "start" *> optional (keyword "with") *> integer
 >     increment = keyword "increment" *> optional (keyword "by") *> integer
->     maxi = (2::Integer) ^ (63::Integer) - 1
->            <$ try (keyword "no" <* keyword "maxvalue")
->     mini = 1 <$ try (keyword "no" <* keyword "minvalue")
 >     cache = keyword "cache" *> integer
 >
 > alterSequence :: SParser Statement
 > alterSequence = AlterSequence <$> pos
 >                               <*> (keyword "sequence" *> name)
->                               <*> (keyword "owned"
->                                    *> keyword "by"
->                                    *> name)
+>                               <*> operation
+>   where
+>     operation = choice [try renameSequence,try changeOwner,actions]
+>     renameSequence = AlterSequenceRename <$> (pos <* keyword "rename" <* keyword "to") <*> name
+>     changeOwner  = AlterSequenceOwned <$> (pos <* keyword "owned" <* keyword "by") <*> name
+>     actions = AlterSequenceActions <$> pos <*> many1 action
+>     action = choice [try alterIncrement
+>                     ,try alterMin
+>                     ,try alterMax
+>                     ,try alterStart
+>                     ,try alterRestart
+>                     ,alterCache]
+>     alterIncrement = AlterSequenceIncrement <$> (pos <* keyword "increment" <* optional (keyword "by")) <*> integer
+>     alterMin = AlterSequenceMin <$> pos <*> sequenceMinValue
+>     alterMax = AlterSequenceMax <$> pos <*> sequenceMaxValue
+>     alterStart = AlterSequenceStart <$> (pos <* keyword "start" <* optional (keyword "with")) <*> integer
+>     alterRestart = AlterSequenceRestart <$> (pos <* keyword "restart")
+>                                         <*> optionMaybe (optional (keyword "with") *> integer)
+>     alterCache = AlterSequenceCache <$> (pos <* keyword "cache") <*> integer
+
+> sequenceMinValue :: SParser (Maybe Integer)
+> sequenceMinValue = choice [try (Nothing <$ keyword "no" <* keyword "minvalue")
+>                           ,Just <$> (keyword "minvalue" *> integer)]
+
+> sequenceMaxValue :: SParser (Maybe Integer)
+> sequenceMaxValue = choice [try (Nothing <$ keyword "no" <* keyword "maxvalue")
+>                           ,Just <$> (keyword "maxvalue" *> integer)]
+
+
+
 
 create function, support sql functions and plpgsql functions. Parses
 the body in both cases and provides a statement list for the body
@@ -964,6 +1023,7 @@ variable declarations in a plpgsql function
 >                 ,Database <$ keyword "database"
 >                 ,User <$ keyword "user"
 >                 ,Login <$ keyword "login"
+>                 ,Schema <$ keyword "schema"
 >             ])
 >   (i,e,r) <- parseDrop name
 >   return $ DropSomething p x i e r
@@ -984,14 +1044,6 @@ variable declarations in a plpgsql function
 >                where
 >                  pFun = (,) <$> name
 >                             <*> parens (commaSep typeName)
-
-> dropSchema :: SParser Statement
-> dropSchema = do
->   p <- pos
->   keyword "schema"
->   sname <- nameComponent
->   casc <- cascade
->   return $ DropSchema p sname casc
 
 > parseDrop :: SParser a
 >           -> SParser (IfExists, [a], Cascade)
@@ -1092,7 +1144,7 @@ or after the whole list
 >     selectItem = pos >>= \p ->
 >                  optionalSuffix
 >                    (SelExp p) (starExpr <|> expr)
->                    (SelectItem p) (keyword "as" *> asAlias)
+>                    (SelectItem p) (optional (keyword "as") *> asAlias)
 
 should try to factor this into the standard expr parse (use a flag) so
 that can left factor the 'name component . '  part and avoid the try
@@ -1850,7 +1902,7 @@ a special case for them
 >   guard (iskfs i)
 >   functionCallSuffix (Identifier p (Name p [i]))
 >   where
->     kfs = ["any","all","isnull","left","convert"]
+>     kfs = ["any","all","isnull","left","right","convert"]
 >     iskfs (Nmc n) | map toLower n `elem` kfs = True
 >     iskfs _ = False
 
@@ -1980,7 +2032,7 @@ date, time, and timestamp literals, and scalar function calls
 
 > odbcExpr :: SParser ScalarExpr
 > odbcExpr = between (symbol "{") (symbol "}")
->            (odbcTimeLit <|> odbcFunc)
+>            (odbcTimeLit <|> odbcFunc <|> odbcInterval)
 >   where
 >     odbcTimeLit =
 >         OdbcLiteral <$> pos
@@ -1991,6 +2043,7 @@ date, time, and timestamp literals, and scalar function calls
 >     odbcFunc = OdbcFunc
 >                <$> pos
 >                <*> (keyword "fn" *> expr) -- TODO: should limit this to function call or extract
+>     odbcInterval = interval
 
 
 
@@ -2082,10 +2135,8 @@ function or type' keywords as function names, maybe there are others)
 >        ,"create"
 >        ,"cross"
 >        ,"current_catalog"
->        ,"current_date"
 >        ,"current_role"
 >        ,"current_time"
->        ,"current_timestamp"
 >        ,"current_user"
 >        ,"default"
 >        ,"deferrable"
@@ -2200,9 +2251,7 @@ http://msdn.microsoft.com/en-us/library/ms189822.aspx
 >        ,"create"
 >        ,"cross"
 >        ,"current"
->        ,"current_date"
 >        ,"current_time"
->        ,"current_timestamp"
 >        ,"current_user"
 >        ,"cursor"
 >        ,"database"
@@ -2294,7 +2343,7 @@ http://msdn.microsoft.com/en-us/library/ms189822.aspx
 >        ,"print"
 >        ,"proc"
 >        ,"procedure"
->        ,"public"
+>        -- ,"public"
 >        ,"raiserror"
 >        ,"read"
 >        ,"readtext"

@@ -95,6 +95,20 @@ aggregates, group by, having
 >       $ stbl {selOption = [QueryHintPartitionGroup]}
 >    ,q "select a from tbl option (partition group,columnar host group);"
 >       $ stbl {selOption = [QueryHintPartitionGroup,QueryHintColumnarHostGroup]}
+>    ,q "select a b from tbl;"
+>       $ stbl { selSelectList = sl [sia (ei "a") (Nmc "b")] }
+>    ,q "select a b, b c, c d from tbl;"
+>       $ stbl { selSelectList = sl [sia (ei "a") (Nmc "b"), sia (ei "b") (Nmc "c"), sia (ei "c") (Nmc "d")] }
+>    ,q "select a + b b from tbl;"
+>       $ stbl {selSelectList = sl [sia (binop "+" (ei "a") (ei "b")) $ Nmc "b"]}
+>    ,q "select row_number() over(order by a) place from tbl;"
+>       $ stbl
+>         {selSelectList =
+>           sl [sia (WindowApp ea
+>                     (app "row_number" [])
+>                     []
+>                     [(ei "a", Asc, NullsDefault)] Nothing)
+>               $ Nmc "place"]}
 >    ]
 >    where
 >      stbl = makeSelect

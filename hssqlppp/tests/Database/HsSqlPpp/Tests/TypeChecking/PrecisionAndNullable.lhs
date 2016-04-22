@@ -122,6 +122,36 @@
 >                       CatCreateTable ("public","tt") [("v", CatNameExtra "varchar" (Just 6) Nothing False)]]
 >        "select t.a from t inner join tt on t.a=tt.v"
 >        $ Right $ CompositeType  [("a", mkTypeExtraNN typeInt)]
+
+>       ,tsqlQueryExpr [CatCreateTable ("public","t") [("tv", CatNameExtra "nvarchar" (Just 15) Nothing False)]]
+>        "select tv from t"
+>        $ Right $ CompositeType  [("tv", mkTe 15 False)]
+>       ,tsqlQueryExpr [CatCreateTable ("public","t") [("a",CatNameExtra "int4" Nothing Nothing False)
+>                                                     ,("tv", CatNameExtra "nvarchar" (Just 15) Nothing False)]]
+>        "select * from t"
+>        $ Right $ CompositeType  [("a", mkTypeExtraNN typeInt)
+>                                 ,("tv", mkTe 15 False)]
+
+>       ,tsqlQueryExpr [CatCreateTable ("public","t") [("tv", CatNameExtra "nvarchar" (Just 15) Nothing False)]]
+>        "select substring(tv,0,2) from t"
+>        $ Right $ CompositeType  [("substring",TypeExtra typeNvc (Just 15) Nothing False)]
+
+>       ,tsqlQueryExpr [CatCreateTable ("public","t") [("tv", CatNameExtra "nvarchar" (Just 15) Nothing False)]]
+>        "select len(tv) from t"
+>        $ Right $ CompositeType  [("len", mkTypeExtraNN typeInt)]
+
+>       ,tsqlQueryExpr [CatCreateTable ("public","t") [("tv", CatNameExtra "nvarchar" (Just 15) Nothing False)]]
+>        "SELECT tv LIKE '%foo' FROM t"
+>        $ Right $ CompositeType  [("?column?", mkTypeExtraNN typeBool)]
+
+>       ,tsqlQueryExpr [CatCreateTable ("public","t") [("tv1",CatNameExtra "nvarchar" (Just 9) Nothing False)
+>                                                     ,("tv", CatNameExtra "nvarchar" (Just 15) Nothing False)]]
+>        "SELECT tv=tv1 FROM t"
+>        $ Right $ CompositeType  [("?column?", mkTypeExtraNN typeBool)]
+
+>       ,tsqlQueryExpr [CatCreateTable ("public","t") [("tv", CatNameExtra "nvarchar" (Just 15) Nothing False)]]
+>        "SELECT tv='foo' FROM t"
+>        $ Right $ CompositeType  [("?column?", mkTypeExtraNN typeBool)]
 >       ]
 >     ]
 >   where
@@ -175,3 +205,5 @@
 >     typeDate = ScalarType "date"
 >     typeChar = ScalarType "char"
 >     typeBool = ScalarType "bool"
+>     typeNvc = ScalarType "nvarchar"
+>     mkTe i isNull = TypeExtra (typeNvc) (Just i) Nothing isNull

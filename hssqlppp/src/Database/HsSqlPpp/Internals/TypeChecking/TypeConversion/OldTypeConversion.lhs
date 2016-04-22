@@ -585,7 +585,7 @@ code is not as much of a mess as findCallMatch
 > adjustStringCastPrec:: Type -> [TypeExtra] -> [Maybe Int]
 > adjustStringCastPrec tTo = map $ uncurry adjust . (teType&&&tePrecision)
 >   where
->     stringTypes = map ScalarType ["char","varchar","text"]
+>     stringTypes = map ScalarType ["char","varchar","nvarchar","text"]
 >     adjust tFrom precFrom = msum  [guard (tTo `elem` stringTypes) >> lookup tFrom typePrecs
 >                                   -- if there will be problems with literals, add here
 >                                   -- a treatment for UnknownType

@@ -59,10 +59,24 @@
 >                                  ,TypeAttDef ea (Nmc "f2") (st "text")]]
 >
 >      ,s "create sequence s start with 5 increment by 4 no maxvalue no minvalue cache 1;"
->         [CreateSequence ea (name "s") 4 1 ((2::Integer) ^ (63::Integer) - 1) 5 1]
+>         [CreateSequence ea (name "s") 4 Nothing Nothing 5 1]
 >
 >      ,s "alter sequence s owned by a.b;"
->         [AlterSequence ea (name "s") $ qn "a" "b"]
+>         [AlterSequence ea (name "s") $ AlterSequenceOwned ea $ qn "a" "b"]
+>      ,s "alter sequence s rename to s2;"
+>         [AlterSequence ea (name "s") $ AlterSequenceRename ea $ name "s2"]
+>      ,s "alter sequence s increment by 2 start with 3;"
+>         [AlterSequence ea (name "s") $ AlterSequenceActions ea
+>                                      $ [AlterSequenceIncrement ea 2,AlterSequenceStart ea 3]]
+>      ,s "alter sequence s no maxvalue minvalue 1;"
+>         [AlterSequence ea (name "s") $ AlterSequenceActions ea
+>                                      $ [AlterSequenceMax ea Nothing,AlterSequenceMin ea $ Just 1]]
+>      ,s "alter sequence s cache 2;"
+>         [AlterSequence ea (name "s") $ AlterSequenceActions ea [AlterSequenceCache ea 2]]
+>      ,s "alter sequence s restart;"
+>         [AlterSequence ea (name "s") $ AlterSequenceActions ea [AlterSequenceRestart ea Nothing]]
+>      ,s "alter sequence s restart with 1;"
+>         [AlterSequence ea (name "s") $ AlterSequenceActions ea [AlterSequenceRestart ea $ Just 1]]
 >
 >      ,s "create trigger tr\n\
 >          \after insert or delete on tb\n\

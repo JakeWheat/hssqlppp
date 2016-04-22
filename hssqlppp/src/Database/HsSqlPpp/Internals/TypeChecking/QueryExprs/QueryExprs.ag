@@ -9,14 +9,80 @@ take the type produced in the select list and pass it up
 
 -}
 
-
-
 include "TypeChecking/QueryExprs/TableRefs.ag"
 include "TypeChecking/QueryExprs/SelectLists.ag"
+
 
 attr QueryExpr
   syn upType :: {Maybe [(Text,TypeExtra)]}
   inh expectedType :: {Maybe [TypeExtra]}
+
+attr WithQuery
+  syn upType :: {Maybe [(Text,TypeExtra)]}
+  syn name :: {Text}
+  syn colAliases :: {Maybe [NameComponent]}
+  inh catExtIncomp :: {Either [TypeError] Catalog}
+
+
+
+attr WithQueryList
+  syn catExtComp :: {Either [TypeError] Catalog}
+  inh catExtIncomp :: {Either [TypeError] Catalog}
+
+sem WithQueryList
+  | Cons
+        tl.catExtIncomp =
+          do
+          let getWithEx (WithQuery _ _ _ ex) = ex
+          upType' <- maybe (Left . anErrs . ann . getWithEx $ @hd.annotatedTree) Right
+            @hd.upType
+          colTyPairs <- mapM (secondM typeToCatName) upType'
+          colTyPairs' <- case @hd.colAliases of
+            Just alsNms -> do
+              unless (length alsNms == length colTyPairs) $
+                Left [BadCatalogUpdate "number of aliases differs from number of expressions in the select"]
+              return $ zip (map ncStrT alsNms) $ map snd colTyPairs
+            Nothing -> return colTyPairs
+          updateCatalog [CatCreateTable ("public", @hd.name ) colTyPairs'] =<< @lhs.catExtIncomp
+        hd.cat =
+          case @lhs.catExtIncomp of
+            Right catExtIncomp -> catExtIncomp
+            Left _ -> @lhs.cat
+  | Nil
+        lhs.catExtComp = @lhs.catExtIncomp
+
+sem WithQuery
+  | WithQuery
+        lhs.name = ncStrT @name
+        lhs.annotatedTree = WithQuery @ann.annotatedTree @name @colAliases @ex.annotatedTree
+        lhs.colAliases = @colAliases
+
+        loc.tpee:: {Either [TypeError] [(Text,TypeExtra)]}
+        loc.tpe :: {Either [TypeError] TypeExtra}
+        loc.tpee = maybe (Left []) Right @ex.upType
+
+        loc.tpe = liftM (mkTypeExtra . CompositeType) @loc.tpee
+
+        lhs.upType = either (const Nothing) Just @loc.tpee
+
+sem QueryExpr
+  | WithQueryExpr
+       withQe.cat =
+         case @withs.catExtComp of
+           Right catExtComp -> catExtComp
+           Left _ -> @lhs.cat
+       withs.catExtIncomp = return @lhs.cat
+
+       lhs.annotatedTree = 
+         case @withs.catExtComp of
+           Right _ -> WithQueryExpr (@ann.annotatedTree) (@withs.annotatedTree) (@withQe.annotatedTree)
+           Left tyErrs -> WithQueryExpr (emptyAnnotation { anType = Nothing, anErrs = tyErrs })
+             (@withs.annotatedTree) (@withQe.annotatedTree)
+
+{
+secondM :: Functor f => (t -> f a) -> (t1, t) -> f (t1, a)
+secondM f (a,b) = (a,) <$> f b
+}
 
 --support for correlated subqueries
 attr QueryExpr
@@ -91,6 +157,7 @@ sem QueryExpr
           do
           a <- maybe (Left []) Right @cqQe0.upType
           b <- maybe (Left []) Right @cqQe1.upType
+          unless (length a == length b) $ Left [IncompatibleUnionTypes (CompositeType a) (CompositeType b)]
           let uts = zipWithM (\(_,te1) (_,te2) -> resolveResultSetTypeExtra @lhs.cat [te1,te2])
                         a b
           case uts of

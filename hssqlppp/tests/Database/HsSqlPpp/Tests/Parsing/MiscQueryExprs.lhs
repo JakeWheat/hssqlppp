@@ -79,6 +79,10 @@
 >                    [si $ member (Parens ea $ PositionalArg ea 1) (ei "x")
 >                    ,si $ member (Parens ea $ PositionalArg ea 1) (ei "y")]
 >                   ,selTref = [tref "pos"]}
+>   ,s "select right ('test string',5) from t;"
+>      $ makeSelect
+>            {selSelectList = sl [si $ App ea (name "right") [stringQ "test string",num "5"]]
+>            ,selTref = [tref "t"]}
 >    ]
 >  where
 >    s = ParseQueryExpr defaultParseFlags {pfDialect = postgresDialect}

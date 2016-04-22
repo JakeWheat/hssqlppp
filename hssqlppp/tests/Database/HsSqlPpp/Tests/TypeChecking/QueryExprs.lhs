@@ -7,19 +7,35 @@ typechecks as well as correct queries compared to the old tests.
 > module Database.HsSqlPpp.Tests.TypeChecking.QueryExprs
 >     (queryExprs) where
 
-> --import Database.HsSqlPpp.Internals.TypesInternal
+> import Database.HsSqlPpp.Catalog
+> import Database.HsSqlPpp.Dialect
+> import Database.HsSqlPpp.Internals.TypesInternal
 > import Database.HsSqlPpp.Tests.TestTypes
-> --import Database.HsSqlPpp.Types
-> --import Database.HsSqlPpp.Catalog
-> --import Database.HsSqlPpp.TypeChecker
-> --import Database.HsSqlPpp.Types
-
-> --import Database.HsSqlPpp.Tests.TypeChecking.Utils
+> import Database.HsSqlPpp.Internals.AstInternal as A
+> import Database.HsSqlPpp.Tests.Parsing.Utils
+> import qualified Data.Text as T
+> import qualified Data.Text.Lazy as L
 
 > queryExprs :: Item
 > queryExprs =
->   Group "queryExprs" []
-
+>   Group "queryExprs" [
+>       tcQueryExpr simpleTEnv
+>         (L.concat ["with tbl1(c,d) as (select a,b from tbl), tbl2(e,f) as (select c,d from tbl1)"
+>                   ," select c,d,e,f from tbl1 join tbl2"])
+>         $ Right $ CompositeType [("c", mkTypeExtra typeInt)
+>                                 ,("d", mkTypeExtra $ ScalarType "text")
+>                                 ,("e", mkTypeExtra typeInt)
+>                                 ,("f", mkTypeExtra $ ScalarType "text")
+>                                 ]
+>   ]
+>   where
+>     simpleTEnv = [CatCreateTable ("public","tbl")
+>       [("a", mkCatNameExtra "int4")
+>       ,("b", mkCatNameExtra "text")]]
+>     typeInt = ScalarType "int4"
+>     tcQueryExpr cus =
+>         let cat = makeCatalog postgresDialect cus
+>         in TCQueryExpr cat defaultTypeCheckFlags {tcfDialect=postgresDialect}
 
 = basic select list
 

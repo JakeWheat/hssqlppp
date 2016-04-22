@@ -41,7 +41,8 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,SelectItem (..)
    ,CopyFromSource (..)
    ,CopyToSource(..)
-   ,CopyOption(..)
+   ,CopyToOption(..)
+   ,CopyFromOption(..)
    ,TablePartitionDef(..)
    ,TablePartitionDateTimeInterval(..)
    ,AttributeDef (..)
@@ -49,6 +50,8 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,AlterDatabaseOperation(..)
    ,AlterTableOperation(..)
    ,AlterTableAction(..)
+   ,AlterSequenceOperation(..)
+   ,AlterSequenceAction(..)
    ,AlterColumnAction(..)
    ,AlterSchemaOperation(..)
    ,Constraint (..)
@@ -813,13 +816,13 @@ data Statement
                table :: Name
                targetCols :: {[NameComponent]}
                source :: CopyFromSource
-               opts :: {[CopyOption]}
+               opts :: {[CopyFromOption]}
     --represents inline data for copy statement
     | CopyData ann::Annotation insData :: String
     | CopyTo ann :: Annotation
              cp :: CopyToSource
              fn :: String
-             opts :: {[CopyOption]}
+             opts :: {[CopyToOption]}
     | Truncate ann::Annotation
                tables:: {[Name]}
                restartIdentity :: RestartIdentity
@@ -832,6 +835,7 @@ data Statement
                   atts :: AttributeDefList
                   cons :: ConstraintList
                   partition :: MaybeTablePartitionDef
+                  rep :: Replace
     | AlterTable ann::Annotation
                  name :: Name
                  operation :: AlterTableOperation
@@ -841,15 +845,16 @@ data Statement
     | CreateSequence ann::Annotation
                      name::Name
                      incr::Integer
-                     min::Integer
-                     max::Integer
+                     min::{Maybe Integer}
+                     max::{Maybe Integer}
                      start::Integer
                      cache::Integer
     | AlterSequence ann::Annotation
                    name::Name
-                    ownedBy:: Name
+                   operation :: AlterSequenceOperation
     | CreateTableAs ann::Annotation
                     name :: Name
+                    rep :: Replace
                     expr :: QueryExpr
     | CreateView ann::Annotation
                  name :: Name
@@ -883,9 +888,6 @@ data Statement
     | AlterSchema ann::Annotation
                   name :: NameComponent
                   operation :: AlterSchemaOperation
-    | DropSchema ann::Annotation
-                 name :: NameComponent
-                 cascade :: Cascade
 
     -- language name args rettype bodyquoteused body vol
     | CreateFunction ann::Annotation
@@ -1021,11 +1023,23 @@ data CopyFromSource = CopyFilename String
 data CopyToSource = CopyTable Name [NameComponent]
                   | CopyQuery QueryExpr
                     deriving (Show,Eq,Typeable,Data)
-data CopyOption = CopyFormat String
-                | CopyDelimiter String
-                | CopyErrorLog String
-                | CopyErrorVerbosity Int
-                | CopyParsers String
+
+data CopyFromOption = CopyFromFormat String
+                    | CopyFromDelimiter String
+                    | CopyFromErrorLog String
+                    | CopyFromErrorVerbosity Int
+                    | CopyFromParsers String
+                    | CopyFromDirectory
+                    | CopyFromOffset Integer
+                    | CopyFromLimit Integer
+                    | CopyFromErrorThreshold Int
+                    | CopyFromNewlineFormat String
+                  deriving (Show,Eq,Typeable,Data)
+
+data CopyToOption = CopyToFormat String
+                  | CopyToDelimiter String
+                  | CopyToErrorLog String
+                  | CopyToErrorVerbosity Int
                   deriving (Show,Eq,Typeable,Data)
 
 }
@@ -1134,6 +1148,27 @@ data AlterSchemaOperation | AlterSchemaName  ann::Annotation
                           | AlterSchemaOwner ann::Annotation
                                        newName :: Name
 
+data AlterSequenceOperation | AlterSequenceOwned ann::Annotation
+                                                 owned :: Name
+                            | AlterSequenceRename ann::Annotation
+                                                  name :: Name
+                            | AlterSequenceActions ann::Annotation
+                                                   actions :: AlterSequenceActionList
+
+
+data AlterSequenceAction | AlterSequenceIncrement ann::Annotation
+                                                  incr :: Integer
+                         | AlterSequenceMin ann::Annotation
+                                            min :: {Maybe Integer}
+                         | AlterSequenceMax ann::Annotation
+                                            max :: {Maybe Integer}
+                         | AlterSequenceStart ann::Annotation
+                                              start :: Integer
+                         | AlterSequenceRestart ann::Annotation
+                                                restart :: {Maybe Integer}
+                         | AlterSequenceCache ann::Annotation
+                                              cache :: Integer
+
 
 {
 data SetValue
@@ -1157,6 +1192,7 @@ data DropType = Table
               | Database
               | User
               | Login
+              | Schema
                 deriving (Show,Eq,Typeable,Data)
 
 data Cascade = Cascade | Restrict
@@ -1280,6 +1316,7 @@ type StatementList = [Statement]
 type ScalarExprDirectionPair = (ScalarExpr,Direction, NullsOrder)
 type ScalarExprDirectionPairList = [ScalarExprDirectionPair]
 type AlterTableActionList = [AlterTableAction]
+type AlterSequenceActionList = [AlterSequenceAction]
 type MaybeNameComponentList = maybe NameComponentList
 type NameComponentList = [NameComponent]
 
@@ -1321,6 +1358,7 @@ set AllNodes = Statement QueryExpr FnBody TableRef
                AlterTableOperation AlterTableAction AlterColumnAction
                AlterDatabaseOperation
                AlterSchemaOperation
+               AlterSequenceOperation AlterSequenceAction AlterSequenceActionList
                ScalarExprDirectionPair
                ScalarExprDirectionPairList AlterTableActionList
                WithQueryList WithQuery

@@ -59,6 +59,7 @@ sequences
 >     ,catCast
 >     ,catCompositePublicAttrs
 >     ,catDomainBaseType
+>     ,typeToCatName
 >     ) where
 
 >
@@ -131,6 +132,15 @@ names and types of the fields
 
 for array types, you only need the base type name, array types don't
 have their own separate name
+
+todo: where should this utility live? Probably should be connected 
+to the dialects
+
+> typeToCatName :: TypeExtra -> Either [TypeError] CatNameExtra
+> typeToCatName te = case teType te of
+>   ScalarType t -> return
+>       $ CatNameExtra t (tePrecision te) (teScale te) (teNullable te)
+>   _ -> Left [InternalError "typeToCatName on a non scalar type"]
 
 -----------------------------------------------------------
 

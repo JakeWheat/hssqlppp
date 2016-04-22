@@ -376,6 +376,8 @@ use listBindingsTypes to implement expandstar and lookupid
 >     k <- case nmc of
 >                [a,b] -> Right (Just $ nmcString a, nmcString b)
 >                [b] -> Right (Nothing, nmcString b)
+>                [_,_,_] -> Left [SchemadColumnName "an identifier cannot be used with an explicit schema name, please use only a correlation name without a schema name (you can use a table reference alias to disambiguate if you need to)."]
+>                [_,_,_,_] -> Left [DbSchemadColumnName "an identifier cannot be used with an explicit database name and schema name, please use only a correlation name without a schema name (you can use a table reference alias to disambiguate if you need to)."]
 >                _ -> Left [InternalError "too many nmc components in envlookupiden"]
 >     case (fst $ listBindingsTypes env) k of
 >       [] -> Left [UnrecognisedIdentifier $ nmcString $ last nmc]

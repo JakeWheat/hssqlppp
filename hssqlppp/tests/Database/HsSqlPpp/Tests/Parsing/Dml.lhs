@@ -124,23 +124,23 @@ copy, bit crap at the moment
 >      ,s "copy tbl (a,b) from 'filename' with delimiter '|';"
 >       [CopyFrom ea (name "tbl") [Nmc "a", Nmc "b"]
 >       (CopyFilename "filename")
->        [CopyDelimiter "|"]]
+>        [CopyFromDelimiter "|"]]
 >      ,s "copy tbl (a,b) from 'filename' with delimiter '|' parsers 'b=oracle';"
 >       [CopyFrom ea (name "tbl") [Nmc "a", Nmc "b"]
 >       (CopyFilename "filename")
->        [CopyDelimiter "|",CopyParsers "b=oracle"]]
+>        [CopyFromDelimiter "|",CopyFromParsers "b=oracle"]]
 >      ,s "copy tbl (a,b) from 'filename' with delimiter '|' error_log 'errors.log';"
 >       [CopyFrom ea (name "tbl") [Nmc "a", Nmc "b"]
 >       (CopyFilename "filename")
->        [CopyDelimiter "|", CopyErrorLog "errors.log"]]
+>        [CopyFromDelimiter "|",CopyFromErrorLog "errors.log"]]
 >      ,s "copy tbl (a,b) from 'filename' with delimiter '|' error_log 'errors.log' error_verbosity 1;"
 >       [CopyFrom ea (name "tbl") [Nmc "a", Nmc "b"]
 >       (CopyFilename "filename")
->        [CopyDelimiter "|", CopyErrorLog "errors.log", CopyErrorVerbosity 1]]
+>        [CopyFromDelimiter "|", CopyFromErrorLog "errors.log", CopyFromErrorVerbosity 1]]
 >      ,s "copy tbl (a,b) from 'filename' with delimiter '|' error_log 'errors.log' error_verbosity 1 parsers 'b=oracle';"
 >       [CopyFrom ea (name "tbl") [Nmc "a", Nmc "b"]
 >       (CopyFilename "filename")
->        [CopyDelimiter "|", CopyErrorLog "errors.log", CopyErrorVerbosity 1,CopyParsers "b=oracle"]]
+>        [CopyFromDelimiter "|", CopyFromErrorLog "errors.log", CopyFromErrorVerbosity 1,CopyFromParsers "b=oracle"]]
 >      ,s "copy tbl to 'file';"
 >       [CopyTo ea (CopyTable (name "tbl") []) "file" []]
 >      ,s "copy tbl(a,b) to 'file';"
@@ -148,7 +148,7 @@ copy, bit crap at the moment
 >      ,s "copy (select * from tbl) to 'file' with format binary;"
 >       [CopyTo ea (CopyQuery $ makeSelect {selSelectList = sl [si $ Star ea]
 >                                          ,selTref = [tref "tbl"]})
->        "file" [CopyFormat "binary"]]
+>        "file" [CopyToFormat "binary"]]
 >      ]]
 >  where
 >    s = ParseStmts defaultParseFlags
