@@ -52,6 +52,7 @@
 >     ,SetClause(..)
 >      -- ** ddl components
 >     ,AttributeDef(..)
+>     ,TableOption(..)
 >     ,RowConstraint(..)
 >     ,Constraint(..)
 >     ,TablePartitionDef(..)

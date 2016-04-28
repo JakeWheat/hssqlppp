@@ -149,7 +149,7 @@ Conversion routines - convert Sql asts into Docs
 >
 > -- ddl
 >
-> statement flg se ca (CreateTable ann tbl atts cns partition rep) =
+> statement flg se ca (CreateTable ann tbl atts cns partition rep opts) =
 >     annot ca ann <+>
 >     text ("create " ++ (case rep of
 >                          Replace -> "or replace "
@@ -160,6 +160,7 @@ Conversion routines - convert Sql asts into Docs
 >     $+$ case (diSyntaxFlavour $ ppDialect flg) of
 >          SqlServer -> empty
 >          _ -> (tablePartition partition)
+>     $+$ tableOpts flg opts
 >     <> statementEnd se
 >
 > statement flg se ca (AlterTable ann tnm op) =
@@ -312,7 +313,7 @@ Conversion routines - convert Sql asts into Docs
 >     text "create database" <+> name nm <> statementEnd se
 
 > statement _flg se ca (CreateSchema ann nm musr) =
->     annot ca ann <+> text "create schema" <+> nmc nm 
+>     annot ca ann <+> text "create schema" <+> name nm 
 >     <+> case musr of
 >           Nothing -> empty
 >           Just u -> text "authorization" <+> name u
@@ -327,11 +328,11 @@ Conversion routines - convert Sql asts into Docs
 
 > statement _flg se ca (AlterSchema ann snm op) =
 >     annot ca ann <+>
->     text "alter schema" <+> nmc snm
+>     text "alter schema" <+> name snm
 >     <+> alterOperation op <> statementEnd se
 >     where
 >       alterOperation (AlterSchemaName _ nsnm) = 
->           text "rename to" <+> nmc nsnm
+>           text "rename to" <+> name nsnm
 >       alterOperation (AlterSchemaOwner _ nunm) = 
 >           text "owner to" <+> name nunm
 
@@ -870,10 +871,11 @@ syntax maybe should error instead of silently breaking
 >            -- _ -> "unknown type " ++ (show x)
 
 > attrDef :: PrettyFlags -> AttributeDef -> Doc
-> attrDef flg (AttributeDef _ n t def cons) =
+> attrDef flg (AttributeDef _ n t def cons opts) =
 >   nmc n <+> typeName t
 >   <+> maybePrint (\e -> text "default" <+> scalExpr flg e) def
 >   <+> hsep (map cCons cons)
+>   <+> tableOpts flg opts
 >   where
 >     cCons (NullConstraint _ cn) =
 >       mname cn <+> text "null"
@@ -890,8 +892,20 @@ syntax maybe should error instead of silently breaking
 >       <+> maybePrint (parens . nmc) att
 >       <+> text "on delete" <+> cascade ondel
 >       <+> text "on update" <+> cascade onupd
->     cCons (IdentityConstraint _ cn si) = 
+>     cCons (IdentityConstraint _ cn si) =
 >       mname cn <+> text "identity" <> text (maybe "" show si)
+
+> tableOpts :: PrettyFlags -> [TableOption] -> Doc
+> tableOpts _ [] = empty
+> tableOpts flg as = text "with" <+> text "options"
+>                    <+> parens (nest 4 $ sep $ map to as)
+>   where
+>     to (TableOptionKeywords ks) = hsep (map text ks)
+>     to (TableOptionStringVal nm v) = tov nm [scalExpr flg (StringLit emptyAnnotation v)]
+>     to (TableOptionNameVal nm v) = tov nm $ map name v
+>     to (TableOptionNumberVal nm v) = tov nm [text v]
+>     tov nm x = hsep (map text nm ++ [text "="] ++ x)
+
 > -- plpgsql
 >
 > nestedStatements :: PrettyFlags -> (Annotation -> String) -> [Statement] -> Doc

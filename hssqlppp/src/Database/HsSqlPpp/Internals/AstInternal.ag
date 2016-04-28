@@ -47,6 +47,7 @@ module {Database.HsSqlPpp.Internals.AstInternal}
    ,TablePartitionDateTimeInterval(..)
    ,AttributeDef (..)
    ,RowConstraint (..)
+   ,TableOption(..)
    ,AlterDatabaseOperation(..)
    ,AlterTableOperation(..)
    ,AlterTableAction(..)
@@ -836,6 +837,7 @@ data Statement
                   cons :: ConstraintList
                   partition :: MaybeTablePartitionDef
                   rep :: Replace
+                  options :: {[TableOption]}
     | AlterTable ann::Annotation
                  name :: Name
                  operation :: AlterTableOperation
@@ -883,10 +885,10 @@ data Statement
 
 -- schemas
     | CreateSchema ann::Annotation
-                   name :: NameComponent
+                   name :: Name
                    owner :: {Maybe Name}
     | AlterSchema ann::Annotation
-                  name :: NameComponent
+                  name :: Name
                   operation :: AlterSchemaOperation
 
     -- language name args rettype bodyquoteused body vol
@@ -1065,6 +1067,7 @@ data AttributeDef | AttributeDef ann::Annotation
                                  typ :: TypeName
                                  def:: MaybeScalarExpr
                                  cons :: RowConstraintList
+                                 options :: {[TableOption]}
 
 --Constraints which appear attached to an individual field
 
@@ -1093,6 +1096,15 @@ data Constraint | UniqueConstraint ann::Annotation name::String x::{[NameCompone
                                       tableAtts :: {[NameComponent]}
                                       onUpdate :: Cascade
                                       onDelete :: Cascade
+{
+data TableOption =
+       TableOptionStringVal [String] String
+     | TableOptionNameVal [String] [Name]
+     | TableOptionNumberVal [String] String
+     | TableOptionKeywords [String]
+       deriving (Show,Eq,Typeable,Data)
+
+}
 
 data TypeAttributeDef | TypeAttDef ann::Annotation
                                    name :: NameComponent
@@ -1144,7 +1156,7 @@ data AlterDatabaseOperation | RenameDatabase ann :: Annotation
 
 
 data AlterSchemaOperation | AlterSchemaName  ann::Annotation
-                                       newName :: NameComponent
+                                       newName :: Name
                           | AlterSchemaOwner ann::Annotation
                                        newName :: Name
 

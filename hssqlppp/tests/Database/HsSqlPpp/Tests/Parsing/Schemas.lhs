@@ -14,11 +14,11 @@
 >      Group "ddl - schemas" [
 >       s "create schema test;"
 >       [CreateSchema ea
->        (Nmc "test")
+>        (name "test")
 >        Nothing]
 >      ,s "create schema test authorization owner;"
 >       [CreateSchema ea
->        (Nmc "test")
+>        (name "test")
 >        (Just $ name "owner")
 >      ]
 >     ,Group "drop schema" [ 
@@ -32,9 +32,9 @@
 
 >     ,Group "alter schema" [ 
 >       s "alter schema test rename to test2;"
->       [AlterSchema ea (Nmc "test") $ AlterSchemaName ea (Nmc "test2")]
+>       [AlterSchema ea (name "test") $ AlterSchemaName ea (name "test2")]
 >       ,s "alter schema test owner to new_owner;"
->       [AlterSchema ea (Nmc "test") $ AlterSchemaOwner ea (name "new_owner")]
+>       [AlterSchema ea (name "test") $ AlterSchemaOwner ea (name "new_owner")]
 >      ]
 >     ]
 >     ,Group "ddl - schema-explicit tables" [
@@ -49,7 +49,7 @@
 >        ]
 >        []
 >        Nothing
->        NoReplace]
+>        NoReplace []]
 >      ,s "alter table s.a rename to b;"
 >       [AlterTable ea (nameWithSchema "s" "a") $ RenameTable ea (name "b")]
 >      ,s "drop table s.t;"

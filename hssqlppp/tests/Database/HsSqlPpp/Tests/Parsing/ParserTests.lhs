@@ -64,7 +64,7 @@ There are no tests for invalid syntax at the moment.
 >             ,tableRefs
 >             ,joins
 >             ,dml
->             ,Group "ddl" [createTable
+>             ,Group "ddl" [createTableTests
 >                          ,miscDdl
 >                          ,functionsDdl]
 >             ,schemas
