@@ -160,7 +160,16 @@ information about:
   anything else (like domains, ...)
 will go in the catalog
 
+make example checking automated
 
+add record syntax to createtable, check for other likely victims for
+   this treatment
+
+review replace field in createtable, createtableas, move to correct
+   place (and check for other areas like this)
+
+change the catalog arg in typecheck functions to be maybe, then
+   nothing means use the default catalog for the dialect
 
 1. rewrite the catalog code
 support schemas and schema search path properly
@@ -283,6 +292,7 @@ lint for sql with plugins
 
 parameterized annotation
 
+
 ------------------------
 
 old notes
@@ -333,7 +343,7 @@ review docs, esp. haddock which contains all sorts of shockingly bad
 junk tests to get working: extensions, roundtrip?
 
 want to be ready to do comprehensive review of pg syntax support for
-   0.6.0, so can work through and get a reasonably comprehensive list
+   0.7.0, so can work through and get a reasonably comprehensive list
    of what is missing
 
 documentation:

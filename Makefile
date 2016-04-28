@@ -39,6 +39,11 @@ all : examples test
 test : hssqlppp
 	stack test hssqlppp hssqlppp-th --test-arguments --hide-successes
 
+.PHONY : test-hssqlppp
+test-hssqlppp : hssqlppp
+	stack test hssqlppp --test-arguments --hide-successes
+
+
 # if you need some other combination of targets please add them to the
 # makefile
 
@@ -209,14 +214,15 @@ website-generated : # todo
 # TODO: this is very slow because stack is compiling hssqlppp instead
 # of just doing the haddock. I don't know if there is a way round this
 
+LTS_VER = $(shell sed -n "s/^resolver:\s*\(lts-[0-9.]\+\)/\1/p" stack.yaml)
+GHC_VER = $(shell ghc --numeric-version)
+
 .PHONY : website-haddock
 website-haddock : $(shell find hssqlppp hssqlppp-th -iname '*hs')
 	-mkdir -p build/website/haddock
 	stack install hscolour
 	stack haddock hssqlppp hssqlppp-th
-	# todo: how to find the right dir automatically
-	cp -R .stack-work/install/x86_64-linux/lts-5.13/7.10.3/doc/* build/website/haddock/
-
+	cp -R .stack-work/install/x86_64-linux/$(LTS_VER)/$(GHC_VER)/doc/* build/website/haddock/
 
 # generate a diagram of the hssqlppp package internal module dependencies
 
