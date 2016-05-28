@@ -2566,6 +2566,7 @@ Utility parsers
 
 > extrStr :: ScalarExpr -> String
 > extrStr (StringLit _ s) = s
+> -- todo: use fail or something?
 > extrStr x =
 >   error $ "internal error: extrStr not supported for this type " ++ show x
 

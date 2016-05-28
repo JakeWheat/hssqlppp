@@ -498,6 +498,7 @@ Conversion routines - convert Sql asts into Docs
 >     annot ca ann <+>
 >     text "perform" <+> scalExpr flg f <> statementEnd se
 > statement _ _ _ (Perform _ x) =
+>    -- todo: don't use error
 >    error $ "internal error: statement not supported for " ++ show x
 >
 > statement _flg se ca (CopyFrom ann tb cols src opts) =
@@ -724,6 +725,7 @@ Statement components
 >   parens (queryExpr flg True True Nothing sub)
 > tref flg (FunTref _ f@(App {})) = scalExpr flg f
 > tref _flg (FunTref _ x) =
+>       -- todo: don't use error
 >       error $ "internal error: node not supported in function tref: "
 >             ++ show x
 > tref flg (TableRefParens _ t) = parens (tref flg t)
@@ -968,7 +970,9 @@ syntax maybe should error instead of silently breaking
 > scalExpr _ (AntiScalarExpr s) = text $ "$(" ++ s ++ ")"
 > scalExpr _ (Star _) = text "*"
 > scalExpr _ (QStar _ i) = nmc i <> text ".*"
-> scalExpr _ (Identifier _ (AntiName _)) = error "Antiname component"
+> scalExpr _ (Identifier _ (AntiName _)) =
+>     -- todo: don't use error
+>     error "Antiname component"
 
 > scalExpr _flg (Identifier _a (Name _ is)) =
 >   hcat (punctuate (text ".") (map nmc is))

@@ -47,7 +47,7 @@
 > ansiCatalog :: Catalog
 > ansiCatalog =
 >     (\l -> case l of
->              Left x -> error $ show x
+>              Left x -> error $ show x -- todo: what is the best way to handle this?
 >              Right e -> e) $
 >      flip updateCatalog emptyCatalog (
 >                                        -- todo: duplicated list of text types
