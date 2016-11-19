@@ -667,7 +667,6 @@ ddl
 >                <$> pos
 >                <*> nameComponent
 >                <*> typeName
->                <*> tryOptionMaybe (keyword "default" *> expr)
 >                <*> many rowConstraint
 >                <*> option [] tableOptions
 >   where
@@ -678,6 +677,7 @@ ddl
 >           RowUniqueConstraint p cn <$ keyword "unique"
 >          ,RowPrimaryKeyConstraint p cn <$ keyword "primary" <* keyword "key"
 >          ,RowCheckConstraint p cn <$> (keyword "check" *> parens expr)
+>          ,DefaultConstraint p cn <$> (keyword "default" *> expr)
 >          ,NullConstraint p cn <$ keyword "null"
 >          ,NotNullConstraint p cn <$ (keyword "not" <* keyword "null")
 >          ,IdentityConstraint p cn <$> (keyword "identity" *>
