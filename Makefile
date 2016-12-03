@@ -219,10 +219,11 @@ GHC_VER = $(shell ghc --numeric-version)
 
 .PHONY : website-haddock
 website-haddock : $(shell find hssqlppp hssqlppp-th -iname '*hs')
-	-mkdir -p build/website/haddock
-	stack install hscolour
-	stack haddock hssqlppp hssqlppp-th
-	cp -R .stack-work/install/x86_64-linux/$(LTS_VER)/$(GHC_VER)/doc/* build/website/haddock/
+	#stack won't build the haddock anymore
+	# -mkdir -p build/website/haddock
+	# stack install hscolour
+	# stack haddock hssqlppp hssqlppp-th
+	# cp -R .stack-work/install/x86_64-linux/$(LTS_VER)/$(GHC_VER)/doc/* build/website/haddock/
 
 # generate a diagram of the hssqlppp package internal module dependencies
 
