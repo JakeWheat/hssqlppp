@@ -1060,18 +1060,18 @@ data SetClause | SetClause ann::Annotation
 = ddl, utility components
 
 -}
---name type default null constraint
+--name type constraints options
 
 data AttributeDef | AttributeDef ann::Annotation
                                  name :: NameComponent
                                  typ :: TypeName
-                                 def:: MaybeScalarExpr
                                  cons :: RowConstraintList
                                  options :: {[TableOption]}
 
 --Constraints which appear attached to an individual field
 
-data RowConstraint | NullConstraint ann::Annotation name::String
+data RowConstraint | DefaultConstraint ann::Annotation name::String expr::ScalarExpr
+                   | NullConstraint ann::Annotation name::String
                    | NotNullConstraint ann::Annotation name::String
                    | IdentityConstraint ann::Annotation name::String seedAndInc ::{(Maybe (Integer,Integer))}
                    | RowCheckConstraint ann::Annotation name::String expr::ScalarExpr

@@ -871,12 +871,13 @@ syntax maybe should error instead of silently breaking
 >            -- _ -> "unknown type " ++ (show x)
 
 > attrDef :: PrettyFlags -> AttributeDef -> Doc
-> attrDef flg (AttributeDef _ n t def cons opts) =
+> attrDef flg (AttributeDef _ n t cons opts) =
 >   nmc n <+> typeName t
->   <+> maybePrint (\e -> text "default" <+> scalExpr flg e) def
 >   <+> hsep (map cCons cons)
 >   <+> tableOpts flg opts
 >   where
+>     cCons (DefaultConstraint _ cn e) =
+>       mname cn <+> text "default" <+> scalExpr flg e
 >     cCons (NullConstraint _ cn) =
 >       mname cn <+> text "null"
 >     cCons (NotNullConstraint _ cn) =

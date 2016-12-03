@@ -146,6 +146,7 @@ sem MaybeScalarExpr
     | Just just.odbcFunction = False
 
 sem RowConstraint
+    | DefaultConstraint expr.odbcFunction = False
     | RowCheckConstraint expr.odbcFunction = False
 
 sem ScalarExprDirectionPair
@@ -804,7 +805,6 @@ classifyInteger d s = maybe (Left []) Right $ case (readMaybe s :: Maybe Integer
 -- boilerplate for cast contexts
 
 sem AlterColumnAction | SetDefault def.assignmentCastContext = False
-sem AttributeDef | AttributeDef def.assignmentCastContext = False
 sem CaseScalarExprListScalarExprPair | Tuple x1.assignmentCastContext = False
 sem CaseScalarExprListScalarExprPair | Tuple x2.assignmentCastContext = False
 sem Constraint | CheckConstraint expr.assignmentCastContext = False
@@ -813,6 +813,7 @@ sem InList | InQueryExpr sel.assignmentCastContext = False
 sem JoinExpr | JoinOn expr.assignmentCastContext = False
 sem MaybeBoolExpr | Just just.assignmentCastContext = False
 sem MaybeSelectList | Just just.assignmentCastContext = False
+sem RowConstraint | DefaultConstraint expr.assignmentCastContext = False
 sem RowConstraint | RowCheckConstraint expr.assignmentCastContext = False
 sem ScalarExprDirectionPair | Tuple x1.assignmentCastContext = False
 sem ScalarExprListStatementListTriple | Tuple x1.assignmentCastContext = False

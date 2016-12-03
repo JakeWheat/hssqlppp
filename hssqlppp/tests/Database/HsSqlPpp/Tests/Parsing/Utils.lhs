@@ -33,7 +33,7 @@ shortcuts for constructing test data and asts
 >
 >
 > att :: Text -> Text -> AttributeDef
-> att n t = AttributeDef ea (Nmc $ T.unpack n) (SimpleTypeName ea $ name t) Nothing [] []
+> att n t = AttributeDef ea (Nmc $ T.unpack n) (SimpleTypeName ea $ name t) [] []
 
 > ea :: Annotation
 > ea = emptyAnnotation
@@ -154,7 +154,7 @@ new create table stuff
 > setTableReplace x _ = error $ "setTableReplace called on wrong ctor " ++ show x
 
 > setAttOpts :: AttributeDef -> [TableOption] -> AttributeDef
-> setAttOpts (AttributeDef a nm ty d cs _) opts = AttributeDef a nm ty d cs opts
+> setAttOpts (AttributeDef a nm ty cs _) opts = AttributeDef a nm ty cs opts
 
 > setTableOpts :: Statement -> [TableOption] -> Statement
 > setTableOpts (CreateTable a nm atts cs p r _) opts = CreateTable a nm atts cs p r opts
