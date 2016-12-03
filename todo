@@ -49,15 +49,17 @@ put the special operators like between and substring in a separate
    functions of the same name
 
 implicit case uses type. The syntax should not depend on this, maybe
-replace with something just specific to implicit cast
+replace with something just specific to implicit cast (meaning the
+   syntax types should not depend on any of the typechecking types)
 
 full dialect type is used all the way through the internals. it is
-nice to have a single dialect type for the user, but to reduce couple
-internally, there should be minimal dialect types for each of
-lexing,parsing,pretty printing and typechecking. Maybe the
-lexing,parsing and pretty printing will be the same type, but don't
-want the parser to depend on all the code that the typechecking part
-of the dialect depends on
+nice to have a single dialect type for the user, but to reduce
+coupling internally, there should be minimal dialect types for each of
+lexing,parsing,pretty printing and typechecking (meaning, when we pass
+a dialect type to the parsing code, it shouldn't contain e.g. type
+checking specific fields). Maybe the lexing,parsing and pretty
+printing will be the same type, but don't want the parser to depend on
+all the code that the typechecking part of the dialect depends on
 
 the annotation type pulls in a bunch of stuff into the syntax. can the
 tree be parameterized on the annotation type? can the annotation type
@@ -71,7 +73,7 @@ fix the catalogs and tests for oracle and sql server so they are not
 based on postresql, which makes them very wrong
 
 the dialects used in the tests are a bit confused because of legacy
-issues. The tests need to be more methodical anyway.
+issues. The tests need to be more methodical as well.
 
 the odbc catalog does not attach onto the current dialect
 properly. the typechecker should access the odbc via the dialect and

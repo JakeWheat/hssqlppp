@@ -152,6 +152,7 @@ is only one name component. This will be altered when schema search
 paths are implemented.
 
 > getCatName2 :: [NameComponent] -> (CatName,CatName)
+> -- todo: don't use error here
 > getCatName2 [] = error "empty name component in catalog code"
 > getCatName2 [a] = ("public",ncStrT a)
 > getCatName2 [a,b] = (ncStrT a, ncStrT b)
