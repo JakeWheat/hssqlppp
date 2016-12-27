@@ -169,7 +169,6 @@ sem Statement | CreateView ann.tpe = Left []
 sem Statement | CreateView expr.outerDownEnv = Nothing
 sem Statement | CreateView name.tpe = Left []
 sem Statement | Delete table.tpe = Left []
-sem Statement | Delete whr.downEnv = E.emptyEnvironment
 sem Statement | DropFunction ann.tpe = Left []
 sem Statement | DropTrigger tbl.tpe = Left []
 sem Statement | ExecStatement args.downEnv = E.emptyEnvironment

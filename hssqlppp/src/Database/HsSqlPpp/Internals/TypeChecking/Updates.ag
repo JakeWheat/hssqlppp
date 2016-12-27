@@ -15,8 +15,15 @@ copyfrom
 
 
 sem Statement
-  | Insert Update Delete CopyFrom CopyTo Truncate
+  | Insert Update CopyFrom CopyTo Truncate
     ann.tpe = Left []
+
+  | Delete
+    loc.eEnv :: {Either [TypeError] Environment}
+    loc.eEnv = E.envCreateTrefEnvironment @lhs.cat (nameComponents @table.originalTree)
+    ann.tpe = either Left (Right . mkTypeExtraNN . TrefType)
+              (@loc.eEnv >>= E.envExpandStar Nothing)
+    whr.downEnv = either (const E.brokeEnvironment) id @loc.eEnv
 
   | Insert
     -- find the table and column names
