@@ -18,6 +18,20 @@ sem Statement
   | Insert Update Delete CopyFrom CopyTo Truncate
     ann.tpe = Left []
 
+  | Insert Update
+    returning.downEnv = E.emptyEnvironment
+
+  | Delete
+    loc.eEnv :: {Either [TypeError] Environment}
+    loc.eEnv = do
+               head <- E.envCreateTrefEnvironment @lhs.cat (nameComponents @table.originalTree)
+               let rest = @using.upEnv
+               E.createJoinTrefEnvironment @lhs.cat head rest E.Inner $ Just []
+
+    loc.downEnv = either (const E.brokeEnvironment) id @loc.eEnv
+    whr.downEnv = @loc.downEnv
+    returning.downEnv = @loc.downEnv
+
   | Insert
     -- find the table and column names
     -- and produce the expected type for the insdata
