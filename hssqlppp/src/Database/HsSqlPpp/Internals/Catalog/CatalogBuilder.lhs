@@ -138,6 +138,13 @@
 >       CatCreateTypeCategoryEntry n (c,p) -> do
 >         t <- catLookupType cat [QNmc $ T.unpack n]
 >         Right $ cat {catTypeCategories = M.insert t (c,p) $ catTypeCategories cat}
+>       CatDropTable n -> do
+>           let
+>             -- not sure if we should remove from the catUpdates or add to it
+>             isCreate (CatCreateTable tn _) = n == tn
+>             isCreate _ = False
+>             newUpdates = filter (not . isCreate) $ catUpdates cat
+>           Right $ cat {catTables = M.delete n (catTables cat), catUpdates = newUpdates}
 
 > deconstructCatalog :: Catalog -> [CatalogUpdate]
 > deconstructCatalog = catUpdates
