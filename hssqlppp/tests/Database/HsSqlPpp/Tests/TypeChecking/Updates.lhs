@@ -193,14 +193,33 @@ TODO: from list, returning
 = delete
 
 simple delete
+
+>   ,tcStatements simpleTEnv
+>    "delete from t;"
+>    $ Nothing
+
 with schema
+
+>   ,tcStatements simpleTEnv
+>    "delete from public.t;"
+>    $ Nothing
+
 bad table name
 bad schema
-simple where
-where with wrong col
-where with non bool
 
-todo: using and returning
+simple where
+
+>   ,tcStatements simpleTEnv
+>    "delete from t where a > 100;"
+>    $ Nothing
+
+where with wrong col
+
+>   ,tcStatements simpleTEnv
+>    "delete from t where x > 100;"
+>    $ Just [UnrecognisedIdentifier "x"]
+
+where with non bool
 
 = copy from
 
