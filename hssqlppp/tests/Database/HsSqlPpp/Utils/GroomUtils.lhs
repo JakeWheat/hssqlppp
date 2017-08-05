@@ -17,9 +17,9 @@ groomTypes: show anns as Type|TypeErrors
 > --groomAAnns = undefined
 
 > groomNoAnns :: Show a => a -> String
-> groomNoAnns = groomF $ const $ Con $ UnQual $ Ident "A"
+> groomNoAnns = groomF $ const $ Con noSrcSpan $ UnQual noSrcSpan $ Ident noSrcSpan "A"
 
-> groomF :: Show a => (Exp -> Exp) -> a -> String
+> groomF :: Show a => (Exp SrcSpanInfo -> Exp SrcSpanInfo) -> a -> String
 > groomF f s =
 >   case parseExp (show s) of
 >     ParseOk ast -> prettyPrint (g ast)
@@ -27,59 +27,22 @@ groomTypes: show anns as Type|TypeErrors
 >   where
 >     g = transformBi $ \x ->
 >                case x of
->                  RecConstr (UnQual (Ident "Annotation")) _ ->
+>                  RecConstr _ (UnQual _ (Ident _ "Annotation")) _ ->
 >                           f x
 >                  x' -> x'
 
 
 > groomTypes :: Show a => a -> String
 > groomTypes = groomF $ \x -> case x of
->   RecConstr (UnQual (Ident "Annotation"))
->    [FieldUpdate _ _,
->     FieldUpdate (UnQual (Ident "anType")) t,
->     FieldUpdate (UnQual (Ident "anErrs")) (List errs),
->     FieldUpdate _ _,
->     FieldUpdate _ _] -> case (t,errs) of
->                              (Con (UnQual (Ident "Nothing")),[]) ->
->                                  Con (UnQual (Ident "A"))
+>   RecConstr _ (UnQual _ (Ident _ "Annotation"))
+>    [FieldUpdate _ _ _,
+>     FieldUpdate _ (UnQual _ (Ident _ "anType")) t,
+>     FieldUpdate _ (UnQual _ (Ident _ "anErrs")) (List _ errs),
+>     FieldUpdate _ _ _,
+>     FieldUpdate _ _ _] -> case (t,errs) of
+>                              (Con _ (UnQual _ (Ident _ "Nothing")),[]) ->
+>                                  Con noSrcSpan (UnQual noSrcSpan (Ident noSrcSpan "A"))
 >                              (y,[]) -> y
->                              (_,z) -> List z
+>                              (_,z) -> List noSrcSpan z
 >   x' -> x'
 
-
-
-
- (RecConstr (UnQual (Ident "Annotation"))
-      [FieldUpdate (UnQual (Ident "asrc"))
-         (Con (UnQual (Ident "Nothing"))),
-       FieldUpdate (UnQual (Ident "atype"))
-         (Con (UnQual (Ident "Nothing"))),
-       FieldUpdate (UnQual (Ident "errs")) (List []),
-       FieldUpdate (UnQual (Ident "implicitCast"))
-         (Con (UnQual (Ident "Nothing"))),
-       FieldUpdate (UnQual (Ident "catUpd")) (List [])])
-
-
->    {-
->   groomF tte d
->   where
->     tte :: Exp -> Exp
->     tte (Paren
->                   (App
->                    (App
->                     (App
->                      (App
->                       (App
->                        (App (Con (UnQual (Ident "Annotation")))
->                         _) t) te) _) _) _))
->          = case (t,te) of
->               (Con (UnQual (Ident "Nothing")) ,List []) ->
->                  Con (UnQual (Ident "A"))
->               (y,List []) -> y
->               (_,x) -> x
->            {-trace ("\n*************\n"
->                   ++ groom t
->                   ++ "\n*************\n"
->                   ++ groom te
->                   ++ "\n*************\n") $ Tuple [t,te]-}
->     tte x = x-}

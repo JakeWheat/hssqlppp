@@ -72,10 +72,11 @@ add some of the missing information to the output
 > quasiQuotesTestsTable :: IO String
 > quasiQuotesTestsTable = do
 >   ast <- pf "hssqlppp-th/tests/Database/HsSqlPpp/Tests/QuasiQuoteTests.lhs"
->   let lets = [l | l@(Let _ _) <- universeBi ast]
+>   let lets :: [Exp SrcSpanInfo]
+>       lets = [l | l@(Let {}) <- universeBi ast]
 >   return $ render $ map (\x -> Row [Cell [Haskell (prettyPrint x)]]) lets
 
-> pf :: String -> IO Module
+> pf :: String -> IO (Module SrcSpanInfo)
 > pf f = do
 >   x <- parseFileWithExts [EnableExtension QuasiQuotes] f
 >   case x of
