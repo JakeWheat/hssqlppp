@@ -19,3 +19,4 @@ nohup.out
 /make-website/cabal.sandbox.config
 /make-website/dist/
 .stack-work/
+/stack.yaml.lock

@@ -165,9 +165,16 @@ check-packdeps :
 # the curated stack packages. On the other hand, most of the issues
 # this finds are when we use 7.10 only features in the source, and
 # aren't related to the package versions
-.PHONY : ghc-78
-ghc-78 :
-	stack --resolver lts-2 test
+#.PHONY : ghc-78
+#ghc-78 :
+#	stack --resolver lts-2 test
+
+ghc-844 :
+	stack --resolver lts-12.26 test
+
+ghc-822 :
+	stack --resolver lts-11.22 test
+
 
 
 ##############################################################################
@@ -221,8 +228,8 @@ GHC_VER = $(shell ghc --numeric-version)
 website-haddock : $(shell find hssqlppp hssqlppp-th -iname '*hs')
 	-mkdir -p build/website/haddock
 	stack install hscolour
-	stack haddock hssqlppp hssqlppp-th
-	cp -R .stack-work/install/x86_64-linux/$(LTS_VER)/$(GHC_VER)/doc/* build/website/haddock/
+	stack haddock hssqlppp hssqlppp-th --haddock-arguments --odir=`pwd`/build/website/haddock/
+	#cp -R .stack-work/install/x86_64-linux/$(LTS_VER)/$(GHC_VER)/doc/* build/website/haddock/
 
 
 # generate a diagram of the hssqlppp package internal module dependencies

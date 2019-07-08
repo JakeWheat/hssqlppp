@@ -16,6 +16,7 @@
 >     )
 >     where
 >
+> import Prelude hiding ((<>))
 > import Text.PrettyPrint
 > import Data.Maybe
 >

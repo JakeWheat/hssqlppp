@@ -1,7 +1,7 @@
 # For more information, see: https://github.com/commercialhaskell/stack/blob/release/doc/yaml_configuration.md
 
 # Specifies the GHC version and set of packages available (e.g., lts-3.5, nightly-2015-09-21, ghc-7.10.2)
-resolver: lts-9.0
+resolver: lts-13.27
 
 # Local packages, usually specified by relative directory name
 packages:
@@ -15,11 +15,11 @@ packages:
 # - make-website/
 
 # Packages to be pulled from upstream that are not in the resolver (e.g., acme-missiles-0.3)
-extra-deps: [uuagc-0.9.52.1
-            ,uuagc-cabal-1.0.6.0
-            ,uulib-0.9.22
+extra-deps: [uuagc-0.9.52.2
+            ,uuagc-cabal-1.1.0.0
+            ,uulib-0.9.24
             ,dotgen-0.4.2
-            ,graphmod-1.4]
+            ,graphmod-1.4.3]
 
 # Override default flag values for local pbackages and extra-deps
 flags: {}

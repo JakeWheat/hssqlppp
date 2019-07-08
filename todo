@@ -1,4 +1,30 @@
 
+minimal release:
+update cabal package versions
+add <> to pretty print
+update stack versions
+add nix file
+-> make a release which compiles with latest ghc quickly
+
+
+todo right now: update release and look at some of the bugs and pull
+requests
+check makefile
+  build system mostly working
+  give nix instructions
+    time nix-shell --command "make really-all"
+  still to do:
+    check-packdeps
+    test older versions of ghc
+    generatepostgrescatalog
+  maybe try to port to cabal only? seems like the less worse tool at the moment
+review docs
+review bugs & pull reqs
+update changelog
+check ghc versions
+release
+
+
 State of the code:
 
 There are some big issues

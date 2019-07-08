@@ -1,5 +1,5 @@
 Name:                hssqlppp-th
-Version:             0.6.1
+Version:             0.6.2
 Synopsis:            hssqlppp extras which need template-haskell
 License:             BSD3
 License-file:        LICENSE
@@ -30,7 +30,7 @@ source-repository head
 Library
   Build-Depends:     base >= 4 && < 5,
                      template-haskell,
-                     hssqlppp == 0.6.1,
+                     hssqlppp == 0.6.2,
                      syb >= 0.1.0.2 && < 0.8,
                      text >= 0.11.1.13 && < 1.3
 
@@ -46,11 +46,11 @@ Test-Suite TestsTh
     Build-Depends:     base >= 4 && < 5,
                        syb >= 0.1.0.2 && < 0.8,
                        template-haskell,
-                       tasty >= 0.10 && < 0.12,
-                       tasty-hunit >= 0.9 && < 0.10,
+                       tasty >= 0.10 && < 1.3,
+                       tasty-hunit >= 0.9 && < 0.11,
 
                        text >= 0.11.1.13 && < 1.3,
-                       hssqlppp == 0.6.1
+                       hssqlppp == 0.6.2
 
   Other-Modules:       Database.HsSqlPpp.Tests.QuasiQuoteTests
                        Database.HsSqlPpp.Quote
