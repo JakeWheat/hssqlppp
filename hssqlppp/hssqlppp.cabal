@@ -153,6 +153,7 @@ Test-Suite Tests
                     Database.HsSqlPpp.Utils.Here
                     Database.HsSqlPpp.Utils.GroomUtils
                     Database.HsSqlPpp.Tests.TypeChecking.Catalog
+                    Database.HsSqlPpp.Tests.TypeChecking.CatalogOld
 
     Database.HsSqlPpp.Annotation
     Database.HsSqlPpp.Catalog

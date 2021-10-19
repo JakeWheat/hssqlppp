@@ -189,4 +189,6 @@ todo: use left or something instead of error
 >   | CatCreateCast CatName CatName CastContext
 >     -- | register a type category for a type (used in the implicit cast resolution)
 >   | CatCreateTypeCategoryEntry CatName (Text,Bool)
+>     -- | deregister a table
+>   | CatDropTable (CatName,CatName)
 >     deriving (Eq,Ord,Typeable,Data,Show)
