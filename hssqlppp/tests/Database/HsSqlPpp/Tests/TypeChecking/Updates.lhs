@@ -193,14 +193,75 @@ TODO: from list, returning
 = delete
 
 simple delete
+
+>   ,tcStatements simpleTEnv
+>    "delete from t;"
+>    $ Nothing
+
 with schema
+
+>   ,tcStatements simpleTEnv
+>    "delete from public.t;"
+>    $ Nothing
+
 bad table name
 bad schema
+
 simple where
+
+>   ,tcStatements simpleTEnv
+>    "delete from t where a > 100;"
+>    $ Nothing
+
 where with wrong col
+
+>   ,tcStatements simpleTEnv
+>    "delete from t where x > 100;"
+>    $ Just [UnrecognisedIdentifier "x"]
+
 where with non bool
 
-todo: using and returning
+where and using
+
+>   ,tcStatements simpleTEnv
+>    "delete from t using t2 where c > 100;"
+>    $ Nothing
+
+where and using with incorrect column name
+
+>   ,tcStatements simpleTEnv
+>    "delete from t using t2 where x > 100;"
+>    $ Just [UnrecognisedIdentifier "x"]
+
+returning a single column
+
+>   ,tcStatements simpleTEnv
+>    "delete from t returning a;"
+>    $ Nothing
+
+returning with star expand
+
+>   ,tcStatements simpleTEnv
+>    "delete from t returning *;"
+>    $ Nothing
+
+returning with incorrect column name
+
+>   ,tcStatements simpleTEnv
+>    "delete from t returning x;"
+>    $ Just [UnrecognisedIdentifier "x"]
+
+returning and using
+
+>   ,tcStatements simpleTEnv
+>    "delete from t using t2 returning a,c;"
+>    $ Nothing
+
+returning and using with incorrect column name
+
+>   ,tcStatements simpleTEnv
+>    "delete from t using t2 returning x;"
+>    $ Just [UnrecognisedIdentifier "x"]
 
 = copy from
 
@@ -231,7 +292,10 @@ check table names + schema options
 >   where
 >     simpleTEnv = [CatCreateTable ("public","t")
 >                   [("a", mkCatNameExtra "int4")
->                   ,("b", mkCatNameExtra "text")]]
+>                   ,("b", mkCatNameExtra "text")]
+>                   ,CatCreateTable ("public","t2")
+>                   [("c", mkCatNameExtra "int4")
+>                   ,("d", mkCatNameExtra "text")]]
 >     _anotherUEnv = [CatCreateTable ("something","u")
 >                   [("a", mkCatNameExtra "int4")
 >                   ,("b", mkCatNameExtra "text")]]

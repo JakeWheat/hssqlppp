@@ -160,6 +160,12 @@ attr SelectItemList SelectList
   inh expectedCast :: {Bool}
   syn upEnv :: Environment
 
+attr MaybeSelectList
+  inh downEnv :: Environment
+
+sem MaybeSelectList
+  | Just just.expectedCast = False
+         just.expectedType = Nothing
 
 {-
 
